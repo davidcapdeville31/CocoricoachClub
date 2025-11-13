@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AddClubDialog } from "@/components/clubs/AddClubDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export default function Clubs() {
   const navigate = useNavigate();
@@ -73,14 +74,17 @@ export default function Clubs() {
                 Gestion des clubs et suivi des performances
               </p>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={signOut}
-              className="text-primary-foreground hover:bg-primary-foreground/10"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={signOut}
+                className="text-primary-foreground hover:bg-primary-foreground/10"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>

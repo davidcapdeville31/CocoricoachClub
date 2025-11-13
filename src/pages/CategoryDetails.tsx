@@ -10,6 +10,7 @@ import { TestsTab } from "@/components/category/TestsTab";
 import { AwcrTab } from "@/components/category/AwcrTab";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { InjuriesTab } from "@/components/injuries/InjuriesTab";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export default function CategoryDetails() {
   const { categoryId } = useParams();
@@ -32,14 +33,17 @@ export default function CategoryDetails() {
     <div className="min-h-screen bg-background">
       <div className="bg-gradient-hero py-12 px-4">
         <div className="container mx-auto max-w-7xl">
-          <Button
-            variant="ghost"
-            className="mb-4 text-primary-foreground hover:bg-primary-foreground/10"
-            onClick={() => navigate(`/clubs/${category?.club_id}`)}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour aux catégories
-          </Button>
+          <div className="flex justify-between items-start mb-4">
+            <Button
+              variant="ghost"
+              className="text-primary-foreground hover:bg-primary-foreground/10"
+              onClick={() => navigate(`/clubs/${category?.club_id}`)}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Retour aux catégories
+            </Button>
+            <NotificationBell />
+          </div>
           <h1 className="text-4xl font-bold text-primary-foreground">
             {category?.name}
           </h1>

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AddCategoryDialog } from "@/components/categories/AddCategoryDialog";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export default function ClubDetails() {
   const { clubId } = useParams();
@@ -69,14 +70,17 @@ export default function ClubDetails() {
     <div className="min-h-screen bg-background">
       <div className="bg-gradient-hero py-12 px-4">
         <div className="container mx-auto max-w-6xl">
-          <Button
-            variant="ghost"
-            className="mb-4 text-primary-foreground hover:bg-primary-foreground/10"
-            onClick={() => navigate("/")}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour aux clubs
-          </Button>
+          <div className="flex justify-between items-start mb-4">
+            <Button
+              variant="ghost"
+              className="text-primary-foreground hover:bg-primary-foreground/10"
+              onClick={() => navigate("/")}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Retour aux clubs
+            </Button>
+            <NotificationBell />
+          </div>
           <h1 className="text-4xl font-bold text-primary-foreground">{club?.name}</h1>
         </div>
       </div>

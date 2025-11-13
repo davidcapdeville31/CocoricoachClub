@@ -10,6 +10,7 @@ import { PlayerCalendarTab } from "@/components/player/PlayerCalendarTab";
 import { PlayerAwcrTab } from "@/components/player/PlayerAwcrTab";
 import { PlayerProfile } from "@/components/player/PlayerProfile";
 import { PlayerInjuriesTab } from "@/components/player/PlayerInjuriesTab";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export default function PlayerDetails() {
   const { playerId } = useParams<{ playerId: string }>();
@@ -47,14 +48,17 @@ export default function PlayerDetails() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-8">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(`/categories/${player.categories?.id}`)}
-          className="mb-6 gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Retour à la catégorie
-        </Button>
+        <div className="flex justify-between items-center mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(`/categories/${player.categories?.id}`)}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Retour à la catégorie
+          </Button>
+          <NotificationBell variant="default" />
+        </div>
 
         <Card className="mb-6 bg-gradient-card shadow-md">
           <CardHeader>
