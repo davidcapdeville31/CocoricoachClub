@@ -201,12 +201,12 @@ const VoiceAssistant = ({ categoryId }: VoiceAssistantProps) => {
   };
 
   return (
-    <Card className="fixed bottom-20 right-4 z-50 p-4 w-80 shadow-2xl border-2">
-      <div className="space-y-3">
+    <Card className="fixed bottom-4 sm:bottom-20 right-4 z-50 p-3 sm:p-4 w-[calc(100vw-2rem)] sm:w-80 max-w-md shadow-2xl border-2">
+      <div className="space-y-2 sm:space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold">🎙️ Assistant Vocal</h3>
+          <h3 className="font-semibold text-sm sm:text-base">🎙️ Assistant Vocal</h3>
           {lastSaved && (
-            <CheckCircle2 className="w-5 h-5 text-green-500" />
+            <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
           )}
         </div>
 
