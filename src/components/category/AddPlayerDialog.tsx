@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { playerSchema } from "@/lib/validations";
 
 interface AddPlayerDialogProps {
   open: boolean;
@@ -25,6 +26,7 @@ export function AddPlayerDialog({
   categoryId,
 }: AddPlayerDialogProps) {
   const [playerName, setPlayerName] = useState("");
+  const [validationError, setValidationError] = useState("");
   const queryClient = useQueryClient();
 
   const addPlayer = useMutation({
@@ -47,9 +49,16 @@ export function AddPlayerDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (playerName.trim()) {
-      addPlayer.mutate(playerName.trim());
+    setValidationError("");
+
+    const result = playerSchema.safeParse({ name: playerName });
+    
+    if (!result.success) {
+      setValidationError(result.error.errors[0].message);
+      return;
     }
+
+    addPlayer.mutate(result.data.name);
   };
 
   return (
@@ -65,10 +74,16 @@ export function AddPlayerDialog({
               <Input
                 id="playerName"
                 value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
+                onChange={(e) => {
+                  setPlayerName(e.target.value);
+                  setValidationError("");
+                }}
                 placeholder="Ex: Jean Dupont"
                 required
               />
+              {validationError && (
+                <p className="text-sm text-destructive">{validationError}</p>
+              )}
             </div>
           </div>
           <DialogFooter>

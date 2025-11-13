@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { categorySchema } from "@/lib/validations";
 
 interface AddCategoryDialogProps {
   open: boolean;
@@ -25,6 +26,7 @@ export function AddCategoryDialog({
   clubId,
 }: AddCategoryDialogProps) {
   const [categoryName, setCategoryName] = useState("");
+  const [validationError, setValidationError] = useState("");
   const queryClient = useQueryClient();
 
   const addCategory = useMutation({
@@ -47,9 +49,16 @@ export function AddCategoryDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (categoryName.trim()) {
-      addCategory.mutate(categoryName.trim());
+    setValidationError("");
+
+    const result = categorySchema.safeParse({ name: categoryName });
+    
+    if (!result.success) {
+      setValidationError(result.error.errors[0].message);
+      return;
     }
+
+    addCategory.mutate(result.data.name);
   };
 
   return (
@@ -65,10 +74,16 @@ export function AddCategoryDialog({
               <Input
                 id="categoryName"
                 value={categoryName}
-                onChange={(e) => setCategoryName(e.target.value)}
+                onChange={(e) => {
+                  setCategoryName(e.target.value);
+                  setValidationError("");
+                }}
                 placeholder="Ex: M14, Gaudermen, Alamercery"
                 required
               />
+              {validationError && (
+                <p className="text-sm text-destructive">{validationError}</p>
+              )}
             </div>
           </div>
           <DialogFooter>
