@@ -30,6 +30,45 @@ const VoiceAssistant = ({ categoryId }: VoiceAssistantProps) => {
 
   const connect = async () => {
     try {
+      setStatus("Demande d'accès au micro...");
+      
+      // IMPORTANT: Request microphone FIRST (required for iOS)
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            sampleRate: 24000,
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
+        
+        // Store stream for later use
+        recorderRef.current = new AudioRecorder((audioData) => {
+          if (wsRef.current?.readyState === WebSocket.OPEN) {
+            const base64Audio = encodeAudioForAPI(audioData);
+            wsRef.current.send(JSON.stringify({
+              type: 'input_audio_buffer.append',
+              audio: base64Audio
+            }));
+          }
+        });
+        
+        // Initialize with the stream
+        await recorderRef.current.start();
+        console.log("[Microphone] Access granted and started");
+        
+      } catch (micError) {
+        console.error("[Microphone Error]", micError);
+        toast({
+          title: "Accès au micro refusé",
+          description: "Veuillez autoriser le microphone dans les réglages de votre navigateur/téléphone",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       setStatus("Connexion...");
       
       // Get auth session for secure connection
@@ -83,8 +122,7 @@ const VoiceAssistant = ({ categoryId }: VoiceAssistantProps) => {
           case 'session.updated':
             console.log("[Voice Assistant] Session configured");
             setStatus("Prêt à écouter");
-            // Start microphone
-            await startMicrophone();
+            // Microphone already started before WebSocket connection
             break;
 
           case 'input_audio_buffer.speech_started':
@@ -174,29 +212,6 @@ const VoiceAssistant = ({ categoryId }: VoiceAssistantProps) => {
     }
   };
 
-  const startMicrophone = async () => {
-    try {
-      recorderRef.current = new AudioRecorder((audioData) => {
-        if (wsRef.current?.readyState === WebSocket.OPEN) {
-          const base64Audio = encodeAudioForAPI(audioData);
-          wsRef.current.send(JSON.stringify({
-            type: 'input_audio_buffer.append',
-            audio: base64Audio
-          }));
-        }
-      });
-
-      await recorderRef.current.start();
-      console.log("[Microphone] Started");
-    } catch (error) {
-      console.error("[Microphone Error]", error);
-      toast({
-        title: "Erreur microphone",
-        description: "Impossible d'accéder au microphone",
-        variant: "destructive",
-      });
-    }
-  };
 
   const disconnect = () => {
     if (recorderRef.current) {
