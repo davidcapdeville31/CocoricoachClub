@@ -11,9 +11,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { AddPlayerDialog } from "./AddPlayerDialog";
+import { useNavigate } from "react-router-dom";
 
 interface PlayersTabProps {
   categoryId: string;
@@ -22,6 +23,7 @@ interface PlayersTabProps {
 export function PlayersTab({ categoryId }: PlayersTabProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: players, isLoading } = useQuery({
     queryKey: ["players", categoryId],
@@ -85,23 +87,37 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
             </TableHeader>
             <TableBody>
               {players?.map((player) => (
-                <TableRow key={player.id} className="animate-fade-in">
+                <TableRow 
+                  key={player.id} 
+                  className="animate-fade-in cursor-pointer hover:bg-accent/50"
+                  onClick={() => navigate(`/players/${player.id}`)}
+                >
                   <TableCell className="font-medium">{player.name}</TableCell>
                   <TableCell>
                     {new Date(player.created_at).toLocaleDateString("fr-FR")}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        if (confirm(`Êtes-vous sûr de vouloir supprimer ${player.name} ?`)) {
-                          deletePlayer.mutate(player.id);
-                        }
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`Êtes-vous sûr de vouloir supprimer ${player.name} ?`)) {
+                            deletePlayer.mutate(player.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => navigate(`/players/${player.id}`)}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

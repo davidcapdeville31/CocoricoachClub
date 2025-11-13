@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Clubs from "./pages/Clubs";
 import ClubDetails from "./pages/ClubDetails";
 import CategoryDetails from "./pages/CategoryDetails";
+import PlayerDetails from "./pages/PlayerDetails";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/" element={<Clubs />} />
             <Route path="/clubs/:clubId" element={<ClubDetails />} />
             <Route path="/categories/:categoryId" element={<CategoryDetails />} />
+            <Route path="/players/:playerId" element={<PlayerDetails />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
