@@ -4,11 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { AddSessionDialog } from "./AddSessionDialog";
-import { format, isSameDay } from "date-fns";
+import { format, isSameDay, isWithinInterval } from "date-fns";
 import { fr } from "date-fns/locale";
+import type { DateRange } from "react-day-picker";
 
 interface CalendarTabProps {
   categoryId: string;
@@ -34,7 +35,7 @@ const trainingTypeColors: Record<string, string> = {
 
 export function CalendarTab({ categoryId }: CalendarTabProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const queryClient = useQueryClient();
 
   const { data: sessions, isLoading } = useQuery({
@@ -68,9 +69,15 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     },
   });
 
-  const sessionsForSelectedDate = sessions?.filter((session) =>
-    selectedDate ? isSameDay(new Date(session.session_date), selectedDate) : false
-  );
+  const filteredSessions = sessions?.filter((session) => {
+    if (!dateRange?.from) return false;
+    const sessionDate = new Date(session.session_date);
+    
+    if (dateRange.to) {
+      return isWithinInterval(sessionDate, { start: dateRange.from, end: dateRange.to });
+    }
+    return isSameDay(sessionDate, dateRange.from);
+  });
 
   const getDayContent = (day: Date) => {
     const daySessions = sessions?.filter((session) =>
@@ -99,22 +106,52 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     <div className="space-y-6">
       <Card className="bg-gradient-card shadow-md">
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center flex-wrap gap-4">
             <CardTitle>Calendrier des entraînements</CardTitle>
-            <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Ajouter une séance
-            </Button>
+            <div className="flex gap-2">
+              {dateRange?.from && (
+                <Button 
+                  onClick={() => setDateRange(undefined)} 
+                  variant="outline" 
+                  className="gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Réinitialiser
+                </Button>
+              )}
+              <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Ajouter une séance
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-2">
+                Sélectionnez une période pour filtrer les séances
+              </p>
+              {dateRange?.from && (
+                <p className="text-sm font-medium">
+                  {dateRange.to ? (
+                    <>
+                      Du {format(dateRange.from, "d MMM yyyy", { locale: fr })} au{" "}
+                      {format(dateRange.to, "d MMM yyyy", { locale: fr })}
+                    </>
+                  ) : (
+                    format(dateRange.from, "d MMMM yyyy", { locale: fr })
+                  )}
+                </p>
+              )}
+            </div>
             <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
+              mode="range"
+              selected={dateRange}
+              onSelect={setDateRange}
               locale={fr}
-              className="rounded-md border bg-card"
+              numberOfMonths={1}
+              className="rounded-md border bg-card pointer-events-auto"
               modifiers={{
                 hasSession: (day) =>
                   sessions?.some((session) =>
@@ -146,21 +183,28 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         </CardContent>
       </Card>
 
-      {selectedDate && (
+      {dateRange?.from && (
         <Card className="bg-gradient-card shadow-md">
           <CardHeader>
             <CardTitle>
-              Séances du {format(selectedDate, "d MMMM yyyy", { locale: fr })}
+              {dateRange.to ? (
+                <>
+                  Séances du {format(dateRange.from, "d MMM", { locale: fr })} au{" "}
+                  {format(dateRange.to, "d MMM yyyy", { locale: fr })}
+                </>
+              ) : (
+                <>Séances du {format(dateRange.from, "d MMMM yyyy", { locale: fr })}</>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {sessionsForSelectedDate && sessionsForSelectedDate.length === 0 ? (
+            {filteredSessions && filteredSessions.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-muted-foreground">Aucune séance ce jour</p>
+                <p className="text-muted-foreground">Aucune séance sur cette période</p>
               </div>
             ) : (
               <div className="space-y-3">
-                {sessionsForSelectedDate?.map((session) => (
+                {filteredSessions?.map((session) => (
                   <div
                     key={session.id}
                     className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors animate-fade-in"
@@ -173,14 +217,19 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
                       />
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold">
-                            {trainingTypeLabels[session.training_type]}
+                          <span className="text-xs text-muted-foreground">
+                            {format(new Date(session.session_date), "d MMM yyyy", { locale: fr })}
                           </span>
                           {session.session_time && (
-                            <span className="text-sm text-muted-foreground">
+                            <span className="text-xs text-muted-foreground">
                               • {session.session_time}
                             </span>
                           )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold">
+                            {trainingTypeLabels[session.training_type]}
+                          </span>
                         </div>
                         {session.intensity && (
                           <p className="text-sm text-muted-foreground">
