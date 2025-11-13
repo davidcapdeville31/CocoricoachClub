@@ -68,20 +68,17 @@ serve(async (req) => {
     return new Response("OPENAI_API_KEY not configured", { status: 500 });
   }
 
-  // Get auth token from headers
-  const authHeader = headers.get('authorization');
-  if (!authHeader) {
-    return new Response("Unauthorized: No authorization header", { status: 401 });
-  }
-
-  const token = authHeader.replace('Bearer ', '');
-  
-  // Get category ID from URL params
+  // Get category ID and token from URL params
   const url = new URL(req.url);
   const categoryId = url.searchParams.get('categoryId');
+  const token = url.searchParams.get('token');
   
   if (!categoryId) {
     return new Response("categoryId is required", { status: 400 });
+  }
+
+  if (!token) {
+    return new Response("Unauthorized: No token provided", { status: 401 });
   }
 
   // Create Supabase client with user's JWT to check permissions
@@ -89,7 +86,7 @@ serve(async (req) => {
   const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
   const authClient = createClient(supabaseUrl, supabaseAnonKey, {
     global: {
-      headers: { Authorization: authHeader }
+      headers: { Authorization: `Bearer ${token}` }
     }
   });
 
