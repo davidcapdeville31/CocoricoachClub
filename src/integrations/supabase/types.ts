@@ -131,6 +131,54 @@ export type Database = {
         }
         Relationships: []
       }
+      injuries: {
+        Row: {
+          actual_return_date: string | null
+          category_id: string
+          created_at: string
+          description: string | null
+          estimated_return_date: string | null
+          id: string
+          injury_date: string
+          injury_type: string
+          player_id: string
+          protocol_notes: string | null
+          severity: Database["public"]["Enums"]["injury_severity"]
+          status: Database["public"]["Enums"]["injury_status"]
+          updated_at: string
+        }
+        Insert: {
+          actual_return_date?: string | null
+          category_id: string
+          created_at?: string
+          description?: string | null
+          estimated_return_date?: string | null
+          id?: string
+          injury_date?: string
+          injury_type: string
+          player_id: string
+          protocol_notes?: string | null
+          severity: Database["public"]["Enums"]["injury_severity"]
+          status?: Database["public"]["Enums"]["injury_status"]
+          updated_at?: string
+        }
+        Update: {
+          actual_return_date?: string | null
+          category_id?: string
+          created_at?: string
+          description?: string | null
+          estimated_return_date?: string | null
+          id?: string
+          injury_date?: string
+          injury_type?: string
+          player_id?: string
+          protocol_notes?: string | null
+          severity?: Database["public"]["Enums"]["injury_severity"]
+          status?: Database["public"]["Enums"]["injury_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       players: {
         Row: {
           category_id: string
@@ -286,6 +334,95 @@ export type Database = {
           },
         ]
       }
+      training_cycles: {
+        Row: {
+          category_id: string
+          created_at: string
+          end_date: string
+          id: string
+          name: string
+          notes: string | null
+          period_id: string | null
+          start_date: string
+          target_intensity: number | null
+          updated_at: string
+          week_number: number
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          end_date: string
+          id?: string
+          name: string
+          notes?: string | null
+          period_id?: string | null
+          start_date: string
+          target_intensity?: number | null
+          updated_at?: string
+          week_number: number
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          end_date?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          period_id?: string | null
+          start_date?: string
+          target_intensity?: number | null
+          updated_at?: string
+          week_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_cycles_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "training_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_periods: {
+        Row: {
+          category_id: string
+          created_at: string
+          description: string | null
+          end_date: string
+          id: string
+          name: string
+          period_type: Database["public"]["Enums"]["period_type"]
+          start_date: string
+          target_load_percentage: number | null
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          description?: string | null
+          end_date: string
+          id?: string
+          name: string
+          period_type: Database["public"]["Enums"]["period_type"]
+          start_date: string
+          target_load_percentage?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          name?: string
+          period_type?: Database["public"]["Enums"]["period_type"]
+          start_date?: string
+          target_load_percentage?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       training_sessions: {
         Row: {
           category_id: string
@@ -338,6 +475,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      injury_severity: "légère" | "modérée" | "grave"
+      injury_status: "active" | "en_réathlétisation" | "guérie"
+      period_type: "préparation" | "compétition" | "récupération" | "trêve"
       training_type:
         | "collectif"
         | "technique_individuelle"
@@ -473,6 +613,9 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      injury_severity: ["légère", "modérée", "grave"],
+      injury_status: ["active", "en_réathlétisation", "guérie"],
+      period_type: ["préparation", "compétition", "récupération", "trêve"],
       training_type: [
         "collectif",
         "technique_individuelle",
