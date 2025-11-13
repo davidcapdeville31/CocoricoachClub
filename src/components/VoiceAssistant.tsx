@@ -35,13 +35,7 @@ const VoiceAssistant = ({ categoryId }: VoiceAssistantProps) => {
       // IMPORTANT: Request microphone FIRST (required for iOS)
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            sampleRate: 24000,
-            channelCount: 1,
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true
-          }
+          audio: true
         });
         
         // Store stream for later use
