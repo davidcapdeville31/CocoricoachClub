@@ -10,6 +10,7 @@ import { TestsTab } from "@/components/category/TestsTab";
 import { AwcrTab } from "@/components/category/AwcrTab";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { InjuriesTab } from "@/components/injuries/InjuriesTab";
+import { PeriodizationTab } from "@/components/periodization/PeriodizationTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export default function CategoryDetails() {
@@ -55,13 +56,14 @@ export default function CategoryDetails() {
 
       <div className="container mx-auto max-w-7xl px-4 py-8">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Vue Générale</TabsTrigger>
             <TabsTrigger value="players">Joueurs</TabsTrigger>
             <TabsTrigger value="calendar">Calendrier</TabsTrigger>
             <TabsTrigger value="tests">Tests</TabsTrigger>
             <TabsTrigger value="awcr">AWCR</TabsTrigger>
             <TabsTrigger value="injuries">Blessures</TabsTrigger>
+            <TabsTrigger value="periodization">Périodisation</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
@@ -86,6 +88,10 @@ export default function CategoryDetails() {
 
           <TabsContent value="injuries" className="space-y-4">
             <InjuriesTab categoryId={categoryId!} />
+          </TabsContent>
+
+          <TabsContent value="periodization" className="space-y-4">
+            <PeriodizationTab categoryId={categoryId!} />
           </TabsContent>
         </Tabs>
       </div>

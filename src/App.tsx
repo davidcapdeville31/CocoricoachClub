@@ -9,6 +9,7 @@ import ClubDetails from "./pages/ClubDetails";
 import CategoryDetails from "./pages/CategoryDetails";
 import PlayerDetails from "./pages/PlayerDetails";
 import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<Clubs />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/clubs/:clubId" element={<ClubDetails />} />
             <Route path="/categories/:categoryId" element={<CategoryDetails />} />
             <Route path="/players/:playerId" element={<PlayerDetails />} />
