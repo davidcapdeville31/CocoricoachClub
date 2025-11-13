@@ -79,20 +79,12 @@ const VoiceAssistant = ({ categoryId }: VoiceAssistantProps) => {
       // Initialize audio context
       audioContextRef.current = new AudioContext({ sampleRate: 24000 });
 
-      // Connect to WebSocket with auth token
+      // Connect to WebSocket with auth token in URL
       const projectId = "mbloebaovvvgfwxsdzgo";
-      const wsUrl = `wss://${projectId}.functions.supabase.co/functions/v1/voice-assistant?categoryId=${categoryId}`;
+      const wsUrl = `wss://${projectId}.functions.supabase.co/functions/v1/voice-assistant?categoryId=${categoryId}&token=${session.access_token}`;
       
-      console.log("[Voice Assistant] Connecting to:", wsUrl);
+      console.log("[Voice Assistant] Connecting to WebSocket...");
       wsRef.current = new WebSocket(wsUrl);
-      
-      // Send auth token after connection
-      wsRef.current.addEventListener('open', () => {
-        wsRef.current?.send(JSON.stringify({
-          type: 'auth',
-          token: session.access_token
-        }));
-      }, { once: true });
 
       wsRef.current.onopen = () => {
         console.log("[Voice Assistant] Connected");
