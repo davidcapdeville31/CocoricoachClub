@@ -120,11 +120,11 @@ export default function ClubDetails() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {categories?.map((category) => (
               <Card
                 key={category.id}
-                className="bg-gradient-card shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group animate-fade-in"
+                className="bg-gradient-card shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group animate-fade-in min-h-[120px]"
                 onClick={() => navigate(`/categories/${category.id}`)}
               >
                 <CardHeader>
