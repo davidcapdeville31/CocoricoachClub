@@ -8,6 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import { PlayerTestsTab } from "@/components/player/PlayerTestsTab";
 import { PlayerCalendarTab } from "@/components/player/PlayerCalendarTab";
 import { PlayerAwcrTab } from "@/components/player/PlayerAwcrTab";
+import { PlayerProfile } from "@/components/player/PlayerProfile";
 
 export default function PlayerDetails() {
   const { playerId } = useParams<{ playerId: string }>();
@@ -60,6 +61,11 @@ export default function PlayerDetails() {
             <p className="text-muted-foreground">{player.categories?.name}</p>
           </CardHeader>
         </Card>
+
+        {/* Player Profile Section */}
+        <div className="mb-6">
+          <PlayerProfile playerId={playerId!} categoryId={player.category_id} />
+        </div>
 
         <Tabs defaultValue="tests" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
