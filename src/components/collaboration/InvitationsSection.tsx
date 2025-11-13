@@ -67,13 +67,7 @@ export function InvitationsSection({ clubId, canManage }: InvitationsSectionProp
   }
 
   const getRoleBadge = (role: string) => {
-    const config = {
-      admin: { label: "Admin", variant: "default" as const },
-      coach: { label: "Coach", variant: "secondary" as const },
-      viewer: { label: "Viewer", variant: "outline" as const },
-    };
-    const { label, variant } = config[role as keyof typeof config] || { label: role, variant: "outline" as const };
-    return <Badge variant={variant}>{label}</Badge>;
+    return <Badge variant="outline">Viewer</Badge>;
   };
 
   if (!canManage && (!invitations || invitations.length === 0)) {

@@ -76,17 +76,15 @@ export function CollaborationTab({ clubId }: CollaborationTabProps) {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-4">
-            Partagez votre club avec d'autres utilisateurs pour collaborer sur la gestion des joueurs et des données.
+            Partagez votre club avec d'autres utilisateurs pour qu'ils puissent consulter les données. <strong>Seul vous pouvez modifier les données.</strong>
           </p>
           
           <div className="space-y-4">
             <div className="bg-muted/50 p-4 rounded-lg">
-              <h3 className="font-semibold mb-2">Rôles disponibles</h3>
-              <ul className="space-y-2 text-sm">
-                <li><strong>Viewer:</strong> Peut uniquement consulter les données (lecture seule)</li>
-                <li><strong>Coach:</strong> Peut ajouter et modifier les données des joueurs</li>
-                <li><strong>Admin:</strong> Peut gérer les membres et toutes les données du club</li>
-              </ul>
+              <h3 className="font-semibold mb-2">Accès Viewer</h3>
+              <p className="text-sm">
+                Les membres invités peuvent uniquement <strong>consulter</strong> les données du club (joueurs, tests, statistiques). Ils ne peuvent rien ajouter, modifier ou supprimer.
+              </p>
             </div>
           </div>
         </CardContent>

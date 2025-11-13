@@ -97,6 +97,7 @@ export function InviteMemberDialog({ open, onOpenChange, clubId }: InviteMemberD
             <Select
               onValueChange={(value) => form.setValue("role", value as any)}
               defaultValue="viewer"
+              disabled
             >
               <SelectTrigger>
                 <SelectValue />
@@ -105,23 +106,14 @@ export function InviteMemberDialog({ open, onOpenChange, clubId }: InviteMemberD
                 <SelectItem value="viewer">
                   <div>
                     <div className="font-medium">Viewer</div>
-                    <div className="text-xs text-muted-foreground">Lecture seule</div>
-                  </div>
-                </SelectItem>
-                <SelectItem value="coach">
-                  <div>
-                    <div className="font-medium">Coach</div>
-                    <div className="text-xs text-muted-foreground">Peut ajouter et modifier les données</div>
-                  </div>
-                </SelectItem>
-                <SelectItem value="admin">
-                  <div>
-                    <div className="font-medium">Admin</div>
-                    <div className="text-xs text-muted-foreground">Gestion complète du club</div>
+                    <div className="text-xs text-muted-foreground">Consultation uniquement</div>
                   </div>
                 </SelectItem>
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              Seul vous pouvez modifier les données du club
+            </p>
           </div>
 
           <div className="bg-muted/50 p-3 rounded-lg text-sm">
