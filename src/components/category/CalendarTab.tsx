@@ -7,6 +7,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { AddSessionDialog } from "./AddSessionDialog";
+import { QuickTestEntryDialog } from "./QuickTestEntryDialog";
+import { QuickRpeEntryDialog } from "./QuickRpeEntryDialog";
 import { format, isSameDay, isWithinInterval } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
@@ -36,6 +38,11 @@ const trainingTypeColors: Record<string, string> = {
 export function CalendarTab({ categoryId }: CalendarTabProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [selectedSession, setSelectedSession] = useState<{
+    id: string;
+    date: string;
+    type: "test" | "training";
+  } | null>(null);
   const queryClient = useQueryClient();
 
   const { data: sessions, isLoading } = useQuery({
@@ -273,6 +280,25 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         onOpenChange={setIsAddDialogOpen}
         categoryId={categoryId}
       />
+
+      {selectedSession?.type === "test" && (
+        <QuickTestEntryDialog
+          open={true}
+          onOpenChange={(open) => !open && setSelectedSession(null)}
+          categoryId={categoryId}
+          sessionDate={selectedSession.date}
+        />
+      )}
+
+      {selectedSession?.type === "training" && (
+        <QuickRpeEntryDialog
+          open={true}
+          onOpenChange={(open) => !open && setSelectedSession(null)}
+          categoryId={categoryId}
+          sessionId={selectedSession.id}
+          sessionDate={selectedSession.date}
+        />
+      )}
     </div>
   );
 }
