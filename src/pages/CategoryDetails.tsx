@@ -13,6 +13,7 @@ import { InjuriesTab } from "@/components/injuries/InjuriesTab";
 import { PeriodizationTab } from "@/components/periodization/PeriodizationTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { AnalyticsTab } from "@/components/analytics/AnalyticsTab";
+import { CategoryCoverUpload } from "@/components/category/CategoryCoverUpload";
 
 
 export default function CategoryDetails() {
@@ -24,7 +25,7 @@ export default function CategoryDetails() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("*, clubs(name)")
+        .select("*, clubs(name, id)")
         .eq("id", categoryId)
         .single();
       if (error) throw error;
@@ -34,25 +35,46 @@ export default function CategoryDetails() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="bg-gradient-hero py-12 px-4">
+      <div 
+        className="relative py-12 px-4 bg-gradient-hero"
+        style={
+          category?.cover_image_url
+            ? {
+                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${category.cover_image_url})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }
+            : undefined
+        }
+      >
         <div className="container mx-auto max-w-7xl">
           <div className="flex justify-between items-start mb-4">
             <Button
               variant="ghost"
               className="text-primary-foreground hover:bg-primary-foreground/10"
-              onClick={() => navigate(`/clubs/${category?.club_id}`)}
+              onClick={() => navigate(`/clubs/${category?.clubs?.id}`)}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Retour aux catégories
             </Button>
             <NotificationBell />
           </div>
-          <h1 className="text-4xl font-bold text-primary-foreground">
-            {category?.name}
-          </h1>
-          <p className="text-primary-foreground/90 mt-2">
-            {category?.clubs?.name}
-          </p>
+          <div className="flex justify-between items-end">
+            <div>
+              <h1 className="text-4xl font-bold text-primary-foreground">
+                {category?.name}
+              </h1>
+              <p className="text-primary-foreground/90 mt-2">
+                {category?.clubs?.name}
+              </p>
+            </div>
+            {categoryId && (
+              <CategoryCoverUpload 
+                categoryId={categoryId} 
+                currentCoverUrl={category?.cover_image_url}
+              />
+            )}
+          </div>
         </div>
       </div>
 

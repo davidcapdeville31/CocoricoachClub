@@ -124,10 +124,18 @@ export default function ClubDetails() {
             {categories?.map((category) => (
               <Card
                 key={category.id}
-                className="bg-gradient-card shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group animate-fade-in min-h-[120px]"
+                className="bg-gradient-card shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group animate-fade-in overflow-hidden"
                 onClick={() => navigate(`/categories/${category.id}`)}
               >
-                <CardHeader>
+                {category.cover_image_url && (
+                  <div 
+                    className="h-32 bg-cover bg-center relative"
+                    style={{ backgroundImage: `url(${category.cover_image_url})` }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/80" />
+                  </div>
+                )}
+                <CardHeader className={category.cover_image_url ? "pt-4" : ""}>
                   <CardTitle className="flex justify-between items-start">
                     <span className="text-foreground group-hover:text-primary transition-colors">
                       {category.name}
