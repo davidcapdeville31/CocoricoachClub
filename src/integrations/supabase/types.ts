@@ -84,18 +84,21 @@ export type Database = {
       categories: {
         Row: {
           club_id: string
+          cover_image_url: string | null
           created_at: string
           id: string
           name: string
         }
         Insert: {
           club_id: string
+          cover_image_url?: string | null
           created_at?: string
           id?: string
           name: string
         }
         Update: {
           club_id?: string
+          cover_image_url?: string | null
           created_at?: string
           id?: string
           name?: string
