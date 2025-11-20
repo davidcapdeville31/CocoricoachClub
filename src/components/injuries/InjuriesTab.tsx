@@ -207,14 +207,15 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                       <TableCell>
                         <Select
                           value={injury.status}
-                          onValueChange={(value) =>
-                            updateInjuryStatus.mutate({ id: injury.id, status: value })
-                          }
+                          onValueChange={(value) => {
+                            console.log("Changement de statut:", value);
+                            updateInjuryStatus.mutate({ id: injury.id, status: value });
+                          }}
                         >
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue />
+                          <SelectTrigger className="w-[180px] bg-background">
+                            <SelectValue placeholder="Choisir un statut" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-popover">
                             <SelectItem value="active">Active</SelectItem>
                             <SelectItem value="en_réathlétisation">
                               En Réathlétisation
