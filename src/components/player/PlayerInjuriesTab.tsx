@@ -1,11 +1,19 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, AlertCircle } from "lucide-react";
 import { AddInjuryDialog } from "@/components/injuries/AddInjuryDialog";
+import { toast } from "sonner";
 
 interface PlayerInjuriesTabProps {
   playerId: string;
@@ -14,6 +22,7 @@ interface PlayerInjuriesTabProps {
 
 export function PlayerInjuriesTab({ playerId, categoryId }: PlayerInjuriesTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: injuries } = useQuery({
     queryKey: ["injuries", playerId],
@@ -25,6 +34,24 @@ export function PlayerInjuriesTab({ playerId, categoryId }: PlayerInjuriesTabPro
         .order("injury_date", { ascending: false });
       if (error) throw error;
       return data;
+    },
+  });
+
+  const updateInjuryStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const updateData: any = { status };
+      if (status === "guérie") {
+        updateData.actual_return_date = new Date().toISOString().split("T")[0];
+      }
+      const { error } = await supabase
+        .from("injuries")
+        .update(updateData)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["injuries", playerId] });
+      toast.success("Statut mis à jour");
     },
   });
 
@@ -141,20 +168,34 @@ export function PlayerInjuriesTab({ playerId, categoryId }: PlayerInjuriesTabPro
                   key={injury.id}
                   className="border rounded-lg p-4 space-y-3 bg-muted/30"
                 >
-                  <div className="flex justify-between items-start">
+                  <div className="flex justify-between items-start gap-4">
                     <div>
                       <p className="font-semibold">{injury.injury_type}</p>
                       <p className="text-sm text-muted-foreground">
                         {new Date(injury.injury_date).toLocaleDateString("fr-FR")}
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-start">
                       <Badge className={getSeverityColor(injury.severity)}>
                         {injury.severity}
                       </Badge>
-                      <Badge className={getStatusColor(injury.status)}>
-                        {getStatusLabel(injury.status)}
-                      </Badge>
+                      <Select
+                        value={injury.status}
+                        onValueChange={(value) =>
+                          updateInjuryStatus.mutate({ id: injury.id, status: value })
+                        }
+                      >
+                        <SelectTrigger className="w-[180px] h-7">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="en_réathlétisation">
+                            En Réathlétisation
+                          </SelectItem>
+                          <SelectItem value="guérie">Guérie</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   {injury.description && (
