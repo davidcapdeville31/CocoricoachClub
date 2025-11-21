@@ -51,9 +51,10 @@ export function PlayerInjuriesTab({ playerId, categoryId }: PlayerInjuriesTabPro
       queryClient.invalidateQueries({ queryKey: ["injuries", playerId] });
       toast.success("Statut mis à jour");
     },
-    onError: (error) => {
-      console.error("Erreur mutation:", error);
-      toast.error("Erreur lors de la mise à jour du statut");
+    onError: (error: any) => {
+      console.error("Erreur mutation complète:", error);
+      const errorMessage = error?.message || "Erreur inconnue";
+      toast.error(`Erreur: ${errorMessage}`);
     },
   });
 
