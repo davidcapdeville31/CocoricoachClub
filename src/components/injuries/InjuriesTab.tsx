@@ -39,19 +39,28 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
 
   const updateInjuryStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      console.log("Mutation déclenchée:", { id, status });
       const updateData: any = { status };
       if (status === "guérie") {
         updateData.actual_return_date = new Date().toISOString().split("T")[0];
       }
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("injuries")
         .update(updateData)
-        .eq("id", id);
+        .eq("id", id)
+        .select();
+      
+      console.log("Résultat mutation:", { data, error });
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["injuries", categoryId] });
       toast.success("Statut mis à jour");
+    },
+    onError: (error) => {
+      console.error("Erreur mutation:", error);
+      toast.error("Erreur lors de la mise à jour du statut");
     },
   });
 
@@ -203,9 +212,12 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() =>
-                                updateInjuryStatus.mutate({ id: injury.id, status: "active" })
-                              }
+                              onClick={(e) => {
+                                e.preventDefault();
+                                console.log("Click Activer:", injury.id);
+                                updateInjuryStatus.mutate({ id: injury.id, status: "active" });
+                              }}
+                              disabled={updateInjuryStatus.isPending}
                               className="h-8 px-2 text-xs"
                             >
                               Activer
@@ -215,9 +227,12 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() =>
-                                updateInjuryStatus.mutate({ id: injury.id, status: "en_réathlétisation" })
-                              }
+                              onClick={(e) => {
+                                e.preventDefault();
+                                console.log("Click Réathlétisation:", injury.id);
+                                updateInjuryStatus.mutate({ id: injury.id, status: "en_réathlétisation" });
+                              }}
+                              disabled={updateInjuryStatus.isPending}
                               className="h-8 px-2 text-xs"
                             >
                               Réathléti.
@@ -227,9 +242,12 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() =>
-                                updateInjuryStatus.mutate({ id: injury.id, status: "guérie" })
-                              }
+                              onClick={(e) => {
+                                e.preventDefault();
+                                console.log("Click Guérir:", injury.id);
+                                updateInjuryStatus.mutate({ id: injury.id, status: "guérie" });
+                              }}
+                              disabled={updateInjuryStatus.isPending}
                               className="h-8 px-2 text-xs"
                             >
                               Guérir
