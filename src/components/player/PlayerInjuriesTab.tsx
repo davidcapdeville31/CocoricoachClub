@@ -4,6 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, AlertCircle } from "lucide-react";
 import { AddInjuryDialog } from "@/components/injuries/AddInjuryDialog";
 import { toast } from "sonner";
@@ -187,53 +194,23 @@ export function PlayerInjuriesTab({ playerId, categoryId }: PlayerInjuriesTabPro
                       </Badge>
                     </div>
                   </div>
-                    <div className="flex gap-2 flex-wrap">
-                    {injury.status !== "active" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          console.log("Click Activer:", injury.id);
-                          updateInjuryStatus.mutate({ id: injury.id, status: "active" });
-                        }}
-                        disabled={updateInjuryStatus.isPending}
-                        className="h-8 text-xs"
-                      >
-                        Activer
-                      </Button>
-                    )}
-                    {injury.status !== "en_réathlétisation" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          console.log("Click Réathlétisation:", injury.id);
-                          updateInjuryStatus.mutate({ id: injury.id, status: "en_réathlétisation" });
-                        }}
-                        disabled={updateInjuryStatus.isPending}
-                        className="h-8 text-xs"
-                      >
-                        Réathlétisation
-                      </Button>
-                    )}
-                    {injury.status !== "guérie" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          console.log("Click Guérir:", injury.id);
-                          updateInjuryStatus.mutate({ id: injury.id, status: "guérie" });
-                        }}
-                        disabled={updateInjuryStatus.isPending}
-                        className="h-8 text-xs"
-                      >
-                        Marquer guérie
-                      </Button>
-                    )}
-                  </div>
+                    <Select
+                      value={injury.status}
+                      onValueChange={(value) => {
+                        console.log("Select change:", { id: injury.id, value });
+                        updateInjuryStatus.mutate({ id: injury.id, status: value });
+                      }}
+                      disabled={updateInjuryStatus.isPending}
+                    >
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="en_réathlétisation">En réathlétisation</SelectItem>
+                        <SelectItem value="guérie">Guérie</SelectItem>
+                      </SelectContent>
+                    </Select>
                   {injury.description && (
                     <p className="text-sm text-muted-foreground">{injury.description}</p>
                   )}

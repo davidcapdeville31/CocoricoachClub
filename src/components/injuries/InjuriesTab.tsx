@@ -12,6 +12,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, Activity, TrendingUp } from "lucide-react";
 import { AddInjuryDialog } from "./AddInjuryDialog";
 import { toast } from "sonner";
@@ -208,53 +215,23 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                           : "-"}
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
-                          {injury.status !== "active" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                console.log("Click Activer:", injury.id);
-                                updateInjuryStatus.mutate({ id: injury.id, status: "active" });
-                              }}
-                              disabled={updateInjuryStatus.isPending}
-                              className="h-8 px-2 text-xs"
-                            >
-                              Activer
-                            </Button>
-                          )}
-                          {injury.status !== "en_réathlétisation" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                console.log("Click Réathlétisation:", injury.id);
-                                updateInjuryStatus.mutate({ id: injury.id, status: "en_réathlétisation" });
-                              }}
-                              disabled={updateInjuryStatus.isPending}
-                              className="h-8 px-2 text-xs"
-                            >
-                              Réathléti.
-                            </Button>
-                          )}
-                          {injury.status !== "guérie" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                console.log("Click Guérir:", injury.id);
-                                updateInjuryStatus.mutate({ id: injury.id, status: "guérie" });
-                              }}
-                              disabled={updateInjuryStatus.isPending}
-                              className="h-8 px-2 text-xs"
-                            >
-                              Guérir
-                            </Button>
-                          )}
-                        </div>
+                        <Select
+                          value={injury.status}
+                          onValueChange={(value) => {
+                            console.log("Select change:", { id: injury.id, value });
+                            updateInjuryStatus.mutate({ id: injury.id, status: value });
+                          }}
+                          disabled={updateInjuryStatus.isPending}
+                        >
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="en_réathlétisation">En réathlétisation</SelectItem>
+                            <SelectItem value="guérie">Guérie</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                     </TableRow>
                   ))}
