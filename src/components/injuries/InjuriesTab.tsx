@@ -22,6 +22,7 @@ import {
 import { Plus, Activity, TrendingUp } from "lucide-react";
 import { AddInjuryDialog } from "./AddInjuryDialog";
 import { toast } from "sonner";
+import { INJURY_STATUS, INJURY_STATUS_LABELS } from "@/lib/constants/injury";
 
 interface InjuriesTabProps {
   categoryId: string;
@@ -46,18 +47,26 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
 
   const updateInjuryStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      console.log("Mutation déclenchée:", { id, status });
-      const updateData: any = { status };
-      if (status === "guérie") {
+      console.log("Mutation with status:", { id, status, isValidEnum: Object.values(INJURY_STATUS).includes(status as any) });
+      
+      // Ensure we're using the correct enum value
+      const validStatus = status === 'active' ? INJURY_STATUS.ACTIVE 
+        : status === 'en_réathlétisation' ? INJURY_STATUS.REHABILITATION
+        : status === 'guérie' ? INJURY_STATUS.HEALED
+        : status;
+      
+      const updateData: any = { status: validStatus };
+      if (validStatus === INJURY_STATUS.HEALED) {
         updateData.actual_return_date = new Date().toISOString().split("T")[0];
       }
+      
       const { data, error } = await supabase
         .from("injuries")
         .update(updateData)
         .eq("id", id)
         .select();
       
-      console.log("Résultat mutation:", { data, error });
+      console.log("Update result:", { data, error, sentStatus: validStatus });
       if (error) throw error;
       return data;
     },
@@ -99,23 +108,14 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
   };
 
   const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "active":
-        return "Active";
-      case "en_réathlétisation":
-        return "En Réathlétisation";
-      case "guérie":
-        return "Guérie";
-      default:
-        return status;
-    }
+    return INJURY_STATUS_LABELS[status as keyof typeof INJURY_STATUS_LABELS] || status;
   };
 
   // Statistics
-  const activeInjuries = injuries?.filter((i) => i.status === "active").length || 0;
+  const activeInjuries = injuries?.filter((i) => i.status === INJURY_STATUS.ACTIVE).length || 0;
   const inRehabInjuries =
-    injuries?.filter((i) => i.status === "en_réathlétisation").length || 0;
-  const recoveredInjuries = injuries?.filter((i) => i.status === "guérie").length || 0;
+    injuries?.filter((i) => i.status === INJURY_STATUS.REHABILITATION).length || 0;
+  const recoveredInjuries = injuries?.filter((i) => i.status === INJURY_STATUS.HEALED).length || 0;
 
   if (isLoading) {
     return <div className="text-muted-foreground">Chargement...</div>;
@@ -227,9 +227,9 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="en_réathlétisation">En réathlétisation</SelectItem>
-                            <SelectItem value="guérie">Guérie</SelectItem>
+                            <SelectItem value={INJURY_STATUS.ACTIVE}>{INJURY_STATUS_LABELS[INJURY_STATUS.ACTIVE]}</SelectItem>
+                            <SelectItem value={INJURY_STATUS.REHABILITATION}>{INJURY_STATUS_LABELS[INJURY_STATUS.REHABILITATION]}</SelectItem>
+                            <SelectItem value={INJURY_STATUS.HEALED}>{INJURY_STATUS_LABELS[INJURY_STATUS.HEALED]}</SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>
