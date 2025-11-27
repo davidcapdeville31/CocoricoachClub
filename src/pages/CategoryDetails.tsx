@@ -19,6 +19,7 @@ import { TestRemindersTab } from "@/components/category/TestRemindersTab";
 import { TournamentsTab } from "@/components/category/TournamentsTab";
 import { EditableCategoryName } from "@/components/category/EditableCategoryName";
 import { EditableRugbyType } from "@/components/category/EditableRugbyType";
+import { MatchesTab } from "@/components/category/MatchesTab";
 
 
 export default function CategoryDetails() {
@@ -114,6 +115,7 @@ export default function CategoryDetails() {
             <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="analytics">Analyse</TabsTrigger>
             <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="periodization">Périodisation</TabsTrigger>
             <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="reminders">Rappels Tests</TabsTrigger>
+            <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="matches">Matchs</TabsTrigger>
             {isRugby7 && (
               <TabsTrigger className="whitespace-nowrap flex-shrink-0" value="tournaments">Tournois</TabsTrigger>
             )}
@@ -153,6 +155,10 @@ export default function CategoryDetails() {
 
           <TabsContent value="reminders" className="space-y-4">
             <TestRemindersTab categoryId={categoryId!} />
+          </TabsContent>
+
+          <TabsContent value="matches" className="space-y-4">
+            <MatchesTab categoryId={categoryId!} />
           </TabsContent>
 
           {isRugby7 && (
