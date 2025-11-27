@@ -306,6 +306,104 @@ export type Database = {
         }
         Relationships: []
       }
+      match_lineups: {
+        Row: {
+          created_at: string
+          id: string
+          is_starter: boolean | null
+          match_id: string
+          minutes_played: number | null
+          player_id: string
+          position: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_starter?: boolean | null
+          match_id: string
+          minutes_played?: number | null
+          player_id: string
+          position?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_starter?: boolean | null
+          match_id?: string
+          minutes_played?: number | null
+          player_id?: string
+          position?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_lineups_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_lineups_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matches: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          is_home: boolean | null
+          location: string | null
+          match_date: string
+          match_time: string | null
+          notes: string | null
+          opponent: string
+          score_away: number | null
+          score_home: number | null
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          is_home?: boolean | null
+          location?: string | null
+          match_date: string
+          match_time?: string | null
+          notes?: string | null
+          opponent: string
+          score_away?: number | null
+          score_home?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          is_home?: boolean | null
+          location?: string | null
+          match_date?: string
+          match_time?: string | null
+          notes?: string | null
+          opponent?: string
+          score_away?: number | null
+          score_home?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           category_id: string
@@ -353,6 +451,81 @@ export type Database = {
             columns: ["injury_id"]
             isOneToOne: false
             referencedRelation: "injuries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_match_stats: {
+        Row: {
+          carries: number | null
+          conversions: number | null
+          created_at: string
+          drop_goals: number | null
+          id: string
+          match_id: string
+          meters_gained: number | null
+          notes: string | null
+          offloads: number | null
+          penalties_scored: number | null
+          player_id: string
+          red_cards: number | null
+          tackles: number | null
+          tackles_missed: number | null
+          tries: number | null
+          turnovers_won: number | null
+          yellow_cards: number | null
+        }
+        Insert: {
+          carries?: number | null
+          conversions?: number | null
+          created_at?: string
+          drop_goals?: number | null
+          id?: string
+          match_id: string
+          meters_gained?: number | null
+          notes?: string | null
+          offloads?: number | null
+          penalties_scored?: number | null
+          player_id: string
+          red_cards?: number | null
+          tackles?: number | null
+          tackles_missed?: number | null
+          tries?: number | null
+          turnovers_won?: number | null
+          yellow_cards?: number | null
+        }
+        Update: {
+          carries?: number | null
+          conversions?: number | null
+          created_at?: string
+          drop_goals?: number | null
+          id?: string
+          match_id?: string
+          meters_gained?: number | null
+          notes?: string | null
+          offloads?: number | null
+          penalties_scored?: number | null
+          player_id?: string
+          red_cards?: number | null
+          tackles?: number | null
+          tackles_missed?: number | null
+          tries?: number | null
+          turnovers_won?: number | null
+          yellow_cards?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_match_stats_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_match_stats_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
             referencedColumns: ["id"]
           },
         ]
