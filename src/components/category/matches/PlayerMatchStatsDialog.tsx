@@ -92,28 +92,26 @@ export function PlayerMatchStatsDialog({
 
   useEffect(() => {
     if (lineup && lineup.length > 0) {
-      const stats = lineup
-        .filter((l) => l.players) // Filter out entries without player data
-        .map((l) => {
-          const existing = existingStats?.find((s) => s.player_id === l.player_id);
-          const player = l.players as { id: string; name: string } | null;
-          return {
-            playerId: player?.id || l.player_id,
-            playerName: player?.name || "Joueur inconnu",
-            tries: existing?.tries ?? 0,
-            conversions: existing?.conversions ?? 0,
-            penaltiesScored: existing?.penalties_scored ?? 0,
-            dropGoals: existing?.drop_goals ?? 0,
-            tackles: existing?.tackles ?? 0,
-            tacklesMissed: existing?.tackles_missed ?? 0,
-            carries: existing?.carries ?? 0,
-            metersGained: existing?.meters_gained ?? 0,
-            offloads: existing?.offloads ?? 0,
-            turnoversWon: existing?.turnovers_won ?? 0,
-            yellowCards: existing?.yellow_cards ?? 0,
-            redCards: existing?.red_cards ?? 0,
-          };
-        });
+      const stats = lineup.map((l) => {
+        const existing = existingStats?.find((s) => s.player_id === l.player_id);
+        const player = l.players as { id: string; name: string } | null;
+        return {
+          playerId: l.player_id,
+          playerName: player?.name || "Joueur",
+          tries: existing?.tries ?? 0,
+          conversions: existing?.conversions ?? 0,
+          penaltiesScored: existing?.penalties_scored ?? 0,
+          dropGoals: existing?.drop_goals ?? 0,
+          tackles: existing?.tackles ?? 0,
+          tacklesMissed: existing?.tackles_missed ?? 0,
+          carries: existing?.carries ?? 0,
+          metersGained: existing?.meters_gained ?? 0,
+          offloads: existing?.offloads ?? 0,
+          turnoversWon: existing?.turnovers_won ?? 0,
+          yellowCards: existing?.yellow_cards ?? 0,
+          redCards: existing?.red_cards ?? 0,
+        };
+      });
       setStatsData(stats);
     }
   }, [lineup, existingStats]);
@@ -162,7 +160,7 @@ export function PlayerMatchStatsDialog({
     );
   };
 
-  const hasLineup = lineup && lineup.length > 0 && lineup.some(l => l.players);
+  const hasLineup = lineup && lineup.length > 0;
 
   if (!hasLineup) {
     return (
