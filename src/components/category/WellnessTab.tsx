@@ -5,10 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { AddWellnessDialog } from "./AddWellnessDialog";
+import { InjuryRiskAssessment } from "./InjuryRiskAssessment";
 
 interface WellnessTabProps {
   categoryId: string;
@@ -59,22 +61,30 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Wellness & Soreness</CardTitle>
-            <CardDescription>
-              Suivi du bien-être et des douleurs musculaires des joueurs
-            </CardDescription>
-          </div>
-          <Button onClick={() => setIsDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nouvelle entrée
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
+    <div className="space-y-6">
+      <Tabs defaultValue="tracking" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="tracking">Suivi Wellness</TabsTrigger>
+          <TabsTrigger value="risk">Risque Blessure (AWCR + Wellness)</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="tracking">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Wellness & Soreness</CardTitle>
+                  <CardDescription>
+                    Suivi du bien-être et des douleurs musculaires des joueurs
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setIsDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nouvelle entrée
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
         {!wellnessData || wellnessData.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <p>Aucune donnée wellness enregistrée.</p>
@@ -185,15 +195,22 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
                 Pour Soreness: 1 = aucune gêne • 5 = douleur limitante
               </p>
             </div>
-          </>
-        )}
-      </CardContent>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
 
-      <AddWellnessDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        categoryId={categoryId}
-      />
-    </Card>
+      <TabsContent value="risk">
+        <InjuryRiskAssessment categoryId={categoryId} />
+      </TabsContent>
+    </Tabs>
+
+    <AddWellnessDialog
+      open={isDialogOpen}
+      onOpenChange={setIsDialogOpen}
+      categoryId={categoryId}
+    />
+  </div>
   );
 }
