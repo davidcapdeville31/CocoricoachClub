@@ -12,6 +12,7 @@ import { PlayerProfile } from "@/components/player/PlayerProfile";
 import { PlayerInjuriesTab } from "@/components/player/PlayerInjuriesTab";
 import { PlayerBiometrics } from "@/components/player/PlayerBiometrics";
 import { PlayerMatchesTab } from "@/components/player/PlayerMatchesTab";
+import { PlayerWellnessTab } from "@/components/player/PlayerWellnessTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { GlobalPlayerSearch } from "@/components/search/GlobalPlayerSearch";
 
@@ -89,11 +90,12 @@ export default function PlayerDetails() {
         </div>
 
         <Tabs defaultValue="tests" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="tests">Tests</TabsTrigger>
             <TabsTrigger value="matches">Matchs</TabsTrigger>
             <TabsTrigger value="calendar">Calendrier</TabsTrigger>
             <TabsTrigger value="awcr">AWCR</TabsTrigger>
+            <TabsTrigger value="wellness">Wellness</TabsTrigger>
             <TabsTrigger value="injuries">Blessures</TabsTrigger>
           </TabsList>
 
@@ -111,6 +113,10 @@ export default function PlayerDetails() {
 
           <TabsContent value="awcr">
             <PlayerAwcrTab playerId={playerId!} categoryId={player.category_id} />
+          </TabsContent>
+
+          <TabsContent value="wellness">
+            <PlayerWellnessTab playerId={playerId!} categoryId={player.category_id} />
           </TabsContent>
 
           <TabsContent value="injuries">
