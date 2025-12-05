@@ -635,6 +635,69 @@ export type Database = {
           },
         ]
       }
+      player_contacts: {
+        Row: {
+          address: string | null
+          category_id: string
+          contact_type: string
+          created_at: string
+          email: string | null
+          first_name: string
+          id: string
+          is_primary: boolean | null
+          last_name: string
+          notes: string | null
+          phone: string | null
+          player_id: string
+          relationship: string | null
+        }
+        Insert: {
+          address?: string | null
+          category_id: string
+          contact_type?: string
+          created_at?: string
+          email?: string | null
+          first_name: string
+          id?: string
+          is_primary?: boolean | null
+          last_name: string
+          notes?: string | null
+          phone?: string | null
+          player_id: string
+          relationship?: string | null
+        }
+        Update: {
+          address?: string | null
+          category_id?: string
+          contact_type?: string
+          created_at?: string
+          email?: string | null
+          first_name?: string
+          id?: string
+          is_primary?: boolean | null
+          last_name?: string
+          notes?: string | null
+          phone?: string | null
+          player_id?: string
+          relationship?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_contacts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_contacts_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_development_plans: {
         Row: {
           academic_objectives: string | null
@@ -694,6 +757,75 @@ export type Database = {
           },
           {
             foreignKeyName: "player_development_plans_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_evaluations: {
+        Row: {
+          areas_to_improve: string | null
+          attitude_score: number | null
+          category_id: string
+          created_at: string
+          evaluated_by: string | null
+          evaluation_date: string
+          evaluation_period: string | null
+          id: string
+          mental_score: number | null
+          overall_comments: string | null
+          physical_score: number | null
+          player_id: string
+          strengths: string | null
+          tactical_score: number | null
+          technical_score: number | null
+        }
+        Insert: {
+          areas_to_improve?: string | null
+          attitude_score?: number | null
+          category_id: string
+          created_at?: string
+          evaluated_by?: string | null
+          evaluation_date?: string
+          evaluation_period?: string | null
+          id?: string
+          mental_score?: number | null
+          overall_comments?: string | null
+          physical_score?: number | null
+          player_id: string
+          strengths?: string | null
+          tactical_score?: number | null
+          technical_score?: number | null
+        }
+        Update: {
+          areas_to_improve?: string | null
+          attitude_score?: number | null
+          category_id?: string
+          created_at?: string
+          evaluated_by?: string | null
+          evaluation_date?: string
+          evaluation_period?: string | null
+          id?: string
+          mental_score?: number | null
+          overall_comments?: string | null
+          physical_score?: number | null
+          player_id?: string
+          strengths?: string | null
+          tactical_score?: number | null
+          technical_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_evaluations_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_evaluations_player_id_fkey"
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "players"
@@ -823,6 +955,57 @@ export type Database = {
           },
           {
             foreignKeyName: "player_measurements_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_selections: {
+        Row: {
+          category_id: string
+          competition_name: string | null
+          created_at: string
+          end_date: string | null
+          id: string
+          notes: string | null
+          player_id: string
+          selection_date: string
+          selection_type: string
+        }
+        Insert: {
+          category_id: string
+          competition_name?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          player_id: string
+          selection_date?: string
+          selection_type: string
+        }
+        Update: {
+          category_id?: string
+          competition_name?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          player_id?: string
+          selection_date?: string
+          selection_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_selections_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_selections_player_id_fkey"
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "players"
@@ -1209,6 +1392,61 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_attendance: {
+        Row: {
+          absence_reason: string | null
+          attendance_date: string
+          category_id: string
+          created_at: string
+          id: string
+          player_id: string
+          status: string
+          training_session_id: string | null
+        }
+        Insert: {
+          absence_reason?: string | null
+          attendance_date?: string
+          category_id: string
+          created_at?: string
+          id?: string
+          player_id: string
+          status?: string
+          training_session_id?: string | null
+        }
+        Update: {
+          absence_reason?: string | null
+          attendance_date?: string
+          category_id?: string
+          created_at?: string
+          id?: string
+          player_id?: string
+          status?: string
+          training_session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_attendance_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_attendance_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_attendance_training_session_id_fkey"
+            columns: ["training_session_id"]
+            isOneToOne: false
+            referencedRelation: "training_sessions"
             referencedColumns: ["id"]
           },
         ]
