@@ -22,8 +22,7 @@ export const categorySchema = z.object({
   name: z.string()
     .trim()
     .min(1, "Le nom de la catégorie est requis")
-    .max(100, "Le nom de la catégorie ne peut pas dépasser 100 caractères")
-    .regex(/^[a-zA-Z0-9À-ÿ\s'-]+$/, "Le nom ne peut contenir que des lettres, chiffres, espaces, tirets et apostrophes"),
+    .max(100, "Le nom de la catégorie ne peut pas dépasser 100 caractères"),
 });
 
 export type CategoryFormData = z.infer<typeof categorySchema>;
