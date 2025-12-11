@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { GlobalPlayerSearch } from "@/components/search/GlobalPlayerSearch";
 import { InjuryReturnAlerts } from "@/components/injuries/InjuryReturnAlerts";
+import { DashboardWidgets } from "@/components/dashboard/DashboardWidgets";
 
 export default function Clubs() {
   const navigate = useNavigate();
@@ -93,6 +94,7 @@ export default function Clubs() {
       </div>
 
       <div className="container mx-auto max-w-6xl px-4 py-8">
+        <DashboardWidgets />
         <InjuryReturnAlerts />
         
         <div className="flex justify-between items-center mb-8 mt-8">
