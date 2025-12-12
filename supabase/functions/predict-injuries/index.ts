@@ -12,10 +12,64 @@ serve(async (req) => {
   }
 
   try {
-    const { categoryId } = await req.json();
-    console.log("Analyzing injury risks for category:", categoryId);
+    // Extract authorization header and verify user
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Missing authorization header" }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
+    // Create client with user's JWT to check permissions
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: { Authorization: authHeader }
+      }
+    });
+
+    // Verify user is authenticated
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    if (userError || !user) {
+      console.error("Authentication failed:", userError);
+      return new Response(
+        JSON.stringify({ error: "Invalid or expired token" }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { categoryId } = await req.json();
+    
+    if (!categoryId) {
+      return new Response(
+        JSON.stringify({ error: "categoryId is required" }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log("Analyzing injury risks for category:", categoryId, "user:", user.id);
+
+    // Verify user has access to this category using user's RLS permissions
+    const { data: category, error: categoryError } = await userClient
+      .from("categories")
+      .select("id, club_id")
+      .eq("id", categoryId)
+      .single();
+
+    if (categoryError || !category) {
+      console.error("Category access denied:", categoryError);
+      return new Response(
+        JSON.stringify({ error: "Access denied to this category" }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`User ${user.id} authorized for category ${categoryId}`);
+
+    // Use service role for data queries (now that authorization is confirmed)
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
