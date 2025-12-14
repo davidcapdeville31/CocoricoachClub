@@ -108,15 +108,24 @@ serve(async (req) => {
     return new Response("Unauthorized: Invalid token", { status: 401 });
   }
 
-  const { data: clubAccess, error: clubError } = await authClient
+  // Check if user is club owner
+  const { data: ownedClub } = await authClient
     .from('clubs')
     .select('id')
     .eq('id', category.club_id)
-    .or(`user_id.eq.${user.id},id.in.(select club_id from club_members where user_id='${user.id}')`)
-    .single();
+    .eq('user_id', user.id)
+    .maybeSingle();
 
-  if (clubError || !clubAccess) {
-    console.error('[Auth] Club access denied:', clubError);
+  // Check if user is club member
+  const { data: clubMembership } = await authClient
+    .from('club_members')
+    .select('id')
+    .eq('club_id', category.club_id)
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (!ownedClub && !clubMembership) {
+    console.error('[Auth] Club access denied: User is neither owner nor member');
     return new Response("Unauthorized: You don't have access to this club", { status: 403 });
   }
 
