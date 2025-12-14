@@ -26,6 +26,7 @@ import { AcademyTab } from "@/components/category/AcademyTab";
 import { PlanningTab } from "@/components/category/PlanningTab";
 import { NutritionTab } from "@/components/category/NutritionTab";
 import { ReportsTab } from "@/components/category/ReportsTab";
+import { CategoryCollaborationTab } from "@/components/category/CategoryCollaborationTab";
 
 
 export default function CategoryDetails() {
@@ -135,6 +136,7 @@ export default function CategoryDetails() {
               {isAcademy && (
                 <TabsTrigger className="whitespace-nowrap" value="academy">Académie</TabsTrigger>
               )}
+              <TabsTrigger className="whitespace-nowrap" value="collaboration">Collaboration</TabsTrigger>
             </TabsList>
           </div>
 
@@ -209,6 +211,10 @@ export default function CategoryDetails() {
               <AcademyTab categoryId={categoryId!} />
             </TabsContent>
           )}
+
+          <TabsContent value="collaboration" className="space-y-4">
+            <CategoryCollaborationTab categoryId={categoryId!} />
+          </TabsContent>
         </Tabs>
       </div>
       

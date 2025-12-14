@@ -15,6 +15,7 @@ export default function AcceptInvitation() {
 
   useEffect(() => {
     const token = searchParams.get("token");
+    const invitationType = searchParams.get("type") || "club";
     
     if (!token) {
       setStatus("error");
@@ -26,14 +27,19 @@ export default function AcceptInvitation() {
 
     if (!user) {
       // Redirect to auth with return URL
-      navigate(`/auth?redirect=/accept-invitation?token=${token}`);
+      const redirectUrl = `/accept-invitation?token=${token}${invitationType === "category" ? "&type=category" : ""}`;
+      navigate(`/auth?redirect=${encodeURIComponent(redirectUrl)}`);
       return;
     }
 
-    acceptInvitation(token);
+    if (invitationType === "category") {
+      acceptCategoryInvitation(token);
+    } else {
+      acceptClubInvitation(token);
+    }
   }, [user, authLoading, searchParams, navigate]);
 
-  const acceptInvitation = async (token: string) => {
+  const acceptClubInvitation = async (token: string) => {
     try {
       const { data, error } = await (supabase as any).rpc("accept_club_invitation", {
         _token: token,
@@ -54,7 +60,46 @@ export default function AcceptInvitation() {
         setMessage(result.error || "Erreur lors de l'acceptation de l'invitation");
       }
     } catch (error: any) {
-      console.error("Error accepting invitation:", error);
+      console.error("Error accepting club invitation:", error);
+      setStatus("error");
+      setMessage("Une erreur est survenue");
+    }
+  };
+
+  const acceptCategoryInvitation = async (token: string) => {
+    try {
+      const { data, error } = await (supabase as any).rpc("accept_category_invitation", {
+        _token: token,
+      });
+
+      if (error) throw error;
+
+      const result = data as { success: boolean; error?: string; category_id?: string };
+
+      if (result.success && result.category_id) {
+        setStatus("success");
+        setMessage("Invitation acceptée avec succès !");
+        
+        // Get the club_id for this category to navigate properly
+        const { data: categoryData } = await supabase
+          .from("categories")
+          .select("club_id")
+          .eq("id", result.category_id)
+          .single();
+        
+        setTimeout(() => {
+          if (categoryData?.club_id) {
+            navigate(`/clubs/${categoryData.club_id}/categories/${result.category_id}`);
+          } else {
+            navigate("/");
+          }
+        }, 2000);
+      } else {
+        setStatus("error");
+        setMessage(result.error || "Erreur lors de l'acceptation de l'invitation");
+      }
+    } catch (error: any) {
+      console.error("Error accepting category invitation:", error);
       setStatus("error");
       setMessage("Une erreur est survenue");
     }
@@ -64,7 +109,7 @@ export default function AcceptInvitation() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-gradient-card shadow-md">
         <CardHeader>
-          <CardTitle className="text-center">Invitation au Club</CardTitle>
+          <CardTitle className="text-center">Invitation</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center space-y-4">
           {status === "loading" && (
@@ -81,7 +126,7 @@ export default function AcceptInvitation() {
               <CheckCircle className="h-12 w-12 text-green-500" />
               <p className="text-center font-medium">{message}</p>
               <p className="text-sm text-muted-foreground">
-                Redirection vers le club...
+                Redirection...
               </p>
             </>
           )}
