@@ -38,6 +38,34 @@ export default function Clubs() {
     enabled: !!user,
   });
 
+  // Fetch categories where user is a direct member (not via club)
+  const { data: directCategories } = useQuery({
+    queryKey: ["direct-category-access"],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data: memberCategories, error } = await supabase
+        .from("category_members")
+        .select(`
+          category_id,
+          role,
+          categories (
+            id,
+            name,
+            club_id,
+            cover_image_url,
+            rugby_type,
+            clubs (id, name)
+          )
+        `)
+        .eq("user_id", user.id);
+      
+      if (error) throw error;
+      return memberCategories || [];
+    },
+    enabled: !!user,
+  });
+
   const deleteClub = useMutation({
     mutationFn: async (clubId: string) => {
       const { error } = await supabase.from("clubs").delete().eq("id", clubId);
@@ -151,6 +179,40 @@ export default function Clubs() {
               </Card>
             ))}
           </div>
+        )}
+
+        {/* Show categories where user has direct access */}
+        {directCategories && directCategories.length > 0 && (
+          <>
+            <div className="flex justify-between items-center mb-8 mt-12">
+              <h2 className="text-2xl font-bold text-foreground">Catégories partagées avec moi</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {directCategories.map((item: any) => (
+                <Card
+                  key={item.category_id}
+                  className="bg-gradient-card shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group animate-fade-in"
+                  onClick={() => navigate(`/clubs/${item.categories.club_id}/categories/${item.category_id}`)}
+                >
+                  <CardHeader>
+                    <CardTitle className="flex justify-between items-start">
+                      <span className="text-foreground group-hover:text-primary transition-colors">
+                        {item.categories.name}
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Club: {item.categories.clubs?.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Rugby {item.categories.rugby_type === "7" ? "à 7" : item.categories.rugby_type === "academie" ? "Académie" : "à XV"}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
