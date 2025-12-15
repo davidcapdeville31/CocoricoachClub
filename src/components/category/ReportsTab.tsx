@@ -58,6 +58,94 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     },
   });
 
+  // Shared PDF helper functions
+  const colors = {
+    primary: [41, 128, 185] as [number, number, number],
+    success: [39, 174, 96] as [number, number, number],
+    warning: [241, 196, 15] as [number, number, number],
+    danger: [231, 76, 60] as [number, number, number],
+    muted: [149, 165, 166] as [number, number, number],
+    dark: [52, 73, 94] as [number, number, number],
+    light: [236, 240, 241] as [number, number, number],
+    white: [255, 255, 255] as [number, number, number],
+  };
+
+  const drawPdfHeader = (pdf: jsPDF, title: string, subtitle: string, date: string) => {
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const margin = 15;
+    
+    pdf.setFillColor(...colors.primary);
+    pdf.rect(0, 0, pageWidth, 40, 'F');
+    
+    pdf.setTextColor(...colors.white);
+    pdf.setFontSize(20);
+    pdf.setFont("helvetica", "bold");
+    pdf.text(title, margin, 18);
+    
+    pdf.setFontSize(12);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(subtitle, margin, 28);
+    
+    pdf.setFontSize(9);
+    pdf.text(date, margin, 36);
+    
+    pdf.setTextColor(...colors.dark);
+    return 50;
+  };
+
+  const drawKpiCard = (pdf: jsPDF, x: number, y: number, w: number, h: number, value: string, label: string, color: [number, number, number]) => {
+    pdf.setFillColor(...color);
+    pdf.roundedRect(x, y, w, h, 3, 3, 'F');
+    pdf.setTextColor(...colors.white);
+    pdf.setFontSize(16);
+    pdf.setFont("helvetica", "bold");
+    const valueWidth = pdf.getTextWidth(value);
+    pdf.text(value, x + (w - valueWidth) / 2, y + h / 2);
+    pdf.setFontSize(7);
+    pdf.setFont("helvetica", "normal");
+    const labelWidth = pdf.getTextWidth(label);
+    pdf.text(label, x + (w - labelWidth) / 2, y + h / 2 + 8);
+  };
+
+  const drawTableHeaderPdf = (pdf: jsPDF, headers: string[], colWidths: number[], y: number, margin: number, contentWidth: number) => {
+    pdf.setFillColor(...colors.dark);
+    pdf.rect(margin, y, contentWidth, 8, 'F');
+    pdf.setTextColor(...colors.white);
+    pdf.setFontSize(9);
+    pdf.setFont("helvetica", "bold");
+    
+    let xPos = margin + 2;
+    headers.forEach((header, i) => {
+      pdf.text(header, xPos, y + 5.5);
+      xPos += colWidths[i];
+    });
+    pdf.setFont("helvetica", "normal");
+    return y + 8;
+  };
+
+  const drawTableRowPdf = (pdf: jsPDF, values: string[], colWidths: number[], y: number, isAlternate: boolean, margin: number, contentWidth: number, rowColors?: ([number, number, number] | null)[]) => {
+    if (isAlternate) {
+      pdf.setFillColor(...colors.light);
+      pdf.rect(margin, y, contentWidth, 7, 'F');
+    }
+    
+    pdf.setFontSize(8);
+    let xPos = margin + 2;
+    values.forEach((value, i) => {
+      if (rowColors && rowColors[i]) {
+        pdf.setTextColor(...rowColors[i]!);
+        pdf.setFont("helvetica", "bold");
+      } else {
+        pdf.setTextColor(...colors.dark);
+        pdf.setFont("helvetica", "normal");
+      }
+      pdf.text(value.substring(0, 25), xPos, y + 5);
+      xPos += colWidths[i];
+    });
+    pdf.setFont("helvetica", "normal");
+    return y + 7;
+  };
+
   const generatePlayerReport = async () => {
     if (!selectedPlayer) {
       toast.error("Veuillez sélectionner un joueur");
@@ -71,99 +159,170 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       if (!player) throw new Error("Joueur non trouvé");
 
       // Fetch player data
-      const [measurementsRes, injuriesRes, wellnessRes, speedTestsRes, jumpTestsRes] = await Promise.all([
+      const [measurementsRes, injuriesRes, wellnessRes, speedTestsRes, jumpTestsRes, awcrRes, bodyCompRes, matchLineupsRes] = await Promise.all([
         supabase.from("player_measurements").select("*").eq("player_id", selectedPlayer).order("measurement_date", { ascending: false }).limit(1),
         supabase.from("injuries").select("*").eq("player_id", selectedPlayer),
         supabase.from("wellness_tracking").select("*").eq("player_id", selectedPlayer).order("tracking_date", { ascending: false }).limit(5),
-        supabase.from("speed_tests").select("*").eq("player_id", selectedPlayer).order("test_date", { ascending: false }).limit(3),
-        supabase.from("jump_tests").select("*").eq("player_id", selectedPlayer).order("test_date", { ascending: false }).limit(3),
+        supabase.from("speed_tests").select("*").eq("player_id", selectedPlayer).order("test_date", { ascending: false }),
+        supabase.from("jump_tests").select("*").eq("player_id", selectedPlayer).order("test_date", { ascending: false }),
+        supabase.from("awcr_tracking").select("*").eq("player_id", selectedPlayer).order("session_date", { ascending: false }).limit(1),
+        supabase.from("body_composition").select("*").eq("player_id", selectedPlayer).order("measurement_date", { ascending: false }).limit(1),
+        supabase.from("match_lineups").select("*, matches(match_date, opponent)").eq("player_id", selectedPlayer),
       ]);
 
       const pdf = new jsPDF();
-      let yPos = 20;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const margin = 15;
+      const contentWidth = pageWidth - 2 * margin;
 
       // Header
-      pdf.setFontSize(20);
-      pdf.text(`Fiche Joueur - ${player.name}`, 20, yPos);
-      yPos += 10;
-      
+      let yPos = drawPdfHeader(
+        pdf,
+        `FICHE JOUEUR`,
+        `${player.name} - ${player.position || 'Position non définie'}`,
+        `${category?.clubs?.name} - ${category?.name} | ${format(new Date(), "d MMMM yyyy", { locale: fr })}`
+      );
+
+      // KPI Cards
+      const allInjuries = injuriesRes.data || [];
+      const activeInjuries = allInjuries.filter(i => i.status !== 'healed').length;
+      const matchCount = matchLineupsRes.data?.length || 0;
+      const totalMinutes = matchLineupsRes.data?.reduce((sum, m) => sum + (m.minutes_played || 0), 0) || 0;
+      const latestAwcr = awcrRes.data?.[0]?.awcr;
+
+      const cardWidth = (contentWidth - 15) / 4;
+      const cardHeight = 22;
+
+      drawKpiCard(pdf, margin, yPos, cardWidth, cardHeight, String(matchCount), "MATCHS", colors.primary);
+      drawKpiCard(pdf, margin + cardWidth + 5, yPos, cardWidth, cardHeight, String(totalMinutes), "MINUTES", colors.primary);
+      drawKpiCard(pdf, margin + (cardWidth + 5) * 2, yPos, cardWidth, cardHeight, String(activeInjuries), "BLESSURES", activeInjuries > 0 ? colors.danger : colors.success);
+      drawKpiCard(pdf, margin + (cardWidth + 5) * 3, yPos, cardWidth, cardHeight, latestAwcr ? latestAwcr.toFixed(2) : '-', "AWCR", latestAwcr ? (latestAwcr > 1.5 ? colors.danger : latestAwcr < 0.8 ? colors.warning : colors.success) : colors.muted);
+
+      yPos += cardHeight + 15;
+
+      // Biometrics Section
       pdf.setFontSize(12);
-      pdf.setTextColor(100);
-      pdf.text(`${category?.clubs?.name} - ${category?.name}`, 20, yPos);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...colors.dark);
+      pdf.text("BIOMÉTRIE", margin, yPos);
+      yPos += 8;
+
+      const measurement = measurementsRes.data?.[0];
+      const bodyComp = bodyCompRes.data?.[0];
+
+      if (measurement || bodyComp) {
+        pdf.setFillColor(...colors.light);
+        pdf.roundedRect(margin, yPos, contentWidth, 20, 2, 2, 'F');
+        
+        pdf.setFontSize(9);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(...colors.dark);
+        
+        let bioText = [];
+        if (measurement?.height_cm) bioText.push(`Taille: ${measurement.height_cm} cm`);
+        if (measurement?.weight_kg) bioText.push(`Poids: ${measurement.weight_kg} kg`);
+        if (bodyComp?.body_fat_percentage) bioText.push(`Masse grasse: ${bodyComp.body_fat_percentage}%`);
+        if (bodyComp?.muscle_mass_kg) bioText.push(`Masse musculaire: ${bodyComp.muscle_mass_kg} kg`);
+        
+        pdf.text(bioText.join("  |  "), margin + 5, yPos + 12);
+        yPos += 25;
+      } else {
+        pdf.setFontSize(9);
+        pdf.setTextColor(...colors.muted);
+        pdf.text("Aucune mesure enregistrée", margin, yPos);
+        yPos += 10;
+      }
+
+      // Injuries Section
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...colors.dark);
+      pdf.text("HISTORIQUE BLESSURES", margin, yPos);
+      yPos += 8;
+
+      if (allInjuries.length > 0) {
+        const injuryHeaders = ["Type", "Sévérité", "Statut", "Date"];
+        const injuryColWidths = [60, 40, 40, 40];
+        yPos = drawTableHeaderPdf(pdf, injuryHeaders, injuryColWidths, yPos, margin, contentWidth);
+
+        allInjuries.slice(0, 5).forEach((injury, index) => {
+          const statusLabel = injury.status === 'active' ? 'Active' : injury.status === 'recovering' ? 'Récup.' : 'Guérie';
+          const statusColor = injury.status === 'active' ? colors.danger : injury.status === 'recovering' ? colors.warning : colors.success;
+          yPos = drawTableRowPdf(pdf, [
+            injury.injury_type,
+            injury.severity,
+            statusLabel,
+            format(new Date(injury.injury_date), "dd/MM/yy")
+          ], injuryColWidths, yPos, index % 2 === 1, margin, contentWidth, [null, null, statusColor, null]);
+        });
+        yPos += 5;
+      } else {
+        pdf.setFontSize(9);
+        pdf.setTextColor(...colors.success);
+        pdf.text("Aucune blessure enregistrée", margin, yPos);
+        yPos += 10;
+      }
+
+      // Speed Tests Section
       yPos += 5;
-      pdf.text(`Généré le ${format(new Date(), "d MMMM yyyy", { locale: fr })}`, 20, yPos);
-      yPos += 15;
-
-      pdf.setTextColor(0);
-      
-      // Biometrics
-      pdf.setFontSize(14);
-      pdf.text("Biométrie", 20, yPos);
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...colors.dark);
+      pdf.text("TESTS DE VITESSE", margin, yPos);
       yPos += 8;
-      pdf.setFontSize(11);
-      
-      if (measurementsRes.data && measurementsRes.data.length > 0) {
-        const m = measurementsRes.data[0];
-        pdf.text(`Taille: ${m.height_cm || '-'} cm`, 25, yPos);
-        yPos += 6;
-        pdf.text(`Poids: ${m.weight_kg || '-'} kg`, 25, yPos);
-        yPos += 6;
-        pdf.text(`Date: ${format(new Date(m.measurement_date), "d MMM yyyy", { locale: fr })}`, 25, yPos);
-      } else {
-        pdf.text("Aucune mesure enregistrée", 25, yPos);
-      }
-      yPos += 12;
 
-      // Injuries
-      pdf.setFontSize(14);
-      pdf.text("Blessures", 20, yPos);
-      yPos += 8;
-      pdf.setFontSize(11);
-      
-      const activeInjuries = injuriesRes.data?.filter(i => i.status !== 'healed') || [];
-      if (activeInjuries.length > 0) {
-        activeInjuries.forEach(injury => {
-          pdf.text(`• ${injury.injury_type} (${injury.severity})`, 25, yPos);
-          yPos += 6;
-        });
-      } else {
-        pdf.text("Aucune blessure active", 25, yPos);
-      }
-      yPos += 12;
+      const speedTests = speedTestsRes.data || [];
+      if (speedTests.length > 0) {
+        const speedHeaders = ["Type", "Résultat", "Date"];
+        const speedColWidths = [60, 60, 60];
+        yPos = drawTableHeaderPdf(pdf, speedHeaders, speedColWidths, yPos, margin, contentWidth);
 
-      // Speed Tests
-      pdf.setFontSize(14);
-      pdf.text("Tests de Vitesse (derniers)", 20, yPos);
-      yPos += 8;
-      pdf.setFontSize(11);
-      
-      if (speedTestsRes.data && speedTestsRes.data.length > 0) {
-        speedTestsRes.data.forEach(test => {
-          if (test.test_type === '40m') {
-            pdf.text(`• 40m: ${test.time_40m_seconds}s (${format(new Date(test.test_date), "d MMM", { locale: fr })})`, 25, yPos);
+        speedTests.slice(0, 5).forEach((test, index) => {
+          let result = '-';
+          if (test.test_type === '40m' && test.time_40m_seconds) {
+            result = `${test.time_40m_seconds}s (${test.speed_kmh?.toFixed(1) || '-'} km/h)`;
           } else if (test.test_type === '1600m') {
-            pdf.text(`• 1600m: ${test.time_1600m_minutes}:${test.time_1600m_seconds} - VMA ${test.vma_kmh} km/h`, 25, yPos);
+            result = `VMA: ${test.vma_kmh || '-'} km/h`;
           }
-          yPos += 6;
+          yPos = drawTableRowPdf(pdf, [
+            test.test_type === '40m' ? 'Sprint 40m' : 'Test 1600m',
+            result,
+            format(new Date(test.test_date), "dd/MM/yy")
+          ], speedColWidths, yPos, index % 2 === 1, margin, contentWidth);
         });
+        yPos += 5;
       } else {
-        pdf.text("Aucun test enregistré", 25, yPos);
+        pdf.setFontSize(9);
+        pdf.setTextColor(...colors.muted);
+        pdf.text("Aucun test enregistré", margin, yPos);
+        yPos += 10;
       }
-      yPos += 12;
 
-      // Jump Tests
-      pdf.setFontSize(14);
-      pdf.text("Tests de Saut (derniers)", 20, yPos);
+      // Jump Tests Section
+      yPos += 5;
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...colors.dark);
+      pdf.text("TESTS DE SAUT", margin, yPos);
       yPos += 8;
-      pdf.setFontSize(11);
-      
-      if (jumpTestsRes.data && jumpTestsRes.data.length > 0) {
-        jumpTestsRes.data.forEach(test => {
-          pdf.text(`• ${test.test_type}: ${test.result_cm} cm (${format(new Date(test.test_date), "d MMM", { locale: fr })})`, 25, yPos);
-          yPos += 6;
+
+      const jumpTests = jumpTestsRes.data || [];
+      if (jumpTests.length > 0) {
+        const jumpHeaders = ["Type", "Résultat", "Date"];
+        const jumpColWidths = [60, 60, 60];
+        yPos = drawTableHeaderPdf(pdf, jumpHeaders, jumpColWidths, yPos, margin, contentWidth);
+
+        jumpTests.slice(0, 5).forEach((test, index) => {
+          yPos = drawTableRowPdf(pdf, [
+            test.test_type,
+            `${test.result_cm} cm`,
+            format(new Date(test.test_date), "dd/MM/yy")
+          ], jumpColWidths, yPos, index % 2 === 1, margin, contentWidth);
         });
       } else {
-        pdf.text("Aucun test enregistré", 25, yPos);
+        pdf.setFontSize(9);
+        pdf.setTextColor(...colors.muted);
+        pdf.text("Aucun test enregistré", margin, yPos);
       }
 
       pdf.save(`fiche_${player.name.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
@@ -181,10 +340,11 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     
     try {
       // Fetch season data
-      const [matchesRes, injuriesRes, goalsRes] = await Promise.all([
+      const [matchesRes, injuriesRes, goalsRes, awcrRes] = await Promise.all([
         supabase.from("matches").select("*").eq("category_id", categoryId).order("match_date"),
         supabase.from("injuries").select("*, players(name)").eq("category_id", categoryId),
         supabase.from("season_goals").select("*").eq("category_id", categoryId).eq("season_year", new Date().getFullYear()),
+        supabase.from("awcr_tracking").select("*").eq("category_id", categoryId).order("session_date", { ascending: false }),
       ]);
 
       const matchesData = matchesRes.data || [];
@@ -197,69 +357,167 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         (!m.is_home && (m.score_away || 0) < (m.score_home || 0))
       ).length;
       const draws = matchesData.length - wins - losses;
+      const allInjuries = injuriesRes.data || [];
+      const activeInjuries = allInjuries.filter(i => i.status === 'active').length;
 
       const pdf = new jsPDF();
-      let yPos = 20;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const margin = 15;
+      const contentWidth = pageWidth - 2 * margin;
 
       // Header
-      pdf.setFontSize(20);
-      pdf.text(`Bilan de Saison ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`, 20, yPos);
+      let yPos = drawPdfHeader(
+        pdf,
+        `BILAN DE SAISON ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`,
+        `${category?.clubs?.name} - ${category?.name}`,
+        `Généré le ${format(new Date(), "d MMMM yyyy", { locale: fr })}`
+      );
+
+      // KPI Cards
+      const cardWidth = (contentWidth - 15) / 4;
+      const cardHeight = 22;
+
+      drawKpiCard(pdf, margin, yPos, cardWidth, cardHeight, String(players.length), "JOUEURS", colors.primary);
+      drawKpiCard(pdf, margin + cardWidth + 5, yPos, cardWidth, cardHeight, String(matchesData.length), "MATCHS", colors.primary);
+      drawKpiCard(pdf, margin + (cardWidth + 5) * 2, yPos, cardWidth, cardHeight, String(wins), "VICTOIRES", colors.success);
+      drawKpiCard(pdf, margin + (cardWidth + 5) * 3, yPos, cardWidth, cardHeight, String(activeInjuries), "BLESSÉS", activeInjuries > 0 ? colors.danger : colors.success);
+
+      yPos += cardHeight + 15;
+
+      // Match Record Summary
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...colors.dark);
+      pdf.text("BILAN SPORTIF", margin, yPos);
       yPos += 10;
+
+      const recordBoxWidth = (contentWidth - 10) / 3;
       
+      pdf.setFillColor(...colors.success);
+      pdf.roundedRect(margin, yPos, recordBoxWidth, 18, 2, 2, 'F');
+      pdf.setTextColor(...colors.white);
       pdf.setFontSize(14);
-      pdf.setTextColor(100);
-      pdf.text(`${category?.clubs?.name} - ${category?.name}`, 20, yPos);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(String(wins), margin + recordBoxWidth / 2 - 5, yPos + 10);
+      pdf.setFontSize(8);
+      pdf.text("VICTOIRES", margin + recordBoxWidth / 2 - 15, yPos + 15);
+
+      pdf.setFillColor(...colors.muted);
+      pdf.roundedRect(margin + recordBoxWidth + 5, yPos, recordBoxWidth, 18, 2, 2, 'F');
+      pdf.setFontSize(14);
+      pdf.text(String(draws), margin + recordBoxWidth + 5 + recordBoxWidth / 2 - 5, yPos + 10);
+      pdf.setFontSize(8);
+      pdf.text("NULS", margin + recordBoxWidth + 5 + recordBoxWidth / 2 - 8, yPos + 15);
+
+      pdf.setFillColor(...colors.danger);
+      pdf.roundedRect(margin + (recordBoxWidth + 5) * 2, yPos, recordBoxWidth, 18, 2, 2, 'F');
+      pdf.setFontSize(14);
+      pdf.text(String(losses), margin + (recordBoxWidth + 5) * 2 + recordBoxWidth / 2 - 5, yPos + 10);
+      pdf.setFontSize(8);
+      pdf.text("DÉFAITES", margin + (recordBoxWidth + 5) * 2 + recordBoxWidth / 2 - 14, yPos + 15);
+
+      yPos += 28;
+
+      // Goals Section
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...colors.dark);
+      pdf.text("OBJECTIFS DE SAISON", margin, yPos);
+      yPos += 8;
+
+      const goals = goalsRes.data || [];
+      if (goals.length > 0) {
+        const goalHeaders = ["Objectif", "Progression", "Statut"];
+        const goalColWidths = [100, 40, 40];
+        yPos = drawTableHeaderPdf(pdf, goalHeaders, goalColWidths, yPos, margin, contentWidth);
+
+        goals.forEach((goal, index) => {
+          const statusLabel = goal.status === 'completed' ? 'Atteint' : goal.status === 'in_progress' ? 'En cours' : 'En attente';
+          const statusColor = goal.status === 'completed' ? colors.success : goal.status === 'in_progress' ? colors.warning : colors.muted;
+          yPos = drawTableRowPdf(pdf, [
+            goal.title,
+            `${goal.progress_percentage || 0}%`,
+            statusLabel
+          ], goalColWidths, yPos, index % 2 === 1, margin, contentWidth, [null, null, statusColor]);
+        });
+        yPos += 5;
+      } else {
+        pdf.setFontSize(9);
+        pdf.setTextColor(...colors.muted);
+        pdf.text("Aucun objectif défini", margin, yPos);
+        yPos += 10;
+      }
+
+      // Match Results
       yPos += 5;
-      pdf.text(`Généré le ${format(new Date(), "d MMMM yyyy", { locale: fr })}`, 20, yPos);
-      yPos += 15;
-
-      pdf.setTextColor(0);
-      
-      // Stats
-      pdf.setFontSize(16);
-      pdf.text("Statistiques Générales", 20, yPos);
-      yPos += 10;
       pdf.setFontSize(12);
-      pdf.text(`Effectif: ${players.length} joueurs`, 25, yPos);
-      yPos += 7;
-      pdf.text(`Matchs joués: ${matchesData.length}`, 25, yPos);
-      yPos += 7;
-      pdf.text(`Victoires: ${wins} | Nuls: ${draws} | Défaites: ${losses}`, 25, yPos);
-      yPos += 7;
-      pdf.text(`Blessures: ${injuriesRes.data?.length || 0} au total`, 25, yPos);
-      yPos += 15;
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...colors.dark);
+      pdf.text("RÉSULTATS DES MATCHS", margin, yPos);
+      yPos += 8;
 
-      // Goals
-      pdf.setFontSize(16);
-      pdf.text("Objectifs de Saison", 20, yPos);
-      yPos += 10;
-      pdf.setFontSize(12);
-      
-      if (goalsRes.data && goalsRes.data.length > 0) {
-        goalsRes.data.forEach(goal => {
-          const status = goal.status === 'completed' ? '✓' : goal.status === 'in_progress' ? '→' : '○';
-          pdf.text(`${status} ${goal.title} (${goal.progress_percentage || 0}%)`, 25, yPos);
-          yPos += 7;
+      if (matchesData.length > 0) {
+        const matchHeaders = ["Date", "Adversaire", "Score", "Résultat"];
+        const matchColWidths = [35, 70, 35, 40];
+        yPos = drawTableHeaderPdf(pdf, matchHeaders, matchColWidths, yPos, margin, contentWidth);
+
+        matchesData.slice(0, 12).forEach((match, index) => {
+          const score = `${match.score_home ?? '-'} - ${match.score_away ?? '-'}`;
+          let result = '-';
+          let resultColor: [number, number, number] | null = null;
+          
+          if (match.score_home !== null && match.score_away !== null) {
+            const isWin = (match.is_home && match.score_home > match.score_away) || (!match.is_home && match.score_away > match.score_home);
+            const isLoss = (match.is_home && match.score_home < match.score_away) || (!match.is_home && match.score_away < match.score_home);
+            result = isWin ? 'Victoire' : isLoss ? 'Défaite' : 'Nul';
+            resultColor = isWin ? colors.success : isLoss ? colors.danger : colors.muted;
+          }
+          
+          yPos = drawTableRowPdf(pdf, [
+            format(new Date(match.match_date), "dd/MM/yy"),
+            match.opponent,
+            score,
+            result
+          ], matchColWidths, yPos, index % 2 === 1, margin, contentWidth, [null, null, null, resultColor]);
         });
       } else {
-        pdf.text("Aucun objectif défini", 25, yPos);
+        pdf.setFontSize(9);
+        pdf.setTextColor(...colors.muted);
+        pdf.text("Aucun match joué", margin, yPos);
       }
+
+      // Injury Summary
+      yPos += 15;
+      if (yPos > 250) {
+        pdf.addPage();
+        yPos = 20;
+      }
+      
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...colors.dark);
+      pdf.text("BILAN MÉDICAL", margin, yPos);
       yPos += 10;
 
-      // Match results
-      if (matchesData.length > 0) {
-        pdf.setFontSize(16);
-        pdf.text("Résultats des Matchs", 20, yPos);
-        yPos += 10;
-        pdf.setFontSize(11);
-        
-        matchesData.slice(0, 10).forEach(match => {
-          const score = `${match.score_home || '-'} - ${match.score_away || '-'}`;
-          const date = format(new Date(match.match_date), "d MMM", { locale: fr });
-          pdf.text(`${date}: vs ${match.opponent} (${score})`, 25, yPos);
-          yPos += 6;
-        });
-      }
+      const injuryStats = [
+        { label: "Blessures totales", value: allInjuries.length, color: colors.primary },
+        { label: "Actuellement blessés", value: activeInjuries, color: activeInjuries > 0 ? colors.danger : colors.success },
+        { label: "En réathlétisation", value: allInjuries.filter(i => i.status === 'recovering').length, color: colors.warning },
+      ];
+
+      const statBoxWidth = (contentWidth - 10) / 3;
+      injuryStats.forEach((stat, i) => {
+        pdf.setFillColor(...stat.color);
+        pdf.roundedRect(margin + (statBoxWidth + 5) * i, yPos, statBoxWidth, 18, 2, 2, 'F');
+        pdf.setTextColor(...colors.white);
+        pdf.setFontSize(14);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(String(stat.value), margin + (statBoxWidth + 5) * i + statBoxWidth / 2 - 5, yPos + 10);
+        pdf.setFontSize(7);
+        pdf.setFont("helvetica", "normal");
+        const labelWidth = pdf.getTextWidth(stat.label);
+        pdf.text(stat.label, margin + (statBoxWidth + 5) * i + (statBoxWidth - labelWidth) / 2, yPos + 15);
+      });
 
       pdf.save(`bilan_saison_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
       toast.success("Rapport de saison généré");
@@ -285,74 +543,161 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
       // Fetch match data
       const [lineupsRes, statsRes] = await Promise.all([
-        supabase.from("match_lineups").select("*, players(name)").eq("match_id", selectedMatch),
+        supabase.from("match_lineups").select("*, players(name, position)").eq("match_id", selectedMatch),
         supabase.from("player_match_stats").select("*, players(name)").eq("match_id", selectedMatch),
       ]);
 
       const pdf = new jsPDF();
-      let yPos = 20;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const margin = 15;
+      const contentWidth = pageWidth - 2 * margin;
+
+      // Determine result
+      let resultText = "Match";
+      let resultColor = colors.primary;
+      if (match.score_home !== null && match.score_away !== null) {
+        const isWin = (match.is_home && match.score_home > match.score_away) || (!match.is_home && match.score_away > match.score_home);
+        const isLoss = (match.is_home && match.score_home < match.score_away) || (!match.is_home && match.score_away < match.score_home);
+        resultText = isWin ? "VICTOIRE" : isLoss ? "DÉFAITE" : "MATCH NUL";
+        resultColor = isWin ? colors.success : isLoss ? colors.danger : colors.muted;
+      }
 
       // Header
-      pdf.setFontSize(20);
-      pdf.text(`Rapport de Match`, 20, yPos);
-      yPos += 10;
-      
-      pdf.setFontSize(16);
-      pdf.text(`vs ${match.opponent}`, 20, yPos);
-      yPos += 8;
-      
-      pdf.setFontSize(12);
-      pdf.setTextColor(100);
-      pdf.text(`${format(new Date(match.match_date), "d MMMM yyyy", { locale: fr })}`, 20, yPos);
-      yPos += 5;
-      pdf.text(`${match.location || 'Lieu non défini'}`, 20, yPos);
-      yPos += 15;
+      let yPos = drawPdfHeader(
+        pdf,
+        `RAPPORT DE MATCH`,
+        `vs ${match.opponent} - ${match.location || 'Lieu non défini'}`,
+        `${format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: fr })}`
+      );
 
-      pdf.setTextColor(0);
+      // Score Card
+      const scoreBoxWidth = contentWidth;
+      pdf.setFillColor(...resultColor);
+      pdf.roundedRect(margin, yPos, scoreBoxWidth, 35, 3, 3, 'F');
       
-      // Score
-      pdf.setFontSize(24);
-      const score = `${match.score_home || '-'} - ${match.score_away || '-'}`;
-      pdf.text(score, 20, yPos);
-      yPos += 15;
+      pdf.setTextColor(...colors.white);
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(resultText, margin + scoreBoxWidth / 2 - pdf.getTextWidth(resultText) / 2, yPos + 8);
+      
+      pdf.setFontSize(28);
+      pdf.setFont("helvetica", "bold");
+      const scoreText = `${match.score_home ?? '-'} - ${match.score_away ?? '-'}`;
+      pdf.text(scoreText, margin + scoreBoxWidth / 2 - pdf.getTextWidth(scoreText) / 2, yPos + 25);
+      
+      yPos += 45;
 
       // Match Stats
-      pdf.setFontSize(14);
-      pdf.text("Statistiques du Match", 20, yPos);
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...colors.dark);
+      pdf.text("STATISTIQUES DU MATCH", margin, yPos);
       yPos += 10;
-      pdf.setFontSize(11);
-      pdf.text(`Temps de jeu effectif: ${match.effective_play_time || '-'} min`, 25, yPos);
-      yPos += 6;
-      pdf.text(`Séquence la plus longue: ${match.longest_play_sequence || '-'} sec`, 25, yPos);
-      yPos += 6;
-      pdf.text(`Séquence moyenne: ${match.average_play_sequence || '-'} sec`, 25, yPos);
-      yPos += 12;
+
+      const matchStatsData = [
+        { label: "Temps effectif", value: match.effective_play_time ? `${match.effective_play_time} min` : '-' },
+        { label: "Séq. la plus longue", value: match.longest_play_sequence ? `${match.longest_play_sequence} sec` : '-' },
+        { label: "Séq. moyenne", value: match.average_play_sequence ? `${match.average_play_sequence} sec` : '-' },
+      ];
+
+      pdf.setFillColor(...colors.light);
+      pdf.roundedRect(margin, yPos, contentWidth, 15, 2, 2, 'F');
+      pdf.setFontSize(9);
+      pdf.setTextColor(...colors.dark);
+      pdf.setFont("helvetica", "normal");
+      
+      let xOffset = margin + 5;
+      matchStatsData.forEach((stat, i) => {
+        pdf.text(`${stat.label}: ${stat.value}`, xOffset, yPos + 10);
+        xOffset += 60;
+      });
+      
+      yPos += 25;
 
       // Lineup
-      pdf.setFontSize(14);
-      pdf.text("Composition", 20, yPos);
-      yPos += 10;
-      pdf.setFontSize(11);
-      
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...colors.dark);
+      pdf.text("COMPOSITION", margin, yPos);
+      yPos += 8;
+
       const starters = lineupsRes.data?.filter(l => l.is_starter) || [];
       const subs = lineupsRes.data?.filter(l => !l.is_starter) || [];
-      
+
       if (starters.length > 0) {
-        pdf.text("Titulaires:", 25, yPos);
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(...colors.success);
+        pdf.text("Titulaires", margin, yPos);
         yPos += 6;
-        starters.forEach(p => {
-          pdf.text(`  • ${p.players?.name} (${p.minutes_played || 0} min)`, 25, yPos);
-          yPos += 5;
+
+        const lineupHeaders = ["Joueur", "Position", "Minutes"];
+        const lineupColWidths = [80, 50, 50];
+        yPos = drawTableHeaderPdf(pdf, lineupHeaders, lineupColWidths, yPos, margin, contentWidth);
+
+        starters.forEach((p, index) => {
+          yPos = drawTableRowPdf(pdf, [
+            p.players?.name || 'Inconnu',
+            p.position || p.players?.position || '-',
+            `${p.minutes_played || 0} min`
+          ], lineupColWidths, yPos, index % 2 === 1, margin, contentWidth);
+        });
+        yPos += 5;
+      }
+
+      if (subs.length > 0) {
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(...colors.warning);
+        pdf.text("Remplaçants", margin, yPos);
+        yPos += 6;
+
+        const subHeaders = ["Joueur", "Position", "Minutes"];
+        const subColWidths = [80, 50, 50];
+        yPos = drawTableHeaderPdf(pdf, subHeaders, subColWidths, yPos, margin, contentWidth);
+
+        subs.forEach((p, index) => {
+          yPos = drawTableRowPdf(pdf, [
+            p.players?.name || 'Inconnu',
+            p.position || p.players?.position || '-',
+            `${p.minutes_played || 0} min`
+          ], subColWidths, yPos, index % 2 === 1, margin, contentWidth);
         });
       }
-      
-      if (subs.length > 0) {
-        yPos += 3;
-        pdf.text("Remplaçants:", 25, yPos);
-        yPos += 6;
-        subs.forEach(p => {
-          pdf.text(`  • ${p.players?.name} (${p.minutes_played || 0} min)`, 25, yPos);
-          yPos += 5;
+
+      // Player Stats if available
+      const playerStats = statsRes.data || [];
+      if (playerStats.length > 0) {
+        yPos += 10;
+        if (yPos > 230) {
+          pdf.addPage();
+          yPos = 20;
+        }
+
+        pdf.setFontSize(12);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(...colors.dark);
+        pdf.text("STATISTIQUES JOUEURS", margin, yPos);
+        yPos += 8;
+
+        const statHeaders = ["Joueur", "Essais", "Plaq.", "Portés", "Franchis."];
+        const statColWidths = [55, 25, 30, 35, 35];
+        yPos = drawTableHeaderPdf(pdf, statHeaders, statColWidths, yPos, margin, contentWidth);
+
+        playerStats.forEach((stat, index) => {
+          yPos = drawTableRowPdf(pdf, [
+            stat.players?.name || 'Inconnu',
+            String(stat.tries || 0),
+            String(stat.tackles || 0),
+            String(stat.carries || 0),
+            String(stat.breakthroughs || 0)
+          ], statColWidths, yPos, index % 2 === 1, margin, contentWidth, [
+            null,
+            stat.tries && stat.tries > 0 ? colors.success : null,
+            null,
+            null,
+            stat.breakthroughs && stat.breakthroughs > 0 ? colors.success : null
+          ]);
         });
       }
 
