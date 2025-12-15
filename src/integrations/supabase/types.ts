@@ -521,7 +521,22 @@ export type Database = {
           test_date?: string
           test_type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "jump_tests_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jump_tests_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       match_lineups: {
         Row: {
@@ -781,7 +796,22 @@ export type Database = {
           test_date?: string
           test_type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mobility_tests_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mobility_tests_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
