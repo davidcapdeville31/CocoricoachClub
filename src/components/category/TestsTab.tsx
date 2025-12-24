@@ -17,16 +17,16 @@ export function TestsTab({ categoryId }: TestsTabProps) {
         <CardTitle>Tests de Performance</CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="speed" className="space-y-4">
+        <Tabs defaultValue="running" className="space-y-4">
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="speed">Vitesse</TabsTrigger>
+            <TabsTrigger value="running">Course</TabsTrigger>
             <TabsTrigger value="strength">Musculation</TabsTrigger>
             <TabsTrigger value="mobility">Mobilité</TabsTrigger>
             <TabsTrigger value="jump">Détente</TabsTrigger>
             <TabsTrigger value="rugby">Tests Rugby</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="speed" className="space-y-6">
+          <TabsContent value="running" className="space-y-6">
             <SpeedTestsSection categoryId={categoryId} />
           </TabsContent>
 
