@@ -445,6 +445,152 @@ export type Database = {
         }
         Relationships: []
       }
+      gathering_wellness_assessments: {
+        Row: {
+          appetite_level: number | null
+          assessment_date: string
+          assessment_type: string
+          category_id: string
+          club_staff_comments: string | null
+          created_at: string
+          current_awcr: number | null
+          current_limitations: string | null
+          event_id: string | null
+          fatigue_level: number | null
+          filled_by: string | null
+          filled_by_role: string | null
+          has_pain: boolean | null
+          hydration_level: number | null
+          id: string
+          linked_assessment_id: string | null
+          matches_played_last_14_days: number | null
+          mood_level: number | null
+          motivation_level: number | null
+          muscle_soreness: number | null
+          national_staff_comments: string | null
+          pain_description: string | null
+          pain_intensity: number | null
+          pain_locations: string[] | null
+          player_comments: string | null
+          player_id: string
+          recent_injuries: string | null
+          recommended_load: string | null
+          sleep_duration_hours: number | null
+          sleep_quality: number | null
+          specific_recommendations: string | null
+          stress_level: number | null
+          total_minutes_last_14_days: number | null
+          training_load_last_14_days: number | null
+          training_load_last_7_days: number | null
+          updated_at: string
+        }
+        Insert: {
+          appetite_level?: number | null
+          assessment_date?: string
+          assessment_type: string
+          category_id: string
+          club_staff_comments?: string | null
+          created_at?: string
+          current_awcr?: number | null
+          current_limitations?: string | null
+          event_id?: string | null
+          fatigue_level?: number | null
+          filled_by?: string | null
+          filled_by_role?: string | null
+          has_pain?: boolean | null
+          hydration_level?: number | null
+          id?: string
+          linked_assessment_id?: string | null
+          matches_played_last_14_days?: number | null
+          mood_level?: number | null
+          motivation_level?: number | null
+          muscle_soreness?: number | null
+          national_staff_comments?: string | null
+          pain_description?: string | null
+          pain_intensity?: number | null
+          pain_locations?: string[] | null
+          player_comments?: string | null
+          player_id: string
+          recent_injuries?: string | null
+          recommended_load?: string | null
+          sleep_duration_hours?: number | null
+          sleep_quality?: number | null
+          specific_recommendations?: string | null
+          stress_level?: number | null
+          total_minutes_last_14_days?: number | null
+          training_load_last_14_days?: number | null
+          training_load_last_7_days?: number | null
+          updated_at?: string
+        }
+        Update: {
+          appetite_level?: number | null
+          assessment_date?: string
+          assessment_type?: string
+          category_id?: string
+          club_staff_comments?: string | null
+          created_at?: string
+          current_awcr?: number | null
+          current_limitations?: string | null
+          event_id?: string | null
+          fatigue_level?: number | null
+          filled_by?: string | null
+          filled_by_role?: string | null
+          has_pain?: boolean | null
+          hydration_level?: number | null
+          id?: string
+          linked_assessment_id?: string | null
+          matches_played_last_14_days?: number | null
+          mood_level?: number | null
+          motivation_level?: number | null
+          muscle_soreness?: number | null
+          national_staff_comments?: string | null
+          pain_description?: string | null
+          pain_intensity?: number | null
+          pain_locations?: string[] | null
+          player_comments?: string | null
+          player_id?: string
+          recent_injuries?: string | null
+          recommended_load?: string | null
+          sleep_duration_hours?: number | null
+          sleep_quality?: number | null
+          specific_recommendations?: string | null
+          stress_level?: number | null
+          total_minutes_last_14_days?: number | null
+          training_load_last_14_days?: number | null
+          training_load_last_7_days?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gathering_wellness_assessments_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gathering_wellness_assessments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "national_team_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gathering_wellness_assessments_linked_assessment_id_fkey"
+            columns: ["linked_assessment_id"]
+            isOneToOne: false
+            referencedRelation: "gathering_wellness_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gathering_wellness_assessments_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       injuries: {
         Row: {
           actual_return_date: string | null

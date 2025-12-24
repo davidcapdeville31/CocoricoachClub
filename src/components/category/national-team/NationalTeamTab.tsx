@@ -10,6 +10,8 @@ import { AddNationalEventDialog } from "./AddNationalEventDialog";
 import { NationalTeamCalendar } from "./NationalTeamCalendar";
 import { PlayerCapsSection } from "./PlayerCapsSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GatheringWellnessTab } from "./GatheringWellnessTab";
+import { ClipboardList } from "lucide-react";
 
 interface NationalTeamTabProps {
   categoryId: string;
@@ -105,6 +107,10 @@ export function NationalTeamTab({ categoryId }: NationalTeamTabProps) {
           <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
           <TabsTrigger value="calendar">Calendrier</TabsTrigger>
           <TabsTrigger value="caps">Sélections</TabsTrigger>
+          <TabsTrigger value="wellness" className="flex items-center gap-2">
+            <ClipboardList className="h-4 w-4" />
+            Bilans Wellness
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -296,6 +302,10 @@ export function NationalTeamTab({ categoryId }: NationalTeamTabProps) {
 
         <TabsContent value="caps">
           <PlayerCapsSection categoryId={categoryId} />
+        </TabsContent>
+
+        <TabsContent value="wellness">
+          <GatheringWellnessTab categoryId={categoryId} />
         </TabsContent>
       </Tabs>
 
