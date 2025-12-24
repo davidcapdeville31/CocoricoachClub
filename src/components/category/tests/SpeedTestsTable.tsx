@@ -14,7 +14,7 @@ import { toast } from "sonner";
 
 interface SpeedTestsTableProps {
   categoryId: string;
-  testType: "40m_sprint" | "1600m_run";
+  testType: string;
 }
 
 export function SpeedTestsTable({ categoryId, testType }: SpeedTestsTableProps) {
@@ -54,6 +54,9 @@ export function SpeedTestsTable({ categoryId, testType }: SpeedTestsTableProps) 
     return <p className="text-sm text-muted-foreground">Aucun test enregistré</p>;
   }
 
+  const isSprintTest = testType.includes("sprint");
+  const is1600mTest = testType === "1600m_run";
+
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -61,15 +64,20 @@ export function SpeedTestsTable({ categoryId, testType }: SpeedTestsTableProps) 
           <TableRow>
             <TableHead>Joueur</TableHead>
             <TableHead>Date</TableHead>
-            {testType === "40m_sprint" ? (
+            {isSprintTest ? (
               <>
                 <TableHead>Temps (s)</TableHead>
                 <TableHead>m/s</TableHead>
                 <TableHead>km/h</TableHead>
               </>
-            ) : (
+            ) : is1600mTest ? (
               <>
                 <TableHead>Temps</TableHead>
+                <TableHead>VMA (km/h)</TableHead>
+              </>
+            ) : (
+              <>
+                <TableHead>Résultat</TableHead>
                 <TableHead>VMA (km/h)</TableHead>
               </>
             )}
@@ -81,7 +89,7 @@ export function SpeedTestsTable({ categoryId, testType }: SpeedTestsTableProps) 
             <TableRow key={test.id} className="animate-fade-in">
               <TableCell className="font-medium">{test.players?.name}</TableCell>
               <TableCell>{new Date(test.test_date).toLocaleDateString("fr-FR")}</TableCell>
-              {testType === "40m_sprint" ? (
+              {isSprintTest ? (
                 <>
                   <TableCell>{test.time_40m_seconds?.toFixed(2)}</TableCell>
                   <TableCell className="font-semibold text-primary">
@@ -91,13 +99,20 @@ export function SpeedTestsTable({ categoryId, testType }: SpeedTestsTableProps) 
                     {test.speed_kmh?.toFixed(2)}
                   </TableCell>
                 </>
-              ) : (
+              ) : is1600mTest ? (
                 <>
                   <TableCell>
                     {test.time_1600m_minutes}:{test.time_1600m_seconds?.toString().padStart(2, "0")}
                   </TableCell>
                   <TableCell className="font-semibold text-primary">
                     {test.vma_kmh?.toFixed(2)}
+                  </TableCell>
+                </>
+              ) : (
+                <>
+                  <TableCell>-</TableCell>
+                  <TableCell className="font-semibold text-primary">
+                    {test.vma_kmh?.toFixed(2) || "-"}
                   </TableCell>
                 </>
               )}
