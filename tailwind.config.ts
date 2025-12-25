@@ -87,40 +87,28 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
         "fade-in": {
-          from: {
-            opacity: "0",
-            transform: "translateY(10px)",
-          },
-          to: {
-            opacity: "1",
-            transform: "translateY(0)",
-          },
+          from: { opacity: "0", transform: "translateY(10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
         },
         "slide-in": {
-          from: {
-            transform: "translateX(-10px)",
-            opacity: "0",
-          },
-          to: {
-            transform: "translateX(0)",
-            opacity: "1",
-          },
+          from: { transform: "translateX(-10px)", opacity: "0" },
+          to: { transform: "translateX(0)", opacity: "1" },
+        },
+        "pulse-alert": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.6" },
+        },
+        "bounce-subtle": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-3px)" },
         },
       },
       animation: {
@@ -136,68 +124,10 @@ export default {
         "gradient-card": "var(--gradient-card)",
       },
       boxShadow: {
-        "sm": "var(--shadow-sm)",
-        "md": "var(--shadow-md)",
-        "lg": "var(--shadow-lg)",
+        sm: "var(--shadow-sm)",
+        md: "var(--shadow-md)",
+        lg: "var(--shadow-lg)",
       },
-      keyframes: {
-        "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
-        },
-        "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
-        },
-        "fade-in": {
-          from: {
-            opacity: "0",
-            transform: "translateY(10px)",
-          },
-          to: {
-            opacity: "1",
-            transform: "translateY(0)",
-          },
-        },
-        "slide-in": {
-          from: {
-            transform: "translateX(-10px)",
-            opacity: "0",
-          },
-          to: {
-            transform: "translateX(0)",
-            opacity: "1",
-          },
-        },
-        "pulse-alert": {
-          "0%, 100%": {
-            opacity: "1",
-          },
-          "50%": {
-            opacity: "0.6",
-          },
-        },
-        "bounce-subtle": {
-          "0%, 100%": {
-            transform: "translateY(0)",
-          },
-          "50%": {
-            transform: "translateY(-3px)",
-          },
-        },
-      },
-    },
-  },
-  plugins: [require("tailwindcss-animate")],
-} satisfies Config;
     },
   },
   plugins: [require("tailwindcss-animate")],
