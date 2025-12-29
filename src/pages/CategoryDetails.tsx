@@ -22,6 +22,8 @@ import { MatchesTab } from "@/components/category/MatchesTab";
 import { WellnessTab } from "@/components/category/WellnessTab";
 import { AcademyTab } from "@/components/category/AcademyTab";
 import { PlanningTab } from "@/components/category/PlanningTab";
+import { PlanningTab as NewPlanningTab } from "@/components/planning/PlanningTab";
+import { MessagingTab } from "@/components/messaging/MessagingTab";
 import { NutritionTab } from "@/components/category/NutritionTab";
 import { ReportsTab } from "@/components/category/ReportsTab";
 import { CategoryCollaborationTab } from "@/components/category/CategoryCollaborationTab";
@@ -127,6 +129,8 @@ export default function CategoryDetails() {
               <TabsTrigger className="whitespace-nowrap" value="wellness">Wellness</TabsTrigger>
               <TabsTrigger className="whitespace-nowrap" value="nutrition">Nutrition</TabsTrigger>
               <TabsTrigger className="whitespace-nowrap" value="planning">Planification</TabsTrigger>
+              <TabsTrigger className="whitespace-nowrap" value="sessions">Séances</TabsTrigger>
+              <TabsTrigger className="whitespace-nowrap" value="messaging">Messagerie</TabsTrigger>
               <TabsTrigger className="whitespace-nowrap" value="physical-prep">Prépa Physique</TabsTrigger>
               <TabsTrigger className="whitespace-nowrap" value="reports">Rapports</TabsTrigger>
               {isRugby7 && (
@@ -192,6 +196,14 @@ export default function CategoryDetails() {
 
           <TabsContent value="planning" className="space-y-4">
             <PlanningTab categoryId={categoryId!} />
+          </TabsContent>
+
+          <TabsContent value="sessions" className="space-y-4">
+            <NewPlanningTab categoryId={categoryId!} />
+          </TabsContent>
+
+          <TabsContent value="messaging" className="space-y-4">
+            <MessagingTab categoryId={categoryId!} />
           </TabsContent>
 
           <TabsContent value="physical-prep" className="space-y-4">
