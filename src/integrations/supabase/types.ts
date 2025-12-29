@@ -445,6 +445,79 @@ export type Database = {
         }
         Relationships: []
       }
+      conversation_participants: {
+        Row: {
+          conversation_id: string
+          id: string
+          is_admin: boolean | null
+          joined_at: string
+          last_read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          is_admin?: boolean | null
+          joined_at?: string
+          last_read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          is_admin?: boolean | null
+          joined_at?: string
+          last_read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          category_id: string | null
+          conversation_type: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string | null
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          conversation_type?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          conversation_type?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_library: {
         Row: {
           category: string
@@ -1104,6 +1177,53 @@ export type Database = {
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          is_announcement: boolean | null
+          is_urgent: boolean | null
+          message_type: string | null
+          read_by: string[] | null
+          sender_id: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          is_announcement?: boolean | null
+          is_urgent?: boolean | null
+          message_type?: string | null
+          read_by?: string[] | null
+          sender_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          is_announcement?: boolean | null
+          is_urgent?: boolean | null
+          message_type?: string | null
+          read_by?: string[] | null
+          sender_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
         ]
@@ -3077,6 +3197,74 @@ export type Database = {
           },
         ]
       }
+      session_templates: {
+        Row: {
+          category_id: string | null
+          cooldown_description: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          duration_minutes: number | null
+          equipment_needed: string[] | null
+          id: string
+          intensity: string | null
+          is_shared: boolean | null
+          main_content: string | null
+          name: string
+          notes: string | null
+          objectives: string | null
+          session_type: string
+          updated_at: string
+          warmup_description: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          cooldown_description?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          equipment_needed?: string[] | null
+          id?: string
+          intensity?: string | null
+          is_shared?: boolean | null
+          main_content?: string | null
+          name: string
+          notes?: string | null
+          objectives?: string | null
+          session_type?: string
+          updated_at?: string
+          warmup_description?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          cooldown_description?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          equipment_needed?: string[] | null
+          id?: string
+          intensity?: string | null
+          is_shared?: boolean | null
+          main_content?: string | null
+          name?: string
+          notes?: string | null
+          objectives?: string | null
+          session_type?: string
+          updated_at?: string
+          warmup_description?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_templates_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       smart_alerts: {
         Row: {
           alert_type: string
@@ -3313,6 +3501,63 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      template_exercises: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          exercise_id: string | null
+          exercise_name: string
+          id: string
+          notes: string | null
+          order_index: number
+          reps: string | null
+          rest_seconds: number | null
+          sets: number | null
+          template_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          exercise_id?: string | null
+          exercise_name: string
+          id?: string
+          notes?: string | null
+          order_index?: number
+          reps?: string | null
+          rest_seconds?: number | null
+          sets?: number | null
+          template_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          exercise_id?: string | null
+          exercise_name?: string
+          id?: string
+          notes?: string | null
+          order_index?: number
+          reps?: string | null
+          rest_seconds?: number | null
+          sets?: number | null
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_library"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_exercises_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "session_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       test_reminders: {
         Row: {
@@ -3708,6 +3953,75 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      weekly_planning: {
+        Row: {
+          assigned_players: string[] | null
+          category_id: string
+          created_at: string
+          created_by: string | null
+          custom_description: string | null
+          custom_title: string | null
+          day_of_week: number
+          id: string
+          location: string | null
+          notes: string | null
+          status: string | null
+          template_id: string | null
+          time_slot: string | null
+          updated_at: string
+          week_start_date: string
+        }
+        Insert: {
+          assigned_players?: string[] | null
+          category_id: string
+          created_at?: string
+          created_by?: string | null
+          custom_description?: string | null
+          custom_title?: string | null
+          day_of_week: number
+          id?: string
+          location?: string | null
+          notes?: string | null
+          status?: string | null
+          template_id?: string | null
+          time_slot?: string | null
+          updated_at?: string
+          week_start_date: string
+        }
+        Update: {
+          assigned_players?: string[] | null
+          category_id?: string
+          created_at?: string
+          created_by?: string | null
+          custom_description?: string | null
+          custom_title?: string | null
+          day_of_week?: number
+          id?: string
+          location?: string | null
+          notes?: string | null
+          status?: string | null
+          template_id?: string | null
+          time_slot?: string | null
+          updated_at?: string
+          week_start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_planning_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "weekly_planning_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "session_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wellness_tracking: {
         Row: {
