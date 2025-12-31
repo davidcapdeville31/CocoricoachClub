@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { Plus, Trash2, X, Swords, MapPin } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Trash2, X, Swords, MapPin, Calendar as CalendarIcon, LayoutTemplate } from "lucide-react";
 import { toast } from "sonner";
 import { AddSessionDialog } from "./AddSessionDialog";
 import { QuickTestEntryDialog } from "./QuickTestEntryDialog";
@@ -13,6 +14,8 @@ import { format, isSameDay, isWithinInterval } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
 import { useNavigate } from "react-router-dom";
+import { WeeklyPlanningCalendar } from "@/components/planning/WeeklyPlanningCalendar";
+import { SessionTemplatesSection } from "@/components/planning/SessionTemplatesSection";
 
 interface CalendarTabProps {
   categoryId: string;
@@ -161,235 +164,271 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-gradient-card shadow-md">
-        <CardHeader>
-          <div className="flex justify-between items-center flex-wrap gap-4">
-            <CardTitle>Calendrier des entraînements et matchs</CardTitle>
-            <div className="flex gap-2">
-              {dateRange?.from && (
-                <Button 
-                  onClick={() => setDateRange(undefined)} 
-                  variant="outline" 
-                  className="gap-2"
-                >
-                  <X className="h-4 w-4" />
-                  Réinitialiser
-                </Button>
-              )}
-              <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
-                <Plus className="h-4 w-4" />
-                Ajouter une séance
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex flex-col items-center gap-4">
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-2">
-                Sélectionnez une période pour filtrer les événements
-              </p>
-              {dateRange?.from && (
-                <p className="text-sm font-medium">
+      <Tabs defaultValue="global" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="global" className="flex items-center gap-2">
+            <CalendarIcon className="h-4 w-4" />
+            Calendrier Global
+          </TabsTrigger>
+          <TabsTrigger value="weekly" className="flex items-center gap-2">
+            <CalendarIcon className="h-4 w-4" />
+            Planning Hebdo
+          </TabsTrigger>
+          <TabsTrigger value="templates" className="flex items-center gap-2">
+            <LayoutTemplate className="h-4 w-4" />
+            Templates
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="global">
+          <Card className="bg-gradient-card shadow-md">
+            <CardHeader>
+              <div className="flex justify-between items-center flex-wrap gap-4">
+                <CardTitle>Calendrier des entraînements et matchs</CardTitle>
+                <div className="flex gap-2">
+                  {dateRange?.from && (
+                    <Button 
+                      onClick={() => setDateRange(undefined)} 
+                      variant="outline" 
+                      className="gap-2"
+                    >
+                      <X className="h-4 w-4" />
+                      Réinitialiser
+                    </Button>
+                  )}
+                  <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Ajouter une séance
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex flex-col items-center gap-4">
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Sélectionnez une période pour filtrer les événements
+                  </p>
+                  {dateRange?.from && (
+                    <p className="text-sm font-medium">
+                      {dateRange.to ? (
+                        <>
+                          Du {format(dateRange.from, "d MMM yyyy", { locale: fr })} au{" "}
+                          {format(dateRange.to, "d MMM yyyy", { locale: fr })}
+                        </>
+                      ) : (
+                        format(dateRange.from, "d MMMM yyyy", { locale: fr })
+                      )}
+                    </p>
+                  )}
+                </div>
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  locale={fr}
+                  numberOfMonths={1}
+                  className="rounded-md border bg-card pointer-events-auto"
+                  modifiers={{
+                    hasSession: (day) =>
+                      sessions?.some((session) =>
+                        isSameDay(new Date(session.session_date), day)
+                      ) || false,
+                    hasMatch: (day) =>
+                      matches?.some((match) =>
+                        isSameDay(new Date(match.match_date), day)
+                      ) || false,
+                  }}
+                  modifiersClassNames={{
+                    hasSession: "font-bold",
+                    hasMatch: "font-bold text-rose-600",
+                  }}
+                  components={{
+                    DayContent: ({ date }) => (
+                      <div className="relative w-full h-full flex flex-col items-center justify-center">
+                        <span>{format(date, "d")}</span>
+                        {getDayContent(date)}
+                      </div>
+                    ),
+                  }}
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-3 justify-center text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-rose-500" />
+                  <span className="text-muted-foreground">Match</span>
+                </div>
+                {Object.entries(trainingTypeLabels).map(([key, label]) => (
+                  <div key={key} className="flex items-center gap-2">
+                    <div className={`h-3 w-3 rounded-full ${trainingTypeColors[key] || "bg-muted"}`} />
+                    <span className="text-muted-foreground">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {dateRange?.from && (
+            <Card className="bg-gradient-card shadow-md mt-6">
+              <CardHeader>
+                <CardTitle>
                   {dateRange.to ? (
                     <>
-                      Du {format(dateRange.from, "d MMM yyyy", { locale: fr })} au{" "}
+                      Événements du {format(dateRange.from, "d MMM", { locale: fr })} au{" "}
                       {format(dateRange.to, "d MMM yyyy", { locale: fr })}
                     </>
                   ) : (
-                    format(dateRange.from, "d MMMM yyyy", { locale: fr })
+                    <>Événements du {format(dateRange.from, "d MMMM yyyy", { locale: fr })}</>
                   )}
-                </p>
-              )}
-            </div>
-            <Calendar
-              mode="range"
-              selected={dateRange}
-              onSelect={setDateRange}
-              locale={fr}
-              numberOfMonths={1}
-              className="rounded-md border bg-card pointer-events-auto"
-              modifiers={{
-                hasSession: (day) =>
-                  sessions?.some((session) =>
-                    isSameDay(new Date(session.session_date), day)
-                  ) || false,
-                hasMatch: (day) =>
-                  matches?.some((match) =>
-                    isSameDay(new Date(match.match_date), day)
-                  ) || false,
-              }}
-              modifiersClassNames={{
-                hasSession: "font-bold",
-                hasMatch: "font-bold text-rose-600",
-              }}
-              components={{
-                DayContent: ({ date }) => (
-                  <div className="relative w-full h-full flex flex-col items-center justify-center">
-                    <span>{format(date, "d")}</span>
-                    {getDayContent(date)}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {combinedEvents.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">Aucun événement sur cette période</p>
                   </div>
-                ),
-              }}
-            />
-          </div>
-
-          <div className="flex flex-wrap gap-3 justify-center text-sm">
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-rose-500" />
-              <span className="text-muted-foreground">Match</span>
-            </div>
-            {Object.entries(trainingTypeLabels).map(([key, label]) => (
-              <div key={key} className="flex items-center gap-2">
-                <div className={`h-3 w-3 rounded-full ${trainingTypeColors[key] || "bg-muted"}`} />
-                <span className="text-muted-foreground">{label}</span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {dateRange?.from && (
-        <Card className="bg-gradient-card shadow-md">
-          <CardHeader>
-            <CardTitle>
-              {dateRange.to ? (
-                <>
-                  Événements du {format(dateRange.from, "d MMM", { locale: fr })} au{" "}
-                  {format(dateRange.to, "d MMM yyyy", { locale: fr })}
-                </>
-              ) : (
-                <>Événements du {format(dateRange.from, "d MMMM yyyy", { locale: fr })}</>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {combinedEvents.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Aucun événement sur cette période</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {combinedEvents.map((event) => {
-                  if (event.eventType === "match") {
-                    return (
-                      <div
-                        key={`match-${event.id}`}
-                        className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors animate-fade-in cursor-pointer"
-                        onClick={() => navigate(`?tab=matches`)}
-                      >
-                        <div className="flex items-center gap-4 flex-1">
-                          <div className="h-12 w-1.5 rounded-full bg-rose-500" />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs text-muted-foreground">
-                                {format(new Date(event.match_date), "d MMM yyyy", { locale: fr })}
-                              </span>
-                              {event.match_time && (
-                                <span className="text-xs text-muted-foreground">
-                                  • {event.match_time}
-                                </span>
-                              )}
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 font-medium">
-                                {event.is_home ? "Domicile" : "Extérieur"}
-                              </span>
+                ) : (
+                  <div className="space-y-3">
+                    {combinedEvents.map((event) => {
+                      if (event.eventType === "match") {
+                        return (
+                          <div
+                            key={`match-${event.id}`}
+                            className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors animate-fade-in cursor-pointer"
+                            onClick={() => navigate(`?tab=matches`)}
+                          >
+                            <div className="flex items-center gap-4 flex-1">
+                              <div className="h-12 w-1.5 rounded-full bg-rose-500" />
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-xs text-muted-foreground">
+                                    {format(new Date(event.match_date), "d MMM yyyy", { locale: fr })}
+                                  </span>
+                                  {event.match_time && (
+                                    <span className="text-xs text-muted-foreground">
+                                      • {event.match_time}
+                                    </span>
+                                  )}
+                                  <span className="text-xs px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 font-medium">
+                                    {event.is_home ? "Domicile" : "Extérieur"}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Swords className="h-4 w-4 text-rose-500" />
+                                  <span className="font-semibold">Match vs {event.opponent}</span>
+                                </div>
+                                {event.location && (
+                                  <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                                    <MapPin className="h-3 w-3" />
+                                    {event.location}
+                                  </p>
+                                )}
+                                {(event.score_home !== null && event.score_away !== null) && (
+                                  <p className="text-sm font-medium mt-1">
+                                    Score: {event.score_home} - {event.score_away}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Swords className="h-4 w-4 text-rose-500" />
-                              <span className="font-semibold">Match vs {event.opponent}</span>
-                            </div>
-                            {event.location && (
-                              <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                                <MapPin className="h-3 w-3" />
-                                {event.location}
-                              </p>
-                            )}
-                            {(event.score_home !== null && event.score_away !== null) && (
-                              <p className="text-sm font-medium mt-1">
-                                Score: {event.score_home} - {event.score_away}
-                              </p>
-                            )}
                           </div>
-                        </div>
-                      </div>
-                    );
-                  }
-
-                  // Training session
-                  return (
-                    <div
-                      key={`session-${event.id}`}
-                      className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors animate-fade-in cursor-pointer"
-                      onClick={() =>
-                        setSelectedSession({
-                          id: event.id,
-                          date: event.session_date,
-                          type:
-                            event.training_type === "test" ||
-                            event.training_type === "musculation"
-                              ? "test"
-                              : "training",
-                        })
+                        );
                       }
-                    >
-                      <div className="flex items-center gap-4 flex-1">
+
+                      // Training session
+                      return (
                         <div
-                          className={`h-12 w-1.5 rounded-full ${
-                            trainingTypeColors[event.training_type] || "bg-muted"
-                          }`}
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs text-muted-foreground">
-                              {format(new Date(event.session_date), "d MMM yyyy", { locale: fr })}
-                            </span>
-                            {event.session_start_time && event.session_end_time ? (
-                              <span className="text-xs text-muted-foreground">
-                                • {event.session_start_time} - {event.session_end_time}
-                              </span>
-                            ) : event.session_start_time ? (
-                              <span className="text-xs text-muted-foreground">
-                                • {event.session_start_time}
-                              </span>
-                            ) : null}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold">
-                              {trainingTypeLabels[event.training_type] || event.training_type}
-                            </span>
-                          </div>
-                          {event.intensity && (
-                            <p className="text-sm text-muted-foreground">
-                              Intensité: {event.intensity}/10
-                            </p>
-                          )}
-                          {event.notes && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {event.notes}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (confirm("Êtes-vous sûr de vouloir supprimer cette séance ?")) {
-                            deleteSession.mutate(event.id);
+                          key={`session-${event.id}`}
+                          className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors animate-fade-in cursor-pointer"
+                          onClick={() =>
+                            setSelectedSession({
+                              id: event.id,
+                              date: event.session_date,
+                              type:
+                                event.training_type === "test" ||
+                                event.training_type === "musculation"
+                                  ? "test"
+                                  : "training",
+                            })
                           }
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+                        >
+                          <div className="flex items-center gap-4 flex-1">
+                            <div
+                              className={`h-12 w-1.5 rounded-full ${
+                                trainingTypeColors[event.training_type] || "bg-muted"
+                              }`}
+                            />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs text-muted-foreground">
+                                  {format(new Date(event.session_date), "d MMM yyyy", { locale: fr })}
+                                </span>
+                                {event.session_start_time && event.session_end_time ? (
+                                  <span className="text-xs text-muted-foreground">
+                                    • {event.session_start_time} - {event.session_end_time}
+                                  </span>
+                                ) : event.session_start_time ? (
+                                  <span className="text-xs text-muted-foreground">
+                                    • {event.session_start_time}
+                                  </span>
+                                ) : null}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold">
+                                  {trainingTypeLabels[event.training_type] || event.training_type}
+                                </span>
+                              </div>
+                              {event.intensity && (
+                                <p className="text-sm text-muted-foreground">
+                                  Intensité: {event.intensity}/10
+                                </p>
+                              )}
+                              {event.notes && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {event.notes}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm("Êtes-vous sûr de vouloir supprimer cette séance ?")) {
+                                deleteSession.mutate(event.id);
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="weekly">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-3">
+              <WeeklyPlanningCalendar categoryId={categoryId} />
+            </div>
+            <div className="lg:col-span-1">
+              <SessionTemplatesSection categoryId={categoryId} />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="templates">
+          <div className="max-w-2xl">
+            <SessionTemplatesSection categoryId={categoryId} />
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <AddSessionDialog
         open={isAddDialogOpen}
