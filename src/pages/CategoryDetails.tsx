@@ -104,36 +104,38 @@ export default function CategoryDetails() {
 
       <div className="container mx-auto max-w-7xl px-4 py-8">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7 gap-1">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <LayoutDashboard className="h-4 w-4" />
+          <TabsList className="flex w-full overflow-x-auto no-scrollbar gap-1 h-auto flex-wrap md:flex-nowrap">
+            <TabsTrigger value="overview" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+              <LayoutDashboard className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">Vue Générale</span>
               <span className="sm:hidden">Général</span>
             </TabsTrigger>
-            <TabsTrigger value="effectif" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
+            <TabsTrigger value="effectif" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+              <Users className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">Effectif</span>
               <span className="sm:hidden">Équipe</span>
             </TabsTrigger>
-            <TabsTrigger value="planification" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
+            <TabsTrigger value="planification" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+              <Calendar className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">Planification</span>
               <span className="sm:hidden">Planning</span>
             </TabsTrigger>
-            <TabsTrigger value="performance" className="flex items-center gap-2">
-              <Zap className="h-4 w-4" />
-              <span>Performance</span>
+            <TabsTrigger value="performance" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+              <Zap className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">Performance</span>
+              <span className="sm:hidden">Perf</span>
             </TabsTrigger>
-            <TabsTrigger value="sante" className="flex items-center gap-2">
-              <Heart className="h-4 w-4" />
+            <TabsTrigger value="sante" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+              <Heart className="h-4 w-4 shrink-0" />
               <span>Santé</span>
             </TabsTrigger>
-            <TabsTrigger value="competition" className="flex items-center gap-2">
-              <Trophy className="h-4 w-4" />
-              <span>Compétition</span>
+            <TabsTrigger value="competition" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+              <Trophy className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">Compétition</span>
+              <span className="sm:hidden">Compét</span>
             </TabsTrigger>
-            <TabsTrigger value="communication" className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
+            <TabsTrigger value="communication" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+              <MessageSquare className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">Communication</span>
               <span className="sm:hidden">Com</span>
             </TabsTrigger>
