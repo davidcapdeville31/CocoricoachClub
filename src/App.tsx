@@ -17,6 +17,7 @@ import Dashboard from "./pages/Dashboard";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import Install from "./pages/Install";
 import Admin from "./pages/Admin";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="/accept-invitation" element={<AcceptInvitation />} />
               <Route path="/install" element={<Install />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="/clubs/:clubId" element={<ClubDetails />} />
               <Route path="/categories/:categoryId" element={<CategoryDetails />} />
               <Route path="/players/:playerId" element={<PlayerDetails />} />
