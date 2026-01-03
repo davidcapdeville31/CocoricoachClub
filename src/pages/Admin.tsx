@@ -10,9 +10,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
-import { Shield, Users, Building2, ArrowLeft, UserPlus, Trash2, Crown, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Shield, Users, Building2, ArrowLeft, UserPlus, Trash2, Crown, CheckCircle2, XCircle, Clock, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { AuditLogsTab } from "@/components/admin/AuditLogsTab";
 
 interface AdminUser {
   id: string;
@@ -316,6 +317,10 @@ export default function Admin() {
               <Crown className="h-4 w-4" />
               Super Admins
             </TabsTrigger>
+            <TabsTrigger value="audit" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Journal d'audit
+            </TabsTrigger>
           </TabsList>
 
           {/* Users Tab */}
@@ -598,6 +603,11 @@ export default function Admin() {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Audit Logs Tab */}
+          <TabsContent value="audit">
+            <AuditLogsTab />
           </TabsContent>
         </Tabs>
       </div>
