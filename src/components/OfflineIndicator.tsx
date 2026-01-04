@@ -1,5 +1,6 @@
-import { WifiOff, Cloud, RefreshCw, Loader2, Database, CheckCircle } from "lucide-react";
+import { WifiOff, Cloud, RefreshCw, Loader2, Database, CheckCircle, UserCircle } from "lucide-react";
 import { useOfflineSyncContext } from "@/contexts/OfflineSyncContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -14,8 +15,9 @@ const OfflineIndicator = () => {
     isPreloading,
     hasOfflineData,
     lastDataSync,
-    preloadOfflineData,
   } = useOfflineSyncContext();
+  
+  const { isOfflineSession, user } = useAuth();
 
   // Show preloading status
   if (isPreloading) {
@@ -39,14 +41,20 @@ const OfflineIndicator = () => {
     );
   }
 
-  // Show offline banner with cached data status
+  // Show offline banner with cached session status
   if (!isOnline) {
     return (
       <div className="fixed top-0 left-0 right-0 z-[100] bg-amber-500 text-white py-2 px-4 flex items-center justify-center gap-2 text-sm font-medium animate-in slide-in-from-top-2">
         <WifiOff className="w-4 h-4" />
         <span>
           Mode hors-ligne
-          {hasOfflineData && " - Données disponibles localement"}
+          {isOfflineSession && user && (
+            <span className="ml-1">
+              <UserCircle className="w-4 h-4 inline mx-1" />
+              {user.email}
+            </span>
+          )}
+          {hasOfflineData && " - Données disponibles"}
           {pendingCount > 0 && ` - ${pendingCount} modification(s) en attente`}
         </span>
         {hasOfflineData && <CheckCircle className="w-4 h-4 ml-1 text-white/80" />}
