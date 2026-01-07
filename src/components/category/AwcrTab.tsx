@@ -11,10 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Satellite, ClipboardList, Users } from "lucide-react";
+import { Plus, Satellite, ClipboardList, Users, WifiOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AddAwcrDialog } from "./AddAwcrDialog";
 import { QuickTeamRpeDialog } from "./QuickTeamRpeDialog";
+import { OfflineRpeEntry } from "./OfflineRpeEntry";
+import { useOnlineStatus } from "@/hooks/use-online-status";
 
 interface AwcrTabProps {
   categoryId: string;
@@ -23,6 +25,8 @@ interface AwcrTabProps {
 export function AwcrTab({ categoryId }: AwcrTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isTeamDialogOpen, setIsTeamDialogOpen] = useState(false);
+  const [isOfflineDialogOpen, setIsOfflineDialogOpen] = useState(false);
+  const { isOnline } = useOnlineStatus();
 
   const { data: awcrData, isLoading } = useQuery({
     queryKey: ["awcr_tracking", categoryId],
@@ -75,7 +79,17 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
               </Badge>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            {!isOnline && (
+              <Button 
+                onClick={() => setIsOfflineDialogOpen(true)} 
+                variant="destructive"
+                className="gap-2"
+              >
+                <WifiOff className="h-4 w-4" />
+                Saisie hors-ligne
+              </Button>
+            )}
             <Button 
               onClick={() => setIsTeamDialogOpen(true)} 
               variant="outline"
@@ -86,7 +100,7 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
             </Button>
             <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
               <Plus className="h-4 w-4" />
-              Ajouter une entrée
+              Ajouter
             </Button>
           </div>
         </div>
@@ -176,6 +190,12 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
       <QuickTeamRpeDialog
         open={isTeamDialogOpen}
         onOpenChange={setIsTeamDialogOpen}
+        categoryId={categoryId}
+      />
+
+      <OfflineRpeEntry
+        open={isOfflineDialogOpen}
+        onOpenChange={setIsOfflineDialogOpen}
         categoryId={categoryId}
       />
     </Card>

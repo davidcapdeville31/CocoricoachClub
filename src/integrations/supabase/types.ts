@@ -3963,39 +3963,54 @@ export type Database = {
         Row: {
           category_id: string
           created_at: string
+          cycle_type: string | null
           end_date: string
           id: string
           name: string
           notes: string | null
           period_id: string | null
           start_date: string
+          target_awcr_max: number | null
+          target_awcr_min: number | null
           target_intensity: number | null
+          target_load_max: number | null
+          target_load_min: number | null
           updated_at: string
           week_number: number
         }
         Insert: {
           category_id: string
           created_at?: string
+          cycle_type?: string | null
           end_date: string
           id?: string
           name: string
           notes?: string | null
           period_id?: string | null
           start_date: string
+          target_awcr_max?: number | null
+          target_awcr_min?: number | null
           target_intensity?: number | null
+          target_load_max?: number | null
+          target_load_min?: number | null
           updated_at?: string
           week_number: number
         }
         Update: {
           category_id?: string
           created_at?: string
+          cycle_type?: string | null
           end_date?: string
           id?: string
           name?: string
           notes?: string | null
           period_id?: string | null
           start_date?: string
+          target_awcr_max?: number | null
+          target_awcr_min?: number | null
           target_intensity?: number | null
+          target_load_max?: number | null
+          target_load_min?: number | null
           updated_at?: string
           week_number?: number
         }
