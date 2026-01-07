@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.predict-injuries]
 verify_jwt = true
+
+[functions.push-notifications]
+verify_jwt = false
+
+[functions.check-awcr-alerts]
+verify_jwt = false

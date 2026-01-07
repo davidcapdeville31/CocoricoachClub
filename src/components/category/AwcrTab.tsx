@@ -11,9 +11,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Satellite, ClipboardList } from "lucide-react";
+import { Plus, Satellite, ClipboardList, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AddAwcrDialog } from "./AddAwcrDialog";
+import { QuickTeamRpeDialog } from "./QuickTeamRpeDialog";
 
 interface AwcrTabProps {
   categoryId: string;
@@ -21,6 +22,7 @@ interface AwcrTabProps {
 
 export function AwcrTab({ categoryId }: AwcrTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isTeamDialogOpen, setIsTeamDialogOpen] = useState(false);
 
   const { data: awcrData, isLoading } = useQuery({
     queryKey: ["awcr_tracking", categoryId],
@@ -73,10 +75,20 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
               </Badge>
             )}
           </div>
-          <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Ajouter une entrée
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => setIsTeamDialogOpen(true)} 
+              variant="outline"
+              className="gap-2"
+            >
+              <Users className="h-4 w-4" />
+              Saisie équipe
+            </Button>
+            <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Ajouter une entrée
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -158,6 +170,12 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
       <AddAwcrDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
+        categoryId={categoryId}
+      />
+
+      <QuickTeamRpeDialog
+        open={isTeamDialogOpen}
+        onOpenChange={setIsTeamDialogOpen}
         categoryId={categoryId}
       />
     </Card>
