@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -28,11 +28,13 @@ interface AddCycleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   categoryId: string;
+  editingCycle?: any;
 }
 
-export function AddCycleDialog({ open, onOpenChange, categoryId }: AddCycleDialogProps) {
+export function AddCycleDialog({ open, onOpenChange, categoryId, editingCycle }: AddCycleDialogProps) {
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isEditing = !!editingCycle;
 
   const { data: periods } = useQuery({
     queryKey: ["training_periods", categoryId],
@@ -58,29 +60,67 @@ export function AddCycleDialog({ open, onOpenChange, categoryId }: AddCycleDialo
     },
   });
 
+  useEffect(() => {
+    if (editingCycle) {
+      form.reset({
+        name: editingCycle.name,
+        week_number: editingCycle.week_number,
+        start_date: editingCycle.start_date,
+        end_date: editingCycle.end_date,
+        period_id: editingCycle.period_id || undefined,
+        target_intensity: editingCycle.target_intensity || undefined,
+        notes: editingCycle.notes || "",
+      });
+    } else {
+      form.reset({
+        name: "",
+        week_number: 1,
+        start_date: "",
+        end_date: "",
+        notes: "",
+      });
+    }
+  }, [editingCycle, form]);
+
   const mutation = useMutation({
     mutationFn: async (data: CycleForm) => {
-      const { error } = await supabase.from("training_cycles").insert({
-        name: data.name,
-        week_number: data.week_number,
-        start_date: data.start_date,
-        end_date: data.end_date,
-        period_id: data.period_id,
-        target_intensity: data.target_intensity,
-        notes: data.notes,
-        category_id: categoryId,
-      });
-      if (error) throw error;
+      if (isEditing) {
+        const { error } = await supabase
+          .from("training_cycles")
+          .update({
+            name: data.name,
+            week_number: data.week_number,
+            start_date: data.start_date,
+            end_date: data.end_date,
+            period_id: data.period_id,
+            target_intensity: data.target_intensity,
+            notes: data.notes,
+          })
+          .eq("id", editingCycle.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("training_cycles").insert({
+          name: data.name,
+          week_number: data.week_number,
+          start_date: data.start_date,
+          end_date: data.end_date,
+          period_id: data.period_id,
+          target_intensity: data.target_intensity,
+          notes: data.notes,
+          category_id: categoryId,
+        });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["training_cycles", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["periodization-calendar", categoryId] });
-      toast.success("Cycle créé avec succès");
+      toast.success(isEditing ? "Cycle modifié" : "Cycle créé");
       form.reset();
       onOpenChange(false);
     },
     onError: (error) => {
-      toast.error("Erreur lors de la création du cycle");
+      toast.error(isEditing ? "Erreur lors de la modification" : "Erreur lors de la création");
       console.error(error);
     },
     onSettled: () => {
@@ -97,7 +137,7 @@ export function AddCycleDialog({ open, onOpenChange, categoryId }: AddCycleDialo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Ajouter un Cycle d'Entraînement</DialogTitle>
+          <DialogTitle>{isEditing ? "Modifier le Cycle" : "Ajouter un Cycle d'Entraînement"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -129,7 +169,10 @@ export function AddCycleDialog({ open, onOpenChange, categoryId }: AddCycleDialo
 
           <div>
             <Label htmlFor="period_id">Période Associée (optionnel)</Label>
-            <Select onValueChange={(value) => form.setValue("period_id", value)}>
+            <Select 
+              onValueChange={(value) => form.setValue("period_id", value)}
+              value={form.watch("period_id")}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner une période" />
               </SelectTrigger>
@@ -195,7 +238,7 @@ export function AddCycleDialog({ open, onOpenChange, categoryId }: AddCycleDialo
               Annuler
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Création..." : "Créer"}
+              {isSubmitting ? (isEditing ? "Modification..." : "Création...") : (isEditing ? "Modifier" : "Créer")}
             </Button>
           </div>
         </form>

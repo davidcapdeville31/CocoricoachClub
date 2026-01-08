@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { AddPeriodDialog } from "./AddPeriodDialog";
 import {
   Table,
@@ -16,6 +16,17 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 interface PeriodsSectionProps {
   categoryId: string;
@@ -23,6 +34,9 @@ interface PeriodsSectionProps {
 
 export function PeriodsSection({ categoryId }: PeriodsSectionProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingPeriod, setEditingPeriod] = useState<any>(null);
+  const [deletingPeriodId, setDeletingPeriodId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const { data: periods, isLoading } = useQuery({
     queryKey: ["training_periods", categoryId],
@@ -41,6 +55,24 @@ export function PeriodsSection({ categoryId }: PeriodsSectionProps) {
     return <Skeleton className="h-64 w-full" />;
   }
 
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("training_periods")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["training_periods", categoryId] });
+      toast.success("Période supprimée");
+      setDeletingPeriodId(null);
+    },
+    onError: () => {
+      toast.error("Erreur lors de la suppression");
+    },
+  });
+
   const getPeriodTypeBadge = (type: string) => {
     const config = {
       préparation: { label: "Préparation", variant: "default" as const },
@@ -50,6 +82,16 @@ export function PeriodsSection({ categoryId }: PeriodsSectionProps) {
     };
     const { label, variant } = config[type as keyof typeof config] || { label: type, variant: "default" as const };
     return <Badge variant={variant}>{label}</Badge>;
+  };
+
+  const handleEdit = (period: any) => {
+    setEditingPeriod(period);
+    setIsDialogOpen(true);
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) setEditingPeriod(null);
   };
 
   return (
@@ -72,6 +114,7 @@ export function PeriodsSection({ categoryId }: PeriodsSectionProps) {
               <TableHead>Fin</TableHead>
               <TableHead>Charge Cible (%)</TableHead>
               <TableHead>Description</TableHead>
+              <TableHead className="w-20">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -89,6 +132,24 @@ export function PeriodsSection({ categoryId }: PeriodsSectionProps) {
                 <TableCell className="max-w-xs truncate">
                   {period.description || "—"}
                 </TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEdit(period)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeletingPeriodId(period.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -101,9 +162,30 @@ export function PeriodsSection({ categoryId }: PeriodsSectionProps) {
 
       <AddPeriodDialog
         open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
+        onOpenChange={handleDialogClose}
         categoryId={categoryId}
+        editingPeriod={editingPeriod}
       />
+
+      <AlertDialog open={!!deletingPeriodId} onOpenChange={() => setDeletingPeriodId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer cette période ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Les cycles associés ne seront pas supprimés.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletingPeriodId && deleteMutation.mutate(deletingPeriodId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
