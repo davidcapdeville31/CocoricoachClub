@@ -89,15 +89,12 @@ export function SessionTemplatesSection({ categoryId }: SessionTemplatesSectionP
 
   return (
     <Card className="h-full">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <LayoutTemplate className="h-5 w-5" />
-            Templates de séances
-          </CardTitle>
-          <AddSessionTemplateDialog categoryId={categoryId} />
-        </div>
-        <div className="relative mt-2">
+      <CardHeader className="pb-3 space-y-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <LayoutTemplate className="h-5 w-5" />
+          Templates de séances
+        </CardTitle>
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Rechercher..."
@@ -106,6 +103,7 @@ export function SessionTemplatesSection({ categoryId }: SessionTemplatesSectionP
             className="pl-9"
           />
         </div>
+        <AddSessionTemplateDialog categoryId={categoryId} />
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[400px] pr-4">
