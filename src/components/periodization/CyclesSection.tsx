@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { AddCycleDialog } from "./AddCycleDialog";
 import {
   Table,
@@ -15,6 +15,17 @@ import {
 } from "@/components/ui/table";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 interface CyclesSectionProps {
   categoryId: string;
@@ -22,6 +33,9 @@ interface CyclesSectionProps {
 
 export function CyclesSection({ categoryId }: CyclesSectionProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingCycle, setEditingCycle] = useState<any>(null);
+  const [deletingCycleId, setDeletingCycleId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const { data: cycles, isLoading } = useQuery({
     queryKey: ["training_cycles", categoryId],
@@ -38,6 +52,34 @@ export function CyclesSection({ categoryId }: CyclesSectionProps) {
       return data;
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("training_cycles")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["training_cycles", categoryId] });
+      toast.success("Cycle supprimé");
+      setDeletingCycleId(null);
+    },
+    onError: () => {
+      toast.error("Erreur lors de la suppression");
+    },
+  });
+
+  const handleEdit = (cycle: any) => {
+    setEditingCycle(cycle);
+    setIsDialogOpen(true);
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) setEditingCycle(null);
+  };
 
   if (isLoading) {
     return <Skeleton className="h-64 w-full" />;
@@ -64,6 +106,7 @@ export function CyclesSection({ categoryId }: CyclesSectionProps) {
               <TableHead>Fin</TableHead>
               <TableHead>Intensité Cible</TableHead>
               <TableHead>Notes</TableHead>
+              <TableHead className="w-20">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -84,6 +127,24 @@ export function CyclesSection({ categoryId }: CyclesSectionProps) {
                 <TableCell className="max-w-xs truncate">
                   {cycle.notes || "—"}
                 </TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEdit(cycle)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeletingCycleId(cycle.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -96,9 +157,30 @@ export function CyclesSection({ categoryId }: CyclesSectionProps) {
 
       <AddCycleDialog
         open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
+        onOpenChange={handleDialogClose}
         categoryId={categoryId}
+        editingCycle={editingCycle}
       />
+
+      <AlertDialog open={!!deletingCycleId} onOpenChange={() => setDeletingCycleId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce cycle ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletingCycleId && deleteMutation.mutate(deletingCycleId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
