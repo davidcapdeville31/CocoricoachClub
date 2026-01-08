@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, X, Swords, MapPin, Calendar as CalendarIcon, LayoutTemplate, Target } from "lucide-react";
+import { Plus, Trash2, X, Swords, MapPin, Calendar as CalendarIcon, LayoutTemplate, Target, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { AddSessionDialog } from "./AddSessionDialog";
 import { QuickTestEntryDialog } from "./QuickTestEntryDialog";
 import { QuickRpeEntryDialog } from "./QuickRpeEntryDialog";
-import { format, isSameDay, isWithinInterval } from "date-fns";
+import { format, isSameDay, isWithinInterval, startOfWeek, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
 import { useNavigate } from "react-router-dom";
@@ -81,6 +81,21 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     },
   });
 
+  const { data: weeklyPlanning, isLoading: isLoadingPlanning } = useQuery({
+    queryKey: ["weekly-planning-all", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("weekly_planning")
+        .select(`
+          *,
+          template:session_templates(name, session_type, duration_minutes, intensity)
+        `)
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const deleteSession = useMutation({
     mutationFn: async (sessionId: string) => {
       const { error } = await supabase
@@ -97,6 +112,12 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       toast.error("Erreur lors de la suppression de la séance");
     },
   });
+
+  // Helper to get actual date from weekly planning item
+  const getWeeklyPlanningDate = (item: { week_start_date: string; day_of_week: number }) => {
+    const weekStart = startOfWeek(new Date(item.week_start_date), { weekStartsOn: 1 });
+    return addDays(weekStart, item.day_of_week);
+  };
 
   const filteredSessions = sessions?.filter((session) => {
     if (!dateRange?.from) return false;
@@ -118,14 +139,29 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     return isSameDay(matchDate, dateRange.from);
   });
 
+  const filteredPlanning = weeklyPlanning?.filter((item) => {
+    if (!dateRange?.from) return false;
+    const itemDate = getWeeklyPlanningDate(item);
+    
+    if (dateRange.to) {
+      return isWithinInterval(itemDate, { start: dateRange.from, end: dateRange.to });
+    }
+    return isSameDay(itemDate, dateRange.from);
+  });
+
   // Combine and sort events by date
   const combinedEvents = [
     ...(filteredSessions?.map((s) => ({ ...s, eventType: "session" as const })) || []),
     ...(filteredMatches?.map((m) => ({ ...m, eventType: "match" as const })) || []),
+    ...(filteredPlanning?.map((p) => ({ ...p, eventType: "planning" as const, actualDate: getWeeklyPlanningDate(p) })) || []),
   ].sort((a, b) => {
-    const dateA = a.eventType === "session" ? a.session_date : a.match_date;
-    const dateB = b.eventType === "session" ? b.session_date : b.match_date;
-    return new Date(dateB).getTime() - new Date(dateA).getTime();
+    const dateA = a.eventType === "session" ? new Date(a.session_date) 
+      : a.eventType === "match" ? new Date(a.match_date) 
+      : a.actualDate;
+    const dateB = b.eventType === "session" ? new Date(b.session_date) 
+      : b.eventType === "match" ? new Date(b.match_date) 
+      : b.actualDate;
+    return dateB.getTime() - dateA.getTime();
   });
 
   const getDayContent = (day: Date) => {
@@ -135,8 +171,11 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     const dayMatches = matches?.filter((match) =>
       isSameDay(new Date(match.match_date), day)
     );
+    const dayPlanning = weeklyPlanning?.filter((item) =>
+      isSameDay(getWeeklyPlanningDate(item), day)
+    );
 
-    const hasEvents = (daySessions && daySessions.length > 0) || (dayMatches && dayMatches.length > 0);
+    const hasEvents = (daySessions && daySessions.length > 0) || (dayMatches && dayMatches.length > 0) || (dayPlanning && dayPlanning.length > 0);
     if (!hasEvents) return null;
 
     return (
@@ -153,11 +192,17 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
             className={`h-1.5 w-1.5 rounded-full ${trainingTypeColors[session.training_type] || "bg-muted"}`}
           />
         ))}
+        {dayPlanning?.slice(0, 2).map((item, index) => (
+          <div
+            key={`planning-${index}`}
+            className={`h-1.5 w-1.5 rounded-full ${item.template?.session_type ? trainingTypeColors[item.template.session_type] || "bg-primary" : "bg-primary"}`}
+          />
+        ))}
       </div>
     );
   };
 
-  const isLoading = isLoadingSessions || isLoadingMatches;
+  const isLoading = isLoadingSessions || isLoadingMatches || isLoadingPlanning;
 
   if (isLoading) {
     return <p className="text-muted-foreground">Chargement...</p>;
@@ -343,75 +388,128 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
                         );
                       }
 
-                      // Training session
-                      return (
-                        <div
-                          key={`session-${event.id}`}
-                          className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors animate-fade-in cursor-pointer"
-                          onClick={() =>
-                            setSelectedSession({
-                              id: event.id,
-                              date: event.session_date,
-                              type:
-                                event.training_type === "test" ||
-                                event.training_type === "musculation"
-                                  ? "test"
-                                  : "training",
-                            })
-                          }
-                        >
-                          <div className="flex items-center gap-4 flex-1">
-                            <div
-                              className={`h-12 w-1.5 rounded-full ${
-                                trainingTypeColors[event.training_type] || "bg-muted"
-                              }`}
-                            />
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-xs text-muted-foreground">
-                                  {format(new Date(event.session_date), "d MMM yyyy", { locale: fr })}
-                                </span>
-                                {event.session_start_time && event.session_end_time ? (
+                      if (event.eventType === "planning") {
+                        return (
+                          <div
+                            key={`planning-${event.id}`}
+                            className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors animate-fade-in"
+                          >
+                            <div className="flex items-center gap-4 flex-1">
+                              <div
+                                className={`h-12 w-1.5 rounded-full ${
+                                  event.template?.session_type ? trainingTypeColors[event.template.session_type] || "bg-primary" : "bg-primary"
+                                }`}
+                              />
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
                                   <span className="text-xs text-muted-foreground">
-                                    • {event.session_start_time} - {event.session_end_time}
+                                    {format(event.actualDate, "d MMM yyyy", { locale: fr })}
                                   </span>
-                                ) : event.session_start_time ? (
-                                  <span className="text-xs text-muted-foreground">
-                                    • {event.session_start_time}
+                                  {event.time_slot && (
+                                    <span className="text-xs text-muted-foreground">
+                                      • {event.time_slot.substring(0, 5)}
+                                    </span>
+                                  )}
+                                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                                    Planning hebdo
                                   </span>
-                                ) : null}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold">
+                                    {event.template?.name || event.custom_title || "Séance planifiée"}
+                                  </span>
+                                </div>
+                                {event.location && (
+                                  <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                                    <MapPin className="h-3 w-3" />
+                                    {event.location}
+                                  </p>
+                                )}
+                                {event.template?.duration_minutes && (
+                                  <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                                    <Clock className="h-3 w-3" />
+                                    {event.template.duration_minutes} min
+                                  </p>
+                                )}
                               </div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold">
-                                  {trainingTypeLabels[event.training_type] || event.training_type}
-                                </span>
-                              </div>
-                              {event.intensity && (
-                                <p className="text-sm text-muted-foreground">
-                                  Intensité: {event.intensity}/10
-                                </p>
-                              )}
-                              {event.notes && (
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  {event.notes}
-                                </p>
-                              )}
                             </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (confirm("Êtes-vous sûr de vouloir supprimer cette séance ?")) {
-                                deleteSession.mutate(event.id);
-                              }
-                            }}
+                        );
+                      }
+
+                      // Training session (eventType === "session")
+                      if (event.eventType === "session") {
+                        return (
+                          <div
+                            key={`session-${event.id}`}
+                            className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors animate-fade-in cursor-pointer"
+                            onClick={() =>
+                              setSelectedSession({
+                                id: event.id,
+                                date: event.session_date,
+                                type:
+                                  event.training_type === "test" ||
+                                  event.training_type === "musculation"
+                                    ? "test"
+                                    : "training",
+                              })
+                            }
                           >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      );
+                            <div className="flex items-center gap-4 flex-1">
+                              <div
+                                className={`h-12 w-1.5 rounded-full ${
+                                  trainingTypeColors[event.training_type] || "bg-muted"
+                                }`}
+                              />
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-xs text-muted-foreground">
+                                    {format(new Date(event.session_date), "d MMM yyyy", { locale: fr })}
+                                  </span>
+                                  {event.session_start_time && event.session_end_time ? (
+                                    <span className="text-xs text-muted-foreground">
+                                      • {event.session_start_time} - {event.session_end_time}
+                                    </span>
+                                  ) : event.session_start_time ? (
+                                    <span className="text-xs text-muted-foreground">
+                                      • {event.session_start_time}
+                                    </span>
+                                  ) : null}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold">
+                                    {trainingTypeLabels[event.training_type] || event.training_type}
+                                  </span>
+                                </div>
+                                {event.intensity && (
+                                  <p className="text-sm text-muted-foreground">
+                                    Intensité: {event.intensity}/10
+                                  </p>
+                                )}
+                                {event.notes && (
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    {event.notes}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm("Êtes-vous sûr de vouloir supprimer cette séance ?")) {
+                                  deleteSession.mutate(event.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        );
+                      }
+
+                      return null;
                     })}
                   </div>
                 )}
