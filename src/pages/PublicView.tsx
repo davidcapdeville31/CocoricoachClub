@@ -66,9 +66,11 @@ export default function PublicView() {
   }, [searchParams, validateToken]);
 
   const handleContinue = () => {
-    if (accessType === "category" && categoryId && clubId) {
-      navigate(`/clubs/${clubId}/categories/${categoryId}`);
-    } else if (accessType === "club" && clubId) {
+    if (categoryId) {
+      // Navigate to public category view (doesn't require auth)
+      navigate(`/public/categories/${categoryId}`);
+    } else if (clubId) {
+      // For club-level access, redirect to club page with public context
       navigate(`/clubs/${clubId}`);
     } else {
       navigate("/");
