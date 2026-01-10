@@ -2,10 +2,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { OfflineSyncProvider } from "@/contexts/OfflineSyncContext";
-import { PublicAccessProvider } from "@/contexts/PublicAccessContext";
+import { PublicAccessProvider, usePublicAccess } from "@/contexts/PublicAccessContext";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import PWAUpdatePrompt from "@/components/PWAUpdatePrompt";
 import OfflineIndicator from "@/components/OfflineIndicator";
@@ -17,10 +17,43 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import PublicView from "./pages/PublicView";
+import PublicCategoryView from "./pages/PublicCategoryView";
 import Install from "./pages/Install";
 import Admin from "./pages/Admin";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+
+// Auth wrapper component that allows public access
+function AuthGuard({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  const { isPublicAccess } = usePublicAccess();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Chargement...</p>
+      </div>
+    );
+  }
+
+  // Allow access if user is authenticated OR has public access
+  if (!user && !isPublicAccess) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// Wrapped components that require auth or public access
+const ClubDetailsWithAuth = () => (
+  <AuthGuard><ClubDetails /></AuthGuard>
+);
+const CategoryDetailsWithAuth = () => (
+  <AuthGuard><CategoryDetails /></AuthGuard>
+);
+const PlayerDetailsWithAuth = () => (
+  <AuthGuard><PlayerDetails /></AuthGuard>
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,12 +87,13 @@ const App = () => (
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/accept-invitation" element={<AcceptInvitation />} />
                 <Route path="/public-view" element={<PublicView />} />
+                <Route path="/public/categories/:categoryId" element={<PublicCategoryView />} />
                 <Route path="/install" element={<Install />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/settings" element={<Settings />} />
-                <Route path="/clubs/:clubId" element={<ClubDetails />} />
-                <Route path="/categories/:categoryId" element={<CategoryDetails />} />
-                <Route path="/players/:playerId" element={<PlayerDetails />} />
+                <Route path="/clubs/:clubId" element={<ClubDetailsWithAuth />} />
+                <Route path="/categories/:categoryId" element={<CategoryDetailsWithAuth />} />
+                <Route path="/players/:playerId" element={<PlayerDetailsWithAuth />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </OfflineSyncProvider>
