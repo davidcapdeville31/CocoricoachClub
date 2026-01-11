@@ -17,6 +17,7 @@ import {
   Edit2,
   Check,
   X,
+  Trophy,
 } from "lucide-react";
 import { MatchLineupDialog } from "./MatchLineupDialog";
 import { PlayerMatchStatsDialog } from "./PlayerMatchStatsDialog";
@@ -32,6 +33,7 @@ interface Match {
   score_away: number | null;
   notes: string | null;
   category_id: string;
+  competition: string | null;
 }
 
 interface MatchCardProps {
@@ -126,6 +128,12 @@ export function MatchCard({ match, categoryId }: MatchCardProps) {
                 {format(matchDate, "EEEE d MMMM yyyy", { locale: fr })}
                 {match.match_time && ` à ${match.match_time.slice(0, 5)}`}
               </p>
+              {match.competition && (
+                <p className="flex items-center gap-1">
+                  <Trophy className="h-3 w-3" />
+                  {match.competition}
+                </p>
+              )}
               {match.location && (
                 <p className="flex items-center gap-1">
                   <MapPin className="h-3 w-3" />
