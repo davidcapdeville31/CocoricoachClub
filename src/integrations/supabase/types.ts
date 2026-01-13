@@ -565,6 +565,7 @@ export type Database = {
           is_system: boolean | null
           muscle_groups: string[] | null
           name: string
+          subcategory: string | null
           updated_at: string
           user_id: string
           youtube_url: string | null
@@ -579,6 +580,7 @@ export type Database = {
           is_system?: boolean | null
           muscle_groups?: string[] | null
           name: string
+          subcategory?: string | null
           updated_at?: string
           user_id: string
           youtube_url?: string | null
@@ -593,6 +595,7 @@ export type Database = {
           is_system?: boolean | null
           muscle_groups?: string[] | null
           name?: string
+          subcategory?: string | null
           updated_at?: string
           user_id?: string
           youtube_url?: string | null
