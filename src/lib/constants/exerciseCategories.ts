@@ -5,11 +5,14 @@ export const EXERCISE_CATEGORIES = [
   { value: "lower_push", label: "Bas - Poussée", group: "musculation" },
   { value: "lower_pull", label: "Bas - Tirage", group: "musculation" },
   { value: "core", label: "Core / Gainage", group: "musculation" },
+  { value: "musculation", label: "Musculation (général)", group: "musculation" },
   { value: "plyometrics", label: "Pliométrie", group: "musculation" },
   { value: "cardio", label: "Cardio", group: "terrain" },
+  { value: "terrain", label: "Terrain (courses, sprints...)", group: "terrain" },
+  { value: "warmup", label: "Échauffement", group: "stretching_mobility" },
   { value: "mobility", label: "Mobilité", group: "stretching_mobility" },
   { value: "stretching", label: "Stretching", group: "stretching_mobility" },
-  { value: "terrain", label: "Terrain (courses, sprints...)", group: "terrain" },
+  { value: "stretching_mobility", label: "Stretching / Mobilité", group: "stretching_mobility" },
   { value: "other", label: "Autre", group: null },
 ] as const;
 
