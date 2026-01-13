@@ -43,10 +43,11 @@ export function ExerciseLibrarySection() {
     queryKey: ["exercise-library", user?.id],
     queryFn: async () => {
       if (!user) return [];
+      // Fetch both user's exercises AND system exercises
       const { data, error } = await supabase
         .from("exercise_library")
         .select("*")
-        .eq("user_id", user.id)
+        .or(`user_id.eq.${user.id},is_system.eq.true`)
         .order("category")
         .order("name");
 
