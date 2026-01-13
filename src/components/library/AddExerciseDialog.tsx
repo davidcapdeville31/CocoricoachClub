@@ -21,29 +21,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
-
-const CATEGORIES = [
-  { value: "stretching_mobility", label: "Stretching / Mobilité" },
-  { value: "musculation", label: "Musculation" },
-  { value: "terrain", label: "Terrain (courses, sprints...)" },
-];
-
-const DIFFICULTY_LEVELS = [
-  { value: "beginner", label: "Débutant" },
-  { value: "intermediate", label: "Intermédiaire" },
-  { value: "advanced", label: "Avancé" },
-];
+import { 
+  EXERCISE_CATEGORIES, 
+  DIFFICULTY_LEVELS, 
+  getSubcategoriesForCategory 
+} from "@/lib/constants/exerciseCategories";
 
 export function AddExerciseDialog() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
+  const [subcategory, setSubcategory] = useState("");
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [description, setDescription] = useState("");
   const [difficulty, setDifficulty] = useState("intermediate");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const availableSubcategories = getSubcategoriesForCategory(category);
+
+  const handleCategoryChange = (newCategory: string) => {
+    setCategory(newCategory);
+    setSubcategory(""); // Reset subcategory when category changes
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +66,7 @@ export function AddExerciseDialog() {
         user_id: user.id,
         name,
         category,
+        subcategory: subcategory || null,
         youtube_url: youtubeUrl || null,
         description: description || null,
         difficulty,
@@ -82,6 +84,7 @@ export function AddExerciseDialog() {
       setOpen(false);
       setName("");
       setCategory("");
+      setSubcategory("");
       setYoutubeUrl("");
       setDescription("");
       setDifficulty("intermediate");
@@ -123,12 +126,12 @@ export function AddExerciseDialog() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="category">Catégorie *</Label>
-              <Select value={category} onValueChange={setCategory} required>
+              <Select value={category} onValueChange={handleCategoryChange} required>
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIES.map((cat) => (
+                  {EXERCISE_CATEGORIES.map((cat) => (
                     <SelectItem key={cat.value} value={cat.value}>
                       {cat.label}
                     </SelectItem>
@@ -153,6 +156,24 @@ export function AddExerciseDialog() {
               </Select>
             </div>
           </div>
+
+          {availableSubcategories.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="subcategory">Sous-catégorie</Label>
+              <Select value={subcategory} onValueChange={setSubcategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner (optionnel)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSubcategories.map((sub) => (
+                    <SelectItem key={sub.value} value={sub.value}>
+                      {sub.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="youtube">Lien YouTube</Label>
