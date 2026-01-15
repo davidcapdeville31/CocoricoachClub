@@ -1,0 +1,190 @@
+// Categories et tests pour les programmes et séances
+
+export interface TestOption {
+  value: string;
+  label: string;
+  unit?: string;
+  isTime?: boolean; // Pour les tests chronométrés
+}
+
+export interface TestCategory {
+  value: string;
+  label: string;
+  tests: TestOption[];
+}
+
+export const TEST_CATEGORIES: TestCategory[] = [
+  {
+    value: "cardio",
+    label: "Cardio / Endurance",
+    tests: [
+      { value: "cooper", label: "Test de Cooper", unit: "m" },
+      { value: "luc_leger", label: "Luc Léger (Bip Test)", unit: "palier" },
+      { value: "vameval", label: "VAMEVAL", unit: "km/h" },
+      { value: "test_australien", label: "Test Australien (Yo-Yo)", unit: "palier" },
+      { value: "test_laboratoire", label: "Test de laboratoire (VO2max)", unit: "ml/kg/min" },
+      { value: "bronco", label: "Bronco", unit: "temps" },
+    ],
+  },
+  {
+    value: "musculation",
+    label: "Musculation",
+    tests: [
+      // Squat
+      { value: "squat_1rm", label: "Squat - 1RM", unit: "kg" },
+      { value: "squat_3rm", label: "Squat - 3RM", unit: "kg" },
+      { value: "squat_5rm", label: "Squat - 5RM", unit: "kg" },
+      // Soulevé de terre
+      { value: "deadlift_1rm", label: "Soulevé de terre - 1RM", unit: "kg" },
+      { value: "deadlift_3rm", label: "Soulevé de terre - 3RM", unit: "kg" },
+      { value: "deadlift_5rm", label: "Soulevé de terre - 5RM", unit: "kg" },
+      // Développé couché
+      { value: "bench_press_1rm", label: "Développé couché - 1RM", unit: "kg" },
+      { value: "bench_press_3rm", label: "Développé couché - 3RM", unit: "kg" },
+      { value: "bench_press_5rm", label: "Développé couché - 5RM", unit: "kg" },
+      // Développé militaire
+      { value: "overhead_press_1rm", label: "Développé militaire - 1RM", unit: "kg" },
+      { value: "overhead_press_3rm", label: "Développé militaire - 3RM", unit: "kg" },
+      { value: "overhead_press_5rm", label: "Développé militaire - 5RM", unit: "kg" },
+    ],
+  },
+  {
+    value: "poids_corps",
+    label: "Poids de corps",
+    tests: [
+      // Tractions
+      { value: "max_pullups", label: "Max tractions (PDC)", unit: "reps" },
+      { value: "pullups_1rm", label: "Traction lestée - 1RM", unit: "kg" },
+      { value: "pullups_3rm", label: "Traction lestée - 3RM", unit: "kg" },
+      { value: "pullups_5rm", label: "Traction lestée - 5RM", unit: "kg" },
+      // Dips
+      { value: "max_dips", label: "Max dips (PDC)", unit: "reps" },
+      { value: "dips_1rm", label: "Dips lesté - 1RM", unit: "kg" },
+      { value: "dips_3rm", label: "Dips lesté - 3RM", unit: "kg" },
+      { value: "dips_5rm", label: "Dips lesté - 5RM", unit: "kg" },
+      // Pompes
+      { value: "max_pushups", label: "Max pompes", unit: "reps" },
+    ],
+  },
+  {
+    value: "crossfit",
+    label: "CrossFit / Gymnastique",
+    tests: [
+      // Pull-ups
+      { value: "max_kipping_pullup", label: "Max Kipping Pull-up (unbroken)", unit: "reps" },
+      { value: "max_butterfly_pullup", label: "Max Butterfly Pull-up (unbroken)", unit: "reps" },
+      { value: "max_kipping_c2b", label: "Max Kipping Chest-to-Bar (unbroken)", unit: "reps" },
+      { value: "max_butterfly_c2b", label: "Max Butterfly Chest-to-Bar (unbroken)", unit: "reps" },
+      // Muscle-ups
+      { value: "max_bar_mu", label: "Max Muscle-up Bar (unbroken)", unit: "reps" },
+      { value: "max_ring_mu", label: "Max Muscle-up Ring (unbroken)", unit: "reps" },
+      // HSPU
+      { value: "max_strict_hspu", label: "Max Strict HSPU (Rx)", unit: "reps" },
+      { value: "max_kipping_hspu", label: "Max Kipping HSPU (Rx)", unit: "reps" },
+      // Toes to bar
+      { value: "max_toes_to_ring", label: "Max Toes to Ring (unbroken)", unit: "reps" },
+      { value: "max_kipping_t2b", label: "Max Kipping Toes-to-Bar (unbroken)", unit: "reps" },
+      { value: "max_strict_t2b", label: "Max Strict Toes-to-Bar (unbroken)", unit: "reps" },
+    ],
+  },
+  {
+    value: "corporel",
+    label: "Tests corporels / Anthropométrie",
+    tests: [
+      { value: "weight", label: "Poids", unit: "kg" },
+      { value: "bmi", label: "IMC", unit: "" },
+      { value: "arm_circumference", label: "Tour de bras", unit: "cm" },
+      { value: "hip_circumference", label: "Tour de hanches", unit: "cm" },
+      { value: "thigh_circumference", label: "Tour de cuisses", unit: "cm" },
+      { value: "chest_circumference", label: "Tour de poitrine", unit: "cm" },
+      { value: "body_fat", label: "Masse grasse", unit: "%" },
+      { value: "muscle_mass", label: "Masse musculaire", unit: "kg" },
+    ],
+  },
+  {
+    value: "course",
+    label: "Course / Sprint",
+    tests: [
+      { value: "sprint_10m", label: "10m", unit: "s", isTime: true },
+      { value: "sprint_20m", label: "20m", unit: "s", isTime: true },
+      { value: "sprint_30m", label: "30m", unit: "s", isTime: true },
+      { value: "sprint_40m", label: "40m", unit: "s", isTime: true },
+      { value: "sprint_50m", label: "50m", unit: "s", isTime: true },
+      { value: "sprint_100m", label: "100m", unit: "s", isTime: true },
+      { value: "run_1000m", label: "1000m", unit: "min:s", isTime: true },
+      { value: "run_1600m", label: "1600m", unit: "min:s", isTime: true },
+      { value: "run_10000m", label: "10 000m", unit: "min:s", isTime: true },
+      { value: "half_marathon", label: "Semi-marathon", unit: "h:min:s", isTime: true },
+      { value: "marathon", label: "Marathon", unit: "h:min:s", isTime: true },
+    ],
+  },
+  {
+    value: "pliometrie",
+    label: "Pliométrie / Détente",
+    tests: [
+      { value: "broad_jump", label: "Broad Jump", unit: "cm" },
+      { value: "triple_broad_jump", label: "Triple Broad Jump", unit: "cm" },
+      { value: "squat_jump", label: "Squat Jump (SJ)", unit: "cm" },
+      { value: "cmj", label: "Counter Movement Jump (CMJ)", unit: "cm" },
+      { value: "drop_jump_30", label: "Drop Jump 30cm", unit: "cm" },
+      { value: "drop_jump_50", label: "Drop Jump 50cm", unit: "cm" },
+      { value: "sergent_test", label: "Sergent Test", unit: "cm" },
+      { value: "abalakov", label: "Abalakov", unit: "cm" },
+    ],
+  },
+  {
+    value: "puissance",
+    label: "Puissance",
+    tests: [
+      { value: "power_clean_50", label: "Puissance max Clean 50%RM", unit: "W" },
+      { value: "power_power_clean_50", label: "Puissance max Power Clean 50%RM", unit: "W" },
+      { value: "power_snatch_50", label: "Puissance max Snatch 50%RM", unit: "W" },
+      { value: "power_power_snatch_50", label: "Puissance max Power Snatch 50%RM", unit: "W" },
+      { value: "power_deadlift_50", label: "Puissance max Deadlift 50%RM", unit: "W" },
+      { value: "power_squat_50", label: "Puissance max Squat 50%RM", unit: "W" },
+    ],
+  },
+  {
+    value: "halterophilie",
+    label: "Haltérophilie",
+    tests: [
+      { value: "clean_1rm", label: "Clean - 1RM", unit: "kg" },
+      { value: "power_clean_1rm", label: "Power Clean - 1RM", unit: "kg" },
+      { value: "snatch_1rm", label: "Snatch - 1RM", unit: "kg" },
+      { value: "power_snatch_1rm", label: "Power Snatch - 1RM", unit: "kg" },
+      { value: "clean_and_jerk_1rm", label: "Clean & Jerk - 1RM", unit: "kg" },
+    ],
+  },
+];
+
+// Fonction utilitaire pour obtenir le label complet d'un test
+export function getTestLabel(testValue: string): string {
+  for (const category of TEST_CATEGORIES) {
+    const test = category.tests.find((t) => t.value === testValue);
+    if (test) {
+      return `${category.label} - ${test.label}`;
+    }
+  }
+  return testValue;
+}
+
+// Fonction utilitaire pour obtenir l'unité d'un test
+export function getTestUnit(testValue: string): string {
+  for (const category of TEST_CATEGORIES) {
+    const test = category.tests.find((t) => t.value === testValue);
+    if (test) {
+      return test.unit || "";
+    }
+  }
+  return "";
+}
+
+// Fonction pour obtenir tous les tests à plat
+export function getAllTests(): TestOption[] {
+  return TEST_CATEGORIES.flatMap((cat) => 
+    cat.tests.map((test) => ({
+      ...test,
+      label: `${cat.label} - ${test.label}`,
+    }))
+  );
+}

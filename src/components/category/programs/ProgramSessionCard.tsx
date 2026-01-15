@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { X, GripVertical, Link2, Unlink, Plus, Minus, FlaskConical, Target } from "lucide-react";
+import { X, GripVertical, Link2, Unlink, Plus, Minus, FlaskConical, ChevronDown } from "lucide-react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useDroppable } from "@dnd-kit/core";
@@ -19,6 +21,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { TEST_CATEGORIES, getTestLabel } from "@/lib/constants/testCategories";
 
 interface DropSet {
   reps: string;
@@ -89,12 +97,6 @@ const DAYS_OF_WEEK = [
   { value: 5, label: "Ven" },
   { value: 6, label: "Sam" },
   { value: 7, label: "Dim" },
-];
-
-const RM_TEST_TYPES = [
-  { value: "1rm", label: "1RM" },
-  { value: "3rm", label: "3RM" },
-  { value: "5rm", label: "5RM" },
 ];
 
 export function ProgramSessionCard({
@@ -346,7 +348,7 @@ export function ProgramSessionCard({
     if (isTest) {
       updateMultipleFields(index, {
         is_rm_test: true,
-        rm_test_type: "1rm",
+        rm_test_type: "squat_1rm", // Default to squat 1RM
         method: "normal",
         sets: 1,
         reps: "1",
@@ -359,6 +361,27 @@ export function ProgramSessionCard({
         reps: "10",
       });
     }
+  };
+
+  const setTestType = (index: number, testType: string) => {
+    // Determine reps based on test type
+    let reps = "1";
+    if (testType.includes("3rm")) reps = "3";
+    else if (testType.includes("5rm")) reps = "5";
+    else if (testType.includes("max_")) reps = "max";
+    
+    updateMultipleFields(index, {
+      rm_test_type: testType,
+      reps,
+    });
+  };
+
+  const getTestTypeLabel = (testType: string) => {
+    for (const category of TEST_CATEGORIES) {
+      const test = category.tests.find((t) => t.value === testType);
+      if (test) return test.label;
+    }
+    return testType;
   };
 
   const getMethodLabel = (method: string) => {
@@ -513,7 +536,7 @@ export function ProgramSessionCard({
                     {exercise.is_rm_test && (
                       <Badge className="bg-orange-500 text-white text-xs">
                         <FlaskConical className="h-3 w-3 mr-1" />
-                        Test {exercise.rm_test_type?.toUpperCase()}
+                        Test: {getTestTypeLabel(exercise.rm_test_type || "")}
                       </Badge>
                     )}
 
@@ -570,20 +593,24 @@ export function ProgramSessionCard({
                     </div>
                     {exercise.is_rm_test && (
                       <Select
-                        value={exercise.rm_test_type || "1rm"}
-                        onValueChange={(v) => {
-                          const reps = v === "1rm" ? "1" : v === "3rm" ? "3" : "5";
-                          updateMultipleFields(index, { rm_test_type: v, reps });
-                        }}
+                        value={exercise.rm_test_type || "squat_1rm"}
+                        onValueChange={(v) => setTestType(index, v)}
                       >
-                        <SelectTrigger className="h-7 w-20 text-xs">
-                          <SelectValue />
+                        <SelectTrigger className="h-7 w-48 text-xs">
+                          <SelectValue placeholder="Choisir un test..." />
                         </SelectTrigger>
-                        <SelectContent>
-                          {RM_TEST_TYPES.map((type) => (
-                            <SelectItem key={type.value} value={type.value}>
-                              {type.label}
-                            </SelectItem>
+                        <SelectContent className="max-h-80">
+                          {TEST_CATEGORIES.map((category) => (
+                            <SelectGroup key={category.value}>
+                              <SelectLabel className="text-xs font-semibold bg-muted/50">
+                                {category.label}
+                              </SelectLabel>
+                              {category.tests.map((test) => (
+                                <SelectItem key={test.value} value={test.value} className="text-xs">
+                                  {test.label} {test.unit && `(${test.unit})`}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
                           ))}
                         </SelectContent>
                       </Select>
