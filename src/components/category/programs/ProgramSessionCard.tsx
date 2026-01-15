@@ -56,6 +56,7 @@ interface ProgramSessionCardProps {
 
 const EXERCISE_METHODS = [
   { value: "normal", label: "Normal" },
+  { value: "biset", label: "Biset (2)" },
   { value: "superset", label: "Superset (2)" },
   { value: "triset", label: "Triset (3)" },
   { value: "giant_set", label: "Giant Set (4+)" },
@@ -65,7 +66,7 @@ const EXERCISE_METHODS = [
   { value: "cluster", label: "Cluster" },
 ];
 
-const LINKABLE_METHODS = ["superset", "triset", "giant_set"];
+const LINKABLE_METHODS = ["biset", "superset", "triset", "giant_set"];
 const DROP_METHODS = ["dropset", "pyramid_up", "pyramid_down"];
 
 export function ProgramSessionCard({
