@@ -104,24 +104,34 @@ export const VOLLEYBALL_STATS: StatField[] = [
   { key: "points", label: "Points totaux", shortLabel: "Points", category: "general", type: "number" },
 ];
 
-// Judo stats
+// Judo stats - Focus on coach and physical trainer needs
 export const JUDO_STATS: StatField[] = [
-  // Scoring
+  // Scoring / Results
+  { key: "combatResult", label: "Résultat (1=Victoire, 0=Défaite)", shortLabel: "Résultat", category: "scoring", type: "number", max: 1 },
   { key: "ippon", label: "Ippon", shortLabel: "Ippon", category: "scoring", type: "number" },
   { key: "wazaAri", label: "Waza-ari", shortLabel: "Waza-ari", category: "scoring", type: "number" },
-  { key: "yuko", label: "Yuko (ancien)", shortLabel: "Yuko", category: "scoring", type: "number" },
-  // Attack
-  { key: "successfulTechniques", label: "Techniques réussies", shortLabel: "Tech. réussies", category: "attack", type: "number" },
+  { key: "victoryType", label: "Type victoire (1=Ippon, 2=Waza-ari, 3=Décision)", shortLabel: "Type vic.", category: "scoring", type: "number" },
+  
+  // Attack / Techniques
   { key: "throwAttempts", label: "Tentatives de projection", shortLabel: "Tent. proj.", category: "attack", type: "number" },
-  { key: "groundworkSuccess", label: "Travail au sol réussi", shortLabel: "Sol réussi", category: "attack", type: "number" },
+  { key: "successfulThrows", label: "Projections réussies", shortLabel: "Proj. réussies", category: "attack", type: "number" },
+  { key: "groundworkAttempts", label: "Tentatives au sol", shortLabel: "Tent. sol", category: "attack", type: "number" },
+  { key: "groundworkSuccess", label: "Contrôles au sol réussis", shortLabel: "Sol réussi", category: "attack", type: "number" },
+  { key: "gripFightingWins", label: "Kumi-kata gagnés", shortLabel: "Kumi-kata", category: "attack", type: "number" },
+  { key: "transitionsToGround", label: "Transitions debout-sol", shortLabel: "Transitions", category: "attack", type: "number" },
+  
   // Defense
-  { key: "defensiveActions", label: "Actions défensives", shortLabel: "Défense", category: "defense", type: "number" },
-  { key: "counterAttacks", label: "Contre-attaques", shortLabel: "Contre-att.", category: "defense", type: "number" },
+  { key: "throwsDefended", label: "Projections défendues", shortLabel: "Défenses", category: "defense", type: "number" },
   { key: "escapes", label: "Sorties au sol", shortLabel: "Sorties", category: "defense", type: "number" },
-  // General
-  { key: "shido", label: "Shido", shortLabel: "Shido", category: "general", type: "number" },
-  { key: "hansokuMake", label: "Hansoku-make", shortLabel: "H-make", category: "general", type: "number" },
-  { key: "combatResult", label: "Résultat (1=V, 0=D)", shortLabel: "Résultat", category: "general", type: "number", max: 1 },
+  { key: "counterAttacks", label: "Contre-attaques", shortLabel: "Contre-att.", category: "defense", type: "number" },
+  { key: "gripBreaks", label: "Cassages de garde", shortLabel: "Cass. garde", category: "defense", type: "number" },
+  
+  // General / Physical
+  { key: "combatDuration", label: "Durée du combat (sec)", shortLabel: "Durée", category: "general", type: "number" },
+  { key: "shido", label: "Shido reçus", shortLabel: "Shido", category: "general", type: "number" },
+  { key: "competitionWeight", label: "Poids compétition (kg)", shortLabel: "Poids", category: "general", type: "number" },
+  { key: "recoveryTime", label: "Temps récupération avant prochain combat (min)", shortLabel: "Récup.", category: "general", type: "number" },
+  { key: "perceivedEffort", label: "Effort perçu (RPE 1-10)", shortLabel: "RPE", category: "general", type: "number", max: 10 },
 ];
 
 export type SportType = "XV" | "7" | "football" | "handball" | "volleyball" | "Judo" | "academie" | "national_team";
