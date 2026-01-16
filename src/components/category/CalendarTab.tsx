@@ -13,9 +13,9 @@ import { AddMatchCalendarDialog } from "./matches/AddMatchCalendarDialog";
 import { QuickTestEntryDialog } from "./QuickTestEntryDialog";
 import { SessionDetailsDialog } from "./SessionDetailsDialog";
 import { MatchRpeDialog } from "./MatchRpeDialog";
-import { format, isSameDay, isWithinInterval, startOfWeek, addDays } from "date-fns";
+import { DailySessionsDialog } from "./DailySessionsDialog";
+import { format, isSameDay, startOfWeek, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
-import type { DateRange } from "react-day-picker";
 import { useNavigate } from "react-router-dom";
 import { WeeklyPlanningCalendar } from "@/components/planning/WeeklyPlanningCalendar";
 import { SessionTemplatesSection } from "@/components/planning/SessionTemplatesSection";
@@ -61,7 +61,8 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     intensity: number | null;
     notes: string | null;
   } | null>(null);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [isDailyDialogOpen, setIsDailyDialogOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState<{
     id: string;
     date: string;
@@ -82,10 +83,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       await exportCalendarToPdf(
         sessions, 
         matches, 
-        "Catégorie",
-        dateRange?.from && dateRange?.to 
-          ? { from: dateRange.from, to: dateRange.to } 
-          : undefined
+        "Catégorie"
       );
       toast.success("PDF exporté avec succès");
     }
@@ -96,6 +94,52 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       printElement(calendarContentRef.current, "Calendrier Global");
     }
   };
+
+  // Handle day click to open daily dialog
+  const handleDayClick = (day: Date) => {
+    setSelectedDate(day);
+    setIsDailyDialogOpen(true);
+  };
+
+  // Get sessions for a specific date
+  const getSessionsForDate = (date: Date) => {
+    return sessions?.filter((session) =>
+      isSameDay(new Date(session.session_date), date)
+    ) || [];
+  };
+
+  // Get matches for a specific date
+  const getMatchesForDate = (date: Date) => {
+    return matches?.filter((match) =>
+      isSameDay(new Date(match.match_date), date)
+    ) || [];
+  };
+
+  // Get planning items for a specific date
+  const getPlanningForDate = (date: Date) => {
+    return weeklyPlanning?.filter((item) =>
+      isSameDay(getWeeklyPlanningDate(item), date)
+    ) || [];
+  };
+
+  // Reschedule session mutation
+  const rescheduleSession = useMutation({
+    mutationFn: async ({ sessionId, newDate }: { sessionId: string; newDate: Date }) => {
+      const { error } = await supabase
+        .from("training_sessions")
+        .update({ session_date: format(newDate, "yyyy-MM-dd") })
+        .eq("id", sessionId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
+      toast.success("Séance décalée avec succès");
+      setIsDailyDialogOpen(false);
+    },
+    onError: () => {
+      toast.error("Erreur lors du décalage de la séance");
+    },
+  });
 
   const { data: sessions, isLoading: isLoadingSessions } = useQuery({
     queryKey: ["training_sessions", categoryId],
@@ -162,50 +206,6 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     return addDays(weekStart, item.day_of_week);
   };
 
-  const filteredSessions = sessions?.filter((session) => {
-    if (!dateRange?.from) return false;
-    const sessionDate = new Date(session.session_date);
-    
-    if (dateRange.to) {
-      return isWithinInterval(sessionDate, { start: dateRange.from, end: dateRange.to });
-    }
-    return isSameDay(sessionDate, dateRange.from);
-  });
-
-  const filteredMatches = matches?.filter((match) => {
-    if (!dateRange?.from) return false;
-    const matchDate = new Date(match.match_date);
-    
-    if (dateRange.to) {
-      return isWithinInterval(matchDate, { start: dateRange.from, end: dateRange.to });
-    }
-    return isSameDay(matchDate, dateRange.from);
-  });
-
-  const filteredPlanning = weeklyPlanning?.filter((item) => {
-    if (!dateRange?.from) return false;
-    const itemDate = getWeeklyPlanningDate(item);
-    
-    if (dateRange.to) {
-      return isWithinInterval(itemDate, { start: dateRange.from, end: dateRange.to });
-    }
-    return isSameDay(itemDate, dateRange.from);
-  });
-
-  // Combine and sort events by date
-  const combinedEvents = [
-    ...(filteredSessions?.map((s) => ({ ...s, eventType: "session" as const })) || []),
-    ...(filteredMatches?.map((m) => ({ ...m, eventType: "match" as const })) || []),
-    ...(filteredPlanning?.map((p) => ({ ...p, eventType: "planning" as const, actualDate: getWeeklyPlanningDate(p) })) || []),
-  ].sort((a, b) => {
-    const dateA = a.eventType === "session" ? new Date(a.session_date) 
-      : a.eventType === "match" ? new Date(a.match_date) 
-      : a.actualDate;
-    const dateB = b.eventType === "session" ? new Date(b.session_date) 
-      : b.eventType === "match" ? new Date(b.match_date) 
-      : b.actualDate;
-    return dateB.getTime() - dateA.getTime();
-  });
 
   const getDayContent = (day: Date) => {
     const daySessions = sessions?.filter((session) =>
@@ -288,16 +288,6 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
                   <Button variant="outline" size="icon" onClick={handleExportPdf} title="Exporter PDF">
                     <Download className="h-4 w-4" />
                   </Button>
-                  {dateRange?.from && (
-                    <Button 
-                      onClick={() => setDateRange(undefined)} 
-                      variant="outline" 
-                      className="gap-2"
-                    >
-                      <X className="h-4 w-4" />
-                      Réinitialiser
-                    </Button>
-                  )}
                   {!isViewer && (
                     <>
                       <Button onClick={() => setIsAddMatchDialogOpen(true)} variant="outline" className="gap-2">
@@ -317,28 +307,36 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
               <div className="flex flex-col items-center gap-4">
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground mb-2">
-                    Sélectionnez une période pour filtrer les événements
+                    Cliquez sur un jour pour voir les séances détaillées
                   </p>
-                  {dateRange?.from && (
-                    <p className="text-sm font-medium">
-                      {dateRange.to ? (
-                        <>
-                          Du {format(dateRange.from, "d MMM yyyy", { locale: fr })} au{" "}
-                          {format(dateRange.to, "d MMM yyyy", { locale: fr })}
-                        </>
-                      ) : (
-                        format(dateRange.from, "d MMMM yyyy", { locale: fr })
-                      )}
-                    </p>
-                  )}
                 </div>
                 <Calendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={setDateRange}
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(day) => {
+                    if (day) {
+                      handleDayClick(day);
+                    }
+                  }}
                   locale={fr}
                   numberOfMonths={1}
-                  className="rounded-md border bg-card pointer-events-auto"
+                  className="rounded-md border bg-card pointer-events-auto p-4"
+                  classNames={{
+                    months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                    month: "space-y-4",
+                    caption: "flex justify-center pt-1 relative items-center",
+                    caption_label: "text-base font-semibold",
+                    table: "w-full border-collapse",
+                    head_row: "flex",
+                    head_cell: "text-muted-foreground rounded-md w-12 h-10 font-medium text-sm",
+                    row: "flex w-full mt-2",
+                    cell: "h-12 w-12 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                    day: "h-12 w-12 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md cursor-pointer",
+                    day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
+                    day_today: "bg-accent text-accent-foreground font-semibold",
+                    day_outside: "text-muted-foreground opacity-50",
+                    day_disabled: "text-muted-foreground opacity-50",
+                  }}
                   modifiers={{
                     hasSession: (day) =>
                       sessions?.some((session) =>
@@ -356,7 +354,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
                   components={{
                     DayContent: ({ date }) => (
                       <div className="relative w-full h-full flex flex-col items-center justify-center">
-                        <span>{format(date, "d")}</span>
+                        <span className="text-sm">{format(date, "d")}</span>
                         {getDayContent(date)}
                       </div>
                     ),
@@ -378,222 +376,6 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
               </div>
             </CardContent>
           </Card>
-
-          {dateRange?.from && (
-            <Card className="bg-gradient-card shadow-md mt-6">
-              <CardHeader>
-                <CardTitle>
-                  {dateRange.to ? (
-                    <>
-                      Événements du {format(dateRange.from, "d MMM", { locale: fr })} au{" "}
-                      {format(dateRange.to, "d MMM yyyy", { locale: fr })}
-                    </>
-                  ) : (
-                    <>Événements du {format(dateRange.from, "d MMMM yyyy", { locale: fr })}</>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {combinedEvents.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">Aucun événement sur cette période</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {combinedEvents.map((event) => {
-                      if (event.eventType === "match") {
-                        return (
-                          <div
-                            key={`match-${event.id}`}
-                            className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors animate-fade-in cursor-pointer"
-                            onClick={() => setSelectedMatch({
-                              id: event.id,
-                              date: event.match_date,
-                              opponent: event.opponent,
-                            })}
-                          >
-                            <div className="flex items-center gap-4 flex-1">
-                              <div className="h-12 w-1.5 rounded-full bg-rose-500" />
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-xs text-muted-foreground">
-                                    {format(new Date(event.match_date), "d MMM yyyy", { locale: fr })}
-                                  </span>
-                                  {event.match_time && (
-                                    <span className="text-xs text-muted-foreground">
-                                      • {event.match_time}
-                                    </span>
-                                  )}
-                                  <span className="text-xs px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 font-medium">
-                                    {event.is_home ? "Domicile" : "Extérieur"}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Swords className="h-4 w-4 text-rose-500" />
-                                  <span className="font-semibold">Match vs {event.opponent}</span>
-                                </div>
-                                {event.location && (
-                                  <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                                    <MapPin className="h-3 w-3" />
-                                    {event.location}
-                                  </p>
-                                )}
-                                {(event.score_home !== null && event.score_away !== null) && (
-                                  <p className="text-sm font-medium mt-1">
-                                    Score: {event.score_home} - {event.score_away}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      }
-
-                      if (event.eventType === "planning") {
-                        return (
-                          <div
-                            key={`planning-${event.id}`}
-                            className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors animate-fade-in"
-                          >
-                            <div className="flex items-center gap-4 flex-1">
-                              <div
-                                className={`h-12 w-1.5 rounded-full ${
-                                  event.template?.session_type ? trainingTypeColors[event.template.session_type] || "bg-primary" : "bg-primary"
-                                }`}
-                              />
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-xs text-muted-foreground">
-                                    {format(event.actualDate, "d MMM yyyy", { locale: fr })}
-                                  </span>
-                                  {event.time_slot && (
-                                    <span className="text-xs text-muted-foreground">
-                                      • {event.time_slot.substring(0, 5)}
-                                    </span>
-                                  )}
-                                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
-                                    Planning hebdo
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="font-semibold">
-                                    {event.template?.name || event.custom_title || "Séance planifiée"}
-                                  </span>
-                                </div>
-                                {event.location && (
-                                  <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                                    <MapPin className="h-3 w-3" />
-                                    {event.location}
-                                  </p>
-                                )}
-                                {event.template?.duration_minutes && (
-                                  <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                                    <Clock className="h-3 w-3" />
-                                    {event.template.duration_minutes} min
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      }
-
-                      // Training session (eventType === "session")
-                      if (event.eventType === "session") {
-                        return (
-                          <div
-                            key={`session-${event.id}`}
-                            className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors animate-fade-in cursor-pointer"
-                            onClick={() =>
-                              setSelectedSession({
-                                id: event.id,
-                                date: event.session_date,
-                                type: event.training_type === "test" ? "test" : "training",
-                              })
-                            }
-                          >
-                            <div className="flex items-center gap-4 flex-1">
-                              <div
-                                className={`h-12 w-1.5 rounded-full ${
-                                  trainingTypeColors[event.training_type] || "bg-muted"
-                                }`}
-                              />
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-xs text-muted-foreground">
-                                    {format(new Date(event.session_date), "d MMM yyyy", { locale: fr })}
-                                  </span>
-                                  {event.session_start_time && event.session_end_time ? (
-                                    <span className="text-xs text-muted-foreground">
-                                      • {event.session_start_time} - {event.session_end_time}
-                                    </span>
-                                  ) : event.session_start_time ? (
-                                    <span className="text-xs text-muted-foreground">
-                                      • {event.session_start_time}
-                                    </span>
-                                  ) : null}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="font-semibold">
-                                    {trainingTypeLabels[event.training_type] || event.training_type}
-                                  </span>
-                                </div>
-                                {event.intensity && (
-                                  <p className="text-sm text-muted-foreground">
-                                    Intensité: {event.intensity}/10
-                                  </p>
-                                )}
-                                {event.notes && (
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    {event.notes}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditingSession({
-                                    id: event.id,
-                                    session_date: event.session_date,
-                                    session_start_time: event.session_start_time,
-                                    session_end_time: event.session_end_time,
-                                    training_type: event.training_type,
-                                    intensity: event.intensity,
-                                    notes: event.notes,
-                                  });
-                                  setIsEditDialogOpen(true);
-                                }}
-                              >
-                                <Pencil className="h-4 w-4 text-muted-foreground" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (confirm("Êtes-vous sûr de vouloir supprimer cette séance ?")) {
-                                    deleteSession.mutate(event.id);
-                                  }
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
-                          </div>
-                        );
-                      }
-
-                      return null;
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
 
         <TabsContent value="weekly">
@@ -667,6 +449,44 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
           matchId={selectedMatch.id}
           matchDate={selectedMatch.date}
           opponent={selectedMatch.opponent}
+        />
+      )}
+
+      {selectedDate && (
+        <DailySessionsDialog
+          open={isDailyDialogOpen}
+          onOpenChange={setIsDailyDialogOpen}
+          date={selectedDate}
+          sessions={getSessionsForDate(selectedDate)}
+          matches={getMatchesForDate(selectedDate)}
+          planning={getPlanningForDate(selectedDate)}
+          onEditSession={(session) => {
+            setEditingSession(session);
+            setIsEditDialogOpen(true);
+            setIsDailyDialogOpen(false);
+          }}
+          onRescheduleSession={(sessionId, newDate) => {
+            rescheduleSession.mutate({ sessionId, newDate });
+          }}
+          onViewMatch={(match) => {
+            setSelectedMatch({
+              id: match.id,
+              date: match.match_date,
+              opponent: match.opponent,
+            });
+            setIsDailyDialogOpen(false);
+          }}
+          onViewSession={(session) => {
+            setSelectedSession({
+              id: session.id,
+              date: session.session_date,
+              type: session.training_type === "test" ? "test" : "training",
+            });
+            setIsDailyDialogOpen(false);
+          }}
+          trainingTypeLabels={trainingTypeLabels}
+          trainingTypeColors={trainingTypeColors}
+          isViewer={isViewer}
         />
       )}
     </div>
