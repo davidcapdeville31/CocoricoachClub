@@ -126,7 +126,7 @@ export default function Admin() {
         .maybeSingle();
 
       if (existing) {
-        throw new Error("Cet utilisateur est déjà super admin");
+        throw new Error("Cet utilisateur est déjà ambassadeur");
       }
 
       // Add as super admin
@@ -137,7 +137,7 @@ export default function Admin() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Super admin ajouté avec succès");
+      toast.success("Ambassadeur ajouté avec succès");
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       setNewAdminEmail("");
     },
@@ -161,7 +161,7 @@ export default function Admin() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Super admin retiré avec succès");
+      toast.success("Ambassadeur retiré avec succès");
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     },
     onError: (error: Error) => {
@@ -259,7 +259,7 @@ export default function Admin() {
             <CardContent>
               <div className="text-2xl font-bold">{users.length}</div>
               <p className="text-xs text-muted-foreground">
-                {users.filter(u => u.is_super_admin).length} super admin(s)
+                {users.filter(u => u.is_super_admin).length} ambassadeur(s)
               </p>
             </CardContent>
           </Card>
@@ -315,7 +315,7 @@ export default function Admin() {
             </TabsTrigger>
             <TabsTrigger value="admins" className="flex items-center gap-2">
               <Crown className="h-4 w-4" />
-              Super Admins
+              Ambassadeurs
             </TabsTrigger>
             <TabsTrigger value="audit" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
@@ -363,7 +363,7 @@ export default function Admin() {
                             {u.is_super_admin ? (
                               <Badge variant="default" className="bg-primary">
                                 <Crown className="h-3 w-3 mr-1" />
-                                Super Admin
+                                Ambassadeur
                               </Badge>
                             ) : u.is_approved ? (
                               <Badge variant="default" className="bg-green-600">
@@ -542,9 +542,9 @@ export default function Admin() {
           <TabsContent value="admins">
             <Card>
               <CardHeader>
-                <CardTitle>Gestion des Super Admins</CardTitle>
+                <CardTitle>Gestion des Ambassadeurs</CardTitle>
                 <CardDescription>
-                  Ajoutez ou retirez des droits super admin aux utilisateurs
+                  Ajoutez ou retirez des droits ambassadeur aux utilisateurs
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -561,7 +561,7 @@ export default function Admin() {
                     disabled={!newAdminEmail || addSuperAdmin.isPending}
                   >
                     <UserPlus className="h-4 w-4 mr-2" />
-                    Ajouter Super Admin
+                    Ajouter Ambassadeur
                   </Button>
                 </div>
 
