@@ -43,95 +43,100 @@ serve(async (req) => {
     }
 
     const categoryId = tokenInfo.category_id;
-    const clubId = tokenInfo.club_id;
-
     console.log(`Public data request: type=${dataType}, categoryId=${categoryId}`);
 
     let data: any = null;
 
     switch (dataType) {
       case "category":
-        const { data: catData, error: catError } = await supabaseAdmin
+        const { data: catData } = await supabaseAdmin
           .from("categories")
           .select("*, clubs(name, id)")
           .eq("id", categoryId)
           .single();
-        if (catError) console.error("Category fetch error:", catError);
         data = catData;
         break;
 
       case "players":
-        const { data: playersData, error: playersError } = await supabaseAdmin
+        const { data: playersData } = await supabaseAdmin
           .from("players")
-          .select("id, name, position, date_of_birth, avatar_url")
+          .select("id, name, position, date_of_birth, avatar_url, jersey_number")
           .eq("category_id", categoryId)
           .order("name");
-        if (playersError) console.error("Players fetch error:", playersError);
         data = playersData || [];
         break;
 
       case "matches":
-        const { data: matchesData, error: matchesError } = await supabaseAdmin
+        const { data: matchesData } = await supabaseAdmin
           .from("matches")
           .select("*")
           .eq("category_id", categoryId)
           .order("match_date", { ascending: false });
-        if (matchesError) console.error("Matches fetch error:", matchesError);
         data = matchesData || [];
         break;
 
       case "sessions":
-        const { data: sessionsData, error: sessionsError } = await supabaseAdmin
+        const { data: sessionsData } = await supabaseAdmin
           .from("training_sessions")
           .select("*")
           .eq("category_id", categoryId)
           .order("session_date", { ascending: false })
-          .limit(50);
-        if (sessionsError) console.error("Sessions fetch error:", sessionsError);
+          .limit(100);
         data = sessionsData || [];
         break;
 
       case "injuries":
-        const { data: injuriesData, error: injuriesError } = await supabaseAdmin
+        const { data: injuriesData } = await supabaseAdmin
           .from("injuries")
           .select("*, players(name)")
           .eq("category_id", categoryId);
-        if (injuriesError) console.error("Injuries fetch error:", injuriesError);
         data = injuriesData || [];
         break;
 
       case "wellness":
-        const { data: wellnessData, error: wellnessError } = await supabaseAdmin
-          .from("player_wellness")
+        const { data: wellnessData } = await supabaseAdmin
+          .from("wellness_tracking")
           .select("*, players(name)")
           .eq("category_id", categoryId)
           .order("wellness_date", { ascending: false })
-          .limit(100);
-        if (wellnessError) console.error("Wellness fetch error:", wellnessError);
+          .limit(200);
         data = wellnessData || [];
         break;
 
       case "awcr":
-        const { data: awcrData, error: awcrError } = await supabaseAdmin
+        const { data: awcrData } = await supabaseAdmin
           .from("awcr_tracking")
           .select("*, players(name)")
           .eq("category_id", categoryId)
           .order("session_date", { ascending: false })
-          .limit(100);
-        if (awcrError) console.error("AWCR fetch error:", awcrError);
+          .limit(200);
         data = awcrData || [];
         break;
 
+      case "attendance":
+        const { data: attendanceData } = await supabaseAdmin
+          .from("training_attendance")
+          .select("*, players(name), training_sessions(session_date, training_type)")
+          .eq("category_id", categoryId)
+          .order("created_at", { ascending: false })
+          .limit(500);
+        data = attendanceData || [];
+        break;
+
+      case "programs":
+        const { data: programsData } = await supabaseAdmin
+          .from("training_programs")
+          .select("*")
+          .eq("category_id", categoryId)
+          .order("created_at", { ascending: false });
+        data = programsData || [];
+        break;
+
       case "overview":
-        const [players, sessions, injuries, wellness] = await Promise.all([
+        const [players, sessions, injuries] = await Promise.all([
           supabaseAdmin.from("players").select("id").eq("category_id", categoryId),
           supabaseAdmin.from("training_sessions").select("id").eq("category_id", categoryId),
           supabaseAdmin.from("injuries").select("id, status").eq("category_id", categoryId),
-          supabaseAdmin.from("player_wellness")
-            .select("*")
-            .eq("category_id", categoryId)
-            .gte("wellness_date", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0])
-            .order("wellness_date", { ascending: false }),
         ]);
 
         data = {
@@ -140,38 +145,56 @@ serve(async (req) => {
           activeInjuries: injuries.data?.filter((i) => i.status === "active").length || 0,
           categoryName: tokenInfo.category_name,
           clubName: tokenInfo.club_name,
-          recentWellness: wellness.data || [],
         };
         break;
 
       case "all":
         // Fetch all data at once for efficiency
+        const today = new Date().toISOString().split("T")[0];
+        
+        // First fetch matches to get IDs
+        const matchesResult = await supabaseAdmin.from("matches").select("*").eq("category_id", categoryId).order("match_date", { ascending: false });
+        const matchIds = (matchesResult.data || []).map((m: any) => m.id);
+
         const [
           allCategory,
           allPlayers,
-          allMatches,
           allSessions,
           allInjuries,
           allWellness,
-          allAwcr
+          allAwcr,
+          allAttendance,
+          allPrograms,
+          allMatchLineups
         ] = await Promise.all([
           supabaseAdmin.from("categories").select("*, clubs(name, id)").eq("id", categoryId).single(),
-          supabaseAdmin.from("players").select("id, name, position, date_of_birth, avatar_url").eq("category_id", categoryId).order("name"),
-          supabaseAdmin.from("matches").select("*").eq("category_id", categoryId).order("match_date", { ascending: false }),
-          supabaseAdmin.from("training_sessions").select("*").eq("category_id", categoryId).order("session_date", { ascending: false }).limit(50),
+          supabaseAdmin.from("players").select("id, name, position, date_of_birth, avatar_url, jersey_number").eq("category_id", categoryId).order("name"),
+          supabaseAdmin.from("training_sessions").select("*").eq("category_id", categoryId).order("session_date", { ascending: false }).limit(100),
           supabaseAdmin.from("injuries").select("*, players(name)").eq("category_id", categoryId),
-          supabaseAdmin.from("player_wellness").select("*, players(name)").eq("category_id", categoryId).order("wellness_date", { ascending: false }).limit(100),
-          supabaseAdmin.from("awcr_tracking").select("*, players(name)").eq("category_id", categoryId).order("session_date", { ascending: false }).limit(100),
+          supabaseAdmin.from("wellness_tracking").select("*, players(name)").eq("category_id", categoryId).order("wellness_date", { ascending: false }).limit(200),
+          supabaseAdmin.from("awcr_tracking").select("*, players(name)").eq("category_id", categoryId).order("session_date", { ascending: false }).limit(200),
+          supabaseAdmin.from("training_attendance").select("*, players(name), training_sessions(session_date, training_type)").eq("category_id", categoryId).order("created_at", { ascending: false }).limit(500),
+          supabaseAdmin.from("training_programs").select("*").eq("category_id", categoryId).order("created_at", { ascending: false }),
+          matchIds.length > 0 
+            ? supabaseAdmin.from("match_lineups").select("*, players(name), matches(opponent, match_date)").in("match_id", matchIds)
+            : Promise.resolve({ data: [] }),
         ]);
+
+        // Calculate today's sessions
+        const todaySessions = (allSessions.data || []).filter((s: any) => s.session_date === today);
 
         data = {
           category: allCategory.data,
           players: allPlayers.data || [],
-          matches: allMatches.data || [],
+          matches: matchesResult.data || [],
           sessions: allSessions.data || [],
+          todaySessions,
           injuries: allInjuries.data || [],
           wellness: allWellness.data || [],
           awcr: allAwcr.data || [],
+          attendance: allAttendance.data || [],
+          programs: allPrograms.data || [],
+          matchLineups: allMatchLineups?.data || [],
           overview: {
             totalPlayers: allPlayers.data?.length || 0,
             totalSessions: allSessions.data?.length || 0,

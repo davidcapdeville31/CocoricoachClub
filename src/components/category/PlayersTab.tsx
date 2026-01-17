@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +17,7 @@ import { AddPlayerDialog } from "./AddPlayerDialog";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
+import { useViewerPlayers } from "@/hooks/use-viewer-data";
 
 interface PlayersTabProps {
   categoryId: string;
@@ -28,18 +29,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
   const navigate = useNavigate();
   const { isViewer } = useViewerModeContext();
 
-  const { data: players, isLoading } = useQuery({
-    queryKey: ["players", categoryId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("players")
-        .select("*")
-        .eq("category_id", categoryId)
-        .order("name");
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: players, isLoading } = useViewerPlayers(categoryId);
 
   const deletePlayer = useMutation({
     mutationFn: async (playerId: string) => {

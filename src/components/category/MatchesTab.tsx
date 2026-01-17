@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Calendar, BarChart3 } from "lucide-react";
@@ -11,6 +9,7 @@ import { isFuture, isPast } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
+import { useViewerMatches } from "@/hooks/use-viewer-data";
 
 interface MatchesTabProps {
   categoryId: string;
@@ -30,18 +29,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
   const itemLabelCapital = isIndividual ? "Compétition" : "Match";
   const itemLabelPluralCapital = isIndividual ? "Compétitions" : "Matchs";
 
-  const { data: matches, isLoading } = useQuery({
-    queryKey: ["matches", categoryId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("matches")
-        .select("*")
-        .eq("category_id", categoryId)
-        .order("match_date", { ascending: true });
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: matches, isLoading } = useViewerMatches(categoryId);
 
   const upcomingMatches = matches?.filter((m) => isFuture(new Date(m.match_date))) || [];
   const pastMatches = matches?.filter((m) => isPast(new Date(m.match_date))) || [];

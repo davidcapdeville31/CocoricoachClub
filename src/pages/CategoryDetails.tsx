@@ -305,7 +305,9 @@ export default function CategoryDetails() {
 
   return (
     <ViewerModeProvider clubId={category?.club_id} categoryId={categoryId}>
-      <CategoryDetailsContent />
+      <PublicDataProvider categoryId={categoryId || ""}>
+        <CategoryDetailsContent />
+      </PublicDataProvider>
     </ViewerModeProvider>
   );
 }
