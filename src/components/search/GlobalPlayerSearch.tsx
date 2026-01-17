@@ -22,8 +22,8 @@ interface Player {
     club_id: string;
     clubs: {
       name: string;
-    };
-  };
+    } | null;
+  } | null;
 }
 
 export function GlobalPlayerSearch() {
@@ -91,20 +91,26 @@ export function GlobalPlayerSearch() {
             {isLoading ? "Chargement..." : "Aucun joueur trouvé."}
           </CommandEmpty>
           <CommandGroup heading="Joueurs">
-            {players?.map((player) => (
-              <CommandItem
-                key={player.id}
-                value={player.name}
-                onSelect={() => handleSelect(player.id)}
-              >
-                <div className="flex flex-col">
-                  <span className="font-medium">{player.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {player.categories.name} • {player.categories.clubs.name}
-                  </span>
-                </div>
-              </CommandItem>
-            ))}
+            {players?.map((player) => {
+              const categoryName = player.categories?.name ?? "Catégorie";
+              const clubName = player.categories?.clubs?.name;
+
+              return (
+                <CommandItem
+                  key={player.id}
+                  value={player.name}
+                  onSelect={() => handleSelect(player.id)}
+                >
+                  <div className="flex flex-col">
+                    <span className="font-medium">{player.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {categoryName}
+                      {clubName ? ` • ${clubName}` : ""}
+                    </span>
+                  </div>
+                </CommandItem>
+              );
+            })}
           </CommandGroup>
         </CommandList>
       </CommandDialog>
