@@ -11,11 +11,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Check, UserCircle } from "lucide-react";
 import { getStatsForSport, getStatCategories, type StatField } from "@/lib/constants/sportStats";
 import { getSportFieldConfig } from "@/lib/constants/sportPositions";
+import { isIndividualSport } from "@/lib/constants/sportTypes";
+import { Badge } from "@/components/ui/badge";
 
 interface SportMatchStatsDialogProps {
   open: boolean;
@@ -39,6 +48,7 @@ export function SportMatchStatsDialog({
   sportType,
 }: SportMatchStatsDialogProps) {
   const [statsData, setStatsData] = useState<PlayerStats[]>([]);
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string>("");
   const [effectivePlayTime, setEffectivePlayTime] = useState<number>(0);
   const [longestPlaySequence, setLongestPlaySequence] = useState<number>(0);
   const [averagePlaySequence, setAveragePlaySequence] = useState<number>(0);
@@ -47,6 +57,7 @@ export function SportMatchStatsDialog({
   const sportStats = getStatsForSport(sportType);
   const statCategories = getStatCategories(sportType);
   const fieldConfig = getSportFieldConfig(sportType);
+  const isIndividual = isIndividualSport(sportType);
 
   // Get match data
   const { data: matchData } = useQuery({
@@ -104,15 +115,12 @@ export function SportMatchStatsDialog({
         const existing = existingStats?.find((s) => s.player_id === l.player_id);
         const player = l.players as { id: string; name: string } | null;
         
-        // Initialize all sport stats to 0
         const playerStats: PlayerStats = {
           playerId: l.player_id,
           playerName: player?.name || "Joueur",
         };
 
-        // Map existing stats or initialize to 0
         sportStats.forEach(stat => {
-          // Try to get from existing stats with various key formats
           const snakeKey = stat.key.replace(/([A-Z])/g, '_$1').toLowerCase();
           const value = existing?.[stat.key as keyof typeof existing] ?? 
                        existing?.[snakeKey as keyof typeof existing] ?? 
@@ -123,8 +131,13 @@ export function SportMatchStatsDialog({
         return playerStats;
       });
       setStatsData(stats);
+      
+      // Auto-select first player if none selected
+      if (!selectedPlayerId && stats.length > 0) {
+        setSelectedPlayerId(stats[0].playerId);
+      }
     }
-  }, [lineup, existingStats, sportStats]);
+  }, [lineup, existingStats, sportStats, selectedPlayerId]);
 
   const saveStats = useMutation({
     mutationFn: async () => {
@@ -169,8 +182,6 @@ export function SportMatchStatsDialog({
           );
           if (error) throw error;
         }
-        // For other sports, we would need additional columns in the database
-        // For now, we just save the basic match info
       }
     },
     onSuccess: () => {
@@ -191,6 +202,12 @@ export function SportMatchStatsDialog({
   };
 
   const hasLineup = lineup && lineup.length > 0;
+  const selectedPlayer = statsData.find(p => p.playerId === selectedPlayerId);
+
+  // Check if a player has any stats entered
+  const playerHasStats = (player: PlayerStats) => {
+    return sportStats.some(stat => (player[stat.key] as number) > 0);
+  };
 
   if (!hasLineup) {
     return (
@@ -200,7 +217,10 @@ export function SportMatchStatsDialog({
             <DialogTitle>Statistiques - {fieldConfig.label}</DialogTitle>
           </DialogHeader>
           <p className="text-muted-foreground text-center py-8">
-            Ajoutez d'abord des joueurs à la composition pour saisir leurs statistiques.
+            {isIndividual 
+              ? "Ajoutez d'abord des participants pour saisir leurs statistiques."
+              : "Ajoutez d'abord des joueurs à la composition pour saisir leurs statistiques."
+            }
           </p>
           <Button onClick={() => onOpenChange(false)}>Fermer</Button>
         </DialogContent>
@@ -232,128 +252,134 @@ export function SportMatchStatsDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="general" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            {statCategories.map(cat => (
-              <TabsTrigger key={cat.key} value={cat.key}>{cat.label}</TabsTrigger>
-            ))}
-          </TabsList>
+        {/* Player selector dropdown */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium flex items-center gap-2">
+            <UserCircle className="h-4 w-4" />
+            {isIndividual ? "Sélectionner un participant" : "Sélectionner un joueur"}
+          </Label>
+          <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={isIndividual ? "Choisir un participant..." : "Choisir un joueur..."} />
+            </SelectTrigger>
+            <SelectContent>
+              {statsData.map((player) => (
+                <SelectItem key={player.playerId} value={player.playerId}>
+                  <div className="flex items-center gap-2">
+                    <span>{player.playerName}</span>
+                    {playerHasStats(player) && (
+                      <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                        <Check className="h-3 w-3 mr-1" />
+                        Stats
+                      </Badge>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-          <ScrollArea className="h-[400px] mt-4">
-            <TabsContent value="general" className="space-y-4 mt-0">
-              <div className="p-4 rounded-lg border bg-card">
-                <h4 className="font-semibold mb-3 text-base text-primary">
-                  Informations du match
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-sm">Temps de jeu effectif (min)</Label>
-                    <Input
-                      type="number"
-                      value={effectivePlayTime}
-                      onChange={(e) => setEffectivePlayTime(parseInt(e.target.value) || 0)}
-                      min={0}
-                      max={120}
-                      className="h-9 mt-1"
-                      placeholder="Ex: 80"
-                    />
+        {selectedPlayer && (
+          <Tabs defaultValue="general" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              {statCategories.map(cat => (
+                <TabsTrigger key={cat.key} value={cat.key}>{cat.label}</TabsTrigger>
+              ))}
+            </TabsList>
+
+            <ScrollArea className="h-[350px] mt-4">
+              <TabsContent value="general" className="space-y-4 mt-0">
+                {!isIndividual && (
+                  <div className="p-4 rounded-lg border bg-card">
+                    <h4 className="font-semibold mb-3 text-base text-primary">
+                      Informations du match
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label className="text-sm">Temps de jeu effectif (min)</Label>
+                        <Input
+                          type="number"
+                          value={effectivePlayTime}
+                          onChange={(e) => setEffectivePlayTime(parseInt(e.target.value) || 0)}
+                          min={0}
+                          max={120}
+                          className="h-9 mt-1"
+                          placeholder="Ex: 80"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm">Séquence la plus longue (sec)</Label>
+                        <Input
+                          type="number"
+                          value={longestPlaySequence}
+                          onChange={(e) => setLongestPlaySequence(parseInt(e.target.value) || 0)}
+                          min={0}
+                          className="h-9 mt-1"
+                          placeholder="Ex: 180"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm">Séquence moyenne (sec)</Label>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          value={averagePlaySequence}
+                          onChange={(e) => setAveragePlaySequence(parseFloat(e.target.value) || 0)}
+                          min={0}
+                          className="h-9 mt-1"
+                          placeholder="Ex: 45.5"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <Label className="text-sm">Séquence la plus longue (sec)</Label>
-                    <Input
-                      type="number"
-                      value={longestPlaySequence}
-                      onChange={(e) => setLongestPlaySequence(parseInt(e.target.value) || 0)}
-                      min={0}
-                      className="h-9 mt-1"
-                      placeholder="Ex: 180"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm">Séquence moyenne (sec)</Label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      value={averagePlaySequence}
-                      onChange={(e) => setAveragePlaySequence(parseFloat(e.target.value) || 0)}
-                      min={0}
-                      className="h-9 mt-1"
-                      placeholder="Ex: 45.5"
-                    />
+                )}
+                
+                <div className="p-4 rounded-lg border bg-card">
+                  <h4 className="font-semibold mb-3 text-base text-primary">
+                    {selectedPlayer.playerName} - Statistiques générales
+                  </h4>
+                  <div className="grid grid-cols-3 gap-3">
+                    {sportStats.filter(s => s.category === "general").map(stat => renderStatInput(selectedPlayer, stat))}
                   </div>
                 </div>
-              </div>
-              
-              {/* General stats for each player */}
-              {statsData.map((player) => {
-                const generalStats = sportStats.filter(s => s.category === "general");
-                if (generalStats.length === 0) return null;
-                
-                return (
-                  <div key={player.playerId} className="p-3 rounded-lg border bg-card">
-                    <h4 className="font-semibold mb-3 text-base text-primary">
-                      {player.playerName}
-                    </h4>
-                    <div className="grid grid-cols-3 gap-3">
-                      {generalStats.map(stat => renderStatInput(player, stat))}
-                    </div>
-                  </div>
-                );
-              })}
-            </TabsContent>
+              </TabsContent>
 
-            <TabsContent value="scoring" className="space-y-4 mt-0">
-              {statsData.map((player) => {
-                const scoringStats = sportStats.filter(s => s.category === "scoring");
-                
-                return (
-                  <div key={player.playerId} className="p-3 rounded-lg border bg-card">
-                    <h4 className="font-semibold mb-3 text-base text-primary">
-                      {player.playerName}
-                    </h4>
-                    <div className="grid grid-cols-4 gap-3">
-                      {scoringStats.map(stat => renderStatInput(player, stat))}
-                    </div>
+              <TabsContent value="scoring" className="space-y-4 mt-0">
+                <div className="p-4 rounded-lg border bg-card">
+                  <h4 className="font-semibold mb-3 text-base text-primary">
+                    {selectedPlayer.playerName} - Score
+                  </h4>
+                  <div className="grid grid-cols-4 gap-3">
+                    {sportStats.filter(s => s.category === "scoring").map(stat => renderStatInput(selectedPlayer, stat))}
                   </div>
-                );
-              })}
-            </TabsContent>
+                </div>
+              </TabsContent>
 
-            <TabsContent value="attack" className="space-y-4 mt-0">
-              {statsData.map((player) => {
-                const attackStats = sportStats.filter(s => s.category === "attack");
-                
-                return (
-                  <div key={player.playerId} className="p-3 rounded-lg border bg-card">
-                    <h4 className="font-semibold mb-3 text-base text-primary">
-                      {player.playerName}
-                    </h4>
-                    <div className="grid grid-cols-3 gap-3">
-                      {attackStats.map(stat => renderStatInput(player, stat))}
-                    </div>
+              <TabsContent value="attack" className="space-y-4 mt-0">
+                <div className="p-4 rounded-lg border bg-card">
+                  <h4 className="font-semibold mb-3 text-base text-primary">
+                    {selectedPlayer.playerName} - Attaque
+                  </h4>
+                  <div className="grid grid-cols-3 gap-3">
+                    {sportStats.filter(s => s.category === "attack").map(stat => renderStatInput(selectedPlayer, stat))}
                   </div>
-                );
-              })}
-            </TabsContent>
+                </div>
+              </TabsContent>
 
-            <TabsContent value="defense" className="space-y-4 mt-0">
-              {statsData.map((player) => {
-                const defenseStats = sportStats.filter(s => s.category === "defense");
-                
-                return (
-                  <div key={player.playerId} className="p-3 rounded-lg border bg-card">
-                    <h4 className="font-semibold mb-3 text-base text-primary">
-                      {player.playerName}
-                    </h4>
-                    <div className="grid grid-cols-3 gap-3">
-                      {defenseStats.map(stat => renderStatInput(player, stat))}
-                    </div>
+              <TabsContent value="defense" className="space-y-4 mt-0">
+                <div className="p-4 rounded-lg border bg-card">
+                  <h4 className="font-semibold mb-3 text-base text-primary">
+                    {selectedPlayer.playerName} - Défense
+                  </h4>
+                  <div className="grid grid-cols-3 gap-3">
+                    {sportStats.filter(s => s.category === "defense").map(stat => renderStatInput(selectedPlayer, stat))}
                   </div>
-                );
-              })}
-            </TabsContent>
-          </ScrollArea>
-        </Tabs>
+                </div>
+              </TabsContent>
+            </ScrollArea>
+          </Tabs>
+        )}
 
         <div className="flex justify-end gap-2 pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
