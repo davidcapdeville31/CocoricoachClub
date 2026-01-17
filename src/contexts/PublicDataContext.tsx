@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useState, useEffect } from "react";
+import { createContext, useContext, ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePublicAccess } from "@/contexts/PublicAccessContext";
 
@@ -7,9 +7,13 @@ interface PublicDataState {
   players: any[];
   matches: any[];
   sessions: any[];
+  todaySessions: any[];
   injuries: any[];
   wellness: any[];
   awcr: any[];
+  attendance: any[];
+  programs: any[];
+  matchLineups: any[];
   overview: {
     totalPlayers: number;
     totalSessions: number;
@@ -19,13 +23,35 @@ interface PublicDataState {
   } | null;
   isLoading: boolean;
   error: string | null;
+  isPublicMode: boolean;
 }
 
 interface PublicDataContextType extends PublicDataState {
   refetch: () => void;
 }
 
-const PublicDataContext = createContext<PublicDataContextType | undefined>(undefined);
+const defaultState: PublicDataState = {
+  category: null,
+  players: [],
+  matches: [],
+  sessions: [],
+  todaySessions: [],
+  injuries: [],
+  wellness: [],
+  awcr: [],
+  attendance: [],
+  programs: [],
+  matchLineups: [],
+  overview: null,
+  isLoading: false,
+  error: null,
+  isPublicMode: false,
+};
+
+const PublicDataContext = createContext<PublicDataContextType>({
+  ...defaultState,
+  refetch: () => {},
+});
 
 interface PublicDataProviderProps {
   children: ReactNode;
@@ -42,6 +68,8 @@ export function PublicDataProvider({ children, categoryId }: PublicDataProviderP
         return null;
       }
 
+      console.log("Fetching public data for category:", categoryId);
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-data?token=${token}&type=all`,
         {
@@ -54,9 +82,11 @@ export function PublicDataProvider({ children, categoryId }: PublicDataProviderP
       const result = await response.json();
       
       if (!result.success) {
+        console.error("Public data fetch failed:", result.error);
         throw new Error(result.error || "Failed to fetch data");
       }
 
+      console.log("Public data loaded:", Object.keys(result.data));
       return result.data;
     },
     enabled: isPublicAccess && !!token && !!categoryId,
@@ -68,12 +98,17 @@ export function PublicDataProvider({ children, categoryId }: PublicDataProviderP
     players: data?.players || [],
     matches: data?.matches || [],
     sessions: data?.sessions || [],
+    todaySessions: data?.todaySessions || [],
     injuries: data?.injuries || [],
     wellness: data?.wellness || [],
     awcr: data?.awcr || [],
+    attendance: data?.attendance || [],
+    programs: data?.programs || [],
+    matchLineups: data?.matchLineups || [],
     overview: data?.overview || null,
     isLoading,
     error: error?.message || null,
+    isPublicMode: isPublicAccess,
     refetch,
   };
 
@@ -85,55 +120,13 @@ export function PublicDataProvider({ children, categoryId }: PublicDataProviderP
 }
 
 export function usePublicDataContext() {
-  const context = useContext(PublicDataContext);
-  if (context === undefined) {
-    // Not in public data provider - return empty state
-    return {
-      category: null,
-      players: [],
-      matches: [],
-      sessions: [],
-      injuries: [],
-      wellness: [],
-      awcr: [],
-      overview: null,
-      isLoading: false,
-      error: null,
-      refetch: () => {},
-    };
-  }
-  return context;
+  return useContext(PublicDataContext);
 }
 
 /**
- * Hook to get data that works in both authenticated and public modes
- * Falls back to public data context when in public access mode
+ * Hook to check if we're in public mode and should use public data
  */
-export function useDataWithPublicFallback<T>(
-  queryKey: string[],
-  directQueryFn: () => Promise<T>,
-  publicDataKey: keyof Omit<PublicDataState, 'isLoading' | 'error'>
-) {
-  const { isPublicAccess } = usePublicAccess();
-  const publicData = usePublicDataContext();
-
-  const directQuery = useQuery({
-    queryKey,
-    queryFn: directQueryFn,
-    enabled: !isPublicAccess,
-  });
-
-  if (isPublicAccess) {
-    return {
-      data: publicData[publicDataKey] as T,
-      isLoading: publicData.isLoading,
-      error: publicData.error ? new Error(publicData.error) : null,
-    };
-  }
-
-  return {
-    data: directQuery.data,
-    isLoading: directQuery.isLoading,
-    error: directQuery.error,
-  };
+export function useIsPublicMode() {
+  const { isPublicMode } = usePublicDataContext();
+  return isPublicMode;
 }
