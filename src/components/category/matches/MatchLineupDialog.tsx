@@ -11,12 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Users, UserCheck, LayoutGrid, List } from "lucide-react";
 import { SportFieldLineup } from "@/components/matches/SportFieldLineup";
 import { getSportFieldConfig } from "@/lib/constants/sportPositions";
+import { isIndividualSport } from "@/lib/constants/sportTypes";
 
 interface MatchLineupDialogProps {
   open: boolean;
@@ -59,6 +60,7 @@ export function MatchLineupDialog({
 
   const sportType = category?.rugby_type || "XV";
   const fieldConfig = getSportFieldConfig(sportType);
+  const isIndividual = isIndividualSport(sportType);
 
   const { data: players } = useQuery({
     queryKey: ["players", categoryId],
@@ -173,9 +175,9 @@ export function MatchLineupDialog({
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Composition - {fieldConfig.label}
+              {isIndividual ? "Participants" : `Composition - ${fieldConfig.label}`}
             </div>
-            {hasFieldLayout && (
+            {hasFieldLayout && !isIndividual && (
               <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "list" | "field")}>
                 <TabsList className="h-8">
                   <TabsTrigger value="field" className="px-2 h-7">
@@ -193,22 +195,16 @@ export function MatchLineupDialog({
         <div className="flex gap-4 text-sm text-muted-foreground mb-2 flex-shrink-0">
           <span className="flex items-center gap-1">
             <UserCheck className="h-4 w-4" />
-            {selectedCount} joueurs sélectionnés
+            {selectedCount} {isIndividual ? "participants sélectionnés" : "joueurs sélectionnés"}
           </span>
-          <span>{starterCount} titulaires</span>
+          {!isIndividual && <span>{starterCount} titulaires</span>}
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto">
           <div className="pr-2">
-            {hasFieldLayout && viewMode === "field" ? (
-              <SportFieldLineup
-                players={players || []}
-                sportType={sportType}
-                initialLineup={fieldLineup}
-                onLineupChange={handleFieldLineupChange}
-              />
-            ) : (
-              <div className="space-y-3">
+            {/* Individual sports: simple checkbox list */}
+            {isIndividual ? (
+              <div className="space-y-2">
                 {lineupData && lineupData.length > 0 ? lineupData.map((player) => (
                   <div
                     key={player.playerId}
@@ -218,66 +214,109 @@ export function MatchLineupDialog({
                         : "bg-card"
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <Switch
-                          checked={player.isSelected}
-                          onCheckedChange={(checked) =>
-                            updatePlayer(player.playerId, {
-                              isSelected: checked,
-                              isStarter: checked ? player.isStarter : false,
-                            })
-                          }
-                        />
-                        <span className="font-medium">{player.playerName}</span>
-                      </div>
-                      {player.isSelected && (
-                        <div className="flex items-center gap-2">
-                          <Label className="text-xs">Titulaire</Label>
-                          <Switch
-                            checked={player.isStarter}
-                            onCheckedChange={(checked) =>
-                              updatePlayer(player.playerId, { isStarter: checked })
-                            }
-                          />
-                        </div>
-                      )}
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        id={player.playerId}
+                        checked={player.isSelected}
+                        onCheckedChange={(checked) =>
+                          updatePlayer(player.playerId, {
+                            isSelected: !!checked,
+                          })
+                        }
+                      />
+                      <label
+                        htmlFor={player.playerId}
+                        className="font-medium cursor-pointer flex-1"
+                      >
+                        {player.playerName}
+                      </label>
                     </div>
-
-                    {player.isSelected && (
-                      <div className="grid grid-cols-2 gap-3 mt-2">
-                        <div>
-                          <Label className="text-xs">Position</Label>
-                          <Input
-                            value={player.position}
-                            onChange={(e) =>
-                              updatePlayer(player.playerId, { position: e.target.value })
-                            }
-                            placeholder="Ex: 1, 9, 15..."
-                            className="h-8 text-sm"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-xs">Minutes jouées</Label>
-                          <Input
-                            type="number"
-                            value={player.minutesPlayed}
-                            onChange={(e) =>
-                              updatePlayer(player.playerId, {
-                                minutesPlayed: parseInt(e.target.value) || 0,
-                              })
-                            }
-                            min={0}
-                            className="h-8 text-sm"
-                          />
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )) : (
                   <p className="text-center text-muted-foreground py-4">Aucun joueur dans cette catégorie</p>
                 )}
               </div>
+            ) : (
+              /* Team sports: full lineup management */
+              hasFieldLayout && viewMode === "field" ? (
+                <SportFieldLineup
+                  players={players || []}
+                  sportType={sportType}
+                  initialLineup={fieldLineup}
+                  onLineupChange={handleFieldLineupChange}
+                />
+              ) : (
+                <div className="space-y-3">
+                  {lineupData && lineupData.length > 0 ? lineupData.map((player) => (
+                    <div
+                      key={player.playerId}
+                      className={`p-3 rounded-lg border transition-colors ${
+                        player.isSelected
+                          ? "bg-primary/5 border-primary/20"
+                          : "bg-card"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            checked={player.isSelected}
+                            onCheckedChange={(checked) =>
+                              updatePlayer(player.playerId, {
+                                isSelected: checked,
+                                isStarter: checked ? player.isStarter : false,
+                              })
+                            }
+                          />
+                          <span className="font-medium">{player.playerName}</span>
+                        </div>
+                        {player.isSelected && (
+                          <div className="flex items-center gap-2">
+                            <Label className="text-xs">Titulaire</Label>
+                            <Switch
+                              checked={player.isStarter}
+                              onCheckedChange={(checked) =>
+                                updatePlayer(player.playerId, { isStarter: checked })
+                              }
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {player.isSelected && (
+                        <div className="grid grid-cols-2 gap-3 mt-2">
+                          <div>
+                            <Label className="text-xs">Position</Label>
+                            <Input
+                              value={player.position}
+                              onChange={(e) =>
+                                updatePlayer(player.playerId, { position: e.target.value })
+                              }
+                              placeholder="Ex: 1, 9, 15..."
+                              className="h-8 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs">Minutes jouées</Label>
+                            <Input
+                              type="number"
+                              value={player.minutesPlayed}
+                              onChange={(e) =>
+                                updatePlayer(player.playerId, {
+                                  minutesPlayed: parseInt(e.target.value) || 0,
+                                })
+                              }
+                              min={0}
+                              className="h-8 text-sm"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )) : (
+                    <p className="text-center text-muted-foreground py-4">Aucun joueur dans cette catégorie</p>
+                  )}
+                </div>
+              )
             )}
           </div>
         </div>
