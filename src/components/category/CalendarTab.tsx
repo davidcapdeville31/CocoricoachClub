@@ -25,6 +25,7 @@ import { exportCalendarToPdf, printElement } from "@/lib/pdfExport";
 import { getTrainingTypesForSport, TRAINING_TYPE_COLORS } from "@/lib/constants/trainingTypes";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { DisabledTabTrigger } from "@/components/ui/disabled-tab-trigger";
+import { useViewerSessions, useViewerMatches } from "@/hooks/use-viewer-data";
 
 interface CalendarTabProps {
   categoryId: string;
@@ -152,32 +153,9 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
 
   const trainingTypeColors = TRAINING_TYPE_COLORS;
 
-  const { data: sessions, isLoading: isLoadingSessions } = useQuery({
-    queryKey: ["training_sessions", categoryId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("training_sessions")
-        .select("*")
-        .eq("category_id", categoryId)
-        .order("session_date", { ascending: false })
-        .order("session_start_time", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: sessions, isLoading: isLoadingSessions } = useViewerSessions(categoryId);
 
-  const { data: matches, isLoading: isLoadingMatches } = useQuery({
-    queryKey: ["matches", categoryId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("matches")
-        .select("*")
-        .eq("category_id", categoryId)
-        .order("match_date", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: matches, isLoading: isLoadingMatches } = useViewerMatches(categoryId);
 
   const { data: weeklyPlanning, isLoading: isLoadingPlanning } = useQuery({
     queryKey: ["weekly-planning-all", categoryId],
