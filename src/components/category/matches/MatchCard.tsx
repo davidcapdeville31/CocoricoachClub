@@ -172,60 +172,62 @@ export function MatchCard({ match, categoryId }: MatchCardProps) {
               )}
             </div>
 
-            {/* Score */}
-            <div className="mt-3">
-              {isEditingScore ? (
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    value={scoreHome}
-                    onChange={(e) => setScoreHome(e.target.value)}
-                    placeholder="Nous"
-                    className="w-16 h-8"
-                    min={0}
-                  />
-                  <span>-</span>
-                  <Input
-                    type="number"
-                    value={scoreAway}
-                    onChange={(e) => setScoreAway(e.target.value)}
-                    placeholder="Eux"
-                    className="w-16 h-8"
-                    min={0}
-                  />
-                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => updateScore.mutate()}>
-                    <Check className="h-4 w-4 text-green-500" />
-                  </Button>
-                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setIsEditingScore(false)}>
-                    <X className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  {match.score_home !== null && match.score_away !== null ? (
-                    <span className={`font-bold text-xl ${
-                      match.score_home > match.score_away
-                        ? "text-green-500"
-                        : match.score_home < match.score_away
-                        ? "text-destructive"
-                        : "text-muted-foreground"
-                    }`}>
-                      {match.score_home} - {match.score_away}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">Score non renseigné</span>
-                  )}
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-6 w-6"
-                    onClick={() => setIsEditingScore(true)}
-                  >
-                    <Edit2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              )}
-            </div>
+            {/* Score - Only for team sports */}
+            {!isIndividual && (
+              <div className="mt-3">
+                {isEditingScore ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      value={scoreHome}
+                      onChange={(e) => setScoreHome(e.target.value)}
+                      placeholder="Nous"
+                      className="w-16 h-8"
+                      min={0}
+                    />
+                    <span>-</span>
+                    <Input
+                      type="number"
+                      value={scoreAway}
+                      onChange={(e) => setScoreAway(e.target.value)}
+                      placeholder="Eux"
+                      className="w-16 h-8"
+                      min={0}
+                    />
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => updateScore.mutate()}>
+                      <Check className="h-4 w-4 text-green-500" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setIsEditingScore(false)}>
+                      <X className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {match.score_home !== null && match.score_away !== null ? (
+                      <span className={`font-bold text-xl ${
+                        match.score_home > match.score_away
+                          ? "text-green-500"
+                          : match.score_home < match.score_away
+                          ? "text-destructive"
+                          : "text-muted-foreground"
+                      }`}>
+                        {match.score_home} - {match.score_away}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">Score non renseigné</span>
+                    )}
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6"
+                      onClick={() => setIsEditingScore(true)}
+                    >
+                      <Edit2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {match.notes && (
               <p className="text-sm text-muted-foreground mt-2 italic">{match.notes}</p>
@@ -240,7 +242,7 @@ export function MatchCard({ match, categoryId }: MatchCardProps) {
               onClick={() => setIsLineupOpen(true)}
             >
               <Users className="h-4 w-4" />
-              Compo ({lineupCount})
+              {isIndividual ? `Participants (${lineupCount})` : `Compo (${lineupCount})`}
             </Button>
             <Button
               variant="outline"
