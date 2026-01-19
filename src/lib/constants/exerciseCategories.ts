@@ -125,28 +125,61 @@ export const SPORT_OPTIONS = [
   { value: "bowling", label: "Bowling" },
 ];
 
+// Normalize sport type to base sport
+export function normalizeToBaseSport(sportType?: string): string | null {
+  if (!sportType || sportType === "all") return null;
+  
+  const normalizedSport = sportType.toLowerCase();
+  if (normalizedSport.startsWith('rugby')) return 'rugby';
+  if (normalizedSport.startsWith('football')) return 'football';
+  if (normalizedSport.startsWith('handball')) return 'handball';
+  if (normalizedSport.startsWith('volleyball')) return 'volleyball';
+  if (normalizedSport.startsWith('basketball')) return 'basketball';
+  if (normalizedSport.startsWith('judo')) return 'judo';
+  if (normalizedSport.startsWith('aviron')) return 'aviron';
+  if (normalizedSport.startsWith('bowling')) return 'bowling';
+  
+  return normalizedSport;
+}
+
 // Get terrain categories for a specific sport
 export function getTerrainCategoriesForSport(sportType?: string): ExerciseCategory[] {
   const terrainCategories = EXERCISE_CATEGORIES.filter(c => c.group === "terrain");
   
-  if (!sportType || sportType === "all") {
-    return terrainCategories;
-  }
-  
-  // Normalize sport type
-  const normalizedSport = sportType.toLowerCase();
-  let baseSport = normalizedSport;
-  if (normalizedSport.startsWith('rugby')) baseSport = 'rugby';
-  if (normalizedSport.startsWith('football')) baseSport = 'football';
-  if (normalizedSport.startsWith('handball')) baseSport = 'handball';
-  if (normalizedSport.startsWith('volleyball')) baseSport = 'volleyball';
-  if (normalizedSport.startsWith('basketball')) baseSport = 'basketball';
-  if (normalizedSport.startsWith('judo')) baseSport = 'judo';
-  if (normalizedSport.startsWith('aviron')) baseSport = 'aviron';
-  if (normalizedSport.startsWith('bowling')) baseSport = 'bowling';
+  const baseSport = normalizeToBaseSport(sportType);
+  if (!baseSport) return terrainCategories;
   
   // Return general terrain categories plus sport-specific ones
   return terrainCategories.filter(c => !c.sport || c.sport === baseSport);
+}
+
+// Get all categories filtered for a specific sport (terrain filtered, others kept)
+export function getCategoriesForSport(sportType?: string): ExerciseCategory[] {
+  const baseSport = normalizeToBaseSport(sportType);
+  
+  if (!baseSport) return EXERCISE_CATEGORIES;
+  
+  return EXERCISE_CATEGORIES.filter(c => {
+    // Keep non-terrain categories
+    if (c.group !== "terrain") return true;
+    // For terrain, keep general ones (no sport) and sport-specific ones
+    return !c.sport || c.sport === baseSport;
+  });
+}
+
+// Check if an exercise category belongs to a sport
+export function isCategoryForSport(categoryValue: string, sportType?: string): boolean {
+  const baseSport = normalizeToBaseSport(sportType);
+  if (!baseSport) return true;
+  
+  const category = EXERCISE_CATEGORIES.find(c => c.value === categoryValue);
+  if (!category) return true;
+  
+  // Non-terrain categories are always valid
+  if (category.group !== "terrain") return true;
+  
+  // For terrain, check if it's general or matches the sport
+  return !category.sport || category.sport === baseSport;
 }
 
 // Groupes de catégories pour filtrage rapide

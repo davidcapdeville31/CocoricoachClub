@@ -38,9 +38,10 @@ import {
   Copy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { EXERCISE_CATEGORIES, getCategoryLabel } from "@/lib/constants/exerciseCategories";
+import { EXERCISE_CATEGORIES, getCategoryLabel, getCategoriesForSport, isCategoryForSport } from "@/lib/constants/exerciseCategories";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getTrainingTypesForSport, trainingTypeHasExercises } from "@/lib/constants/trainingTypes";
+import { QuickAddExerciseDialog } from "@/components/library/QuickAddExerciseDialog";
 
 interface SessionFormDialogProps {
   open: boolean;
@@ -117,6 +118,7 @@ export function SessionFormDialog({
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showLibraryFor, setShowLibraryFor] = useState<number | null>(null);
+  const [showAddExerciseDialog, setShowAddExerciseDialog] = useState(false);
 
   // Fetch category to get sport type
   const { data: category } = useQuery({
@@ -133,7 +135,9 @@ export function SessionFormDialog({
     enabled: open,
   });
 
-  const trainingTypes = getTrainingTypesForSport(category?.rugby_type);
+  const sportType = category?.rugby_type;
+  const trainingTypes = getTrainingTypesForSport(sportType);
+  const availableCategories = getCategoriesForSport(sportType);
 
   // Fetch players
   const { data: players } = useQuery({
@@ -253,11 +257,12 @@ export function SessionFormDialog({
   const healthyPlayers = players?.filter((p) => !p.isInjured) || [];
 
   const filteredLibrary =
-    libraryExercises?.filter(
-      (ex) =>
-        ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        ex.category.toLowerCase().includes(searchQuery.toLowerCase())
-    ) || [];
+    libraryExercises?.filter((ex) => {
+      const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ex.category.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSport = isCategoryForSport(ex.category, sportType);
+      return matchesSearch && matchesSport;
+    }) || [];
 
   // Create or update session
   const saveSession = useMutation({
@@ -697,7 +702,7 @@ export function SessionFormDialog({
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {EXERCISE_CATEGORIES.map((c) => (
+                                    {availableCategories.map((c) => (
                                       <SelectItem key={c.value} value={c.value}>
                                         {c.label}
                                       </SelectItem>
@@ -958,6 +963,19 @@ export function SessionFormDialog({
           </DialogFooter>
         </form>
       </DialogContent>
+      
+      <QuickAddExerciseDialog
+        open={showAddExerciseDialog}
+        onOpenChange={setShowAddExerciseDialog}
+        sportType={sportType}
+        onSuccess={(newExercise) => {
+          const newEx = emptyExercise(exercises.length);
+          newEx.exercise_name = newExercise.name;
+          newEx.exercise_category = newExercise.category;
+          newEx.library_exercise_id = newExercise.id;
+          setExercises([...exercises, newEx]);
+        }}
+      />
     </Dialog>
   );
 }

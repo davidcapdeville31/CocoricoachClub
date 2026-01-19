@@ -649,7 +649,7 @@ export function ProgramBuilderDialog({
             </div>
 
             {/* Right side: Exercise library */}
-            <ExerciseLibrarySidebar />
+            <ExerciseLibrarySidebar sportType={category?.rugby_type} />
           </div>
 
           <DragOverlay>

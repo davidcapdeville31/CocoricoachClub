@@ -29,8 +29,9 @@ import { Users, UserCheck, AlertTriangle, Plus, Trash2, Dumbbell, ChevronDown, C
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { EXERCISE_CATEGORIES, getCategoryLabel } from "@/lib/constants/exerciseCategories";
+import { EXERCISE_CATEGORIES, getCategoryLabel, getCategoriesForSport, isCategoryForSport } from "@/lib/constants/exerciseCategories";
 import { getTrainingTypesForSport, trainingTypeHasExercises } from "@/lib/constants/trainingTypes";
+import { QuickAddExerciseDialog } from "@/components/library/QuickAddExerciseDialog";
 
 interface AddSessionDialogProps {
   open: boolean;
@@ -82,6 +83,7 @@ export function AddSessionDialog({
   const [showExercises, setShowExercises] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [showLibraryFor, setShowLibraryFor] = useState<number | null>(null);
+  const [showAddExerciseDialog, setShowAddExerciseDialog] = useState(false);
   const queryClient = useQueryClient();
   const exercisesSectionRef = useRef<HTMLDivElement | null>(null);
 
@@ -157,10 +159,16 @@ export function AddSessionDialog({
   const injuredPlayers = players?.filter(p => p.isInjured) || [];
   const healthyPlayers = players?.filter(p => !p.isInjured) || [];
 
-  const filteredLibrary = libraryExercises?.filter((ex) =>
-    ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    ex.category.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  const filteredLibrary = libraryExercises?.filter((ex) => {
+    const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ex.category.toLowerCase().includes(searchQuery.toLowerCase());
+    // Filter by sport - exclude exercises from other sports
+    const matchesSport = isCategoryForSport(ex.category, sportType);
+    return matchesSearch && matchesSport;
+  }) || [];
+  
+  // Get categories filtered for the current sport
+  const availableCategories = getCategoriesForSport(sportType);
 
   const addSession = useMutation({
     mutationFn: async () => {
@@ -501,10 +509,21 @@ export function AddSessionDialog({
                       {exercises.length === 0 ? (
                         <div className="text-center py-4">
                           <p className="text-sm text-muted-foreground mb-2">Aucun exercice ajouté</p>
-                          <Button type="button" variant="outline" size="sm" onClick={addExercise}>
-                            <Plus className="h-4 w-4 mr-1" />
-                            Ajouter un exercice
-                          </Button>
+                          <div className="flex items-center justify-center gap-2">
+                            <Button type="button" variant="outline" size="sm" onClick={addExercise}>
+                              <Plus className="h-4 w-4 mr-1" />
+                              Ajouter un exercice
+                            </Button>
+                            <Button 
+                              type="button" 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => setShowAddExerciseDialog(true)}
+                            >
+                              <Library className="h-4 w-4 mr-1" />
+                              Créer dans la bibliothèque
+                            </Button>
+                          </div>
                         </div>
                       ) : (
                         <>
@@ -593,7 +612,7 @@ export function AddSessionDialog({
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {EXERCISE_CATEGORIES.map((c) => (
+                                      {availableCategories.map((c) => (
                                         <SelectItem key={c.value} value={c.value}>
                                           {c.label}
                                         </SelectItem>
@@ -809,6 +828,20 @@ export function AddSessionDialog({
           </DialogFooter>
         </form>
       </DialogContent>
+      
+      <QuickAddExerciseDialog
+        open={showAddExerciseDialog}
+        onOpenChange={setShowAddExerciseDialog}
+        sportType={sportType}
+        onSuccess={(newExercise) => {
+          // Add the new exercise to the session
+          const newEx = emptyExercise(exercises.length);
+          newEx.exercise_name = newExercise.name;
+          newEx.exercise_category = newExercise.category;
+          newEx.library_exercise_id = newExercise.id;
+          setExercises([...exercises, newEx]);
+        }}
+      />
     </Dialog>
   );
 }
