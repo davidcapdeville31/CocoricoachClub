@@ -83,6 +83,16 @@ const JUDO_PHASES = [
   { value: "finale", label: "Finale" },
 ];
 
+// Bowling phases
+const BOWLING_PHASES = [
+  { value: "qualification", label: "Qualification" },
+  { value: "round_robin", label: "Round Robin" },
+  { value: "quart", label: "Quart de finale" },
+  { value: "demi", label: "Demi-finale" },
+  { value: "petite_finale", label: "Petite finale" },
+  { value: "finale", label: "Finale" },
+];
+
 // Aviron boat types
 const AVIRON_BOAT_TYPES = [
   { value: "1x", label: "1x (Skiff)" },
@@ -119,7 +129,7 @@ export function CompetitionRoundsDialog({
   const isBowling = sportType.toLowerCase().includes("bowling");
   const isAviron = sportType.toLowerCase().includes("aviron");
   
-  const phases = isAviron ? AVIRON_PHASES : isJudo ? JUDO_PHASES : [];
+  const phases = isAviron ? AVIRON_PHASES : isJudo ? JUDO_PHASES : isBowling ? BOWLING_PHASES : [];
   const roundLabel = isJudo ? "Combat" : isAviron ? "Course" : isBowling ? "Partie" : "Round";
   const roundLabelPlural = isJudo ? "Combats" : isAviron ? "Courses" : isBowling ? "Parties" : "Rounds";
 
