@@ -1,5 +1,12 @@
 // Main categories for exercise library and session management
-export const EXERCISE_CATEGORIES = [
+export interface ExerciseCategory {
+  value: string;
+  label: string;
+  group: string | null;
+  sport?: string; // Optional sport filter for terrain exercises
+}
+
+export const EXERCISE_CATEGORIES: ExerciseCategory[] = [
   // Musculation - Haut du corps
   { value: "upper_push", label: "Haut - Poussée", group: "musculation" },
   { value: "upper_pull", label: "Haut - Tirage", group: "musculation" },
@@ -37,13 +44,61 @@ export const EXERCISE_CATEGORIES = [
   { value: "prophylaxis", label: "Prophylaxie / Prévention", group: "reathletisation" },
   { value: "eccentric", label: "Travail excentrique", group: "reathletisation" },
   
-  // Terrain
+  // Terrain - Général
   { value: "cardio", label: "Cardio", group: "terrain" },
   { value: "terrain", label: "Terrain (courses, sprints...)", group: "terrain" },
   { value: "speed", label: "Vitesse", group: "terrain" },
   { value: "agility", label: "Agilité / COD", group: "terrain" },
   { value: "endurance", label: "Endurance", group: "terrain" },
   { value: "interval", label: "Interval Training", group: "terrain" },
+  
+  // Terrain - Football
+  { value: "football_technique", label: "Football - Technique", group: "terrain", sport: "football" },
+  { value: "football_tactical", label: "Football - Tactique", group: "terrain", sport: "football" },
+  { value: "football_finishing", label: "Football - Finition", group: "terrain", sport: "football" },
+  { value: "football_possession", label: "Football - Possession", group: "terrain", sport: "football" },
+  
+  // Terrain - Handball
+  { value: "handball_shooting", label: "Handball - Tirs", group: "terrain", sport: "handball" },
+  { value: "handball_defense", label: "Handball - Défense", group: "terrain", sport: "handball" },
+  { value: "handball_fast_break", label: "Handball - Contre-attaque", group: "terrain", sport: "handball" },
+  
+  // Terrain - Basketball
+  { value: "basketball_shooting", label: "Basketball - Tirs", group: "terrain", sport: "basketball" },
+  { value: "basketball_dribbling", label: "Basketball - Dribble", group: "terrain", sport: "basketball" },
+  { value: "basketball_defense", label: "Basketball - Défense", group: "terrain", sport: "basketball" },
+  { value: "basketball_transition", label: "Basketball - Transition", group: "terrain", sport: "basketball" },
+  
+  // Terrain - Volleyball
+  { value: "volleyball_service", label: "Volleyball - Service", group: "terrain", sport: "volleyball" },
+  { value: "volleyball_attack", label: "Volleyball - Attaque", group: "terrain", sport: "volleyball" },
+  { value: "volleyball_block", label: "Volleyball - Bloc", group: "terrain", sport: "volleyball" },
+  { value: "volleyball_reception", label: "Volleyball - Réception", group: "terrain", sport: "volleyball" },
+  
+  // Terrain - Rugby
+  { value: "rugby_scrummage", label: "Rugby - Mêlée", group: "terrain", sport: "rugby" },
+  { value: "rugby_lineout", label: "Rugby - Touche", group: "terrain", sport: "rugby" },
+  { value: "rugby_tackle", label: "Rugby - Plaquage", group: "terrain", sport: "rugby" },
+  { value: "rugby_ruck", label: "Rugby - Ruck/Maul", group: "terrain", sport: "rugby" },
+  { value: "rugby_passing", label: "Rugby - Passes", group: "terrain", sport: "rugby" },
+  { value: "rugby_kicking", label: "Rugby - Jeu au pied", group: "terrain", sport: "rugby" },
+  
+  // Terrain - Judo
+  { value: "judo_randori", label: "Judo - Randori", group: "terrain", sport: "judo" },
+  { value: "judo_uchikomi", label: "Judo - Uchi-komi", group: "terrain", sport: "judo" },
+  { value: "judo_nagekomi", label: "Judo - Nage-komi", group: "terrain", sport: "judo" },
+  { value: "judo_newaza", label: "Judo - Ne-waza", group: "terrain", sport: "judo" },
+  { value: "judo_kata", label: "Judo - Kata", group: "terrain", sport: "judo" },
+  
+  // Terrain - Aviron
+  { value: "aviron_technique", label: "Aviron - Technique", group: "terrain", sport: "aviron" },
+  { value: "aviron_ergo", label: "Aviron - Ergomètre", group: "terrain", sport: "aviron" },
+  { value: "aviron_endurance", label: "Aviron - Endurance", group: "terrain", sport: "aviron" },
+  
+  // Terrain - Bowling
+  { value: "bowling_technique", label: "Bowling - Technique", group: "terrain", sport: "bowling" },
+  { value: "bowling_spare", label: "Bowling - Spares", group: "terrain", sport: "bowling" },
+  { value: "bowling_strike", label: "Bowling - Strikes", group: "terrain", sport: "bowling" },
   
   // Stretching & Mobilité
   { value: "warmup", label: "Échauffement", group: "stretching_mobility" },
@@ -55,7 +110,44 @@ export const EXERCISE_CATEGORIES = [
   { value: "breathing", label: "Respiration", group: "stretching_mobility" },
   
   { value: "other", label: "Autre", group: null },
-] as const;
+];
+
+// Liste des sports disponibles pour les exercices terrain
+export const SPORT_OPTIONS = [
+  { value: "all", label: "Tous les sports" },
+  { value: "rugby", label: "Rugby" },
+  { value: "football", label: "Football" },
+  { value: "handball", label: "Handball" },
+  { value: "basketball", label: "Basketball" },
+  { value: "volleyball", label: "Volleyball" },
+  { value: "judo", label: "Judo" },
+  { value: "aviron", label: "Aviron" },
+  { value: "bowling", label: "Bowling" },
+];
+
+// Get terrain categories for a specific sport
+export function getTerrainCategoriesForSport(sportType?: string): ExerciseCategory[] {
+  const terrainCategories = EXERCISE_CATEGORIES.filter(c => c.group === "terrain");
+  
+  if (!sportType || sportType === "all") {
+    return terrainCategories;
+  }
+  
+  // Normalize sport type
+  const normalizedSport = sportType.toLowerCase();
+  let baseSport = normalizedSport;
+  if (normalizedSport.startsWith('rugby')) baseSport = 'rugby';
+  if (normalizedSport.startsWith('football')) baseSport = 'football';
+  if (normalizedSport.startsWith('handball')) baseSport = 'handball';
+  if (normalizedSport.startsWith('volleyball')) baseSport = 'volleyball';
+  if (normalizedSport.startsWith('basketball')) baseSport = 'basketball';
+  if (normalizedSport.startsWith('judo')) baseSport = 'judo';
+  if (normalizedSport.startsWith('aviron')) baseSport = 'aviron';
+  if (normalizedSport.startsWith('bowling')) baseSport = 'bowling';
+  
+  // Return general terrain categories plus sport-specific ones
+  return terrainCategories.filter(c => !c.sport || c.sport === baseSport);
+}
 
 // Groupes de catégories pour filtrage rapide
 export const CATEGORY_GROUPS = [

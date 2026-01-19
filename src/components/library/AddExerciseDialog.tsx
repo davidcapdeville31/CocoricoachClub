@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -19,12 +19,18 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel,
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
 import { 
   EXERCISE_CATEGORIES, 
   DIFFICULTY_LEVELS, 
-  getSubcategoriesForCategory 
+  getSubcategoriesForCategory,
+  SPORT_OPTIONS,
+  getTerrainCategoriesForSport,
+  getCategoryGroup,
+  type ExerciseCategory
 } from "@/lib/constants/exerciseCategories";
 
 export function AddExerciseDialog() {
@@ -35,15 +41,41 @@ export function AddExerciseDialog() {
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [description, setDescription] = useState("");
   const [difficulty, setDifficulty] = useState("intermediate");
+  const [selectedSport, setSelectedSport] = useState("all");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const availableSubcategories = getSubcategoriesForCategory(category);
 
+  // Group categories by type for display
+  const groupedCategories = useMemo(() => {
+    const musculation = EXERCISE_CATEGORIES.filter(c => c.group === "musculation");
+    const reathletisation = EXERCISE_CATEGORIES.filter(c => c.group === "reathletisation");
+    const terrain = getTerrainCategoriesForSport(selectedSport);
+    const stretching = EXERCISE_CATEGORIES.filter(c => c.group === "stretching_mobility");
+    const other = EXERCISE_CATEGORIES.filter(c => c.group === null);
+    
+    return { musculation, reathletisation, terrain, stretching, other };
+  }, [selectedSport]);
+
   const handleCategoryChange = (newCategory: string) => {
     setCategory(newCategory);
     setSubcategory(""); // Reset subcategory when category changes
+  };
+
+  const handleSportChange = (sport: string) => {
+    setSelectedSport(sport);
+    // Reset category if it was a terrain category that's no longer available
+    if (category) {
+      const currentGroup = getCategoryGroup(category);
+      if (currentGroup === "terrain") {
+        const availableTerrainCats = getTerrainCategoriesForSport(sport);
+        if (!availableTerrainCats.find(c => c.value === category)) {
+          setCategory("");
+        }
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,12 +114,7 @@ export function AddExerciseDialog() {
 
       queryClient.invalidateQueries({ queryKey: ["exercise-library"] });
       setOpen(false);
-      setName("");
-      setCategory("");
-      setSubcategory("");
-      setYoutubeUrl("");
-      setDescription("");
-      setDifficulty("intermediate");
+      resetForm();
     } catch (error: any) {
       toast({
         title: "Erreur",
@@ -99,15 +126,28 @@ export function AddExerciseDialog() {
     }
   };
 
+  const resetForm = () => {
+    setName("");
+    setCategory("");
+    setSubcategory("");
+    setYoutubeUrl("");
+    setDescription("");
+    setDifficulty("intermediate");
+    setSelectedSport("all");
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      setOpen(isOpen);
+      if (!isOpen) resetForm();
+    }}>
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus className="h-4 w-4 mr-2" />
           Ajouter un exercice
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Ajouter un exercice</DialogTitle>
         </DialogHeader>
@@ -118,9 +158,26 @@ export function AddExerciseDialog() {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Squat"
+              placeholder="Ex: Squat, Uchi-komi, Dribble..."
               required
             />
+          </div>
+
+          {/* Sport filter for terrain exercises */}
+          <div className="space-y-2">
+            <Label>Sport (pour exercices terrain)</Label>
+            <Select value={selectedSport} onValueChange={handleSportChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filtrer par sport" />
+              </SelectTrigger>
+              <SelectContent>
+                {SPORT_OPTIONS.map((sport) => (
+                  <SelectItem key={sport.value} value={sport.value}>
+                    {sport.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -130,12 +187,49 @@ export function AddExerciseDialog() {
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner" />
                 </SelectTrigger>
-                <SelectContent>
-                  {EXERCISE_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
+                <SelectContent className="max-h-[300px]">
+                  <SelectGroup>
+                    <SelectLabel className="text-xs font-semibold text-orange-500">Musculation</SelectLabel>
+                    {groupedCategories.musculation.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel className="text-xs font-semibold text-amber-500">Réathlétisation</SelectLabel>
+                    {groupedCategories.reathletisation.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel className="text-xs font-semibold text-green-500">Terrain {selectedSport !== "all" && `(${SPORT_OPTIONS.find(s => s.value === selectedSport)?.label})`}</SelectLabel>
+                    {groupedCategories.terrain.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel className="text-xs font-semibold text-blue-500">Stretching / Mobilité</SelectLabel>
+                    {groupedCategories.stretching.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                  {groupedCategories.other.length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel className="text-xs font-semibold text-muted-foreground">Autre</SelectLabel>
+                      {groupedCategories.other.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
                 </SelectContent>
               </Select>
             </div>
