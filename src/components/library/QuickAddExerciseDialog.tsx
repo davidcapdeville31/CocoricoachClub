@@ -22,7 +22,8 @@ import {
 import { 
   EXERCISE_CATEGORIES, 
   DIFFICULTY_LEVELS,
-  getSubcategoriesForCategory 
+  getSubcategoriesForCategory,
+  getCategoriesForSport 
 } from "@/lib/constants/exerciseCategories";
 
 interface QuickAddExerciseDialogProps {
@@ -30,6 +31,7 @@ interface QuickAddExerciseDialogProps {
   onOpenChange: (open: boolean) => void;
   initialName?: string;
   initialCategory?: string;
+  sportType?: string;
   onSuccess?: (exercise: { id: string; name: string; category: string }) => void;
 }
 
@@ -38,6 +40,7 @@ export function QuickAddExerciseDialog({
   onOpenChange,
   initialName = "",
   initialCategory = "upper_push",
+  sportType,
   onSuccess,
 }: QuickAddExerciseDialogProps) {
   const [name, setName] = useState(initialName);
@@ -51,6 +54,7 @@ export function QuickAddExerciseDialog({
   const queryClient = useQueryClient();
 
   const availableSubcategories = getSubcategoriesForCategory(category);
+  const availableCategories = getCategoriesForSport(sportType);
 
   // Update name when initialName changes
   useEffect(() => {
@@ -144,7 +148,7 @@ export function QuickAddExerciseDialog({
                   <SelectValue placeholder="Sélectionner" />
                 </SelectTrigger>
                 <SelectContent>
-                  {EXERCISE_CATEGORIES.map((cat) => (
+                  {availableCategories.map((cat) => (
                     <SelectItem key={cat.value} value={cat.value}>
                       {cat.label}
                     </SelectItem>
