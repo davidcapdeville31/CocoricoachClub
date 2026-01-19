@@ -1368,6 +1368,7 @@ export type Database = {
           average_play_sequence: number | null
           category_id: string
           competition: string | null
+          competition_stage: string | null
           created_at: string
           effective_play_time: number | null
           id: string
@@ -1386,6 +1387,7 @@ export type Database = {
           average_play_sequence?: number | null
           category_id: string
           competition?: string | null
+          competition_stage?: string | null
           created_at?: string
           effective_play_time?: number | null
           id?: string
@@ -1404,6 +1406,7 @@ export type Database = {
           average_play_sequence?: number | null
           category_id?: string
           competition?: string | null
+          competition_stage?: string | null
           created_at?: string
           effective_play_time?: number | null
           id?: string
