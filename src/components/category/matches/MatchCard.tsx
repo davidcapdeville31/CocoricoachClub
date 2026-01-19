@@ -37,6 +37,7 @@ interface Match {
   notes: string | null;
   category_id: string;
   competition: string | null;
+  competition_stage: string | null;
 }
 
 interface MatchCardProps {
@@ -80,6 +81,18 @@ export function MatchCard({ match, categoryId }: MatchCardProps) {
 
   const sportType = category?.rugby_type || "XV";
   const isIndividual = isIndividualSport(sportType);
+
+  const getCompetitionStageLabel = (stage: string): string => {
+    const stages: Record<string, string> = {
+      poules: "Phase de poules",
+      huitiemes: "Huitièmes",
+      quarts: "Quarts",
+      demies: "Demi-finales",
+      petite_finale: "Petite finale",
+      finale: "Finale",
+    };
+    return stages[stage] || stage;
+  };
 
   const deleteMatch = useMutation({
     mutationFn: async () => {
@@ -165,6 +178,20 @@ export function MatchCard({ match, categoryId }: MatchCardProps) {
                 <p className="flex items-center gap-1">
                   <Trophy className="h-3 w-3" />
                   {match.competition}
+                  {match.competition_stage && (
+                    <Badge variant="outline" className="ml-1 text-[10px] py-0 px-1.5">
+                      {getCompetitionStageLabel(match.competition_stage)}
+                    </Badge>
+                  )}
+                </p>
+              )}
+              {/* Show stage for individual sports too if set */}
+              {isIndividual && match.competition_stage && (
+                <p className="flex items-center gap-1">
+                  <Trophy className="h-3 w-3" />
+                  <Badge variant="outline" className="text-xs py-0 px-1.5">
+                    {getCompetitionStageLabel(match.competition_stage)}
+                  </Badge>
                 </p>
               )}
               {match.location && (

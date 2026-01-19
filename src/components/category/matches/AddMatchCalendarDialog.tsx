@@ -46,12 +46,23 @@ export function AddMatchCalendarDialog({
   const [opponent, setOpponent] = useState("");
   const [competition, setCompetition] = useState("");
   const [customCompetition, setCustomCompetition] = useState("");
+  const [competitionStage, setCompetitionStage] = useState("");
   const [matchDate, setMatchDate] = useState("");
   const [matchTime, setMatchTime] = useState("");
   const [location, setLocation] = useState("");
   const [isHome, setIsHome] = useState(true);
   const [notes, setNotes] = useState("");
   const queryClient = useQueryClient();
+
+  const COMPETITION_STAGES = [
+    { value: "", label: "Aucune" },
+    { value: "poules", label: "Phase de poules" },
+    { value: "huitiemes", label: "Huitièmes de finale" },
+    { value: "quarts", label: "Quarts de finale" },
+    { value: "demies", label: "Demi-finales" },
+    { value: "petite_finale", label: "Petite finale" },
+    { value: "finale", label: "Finale" },
+  ];
 
   const isCustomSelected = competition === CUSTOM_COMPETITION_VALUE;
   const finalCompetition = isCustomSelected ? customCompetition : competition;
@@ -62,6 +73,7 @@ export function AddMatchCalendarDialog({
         category_id: categoryId,
         opponent: isIndividual ? (opponent || "Compétition") : opponent,
         competition: finalCompetition || null,
+        competition_stage: competitionStage === "none" ? null : (competitionStage || null),
         match_date: matchDate,
         match_time: matchTime || null,
         location: location || null,
@@ -85,6 +97,7 @@ export function AddMatchCalendarDialog({
     setOpponent("");
     setCompetition("");
     setCustomCompetition("");
+    setCompetitionStage("");
     setMatchDate("");
     setMatchTime("");
     setLocation("");
@@ -178,6 +191,23 @@ export function AddMatchCalendarDialog({
               />
             </div>
           )}
+
+          {/* Phase finale dropdown */}
+          <div className="space-y-2">
+            <Label htmlFor="competitionStage">Phase de compétition</Label>
+            <Select value={competitionStage} onValueChange={setCompetitionStage}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner une phase (optionnel)" />
+              </SelectTrigger>
+              <SelectContent className="z-[200]">
+                {COMPETITION_STAGES.map((stage) => (
+                  <SelectItem key={stage.value} value={stage.value || "none"}>
+                    {stage.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {isIndividual && (
             <div className="space-y-2">
