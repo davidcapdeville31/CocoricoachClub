@@ -28,10 +28,41 @@ function getBaseSport(sportType: string): string {
 export const ALL_TRAINING_TYPES: TrainingTypeOption[] = [
   // Team sports specific
   { value: "collectif", label: "Collectif", hasExercises: false, forTeamSports: true, forIndividualSports: false },
+  { value: "tactique", label: "Tactique", hasExercises: false, forTeamSports: true, forIndividualSports: false },
+  { value: "opposition", label: "Opposition", hasExercises: false, forTeamSports: true, forIndividualSports: false },
+  { value: "video", label: "Analyse Vidéo", hasExercises: false, forTeamSports: true, forIndividualSports: true },
   
   // Individual sports specific (common)
   { value: "individuel", label: "Entraînement Individuel", hasExercises: false, forTeamSports: false, forIndividualSports: true },
   { value: "competition_training", label: "Simulation Compétition", hasExercises: false, forTeamSports: false, forIndividualSports: true },
+  
+  // Football specific
+  { value: "football_tactique", label: "Travail Tactique", hasExercises: false, forSports: ["football"] },
+  { value: "football_possession", label: "Conservation/Possession", hasExercises: false, forSports: ["football"] },
+  { value: "football_finition", label: "Finition", hasExercises: false, forSports: ["football"] },
+  { value: "football_gardien", label: "Entraînement Gardiens", hasExercises: false, forSports: ["football"] },
+  { value: "football_coup_pied", label: "Coups de pied arrêtés", hasExercises: false, forSports: ["football"] },
+  
+  // Handball specific
+  { value: "handball_attaque", label: "Travail Attaque", hasExercises: false, forSports: ["handball"] },
+  { value: "handball_defense", label: "Travail Défense", hasExercises: false, forSports: ["handball"] },
+  { value: "handball_tir", label: "Travail de Tir", hasExercises: false, forSports: ["handball"] },
+  { value: "handball_gardien", label: "Entraînement Gardiens", hasExercises: false, forSports: ["handball"] },
+  { value: "handball_contre_attaque", label: "Contre-attaque", hasExercises: false, forSports: ["handball"] },
+  
+  // Volleyball specific
+  { value: "volleyball_service", label: "Travail de Service", hasExercises: false, forSports: ["volleyball"] },
+  { value: "volleyball_reception", label: "Réception", hasExercises: false, forSports: ["volleyball"] },
+  { value: "volleyball_attaque", label: "Attaque/Spike", hasExercises: false, forSports: ["volleyball"] },
+  { value: "volleyball_block", label: "Travail au Bloc", hasExercises: false, forSports: ["volleyball"] },
+  { value: "volleyball_defense", label: "Défense/Dig", hasExercises: false, forSports: ["volleyball"] },
+  
+  // Basketball specific
+  { value: "basketball_shoot", label: "Travail de Tir", hasExercises: false, forSports: ["basketball"] },
+  { value: "basketball_dribble", label: "Dribble/Ballhandling", hasExercises: false, forSports: ["basketball"] },
+  { value: "basketball_defense", label: "Travail Défensif", hasExercises: false, forSports: ["basketball"] },
+  { value: "basketball_pick_roll", label: "Pick & Roll", hasExercises: false, forSports: ["basketball"] },
+  { value: "basketball_transition", label: "Transition", hasExercises: false, forSports: ["basketball"] },
   
   // Aviron specific
   { value: "aviron_ergo", label: "Ergomètre (Indoor)", hasExercises: false, forSports: ["aviron"] },
@@ -60,6 +91,8 @@ export const ALL_TRAINING_TYPES: TrainingTypeOption[] = [
   { value: "reathlétisation", label: "Réathlétisation", hasExercises: true, forTeamSports: true, forIndividualSports: true },
   { value: "repos", label: "Repos", hasExercises: false, forTeamSports: true, forIndividualSports: true },
   { value: "test", label: "Test", hasExercises: false, forTeamSports: true, forIndividualSports: true },
+  { value: "echauffement", label: "Échauffement", hasExercises: false, forTeamSports: true, forIndividualSports: true },
+  { value: "recuperation", label: "Récupération Active", hasExercises: false, forTeamSports: true, forIndividualSports: true },
 ];
 
 // Get training types filtered by sport type
@@ -102,6 +135,9 @@ export function trainingTypeHasExercises(value: string): boolean {
 // Training type colors (for calendars)
 export const TRAINING_TYPE_COLORS: Record<string, string> = {
   collectif: "bg-training-collectif",
+  tactique: "bg-blue-500",
+  opposition: "bg-orange-600",
+  video: "bg-slate-500",
   individuel: "bg-training-collectif",
   competition_training: "bg-rose-400",
   technique_individuelle: "bg-training-technique",
@@ -110,7 +146,33 @@ export const TRAINING_TYPE_COLORS: Record<string, string> = {
   repos: "bg-training-repos",
   test: "bg-training-test",
   reathlétisation: "bg-amber-500",
+  echauffement: "bg-yellow-400",
+  recuperation: "bg-sky-400",
   match: "bg-rose-500",
+  // Football specific
+  football_tactique: "bg-blue-500",
+  football_possession: "bg-green-500",
+  football_finition: "bg-red-500",
+  football_gardien: "bg-purple-500",
+  football_coup_pied: "bg-orange-500",
+  // Handball specific
+  handball_attaque: "bg-red-500",
+  handball_defense: "bg-blue-600",
+  handball_tir: "bg-orange-500",
+  handball_gardien: "bg-purple-500",
+  handball_contre_attaque: "bg-amber-500",
+  // Volleyball specific
+  volleyball_service: "bg-yellow-500",
+  volleyball_reception: "bg-blue-400",
+  volleyball_attaque: "bg-red-500",
+  volleyball_block: "bg-purple-600",
+  volleyball_defense: "bg-green-500",
+  // Basketball specific
+  basketball_shoot: "bg-orange-500",
+  basketball_dribble: "bg-blue-500",
+  basketball_defense: "bg-red-600",
+  basketball_pick_roll: "bg-purple-500",
+  basketball_transition: "bg-amber-500",
   // Aviron specific
   aviron_ergo: "bg-blue-400",
   aviron_eau: "bg-cyan-500",
@@ -133,6 +195,9 @@ export const TRAINING_TYPE_COLORS: Record<string, string> = {
 // Training type labels mapping (for display)
 export const TRAINING_TYPE_LABELS: Record<string, string> = {
   collectif: "Collectif",
+  tactique: "Tactique",
+  opposition: "Opposition",
+  video: "Analyse Vidéo",
   individuel: "Individuel",
   competition_training: "Simulation Compétition",
   technique_individuelle: "Technique Individuelle",
@@ -141,6 +206,32 @@ export const TRAINING_TYPE_LABELS: Record<string, string> = {
   repos: "Repos",
   test: "Test",
   reathlétisation: "Réathlétisation",
+  echauffement: "Échauffement",
+  recuperation: "Récupération Active",
+  // Football specific
+  football_tactique: "Travail Tactique",
+  football_possession: "Conservation/Possession",
+  football_finition: "Finition",
+  football_gardien: "Entraînement Gardiens",
+  football_coup_pied: "Coups de pied arrêtés",
+  // Handball specific
+  handball_attaque: "Travail Attaque",
+  handball_defense: "Travail Défense",
+  handball_tir: "Travail de Tir",
+  handball_gardien: "Entraînement Gardiens",
+  handball_contre_attaque: "Contre-attaque",
+  // Volleyball specific
+  volleyball_service: "Travail de Service",
+  volleyball_reception: "Réception",
+  volleyball_attaque: "Attaque/Spike",
+  volleyball_block: "Travail au Bloc",
+  volleyball_defense: "Défense/Dig",
+  // Basketball specific
+  basketball_shoot: "Travail de Tir",
+  basketball_dribble: "Dribble/Ballhandling",
+  basketball_defense: "Travail Défensif",
+  basketball_pick_roll: "Pick & Roll",
+  basketball_transition: "Transition",
   // Aviron specific
   aviron_ergo: "Ergomètre (Indoor)",
   aviron_eau: "Sur l'eau (Outdoor)",

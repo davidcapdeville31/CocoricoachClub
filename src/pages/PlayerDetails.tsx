@@ -33,7 +33,7 @@ function PlayerDetailsContent() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("*, categories(id, name, club_id)")
+        .select("*, categories(id, name, club_id, rugby_type)")
         .eq("id", playerId!)
         .single();
       if (error) throw error;
@@ -106,6 +106,7 @@ function PlayerDetailsContent() {
             categoryId={player.category_id}
             playerName={player.name}
             avatarUrl={player.avatar_url}
+            sportType={(player.categories as { rugby_type?: string })?.rugby_type}
           />
           <PlayerBiometrics 
             playerId={playerId!} 
