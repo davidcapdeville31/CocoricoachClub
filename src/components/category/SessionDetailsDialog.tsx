@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -16,9 +16,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Dumbbell, Users, Activity, Clock, Calendar } from "lucide-react";
+import { Dumbbell, Users, Activity, Clock, Calendar, Printer } from "lucide-react";
 import { getCategoryLabel } from "@/lib/constants/exerciseCategories";
-
+import { printElement } from "@/lib/pdfExport";
 interface SessionDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -59,7 +59,13 @@ export function SessionDetailsDialog({
 }: SessionDetailsDialogProps) {
   const queryClient = useQueryClient();
   const [rpeValues, setRpeValues] = useState<Record<string, { rpe: string; duration: string }>>({});
+  const printRef = useRef<HTMLDivElement>(null);
 
+  const handlePrint = () => {
+    if (printRef.current) {
+      printElement(printRef.current, `Séance du ${format(new Date(sessionDate), "PPP", { locale: fr })}`);
+    }
+  };
   // Fetch session details
   const { data: session } = useQuery({
     queryKey: ["session-detail", sessionId],
@@ -237,43 +243,48 @@ export function SessionDetailsDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
+        <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
             Séance du {format(new Date(sessionDate), "PPP", { locale: fr })}
           </DialogTitle>
+          <Button variant="outline" size="icon" onClick={handlePrint} title="Imprimer">
+            <Printer className="h-4 w-4" />
+          </Button>
         </DialogHeader>
 
-        {session && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <Activity className="h-3 w-3" />
-              {trainingTypeLabels[session.training_type] || session.training_type}
-            </Badge>
-            {session.intensity && (
-              <Badge variant="outline">Intensité: {session.intensity}/10</Badge>
-            )}
-            {session.session_start_time && (
-              <Badge variant="outline" className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {session.session_start_time}
-                {session.session_end_time && ` - ${session.session_end_time}`}
+        <div ref={printRef}>
+          {session && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Activity className="h-3 w-3" />
+                {trainingTypeLabels[session.training_type] || session.training_type}
               </Badge>
-            )}
-            {attendance && (
-              <Badge variant="outline" className="flex items-center gap-1">
-                <Users className="h-3 w-3" />
-                {attendance.length} joueur(s)
-              </Badge>
-            )}
-          </div>
-        )}
+              {session.intensity && (
+                <Badge variant="outline">Intensité: {session.intensity}/10</Badge>
+              )}
+              {session.session_start_time && (
+                <Badge variant="outline" className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {session.session_start_time}
+                  {session.session_end_time && ` - ${session.session_end_time}`}
+                </Badge>
+              )}
+              {attendance && (
+                <Badge variant="outline" className="flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  {attendance.length} joueur(s)
+                </Badge>
+              )}
+            </div>
+          )}
 
-        {session?.notes && (
-          <p className="text-sm text-muted-foreground mb-4 p-3 bg-muted/30 rounded-lg">
-            {session.notes}
-          </p>
-        )}
+          {session?.notes && (
+            <p className="text-sm text-muted-foreground mb-4 p-3 bg-muted/30 rounded-lg">
+              {session.notes}
+            </p>
+          )}
+        </div>
 
         <Tabs defaultValue="exercises" className="flex-1 flex flex-col overflow-hidden">
           <TabsList className="grid w-full grid-cols-2">

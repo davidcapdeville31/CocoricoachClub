@@ -51,6 +51,7 @@ interface MonthlyCalendarViewProps {
   onPrint: () => void;
   onExportPdf: () => void;
   isViewer: boolean;
+  categoryId: string;
   onEditSession?: (session: Session) => void;
   onViewSession?: (session: Session) => void;
   onDeleteSession?: (sessionId: string) => void;
@@ -70,6 +71,7 @@ export function MonthlyCalendarView({
   onPrint,
   onExportPdf,
   isViewer,
+  categoryId,
   onEditSession,
   onViewSession,
   onDeleteSession,
@@ -273,6 +275,7 @@ export function MonthlyCalendarView({
           onOpenChange={(open) => !open && setFeedbackSession(null)}
           sessionId={feedbackSession.id}
           sessionType={feedbackSession.training_type}
+          categoryId={categoryId}
         />
       )}
 
