@@ -102,7 +102,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     ) || [];
   };
 
-  // Reschedule session mutation
+  // Reschedule session mutation with optimistic update
   const rescheduleSession = useMutation({
     mutationFn: async ({ sessionId, newDate }: { sessionId: string; newDate: Date }) => {
       const { error } = await supabase
@@ -110,14 +110,41 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         .update({ session_date: format(newDate, "yyyy-MM-dd") })
         .eq("id", sessionId);
       if (error) throw error;
+      return { sessionId, newDate };
+    },
+    onMutate: async ({ sessionId, newDate }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["training_sessions", categoryId] });
+      
+      // Snapshot the previous value
+      const previousSessions = queryClient.getQueryData(["training_sessions", categoryId]);
+      
+      // Optimistically update to the new value
+      queryClient.setQueryData(["training_sessions", categoryId], (old: any[]) => {
+        if (!old) return old;
+        return old.map((session) => 
+          session.id === sessionId 
+            ? { ...session, session_date: format(newDate, "yyyy-MM-dd") }
+            : session
+        );
+      });
+      
+      return { previousSessions };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       toast.success("Séance décalée avec succès");
       setIsDailyDialogOpen(false);
     },
-    onError: () => {
+    onError: (error, variables, context) => {
+      // Rollback on error
+      if (context?.previousSessions) {
+        queryClient.setQueryData(["training_sessions", categoryId], context.previousSessions);
+      }
       toast.error("Erreur lors du décalage de la séance");
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
     },
   });
 
@@ -230,6 +257,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
             matches={matches || []}
             sportType={sportType}
             trainingTypeLabels={trainingTypeLabels}
+            categoryId={categoryId}
             onDayClick={handleDayClick}
             onAddSession={() => setIsAddDialogOpen(true)}
             onAddMatch={() => setIsAddMatchDialogOpen(true)}
