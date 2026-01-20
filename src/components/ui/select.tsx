@@ -105,25 +105,32 @@ const SelectItem = React.forwardRef<
 >(({ className, children, textValue, ...props }, ref) => {
   const isPrimitiveChild = typeof children === "string" || typeof children === "number";
 
-  const extractText = (node: React.ReactNode): string | undefined => {
+  // Extract first meaningful text from complex JSX for typeahead and trigger display
+  const extractFirstText = (node: React.ReactNode): string | undefined => {
     if (node === null || node === undefined || typeof node === "boolean") return undefined;
-    if (typeof node === "string" || typeof node === "number") return String(node);
+    if (typeof node === "string") return node.trim() || undefined;
+    if (typeof node === "number") return String(node);
     if (Array.isArray(node)) {
-      const parts = node
-        .map(extractText)
-        .filter(Boolean)
-        .join(" ")
-        .trim();
-      return parts || undefined;
+      for (const child of node) {
+        const text = extractFirstText(child);
+        if (text) return text;
+      }
+      return undefined;
     }
     if (React.isValidElement(node)) {
-      return extractText(node.props.children);
+      // Skip Badge and other decorative components - only look at main content
+      const type = node.type;
+      const typeName = typeof type === 'function' ? type.name : typeof type === 'string' ? type : '';
+      if (typeName === 'Badge' || (node.props as Record<string, unknown>)?.variant === 'secondary') {
+        return undefined;
+      }
+      return extractFirstText(node.props.children);
     }
     return undefined;
   };
 
   const computedTextValue =
-    textValue ?? (isPrimitiveChild ? String(children) : extractText(children));
+    textValue ?? (isPrimitiveChild ? String(children) : extractFirstText(children));
 
   return (
     <SelectPrimitive.Item
@@ -145,15 +152,7 @@ const SelectItem = React.forwardRef<
         <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
       ) : (
         <>
-          {/*
-            Radix Select a besoin d'un ItemText "texte" pour la navigation clavier/typeahead
-            et pour rendre la valeur sélectionnée dans le trigger.
-            On le garde (invisible) et on affiche un layout riche côté UI.
-          */}
-          <SelectPrimitive.ItemText className="sr-only">
-            {computedTextValue ?? "Option"}
-          </SelectPrimitive.ItemText>
-          {children}
+          <SelectPrimitive.ItemText>{computedTextValue}</SelectPrimitive.ItemText>
         </>
       )}
     </SelectPrimitive.Item>
