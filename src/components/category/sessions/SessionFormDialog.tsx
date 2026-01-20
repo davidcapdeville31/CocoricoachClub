@@ -42,12 +42,13 @@ import {
   Dumbbell,
   Library,
   Copy,
-  Link2,
   Unlink,
   Check,
   Info,
   GripVertical,
   Minus,
+  Timer,
+  Repeat,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getCategoryLabel, getCategoriesForSport, isCategoryForSport, isErgCategory } from "@/lib/constants/exerciseCategories";
@@ -58,10 +59,14 @@ import {
   TRAINING_STYLES,
   getTrainingStyleConfig,
   isLinkableMethod,
+  isCardioBlockMethod,
   isDropMethod,
   isClusterMethod,
   getMaxExercisesForMethod,
+  getMinExercisesForMethod,
+  getCardioBlockConfig,
   LINKABLE_METHODS,
+  CARDIO_BLOCK_METHODS,
   DROP_METHODS,
   CLUSTER_METHODS,
 } from "@/lib/constants/trainingStyles";
@@ -93,6 +98,14 @@ interface ClusterSet {
   rest_seconds: number;
 }
 
+// Block configuration for cardio methods
+interface BlockConfig {
+  duration_minutes?: number;
+  rounds?: number;
+  work_seconds?: number;
+  rest_seconds?: number;
+}
+
 interface Exercise {
   id?: string;
   exercise_name: string;
@@ -112,9 +125,10 @@ interface Exercise {
   erg_data?: ErgData;
   drop_sets?: DropSet[];
   cluster_sets?: ClusterSet[];
+  block_config?: BlockConfig;
 }
 
-const emptyExercise = (index: number): Exercise => ({
+const emptyExercise = (index: number, groupId?: string, groupOrder?: number, method?: string): Exercise => ({
   exercise_name: "",
   exercise_category: "upper_push",
   sets: 3,
@@ -126,12 +140,13 @@ const emptyExercise = (index: number): Exercise => ({
   notes: "",
   order_index: index,
   library_exercise_id: null,
-  set_type: "normal",
-  group_id: null,
-  group_order: undefined,
+  set_type: method || "normal",
+  group_id: groupId || null,
+  group_order: groupOrder,
   erg_data: undefined,
   drop_sets: undefined,
   cluster_sets: undefined,
+  block_config: undefined,
 });
 
 // Group exercises by group_id for visual grouping
@@ -139,6 +154,7 @@ interface ExerciseGroup {
   groupId: string | null;
   exercises: { exercise: Exercise; index: number }[];
   method: string;
+  blockConfig?: BlockConfig;
 }
 
 export function SessionFormDialog({
@@ -164,9 +180,8 @@ export function SessionFormDialog({
   const [showLibraryFor, setShowLibraryFor] = useState<number | null>(null);
   const [showAddExerciseDialog, setShowAddExerciseDialog] = useState(false);
   
-  // Linking state for grouping exercises
-  const [linkingFrom, setLinkingFrom] = useState<{index: number, method: string, maxCount: number} | null>(null);
-  const [selectedForLinking, setSelectedForLinking] = useState<number[]>([]);
+  // Block configurations for groups
+  const [blockConfigs, setBlockConfigs] = useState<Record<string, BlockConfig>>({});
 
   // Fetch category to get sport type
   const { data: category } = useQuery({
@@ -273,6 +288,7 @@ export function SessionFormDialog({
             groupId: exercise.group_id,
             exercises: groupExercises,
             method: exercise.set_type,
+            blockConfig: blockConfigs[exercise.group_id],
           });
         }
       } else {
@@ -285,7 +301,7 @@ export function SessionFormDialog({
     });
 
     return groups;
-  }, [exercises]);
+  }, [exercises, blockConfigs]);
 
   // Initialize form when editing or opening
   useEffect(() => {
@@ -331,17 +347,6 @@ export function SessionFormDialog({
       setExercises([]);
     }
   }, [existingExercises, editSession]);
-
-  // Reset linking state when exercises change
-  useEffect(() => {
-    if (linkingFrom) {
-      const stillValid = exercises[linkingFrom.index];
-      if (!stillValid) {
-        setLinkingFrom(null);
-        setSelectedForLinking([]);
-      }
-    }
-  }, [exercises]);
 
   const injuredPlayers = players?.filter((p) => p.isInjured) || [];
   const healthyPlayers = players?.filter((p) => !p.isInjured) || [];
@@ -471,8 +476,7 @@ export function SessionFormDialog({
     setExercises([]);
     setSearchQuery("");
     setShowLibraryFor(null);
-    setLinkingFrom(null);
-    setSelectedForLinking([]);
+    setBlockConfigs({});
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -524,6 +528,31 @@ export function SessionFormDialog({
     setExercises([...exercises, emptyExercise(exercises.length)]);
   };
 
+  // Create a block with empty exercises for linked methods
+  const createMethodBlock = (method: string) => {
+    const minExercises = getMinExercisesForMethod(method);
+    const groupId = crypto.randomUUID();
+    const startIndex = exercises.length;
+    
+    const newExercises: Exercise[] = Array.from({ length: minExercises }, (_, i) => 
+      emptyExercise(startIndex + i, groupId, i + 1, method)
+    );
+    
+    // Initialize block config for cardio methods
+    if (isCardioBlockMethod(method)) {
+      const config = getCardioBlockConfig(method);
+      const defaultBlockConfig: BlockConfig = {
+        duration_minutes: config.showDuration ? 10 : undefined,
+        rounds: config.showRounds ? 3 : undefined,
+        work_seconds: config.showWorkRest ? 20 : undefined,
+        rest_seconds: config.showWorkRest ? 10 : undefined,
+      };
+      setBlockConfigs(prev => ({ ...prev, [groupId]: defaultBlockConfig }));
+    }
+    
+    setExercises([...exercises, ...newExercises]);
+  };
+
   const removeExercise = (index: number) => {
     const exerciseToDelete = exercises[index];
     let newExercises = exercises.filter((_, i) => i !== index);
@@ -533,6 +562,14 @@ export function SessionFormDialog({
         (e) => e.group_id === exerciseToDelete.group_id
       );
       if (groupExercises.length < 2) {
+        // Remove block config if group is dissolved
+        if (blockConfigs[exerciseToDelete.group_id]) {
+          setBlockConfigs(prev => {
+            const next = { ...prev };
+            delete next[exerciseToDelete.group_id!];
+            return next;
+          });
+        }
         newExercises = newExercises.map((e) =>
           e.group_id === exerciseToDelete.group_id
             ? { ...e, group_id: null, group_order: undefined, set_type: "normal" }
@@ -552,7 +589,7 @@ export function SessionFormDialog({
   };
 
   const duplicateExercise = (index: number) => {
-    const exercise = { ...exercises[index], order_index: exercises.length, id: undefined, group_id: null, group_order: undefined };
+    const exercise = { ...exercises[index], order_index: exercises.length, id: undefined, group_id: null, group_order: undefined, set_type: "normal" };
     setExercises([...exercises, exercise]);
   };
 
@@ -581,60 +618,34 @@ export function SessionFormDialog({
     setSearchQuery("");
   };
 
-  // Linking functions for grouping
-  const startLinking = (index: number, method: string) => {
-    const maxCount = getMaxExercisesForMethod(method);
-    setLinkingFrom({ index, method, maxCount });
-    setSelectedForLinking([index]);
-  };
-
-  const toggleExerciseForLinking = (targetIndex: number) => {
-    if (!linkingFrom) return;
+  // Add exercise to existing group
+  const addExerciseToGroup = (groupId: string, method: string) => {
+    const groupExercises = exercises.filter(e => e.group_id === groupId);
+    const maxExercises = getMaxExercisesForMethod(method);
     
-    const exercise = exercises[targetIndex];
-    if (exercise.group_id) return;
-    
-    if (selectedForLinking.includes(targetIndex)) {
-      if (targetIndex === linkingFrom.index) return;
-      setSelectedForLinking(prev => prev.filter(i => i !== targetIndex));
-    } else {
-      if (selectedForLinking.length < linkingFrom.maxCount) {
-        setSelectedForLinking(prev => [...prev, targetIndex]);
-      }
+    if (groupExercises.length >= maxExercises) {
+      toast.error(`Maximum ${maxExercises} exercices pour cette méthode`);
+      return;
     }
-  };
-
-  const confirmLinking = () => {
-    if (!linkingFrom || selectedForLinking.length < 2) return;
     
-    const { method } = linkingFrom;
-    const groupId = crypto.randomUUID();
-    const sortedIndices = [...selectedForLinking].sort((a, b) => a - b);
+    const newExercise = emptyExercise(
+      exercises.length,
+      groupId,
+      groupExercises.length + 1,
+      method
+    );
     
-    const newExercises = exercises.map((ex, i) => {
-      const groupIndex = sortedIndices.indexOf(i);
-      if (groupIndex !== -1) {
-        return {
-          ...ex,
-          set_type: method,
-          group_id: groupId,
-          group_order: groupIndex + 1,
-        };
-      }
-      return ex;
-    });
-    
-    setExercises(newExercises);
-    setLinkingFrom(null);
-    setSelectedForLinking([]);
-  };
-
-  const cancelLinking = () => {
-    setLinkingFrom(null);
-    setSelectedForLinking([]);
+    setExercises([...exercises, newExercise]);
   };
 
   const unlinkGroup = (groupId: string) => {
+    // Remove block config
+    setBlockConfigs(prev => {
+      const next = { ...prev };
+      delete next[groupId];
+      return next;
+    });
+    
     const newExercises = exercises.map((ex) => {
       if (ex.group_id === groupId) {
         return { ...ex, group_id: null, group_order: undefined, set_type: "normal" };
@@ -644,10 +655,11 @@ export function SessionFormDialog({
     setExercises(newExercises);
   };
 
-  const isLinkable = (index: number) => {
-    if (!linkingFrom) return false;
-    const exercise = exercises[index];
-    return !exercise.group_id;
+  const updateBlockConfig = (groupId: string, field: keyof BlockConfig, value: number | undefined) => {
+    setBlockConfigs(prev => ({
+      ...prev,
+      [groupId]: { ...prev[groupId], [field]: value },
+    }));
   };
 
   // Drop sets / Pyramid initialization
@@ -765,43 +777,26 @@ export function SessionFormDialog({
     updateExercise(exerciseIndex, "cluster_sets", clusterSets);
   };
 
-  // Render a single exercise card
+  // Render exercise card based on method
   const renderExerciseCard = (
     exercise: Exercise,
     index: number,
     isGrouped: boolean,
-    exerciseNumber?: number
+    exerciseNumber?: number,
+    groupMethod?: string
   ) => {
-    const isSelected = selectedForLinking.includes(index);
     const styleConfig = getTrainingStyleConfig(exercise.set_type);
     const dropMode = isDropMethod(exercise.set_type);
     const clusterMode = isClusterMethod(exercise.set_type);
-
-    const getExerciseStyle = () => {
-      if (linkingFrom && isLinkable(index)) {
-        const linkStyle = getTrainingStyleConfig(linkingFrom.method);
-        return isSelected
-          ? cn("border-2", linkStyle.borderColor, linkStyle.bgColor)
-          : cn("border-2 border-dashed", linkStyle.borderColor, "hover:opacity-80");
-      }
-      if (dropMode || clusterMode) {
-        return cn("border", styleConfig.borderColor, styleConfig.bgColor);
-      }
-      return "bg-background border-border";
-    };
+    const isCardioBlock = isCardioBlockMethod(groupMethod || exercise.set_type);
+    const cardioConfig = isCardioBlock ? getCardioBlockConfig(groupMethod || exercise.set_type) : null;
 
     return (
       <div
         className={cn(
-          "flex flex-col gap-3 p-3 rounded-lg border transition-all",
-          getExerciseStyle(),
-          linkingFrom && isLinkable(index) && "cursor-pointer"
+          "flex flex-col gap-3 p-3 rounded-lg border transition-all bg-background",
+          isGrouped && "border-dashed"
         )}
-        onClick={() => {
-          if (linkingFrom && isLinkable(index)) {
-            toggleExerciseForLinking(index);
-          }
-        }}
       >
         {/* Exercise header */}
         <div className="flex items-center gap-2">
@@ -809,7 +804,7 @@ export function SessionFormDialog({
           
           {isGrouped && exerciseNumber && (
             <Badge className={cn("text-white text-xs", styleConfig.color || "bg-primary")}>
-              Exercice {exerciseNumber}
+              Ex. {exerciseNumber}
             </Badge>
           )}
           
@@ -893,7 +888,7 @@ export function SessionFormDialog({
           </Button>
         </div>
 
-        {/* Row 1: Method + Category */}
+        {/* Row 1: Category selection */}
         <div className="grid grid-cols-2 gap-2">
           {!isGrouped && (
             <div>
@@ -901,8 +896,10 @@ export function SessionFormDialog({
               <Select
                 value={exercise.set_type}
                 onValueChange={(v) => {
-                  if (LINKABLE_METHODS.includes(v)) {
-                    startLinking(index, v);
+                  if (LINKABLE_METHODS.includes(v) || CARDIO_BLOCK_METHODS.includes(v)) {
+                    // For block methods, convert to block and remove this exercise
+                    removeExercise(index);
+                    createMethodBlock(v);
                   } else if (DROP_METHODS.includes(v)) {
                     initDropSets(index, v);
                   } else if (CLUSTER_METHODS.includes(v)) {
@@ -1056,17 +1053,6 @@ export function SessionFormDialog({
                 />
               </div>
             )}
-            <div>
-              <Label className="text-xs text-muted-foreground">Repos (sec)</Label>
-              <Input
-                type="number"
-                className="h-8 text-xs"
-                value={exercise.rest_seconds || ""}
-                onChange={(e) =>
-                  updateExercise(index, "rest_seconds", e.target.value ? parseInt(e.target.value) : null)
-                }
-              />
-            </div>
           </div>
         ) : dropMode && exercise.drop_sets ? (
           // Drop set configuration
@@ -1219,6 +1205,30 @@ export function SessionFormDialog({
               </div>
             </div>
           </div>
+        ) : isCardioBlock && cardioConfig ? (
+          // Cardio block exercise - only show reps if needed
+          <div className="grid grid-cols-2 gap-2">
+            {cardioConfig.showReps && (
+              <div>
+                <Label className="text-xs text-muted-foreground">Reps</Label>
+                <Input
+                  className="h-8 text-xs"
+                  value={exercise.reps || ""}
+                  onChange={(e) => updateExercise(index, "reps", e.target.value)}
+                  placeholder="10"
+                />
+              </div>
+            )}
+            <div>
+              <Label className="text-xs text-muted-foreground">Notes</Label>
+              <Input
+                className="h-8 text-xs"
+                placeholder="Notes..."
+                value={exercise.notes}
+                onChange={(e) => updateExercise(index, "notes", e.target.value)}
+              />
+            </div>
+          </div>
         ) : (
           // Standard Sets, Reps, Weight, Rest
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -1295,15 +1305,18 @@ export function SessionFormDialog({
           </div>
         )}
 
-        <div>
-          <Label className="text-xs text-muted-foreground">Notes</Label>
-          <Input
-            className="h-8 text-xs"
-            placeholder="Notes..."
-            value={exercise.notes}
-            onChange={(e) => updateExercise(index, "notes", e.target.value)}
-          />
-        </div>
+        {/* Notes for non-cardio exercises */}
+        {!isCardioBlock && (
+          <div>
+            <Label className="text-xs text-muted-foreground">Notes</Label>
+            <Input
+              className="h-8 text-xs"
+              placeholder="Notes..."
+              value={exercise.notes}
+              onChange={(e) => updateExercise(index, "notes", e.target.value)}
+            />
+          </div>
+        )}
       </div>
     );
   };
@@ -1321,7 +1334,11 @@ export function SessionFormDialog({
 
     const styleConfig = getTrainingStyleConfig(group.method);
     const maxExercises = getMaxExercisesForMethod(group.method);
+    const minExercises = getMinExercisesForMethod(group.method);
     const lastExercise = group.exercises[group.exercises.length - 1];
+    const isCardioBlock = isCardioBlockMethod(group.method);
+    const cardioConfig = isCardioBlock ? getCardioBlockConfig(group.method) : null;
+    const blockConfig = blockConfigs[group.groupId] || {};
 
     return (
       <div
@@ -1333,13 +1350,13 @@ export function SessionFormDialog({
         )}
       >
         {/* Group header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-3">
             <Badge className={cn("text-white text-sm px-3 py-1", styleConfig.color)}>
               {styleConfig.label}
             </Badge>
             <span className="text-sm font-medium text-muted-foreground">
-              {group.exercises.length}/{maxExercises} exercices
+              {group.exercises.length} exercice(s)
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -1363,40 +1380,157 @@ export function SessionFormDialog({
               className="h-7 text-xs"
             >
               <Unlink className="h-3 w-3 mr-1" />
-              Annuler
+              Dissoudre
             </Button>
           </div>
         </div>
+
+        {/* Block configuration for cardio methods */}
+        {isCardioBlock && cardioConfig && (
+          <div className="flex flex-wrap gap-3 p-3 bg-background/50 rounded-lg border border-dashed">
+            {cardioConfig.showDuration && (
+              <div className="flex items-center gap-2">
+                <Timer className="h-4 w-4 text-muted-foreground" />
+                <Label className="text-xs text-muted-foreground">{cardioConfig.durationLabel}</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  className="h-8 w-20 text-xs"
+                  value={blockConfig.duration_minutes || ""}
+                  onChange={(e) => updateBlockConfig(group.groupId!, "duration_minutes", e.target.value ? parseInt(e.target.value) : undefined)}
+                  placeholder="10"
+                />
+              </div>
+            )}
+            {cardioConfig.showRounds && (
+              <div className="flex items-center gap-2">
+                <Repeat className="h-4 w-4 text-muted-foreground" />
+                <Label className="text-xs text-muted-foreground">{cardioConfig.roundsLabel}</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  className="h-8 w-20 text-xs"
+                  value={blockConfig.rounds || ""}
+                  onChange={(e) => updateBlockConfig(group.groupId!, "rounds", e.target.value ? parseInt(e.target.value) : undefined)}
+                  placeholder="3"
+                />
+              </div>
+            )}
+            {cardioConfig.showWorkRest && (
+              <>
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs text-muted-foreground">Work (s)</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    className="h-8 w-16 text-xs"
+                    value={blockConfig.work_seconds || ""}
+                    onChange={(e) => updateBlockConfig(group.groupId!, "work_seconds", e.target.value ? parseInt(e.target.value) : undefined)}
+                    placeholder="20"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs text-muted-foreground">Rest (s)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    className="h-8 w-16 text-xs"
+                    value={blockConfig.rest_seconds || ""}
+                    onChange={(e) => updateBlockConfig(group.groupId!, "rest_seconds", e.target.value ? parseInt(e.target.value) : undefined)}
+                    placeholder="10"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Group exercises */}
         <div className="space-y-2">
           {group.exercises.map(({ exercise, index }, i) => (
             <div key={exercise.id || index}>
-              {renderExerciseCard(exercise, index, true, i + 1)}
+              {renderExerciseCard(exercise, index, true, i + 1, group.method)}
             </div>
           ))}
         </div>
 
+        {/* Add exercise to group button */}
+        {group.exercises.length < maxExercises && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => addExerciseToGroup(group.groupId!, group.method)}
+            className="w-full"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Ajouter un exercice au bloc
+          </Button>
+        )}
+
         {/* Group completion message */}
-        {group.exercises.length >= 2 && (
+        {group.exercises.length >= minExercises && (
           <div className="flex items-center justify-center gap-2 text-sm text-green-600 dark:text-green-400 pt-2">
             <Check className="h-4 w-4" />
-            Bloc complet ! Configurez les paramètres puis validez.
+            Bloc configuré
           </div>
         )}
 
-        {/* Rest after group */}
-        <div className="flex items-center gap-3 pt-2 border-t border-border/50">
-          <label className="text-xs text-muted-foreground">Repos après le bloc (s)</label>
-          <Input
-            type="number"
-            min={0}
-            value={lastExercise.exercise.rest_seconds || ""}
-            onChange={(e) =>
-              updateExercise(lastExercise.index, "rest_seconds", e.target.value ? parseInt(e.target.value) : null)
-            }
-            className="h-8 text-sm w-24"
-          />
+        {/* Rest after group - only for non-cardio */}
+        {!isCardioBlock && (
+          <div className="flex items-center gap-3 pt-2 border-t border-border/50">
+            <label className="text-xs text-muted-foreground">Repos après le bloc (s)</label>
+            <Input
+              type="number"
+              min={0}
+              value={lastExercise.exercise.rest_seconds || ""}
+              onChange={(e) =>
+                updateExercise(lastExercise.index, "rest_seconds", e.target.value ? parseInt(e.target.value) : null)
+              }
+              className="h-8 text-sm w-24"
+            />
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Render block creation buttons
+  const renderBlockCreationButtons = () => {
+    const blockMethods = [
+      ...LINKABLE_METHODS.map(m => getTrainingStyleConfig(m)),
+      ...CARDIO_BLOCK_METHODS.map(m => getTrainingStyleConfig(m)),
+    ];
+
+    return (
+      <div className="space-y-2">
+        <Label className="text-xs text-muted-foreground">Créer un bloc d'exercices</Label>
+        <div className="flex flex-wrap gap-2">
+          {blockMethods.map(style => (
+            <TooltipProvider key={style.value}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => createMethodBlock(style.value)}
+                    className={cn(
+                      "text-xs",
+                      style.borderColor,
+                      "hover:bg-opacity-20"
+                    )}
+                  >
+                    <div className={cn("w-2 h-2 rounded-full mr-2", style.color)} />
+                    {style.label}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs max-w-xs">{style.description}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ))}
         </div>
       </div>
     );
@@ -1516,57 +1650,20 @@ export function SessionFormDialog({
                       </Label>
                       <Button type="button" variant="outline" size="sm" onClick={addExercise}>
                         <Plus className="h-4 w-4 mr-1" />
-                        Ajouter
+                        Exercice simple
                       </Button>
                     </div>
 
-                    {/* Linking mode indicator */}
-                    {linkingFrom && (
-                      <div className={cn(
-                        "p-3 rounded-lg space-y-2",
-                        getTrainingStyleConfig(linkingFrom.method).bgColor,
-                        "border-2",
-                        getTrainingStyleConfig(linkingFrom.method).borderColor
-                      )}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Badge className={cn("text-white", getTrainingStyleConfig(linkingFrom.method).color)}>
-                              {getTrainingStyleConfig(linkingFrom.method).label}
-                            </Badge>
-                            <span className="text-sm font-medium">
-                              {selectedForLinking.length}/{linkingFrom.maxCount} exercices
-                            </span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Cliquez sur les exercices à lier ensemble (max {linkingFrom.maxCount})
-                        </p>
-                        <div className="flex gap-2">
-                          <Button
-                            type="button"
-                            size="sm"
-                            onClick={confirmLinking}
-                            disabled={selectedForLinking.length < 2}
-                            className={cn("text-white", getTrainingStyleConfig(linkingFrom.method).color)}
-                          >
-                            <Link2 className="h-3 w-3 mr-1" />
-                            Valider le bloc
-                          </Button>
-                          <Button type="button" variant="outline" size="sm" onClick={cancelLinking}>
-                            Annuler
-                          </Button>
-                        </div>
-                      </div>
-                    )}
+                    {/* Block creation buttons */}
+                    {renderBlockCreationButtons()}
 
                     {exercises.length === 0 ? (
                       <div className="text-center py-8 border rounded-lg bg-muted/30">
                         <Dumbbell className="h-12 w-12 mx-auto mb-3 opacity-50" />
                         <p className="text-sm text-muted-foreground mb-2">Aucun exercice ajouté</p>
-                        <Button type="button" variant="outline" size="sm" onClick={addExercise}>
-                          <Plus className="h-4 w-4 mr-1" />
-                          Ajouter un exercice
-                        </Button>
+                        <p className="text-xs text-muted-foreground mb-4">
+                          Ajoutez un exercice simple ou créez un bloc (superset, circuit, AMRAP...)
+                        </p>
                       </div>
                     ) : (
                       <div className="space-y-3">
@@ -1700,9 +1797,12 @@ export function SessionFormDialog({
                         </div>
                       </>
                     ) : (
-                      <p className="text-sm text-muted-foreground py-4">
-                        Tous les athlètes de la catégorie seront concernés par cette séance.
-                      </p>
+                      <div className="text-center py-8 border rounded-lg bg-muted/30">
+                        <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p className="text-sm text-muted-foreground">
+                          Tous les {players?.length || 0} athlètes seront concernés
+                        </p>
+                      </div>
                     )}
                   </div>
                 </ScrollArea>
@@ -1710,8 +1810,12 @@ export function SessionFormDialog({
             </div>
           </Tabs>
 
-          <DialogFooter className="mt-4 pt-4 border-t shrink-0">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <DialogFooter className="pt-4 border-t mt-4 shrink-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Annuler
             </Button>
             <Button type="submit" disabled={!date || !type || saveSession.isPending}>
@@ -1720,18 +1824,10 @@ export function SessionFormDialog({
           </DialogFooter>
         </form>
       </DialogContent>
-      
+
       <QuickAddExerciseDialog
         open={showAddExerciseDialog}
         onOpenChange={setShowAddExerciseDialog}
-        sportType={sportType}
-        onSuccess={(newExercise) => {
-          const newEx = emptyExercise(exercises.length);
-          newEx.exercise_name = newExercise.name;
-          newEx.exercise_category = newExercise.category;
-          newEx.library_exercise_id = newExercise.id;
-          setExercises([...exercises, newEx]);
-        }}
       />
     </Dialog>
   );

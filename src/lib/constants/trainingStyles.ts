@@ -328,8 +328,11 @@ export const getTrainingStyleConfig = (style: string): TrainingStyleConfig => {
   return TRAINING_STYLES.find(s => s.value === style) || TRAINING_STYLES[0];
 };
 
-// Methods that require linking multiple exercises
-export const LINKABLE_METHODS = ["superset", "biset", "triset", "giant_set", "bulgarian", "circuit", "amrap", "for_time", "emom"];
+// Methods that require linking multiple exercises (creates a block)
+export const LINKABLE_METHODS = ["superset", "biset", "triset", "giant_set", "bulgarian"];
+
+// Cardio/CrossFit methods that create blocks with exercises inside
+export const CARDIO_BLOCK_METHODS = ["amrap", "for_time", "circuit", "emom", "tabata", "death_by"];
 
 // Methods that use drop sets configuration (progressive load changes)
 export const DROP_METHODS = ["drop_set", "pyramid_up", "pyramid_down", "pyramid_full"];
@@ -337,13 +340,23 @@ export const DROP_METHODS = ["drop_set", "pyramid_up", "pyramid_down", "pyramid_
 // Methods that use cluster sets configuration
 export const CLUSTER_METHODS = ["cluster", "rest_pause"];
 
-// Special methods with specific UI (e.g., Tabata, 5x5)
-export const SPECIAL_METHODS = ["five_by_five", "tabata", "death_by", "super_pletnev", "isometric_overcoming", "isometric_yielding"];
+// Special methods with specific UI (e.g., 5x5)
+export const SPECIAL_METHODS = ["five_by_five", "super_pletnev", "isometric_overcoming", "isometric_yielding"];
 
 // Get method by value
 export const isLinkableMethod = (method: string): boolean => LINKABLE_METHODS.includes(method);
+export const isCardioBlockMethod = (method: string): boolean => CARDIO_BLOCK_METHODS.includes(method);
 export const isDropMethod = (method: string): boolean => DROP_METHODS.includes(method);
 export const isClusterMethod = (method: string): boolean => CLUSTER_METHODS.includes(method);
+
+// Get min exercises required for a linkable method
+export const getMinExercisesForMethod = (method: string): number => {
+  if (method === "superset" || method === "biset" || method === "bulgarian") return 2;
+  if (method === "triset") return 3;
+  if (method === "giant_set") return 4;
+  if (CARDIO_BLOCK_METHODS.includes(method)) return 1;
+  return 1;
+};
 
 // Get max exercises for a linkable method
 export const getMaxExercisesForMethod = (method: string): number => {
@@ -351,9 +364,95 @@ export const getMaxExercisesForMethod = (method: string): number => {
   return style.maxExercises || 2;
 };
 
+// Get field configuration for cardio block methods
+export interface CardioBlockConfig {
+  showDuration: boolean;
+  showRounds: boolean;
+  showReps: boolean;
+  showSets: boolean;
+  showWorkRest: boolean;
+  durationLabel: string;
+  roundsLabel: string;
+}
+
+export const getCardioBlockConfig = (method: string): CardioBlockConfig => {
+  switch (method) {
+    case "amrap":
+      return {
+        showDuration: true,
+        showRounds: false,
+        showReps: true,
+        showSets: false,
+        showWorkRest: false,
+        durationLabel: "Durée AMRAP (min)",
+        roundsLabel: "",
+      };
+    case "for_time":
+      return {
+        showDuration: false,
+        showRounds: true,
+        showReps: true,
+        showSets: false,
+        showWorkRest: false,
+        durationLabel: "",
+        roundsLabel: "Tours à compléter",
+      };
+    case "circuit":
+      return {
+        showDuration: false,
+        showRounds: true,
+        showReps: true,
+        showSets: false,
+        showWorkRest: false,
+        durationLabel: "",
+        roundsLabel: "Nombre de tours",
+      };
+    case "emom":
+      return {
+        showDuration: true,
+        showRounds: false,
+        showReps: true,
+        showSets: false,
+        showWorkRest: false,
+        durationLabel: "Durée EMOM (min)",
+        roundsLabel: "",
+      };
+    case "tabata":
+      return {
+        showDuration: false,
+        showRounds: true,
+        showReps: false,
+        showSets: false,
+        showWorkRest: true,
+        durationLabel: "",
+        roundsLabel: "Nombre de cycles",
+      };
+    case "death_by":
+      return {
+        showDuration: false,
+        showRounds: false,
+        showReps: true,
+        showSets: false,
+        showWorkRest: false,
+        durationLabel: "",
+        roundsLabel: "",
+      };
+    default:
+      return {
+        showDuration: false,
+        showRounds: false,
+        showReps: true,
+        showSets: true,
+        showWorkRest: false,
+        durationLabel: "",
+        roundsLabel: "",
+      };
+  }
+};
+
 // Styles for workout builder (subset for standard gym sessions)
 export const WORKOUT_BUILDER_STYLES = TRAINING_STYLES.filter(s => 
-  ["normal", "superset", "biset", "triset", "giant_set", "drop_set", "rest_pause", "pyramid_up", "pyramid_down", "five_by_five", "cluster", "bulgarian", "isometric_overcoming", "isometric_yielding"].includes(s.value)
+  ["normal", "superset", "biset", "triset", "giant_set", "drop_set", "rest_pause", "pyramid_up", "pyramid_down", "five_by_five", "cluster", "bulgarian", "isometric_overcoming", "isometric_yielding", "amrap", "for_time", "circuit", "emom", "tabata", "death_by"].includes(s.value)
 );
 
 // All styles for program builder
