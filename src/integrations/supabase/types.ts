@@ -2844,6 +2844,7 @@ export type Database = {
           category_id: string
           club_origin: string | null
           created_at: string
+          discipline: string | null
           email: string | null
           id: string
           name: string
@@ -2857,6 +2858,7 @@ export type Database = {
           category_id: string
           club_origin?: string | null
           created_at?: string
+          discipline?: string | null
           email?: string | null
           id?: string
           name: string
@@ -2870,6 +2872,7 @@ export type Database = {
           category_id?: string
           club_origin?: string | null
           created_at?: string
+          discipline?: string | null
           email?: string | null
           id?: string
           name?: string
