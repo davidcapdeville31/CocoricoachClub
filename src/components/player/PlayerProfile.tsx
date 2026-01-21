@@ -12,6 +12,7 @@ interface PlayerProfileProps {
   playerName: string;
   avatarUrl?: string | null;
   sportType?: string;
+  discipline?: string | null;
 }
 
 type ProfileType = "primary" | "balanced" | "secondary" | "insufficientData";
@@ -21,12 +22,12 @@ interface TestResult {
   date: string;
 }
 
-export function PlayerProfile({ playerId, categoryId, playerName, avatarUrl, sportType = "XV" }: PlayerProfileProps) {
-  const profileConfig = getAthleticProfileConfig(sportType);
+export function PlayerProfile({ playerId, categoryId, playerName, avatarUrl, sportType = "XV", discipline }: PlayerProfileProps) {
+  const profileConfig = getAthleticProfileConfig(sportType, discipline);
 
   // Fetch test data based on sport profile configuration
   const { data: testData } = useQuery({
-    queryKey: ["player_athletic_profile", playerId, sportType],
+    queryKey: ["player_athletic_profile", playerId, sportType, discipline],
     queryFn: async () => {
       const results: Record<string, TestResult | null> = {};
       

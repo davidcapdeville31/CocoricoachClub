@@ -88,7 +88,14 @@ export const RUGBY_SUBTYPES: SportSubTypeOption[] = [
   { value: "national_team", label: "Équipe Nationale" },
 ];
 
-// Sub-types for athletics disciplines
+// Sub-types for athletics CATEGORY creation (Club, Académie, National only)
+export const ATHLETISME_CATEGORY_SUBTYPES: SportSubTypeOption[] = [
+  { value: "athletisme_club", label: "Athlétisme - Club" },
+  { value: "athletisme_academie", label: "Athlétisme - Académie / Pôle Espoir" },
+  { value: "athletisme_national", label: "Athlétisme - Équipe Nationale" },
+];
+
+// Disciplines for PLAYER creation (used in AddPlayerDialog)
 export const ATHLETISME_DISCIPLINES: SportSubTypeOption[] = [
   { value: "athletisme_sprints", label: "Sprints (60m, 100m, 200m, 400m)" },
   { value: "athletisme_haies", label: "Haies (100mH, 110mH, 400mH)" },
@@ -99,15 +106,13 @@ export const ATHLETISME_DISCIPLINES: SportSubTypeOption[] = [
   { value: "athletisme_sauts_hauteur", label: "Sauts verticaux (Hauteur, Perche)" },
   { value: "athletisme_lancers", label: "Lancers (Poids, Disque, Marteau, Javelot)" },
   { value: "athletisme_combines", label: "Épreuves combinées (Décathlon, Heptathlon)" },
-  { value: "athletisme_club", label: "Athlétisme - Club" },
-  { value: "athletisme_academie", label: "Athlétisme - Académie / Pôle Espoir" },
-  { value: "athletisme_national", label: "Athlétisme - Équipe Nationale" },
 ];
 
 // Sub-types for other sports (Club, Académie, Équipe Nationale)
 export const getOtherSportSubtypes = (sport: MainSportCategory): SportSubTypeOption[] => {
   if (sport === "rugby") return RUGBY_SUBTYPES;
-  if (sport === "athletisme") return ATHLETISME_DISCIPLINES;
+  // For athletics category creation, only show Club/Académie/National
+  if (sport === "athletisme") return ATHLETISME_CATEGORY_SUBTYPES;
   
   const sportLabels: Record<Exclude<MainSportCategory, "rugby" | "athletisme">, string> = {
     football: "Football",
@@ -124,6 +129,11 @@ export const getOtherSportSubtypes = (sport: MainSportCategory): SportSubTypeOpt
     { value: `${sport}_academie` as SportType, label: `${sportLabels[sport]} - Académie / Pôle Espoir` },
     { value: `${sport}_national` as SportType, label: `${sportLabels[sport]} - Équipe Nationale` },
   ];
+};
+
+// Helper to check if a category is an athletics category
+export const isAthletismeCategory = (rugbyType: string): boolean => {
+  return rugbyType?.startsWith("athletisme") || rugbyType === "athletisme";
 };
 
 export const SPORT_TYPES: SportTypeOption[] = [

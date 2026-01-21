@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -11,8 +11,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { playerSchema } from "@/lib/validations";
+import { ATHLETISME_DISCIPLINES, isAthletismeCategory } from "@/lib/constants/sportTypes";
 
 interface AddPlayerDialogProps {
   open: boolean;
@@ -28,18 +36,36 @@ export function AddPlayerDialog({
   const [playerName, setPlayerName] = useState("");
   const [birthYear, setBirthYear] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [discipline, setDiscipline] = useState("");
   const [validationError, setValidationError] = useState("");
   const queryClient = useQueryClient();
 
+  // Fetch category to check if it's an athletics category
+  const { data: category } = useQuery({
+    queryKey: ["category", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("rugby_type")
+        .eq("id", categoryId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const isAthletics = category?.rugby_type ? isAthletismeCategory(category.rugby_type) : false;
+
   const addPlayer = useMutation({
-    mutationFn: async (data: { name: string; birth_year?: number; birth_date?: string }) => {
+    mutationFn: async (data: { name: string; birth_year?: number; birth_date?: string; discipline?: string }) => {
       const { error } = await supabase
         .from("players")
         .insert({ 
           name: data.name, 
           category_id: categoryId,
           birth_year: data.birth_year,
-          birth_date: data.birth_date || null
+          birth_date: data.birth_date || null,
+          discipline: data.discipline || null
         });
       if (error) throw error;
     },
@@ -49,6 +75,7 @@ export function AddPlayerDialog({
       setPlayerName("");
       setBirthYear("");
       setBirthDate("");
+      setDiscipline("");
       onOpenChange(false);
     },
     onError: () => {
@@ -71,10 +98,17 @@ export function AddPlayerDialog({
       return;
     }
 
+    // Validate discipline for athletics
+    if (isAthletics && !discipline) {
+      setValidationError("Veuillez sélectionner une discipline");
+      return;
+    }
+
     addPlayer.mutate({
       name: result.data.name,
       birth_year: result.data.birthYear,
-      birth_date: birthDate || undefined
+      birth_date: birthDate || undefined,
+      discipline: discipline || undefined
     });
   };
 
@@ -99,6 +133,27 @@ export function AddPlayerDialog({
                 required
               />
             </div>
+
+            {isAthletics && (
+              <div className="space-y-2">
+                <Label htmlFor="discipline">Discipline *</Label>
+                <Select value={discipline} onValueChange={setDiscipline}>
+                  <SelectTrigger className="w-full bg-background">
+                    <SelectValue placeholder="Sélectionner une discipline" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border z-50">
+                    {ATHLETISME_DISCIPLINES.map((disc) => (
+                      <SelectItem key={disc.value} value={disc.value}>
+                        {disc.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Le profilage et les tests seront adaptés à cette discipline
+                </p>
+              </div>
+            )}
             
             <div className="space-y-2">
               <Label htmlFor="birthDate">Date de naissance (optionnel)</Label>

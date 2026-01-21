@@ -1169,7 +1169,12 @@ export const ATHLETIC_PROFILES: Record<string, AthleticProfileConfig> = {
   },
 };
 
-export function getAthleticProfileConfig(sportType: string): AthleticProfileConfig {
+export function getAthleticProfileConfig(sportType: string, playerDiscipline?: string | null): AthleticProfileConfig {
+  // If player has a specific discipline (for athletics), use that first
+  if (playerDiscipline && ATHLETIC_PROFILES[playerDiscipline]) {
+    return ATHLETIC_PROFILES[playerDiscipline];
+  }
+  
   // Check for specific athletisme discipline first
   if (ATHLETIC_PROFILES[sportType]) {
     return ATHLETIC_PROFILES[sportType];
@@ -1189,4 +1194,20 @@ export function getAthleticProfileConfig(sportType: string): AthleticProfileConf
   
   const mainSport = getMainSportFromType(sportType);
   return ATHLETIC_PROFILES[mainSport] || ATHLETIC_PROFILES.rugby;
+}
+
+// Helper to get discipline label
+export function getDisciplineLabel(disciplineValue: string): string {
+  const discipline = [
+    { value: "athletisme_sprints", label: "Sprints" },
+    { value: "athletisme_haies", label: "Haies" },
+    { value: "athletisme_demi_fond", label: "Demi-fond" },
+    { value: "athletisme_fond", label: "Fond" },
+    { value: "athletisme_marche", label: "Marche athlétique" },
+    { value: "athletisme_sauts_longueur", label: "Sauts horizontaux" },
+    { value: "athletisme_sauts_hauteur", label: "Sauts verticaux" },
+    { value: "athletisme_lancers", label: "Lancers" },
+    { value: "athletisme_combines", label: "Épreuves combinées" },
+  ].find(d => d.value === disciplineValue);
+  return discipline?.label || disciplineValue;
 }

@@ -107,6 +107,7 @@ function PlayerDetailsContent() {
             playerName={player.name}
             avatarUrl={player.avatar_url}
             sportType={(player.categories as { rugby_type?: string })?.rugby_type}
+            discipline={player.discipline}
           />
           <PlayerBiometrics 
             playerId={playerId!} 
