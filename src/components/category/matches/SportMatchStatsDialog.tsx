@@ -334,8 +334,8 @@ export function SportMatchStatsDialog({
               <Label htmlFor="goalkeeper-toggle" className="text-sm font-medium">
                 Mode Gardien / Goal
               </Label>
-              <Badge variant={selectedPlayer.isGoalkeeper ? "default" : "outline"} className="text-xs">
-                {selectedPlayer.isGoalkeeper ? "Gardien" : "Joueur de champ"}
+            <Badge variant={selectedPlayer.isGoalkeeper ? "default" : "outline"} className="text-xs">
+                {selectedPlayer.isGoalkeeper ? "Gardien" : "Athlète de champ"}
               </Badge>
             </div>
             <Switch

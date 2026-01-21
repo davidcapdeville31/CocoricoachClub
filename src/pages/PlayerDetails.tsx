@@ -132,7 +132,12 @@ function PlayerDetailsContent() {
           </TabsContent>
 
           <TabsContent value="matches">
-            <PlayerMatchesTab playerId={playerId!} categoryId={player.category_id} playerName={player.name} />
+            <PlayerMatchesTab 
+              playerId={playerId!} 
+              categoryId={player.category_id} 
+              playerName={player.name}
+              sportType={(player.categories as { rugby_type?: string })?.rugby_type}
+            />
           </TabsContent>
 
           <TabsContent value="calendar">

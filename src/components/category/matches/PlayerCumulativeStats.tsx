@@ -3,36 +3,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Trophy, Target, Shield } from "lucide-react";
+import { BarChart3, Trophy, Target, Shield, Timer, Activity, Dumbbell } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getStatsForSport, getStatCategories, type StatField } from "@/lib/constants/sportStats";
 
 interface PlayerCumulativeStatsProps {
   categoryId: string;
+  sportType?: string;
 }
 
 interface CumulativeStats {
   playerId: string;
   playerName: string;
   matchesPlayed: number;
-  tries: number;
-  conversions: number;
-  penaltiesScored: number;
-  dropGoals: number;
-  totalPoints: number;
-  tackles: number;
-  tacklesMissed: number;
-  tackleSuccess: number;
-  carries: number;
-  metersGained: number;
-  offloads: number;
-  turnoversWon: number;
-  yellowCards: number;
-  redCards: number;
+  sportData: Record<string, number>;
 }
 
-export function PlayerCumulativeStats({ categoryId }: PlayerCumulativeStatsProps) {
+export function PlayerCumulativeStats({ categoryId, sportType = "XV" }: PlayerCumulativeStatsProps) {
+  const sportStats = getStatsForSport(sportType);
+  const statCategories = getStatCategories(sportType);
+
   const { data: stats, isLoading } = useQuery({
-    queryKey: ["cumulative_player_stats", categoryId],
+    queryKey: ["cumulative_player_stats", categoryId, sportType],
     queryFn: async () => {
       // Get all matches for this category
       const { data: matches, error: matchesError } = await supabase
@@ -63,54 +55,37 @@ export function PlayerCumulativeStats({ categoryId }: PlayerCumulativeStatsProps
       playerStats.forEach((stat) => {
         const player = stat.players as { id: string; name: string } | null;
         const playerId = stat.player_id;
-        const playerName = player?.name || "Joueur inconnu";
+        const playerName = player?.name || "Athlète inconnu";
 
         if (!aggregated[playerId]) {
           aggregated[playerId] = {
             playerId,
             playerName,
             matchesPlayed: 0,
-            tries: 0,
-            conversions: 0,
-            penaltiesScored: 0,
-            dropGoals: 0,
-            totalPoints: 0,
-            tackles: 0,
-            tacklesMissed: 0,
-            tackleSuccess: 0,
-            carries: 0,
-            metersGained: 0,
-            offloads: 0,
-            turnoversWon: 0,
-            yellowCards: 0,
-            redCards: 0,
+            sportData: {},
           };
         }
 
         const p = aggregated[playerId];
         p.matchesPlayed += 1;
-        p.tries += stat.tries || 0;
-        p.conversions += stat.conversions || 0;
-        p.penaltiesScored += stat.penalties_scored || 0;
-        p.dropGoals += stat.drop_goals || 0;
-        p.tackles += stat.tackles || 0;
-        p.tacklesMissed += stat.tackles_missed || 0;
-        p.carries += stat.carries || 0;
-        p.metersGained += stat.meters_gained || 0;
-        p.offloads += stat.offloads || 0;
-        p.turnoversWon += stat.turnovers_won || 0;
-        p.yellowCards += stat.yellow_cards || 0;
-        p.redCards += stat.red_cards || 0;
+
+        // Aggregate sport-specific stats from sport_data JSONB
+        const sportData = (stat as { sport_data?: Record<string, number> }).sport_data || {};
+        
+        sportStats.forEach(statField => {
+          const value = sportData[statField.key] || 
+                       stat[statField.key as keyof typeof stat] || 
+                       stat[statField.key.replace(/([A-Z])/g, '_$1').toLowerCase() as keyof typeof stat] || 
+                       0;
+          
+          if (!p.sportData[statField.key]) {
+            p.sportData[statField.key] = 0;
+          }
+          p.sportData[statField.key] += Number(value) || 0;
+        });
       });
 
-      // Calculate derived stats
-      Object.values(aggregated).forEach((p) => {
-        p.totalPoints = (p.tries * 5) + (p.conversions * 2) + (p.penaltiesScored * 3) + (p.dropGoals * 3);
-        const totalTackles = p.tackles + p.tacklesMissed;
-        p.tackleSuccess = totalTackles > 0 ? Math.round((p.tackles / totalTackles) * 100) : 0;
-      });
-
-      return Object.values(aggregated).sort((a, b) => b.totalPoints - a.totalPoints);
+      return Object.values(aggregated);
     },
   });
 
@@ -132,79 +107,110 @@ export function PlayerCumulativeStats({ categoryId }: PlayerCumulativeStatsProps
     );
   }
 
-  const topScorers = [...stats].sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 3);
-  const topTacklers = [...stats].sort((a, b) => b.tackles - a.tackles).slice(0, 3);
-  const topCarriers = [...stats].sort((a, b) => b.metersGained - a.metersGained).slice(0, 3);
+  // Get top performers based on first scoring stat available
+  const scoringStats = sportStats.filter(s => s.category === "scoring");
+  const attackStats = sportStats.filter(s => s.category === "attack");
+  const defenseStats = sportStats.filter(s => s.category === "defense");
+
+  const topScoringStatKey = scoringStats[0]?.key;
+  const topAttackStatKey = attackStats[0]?.key;
+  const topDefenseStatKey = defenseStats[0]?.key;
+
+  const topScorers = topScoringStatKey 
+    ? [...stats].sort((a, b) => (b.sportData[topScoringStatKey] || 0) - (a.sportData[topScoringStatKey] || 0)).slice(0, 3)
+    : [];
+  const topAttackers = topAttackStatKey
+    ? [...stats].sort((a, b) => (b.sportData[topAttackStatKey] || 0) - (a.sportData[topAttackStatKey] || 0)).slice(0, 3)
+    : [];
+  const topDefenders = topDefenseStatKey
+    ? [...stats].sort((a, b) => (b.sportData[topDefenseStatKey] || 0) - (a.sportData[topDefenseStatKey] || 0)).slice(0, 3)
+    : [];
+
+  const getCategoryIcon = (catKey: string) => {
+    switch (catKey) {
+      case "scoring": return <Trophy className="h-4 w-4 text-primary" />;
+      case "attack": return <Target className="h-4 w-4 text-primary" />;
+      case "defense": return <Shield className="h-4 w-4 text-primary" />;
+      case "general": return <Activity className="h-4 w-4 text-primary" />;
+      default: return <Dumbbell className="h-4 w-4 text-primary" />;
+    }
+  };
 
   return (
     <div className="space-y-6">
       {/* Top performers cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-yellow-500" />
-              Meilleurs marqueurs
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {topScorers.map((p, i) => (
-              <div key={p.playerId} className="flex justify-between items-center">
-                <span className="text-sm">
-                  <Badge variant="outline" className="mr-2 w-5 h-5 p-0 justify-center">
-                    {i + 1}
-                  </Badge>
-                  {p.playerName}
-                </span>
-                <span className="font-bold text-yellow-500">{p.totalPoints} pts</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        {topScoringStatKey && scoringStats[0] && (
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Trophy className="h-4 w-4 text-primary" />
+                Top {scoringStats[0].label}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {topScorers.map((p, i) => (
+                <div key={p.playerId} className="flex justify-between items-center">
+                  <span className="text-sm">
+                    <Badge variant="outline" className="mr-2 w-5 h-5 p-0 justify-center">
+                      {i + 1}
+                    </Badge>
+                    {p.playerName}
+                  </span>
+                  <span className="font-bold text-primary">{p.sportData[topScoringStatKey] || 0}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
-        <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Shield className="h-4 w-4 text-blue-500" />
-              Meilleurs plaqueurs
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {topTacklers.map((p, i) => (
-              <div key={p.playerId} className="flex justify-between items-center">
-                <span className="text-sm">
-                  <Badge variant="outline" className="mr-2 w-5 h-5 p-0 justify-center">
-                    {i + 1}
-                  </Badge>
-                  {p.playerName}
-                </span>
-                <span className="font-bold text-blue-500">{p.tackles}</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        {topAttackStatKey && attackStats[0] && (
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Target className="h-4 w-4 text-primary" />
+                Top {attackStats[0].label}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {topAttackers.map((p, i) => (
+                <div key={p.playerId} className="flex justify-between items-center">
+                  <span className="text-sm">
+                    <Badge variant="outline" className="mr-2 w-5 h-5 p-0 justify-center">
+                      {i + 1}
+                    </Badge>
+                    {p.playerName}
+                  </span>
+                  <span className="font-bold text-primary">{p.sportData[topAttackStatKey] || 0}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
-        <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Target className="h-4 w-4 text-green-500" />
-              Meilleurs porteurs
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {topCarriers.map((p, i) => (
-              <div key={p.playerId} className="flex justify-between items-center">
-                <span className="text-sm">
-                  <Badge variant="outline" className="mr-2 w-5 h-5 p-0 justify-center">
-                    {i + 1}
-                  </Badge>
-                  {p.playerName}
-                </span>
-                <span className="font-bold text-green-500">{p.metersGained} m</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        {topDefenseStatKey && defenseStats[0] && (
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Shield className="h-4 w-4 text-primary" />
+                Top {defenseStats[0].label}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {topDefenders.map((p, i) => (
+                <div key={p.playerId} className="flex justify-between items-center">
+                  <span className="text-sm">
+                    <Badge variant="outline" className="mr-2 w-5 h-5 p-0 justify-center">
+                      {i + 1}
+                    </Badge>
+                    {p.playerName}
+                  </span>
+                  <span className="font-bold text-primary">{p.sportData[topDefenseStatKey] || 0}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Detailed stats table */}
@@ -212,115 +218,62 @@ export function PlayerCumulativeStats({ categoryId }: PlayerCumulativeStatsProps
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
-            Statistiques détaillées par joueur
+            Statistiques détaillées par athlète
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="scoring" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="scoring">Points</TabsTrigger>
-              <TabsTrigger value="attack">Attaque</TabsTrigger>
-              <TabsTrigger value="defense">Défense</TabsTrigger>
+          <Tabs defaultValue={statCategories[0]?.key || "scoring"} className="w-full">
+            <TabsList className={`grid w-full grid-cols-${Math.min(statCategories.length, 4)}`}>
+              {statCategories.map(cat => (
+                <TabsTrigger key={cat.key} value={cat.key} className="gap-1">
+                  {getCategoryIcon(cat.key)}
+                  {cat.label}
+                </TabsTrigger>
+              ))}
             </TabsList>
 
-            <TabsContent value="scoring">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Joueur</TableHead>
-                      <TableHead className="text-center">Matchs</TableHead>
-                      <TableHead className="text-center">Essais</TableHead>
-                      <TableHead className="text-center">Transfo.</TableHead>
-                      <TableHead className="text-center">Pénalités</TableHead>
-                      <TableHead className="text-center">Drops</TableHead>
-                      <TableHead className="text-center font-bold">Total pts</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {stats.map((p) => (
-                      <TableRow key={p.playerId}>
-                        <TableCell className="font-medium">{p.playerName}</TableCell>
-                        <TableCell className="text-center">{p.matchesPlayed}</TableCell>
-                        <TableCell className="text-center">{p.tries}</TableCell>
-                        <TableCell className="text-center">{p.conversions}</TableCell>
-                        <TableCell className="text-center">{p.penaltiesScored}</TableCell>
-                        <TableCell className="text-center">{p.dropGoals}</TableCell>
-                        <TableCell className="text-center font-bold text-primary">{p.totalPoints}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="attack">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Joueur</TableHead>
-                      <TableHead className="text-center">Matchs</TableHead>
-                      <TableHead className="text-center">Courses</TableHead>
-                      <TableHead className="text-center">Mètres</TableHead>
-                      <TableHead className="text-center">Moy./match</TableHead>
-                      <TableHead className="text-center">Offloads</TableHead>
-                      <TableHead className="text-center">Turnovers</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {[...stats].sort((a, b) => b.metersGained - a.metersGained).map((p) => (
-                      <TableRow key={p.playerId}>
-                        <TableCell className="font-medium">{p.playerName}</TableCell>
-                        <TableCell className="text-center">{p.matchesPlayed}</TableCell>
-                        <TableCell className="text-center">{p.carries}</TableCell>
-                        <TableCell className="text-center">{p.metersGained}</TableCell>
-                        <TableCell className="text-center text-muted-foreground">
-                          {p.matchesPlayed > 0 ? Math.round(p.metersGained / p.matchesPlayed) : 0}
-                        </TableCell>
-                        <TableCell className="text-center">{p.offloads}</TableCell>
-                        <TableCell className="text-center">{p.turnoversWon}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="defense">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Joueur</TableHead>
-                      <TableHead className="text-center">Matchs</TableHead>
-                      <TableHead className="text-center">Plaquages</TableHead>
-                      <TableHead className="text-center">Ratés</TableHead>
-                      <TableHead className="text-center">% Réussite</TableHead>
-                      <TableHead className="text-center">🟨</TableHead>
-                      <TableHead className="text-center">🟥</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {[...stats].sort((a, b) => b.tackles - a.tackles).map((p) => (
-                      <TableRow key={p.playerId}>
-                        <TableCell className="font-medium">{p.playerName}</TableCell>
-                        <TableCell className="text-center">{p.matchesPlayed}</TableCell>
-                        <TableCell className="text-center">{p.tackles}</TableCell>
-                        <TableCell className="text-center">{p.tacklesMissed}</TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant={p.tackleSuccess >= 80 ? "default" : p.tackleSuccess >= 60 ? "secondary" : "destructive"}>
-                            {p.tackleSuccess}%
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-center">{p.yellowCards}</TableCell>
-                        <TableCell className="text-center">{p.redCards}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
+            {statCategories.map(cat => {
+              const categoryStats = sportStats.filter(s => s.category === cat.key);
+              
+              return (
+                <TabsContent key={cat.key} value={cat.key}>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Athlète</TableHead>
+                          <TableHead className="text-center">Matchs</TableHead>
+                          {categoryStats.slice(0, 6).map(stat => (
+                            <TableHead key={stat.key} className="text-center">
+                              {stat.shortLabel}
+                            </TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {[...stats]
+                          .sort((a, b) => {
+                            const firstStat = categoryStats[0]?.key;
+                            if (!firstStat) return 0;
+                            return (b.sportData[firstStat] || 0) - (a.sportData[firstStat] || 0);
+                          })
+                          .map((p) => (
+                            <TableRow key={p.playerId}>
+                              <TableCell className="font-medium">{p.playerName}</TableCell>
+                              <TableCell className="text-center">{p.matchesPlayed}</TableCell>
+                              {categoryStats.slice(0, 6).map(stat => (
+                                <TableCell key={stat.key} className="text-center">
+                                  {p.sportData[stat.key] || 0}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </TabsContent>
+              );
+            })}
           </Tabs>
         </CardContent>
       </Card>
