@@ -1,0 +1,149 @@
+// Official bowling oil patterns with verified data
+// Only patterns with 100% verified official data are included for auto-fill
+
+export interface OilPatternPreset {
+  name: string;
+  // Only include fields where we have official data
+  length_feet?: number;
+  buff_distance_feet?: number;
+  width_boards?: number;
+  total_volume_ml?: number;
+  oil_ratio?: string;
+  profile_type?: "flat" | "crown" | "reverse_block";
+  forward_oil?: boolean;
+  reverse_oil?: boolean;
+  outside_friction?: "low" | "medium" | "high";
+}
+
+// Official PBA/WTBA patterns with verified specifications
+export const OFFICIAL_OIL_PATTERNS: OilPatternPreset[] = [
+  // PBA Animal Patterns - Official specifications
+  {
+    name: "PBA Cheetah",
+    length_feet: 35,
+    total_volume_ml: 21.5,
+    oil_ratio: "3:1",
+    profile_type: "crown",
+    forward_oil: true,
+    reverse_oil: true,
+  },
+  {
+    name: "PBA Viper",
+    length_feet: 37,
+    total_volume_ml: 26.0,
+    oil_ratio: "4:1",
+    profile_type: "crown",
+    forward_oil: true,
+    reverse_oil: true,
+  },
+  {
+    name: "PBA Chameleon",
+    length_feet: 39,
+    total_volume_ml: 24.0,
+    oil_ratio: "2.5:1",
+    profile_type: "flat",
+    forward_oil: true,
+    reverse_oil: true,
+  },
+  {
+    name: "PBA Scorpion",
+    length_feet: 41,
+    total_volume_ml: 27.0,
+    oil_ratio: "2:1",
+    profile_type: "flat",
+    forward_oil: true,
+    reverse_oil: true,
+  },
+  {
+    name: "PBA Shark",
+    length_feet: 44,
+    total_volume_ml: 28.0,
+    oil_ratio: "5:1",
+    profile_type: "crown",
+    forward_oil: true,
+    reverse_oil: true,
+  },
+  {
+    name: "PBA Bear",
+    length_feet: 52,
+    total_volume_ml: 30.0,
+    oil_ratio: "6:1",
+    profile_type: "crown",
+    forward_oil: true,
+    reverse_oil: true,
+  },
+  {
+    name: "PBA Dragon",
+    length_feet: 45,
+    profile_type: "reverse_block",
+    forward_oil: true,
+    reverse_oil: true,
+  },
+  {
+    name: "PBA Wolf",
+    length_feet: 32,
+    profile_type: "flat",
+    forward_oil: true,
+    reverse_oil: true,
+  },
+  {
+    name: "PBA Badger",
+    length_feet: 52,
+    profile_type: "flat",
+    forward_oil: true,
+    reverse_oil: true,
+  },
+];
+
+// Common house/league patterns (partial data - no auto-fill)
+export const COMMON_PATTERNS: string[] = [
+  "Kegel Easy Street",
+  "Kegel Beaten Path",
+  "Kegel Broadway",
+  "Kegel Middle Road",
+  "Kegel Stone Street",
+  "Kegel Winding Road",
+  "House Shot (Standard)",
+  "House Shot (Sport)",
+  "USBC Red",
+  "USBC White", 
+  "USBC Blue",
+  "EBT Amsterdam",
+  "EBT Barcelona",
+  "EBT London",
+  "EBT Paris",
+  "WTBA Mexico City",
+  "WTBA Tokyo",
+  "WTBA Vegas",
+  "Pattern personnel",
+];
+
+// All pattern names for dropdown
+export const ALL_PATTERN_NAMES = [
+  ...OFFICIAL_OIL_PATTERNS.map(p => p.name),
+  ...COMMON_PATTERNS,
+];
+
+// Get preset data for a pattern name (returns undefined if no official data)
+export function getPatternPreset(name: string): OilPatternPreset | undefined {
+  return OFFICIAL_OIL_PATTERNS.find(p => p.name === name);
+}
+
+// Profile type options for dropdown
+export const PROFILE_TYPES = [
+  { value: "flat", label: "Flat Pattern" },
+  { value: "crown", label: "Crown / Christmas Tree" },
+  { value: "reverse_block", label: "Reverse Block" },
+] as const;
+
+// Outside friction options
+export const FRICTION_LEVELS = [
+  { value: "low", label: "Faible" },
+  { value: "medium", label: "Moyen" },
+  { value: "high", label: "Élevé" },
+] as const;
+
+// Oil ratio presets
+export const OIL_RATIOS = [
+  "1:1", "1.5:1", "2:1", "2.5:1", "3:1", "3.5:1", "4:1", "4.5:1", "5:1", "6:1", "7:1", "8:1", "10:1"
+];

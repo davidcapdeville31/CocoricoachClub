@@ -291,6 +291,81 @@ export type Database = {
           },
         ]
       }
+      bowling_oil_patterns: {
+        Row: {
+          buff_distance_feet: number | null
+          category_id: string
+          created_at: string
+          forward_oil: boolean | null
+          id: string
+          is_preset: boolean | null
+          length_feet: number | null
+          match_id: string | null
+          name: string
+          notes: string | null
+          oil_ratio: string | null
+          outside_friction: string | null
+          profile_type: string | null
+          reverse_oil: boolean | null
+          total_volume_ml: number | null
+          updated_at: string
+          width_boards: number | null
+        }
+        Insert: {
+          buff_distance_feet?: number | null
+          category_id: string
+          created_at?: string
+          forward_oil?: boolean | null
+          id?: string
+          is_preset?: boolean | null
+          length_feet?: number | null
+          match_id?: string | null
+          name: string
+          notes?: string | null
+          oil_ratio?: string | null
+          outside_friction?: string | null
+          profile_type?: string | null
+          reverse_oil?: boolean | null
+          total_volume_ml?: number | null
+          updated_at?: string
+          width_boards?: number | null
+        }
+        Update: {
+          buff_distance_feet?: number | null
+          category_id?: string
+          created_at?: string
+          forward_oil?: boolean | null
+          id?: string
+          is_preset?: boolean | null
+          length_feet?: number | null
+          match_id?: string | null
+          name?: string
+          notes?: string | null
+          oil_ratio?: string | null
+          outside_friction?: string | null
+          profile_type?: string | null
+          reverse_oil?: boolean | null
+          total_volume_ml?: number | null
+          updated_at?: string
+          width_boards?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bowling_oil_patterns_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bowling_oil_patterns_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           club_id: string
