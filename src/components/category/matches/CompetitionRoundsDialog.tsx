@@ -22,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Trash2, Trophy, Target, BarChart3, Swords, Circle, Ship, Users, Droplet } from "lucide-react";
+import { Plus, Trash2, Trophy, Target, BarChart3, Swords, Circle, Ship, Users, Droplet, ArrowLeft } from "lucide-react";
 import { getStatsForSport, getStatCategories, getAggregatedStatsForSport, type StatField } from "@/lib/constants/sportStats";
 import { BowlingOilPatternSection } from "./BowlingOilPatternSection";
 import { BowlingScoreSheet } from "@/components/athlete-portal/BowlingScoreSheet";
@@ -152,6 +152,11 @@ export function CompetitionRoundsDialog({
   const openBowlingSheetForRound = (playerId: string, roundNumber: number) => {
     setBowlingSheetTarget({ playerId, roundNumber });
     setBowlingSheetOpen(true);
+  };
+
+  const closeBowlingSheet = () => {
+    setBowlingSheetOpen(false);
+    setBowlingSheetTarget(null);
   };
 
   // Get players in the lineup for this match
@@ -447,13 +452,84 @@ export function CompetitionRoundsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] flex flex-col overflow-hidden">
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] flex flex-col overflow-hidden relative">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             {isAviron ? <Ship className="h-5 w-5" /> : isJudo ? <Swords className="h-5 w-5" /> : <Circle className="h-5 w-5" />}
             Gestion des {roundLabelPlural}
           </DialogTitle>
         </DialogHeader>
+
+        {/* Bowling Score Sheet (Coach/Admin) - rendered as an overlay inside the same dialog
+            (nested Dialogs can fail to open depending on Radix focus/portal behavior). */}
+        {isBowling && bowlingSheetOpen && bowlingSheetTarget && (
+          <div className="absolute inset-0 z-50 flex flex-col bg-background">
+            <div className="flex items-center justify-between gap-3 px-6 py-4 border-b">
+              <div className="flex items-center gap-3 min-w-0">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9"
+                  onClick={closeBowlingSheet}
+                  aria-label="Retour"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div className="min-w-0">
+                  <p className="font-semibold truncate">
+                    Feuille de score – {roundLabel} {bowlingSheetTarget.roundNumber}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    Saisie X / / / 0-9, calcul automatique des stats
+                  </p>
+                </div>
+              </div>
+              <Button type="button" variant="outline" onClick={closeBowlingSheet}>
+                Fermer
+              </Button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-6">
+              <BowlingScoreSheet
+                onSave={(sheetStats) => {
+                  const target = bowlingSheetTarget;
+                  if (!target) return;
+                  const { playerId, roundNumber } = target;
+
+                  // Core
+                  updateRoundStat(playerId, roundNumber, "gameScore", sheetStats.totalScore);
+                  updateRoundStat(playerId, roundNumber, "strikes", sheetStats.strikes);
+                  updateRoundStat(playerId, roundNumber, "strikePercentage", sheetStats.strikePercentage);
+                  updateRoundStat(playerId, roundNumber, "spares", sheetStats.spares);
+                  updateRoundStat(playerId, roundNumber, "sparePercentage", sheetStats.sparePercentage);
+                  updateRoundStat(playerId, roundNumber, "openFrames", sheetStats.openFrames);
+
+                  // Splits
+                  updateRoundStat(playerId, roundNumber, "splitCount", sheetStats.splitCount);
+                  updateRoundStat(playerId, roundNumber, "splitConverted", sheetStats.splitConverted);
+                  updateRoundStat(playerId, roundNumber, "splitOnLastThrow", sheetStats.splitOnLastThrow);
+                  updateRoundStat(playerId, roundNumber, "splitConversionRate", sheetStats.splitPercentage);
+
+                  // Spare opportunities (for display/compat)
+                  updateRoundStat(playerId, roundNumber, "spareOpportunities", Math.max(0, 10 - sheetStats.strikes));
+
+                  // Advanced
+                  updateRoundStat(playerId, roundNumber, "pocketCount", sheetStats.pocketCount);
+                  updateRoundStat(playerId, roundNumber, "pocketPercentage", sheetStats.pocketPercentage);
+                  updateRoundStat(playerId, roundNumber, "singlePinCount", sheetStats.singlePinCount);
+                  updateRoundStat(playerId, roundNumber, "singlePinConverted", sheetStats.singlePinConverted);
+                  updateRoundStat(playerId, roundNumber, "singlePinPercentage", sheetStats.singlePinPercentage);
+                  updateRoundStat(playerId, roundNumber, "singlePinConversionRate", sheetStats.singlePinConversionRate);
+
+                  closeBowlingSheet();
+                  toast.success("Stats bowling remplies depuis la feuille de score");
+                }}
+                onCancel={closeBowlingSheet}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Player selector */}
         <div className="space-y-2 flex-shrink-0">
@@ -1298,64 +1374,6 @@ export function CompetitionRoundsDialog({
               </ScrollArea>
             </TabsContent>
           </Tabs>
-        )}
-
-        {/* Bowling Score Sheet (Coach/Admin) */}
-        {isBowling && (
-          <Dialog
-            open={bowlingSheetOpen}
-            onOpenChange={(o) => {
-              setBowlingSheetOpen(o);
-              if (!o) setBowlingSheetTarget(null);
-            }}
-          >
-            <DialogContent className="max-w-5xl h-[95vh] flex flex-col p-0">
-              <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
-                <DialogTitle>Feuille de score - {roundLabel}</DialogTitle>
-              </DialogHeader>
-              <div className="flex-1 overflow-y-auto px-6 pb-6">
-                <BowlingScoreSheet
-                  onSave={(sheetStats) => {
-                    if (!bowlingSheetTarget) return;
-                    const { playerId, roundNumber } = bowlingSheetTarget;
-
-                    // Core
-                    updateRoundStat(playerId, roundNumber, "gameScore", sheetStats.totalScore);
-                    updateRoundStat(playerId, roundNumber, "strikes", sheetStats.strikes);
-                    updateRoundStat(playerId, roundNumber, "strikePercentage", sheetStats.strikePercentage);
-                    updateRoundStat(playerId, roundNumber, "spares", sheetStats.spares);
-                    updateRoundStat(playerId, roundNumber, "sparePercentage", sheetStats.sparePercentage);
-                    updateRoundStat(playerId, roundNumber, "openFrames", sheetStats.openFrames);
-
-                    // Splits
-                    updateRoundStat(playerId, roundNumber, "splitCount", sheetStats.splitCount);
-                    updateRoundStat(playerId, roundNumber, "splitConverted", sheetStats.splitConverted);
-                    updateRoundStat(playerId, roundNumber, "splitOnLastThrow", sheetStats.splitOnLastThrow);
-                    updateRoundStat(playerId, roundNumber, "splitConversionRate", sheetStats.splitPercentage);
-
-                    // Spare opportunities (for display/compat)
-                    updateRoundStat(playerId, roundNumber, "spareOpportunities", Math.max(0, 10 - sheetStats.strikes));
-
-                    // Advanced
-                    updateRoundStat(playerId, roundNumber, "pocketCount", sheetStats.pocketCount);
-                    updateRoundStat(playerId, roundNumber, "pocketPercentage", sheetStats.pocketPercentage);
-                    updateRoundStat(playerId, roundNumber, "singlePinCount", sheetStats.singlePinCount);
-                    updateRoundStat(playerId, roundNumber, "singlePinConverted", sheetStats.singlePinConverted);
-                    updateRoundStat(playerId, roundNumber, "singlePinPercentage", sheetStats.singlePinPercentage);
-                    updateRoundStat(playerId, roundNumber, "singlePinConversionRate", sheetStats.singlePinConversionRate);
-
-                    setBowlingSheetOpen(false);
-                    setBowlingSheetTarget(null);
-                    toast.success("Stats bowling remplies depuis la feuille de score");
-                  }}
-                  onCancel={() => {
-                    setBowlingSheetOpen(false);
-                    setBowlingSheetTarget(null);
-                  }}
-                />
-              </div>
-            </DialogContent>
-          </Dialog>
         )}
 
         <div className="flex justify-end gap-2 pt-4 border-t flex-shrink-0 bg-background">
