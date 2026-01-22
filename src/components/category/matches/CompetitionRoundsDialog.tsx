@@ -762,8 +762,94 @@ export function CompetitionRoundsDialog({
                             </div>
                           )}
 
-                          {/* Stats for this round - organized by category */}
-                          {!isAviron && (
+                          {/* Bowling: Simplified stats per game */}
+                          {isBowling && (
+                            <div className="space-y-3">
+                              <div className="grid grid-cols-4 gap-2">
+                                <div className="col-span-1">
+                                  <Label className="text-xs font-medium">Score</Label>
+                                  <Input
+                                    type="number"
+                                    value={round.stats["gameScore"] || ""}
+                                    onChange={(e) => updateRoundStat(selectedPlayer.playerId, round.round_number, "gameScore", parseFloat(e.target.value) || 0)}
+                                    max={300}
+                                    placeholder="0-300"
+                                    className="h-8 text-center font-bold"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-xs">Strikes</Label>
+                                  <Input
+                                    type="number"
+                                    value={round.stats["strikes"] || ""}
+                                    onChange={(e) => updateRoundStat(selectedPlayer.playerId, round.round_number, "strikes", parseFloat(e.target.value) || 0)}
+                                    max={12}
+                                    placeholder="0"
+                                    className="h-8 text-center"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-xs">Spares</Label>
+                                  <Input
+                                    type="number"
+                                    value={round.stats["spares"] || ""}
+                                    onChange={(e) => updateRoundStat(selectedPlayer.playerId, round.round_number, "spares", parseFloat(e.target.value) || 0)}
+                                    max={10}
+                                    placeholder="0"
+                                    className="h-8 text-center"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-xs">Opens</Label>
+                                  <Input
+                                    type="number"
+                                    value={round.stats["openFrames"] || ""}
+                                    onChange={(e) => updateRoundStat(selectedPlayer.playerId, round.round_number, "openFrames", parseFloat(e.target.value) || 0)}
+                                    max={10}
+                                    placeholder="0"
+                                    className="h-8 text-center"
+                                  />
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-3 gap-2">
+                                <div>
+                                  <Label className="text-xs">Splits</Label>
+                                  <Input
+                                    type="number"
+                                    value={round.stats["splitCount"] || ""}
+                                    onChange={(e) => updateRoundStat(selectedPlayer.playerId, round.round_number, "splitCount", parseFloat(e.target.value) || 0)}
+                                    placeholder="0"
+                                    className="h-8 text-center"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-xs">% Strikes</Label>
+                                  <Input
+                                    type="number"
+                                    value={round.stats["strikePercentage"] || ""}
+                                    onChange={(e) => updateRoundStat(selectedPlayer.playerId, round.round_number, "strikePercentage", parseFloat(e.target.value) || 0)}
+                                    max={100}
+                                    placeholder="0"
+                                    className="h-8 text-center"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-xs">% Spares</Label>
+                                  <Input
+                                    type="number"
+                                    value={round.stats["sparePercentage"] || ""}
+                                    onChange={(e) => updateRoundStat(selectedPlayer.playerId, round.round_number, "sparePercentage", parseFloat(e.target.value) || 0)}
+                                    max={100}
+                                    placeholder="0"
+                                    className="h-8 text-center"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Stats for this round - organized by category (non-bowling, non-aviron) */}
+                          {!isAviron && !isBowling && (
                             <div className="space-y-3">
                               {statCategories.map(cat => {
                                 const categoryStats = sportStats.filter(s => s.category === cat.key);
@@ -849,6 +935,117 @@ export function CompetitionRoundsDialog({
                                   </div>
                                 )}
                               </div>
+                            ) : isBowling ? (
+                              // Bowling-specific summary with global stats
+                              <>
+                                {/* Main metrics */}
+                                <div className="grid grid-cols-4 gap-3 text-center">
+                                  <div className="p-3 rounded-lg bg-muted">
+                                    <p className="text-2xl font-bold">{total}</p>
+                                    <p className="text-xs text-muted-foreground">Parties</p>
+                                  </div>
+                                  <div className="p-3 rounded-lg bg-primary/10">
+                                    <p className="text-2xl font-bold text-primary">
+                                      {Math.max(...selectedPlayer.rounds.map(r => r.stats["gameScore"] || 0))}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">High Game</p>
+                                  </div>
+                                  <div className="p-3 rounded-lg bg-secondary/50">
+                                    <p className="text-2xl font-bold">
+                                      {(selectedPlayer.rounds.reduce((sum, r) => sum + (r.stats["gameScore"] || 0), 0) / total || 0).toFixed(1)}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">Moyenne</p>
+                                  </div>
+                                  <div className="p-3 rounded-lg bg-muted">
+                                    <p className="text-2xl font-bold">
+                                      {selectedPlayer.rounds.reduce((sum, r) => sum + (r.stats["gameScore"] || 0), 0)}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">Total Pins</p>
+                                  </div>
+                                </div>
+
+                                {/* Strikes and Spares totals */}
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="p-4 rounded-lg border bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/10">
+                                    <div className="flex items-center justify-between">
+                                      <div>
+                                        <p className="text-3xl font-bold text-amber-600">
+                                          {selectedPlayer.rounds.reduce((sum, r) => sum + (r.stats["strikes"] || 0), 0)}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">Strikes totaux</p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="text-lg font-semibold">
+                                          {((selectedPlayer.rounds.reduce((sum, r) => sum + (r.stats["strikePercentage"] || 0), 0) / total) || 0).toFixed(1)}%
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">Moy. % strikes</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="p-4 rounded-lg border bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/10">
+                                    <div className="flex items-center justify-between">
+                                      <div>
+                                        <p className="text-3xl font-bold text-blue-600">
+                                          {selectedPlayer.rounds.reduce((sum, r) => sum + (r.stats["spares"] || 0), 0)}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">Spares totaux</p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="text-lg font-semibold">
+                                          {((selectedPlayer.rounds.reduce((sum, r) => sum + (r.stats["sparePercentage"] || 0), 0) / total) || 0).toFixed(1)}%
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">Moy. % spares</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Other stats */}
+                                <div className="grid grid-cols-3 gap-3 text-center">
+                                  <div className="p-2 rounded border">
+                                    <p className="text-lg font-bold">{selectedPlayer.rounds.reduce((sum, r) => sum + (r.stats["openFrames"] || 0), 0)}</p>
+                                    <p className="text-xs text-muted-foreground">Open Frames</p>
+                                  </div>
+                                  <div className="p-2 rounded border">
+                                    <p className="text-lg font-bold">{selectedPlayer.rounds.reduce((sum, r) => sum + (r.stats["splitCount"] || 0), 0)}</p>
+                                    <p className="text-xs text-muted-foreground">Splits</p>
+                                  </div>
+                                  <div className="p-2 rounded border">
+                                    <p className="text-lg font-bold">{wins}/{losses}</p>
+                                    <p className="text-xs text-muted-foreground">V/D</p>
+                                  </div>
+                                </div>
+
+                                {/* Games list */}
+                                <div className="space-y-2">
+                                  <h4 className="font-medium">Détail des parties</h4>
+                                  <div className="space-y-1">
+                                    {selectedPlayer.rounds.map(round => (
+                                      <div key={round.round_number} className="flex items-center justify-between p-2 rounded border text-sm">
+                                        <div className="flex items-center gap-2">
+                                          <Badge variant="outline">
+                                            {phases.find(p => p.value === round.phase)?.label || `Partie ${round.round_number}`}
+                                          </Badge>
+                                          {round.opponent_name && (
+                                            <span className="text-muted-foreground">vs {round.opponent_name}</span>
+                                          )}
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                          <span className="font-mono font-bold">{round.stats["gameScore"] || 0}</span>
+                                          <span className="text-xs text-muted-foreground">
+                                            {round.stats["strikes"] || 0}X / {round.stats["spares"] || 0}/
+                                          </span>
+                                          {round.result && (
+                                            <Badge variant={round.result === "win" ? "default" : round.result === "loss" ? "destructive" : "secondary"}>
+                                              {round.result === "win" ? "V" : round.result === "loss" ? "D" : "N"}
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </>
                             ) : (
                               <div className="grid grid-cols-4 gap-3 text-center">
                                 <div className="p-3 rounded-lg bg-muted">
@@ -870,8 +1067,8 @@ export function CompetitionRoundsDialog({
                               </div>
                             )}
 
-                            {/* Aggregated stats by category (non-Aviron) */}
-                            {!isAviron && Object.keys(aggregated).length > 0 && (
+                            {/* Aggregated stats by category (non-Aviron, non-Bowling) */}
+                            {!isAviron && !isBowling && Object.keys(aggregated).length > 0 && (
                               <div className="space-y-3">
                                 <h4 className="font-medium">Statistiques cumulées</h4>
                                 {statCategories.map(cat => {
