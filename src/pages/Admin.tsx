@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
-import { Shield, Users, Building2, ArrowLeft, UserPlus, Trash2, Crown, CheckCircle2, XCircle, Clock, FileText, Gift, Copy, Link, Mail } from "lucide-react";
+import { Shield, Users, Building2, ArrowLeft, UserPlus, Trash2, Crown, CheckCircle2, XCircle, Clock, FileText, Gift, Copy, Link, Mail, ChevronDown, ChevronRight, FolderOpen } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { AuditLogsTab } from "@/components/admin/AuditLogsTab";
@@ -54,6 +54,7 @@ export default function Admin() {
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminName, setNewAdminName] = useState("");
   const [createdInvitationLink, setCreatedInvitationLink] = useState<string | null>(null);
+  const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
 
   // Check if current user is super admin
   const { data: isSuperAdmin, isLoading: checkingAdmin } = useQuery({
@@ -103,7 +104,7 @@ export default function Admin() {
     enabled: isSuperAdmin === true,
   });
 
-  // Fetch all clubs
+  // Fetch all clubs with categories
   const { data: clubs = [], isLoading: loadingClubs } = useQuery({
     queryKey: ["admin-clubs"],
     queryFn: async () => {
@@ -114,6 +115,21 @@ export default function Admin() {
       
       if (error) throw error;
       return data as AdminClub[];
+    },
+    enabled: isSuperAdmin === true,
+  });
+
+  // Fetch categories for all clubs (for expanded view)
+  const { data: allCategories = [] } = useQuery({
+    queryKey: ["admin-all-categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name, club_id, rugby_type, gender")
+        .order("name");
+      
+      if (error) throw error;
+      return data;
     },
     enabled: isSuperAdmin === true,
   });
@@ -518,49 +534,106 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
-          {/* Clubs Tab */}
+          {/* Clubs Tab - Grouped by User */}
           <TabsContent value="clubs">
             <Card>
               <CardHeader>
-                <CardTitle>Tous les clubs</CardTitle>
+                <CardTitle>Clubs par utilisateur</CardTitle>
                 <CardDescription>
-                  Liste de tous les clubs créés sur la plateforme
+                  Cliquez sur un utilisateur pour voir ses clubs et catégories (lecture seule)
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {loadingClubs ? (
+                {loadingClubs || loadingUsers ? (
                   <p className="text-muted-foreground">Chargement...</p>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nom du club</TableHead>
-                        <TableHead>Propriétaire</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Créé le</TableHead>
-                        <TableHead>Catégories</TableHead>
-                        <TableHead>Membres</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {clubs.map((club) => (
-                        <TableRow key={club.id}>
-                          <TableCell className="font-medium">{club.name}</TableCell>
-                          <TableCell>{club.owner_name || "Non renseigné"}</TableCell>
-                          <TableCell>{club.owner_email}</TableCell>
-                          <TableCell>
-                            {format(new Date(club.created_at), "dd MMM yyyy", { locale: fr })}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{club.category_count}</Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{club.member_count}</Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <div className="space-y-2">
+                    {users
+                      .filter(u => u.clubs_owned > 0)
+                      .map((u) => {
+                        const userClubs = clubs.filter(c => c.user_id === u.id);
+                        const isExpanded = expandedUsers.has(u.id);
+                        
+                        return (
+                          <div key={u.id} className="border rounded-lg overflow-hidden">
+                            <button
+                              onClick={() => {
+                                const newExpanded = new Set(expandedUsers);
+                                if (isExpanded) {
+                                  newExpanded.delete(u.id);
+                                } else {
+                                  newExpanded.add(u.id);
+                                }
+                                setExpandedUsers(newExpanded);
+                              }}
+                              className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left"
+                            >
+                              <div className="flex items-center gap-3">
+                                {isExpanded ? (
+                                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                                ) : (
+                                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                                )}
+                                <div>
+                                  <span className="font-medium">{u.full_name || "Non renseigné"}</span>
+                                  <span className="text-muted-foreground ml-2 text-sm">({u.email})</span>
+                                </div>
+                              </div>
+                              <Badge variant="secondary">{u.clubs_owned} club(s)</Badge>
+                            </button>
+                            
+                            {isExpanded && (
+                              <div className="border-t bg-muted/20 p-4 space-y-4">
+                                {userClubs.map((club) => {
+                                  const clubCategories = allCategories.filter(c => c.club_id === club.id);
+                                  
+                                  return (
+                                    <div key={club.id} className="bg-background rounded-lg border p-4">
+                                      <div className="flex items-center gap-2 mb-3">
+                                        <Building2 className="h-5 w-5 text-primary" />
+                                        <span className="font-semibold">{club.name}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          (créé le {format(new Date(club.created_at), "dd MMM yyyy", { locale: fr })})
+                                        </span>
+                                      </div>
+                                      
+                                      {clubCategories.length === 0 ? (
+                                        <p className="text-sm text-muted-foreground italic ml-7">
+                                          Aucune catégorie
+                                        </p>
+                                      ) : (
+                                        <div className="ml-7 space-y-1">
+                                          <p className="text-sm text-muted-foreground mb-2">
+                                            {clubCategories.length} catégorie(s) :
+                                          </p>
+                                          <div className="flex flex-wrap gap-2">
+                                            {clubCategories.map((cat) => (
+                                              <Badge key={cat.id} variant="outline" className="text-xs">
+                                                <FolderOpen className="h-3 w-3 mr-1" />
+                                                {cat.name}
+                                                <span className="ml-1 text-muted-foreground">
+                                                  ({cat.rugby_type})
+                                                </span>
+                                              </Badge>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    
+                    {users.filter(u => u.clubs_owned > 0).length === 0 && (
+                      <p className="text-muted-foreground text-center py-8">
+                        Aucun utilisateur n'a créé de club
+                      </p>
+                    )}
+                  </div>
                 )}
               </CardContent>
             </Card>

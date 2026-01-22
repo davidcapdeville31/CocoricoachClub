@@ -26,17 +26,20 @@ export default function Clubs() {
     }
   }, [user, authLoading, navigate]);
 
+  // Fetch only clubs owned by the current user
   const { data: clubs, isLoading } = useQuery({
-    queryKey: ["clubs"],
+    queryKey: ["my-clubs", user?.id],
     queryFn: async () => {
+      if (!user?.id) return [];
       const { data, error } = await supabase
         .from("clubs")
         .select("*")
+        .eq("user_id", user.id)
         .order("name");
       if (error) throw error;
       return data;
     },
-    enabled: !!user,
+    enabled: !!user?.id,
   });
 
   // Fetch categories where user is a direct member (not via club)
