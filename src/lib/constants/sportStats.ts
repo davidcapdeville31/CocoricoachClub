@@ -216,6 +216,9 @@ export const JUDO_AGGREGATED_STATS: StatField[] = [
 ];
 
 // Bowling stats - Per game statistics
+// RÈGLES SPÉCIFIQUES:
+// - % Spares = spares (hors split non-converti) / opportunités de spare. Si split converti → compte comme spare
+// - Splits comptabilisés: Ne pas compter les splits sur le 11e ou 12e lancer (dernière frame après 2 strikes)
 export const BOWLING_STATS: StatField[] = [
   // General / Competition
   { key: "gamesPlayed", label: "Parties jouées", shortLabel: "Parties", category: "general", type: "number" },
@@ -223,15 +226,20 @@ export const BOWLING_STATS: StatField[] = [
   
   // Score statistics (per game)
   { key: "gameScore", label: "Score de la partie", shortLabel: "Score", category: "scoring", type: "number", max: 300 },
-  { key: "strikes", label: "Nombre de strikes", shortLabel: "Strikes", category: "scoring", type: "number" },
-  { key: "spares", label: "Nombre de spares", shortLabel: "Spares", category: "scoring", type: "number" },
-  { key: "openFrames", label: "Open frames", shortLabel: "Opens", category: "scoring", type: "number" },
-  { key: "splitCount", label: "Nombre de splits", shortLabel: "Splits", category: "scoring", type: "number" },
+  { key: "strikes", label: "Nombre de strikes", shortLabel: "Strikes", category: "scoring", type: "number", max: 12 },
+  { key: "spares", label: "Nombre de spares (hors splits)", shortLabel: "Spares", category: "scoring", type: "number", max: 10 },
+  { key: "openFrames", label: "Open frames", shortLabel: "Opens", category: "scoring", type: "number", max: 10 },
   
-  // Precision statistics
+  // Split statistics (avec règles spécifiques)
+  { key: "splitCount", label: "Splits (hors 11e/12e lancer)", shortLabel: "Splits", category: "scoring", type: "number" },
+  { key: "splitConverted", label: "Splits convertis", shortLabel: "Splits Conv.", category: "scoring", type: "number" },
+  { key: "splitOnLastThrow", label: "Splits sur 11e/12e lancer (non comptés)", shortLabel: "Splits excl.", category: "scoring", type: "number" },
+  
+  // Precision statistics (calculés automatiquement)
   { key: "strikePercentage", label: "% de strikes", shortLabel: "% Strikes", category: "attack", type: "number", max: 100 },
-  { key: "sparePercentage", label: "% de spares", shortLabel: "% Spares", category: "attack", type: "number", max: 100 },
-  { key: "splitConversionRate", label: "Split conversion rate", shortLabel: "% Split Conv.", category: "attack", type: "number", max: 100 },
+  { key: "sparePercentage", label: "% de spares (hors splits)", shortLabel: "% Spares", category: "attack", type: "number", max: 100 },
+  { key: "splitConversionRate", label: "% conversion splits", shortLabel: "% Split Conv.", category: "attack", type: "number", max: 100 },
+  { key: "spareOpportunities", label: "Opportunités de spare", shortLabel: "Opp. Spare", category: "attack", type: "number" },
   { key: "pinsPerFrame", label: "Pins par frame", shortLabel: "Pins/Frame", category: "attack", type: "number" },
   { key: "targetHitRate", label: "Taux de touche de la cible", shortLabel: "% Cible", category: "attack", type: "number", max: 100 },
 ];
