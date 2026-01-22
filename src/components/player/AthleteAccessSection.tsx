@@ -3,8 +3,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Link2, Copy, Check, Trash2, RefreshCw, ExternalLink } from "lucide-react";
+import { Link2, Copy, Check, Trash2, RefreshCw, ExternalLink, Mail, Edit2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
@@ -20,6 +22,22 @@ export function AthleteAccessSection({ playerId, categoryId, playerName }: Athle
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [emailValue, setEmailValue] = useState("");
+
+  // Fetch player email
+  const { data: player } = useQuery({
+    queryKey: ["player-email", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("email")
+        .eq("id", playerId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const queryKey = ["athlete-access-tokens", playerId];
 
@@ -73,12 +91,40 @@ export function AthleteAccessSection({ playerId, categoryId, playerName }: Athle
     },
   });
 
+  const updateEmail = useMutation({
+    mutationFn: async (newEmail: string) => {
+      const { error } = await supabase
+        .from("players")
+        .update({ email: newEmail || null })
+        .eq("id", playerId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["player-email", playerId] });
+      queryClient.invalidateQueries({ queryKey: ["player", playerId] });
+      toast.success("Email mis à jour");
+      setIsEditingEmail(false);
+    },
+    onError: () => {
+      toast.error("Erreur lors de la mise à jour de l'email");
+    },
+  });
+
   const copyLink = (token: string, tokenId: string) => {
     const url = `${window.location.origin}/athlete-portal?token=${token}`;
     navigator.clipboard.writeText(url);
     setCopiedId(tokenId);
     toast.success("Lien copié dans le presse-papier");
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleStartEditEmail = () => {
+    setEmailValue(player?.email || "");
+    setIsEditingEmail(true);
+  };
+
+  const handleSaveEmail = () => {
+    updateEmail.mutate(emailValue.trim());
   };
 
   const activeToken = tokens?.[0];
@@ -94,7 +140,58 @@ export function AthleteAccessSection({ playerId, categoryId, playerName }: Athle
           Générez un lien pour que {playerName} puisse saisir ses propres données (RPE, statistiques de match)
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
+        {/* Email Section */}
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2">
+            <Mail className="h-4 w-4" />
+            Email de l'athlète
+          </Label>
+          {isEditingEmail ? (
+            <div className="flex gap-2">
+              <Input
+                type="email"
+                value={emailValue}
+                onChange={(e) => setEmailValue(e.target.value)}
+                placeholder="athlete@email.com"
+                className="flex-1"
+              />
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={handleSaveEmail}
+                disabled={updateEmail.isPending}
+              >
+                <Check className="h-4 w-4 text-primary" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setIsEditingEmail(false)}
+              >
+                <X className="h-4 w-4 text-destructive" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              {player?.email ? (
+                <span className="text-sm">{player.email}</span>
+              ) : (
+                <span className="text-sm text-muted-foreground italic">Non renseigné</span>
+              )}
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-6 w-6"
+                onClick={handleStartEditEmail}
+              >
+                <Edit2 className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Token Section */}
         {isLoading ? (
           <p className="text-muted-foreground text-sm">Chargement...</p>
         ) : activeToken ? (
