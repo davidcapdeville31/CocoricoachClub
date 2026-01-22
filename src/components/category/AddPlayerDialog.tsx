@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { playerSchema } from "@/lib/validations";
-import { ATHLETISME_DISCIPLINES, JUDO_WEIGHT_CATEGORIES, isAthletismeCategory, isJudoCategory, isIndividualSport } from "@/lib/constants/sportTypes";
+import { ATHLETISME_DISCIPLINES, JUDO_WEIGHT_CATEGORIES, AVIRON_ROLES, isAthletismeCategory, isJudoCategory, isIndividualSport } from "@/lib/constants/sportTypes";
 import { getPositionsForSport } from "@/lib/constants/sportPositions";
 
 interface AddPlayerDialogProps {
@@ -60,6 +60,7 @@ export function AddPlayerDialog({
   const sportType = category?.rugby_type || "XV";
   const isAthletics = category?.rugby_type ? isAthletismeCategory(category.rugby_type) : false;
   const isJudo = category?.rugby_type ? isJudoCategory(category.rugby_type) : false;
+  const isAviron = sportType.toLowerCase().includes("aviron");
   const needsDisciplineSelection = isAthletics || isJudo;
   const isTeamSport = !isIndividualSport(sportType);
   const positions = getPositionsForSport(sportType);
@@ -119,6 +120,12 @@ export function AddPlayerDialog({
     // Validate weight category for judo
     if (isJudo && !discipline) {
       setValidationError("Veuillez sélectionner une catégorie de poids");
+      return;
+    }
+
+    // Validate role for aviron
+    if (isAviron && !position) {
+      setValidationError("Veuillez sélectionner un rôle");
       return;
     }
 
@@ -225,6 +232,27 @@ export function AddPlayerDialog({
                 </Select>
                 <p className="text-xs text-muted-foreground">
                   Les athlètes pourront être comparés par catégorie de poids
+                </p>
+              </div>
+            )}
+
+            {isAviron && (
+              <div className="space-y-2">
+                <Label htmlFor="avironRole">Rôle *</Label>
+                <Select value={position} onValueChange={setPosition}>
+                  <SelectTrigger className="w-full bg-background">
+                    <SelectValue placeholder="Sélectionner un rôle" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border z-50 max-h-[300px]">
+                    {AVIRON_ROLES.map((role) => (
+                      <SelectItem key={role.value} value={role.value}>
+                        {role.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Le rôle dans l'embarcation
                 </p>
               </div>
             )}
