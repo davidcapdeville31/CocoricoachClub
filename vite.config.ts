@@ -17,9 +17,9 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
-        name: 'Rugby Strength Planner',
-        short_name: 'Rugby Prep',
-        description: 'Application de préparation physique pour le rugby',
+        name: 'CocoriCoach Perf\'Planner',
+        short_name: 'CocoriCoach',
+        description: 'Application de suivi de performance sportive - Planification, tests physiques et gestion des athlètes',
         theme_color: '#0F172A',
         background_color: '#0F172A',
         display: 'standalone',
