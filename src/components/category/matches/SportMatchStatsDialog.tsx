@@ -287,8 +287,8 @@ export function SportMatchStatsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[85vh]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
             Statistiques - {fieldConfig.label}
@@ -310,10 +310,9 @@ export function SportMatchStatsDialog({
                 <SelectItem 
                   key={player.playerId} 
                   value={player.playerId}
-                  textValue={player.playerName}
                 >
                   <div className="flex items-center gap-2 w-full">
-                    <span className="font-medium">{player.playerName}</span>
+                    <span>{player.playerName}</span>
                     {playerHasStats(player) && (
                       <Badge variant="secondary" className="text-xs px-1.5 py-0 ml-auto">
                         <Check className="h-3 w-3 mr-1" />
@@ -347,14 +346,14 @@ export function SportMatchStatsDialog({
         )}
 
         {selectedPlayer && (
-          <Tabs defaultValue="general" className="w-full">
-            <TabsList className={`grid w-full ${statCategories.length === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
+          <Tabs defaultValue="general" className="w-full flex-1 min-h-0 flex flex-col">
+            <TabsList className={`grid w-full flex-shrink-0 ${statCategories.length === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
               {statCategories.map(cat => (
                 <TabsTrigger key={cat.key} value={cat.key}>{cat.label}</TabsTrigger>
               ))}
             </TabsList>
 
-            <ScrollArea className="h-[300px] mt-4">
+            <ScrollArea className="flex-1 mt-4">
               {statCategories.map(cat => (
                 <TabsContent key={cat.key} value={cat.key} className="space-y-4 mt-0">
                   {cat.key === "general" && !isIndividual && (
@@ -420,7 +419,7 @@ export function SportMatchStatsDialog({
           </Tabs>
         )}
 
-        <div className="flex justify-end gap-2 pt-4 border-t">
+        <div className="flex justify-end gap-2 pt-4 border-t flex-shrink-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
