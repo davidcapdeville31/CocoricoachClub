@@ -93,11 +93,14 @@ export function AddMatchCalendarDialog({
 
   const COMPETITION_STAGES = [
     { value: "", label: "Aucune" },
-    { value: "poules", label: "Phase de poules" },
+    { value: "poules_1", label: "Phase de poules - Match 1" },
+    { value: "poules_2", label: "Phase de poules - Match 2" },
+    { value: "poules_3", label: "Phase de poules - Match 3" },
+    { value: "seiziemes", label: "Seizièmes de finale" },
     { value: "huitiemes", label: "Huitièmes de finale" },
     { value: "quarts", label: "Quarts de finale" },
     { value: "demies", label: "Demi-finales" },
-    { value: "petite_finale", label: "Petite finale" },
+    { value: "petite_finale", label: "Petite finale / 3ème place" },
     { value: "finale", label: "Finale" },
   ];
 
