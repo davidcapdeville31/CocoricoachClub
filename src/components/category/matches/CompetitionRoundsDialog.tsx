@@ -146,6 +146,15 @@ export function CompetitionRoundsDialog({
     return "rounds";
   };
   const [activeTab, setActiveTab] = useState<string>(getDefaultTab());
+
+  // Reset initialization flag when dialog opens/closes to allow fresh data load
+  useEffect(() => {
+    if (open) {
+      setIsDataInitialized(false);
+      setPlayerRoundsData([]);
+      setSelectedPlayerId("");
+    }
+  }, [open]);
   
   const phases = isAviron ? AVIRON_PHASES : isJudo ? JUDO_PHASES : isBowling ? BOWLING_PHASES : [];
   const roundLabel = isJudo ? "Combat" : isAviron ? "Course" : isBowling ? "Partie" : "Round";
