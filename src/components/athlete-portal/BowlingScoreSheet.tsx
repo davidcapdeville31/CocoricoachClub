@@ -235,11 +235,13 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames }: BowlingSc
           }
         }
 
-        // Count single pins - ONLY on first throw of each frame where result = 9 (leaving 1 pin)
-        // The logic: first throw = 9 pins means 1 pin left = single pin situation
-        if (throwData.isSinglePin) {
+        // Count single pins automatically - when first throw = 9 (leaving 1 pin)
+        // Reuse the existing isFirstThrowContext variable
+        if (isFirstThrowContext && throwData.value === "9") {
           singlePinCount++;
-          if (throwData.isSinglePinConverted) {
+          // Check if next throw is a spare (conversion)
+          const nextThrow = frame.throws[throwIndex + 1];
+          if (nextThrow?.value === "/") {
             singlePinConverted++;
           }
         }
