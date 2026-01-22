@@ -108,7 +108,11 @@ export function MatchLineupDialog({
   const saveLineup = useMutation({
     mutationFn: async () => {
       // Delete existing lineup
-      await supabase.from("match_lineups").delete().eq("match_id", matchId);
+      const { error: deleteError } = await supabase
+        .from("match_lineups")
+        .delete()
+        .eq("match_id", matchId);
+      if (deleteError) throw deleteError;
 
       // Insert new lineup
       const selectedPlayers = lineupData.filter((p) => p.isSelected);
@@ -124,9 +128,14 @@ export function MatchLineupDialog({
         );
         if (error) throw error;
       }
+
+      return { selectedCount: selectedPlayers.length };
     },
-    onSuccess: () => {
+    onSuccess: ({ selectedCount }) => {
+      // Keep counts/UI in sync immediately
+      queryClient.setQueryData(["match_lineup_count", matchId], selectedCount);
       queryClient.invalidateQueries({ queryKey: ["match_lineup", matchId] });
+      queryClient.invalidateQueries({ queryKey: ["match_lineup_count", matchId] });
       queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
       toast.success("Composition enregistrée");
       onOpenChange(false);
