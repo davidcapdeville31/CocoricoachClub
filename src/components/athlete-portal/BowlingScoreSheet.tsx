@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Target, TrendingUp, Save, X } from "lucide-react";
+import { Target, TrendingUp, Save, X, CheckCircle } from "lucide-react";
 
 interface ThrowData {
   value: string; // "X", "/", "0"-"9", "-" (miss)
@@ -66,6 +66,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames }: BowlingSc
   const [frames, setFrames] = useState<FrameData[]>(() => 
     initialFrames || Array.from({ length: 10 }, () => createEmptyFrame())
   );
+  const [isSaved, setIsSaved] = useState(false);
   const [stats, setStats] = useState<BowlingStats>({
     totalScore: 0,
     strikes: 0,
@@ -89,8 +90,10 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames }: BowlingSc
   useEffect(() => {
     if (initialFrames) {
       setFrames(initialFrames);
+      setIsSaved(true); // Mark as saved if we're viewing an existing game
     } else {
       setFrames(Array.from({ length: 10 }, () => createEmptyFrame()));
+      setIsSaved(false);
     }
   }, [initialFrames]);
 
@@ -484,6 +487,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames }: BowlingSc
   };
 
   const handleSave = () => {
+    setIsSaved(true);
     onSave(stats, frames);
   };
 
@@ -497,13 +501,24 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames }: BowlingSc
   };
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6 ${isSaved ? "opacity-80" : ""}`}>
+      {/* Saved indicator */}
+      {isSaved && (
+        <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-muted border border-border">
+          <CheckCircle className="h-5 w-5 text-primary" />
+          <span className="text-sm font-medium text-foreground">
+            Partie enregistrée - Consultation uniquement
+          </span>
+        </div>
+      )}
+
       {/* Classic Bowling Score Sheet */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
             <Target className="h-5 w-5" />
             Feuille de Score
+            {isSaved && <Badge variant="secondary" className="ml-2">Enregistrée</Badge>}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-2 sm:p-4">
@@ -568,8 +583,8 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames }: BowlingSc
                                   maxLength={1}
                                   value={value}
                                   onChange={(e) => handleThrowInput(frameIndex, throwIndex, e.target.value)}
-                                  disabled={!editable}
-                                  className={`w-full h-full text-center text-sm font-bold p-0 uppercase rounded-none border-0 focus:ring-1 focus:ring-primary ${getThrowCellStyle(value)}`}
+                                  disabled={!editable || isSaved}
+                                  className={`w-full h-full text-center text-sm font-bold p-0 uppercase rounded-none border-0 focus:ring-1 focus:ring-primary ${getThrowCellStyle(value)} ${isSaved ? "opacity-70" : ""}`}
                                   placeholder=""
                                 />
                               </div>
@@ -637,6 +652,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames }: BowlingSc
                               <Checkbox
                                 id={`pocket-${frameIndex}-${throwIndex}`}
                                 checked={throwData.isPocket}
+                                disabled={isSaved}
                                 onCheckedChange={() => handleCheckboxChange(frameIndex, throwIndex, "isPocket")}
                               />
                               <Label htmlFor={`pocket-${frameIndex}-${throwIndex}`} className="text-xs">
@@ -651,6 +667,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames }: BowlingSc
                               <Checkbox
                                 id={`split-${frameIndex}-${throwIndex}`}
                                 checked={throwData.isSplit}
+                                disabled={isSaved}
                                 onCheckedChange={() => handleCheckboxChange(frameIndex, throwIndex, "isSplit")}
                               />
                               <Label 
@@ -727,12 +744,14 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames }: BowlingSc
       <div className="flex gap-3">
         <Button variant="outline" className="flex-1" onClick={onCancel}>
           <X className="h-4 w-4 mr-2" />
-          Annuler
+          {isSaved ? "Fermer" : "Annuler"}
         </Button>
-        <Button className="flex-1" onClick={handleSave}>
-          <Save className="h-4 w-4 mr-2" />
-          Enregistrer
-        </Button>
+        {!isSaved && (
+          <Button className="flex-1" onClick={handleSave}>
+            <Save className="h-4 w-4 mr-2" />
+            Enregistrer
+          </Button>
+        )}
       </div>
     </div>
   );
