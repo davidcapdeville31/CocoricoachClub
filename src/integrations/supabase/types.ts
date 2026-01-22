@@ -1459,6 +1459,7 @@ export type Database = {
           effective_play_time: number | null
           event_type: string | null
           id: string
+          is_finalized: boolean | null
           is_home: boolean | null
           location: string | null
           longest_play_sequence: number | null
@@ -1481,6 +1482,7 @@ export type Database = {
           effective_play_time?: number | null
           event_type?: string | null
           id?: string
+          is_finalized?: boolean | null
           is_home?: boolean | null
           location?: string | null
           longest_play_sequence?: number | null
@@ -1503,6 +1505,7 @@ export type Database = {
           effective_play_time?: number | null
           event_type?: string | null
           id?: string
+          is_finalized?: boolean | null
           is_home?: boolean | null
           location?: string | null
           longest_play_sequence?: number | null

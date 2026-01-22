@@ -148,7 +148,7 @@ export function MatchCard({ match, categoryId }: MatchCardProps) {
     mutationFn: async (finalized: boolean) => {
       const { error } = await supabase
         .from("matches")
-        .update({ is_finalized: finalized })
+        .update({ is_finalized: finalized } as any)
         .eq("id", match.id);
       if (error) throw error;
     },
@@ -167,10 +167,16 @@ export function MatchCard({ match, categoryId }: MatchCardProps) {
 
   return (
     <>
-      <div className="p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors">
+      <div className={`p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors ${isFinalized ? 'border-primary/50 bg-primary/5' : ''}`}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              {isFinalized && (
+                <Badge variant="default" className="text-xs bg-primary">
+                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                  Finalisé
+                </Badge>
+              )}
               {!isIndividual && (
                 <Badge variant={match.is_home ? "default" : "secondary"} className="text-xs">
                   {match.is_home ? (
@@ -180,7 +186,7 @@ export function MatchCard({ match, categoryId }: MatchCardProps) {
                   )}
                 </Badge>
               )}
-              {isPast && (
+              {isPast && !isFinalized && (
                 <Badge variant="outline" className="text-xs">
                   Terminé
                 </Badge>
@@ -298,55 +304,78 @@ export function MatchCard({ match, categoryId }: MatchCardProps) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              onClick={() => setIsLineupOpen(true)}
-            >
-              <Users className="h-4 w-4" />
-              {isIndividual ? `Participants (${lineupCount})` : `Compo (${lineupCount})`}
-            </Button>
-            {/* Show rounds button for Judo, Bowling, and Athletics */}
-            {(sportType.toLowerCase().includes("judo") || 
-              sportType.toLowerCase().includes("bowling") ||
-              sportType.toLowerCase().includes("athletisme") ||
-              sportType.toLowerCase().includes("athlétisme")) && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={() => setIsRoundsOpen(true)}
-              >
-                <Swords className="h-4 w-4" />
-                {sportType.toLowerCase().includes("judo") ? "Combats" : 
-                 sportType.toLowerCase().includes("bowling") ? "Parties" : "Courses"}
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              onClick={() => setIsStatsOpen(true)}
-            >
-              <BarChart3 className="h-4 w-4" />
-              Stats
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => {
-                if (confirm(isIndividual ? "Supprimer cette compétition ?" : "Supprimer ce match ?")) {
-                  deleteMatch.mutate();
-                }
-              }}
-            >
-              <Trash2 className="h-4 w-4 text-destructive" />
-            </Button>
+            {/* Actions dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Settings className="h-4 w-4" />
+                  Actions
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => setIsEditOpen(true)}>
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Modifier
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setIsLineupOpen(true)}>
+                  <Users className="h-4 w-4 mr-2" />
+                  {isIndividual ? `Participants (${lineupCount})` : `Composition (${lineupCount})`}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setIsStatsOpen(true)}>
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Statistiques
+                </DropdownMenuItem>
+                {(sportType.toLowerCase().includes("judo") || 
+                  sportType.toLowerCase().includes("bowling") ||
+                  sportType.toLowerCase().includes("athletisme") ||
+                  sportType.toLowerCase().includes("athlétisme") ||
+                  sportType.toLowerCase().includes("aviron")) && (
+                  <DropdownMenuItem onClick={() => setIsRoundsOpen(true)}>
+                    <Swords className="h-4 w-4 mr-2" />
+                    {sportType.toLowerCase().includes("judo") ? "Combats" : 
+                     sportType.toLowerCase().includes("bowling") ? "Parties" : 
+                     sportType.toLowerCase().includes("aviron") ? "Courses" : "Courses"}
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                {isFinalized ? (
+                  <DropdownMenuItem onClick={() => finalizeMatch.mutate(false)}>
+                    <X className="h-4 w-4 mr-2" />
+                    Réouvrir
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem 
+                    onClick={() => finalizeMatch.mutate(true)}
+                    className="text-primary"
+                  >
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Finaliser
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => {
+                    if (confirm(isIndividual ? "Supprimer cette compétition ?" : "Supprimer ce match ?")) {
+                      deleteMatch.mutate();
+                    }
+                  }}
+                  className="text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Supprimer
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
+
+      <EditMatchDialog
+        open={isEditOpen}
+        onOpenChange={setIsEditOpen}
+        match={match}
+        sportType={sportType}
+      />
 
       <MatchLineupDialog
         open={isLineupOpen}
