@@ -30,12 +30,7 @@ import { getDisciplineLabel } from "@/lib/constants/athleticProfiles";
 import { isAthletismeCategory, isJudoCategory, isIndividualSport } from "@/lib/constants/sportTypes";
 import { getPositionsForSport } from "@/lib/constants/sportPositions";
 
-// Aviron roles
-const AVIRON_ROLES = [
-  { value: "barreur", label: "Barreur" },
-  { value: "rameur", label: "Rameur" },
-  { value: "chef_nage", label: "Chef de nage" },
-];
+import { AVIRON_ROLES } from "@/lib/constants/sportTypes";
 
 function getAvironRoleLabel(role: string | null): string {
   if (!role) return "";
