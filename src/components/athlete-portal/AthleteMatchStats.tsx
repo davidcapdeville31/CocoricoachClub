@@ -29,23 +29,30 @@ interface Match {
   score_away: number | null;
 }
 
+interface FrameData {
+  throws: { value: string; pins: number; isPocket: boolean; isSplit: boolean; isSinglePin: boolean; isSinglePinConverted: boolean; }[];
+  score: number | null;
+  cumulativeScore: number | null;
+}
+
 interface BowlingGame {
   gameNumber: number;
   score: number;
-  strikes: number;
-  spares: number;
-  splitCount: number;
-  splitConverted: number;
-  splitOnLastThrow: number;
-  singlePinCount: number;
-  singlePinConverted: number;
-  pocketCount: number;
+  frames: FrameData[];
   strikePercentage: number;
   sparePercentage: number;
   splitPercentage: number;
   singlePinConversionRate: number;
   pocketPercentage: number;
   openFrames: number;
+  // Keep raw counts for calculations
+  strikes: number;
+  spares: number;
+  splitCount: number;
+  splitConverted: number;
+  singlePinCount: number;
+  singlePinConverted: number;
+  pocketCount: number;
 }
 
 export function AthleteMatchStats({ token, playerId, categoryId, sportType }: AthleteMatchStatsProps) {
@@ -55,6 +62,7 @@ export function AthleteMatchStats({ token, playerId, categoryId, sportType }: At
   const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showBowlingSheet, setShowBowlingSheet] = useState(false);
+  const [editingGameIndex, setEditingGameIndex] = useState<number | null>(null);
   const [bowlingGames, setBowlingGames] = useState<BowlingGame[]>([]);
   const [stats, setStats] = useState({
     minutes_played: "",
@@ -231,19 +239,26 @@ export function AthleteMatchStats({ token, playerId, categoryId, sportType }: At
                 {bowlingGames.map((game, index) => (
                   <div
                     key={index}
-                    className="p-4 rounded-lg border bg-muted/30"
+                    className="p-4 rounded-lg border bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => {
+                      setEditingGameIndex(index);
+                      setShowBowlingSheet(true);
+                    }}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <Badge variant="secondary">Partie {game.gameNumber}</Badge>
-                      <span className="text-2xl font-bold text-primary">{game.score}</span>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">Partie {game.gameNumber}</Badge>
+                        <span className="text-xs text-muted-foreground">(cliquer pour modifier)</span>
+                      </div>
+                      <span className="text-2xl font-bold text-muted-foreground">{game.score}</span>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
-                      <div>Strikes: {game.strikes} ({game.strikePercentage}%)</div>
-                      <div>Spares: {game.spares} ({game.sparePercentage}%)</div>
-                      <div>Open: {game.openFrames}</div>
-                      <div>Splits: {game.splitConverted}/{game.splitCount}</div>
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-xs text-muted-foreground">
+                      <div>Strikes: {game.strikePercentage}%</div>
+                      <div>Spares: {game.sparePercentage}%</div>
+                      <div>Splits: {game.splitPercentage}%</div>
                       <div>Poche: {game.pocketPercentage}%</div>
                       <div>QS conv.: {game.singlePinConversionRate}%</div>
+                      <div>Open: {game.openFrames}</div>
                     </div>
                   </div>
                 ))}
@@ -303,22 +318,30 @@ export function AthleteMatchStats({ token, playerId, categoryId, sportType }: At
       )}
 
       {/* Bowling Score Sheet Dialog */}
-      <Dialog open={showBowlingSheet} onOpenChange={setShowBowlingSheet}>
+      <Dialog open={showBowlingSheet} onOpenChange={(open) => {
+        setShowBowlingSheet(open);
+        if (!open) setEditingGameIndex(null);
+      }}>
         <DialogContent className="max-w-4xl h-[95vh] flex flex-col p-0">
           <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
-            <DialogTitle>Partie {bowlingGames.length + 1}</DialogTitle>
+            <DialogTitle>
+              {editingGameIndex !== null 
+                ? `Modifier la partie ${editingGameIndex + 1}` 
+                : `Partie ${bowlingGames.length + 1}`}
+            </DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-6 pb-6">
             <BowlingScoreSheet
-              onSave={(stats) => {
-                const newGame: BowlingGame = {
-                  gameNumber: bowlingGames.length + 1,
+              initialFrames={editingGameIndex !== null ? bowlingGames[editingGameIndex]?.frames : undefined}
+              onSave={(stats, frames) => {
+                const gameData: BowlingGame = {
+                  gameNumber: editingGameIndex !== null ? editingGameIndex + 1 : bowlingGames.length + 1,
                   score: stats.totalScore,
+                  frames: frames,
                   strikes: stats.strikes,
                   spares: stats.spares,
                   splitCount: stats.splitCount,
                   splitConverted: stats.splitConverted,
-                  splitOnLastThrow: stats.splitOnLastThrow,
                   singlePinCount: stats.singlePinCount,
                   singlePinConverted: stats.singlePinConverted,
                   pocketCount: stats.pocketCount,
@@ -329,11 +352,21 @@ export function AthleteMatchStats({ token, playerId, categoryId, sportType }: At
                   pocketPercentage: stats.pocketPercentage,
                   openFrames: stats.openFrames,
                 };
-                setBowlingGames(prev => [...prev, newGame]);
+                
+                if (editingGameIndex !== null) {
+                  setBowlingGames(prev => prev.map((g, i) => i === editingGameIndex ? gameData : g));
+                  toast.success(`Partie ${gameData.gameNumber} modifiée: ${gameData.score} points`);
+                } else {
+                  setBowlingGames(prev => [...prev, gameData]);
+                  toast.success(`Partie ${gameData.gameNumber} enregistrée: ${gameData.score} points`);
+                }
                 setShowBowlingSheet(false);
-                toast.success(`Partie ${newGame.gameNumber} enregistrée: ${newGame.score} points`);
+                setEditingGameIndex(null);
               }}
-              onCancel={() => setShowBowlingSheet(false)}
+              onCancel={() => {
+                setShowBowlingSheet(false);
+                setEditingGameIndex(null);
+              }}
             />
           </div>
         </DialogContent>
