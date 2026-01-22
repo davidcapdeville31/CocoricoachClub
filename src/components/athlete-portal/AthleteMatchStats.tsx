@@ -332,6 +332,7 @@ export function AthleteMatchStats({ token, playerId, categoryId, sportType }: At
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-6 pb-6">
             <BowlingScoreSheet
+              key={editingGameIndex !== null ? `edit-${editingGameIndex}` : `new-${bowlingGames.length}`}
               initialFrames={editingGameIndex !== null ? bowlingGames[editingGameIndex]?.frames : undefined}
               onSave={(stats, frames) => {
                 const gameData: BowlingGame = {
