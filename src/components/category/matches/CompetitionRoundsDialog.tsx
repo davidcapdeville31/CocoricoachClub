@@ -22,8 +22,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Trash2, Trophy, Target, BarChart3, Swords, Circle, Ship, Users } from "lucide-react";
+import { Plus, Trash2, Trophy, Target, BarChart3, Swords, Circle, Ship, Users, Droplet } from "lucide-react";
 import { getStatsForSport, getStatCategories, getAggregatedStatsForSport, type StatField } from "@/lib/constants/sportStats";
+import { BowlingOilPatternSection } from "./BowlingOilPatternSection";
 
 interface CompetitionRoundsDialogProps {
   open: boolean;
@@ -119,7 +120,6 @@ export function CompetitionRoundsDialog({
 }: CompetitionRoundsDialogProps) {
   const [playerRoundsData, setPlayerRoundsData] = useState<PlayerRounds[]>([]);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<string>("crew");
   const queryClient = useQueryClient();
 
   const sportStats = getStatsForSport(sportType);
@@ -128,6 +128,14 @@ export function CompetitionRoundsDialog({
   const isJudo = sportType.toLowerCase().includes("judo");
   const isBowling = sportType.toLowerCase().includes("bowling");
   const isAviron = sportType.toLowerCase().includes("aviron");
+  
+  // Set default active tab based on sport type
+  const getDefaultTab = () => {
+    if (isAviron) return "crew";
+    if (isBowling) return "oil";
+    return "rounds";
+  };
+  const [activeTab, setActiveTab] = useState<string>(getDefaultTab());
   
   const phases = isAviron ? AVIRON_PHASES : isJudo ? JUDO_PHASES : isBowling ? BOWLING_PHASES : [];
   const roundLabel = isJudo ? "Combat" : isAviron ? "Course" : isBowling ? "Partie" : "Round";
@@ -465,11 +473,17 @@ export function CompetitionRoundsDialog({
 
         {selectedPlayer && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 min-h-0 flex flex-col">
-            <TabsList className={`grid w-full ${isAviron ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            <TabsList className={`grid w-full ${isAviron ? 'grid-cols-3' : isBowling ? 'grid-cols-3' : 'grid-cols-2'}`}>
               {isAviron && (
                 <TabsTrigger value="crew" className="gap-2">
                   <Users className="h-4 w-4" />
                   Équipage
+                </TabsTrigger>
+              )}
+              {isBowling && (
+                <TabsTrigger value="oil" className="gap-2">
+                  <Droplet className="h-4 w-4" />
+                  Huilage
                 </TabsTrigger>
               )}
               <TabsTrigger value="rounds" className="gap-2">
@@ -544,6 +558,16 @@ export function CompetitionRoundsDialog({
                     </div>
                   </CardContent>
                 </Card>
+              </TabsContent>
+            )}
+
+            {/* Oil Pattern Tab (Bowling only) */}
+            {isBowling && (
+              <TabsContent value="oil" className="mt-0">
+                <BowlingOilPatternSection
+                  matchId={matchId}
+                  categoryId={categoryId}
+                />
               </TabsContent>
             )}
 
