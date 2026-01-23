@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { GroupedTrainingTypeSelect } from "@/components/category/sessions/GroupedTrainingTypeSelect";
+import { CustomTrainingTypeSelect } from "@/components/category/sessions/CustomTrainingTypeSelect";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -74,8 +74,6 @@ export function AddSessionDialog({
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [type, setType] = useState("");
-  const [customType, setCustomType] = useState("");
-  const [showCustomInput, setShowCustomInput] = useState(false);
   const [intensity, setIntensity] = useState("");
   const [notes, setNotes] = useState("");
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
@@ -181,7 +179,7 @@ export function AddSessionDialog({
           session_date: date,
           session_start_time: startTime || null,
           session_end_time: endTime || null,
-          training_type: effectiveType,
+          training_type: type,
           intensity: intensity ? parseInt(intensity) : null,
           notes: notes || null,
         }])
@@ -260,8 +258,6 @@ export function AddSessionDialog({
     setStartTime("");
     setEndTime("");
     setType("");
-    setCustomType("");
-    setShowCustomInput(false);
     setIntensity("");
     setNotes("");
     setSelectedPlayers([]);
@@ -285,7 +281,7 @@ export function AddSessionDialog({
       return;
     }
     
-    const hasValidType = effectiveType && effectiveType.trim().length > 0;
+    const hasValidType = type && type.trim().length > 0;
     if (date && hasValidType) {
       addSession.mutate();
     } else if (!hasValidType) {
@@ -352,21 +348,11 @@ export function AddSessionDialog({
 
   // Handle type change to auto-add empty exercise
   const handleTypeChange = (newType: string) => {
-    if (newType === "_custom") {
-      setShowCustomInput(true);
-      setType("");
-    } else {
-      setShowCustomInput(false);
-      setType(newType);
-      setCustomType("");
-      if (trainingTypeHasExercises(newType) && exercises.length === 0) {
-        setExercises([emptyExercise(0)]);
-      }
+    setType(newType);
+    if (trainingTypeHasExercises(newType) && exercises.length === 0) {
+      setExercises([emptyExercise(0)]);
     }
   };
-
-  // Get the actual training type to use (custom or selected)
-  const effectiveType = showCustomInput && customType.trim() ? customType.trim() : type;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -412,36 +398,14 @@ export function AddSessionDialog({
 
               <div className="space-y-2">
                 <Label htmlFor="type">Type d'entraînement *</Label>
-                {!showCustomInput ? (
-                  <GroupedTrainingTypeSelect
-                    value={type}
-                    onValueChange={handleTypeChange}
-                    sportType={sportType}
-                    showCustomOption={true}
-                    showExerciseIcon={true}
-                    placeholder="Sélectionner un type"
-                  />
-                ) : (
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Nom du type d'entraînement..."
-                      value={customType}
-                      onChange={(e) => setCustomType(e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => {
-                        setShowCustomInput(false);
-                        setCustomType("");
-                      }}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
+                <CustomTrainingTypeSelect
+                  value={type}
+                  onValueChange={handleTypeChange}
+                  sportType={sportType}
+                  categoryId={categoryId}
+                  showExerciseIcon={true}
+                  placeholder="Sélectionner un type"
+                />
               </div>
 
               <div className="space-y-2">
@@ -810,7 +774,7 @@ export function AddSessionDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Annuler
             </Button>
-            <Button type="submit" disabled={!date || (!type && !customType.trim()) || addSession.isPending}>
+            <Button type="submit" disabled={!date || !type.trim() || addSession.isPending}>
               {addSession.isPending ? "Ajout..." : "Ajouter"}
             </Button>
           </DialogFooter>

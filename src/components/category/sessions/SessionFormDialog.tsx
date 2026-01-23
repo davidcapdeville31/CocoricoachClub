@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { GroupedTrainingTypeSelect } from "@/components/category/sessions/GroupedTrainingTypeSelect";
+import { CustomTrainingTypeSelect } from "@/components/category/sessions/CustomTrainingTypeSelect";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -1600,10 +1600,11 @@ export function SessionFormDialog({
 
                     <div className="space-y-2">
                       <Label htmlFor="type">Type d'entraînement *</Label>
-                      <GroupedTrainingTypeSelect
+                      <CustomTrainingTypeSelect
                         value={type}
                         onValueChange={setType}
                         sportType={sportType}
+                        categoryId={categoryId}
                         required={true}
                         placeholder="Sélectionner un type"
                       />
