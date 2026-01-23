@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { getTrainingTypesForSport } from "@/lib/constants/trainingTypes";
-import { GroupedTrainingTypeSelect } from "@/components/category/sessions/GroupedTrainingTypeSelect";
+import { CustomTrainingTypeSelect } from "@/components/category/sessions/CustomTrainingTypeSelect";
 
 interface Session {
   id: string;
@@ -168,10 +168,11 @@ export function EditSessionDialog({
 
             <div className="space-y-2">
               <Label htmlFor="edit-type">Type d'entraînement *</Label>
-              <GroupedTrainingTypeSelect
+              <CustomTrainingTypeSelect
                 value={type}
                 onValueChange={setType}
                 sportType={category?.rugby_type}
+                categoryId={categoryId}
                 required={true}
                 placeholder="Sélectionner un type"
               />
