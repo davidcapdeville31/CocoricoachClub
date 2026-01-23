@@ -18,15 +18,39 @@ export interface TrainingTypeCategory {
   forSports?: string[];
 }
 
-// Athletics training type categories
-export const ATHLETISME_TRAINING_CATEGORIES: TrainingTypeCategory[] = [
+// All sport training categories for grouped display
+export const SPORT_TRAINING_CATEGORIES: TrainingTypeCategory[] = [
+  // Rugby
+  { key: "rugby", label: "Rugby", forSports: ["rugby"] },
+  // Football
+  { key: "football", label: "Football", forSports: ["football"] },
+  // Handball
+  { key: "handball", label: "Handball", forSports: ["handball"] },
+  // Volleyball
+  { key: "volleyball", label: "Volleyball", forSports: ["volleyball"] },
+  // Basketball
+  { key: "basketball", label: "Basketball", forSports: ["basketball"] },
+  // Aviron
+  { key: "aviron", label: "Aviron", forSports: ["aviron"] },
+  // Judo
+  { key: "judo", label: "Judo", forSports: ["judo"] },
+  // Bowling
+  { key: "bowling", label: "Bowling", forSports: ["bowling"] },
+  // Athletics categories
   { key: "athle_sprint", label: "Sprint / Vitesse", forSports: ["athletisme"] },
   { key: "athle_haies", label: "Haies", forSports: ["athletisme"] },
   { key: "athle_demifond", label: "Demi-fond / Fond", forSports: ["athletisme"] },
   { key: "athle_sauts", label: "Sauts", forSports: ["athletisme"] },
   { key: "athle_lancers", label: "Lancers", forSports: ["athletisme"] },
   { key: "athle_general", label: "Général / Polyvalent", forSports: ["athletisme"] },
+  // Common to all sports
+  { key: "common", label: "Commun", forSports: [] },
 ];
+
+// Legacy alias for backwards compatibility
+export const ATHLETISME_TRAINING_CATEGORIES = SPORT_TRAINING_CATEGORIES.filter(
+  c => c.forSports?.includes("athletisme")
+);
 
 // Helper to extract base sport
 function getBaseSport(sportType: string): string {
@@ -45,63 +69,78 @@ function getBaseSport(sportType: string): string {
 
 // All available training types
 export const ALL_TRAINING_TYPES: TrainingTypeOption[] = [
-  // Team sports specific
-  { value: "collectif", label: "Collectif", hasExercises: false, forTeamSports: true, forIndividualSports: false },
-  { value: "tactique", label: "Tactique", hasExercises: false, forTeamSports: true, forIndividualSports: false },
-  { value: "opposition", label: "Opposition", hasExercises: false, forTeamSports: true, forIndividualSports: false },
-  { value: "video", label: "Analyse Vidéo", hasExercises: false, forTeamSports: true, forIndividualSports: true },
+  // Rugby specific (with category)
+  { value: "collectif", label: "Collectif", hasExercises: false, forSports: ["rugby"], category: "rugby" },
+  { value: "tactique", label: "Tactique", hasExercises: false, forSports: ["rugby"], category: "rugby" },
+  { value: "opposition", label: "Opposition", hasExercises: false, forSports: ["rugby"], category: "rugby" },
+  { value: "touches", label: "Touches", hasExercises: false, forSports: ["rugby"], category: "rugby" },
+  { value: "melees", label: "Mêlées", hasExercises: false, forSports: ["rugby"], category: "rugby" },
+  { value: "placages", label: "Placages", hasExercises: false, forSports: ["rugby"], category: "rugby" },
+  { value: "jeu_au_pied", label: "Jeu au Pied", hasExercises: false, forSports: ["rugby"], category: "rugby" },
+  { value: "defence_line", label: "Ligne Défensive", hasExercises: false, forSports: ["rugby"], category: "rugby" },
+  { value: "attack_patterns", label: "Combinaisons Offensives", hasExercises: false, forSports: ["rugby"], category: "rugby" },
   
-  // Individual sports specific (common)
-  { value: "individuel", label: "Entraînement Individuel", hasExercises: false, forTeamSports: false, forIndividualSports: true },
-  { value: "competition_training", label: "Simulation Compétition", hasExercises: false, forTeamSports: false, forIndividualSports: true },
+  // Football specific (with category)
+  { value: "football_collectif", label: "Collectif", hasExercises: false, forSports: ["football"], category: "football" },
+  { value: "football_tactique", label: "Travail Tactique", hasExercises: false, forSports: ["football"], category: "football" },
+  { value: "football_possession", label: "Conservation/Possession", hasExercises: false, forSports: ["football"], category: "football" },
+  { value: "football_finition", label: "Finition", hasExercises: false, forSports: ["football"], category: "football" },
+  { value: "football_gardien", label: "Entraînement Gardiens", hasExercises: false, forSports: ["football"], category: "football" },
+  { value: "football_coup_pied", label: "Coups de pied arrêtés", hasExercises: false, forSports: ["football"], category: "football" },
+  { value: "football_opposition", label: "Opposition", hasExercises: false, forSports: ["football"], category: "football" },
+  { value: "football_technique", label: "Technique Individuelle", hasExercises: false, forSports: ["football"], category: "football" },
   
-  // Football specific
-  { value: "football_tactique", label: "Travail Tactique", hasExercises: false, forSports: ["football"] },
-  { value: "football_possession", label: "Conservation/Possession", hasExercises: false, forSports: ["football"] },
-  { value: "football_finition", label: "Finition", hasExercises: false, forSports: ["football"] },
-  { value: "football_gardien", label: "Entraînement Gardiens", hasExercises: false, forSports: ["football"] },
-  { value: "football_coup_pied", label: "Coups de pied arrêtés", hasExercises: false, forSports: ["football"] },
+  // Handball specific (with category)
+  { value: "handball_collectif", label: "Collectif", hasExercises: false, forSports: ["handball"], category: "handball" },
+  { value: "handball_attaque", label: "Travail Attaque", hasExercises: false, forSports: ["handball"], category: "handball" },
+  { value: "handball_defense", label: "Travail Défense", hasExercises: false, forSports: ["handball"], category: "handball" },
+  { value: "handball_tir", label: "Travail de Tir", hasExercises: false, forSports: ["handball"], category: "handball" },
+  { value: "handball_gardien", label: "Entraînement Gardiens", hasExercises: false, forSports: ["handball"], category: "handball" },
+  { value: "handball_contre_attaque", label: "Contre-attaque", hasExercises: false, forSports: ["handball"], category: "handball" },
+  { value: "handball_tactique", label: "Tactique", hasExercises: false, forSports: ["handball"], category: "handball" },
   
-  // Handball specific
-  { value: "handball_attaque", label: "Travail Attaque", hasExercises: false, forSports: ["handball"] },
-  { value: "handball_defense", label: "Travail Défense", hasExercises: false, forSports: ["handball"] },
-  { value: "handball_tir", label: "Travail de Tir", hasExercises: false, forSports: ["handball"] },
-  { value: "handball_gardien", label: "Entraînement Gardiens", hasExercises: false, forSports: ["handball"] },
-  { value: "handball_contre_attaque", label: "Contre-attaque", hasExercises: false, forSports: ["handball"] },
+  // Volleyball specific (with category)
+  { value: "volleyball_collectif", label: "Collectif", hasExercises: false, forSports: ["volleyball"], category: "volleyball" },
+  { value: "volleyball_service", label: "Travail de Service", hasExercises: false, forSports: ["volleyball"], category: "volleyball" },
+  { value: "volleyball_reception", label: "Réception", hasExercises: false, forSports: ["volleyball"], category: "volleyball" },
+  { value: "volleyball_attaque", label: "Attaque/Spike", hasExercises: false, forSports: ["volleyball"], category: "volleyball" },
+  { value: "volleyball_block", label: "Travail au Bloc", hasExercises: false, forSports: ["volleyball"], category: "volleyball" },
+  { value: "volleyball_defense", label: "Défense/Dig", hasExercises: false, forSports: ["volleyball"], category: "volleyball" },
+  { value: "volleyball_tactique", label: "Tactique", hasExercises: false, forSports: ["volleyball"], category: "volleyball" },
   
-  // Volleyball specific
-  { value: "volleyball_service", label: "Travail de Service", hasExercises: false, forSports: ["volleyball"] },
-  { value: "volleyball_reception", label: "Réception", hasExercises: false, forSports: ["volleyball"] },
-  { value: "volleyball_attaque", label: "Attaque/Spike", hasExercises: false, forSports: ["volleyball"] },
-  { value: "volleyball_block", label: "Travail au Bloc", hasExercises: false, forSports: ["volleyball"] },
-  { value: "volleyball_defense", label: "Défense/Dig", hasExercises: false, forSports: ["volleyball"] },
+  // Basketball specific (with category)
+  { value: "basketball_collectif", label: "Collectif", hasExercises: false, forSports: ["basketball"], category: "basketball" },
+  { value: "basketball_shoot", label: "Travail de Tir", hasExercises: false, forSports: ["basketball"], category: "basketball" },
+  { value: "basketball_dribble", label: "Dribble/Ballhandling", hasExercises: false, forSports: ["basketball"], category: "basketball" },
+  { value: "basketball_defense", label: "Travail Défensif", hasExercises: false, forSports: ["basketball"], category: "basketball" },
+  { value: "basketball_pick_roll", label: "Pick & Roll", hasExercises: false, forSports: ["basketball"], category: "basketball" },
+  { value: "basketball_transition", label: "Transition", hasExercises: false, forSports: ["basketball"], category: "basketball" },
+  { value: "basketball_tactique", label: "Tactique", hasExercises: false, forSports: ["basketball"], category: "basketball" },
   
-  // Basketball specific
-  { value: "basketball_shoot", label: "Travail de Tir", hasExercises: false, forSports: ["basketball"] },
-  { value: "basketball_dribble", label: "Dribble/Ballhandling", hasExercises: false, forSports: ["basketball"] },
-  { value: "basketball_defense", label: "Travail Défensif", hasExercises: false, forSports: ["basketball"] },
-  { value: "basketball_pick_roll", label: "Pick & Roll", hasExercises: false, forSports: ["basketball"] },
-  { value: "basketball_transition", label: "Transition", hasExercises: false, forSports: ["basketball"] },
+  // Aviron specific (with category)
+  { value: "aviron_ergo", label: "Ergomètre (Indoor)", hasExercises: false, forSports: ["aviron"], category: "aviron" },
+  { value: "aviron_eau", label: "Sur l'eau (Outdoor)", hasExercises: false, forSports: ["aviron"], category: "aviron" },
+  { value: "aviron_technique", label: "Technique Bateau", hasExercises: false, forSports: ["aviron"], category: "aviron" },
+  { value: "aviron_sortie_longue", label: "Sortie Longue", hasExercises: false, forSports: ["aviron"], category: "aviron" },
+  { value: "aviron_fractionne", label: "Fractionné", hasExercises: false, forSports: ["aviron"], category: "aviron" },
+  { value: "aviron_cadence", label: "Travail Cadence", hasExercises: false, forSports: ["aviron"], category: "aviron" },
   
-  // Aviron specific
-  { value: "aviron_ergo", label: "Ergomètre (Indoor)", hasExercises: false, forSports: ["aviron"] },
-  { value: "aviron_eau", label: "Sur l'eau (Outdoor)", hasExercises: false, forSports: ["aviron"] },
-  { value: "aviron_technique", label: "Technique Bateau", hasExercises: false, forSports: ["aviron"] },
-  { value: "aviron_sortie_longue", label: "Sortie Longue", hasExercises: false, forSports: ["aviron"] },
-  { value: "aviron_fractionne", label: "Fractionné", hasExercises: false, forSports: ["aviron"] },
+  // Judo specific (with category)
+  { value: "judo_randori", label: "Randori", hasExercises: false, forSports: ["judo"], category: "judo" },
+  { value: "judo_uchikomi", label: "Uchi-komi", hasExercises: false, forSports: ["judo"], category: "judo" },
+  { value: "judo_nagekomi", label: "Nage-komi", hasExercises: false, forSports: ["judo"], category: "judo" },
+  { value: "judo_newaza", label: "Ne-waza (Sol)", hasExercises: false, forSports: ["judo"], category: "judo" },
+  { value: "judo_kata", label: "Kata", hasExercises: false, forSports: ["judo"], category: "judo" },
+  { value: "judo_kumikata", label: "Kumi-kata (Préhension)", hasExercises: false, forSports: ["judo"], category: "judo" },
+  { value: "judo_tokui_waza", label: "Tokui-waza (Spéciale)", hasExercises: false, forSports: ["judo"], category: "judo" },
   
-  // Judo specific
-  { value: "judo_randori", label: "Randori", hasExercises: false, forSports: ["judo"] },
-  { value: "judo_uchikomi", label: "Uchi-komi", hasExercises: false, forSports: ["judo"] },
-  { value: "judo_nagekomi", label: "Nage-komi", hasExercises: false, forSports: ["judo"] },
-  { value: "judo_newaza", label: "Ne-waza (Sol)", hasExercises: false, forSports: ["judo"] },
-  { value: "judo_kata", label: "Kata", hasExercises: false, forSports: ["judo"] },
-  
-  // Bowling specific
-  { value: "bowling_practice", label: "Pratique Libre", hasExercises: false, forSports: ["bowling"] },
-  { value: "bowling_technique", label: "Travail Technique", hasExercises: false, forSports: ["bowling"] },
-  { value: "bowling_spare", label: "Entraînement Spares", hasExercises: false, forSports: ["bowling"] },
-  { value: "bowling_game", label: "Parties d'Entraînement", hasExercises: false, forSports: ["bowling"] },
+  // Bowling specific (with category)
+  { value: "bowling_practice", label: "Pratique Libre", hasExercises: false, forSports: ["bowling"], category: "bowling" },
+  { value: "bowling_technique", label: "Travail Technique", hasExercises: false, forSports: ["bowling"], category: "bowling" },
+  { value: "bowling_spare", label: "Entraînement Spares", hasExercises: false, forSports: ["bowling"], category: "bowling" },
+  { value: "bowling_game", label: "Parties d'Entraînement", hasExercises: false, forSports: ["bowling"], category: "bowling" },
+  { value: "bowling_approche", label: "Travail d'Approche", hasExercises: false, forSports: ["bowling"], category: "bowling" },
+  { value: "bowling_release", label: "Travail de Lâcher", hasExercises: false, forSports: ["bowling"], category: "bowling" },
   
   // Athlétisme specific - with categories
   // Sprint / Vitesse
@@ -146,15 +185,18 @@ export const ALL_TRAINING_TYPES: TrainingTypeOption[] = [
   { value: "athle_combines", label: "Épreuves Combinées", hasExercises: false, forSports: ["athletisme"], category: "athle_general" },
   { value: "athle_ppg", label: "PPG (Prépa Physique Générale)", hasExercises: true, forSports: ["athletisme"], category: "athle_general" },
   
-  // Common to all sports
-  { value: "technique_individuelle", label: "Technique Individuelle", hasExercises: false, forTeamSports: true, forIndividualSports: true },
-  { value: "physique", label: "Physique", hasExercises: true, forTeamSports: true, forIndividualSports: true },
-  { value: "musculation", label: "Musculation", hasExercises: true, forTeamSports: true, forIndividualSports: true },
-  { value: "reathlétisation", label: "Réathlétisation", hasExercises: true, forTeamSports: true, forIndividualSports: true },
-  { value: "repos", label: "Repos", hasExercises: false, forTeamSports: true, forIndividualSports: true },
-  { value: "test", label: "Test", hasExercises: false, forTeamSports: true, forIndividualSports: true },
-  { value: "echauffement", label: "Échauffement", hasExercises: false, forTeamSports: true, forIndividualSports: true },
-  { value: "recuperation", label: "Récupération Active", hasExercises: false, forTeamSports: true, forIndividualSports: true },
+  // Common to all sports (with category)
+  { value: "video", label: "Analyse Vidéo", hasExercises: false, forTeamSports: true, forIndividualSports: true, category: "common" },
+  { value: "individuel", label: "Entraînement Individuel", hasExercises: false, forTeamSports: true, forIndividualSports: true, category: "common" },
+  { value: "competition_training", label: "Simulation Compétition", hasExercises: false, forTeamSports: true, forIndividualSports: true, category: "common" },
+  { value: "technique_individuelle", label: "Technique Individuelle", hasExercises: false, forTeamSports: true, forIndividualSports: true, category: "common" },
+  { value: "physique", label: "Physique", hasExercises: true, forTeamSports: true, forIndividualSports: true, category: "common" },
+  { value: "musculation", label: "Musculation", hasExercises: true, forTeamSports: true, forIndividualSports: true, category: "common" },
+  { value: "reathlétisation", label: "Réathlétisation", hasExercises: true, forTeamSports: true, forIndividualSports: true, category: "common" },
+  { value: "repos", label: "Repos", hasExercises: false, forTeamSports: true, forIndividualSports: true, category: "common" },
+  { value: "test", label: "Test", hasExercises: false, forTeamSports: true, forIndividualSports: true, category: "common" },
+  { value: "echauffement", label: "Échauffement", hasExercises: false, forTeamSports: true, forIndividualSports: true, category: "common" },
+  { value: "recuperation", label: "Récupération Active", hasExercises: false, forTeamSports: true, forIndividualSports: true, category: "common" },
 ];
 
 // Get training types filtered by sport type
@@ -182,7 +224,7 @@ export function getTrainingTypesForSport(sportType: string | undefined): Trainin
   });
 }
 
-// Get training types for a sport grouped by category (for athletics)
+// Get training types for a sport grouped by category (for all sports)
 export interface TrainingTypeGroup {
   category: TrainingTypeCategory;
   types: TrainingTypeOption[];
@@ -192,23 +234,25 @@ export function getTrainingTypesGrouped(sportType: string | undefined): Training
   const types = getTrainingTypesForSport(sportType);
   const baseSport = sportType ? getBaseSport(sportType) : '';
   
-  // Only group for athletics
-  if (baseSport !== 'athletisme') {
-    return [];
-  }
-  
   const groups: TrainingTypeGroup[] = [];
   
-  // Group athletics types by category
-  ATHLETISME_TRAINING_CATEGORIES.forEach(category => {
+  // Get relevant categories for this sport
+  const sportCategories = SPORT_TRAINING_CATEGORIES.filter(cat => {
+    // If forSports is empty array, it's the common category
+    if (!cat.forSports || cat.forSports.length === 0) return false;
+    return cat.forSports.includes(baseSport);
+  });
+  
+  // Group sport-specific types by category
+  sportCategories.forEach(category => {
     const categoryTypes = types.filter(t => t.category === category.key);
     if (categoryTypes.length > 0) {
       groups.push({ category, types: categoryTypes });
     }
   });
   
-  // Add common types without category
-  const commonTypes = types.filter(t => !t.category);
+  // Add common types (category: "common")
+  const commonTypes = types.filter(t => t.category === 'common');
   if (commonTypes.length > 0) {
     groups.push({
       category: { key: 'common', label: 'Commun' },
@@ -219,11 +263,10 @@ export function getTrainingTypesGrouped(sportType: string | undefined): Training
   return groups;
 }
 
-// Check if sport has grouped training types
+// Check if sport has grouped training types - now true for all sports
 export function hasGroupedTrainingTypes(sportType: string | undefined): boolean {
   if (!sportType) return false;
-  const baseSport = getBaseSport(sportType);
-  return baseSport === 'athletisme';
+  return true; // All sports now have grouped training types
 }
 
 // Get label for a training type
@@ -255,47 +298,68 @@ export const TRAINING_TYPE_COLORS: Record<string, string> = {
   echauffement: "bg-yellow-400",
   recuperation: "bg-sky-400",
   match: "bg-rose-500",
+  // Rugby specific
+  touches: "bg-green-500",
+  melees: "bg-purple-600",
+  placages: "bg-red-600",
+  jeu_au_pied: "bg-yellow-500",
+  defence_line: "bg-blue-600",
+  attack_patterns: "bg-orange-500",
   // Football specific
+  football_collectif: "bg-green-600",
   football_tactique: "bg-blue-500",
   football_possession: "bg-green-500",
   football_finition: "bg-red-500",
   football_gardien: "bg-purple-500",
   football_coup_pied: "bg-orange-500",
+  football_opposition: "bg-orange-600",
+  football_technique: "bg-teal-500",
   // Handball specific
+  handball_collectif: "bg-red-600",
   handball_attaque: "bg-red-500",
   handball_defense: "bg-blue-600",
   handball_tir: "bg-orange-500",
   handball_gardien: "bg-purple-500",
   handball_contre_attaque: "bg-amber-500",
+  handball_tactique: "bg-blue-500",
   // Volleyball specific
+  volleyball_collectif: "bg-yellow-600",
   volleyball_service: "bg-yellow-500",
   volleyball_reception: "bg-blue-400",
   volleyball_attaque: "bg-red-500",
   volleyball_block: "bg-purple-600",
   volleyball_defense: "bg-green-500",
+  volleyball_tactique: "bg-blue-500",
   // Basketball specific
+  basketball_collectif: "bg-orange-600",
   basketball_shoot: "bg-orange-500",
   basketball_dribble: "bg-blue-500",
   basketball_defense: "bg-red-600",
   basketball_pick_roll: "bg-purple-500",
   basketball_transition: "bg-amber-500",
+  basketball_tactique: "bg-blue-600",
   // Aviron specific
   aviron_ergo: "bg-blue-400",
   aviron_eau: "bg-cyan-500",
   aviron_technique: "bg-teal-400",
   aviron_sortie_longue: "bg-blue-600",
   aviron_fractionne: "bg-indigo-500",
+  aviron_cadence: "bg-violet-500",
   // Judo specific
   judo_randori: "bg-red-500",
   judo_uchikomi: "bg-orange-500",
   judo_nagekomi: "bg-yellow-500",
   judo_newaza: "bg-purple-500",
   judo_kata: "bg-pink-500",
+  judo_kumikata: "bg-teal-500",
+  judo_tokui_waza: "bg-rose-500",
   // Bowling specific
   bowling_practice: "bg-emerald-500",
   bowling_technique: "bg-teal-500",
   bowling_spare: "bg-lime-500",
   bowling_game: "bg-green-600",
+  bowling_approche: "bg-cyan-500",
+  bowling_release: "bg-blue-500",
   // Athlétisme specific - Sprint
   athle_vitesse: "bg-red-500",
   athle_departs: "bg-red-600",
