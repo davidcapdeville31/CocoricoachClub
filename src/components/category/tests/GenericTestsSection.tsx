@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { UnifiedTestDialog } from "./UnifiedTestDialog";
-import { TEST_CATEGORIES, getTestLabel, getTestCategoriesForSport } from "@/lib/constants/testCategories";
+import { TEST_CATEGORIES, getTestLabel, getTestCategoriesForSport, TestCategory } from "@/lib/constants/testCategories";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 
 interface GenericTestsSectionProps {
@@ -41,7 +41,65 @@ export function GenericTestsSection({ categoryId, sportType }: GenericTestsSecti
   const { isViewer } = useViewerModeContext();
 
   // Get filtered test categories based on sport type
-  const filteredTestCategories = getTestCategoriesForSport(sportType || "");
+  const baseTestCategories = getTestCategoriesForSport(sportType || "");
+
+  // Fetch all tests to discover unique categories and types from DB
+  const { data: allTestsForDiscovery } = useQuery({
+    queryKey: ["generic_tests_discovery", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("generic_tests")
+        .select("test_category, test_type, result_unit")
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Dynamically build test categories including those discovered from DB
+  const filteredTestCategories = useMemo(() => {
+    const categories = [...baseTestCategories];
+    const existingCategoryValues = new Set(categories.map(c => c.value));
+    const existingTestsByCategory = new Map<string, Set<string>>();
+
+    // Track existing tests in each category
+    categories.forEach(cat => {
+      existingTestsByCategory.set(cat.value, new Set(cat.tests.map(t => t.value)));
+    });
+
+    if (allTestsForDiscovery?.length) {
+      allTestsForDiscovery.forEach(test => {
+        const catValue = test.test_category;
+        const testType = test.test_type;
+
+        if (!catValue || !testType) return;
+
+        // If category doesn't exist, create it
+        if (!existingCategoryValues.has(catValue)) {
+          const newCategory: TestCategory = {
+            value: catValue,
+            label: formatCategoryLabel(catValue),
+            tests: [{ value: testType, label: formatTestTypeLabel(testType), unit: test.result_unit || "" }]
+          };
+          categories.push(newCategory);
+          existingCategoryValues.add(catValue);
+          existingTestsByCategory.set(catValue, new Set([testType]));
+        } else {
+          // Category exists, check if test type exists
+          const existingTests = existingTestsByCategory.get(catValue);
+          if (existingTests && !existingTests.has(testType)) {
+            const category = categories.find(c => c.value === catValue);
+            if (category) {
+              category.tests.push({ value: testType, label: formatTestTypeLabel(testType), unit: test.result_unit || "" });
+              existingTests.add(testType);
+            }
+          }
+        }
+      });
+    }
+
+    return categories;
+  }, [baseTestCategories, allTestsForDiscovery]);
 
   const { data: tests, isLoading } = useQuery({
     queryKey: ["generic_tests", categoryId, filterCategory, filterTestType],
@@ -72,6 +130,7 @@ export function GenericTestsSection({ categoryId, sportType }: GenericTestsSecti
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["generic_tests", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["generic_tests_discovery", categoryId] });
       toast.success("Test supprimé avec succès");
     },
     onError: () => {
@@ -171,11 +230,11 @@ export function GenericTestsSection({ categoryId, sportType }: GenericTestsSecti
                     </TableCell>
                     <TableCell>
                       <span className="text-xs text-muted-foreground block">
-                        {TEST_CATEGORIES.find(c => c.value === test.test_category)?.label}
+                        {filteredTestCategories.find(c => c.value === test.test_category)?.label || formatCategoryLabel(test.test_category)}
                       </span>
-                      {TEST_CATEGORIES
+                      {filteredTestCategories
                         .find(c => c.value === test.test_category)
-                        ?.tests.find(t => t.value === test.test_type)?.label || test.test_type}
+                        ?.tests.find(t => t.value === test.test_type)?.label || formatTestTypeLabel(test.test_type)}
                     </TableCell>
                     <TableCell className="font-semibold text-primary">
                       {test.result_value} {test.result_unit}
@@ -214,4 +273,17 @@ export function GenericTestsSection({ categoryId, sportType }: GenericTestsSecti
       />
     </Card>
   );
+}
+
+// Helper functions to format labels
+function formatCategoryLabel(value: string): string {
+  return value
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function formatTestTypeLabel(value: string): string {
+  return value
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
 }
