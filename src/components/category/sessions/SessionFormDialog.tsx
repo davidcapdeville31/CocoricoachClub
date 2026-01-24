@@ -52,10 +52,12 @@ import {
   Repeat,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getCategoryLabel, getCategoriesForSport, isCategoryForSport, isErgCategory } from "@/lib/constants/exerciseCategories";
+import { getCategoryLabel, getCategoriesForSport, isCategoryForSport, isErgCategory, isSledCategory, hasSpecialMetrics } from "@/lib/constants/exerciseCategories";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getTrainingTypesForSport, trainingTypeHasExercises } from "@/lib/constants/trainingTypes";
 import { QuickAddExerciseDialog } from "@/components/library/QuickAddExerciseDialog";
+import { DndContext, DragEndEvent, DragStartEvent, DragOverlay, useDraggable, useDroppable } from "@dnd-kit/core";
+import { ExerciseLibrarySidebar } from "@/components/category/programs/ExerciseLibrarySidebar";
 import {
   TRAINING_STYLES,
   getTrainingStyleConfig,
@@ -158,6 +160,25 @@ interface ExerciseGroup {
   blockConfig?: BlockConfig;
 }
 
+// Droppable zone component for exercises
+function DroppableExerciseZone({ children }: { children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: "exercise-drop-zone",
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "h-full transition-colors rounded-lg",
+        isOver && "bg-primary/5 ring-2 ring-primary ring-dashed"
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function SessionFormDialog({
   open,
   onOpenChange,
@@ -180,6 +201,7 @@ export function SessionFormDialog({
   const [searchQuery, setSearchQuery] = useState("");
   const [showLibraryFor, setShowLibraryFor] = useState<number | null>(null);
   const [showAddExerciseDialog, setShowAddExerciseDialog] = useState(false);
+  const [activeExercise, setActiveExercise] = useState<any>(null);
   
   // Block configurations for groups
   const [blockConfigs, setBlockConfigs] = useState<Record<string, BlockConfig>>({});
@@ -552,6 +574,46 @@ export function SessionFormDialog({
     }
     
     setExercises([...exercises, ...newExercises]);
+  };
+
+  // Drag and drop handlers for exercise library
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveExercise(event.active.data.current);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveExercise(null);
+    const { active, over } = event;
+
+    if (!over) return;
+
+    const droppedExercise = active.data.current;
+    if (!droppedExercise) return;
+
+    // Add the dropped exercise to the list
+    const newExercise: Exercise = {
+      exercise_name: droppedExercise.name,
+      exercise_category: droppedExercise.category,
+      sets: 3,
+      reps: "10",
+      weight_kg: null,
+      weight_percent_rm: null,
+      weight_mode: "kg",
+      rest_seconds: 90,
+      notes: "",
+      order_index: exercises.length,
+      library_exercise_id: droppedExercise.id,
+      set_type: "normal",
+      group_id: null,
+      group_order: undefined,
+      erg_data: undefined,
+      drop_sets: undefined,
+      cluster_sets: undefined,
+      block_config: undefined,
+    };
+
+    setExercises([...exercises, newExercise]);
+    toast.success(`${droppedExercise.name} ajouté`);
   };
 
   const removeExercise = (index: number) => {
@@ -953,7 +1015,64 @@ export function SessionFormDialog({
         </div>
 
         {/* Row 2: Conditional inputs based on exercise type */}
-        {isErgCategory(exercise.exercise_category) ? (
+        {isSledCategory(exercise.exercise_category) ? (
+          // Sled-specific inputs (distance in meters)
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div>
+              <Label className="text-xs text-muted-foreground">Séries</Label>
+              <Input
+                type="number"
+                min="1"
+                className="h-8 text-xs"
+                placeholder="4"
+                value={exercise.sets || ""}
+                onChange={(e) => updateExercise(index, "sets", parseInt(e.target.value) || 1)}
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Distance (m)</Label>
+              <Input
+                type="number"
+                min="0"
+                className="h-8 text-xs"
+                placeholder="25"
+                value={exercise.erg_data?.distance_meters || ""}
+                onChange={(e) =>
+                  updateExercise(index, "erg_data", {
+                    ...exercise.erg_data,
+                    distance_meters: e.target.value ? parseInt(e.target.value) : undefined,
+                  })
+                }
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Poids (kg)</Label>
+              <Input
+                type="number"
+                min="0"
+                className="h-8 text-xs"
+                placeholder="50"
+                value={exercise.weight_kg || ""}
+                onChange={(e) =>
+                  updateExercise(index, "weight_kg", e.target.value ? parseInt(e.target.value) : null)
+                }
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Repos (s)</Label>
+              <Input
+                type="number"
+                min="0"
+                className="h-8 text-xs"
+                placeholder="90"
+                value={exercise.rest_seconds || ""}
+                onChange={(e) =>
+                  updateExercise(index, "rest_seconds", e.target.value ? parseInt(e.target.value) : null)
+                }
+              />
+            </div>
+          </div>
+        ) : isErgCategory(exercise.exercise_category) ? (
           // Erg-specific inputs
           <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
             <div>
@@ -1539,7 +1658,7 @@ export function SessionFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[95vh] flex flex-col">
+      <DialogContent className="max-w-6xl max-h-[95vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{editSession ? "Modifier la séance" : "Nouvelle séance"}</DialogTitle>
           <DialogDescription>
@@ -1638,37 +1757,59 @@ export function SessionFormDialog({
               </TabsContent>
 
               <TabsContent value="exercises" className="h-full m-0">
-                <ScrollArea className="h-[50vh] pr-4">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label className="flex items-center gap-2 text-base font-medium">
-                        <Dumbbell className="h-4 w-4" />
-                        Exercices de la séance
-                      </Label>
-                      <Button type="button" variant="outline" size="sm" onClick={addExercise}>
-                        <Plus className="h-4 w-4 mr-1" />
-                        Exercice simple
-                      </Button>
+                <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+                  <div className="flex h-[50vh]">
+                    {/* Left side - Exercise list with drop zone */}
+                    <div className="flex-1 pr-4">
+                      <DroppableExerciseZone>
+                        <ScrollArea className="h-full">
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <Label className="flex items-center gap-2 text-base font-medium">
+                                <Dumbbell className="h-4 w-4" />
+                                Exercices de la séance
+                              </Label>
+                              <Button type="button" variant="outline" size="sm" onClick={addExercise}>
+                                <Plus className="h-4 w-4 mr-1" />
+                                Exercice simple
+                              </Button>
+                            </div>
+
+                            {/* Block creation buttons */}
+                            {renderBlockCreationButtons()}
+
+                            {exercises.length === 0 ? (
+                              <div className="text-center py-8 border-2 border-dashed rounded-lg bg-muted/30">
+                                <Dumbbell className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                                <p className="text-sm text-muted-foreground mb-2">Aucun exercice ajouté</p>
+                                <p className="text-xs text-muted-foreground mb-4">
+                                  Glissez-déposez des exercices depuis la bibliothèque ou ajoutez-en manuellement
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                {exerciseGroups.map((group) => renderExerciseGroup(group))}
+                              </div>
+                            )}
+                          </div>
+                        </ScrollArea>
+                      </DroppableExerciseZone>
                     </div>
 
-                    {/* Block creation buttons */}
-                    {renderBlockCreationButtons()}
-
-                    {exercises.length === 0 ? (
-                      <div className="text-center py-8 border rounded-lg bg-muted/30">
-                        <Dumbbell className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                        <p className="text-sm text-muted-foreground mb-2">Aucun exercice ajouté</p>
-                        <p className="text-xs text-muted-foreground mb-4">
-                          Ajoutez un exercice simple ou créez un bloc (superset, circuit, AMRAP...)
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {exerciseGroups.map((group) => renderExerciseGroup(group))}
-                      </div>
-                    )}
+                    {/* Right side - Exercise Library Sidebar */}
+                    <ExerciseLibrarySidebar sportType={sportType} />
                   </div>
-                </ScrollArea>
+
+                  {/* Drag overlay */}
+                  <DragOverlay>
+                    {activeExercise ? (
+                      <div className="p-3 rounded-lg border bg-card shadow-lg">
+                        <p className="font-medium text-sm">{activeExercise.name}</p>
+                        <p className="text-xs text-muted-foreground">{getCategoryLabel(activeExercise.category)}</p>
+                      </div>
+                    ) : null}
+                  </DragOverlay>
+                </DndContext>
               </TabsContent>
 
               <TabsContent value="players" className="h-full m-0">

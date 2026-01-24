@@ -22,7 +22,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { TEST_CATEGORIES } from "@/lib/constants/testCategories";
-import { isErgCategory } from "@/lib/constants/exerciseCategories";
+import { isErgCategory, isSledCategory } from "@/lib/constants/exerciseCategories";
 import { cn } from "@/lib/utils";
 import {
   TRAINING_STYLES,
@@ -563,7 +563,67 @@ export function ProgramSessionCard({
         {/* Exercise parameters */}
         {!exercise.is_rm_test && (
           <>
-            {isErgCategory(exercise.exercise_category || "") ? (
+            {isSledCategory(exercise.exercise_category || "") ? (
+              // Sled-specific inputs (distance in meters)
+              <div className="grid grid-cols-4 gap-2">
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">Séries</label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={exercise.sets}
+                    onChange={(e) =>
+                      updateExercise(index, "sets", parseInt(e.target.value) || 1)
+                    }
+                    className="h-8 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">Distance (m)</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={exercise.erg_data?.distance_meters || ""}
+                    onChange={(e) =>
+                      updateExercise(index, "erg_data", {
+                        ...exercise.erg_data,
+                        distance_meters: e.target.value ? parseInt(e.target.value) : undefined,
+                      })
+                    }
+                    placeholder="25"
+                    className="h-8 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">%1RM / Poids</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={exercise.percentage_1rm || ""}
+                    onChange={(e) =>
+                      updateExercise(index, "percentage_1rm", e.target.value ? parseInt(e.target.value) : undefined)
+                    }
+                    placeholder="50"
+                    className="h-8 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">Repos (s)</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={exercise.rest_seconds}
+                    onChange={(e) =>
+                      updateExercise(index, "rest_seconds", parseInt(e.target.value) || 0)
+                    }
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+            ) : isErgCategory(exercise.exercise_category || "") ? (
               // Erg-specific inputs
               <div className="grid grid-cols-6 gap-2">
                 <div className="space-y-1">
@@ -684,7 +744,6 @@ export function ProgramSessionCard({
                 </div>
               </div>
             ) : (
-              // Standard sets/reps inputs
               <div className="grid grid-cols-6 gap-2">
                 {!isGrouped && (
                   <div className="space-y-1 col-span-2">

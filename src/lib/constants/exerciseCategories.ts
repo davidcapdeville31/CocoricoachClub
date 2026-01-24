@@ -52,6 +52,10 @@ export const EXERCISE_CATEGORIES: ExerciseCategory[] = [
   { value: "echo_bike", label: "Echo Bike", group: "cardio_machines" },
   { value: "bikeerg", label: "BikeErg", group: "cardio_machines" },
   
+  // Sled / Distance-based exercises
+  { value: "sled_push", label: "Sled Push", group: "cardio_machines" },
+  { value: "sled_pull", label: "Sled Pull", group: "cardio_machines" },
+  
   // Terrain - Général
   { value: "cardio", label: "Cardio", group: "terrain" },
   { value: "terrain", label: "Terrain (courses, sprints...)", group: "terrain" },
@@ -236,9 +240,24 @@ export const ERG_CATEGORIES = [
   "ergometre", "skierg", "rowerg", "assault_bike", "echo_bike", "bikeerg"
 ];
 
+// Liste des catégories de sled (distance-based)
+export const SLED_CATEGORIES = [
+  "sled_push", "sled_pull"
+];
+
 // Check if an exercise category is an ergometer
 export function isErgCategory(category: string): boolean {
   return ERG_CATEGORIES.includes(category);
+}
+
+// Check if an exercise category is a sled exercise (distance-based)
+export function isSledCategory(category: string): boolean {
+  return SLED_CATEGORIES.includes(category);
+}
+
+// Check if an exercise has special metrics (not standard sets/reps)
+export function hasSpecialMetrics(category: string): boolean {
+  return isErgCategory(category) || isSledCategory(category);
 }
 
 export const EXERCISE_SUBCATEGORIES = [
