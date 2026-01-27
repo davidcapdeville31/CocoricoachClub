@@ -13,13 +13,19 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Settings2, CheckCircle2, Plus, Trash2 } from "lucide-react";
 import { getStatsForSport, getStatCategories, type StatField } from "@/lib/constants/sportStats";
 import { useAuth } from "@/contexts/AuthContext";
 import { AddCustomStatDialog } from "./AddCustomStatDialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,6 +65,7 @@ export function StatPreferencesDialog({
   const [enabledStats, setEnabledStats] = useState<string[]>([]);
   const [showAddCustomDialog, setShowAddCustomDialog] = useState(false);
   const [statToDelete, setStatToDelete] = useState<CustomStat | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   
   // Get all available stats for this sport
   const allStats = getStatsForSport(sportType, false);
@@ -107,6 +114,13 @@ export function StatPreferencesDialog({
       setEnabledStats(uniqueKeys);
     }
   }, [existingPrefs, allStats, goalkeeperStats, customStats]);
+
+  // Set default selected category
+  useEffect(() => {
+    if (statCategories.length > 0 && !selectedCategory) {
+      setSelectedCategory(statCategories[0].key);
+    }
+  }, [statCategories, selectedCategory]);
 
   const savePrefs = useMutation({
     mutationFn: async () => {
@@ -310,68 +324,80 @@ export function StatPreferencesDialog({
             </Button>
           </div>
 
-          <Tabs defaultValue={statCategories[0]?.key || "general"} className="flex-1 min-h-0 flex flex-col">
-            <TabsList className={`grid w-full ${statCategories.length === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
-              {statCategories.map(cat => (
-                <TabsTrigger key={cat.key} value={cat.key} className="relative">
-                  {cat.label}
-                  <Badge variant="secondary" className="ml-1 text-xs px-1">
-                    {getEnabledCountForCategory(cat.key)}/{getTotalCountForCategory(cat.key)}
-                  </Badge>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+          {/* Category dropdown selector */}
+          <div className="flex items-center gap-3 mb-4">
+            <Label className="text-sm font-medium whitespace-nowrap">Catégorie :</Label>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Sélectionner une catégorie" />
+              </SelectTrigger>
+              <SelectContent>
+                {statCategories.map(cat => (
+                  <SelectItem key={cat.key} value={cat.key}>
+                    <span className="flex items-center gap-2">
+                      {cat.label}
+                      <Badge variant="secondary" className="text-xs px-1.5">
+                        {getEnabledCountForCategory(cat.key)}/{getTotalCountForCategory(cat.key)}
+                      </Badge>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-            <ScrollArea className="flex-1 mt-4">
-              {statCategories.map(cat => {
-                const categoryStats = getCombinedStatsForCategory(cat.key);
-                const customCategoryStats = getCustomStatsForCategory(cat.key);
-                
-                return (
-                  <TabsContent key={cat.key} value={cat.key} className="space-y-4 mt-0">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">{cat.label}</span>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => selectCategory(cat.key)}
-                      >
-                        {[...categoryStats, ...customCategoryStats].every(s => enabledStats.includes(s.key)) 
-                          ? "Désélectionner tout" 
-                          : "Sélectionner tout"
-                        }
-                      </Button>
+          {/* Stats list with scroll */}
+          <ScrollArea className="h-[calc(60vh-120px)] border rounded-md p-4">
+            {statCategories.map(cat => {
+              if (cat.key !== selectedCategory) return null;
+              
+              const categoryStats = getCombinedStatsForCategory(cat.key);
+              const customCategoryStats = getCustomStatsForCategory(cat.key);
+              
+              return (
+                <div key={cat.key} className="space-y-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">{cat.label}</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => selectCategory(cat.key)}
+                    >
+                      {[...categoryStats, ...customCategoryStats].every(s => enabledStats.includes(s.key)) 
+                        ? "Désélectionner tout" 
+                        : "Sélectionner tout"
+                      }
+                    </Button>
+                  </div>
+                  
+                  {/* Standard stats */}
+                  {categoryStats.length > 0 && (
+                    <div className="grid grid-cols-2 gap-3">
+                      {categoryStats.map(stat => renderStatCheckbox(stat))}
                     </div>
-                    
-                    {/* Standard stats */}
-                    {categoryStats.length > 0 && (
-                      <div className="grid grid-cols-2 gap-3">
-                        {categoryStats.map(stat => renderStatCheckbox(stat))}
-                      </div>
-                    )}
-                    
-                    {/* Custom stats */}
-                    {customCategoryStats.length > 0 && (
-                      <div className="mt-4 pt-4 border-t">
-                        <p className="text-sm font-medium mb-3 text-muted-foreground">
-                          Statistiques personnalisées
-                        </p>
-                        <div className="grid grid-cols-1 gap-2">
-                          {customCategoryStats.map(stat => renderCustomStatCheckbox(stat))}
-                        </div>
-                      </div>
-                    )}
-
-                    {categoryStats.length === 0 && customCategoryStats.length === 0 && (
-                      <p className="text-sm text-muted-foreground text-center py-4">
-                        Aucune statistique dans cette catégorie
+                  )}
+                  
+                  {/* Custom stats */}
+                  {customCategoryStats.length > 0 && (
+                    <div className="mt-4 pt-4 border-t">
+                      <p className="text-sm font-medium mb-3 text-muted-foreground">
+                        Statistiques personnalisées
                       </p>
-                    )}
-                  </TabsContent>
-                );
-              })}
-            </ScrollArea>
-          </Tabs>
+                      <div className="grid grid-cols-1 gap-2">
+                        {customCategoryStats.map(stat => renderCustomStatCheckbox(stat))}
+                      </div>
+                    </div>
+                  )}
+
+                  {categoryStats.length === 0 && customCategoryStats.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Aucune statistique dans cette catégorie
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </ScrollArea>
 
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
