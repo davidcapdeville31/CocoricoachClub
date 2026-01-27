@@ -796,10 +796,10 @@ export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuc
                           {row.data.total_distance_m ? `${row.data.total_distance_m} m` : '-'}
                         </td>
                         <td className="p-2 text-right">
-                          {row.data.player_load || '-'}
+                          {row.data.player_load !== undefined && row.data.player_load !== '' ? row.data.player_load : '-'}
                         </td>
                         <td className="p-2 text-right">
-                          {row.data.max_speed_ms ? `${row.data.max_speed_ms} m/s` : '-'}
+                          {row.data.max_speed_ms !== undefined && row.data.max_speed_ms !== '' ? `${row.data.max_speed_ms} m/s` : '-'}
                         </td>
                       </tr>
                     ))}
