@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { toast } from "sonner";
 import { BarChart3, Check, UserCircle, Satellite } from "lucide-react";
 import { getStatsForSport, getStatCategories, hasGoalkeeperStats, type StatField } from "@/lib/constants/sportStats";
@@ -58,6 +58,7 @@ export function SportMatchStatsDialog({
   const [longestPlaySequence, setLongestPlaySequence] = useState<number>(0);
   const [averagePlaySequence, setAveragePlaySequence] = useState<number>(0);
   const [showGpsImport, setShowGpsImport] = useState(false);
+  const [selectedStatCategory, setSelectedStatCategory] = useState<string>("");
   const queryClient = useQueryClient();
 
   const fieldConfig = getSportFieldConfig(sportType);
@@ -79,6 +80,13 @@ export function SportMatchStatsDialog({
   // Use filtered stats if preferences exist, otherwise use all stats
   const sportStats = filteredStats.length > 0 ? filteredStats : getStatsForSport(sportType, selectedPlayer?.isGoalkeeper ?? false);
   const statCategories = getStatCategories(sportType);
+
+  // Set default stat category
+  useEffect(() => {
+    if (statCategories.length > 0 && !selectedStatCategory) {
+      setSelectedStatCategory(statCategories[0].key);
+    }
+  }, [statCategories, selectedStatCategory]);
 
   // Get match data
   const { data: matchData } = useQuery({
@@ -358,77 +366,92 @@ export function SportMatchStatsDialog({
         )}
 
         {selectedPlayer && (
-          <Tabs defaultValue="general" className="w-full flex-1 min-h-0 flex flex-col">
-            <TabsList className={`grid w-full flex-shrink-0 ${statCategories.length === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
-              {statCategories.map(cat => (
-                <TabsTrigger key={cat.key} value={cat.key}>{cat.label}</TabsTrigger>
-              ))}
-            </TabsList>
+          <div className="flex-1 min-h-0 flex flex-col space-y-4">
+            {/* Category dropdown */}
+            <div className="flex items-center gap-3">
+              <Label className="text-sm font-medium whitespace-nowrap">Catégorie :</Label>
+              <Select value={selectedStatCategory} onValueChange={setSelectedStatCategory}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Sélectionner une catégorie" />
+                </SelectTrigger>
+                <SelectContent className="z-[200] bg-popover">
+                  {statCategories.map(cat => (
+                    <SelectItem key={cat.key} value={cat.key}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <ScrollArea className="flex-1 mt-4">
-              {statCategories.map(cat => (
-                <TabsContent key={cat.key} value={cat.key} className="space-y-4 mt-0">
-                  {cat.key === "general" && !isIndividual && (
-                    <div className="p-4 rounded-lg border bg-card">
-                      <h4 className="font-semibold mb-3 text-base text-primary">
-                        Informations du match
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                          <Label className="text-sm">Temps de jeu effectif (min)</Label>
-                          <Input
-                            type="number"
-                            value={effectivePlayTime}
-                            onChange={(e) => setEffectivePlayTime(parseInt(e.target.value) || 0)}
-                            min={0}
-                            max={120}
-                            className="h-9 mt-1"
-                            placeholder="Ex: 80"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-sm">Séquence la plus longue (sec)</Label>
-                          <Input
-                            type="number"
-                            value={longestPlaySequence}
-                            onChange={(e) => setLongestPlaySequence(parseInt(e.target.value) || 0)}
-                            min={0}
-                            className="h-9 mt-1"
-                            placeholder="Ex: 180"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-sm">Séquence moyenne (sec)</Label>
-                          <Input
-                            type="number"
-                            step="0.1"
-                            value={averagePlaySequence}
-                            onChange={(e) => setAveragePlaySequence(parseFloat(e.target.value) || 0)}
-                            min={0}
-                            className="h-9 mt-1"
-                            placeholder="Ex: 45.5"
-                          />
+            <ScrollArea className="flex-1 h-[calc(50vh-100px)]">
+              {statCategories.map(cat => {
+                if (cat.key !== selectedStatCategory) return null;
+                
+                return (
+                  <div key={cat.key} className="space-y-4">
+                    {cat.key === "general" && !isIndividual && (
+                      <div className="p-4 rounded-lg border bg-card">
+                        <h4 className="font-semibold mb-3 text-base text-primary">
+                          Informations du match
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <Label className="text-sm">Temps de jeu effectif (min)</Label>
+                            <Input
+                              type="number"
+                              value={effectivePlayTime}
+                              onChange={(e) => setEffectivePlayTime(parseInt(e.target.value) || 0)}
+                              min={0}
+                              max={120}
+                              className="h-9 mt-1"
+                              placeholder="Ex: 80"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-sm">Séquence la plus longue (sec)</Label>
+                            <Input
+                              type="number"
+                              value={longestPlaySequence}
+                              onChange={(e) => setLongestPlaySequence(parseInt(e.target.value) || 0)}
+                              min={0}
+                              className="h-9 mt-1"
+                              placeholder="Ex: 180"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-sm">Séquence moyenne (sec)</Label>
+                            <Input
+                              type="number"
+                              step="0.1"
+                              value={averagePlaySequence}
+                              onChange={(e) => setAveragePlaySequence(parseFloat(e.target.value) || 0)}
+                              min={0}
+                              className="h-9 mt-1"
+                              placeholder="Ex: 45.5"
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                  
-                  <div className="p-4 rounded-lg border bg-card">
-                    <h4 className="font-semibold mb-3 text-base text-primary flex items-center gap-2">
-                      {selectedPlayer.playerName}
-                      {selectedPlayer.isGoalkeeper && supportsGoalkeeper && (
-                        <Badge variant="secondary" className="text-xs">Gardien</Badge>
-                      )}
-                      <span className="text-muted-foreground">- {cat.label}</span>
-                    </h4>
-                    <div className={`grid ${cat.key === "scoring" ? "grid-cols-4" : "grid-cols-3"} gap-3`}>
-                      {sportStats.filter(s => s.category === cat.key).map(stat => renderStatInput(selectedPlayer, stat))}
+                    )}
+                    
+                    <div className="p-4 rounded-lg border bg-card">
+                      <h4 className="font-semibold mb-3 text-base text-primary flex items-center gap-2">
+                        {selectedPlayer.playerName}
+                        {selectedPlayer.isGoalkeeper && supportsGoalkeeper && (
+                          <Badge variant="secondary" className="text-xs">Gardien</Badge>
+                        )}
+                        <span className="text-muted-foreground">- {cat.label}</span>
+                      </h4>
+                      <div className={`grid ${cat.key === "scoring" ? "grid-cols-4" : "grid-cols-3"} gap-3`}>
+                        {sportStats.filter(s => s.category === cat.key).map(stat => renderStatInput(selectedPlayer, stat))}
+                      </div>
                     </div>
                   </div>
-                </TabsContent>
-              ))}
+                );
+              })}
             </ScrollArea>
-          </Tabs>
+          </div>
         )}
 
         <div className="flex justify-between gap-2 pt-4 border-t flex-shrink-0">
