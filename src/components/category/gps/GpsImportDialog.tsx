@@ -93,6 +93,9 @@ const KNOWN_COLUMN_MAPPINGS: Record<string, keyof ColumnMapping> = {
   'top speed': 'max_speed_ms',
   'vitesse max': 'max_speed_ms',
   'peak speed': 'max_speed_ms',
+  'vmax': 'max_speed_ms',
+  'vmax (km/h)': 'max_speed_ms',
+  'vmax (m/s)': 'max_speed_ms',
   
   // Player load
   'player load': 'player_load',
@@ -100,18 +103,27 @@ const KNOWN_COLUMN_MAPPINGS: Record<string, keyof ColumnMapping> = {
   'load': 'player_load',
   'body load': 'player_load',
   'charge joueur': 'player_load',
+  'tot pl': 'player_load',
+  'total pl': 'player_load',
+  'pl': 'player_load',
   
   // Accelerations
   'accelerations': 'accelerations',
   'accel': 'accelerations',
   'acc': 'accelerations',
   'accélérations': 'accelerations',
+  "nombre d'accél": 'accelerations',
+  "nombre d'accél (> 2,5 m/s)": 'accelerations',
+  "nb accel": 'accelerations',
   
   // Decelerations
   'decelerations': 'decelerations',
   'decel': 'decelerations',
   'dec': 'decelerations',
   'décélérations': 'decelerations',
+  "nombre de décél": 'decelerations',
+  "nombre de décél (< 2,5 m/s)": 'decelerations',
+  "nb decel": 'decelerations',
   
   // Duration
   'duration': 'duration_minutes',
@@ -119,12 +131,18 @@ const KNOWN_COLUMN_MAPPINGS: Record<string, keyof ColumnMapping> = {
   'time': 'duration_minutes',
   'session duration': 'duration_minutes',
   'durée': 'duration_minutes',
+  'mètres/minute': 'duration_minutes',
   
   // Sprint count
   'sprint count': 'sprint_count',
   'sprints': 'sprint_count',
   'number of sprints': 'sprint_count',
   'nb sprints': 'sprint_count',
+  
+  // High speed distance - additional French mappings
+  'dist > 18 km/h': 'high_speed_distance_m',
+  'dist > 24 km/h': 'sprint_distance_m',
+  'dist > 27km/h': 'sprint_distance_m',
 };
 
 export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuccess }: GpsImportDialogProps) {
