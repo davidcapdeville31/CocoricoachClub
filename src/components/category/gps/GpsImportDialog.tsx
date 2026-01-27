@@ -20,6 +20,7 @@ import {
   METRIC_LABELS,
   findMetricMapping,
   guessColumnGroup,
+  parseIntegerLoose,
   parseNumberLoose,
   toMetersPerSecond,
   type ColumnGroup,
@@ -251,10 +252,11 @@ export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuc
           return toMetersPerSecond(row.rawData[col.header], col.header);
         })(),
         player_load: parseNumberLoose(getColumnValue(row.rawData, 'player_load')),
-        accelerations: parseNumberLoose(getColumnValue(row.rawData, 'accelerations')),
-        decelerations: parseNumberLoose(getColumnValue(row.rawData, 'decelerations')),
+        // DB columns are integers; round any decimal inputs to prevent insert failures.
+        accelerations: parseIntegerLoose(getColumnValue(row.rawData, 'accelerations')),
+        decelerations: parseIntegerLoose(getColumnValue(row.rawData, 'decelerations')),
         duration_minutes: parseNumberLoose(getColumnValue(row.rawData, 'duration_minutes')),
-        sprint_count: parseNumberLoose(getColumnValue(row.rawData, 'sprint_count')),
+        sprint_count: parseIntegerLoose(getColumnValue(row.rawData, 'sprint_count')),
         raw_data: row.rawData, // Always save ALL columns
       }));
 
@@ -288,7 +290,13 @@ export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuc
       onSuccess();
     } catch (error) {
       console.error('Import error:', error);
-      toast.error("Erreur lors de l'import");
+      const message =
+        error instanceof Error
+          ? error.message
+          : typeof error === "object" && error && "message" in error
+            ? String((error as { message?: unknown }).message)
+            : null;
+      toast.error(message ? `Erreur lors de l'import: ${message}` : "Erreur lors de l'import");
       setStep('preview');
     } finally {
       setIsImporting(false);

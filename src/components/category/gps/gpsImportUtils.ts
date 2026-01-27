@@ -69,6 +69,16 @@ export function parseNumberLoose(value: string | number | undefined | null): num
   return Number.isFinite(n) ? n : null;
 }
 
+/**
+ * Parse a value that is expected to be an integer (counts like accelerations, sprints...).
+ * If the CSV provides a decimal (ex: rate like 3.12), we round it to avoid DB insert errors.
+ */
+export function parseIntegerLoose(value: string | number | undefined | null): number | null {
+  const n = parseNumberLoose(value);
+  if (n === null) return null;
+  return Math.round(n);
+}
+
 // Heuristic: if header indicates km/h OR value looks like km/h, convert to m/s
 export function toMetersPerSecond(raw: string | number | undefined | null, header: string): number | null {
   const n = parseNumberLoose(raw);
@@ -84,6 +94,18 @@ export function toMetersPerSecond(raw: string | number | undefined | null, heade
 
 export function findMetricMapping(header: string): MetricKey | null {
   const normalized = normalizeHeader(header);
+
+  // Do NOT auto-map per-minute / rate columns to integer count metrics.
+  // Example: "acc/min" or "sprints/min" often produce decimals like 3.12.
+  const looksLikeRate =
+    /\bmin\b/.test(normalized) &&
+    (/(\baccel\b|\bacc\b)/.test(normalized) ||
+      normalized.includes("acceleration") ||
+      /\bdecel\b/.test(normalized) ||
+      normalized.includes("deceleration") ||
+      /\bsprint\b/.test(normalized));
+
+  if (looksLikeRate) return null;
 
   // Avoid auto-mapping percentage columns (ex: "% Vmax", "%dist > 18 km/h")
   // (They still remain visible and will be categorized via groups.)
