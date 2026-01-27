@@ -20,13 +20,14 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { BarChart3, Check, UserCircle, Settings2 } from "lucide-react";
+import { BarChart3, Check, UserCircle, Satellite } from "lucide-react";
 import { getStatsForSport, getStatCategories, hasGoalkeeperStats, type StatField } from "@/lib/constants/sportStats";
 import { getSportFieldConfig } from "@/lib/constants/sportPositions";
-import { isIndividualSport } from "@/lib/constants/sportTypes";
+import { isIndividualSport, isRugbyType } from "@/lib/constants/sportTypes";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useStatPreferences } from "@/hooks/use-stat-preferences";
+import { MatchGpsImport } from "./MatchGpsImport";
 
 interface SportMatchStatsDialogProps {
   open: boolean;
@@ -56,11 +57,13 @@ export function SportMatchStatsDialog({
   const [effectivePlayTime, setEffectivePlayTime] = useState<number>(0);
   const [longestPlaySequence, setLongestPlaySequence] = useState<number>(0);
   const [averagePlaySequence, setAveragePlaySequence] = useState<number>(0);
+  const [showGpsImport, setShowGpsImport] = useState(false);
   const queryClient = useQueryClient();
 
   const fieldConfig = getSportFieldConfig(sportType);
   const isIndividual = isIndividualSport(sportType);
   const supportsGoalkeeper = hasGoalkeeperStats(sportType);
+  const supportsGps = isRugbyType(sportType) || sportType.toLowerCase().includes("football");
   
   // Get the currently selected player
   const selectedPlayer = statsData.find(p => p.playerId === selectedPlayerId);
@@ -428,14 +431,36 @@ export function SportMatchStatsDialog({
           </Tabs>
         )}
 
-        <div className="flex justify-end gap-2 pt-4 border-t flex-shrink-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annuler
-          </Button>
-          <Button onClick={() => saveStats.mutate()} disabled={saveStats.isPending}>
-            {saveStats.isPending ? "Enregistrement..." : "Enregistrer"}
-          </Button>
+        <div className="flex justify-between gap-2 pt-4 border-t flex-shrink-0">
+          <div>
+            {supportsGps && hasLineup && (
+              <Button variant="outline" onClick={() => setShowGpsImport(true)}>
+                <Satellite className="h-4 w-4 mr-2" />
+                Importer GPS
+              </Button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Annuler
+            </Button>
+            <Button onClick={() => saveStats.mutate()} disabled={saveStats.isPending}>
+              {saveStats.isPending ? "Enregistrement..." : "Enregistrer"}
+            </Button>
+          </div>
         </div>
+
+        {/* GPS Import Dialog */}
+        {supportsGps && matchData && (
+          <MatchGpsImport
+            open={showGpsImport}
+            onOpenChange={setShowGpsImport}
+            matchId={matchId}
+            categoryId={categoryId}
+            matchDate={matchData.match_date}
+            players={statsData.map(p => ({ id: p.playerId, name: p.playerName, position: p.position }))}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

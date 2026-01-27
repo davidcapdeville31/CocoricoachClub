@@ -1215,6 +1215,7 @@ export type Database = {
           high_intensity_decelerations: number | null
           high_speed_distance_m: number | null
           id: string
+          match_id: string | null
           max_speed_ms: number | null
           max_sprint_distance_m: number | null
           notes: string | null
@@ -1246,6 +1247,7 @@ export type Database = {
           high_intensity_decelerations?: number | null
           high_speed_distance_m?: number | null
           id?: string
+          match_id?: string | null
           max_speed_ms?: number | null
           max_sprint_distance_m?: number | null
           notes?: string | null
@@ -1277,6 +1279,7 @@ export type Database = {
           high_intensity_decelerations?: number | null
           high_speed_distance_m?: number | null
           id?: string
+          match_id?: string | null
           max_speed_ms?: number | null
           max_sprint_distance_m?: number | null
           notes?: string | null
@@ -1303,6 +1306,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gps_sessions_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
             referencedColumns: ["id"]
           },
           {
