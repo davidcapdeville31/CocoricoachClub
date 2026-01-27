@@ -73,6 +73,8 @@ import {
   DROP_METHODS,
   CLUSTER_METHODS,
 } from "@/lib/constants/trainingStyles";
+import { SessionGpsImport, type GpsPlayerData } from "@/components/category/gps/SessionGpsImport";
+import { isRugbyType } from "@/lib/constants/sportTypes";
 
 interface SessionFormDialogProps {
   open: boolean;
@@ -223,6 +225,7 @@ export function SessionFormDialog({
   const [showLibraryFor, setShowLibraryFor] = useState<number | null>(null);
   const [showAddExerciseDialog, setShowAddExerciseDialog] = useState(false);
   const [activeExercise, setActiveExercise] = useState<any>(null);
+  const [gpsData, setGpsData] = useState<GpsPlayerData[]>([]);
   
   // Block configurations for groups
   const [blockConfigs, setBlockConfigs] = useState<Record<string, BlockConfig>>({});
@@ -245,6 +248,9 @@ export function SessionFormDialog({
   const sportType = category?.rugby_type;
   const trainingTypes = getTrainingTypesForSport(sportType);
   const availableCategories = getCategoriesForSport(sportType);
+  
+  // GPS is only available for Rugby and Football
+  const showGpsImport = editSession && (isRugbyType(sportType || "") || (sportType || "").toLowerCase().includes("football"));
 
   // Fetch players
   const { data: players } = useQuery({
@@ -489,18 +495,47 @@ export function SessionFormDialog({
         }
       }
 
+      // Save GPS data if provided (only when editing)
+      if (editSession && gpsData.length > 0) {
+        const matchedGpsData = gpsData.filter(d => d.matchedPlayer);
+        if (matchedGpsData.length > 0) {
+          const gpsRecords = matchedGpsData.map(d => ({
+            player_id: d.matchedPlayer!.id,
+            category_id: categoryId,
+            session_date: date,
+            training_session_id: sessionId,
+            source: 'csv_import',
+            total_distance_m: d.total_distance_m,
+            high_speed_distance_m: d.high_speed_distance_m,
+            sprint_distance_m: d.sprint_distance_m,
+            max_speed_ms: d.max_speed_ms,
+            player_load: d.player_load,
+            accelerations: d.accelerations,
+            decelerations: d.decelerations,
+            duration_minutes: d.duration_minutes,
+            sprint_count: d.sprint_count,
+            raw_data: d.raw_data,
+          }));
+
+          await supabase.from("gps_sessions").insert(gpsRecords);
+        }
+      }
+
       return sessionId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["training_attendance"] });
       queryClient.invalidateQueries({ queryKey: ["gym-exercises"] });
+      queryClient.invalidateQueries({ queryKey: ["gps-sessions", categoryId] });
       const exerciseCount = exercises.filter((e) => e.exercise_name.trim()).length;
-      toast.success(
-        editSession
-          ? "Séance modifiée avec succès"
-          : `Séance créée${exerciseCount > 0 ? ` avec ${exerciseCount} exercice(s)` : ""}`
-      );
+      const gpsCount = gpsData.filter(d => d.matchedPlayer).length;
+      
+      let successMessage = editSession ? "Séance modifiée" : "Séance créée";
+      if (exerciseCount > 0) successMessage += ` avec ${exerciseCount} exercice(s)`;
+      if (gpsCount > 0) successMessage += ` et ${gpsCount} données GPS`;
+      
+      toast.success(successMessage);
       onOpenChange(false);
     },
     onError: () => {
@@ -521,6 +556,7 @@ export function SessionFormDialog({
     setSearchQuery("");
     setShowLibraryFor(null);
     setBlockConfigs({});
+    setGpsData([]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1832,6 +1868,17 @@ export function SessionFormDialog({
                         rows={3}
                       />
                     </div>
+
+                    {/* GPS Import - Only visible when editing a session for Rugby/Football */}
+                    {showGpsImport && players && (
+                      <div className="pt-4 border-t">
+                        <SessionGpsImport
+                          players={players.map(p => ({ id: p.id, name: p.name, position: p.position }))}
+                          onGpsDataChange={setGpsData}
+                          gpsData={gpsData}
+                        />
+                      </div>
+                    )}
                   </div>
                 </ScrollArea>
               </TabsContent>
