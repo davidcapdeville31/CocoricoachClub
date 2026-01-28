@@ -7,6 +7,7 @@ import { Upload, MapPin, Activity, Zap, Timer, TrendingUp } from "lucide-react";
 import { GpsImportDialog } from "./GpsImportDialog";
 import { GpsSessionsList } from "./GpsSessionsList";
 import { GpsAnalyticsDashboard } from "./GpsAnalyticsDashboard";
+import { WeeklyGpsRecommendations } from "./WeeklyGpsRecommendations";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 
@@ -140,6 +141,9 @@ export function GpsDataTab({ categoryId }: GpsDataTabProps) {
           </Card>
         </div>
       )}
+
+      {/* Weekly Recommendations */}
+      <WeeklyGpsRecommendations categoryId={categoryId} />
 
       {/* Main content tabs */}
       <Tabs defaultValue="sessions" className="space-y-4">
