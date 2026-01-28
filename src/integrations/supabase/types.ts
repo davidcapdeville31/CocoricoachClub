@@ -2961,6 +2961,87 @@ export type Database = {
           },
         ]
       }
+      player_performance_references: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          player_id: string
+          ref_acceleration_max: number | null
+          ref_deceleration_max: number | null
+          ref_high_intensity_distance_per_min: number | null
+          ref_impacts_per_min: number | null
+          ref_player_load_per_min: number | null
+          ref_sprint_distance_m: number | null
+          ref_time_40m_seconds: number | null
+          ref_vmax_kmh: number | null
+          ref_vmax_ms: number | null
+          source_id: string | null
+          source_type: string
+          test_date: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          player_id: string
+          ref_acceleration_max?: number | null
+          ref_deceleration_max?: number | null
+          ref_high_intensity_distance_per_min?: number | null
+          ref_impacts_per_min?: number | null
+          ref_player_load_per_min?: number | null
+          ref_sprint_distance_m?: number | null
+          ref_time_40m_seconds?: number | null
+          ref_vmax_kmh?: number | null
+          ref_vmax_ms?: number | null
+          source_id?: string | null
+          source_type?: string
+          test_date: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          player_id?: string
+          ref_acceleration_max?: number | null
+          ref_deceleration_max?: number | null
+          ref_high_intensity_distance_per_min?: number | null
+          ref_impacts_per_min?: number | null
+          ref_player_load_per_min?: number | null
+          ref_sprint_distance_m?: number | null
+          ref_time_40m_seconds?: number | null
+          ref_vmax_kmh?: number | null
+          ref_vmax_ms?: number | null
+          source_id?: string | null
+          source_type?: string
+          test_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_performance_references_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_performance_references_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_rehab_protocols: {
         Row: {
           category_id: string

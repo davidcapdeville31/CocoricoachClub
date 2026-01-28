@@ -13,9 +13,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Stopwatch } from "./Stopwatch";
 import { PlayerSelection } from "./PlayerSelection";
+import { GpsDataSelector } from "./GpsDataSelector";
+import { useBulkCreatePerformanceReferences, type CreateReferenceInput } from "@/hooks/use-performance-references";
+
+interface GpsSession {
+  id: string;
+  player_id: string;
+  max_speed_ms: number | null;
+  accelerations: number | null;
+  decelerations: number | null;
+  sprint_distance_m: number | null;
+  player_load: number | null;
+  duration_minutes: number | null;
+  high_speed_distance_m: number | null;
+}
 
 interface Add40mSprintDialogProps {
   open: boolean;
@@ -36,7 +51,11 @@ export function Add40mSprintDialog({
   const [playerResults, setPlayerResults] = useState<Record<string, string>>({});
   const [inputMode, setInputMode] = useState<"manual" | "stopwatch">("manual");
   const [currentStopwatchPlayer, setCurrentStopwatchPlayer] = useState<string | null>(null);
+  const [gpsData, setGpsData] = useState<Map<string, GpsSession>>(new Map());
+  const [setAsReference, setSetAsReference] = useState(true);
   const queryClient = useQueryClient();
+  
+  const createReferences = useBulkCreatePerformanceReferences();
 
   const effectivePlayers = selectionMode === "all" ? players : players.filter(p => selectedPlayers.includes(p.id));
 
@@ -49,14 +68,17 @@ export function Add40mSprintDialog({
           const speedMs = 40 / time;
           const speedKmh = speedMs * 3.6;
 
+          // Get GPS data if available
+          const playerGps = gpsData.get(player.id);
+
           return {
             player_id: player.id,
             category_id: categoryId,
             test_date: date,
             test_type: "40m_sprint",
             time_40m_seconds: time,
-            speed_ms: speedMs,
-            speed_kmh: speedKmh,
+            speed_ms: playerGps?.max_speed_ms || speedMs,
+            speed_kmh: playerGps?.max_speed_ms ? playerGps.max_speed_ms * 3.6 : speedKmh,
           };
         });
 
@@ -64,16 +86,55 @@ export function Add40mSprintDialog({
         throw new Error("Aucun résultat saisi");
       }
 
-      const { error } = await supabase.from("speed_tests").insert(inserts);
+      const { data: testResults, error } = await supabase
+        .from("speed_tests")
+        .insert(inserts)
+        .select();
+      
       if (error) throw error;
+      
+      return testResults;
     },
-    onSuccess: () => {
+    onSuccess: async (testResults) => {
+      // Create performance references if requested
+      if (setAsReference && testResults) {
+        const references: CreateReferenceInput[] = testResults.map(test => {
+          const playerGps = gpsData.get(test.player_id);
+          const durationMin = playerGps?.duration_minutes || 1;
+          
+          return {
+            player_id: test.player_id,
+            category_id: categoryId,
+            test_date: date,
+            source_type: playerGps ? "gps_session" : "speed_test",
+            source_id: test.id,
+            ref_vmax_ms: playerGps?.max_speed_ms || test.speed_ms,
+            ref_vmax_kmh: playerGps?.max_speed_ms ? playerGps.max_speed_ms * 3.6 : test.speed_kmh,
+            ref_acceleration_max: playerGps?.accelerations || null,
+            ref_deceleration_max: playerGps?.decelerations || null,
+            ref_sprint_distance_m: playerGps?.sprint_distance_m || null,
+            ref_time_40m_seconds: test.time_40m_seconds,
+            ref_player_load_per_min: playerGps?.player_load && durationMin > 0 
+              ? playerGps.player_load / durationMin 
+              : null,
+            ref_high_intensity_distance_per_min: playerGps?.high_speed_distance_m && durationMin > 0
+              ? playerGps.high_speed_distance_m / durationMin
+              : null,
+            notes: `Test 40m du ${date}${playerGps ? " avec données GPS" : ""}`,
+          };
+        });
+
+        await createReferences.mutateAsync(references);
+        toast.success(`${testResults.length} test(s) ajouté(s) et références mises à jour`);
+      } else {
+        toast.success("Tests 40m ajoutés avec succès");
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["speed_tests", categoryId, "40m_sprint"] });
-      toast.success("Tests 40m ajoutés avec succès");
       resetForm();
       onOpenChange(false);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Erreur lors de l'ajout du test");
     },
   });
@@ -83,6 +144,8 @@ export function Add40mSprintDialog({
     setSelectionMode("all");
     setDate(new Date().toISOString().split("T")[0]);
     setPlayerResults({});
+    setGpsData(new Map());
+    setSetAsReference(true);
   };
 
   const updatePlayerResult = (playerId: string, value: string) => {
@@ -94,7 +157,6 @@ export function Add40mSprintDialog({
       updatePlayerResult(currentStopwatchPlayer, seconds.toFixed(2));
       toast.success(`Temps enregistré: ${seconds.toFixed(2)}s`);
       
-      // Move to next player
       const currentIndex = effectivePlayers.findIndex(p => p.id === currentStopwatchPlayer);
       if (currentIndex < effectivePlayers.length - 1) {
         setCurrentStopwatchPlayer(effectivePlayers[currentIndex + 1].id);
@@ -111,6 +173,7 @@ export function Add40mSprintDialog({
   };
 
   const filledResultsCount = effectivePlayers.filter(p => playerResults[p.id]).length;
+  const hasGpsData = gpsData.size > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -141,6 +204,29 @@ export function Add40mSprintDialog({
                 />
               </div>
 
+              {/* GPS Data Selector */}
+              <GpsDataSelector
+                categoryId={categoryId}
+                date={date}
+                players={effectivePlayers}
+                onGpsDataSelected={setGpsData}
+              />
+
+              {/* Reference checkbox */}
+              <div className="flex items-center space-x-2 p-3 border rounded-lg bg-primary/5">
+                <Checkbox
+                  id="set-reference"
+                  checked={setAsReference}
+                  onCheckedChange={(checked) => setSetAsReference(checked === true)}
+                />
+                <Label htmlFor="set-reference" className="text-sm cursor-pointer">
+                  <span className="font-medium">Définir comme référence de performance</span>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Les résultats de ce test{hasGpsData && " et les données GPS"} deviendront les références pour calculer les % en match
+                  </p>
+                </Label>
+              </div>
+
               <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as "manual" | "stopwatch")}>
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="manual">Saisie manuelle</TabsTrigger>
@@ -154,7 +240,10 @@ export function Add40mSprintDialog({
                       <div className="grid grid-cols-2 gap-2 p-3 border rounded-md bg-muted/30">
                         {effectivePlayers.map((player) => {
                           const time = playerResults[player.id];
-                          const speedKmh = time ? ((40 / parseFloat(time)) * 3.6).toFixed(2) : null;
+                          const playerGps = gpsData.get(player.id);
+                          const displaySpeed = playerGps?.max_speed_ms 
+                            ? (playerGps.max_speed_ms * 3.6).toFixed(1)
+                            : time ? ((40 / parseFloat(time)) * 3.6).toFixed(2) : null;
 
                           return (
                             <div key={player.id} className="space-y-1">
@@ -169,11 +258,16 @@ export function Add40mSprintDialog({
                                   className="w-20 h-8 text-sm"
                                 />
                               </div>
-                              {speedKmh && (
-                                <p className="text-xs text-muted-foreground pl-1">
-                                  {speedKmh} km/h
-                                </p>
-                              )}
+                              <div className="flex items-center gap-1 pl-1">
+                                {displaySpeed && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {displaySpeed} km/h
+                                  </p>
+                                )}
+                                {playerGps && (
+                                  <span className="text-xs text-primary font-medium">(GPS)</span>
+                                )}
+                              </div>
                             </div>
                           );
                         })}
@@ -195,7 +289,7 @@ export function Add40mSprintDialog({
                               variant={currentStopwatchPlayer === player.id ? "default" : "outline"}
                               size="sm"
                               onClick={() => setCurrentStopwatchPlayer(player.id)}
-                              className={playerResults[player.id] ? "border-green-500" : ""}
+                              className={playerResults[player.id] ? "border-primary" : ""}
                             >
                               {player.name}
                               {playerResults[player.id] && ` (${playerResults[player.id]}s)`}
@@ -223,9 +317,11 @@ export function Add40mSprintDialog({
             </Button>
             <Button
               type="submit"
-              disabled={filledResultsCount === 0 || addTest.isPending}
+              disabled={filledResultsCount === 0 || addTest.isPending || createReferences.isPending}
             >
-              {addTest.isPending ? "Ajout..." : `Ajouter ${filledResultsCount} test${filledResultsCount > 1 ? "s" : ""}`}
+              {(addTest.isPending || createReferences.isPending) 
+                ? "Ajout..." 
+                : `Ajouter ${filledResultsCount} test${filledResultsCount > 1 ? "s" : ""}`}
             </Button>
           </DialogFooter>
         </form>
