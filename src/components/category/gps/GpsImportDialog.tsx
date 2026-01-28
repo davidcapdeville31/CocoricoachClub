@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Upload, FileText, Check, AlertCircle, Loader2, Link2, Eye, EyeOff } from "lucide-react";
+import { Upload, FileText, Check, AlertCircle, Loader2, Link2, Eye, EyeOff, Dumbbell, ClipboardList } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -26,6 +26,7 @@ import {
   type ColumnGroup,
   type MetricKey,
 } from "./gpsImportUtils";
+import { useBulkCreatePerformanceReferences, type CreateReferenceInput } from "@/hooks/use-performance-references";
 
 interface Player {
   id: string;
@@ -57,6 +58,18 @@ interface ColumnConfig {
   exampleValue: string;
 }
 
+type SessionType = 'training' | 'test';
+
+const TEST_TYPES = [
+  { value: "10m_sprint", label: "Sprint 10m", distance: 10 },
+  { value: "20m_sprint", label: "Sprint 20m", distance: 20 },
+  { value: "30m_sprint", label: "Sprint 30m", distance: 30 },
+  { value: "40m_sprint", label: "Sprint 40m", distance: 40 },
+  { value: "60m_sprint", label: "Sprint 60m", distance: 60 },
+  { value: "100m_sprint", label: "Sprint 100m", distance: 100 },
+  { value: "1600m_run", label: "Course 1600m", distance: 1600 },
+];
+
 export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuccess }: GpsImportDialogProps) {
   const [step, setStep] = useState<'upload' | 'columns' | 'preview' | 'importing'>('upload');
   const [csvData, setCsvData] = useState<string[][]>([]);
@@ -67,8 +80,15 @@ export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuc
   const [selectedSessionId, setSelectedSessionId] = useState<string>('');
   const [source, setSource] = useState<'catapult' | 'statsports' | 'manual'>('manual');
   const [isImporting, setIsImporting] = useState(false);
+  
+  // New state for session type selection
+  const [sessionType, setSessionType] = useState<SessionType>('training');
+  const [selectedTestType, setSelectedTestType] = useState<string>('');
+  const [setAsReference, setSetAsReference] = useState(true);
 
   const validPlayers = useMemo(() => players.filter(p => p.id && p.id.trim() !== ""), [players]);
+  const queryClient = useQueryClient();
+  const createReferences = useBulkCreatePerformanceReferences();
 
   // Fetch existing training sessions for linking
   const { data: trainingSessions } = useQuery({
@@ -83,8 +103,10 @@ export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuc
       if (error) throw error;
       return data;
     },
-    enabled: !!sessionDate,
+    enabled: !!sessionDate && sessionType === 'training',
   });
+
+  const selectedTest = TEST_TYPES.find(t => t.value === selectedTestType);
 
   const resetState = useCallback(() => {
     setStep('upload');
@@ -96,6 +118,9 @@ export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuc
     setSelectedSessionId('');
     setSource('manual');
     setIsImporting(false);
+    setSessionType('training');
+    setSelectedTestType('');
+    setSetAsReference(true);
   }, []);
 
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -232,39 +257,123 @@ export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuc
       return;
     }
 
+    // For test mode, check that test type is selected
+    if (sessionType === 'test' && !selectedTestType) {
+      toast.error("Veuillez sélectionner un type de test");
+      return;
+    }
+
     setIsImporting(true);
     setStep('importing');
 
     try {
-      const records = validRows.map(row => ({
-        category_id: categoryId,
-        player_id: row.matchedPlayerId!,
-        session_date: sessionDate,
-        session_name: sessionName || null,
-        training_session_id: selectedSessionId || null,
-        source,
-        total_distance_m: parseNumberLoose(getColumnValue(row.rawData, 'total_distance_m')),
-        high_speed_distance_m: parseNumberLoose(getColumnValue(row.rawData, 'high_speed_distance_m')),
-        sprint_distance_m: parseNumberLoose(getColumnValue(row.rawData, 'sprint_distance_m')),
-        max_speed_ms: (() => {
+      // Prepare GPS records
+      const gpsRecords = validRows.map(row => {
+        const maxSpeedMs = (() => {
           const col = columns.find(c => c.mappedTo === 'max_speed_ms');
           if (!col) return null;
           return toMetersPerSecond(row.rawData[col.header], col.header);
-        })(),
-        player_load: parseNumberLoose(getColumnValue(row.rawData, 'player_load')),
-        // DB columns are integers; round any decimal inputs to prevent insert failures.
-        accelerations: parseIntegerLoose(getColumnValue(row.rawData, 'accelerations')),
-        decelerations: parseIntegerLoose(getColumnValue(row.rawData, 'decelerations')),
-        duration_minutes: parseNumberLoose(getColumnValue(row.rawData, 'duration_minutes')),
-        sprint_count: parseIntegerLoose(getColumnValue(row.rawData, 'sprint_count')),
-        raw_data: row.rawData, // Always save ALL columns
-      }));
+        })();
+        
+        return {
+          category_id: categoryId,
+          player_id: row.matchedPlayerId!,
+          session_date: sessionDate,
+          session_name: sessionType === 'test' 
+            ? `Test ${selectedTest?.label || selectedTestType}` 
+            : (sessionName || null),
+          training_session_id: sessionType === 'training' ? (selectedSessionId || null) : null,
+          source,
+          total_distance_m: parseNumberLoose(getColumnValue(row.rawData, 'total_distance_m')),
+          high_speed_distance_m: parseNumberLoose(getColumnValue(row.rawData, 'high_speed_distance_m')),
+          sprint_distance_m: parseNumberLoose(getColumnValue(row.rawData, 'sprint_distance_m')),
+          max_speed_ms: maxSpeedMs,
+          player_load: parseNumberLoose(getColumnValue(row.rawData, 'player_load')),
+          accelerations: parseIntegerLoose(getColumnValue(row.rawData, 'accelerations')),
+          decelerations: parseIntegerLoose(getColumnValue(row.rawData, 'decelerations')),
+          duration_minutes: parseNumberLoose(getColumnValue(row.rawData, 'duration_minutes')),
+          sprint_count: parseIntegerLoose(getColumnValue(row.rawData, 'sprint_count')),
+          raw_data: row.rawData,
+        };
+      });
 
-      const { error } = await supabase
+      // Insert GPS sessions
+      const { data: insertedGps, error: gpsError } = await supabase
         .from('gps_sessions')
-        .insert(records);
+        .insert(gpsRecords)
+        .select();
 
-      if (error) throw error;
+      if (gpsError) throw gpsError;
+
+      // If test mode, also create test records
+      if (sessionType === 'test' && selectedTestType && insertedGps) {
+        const testInserts = insertedGps.map(gps => {
+          const distance = selectedTest?.distance || 0;
+          const maxSpeedMs = gps.max_speed_ms;
+          const speedKmh = maxSpeedMs ? maxSpeedMs * 3.6 : null;
+          
+          // Calculate time from distance and max speed if available
+          let timeSeconds = null;
+          if (maxSpeedMs && distance && distance <= 100) {
+            // For short sprints, estimate time from max speed (rough approximation)
+            // avg speed ≈ 0.85 * max speed for short sprints
+            const avgSpeedMs = maxSpeedMs * 0.85;
+            timeSeconds = distance / avgSpeedMs;
+          }
+          
+          return {
+            player_id: gps.player_id,
+            category_id: categoryId,
+            test_date: sessionDate,
+            test_type: selectedTestType,
+            time_40m_seconds: timeSeconds,
+            speed_ms: maxSpeedMs,
+            speed_kmh: speedKmh,
+          };
+        });
+
+        const { data: testResults, error: testError } = await supabase
+          .from('speed_tests')
+          .insert(testInserts)
+          .select();
+
+        if (testError) {
+          console.error('Test insert error:', testError);
+          // Continue even if test insert fails - GPS data is already saved
+        } else if (testResults && setAsReference) {
+          // Create performance references
+          const references: CreateReferenceInput[] = testResults.map((test, idx) => {
+            const gps = insertedGps[idx];
+            const durationMin = gps.duration_minutes || 1;
+            
+            return {
+              player_id: test.player_id,
+              category_id: categoryId,
+              test_date: sessionDate,
+              source_type: "gps_session",
+              source_id: gps.id,
+              ref_vmax_ms: gps.max_speed_ms,
+              ref_vmax_kmh: gps.max_speed_ms ? gps.max_speed_ms * 3.6 : null,
+              ref_acceleration_max: gps.accelerations,
+              ref_deceleration_max: gps.decelerations,
+              ref_sprint_distance_m: gps.sprint_distance_m,
+              ref_time_40m_seconds: test.time_40m_seconds,
+              ref_player_load_per_min: gps.player_load && durationMin > 0 
+                ? gps.player_load / durationMin 
+                : null,
+              ref_high_intensity_distance_per_min: gps.high_speed_distance_m && durationMin > 0
+                ? gps.high_speed_distance_m / durationMin
+                : null,
+              notes: `Import GPS - ${selectedTest?.label} du ${sessionDate}`,
+            };
+          });
+
+          await createReferences.mutateAsync(references);
+        }
+
+        // Invalidate test queries
+        queryClient.invalidateQueries({ queryKey: ["speed_tests", categoryId] });
+      }
 
       // Update AWCR tracking with GPS Player Load
       const playersWithGpsLoad = validRows
@@ -285,7 +394,11 @@ export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuc
         }
       }
 
-      toast.success(`${validRows.length} sessions GPS importées avec succès`);
+      const successMsg = sessionType === 'test' 
+        ? `${validRows.length} sessions GPS importées + tests ${selectedTest?.label} créés`
+        : `${validRows.length} sessions GPS importées avec succès`;
+      
+      toast.success(successMsg);
       resetState();
       onSuccess();
     } catch (error) {
@@ -381,6 +494,43 @@ export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuc
           {/* STEP 2: Column Selection & Mapping */}
           {step === 'columns' && (
             <div className="flex flex-col gap-4">
+              {/* Session Type Selector */}
+              <div className="p-4 border rounded-lg bg-muted/30">
+                <Label className="text-sm font-medium mb-3 block">Type de session</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    type="button"
+                    variant={sessionType === 'training' ? 'default' : 'outline'}
+                    className="h-auto py-3 justify-start gap-3"
+                    onClick={() => {
+                      setSessionType('training');
+                      setSelectedTestType('');
+                    }}
+                  >
+                    <Dumbbell className="h-5 w-5" />
+                    <div className="text-left">
+                      <div className="font-medium">Entraînement</div>
+                      <div className="text-xs opacity-80">Séance normale</div>
+                    </div>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={sessionType === 'test' ? 'default' : 'outline'}
+                    className="h-auto py-3 justify-start gap-3"
+                    onClick={() => {
+                      setSessionType('test');
+                      setSelectedSessionId('');
+                    }}
+                  >
+                    <ClipboardList className="h-5 w-5" />
+                    <div className="text-left">
+                      <div className="font-medium">Test physique</div>
+                      <div className="text-xs opacity-80">Enregistre les performances</div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+
               {/* Session settings */}
               <div className="grid grid-cols-3 gap-4">
                 <div>
@@ -391,14 +541,32 @@ export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuc
                     onChange={(e) => setSessionDate(e.target.value)}
                   />
                 </div>
-                <div>
-                  <Label>Nom de la session</Label>
-                  <Input
-                    placeholder="Ex: Entraînement du mardi"
-                    value={sessionName}
-                    onChange={(e) => setSessionName(e.target.value)}
-                  />
-                </div>
+                {sessionType === 'training' ? (
+                  <div>
+                    <Label>Nom de la session</Label>
+                    <Input
+                      placeholder="Ex: Entraînement du mardi"
+                      value={sessionName}
+                      onChange={(e) => setSessionName(e.target.value)}
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <Label>Type de test *</Label>
+                    <Select value={selectedTestType} onValueChange={setSelectedTestType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un test..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TEST_TYPES.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div>
                   <Label>Source des données</Label>
                   <Select value={source} onValueChange={(v: 'catapult' | 'statsports' | 'manual') => setSource(v)}>
@@ -414,8 +582,8 @@ export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuc
                 </div>
               </div>
 
-              {/* Link to training session */}
-              {trainingSessions && trainingSessions.length > 0 && (
+              {/* Link to training session - only for training mode */}
+              {sessionType === 'training' && trainingSessions && trainingSessions.length > 0 && (
                 <div className="p-3 rounded-lg border bg-muted/50">
                   <Label className="flex items-center gap-2 mb-2">
                     <Link2 className="h-4 w-4" />
@@ -441,6 +609,23 @@ export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuc
                 </div>
               )}
 
+              {/* Performance reference checkbox - only for test mode */}
+              {sessionType === 'test' && selectedTestType && (
+                <div className="flex items-center space-x-2 p-3 border rounded-lg bg-primary/5">
+                  <Checkbox
+                    id="set-reference-gps"
+                    checked={setAsReference}
+                    onCheckedChange={(checked) => setSetAsReference(checked === true)}
+                  />
+                  <Label htmlFor="set-reference-gps" className="text-sm cursor-pointer">
+                    <span className="font-medium">Définir comme référence de performance</span>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Vmax, accélérations, charge GPS deviendront les références pour les % en match
+                    </p>
+                  </Label>
+                </div>
+              )}
+
               {/* Summary badges */}
               <div className="flex flex-wrap gap-2 items-center">
                 <span className="text-sm font-medium">Colonnes:</span>
@@ -449,6 +634,12 @@ export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuc
                 <Badge variant="secondary">{mappedMetricsCount} mappées</Badge>
                 {playerNameColumnIndex === -1 && (
                   <Badge variant="destructive">Joueur non mappé !</Badge>
+                )}
+                {sessionType === 'test' && (
+                  <Badge variant="secondary" className="bg-primary/20">
+                    <ClipboardList className="h-3 w-3 mr-1" />
+                    Mode Test
+                  </Badge>
                 )}
               </div>
 
@@ -559,6 +750,12 @@ export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuc
                 <Badge variant="outline">
                   {visibleColumns.length} colonnes affichées
                 </Badge>
+                {sessionType === 'test' && selectedTest && (
+                  <Badge variant="secondary" className="bg-primary/20 gap-1">
+                    <ClipboardList className="h-3 w-3" />
+                    Test: {selectedTest.label}
+                  </Badge>
+                )}
               </div>
 
               <div className="h-[450px] overflow-auto border rounded-lg">
@@ -644,8 +841,14 @@ export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuc
                 <Button variant="outline" onClick={() => setStep('columns')}>
                   Retour
                 </Button>
-                <Button onClick={handleImport} disabled={effectiveMatchedCount === 0}>
-                  Importer {effectiveMatchedCount} sessions
+                <Button 
+                  onClick={handleImport} 
+                  disabled={effectiveMatchedCount === 0 || (sessionType === 'test' && !selectedTestType) || createReferences.isPending}
+                >
+                  {createReferences.isPending ? "Import..." : sessionType === 'test' 
+                    ? `Importer ${effectiveMatchedCount} GPS + Tests`
+                    : `Importer ${effectiveMatchedCount} sessions`
+                  }
                 </Button>
               </div>
             </div>
