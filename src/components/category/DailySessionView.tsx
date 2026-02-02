@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,8 +25,11 @@ import {
   Plus,
   Printer,
   Eye,
-  ClipboardCheck
+  ClipboardCheck,
+  Pencil
 } from "lucide-react";
+import { toast } from "sonner";
+import { GroupedTrainingTypeSelect } from "./sessions/GroupedTrainingTypeSelect";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { subDays } from "date-fns";
@@ -60,13 +63,50 @@ interface AtRiskPlayer {
 
 export function DailySessionView({ categoryId, categoryName = "Catégorie" }: DailySessionViewProps) {
   const { fieldMode, setFieldMode } = useFieldMode();
+  const queryClient = useQueryClient();
   const [showOnlyAtRisk, setShowOnlyAtRisk] = useState(false);
   const [wellnessDialogOpen, setWellnessDialogOpen] = useState(false);
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
   const [rpeDialogOpen, setRpeDialogOpen] = useState(false);
   const [rpeDialogSession, setRpeDialogSession] = useState<{ id: string; type: string } | null>(null);
+  const [editingSessionType, setEditingSessionType] = useState<string | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
   const today = format(new Date(), "yyyy-MM-dd");
+
+  // Fetch category to get sport type
+  const { data: category } = useQuery({
+    queryKey: ["category-sport-type", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("rugby_type")
+        .eq("id", categoryId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const sportType = category?.rugby_type;
+
+  // Mutation to update session training type
+  const updateSessionType = useMutation({
+    mutationFn: async ({ sessionId, trainingType }: { sessionId: string; trainingType: string }) => {
+      const { error } = await supabase
+        .from("training_sessions")
+        .update({ training_type: trainingType })
+        .eq("id", sessionId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
+      toast.success("Type de séance modifié");
+      setEditingSessionType(null);
+    },
+    onError: () => {
+      toast.error("Erreur lors de la modification");
+    },
+  });
 
   const handleOpenRpeDialog = (session: { id: string; training_type: string }) => {
     setRpeDialogSession({ id: session.id, type: session.training_type });
@@ -526,10 +566,52 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                             )}>
                               {getSessionTypeIcon(session.training_type)}
                             </div>
-                            <div>
-                              <p className={cn("font-semibold", fieldMode && "text-white")}>
-                                {getSessionTypeLabel(session.training_type)}
-                              </p>
+                            <div className="flex-1">
+                              {editingSessionType === session.id ? (
+                                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                  <div className="w-48">
+                                    <GroupedTrainingTypeSelect
+                                      value={session.training_type}
+                                      onValueChange={(value) => {
+                                        updateSessionType.mutate({ sessionId: session.id, trainingType: value });
+                                      }}
+                                      sportType={sportType}
+                                    />
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingSessionType(null);
+                                    }}
+                                    className="h-7 px-2 text-xs"
+                                  >
+                                    Annuler
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <p className={cn("font-semibold", fieldMode && "text-white")}>
+                                    {getSessionTypeLabel(session.training_type)}
+                                  </p>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingSessionType(session.id);
+                                    }}
+                                    className={cn(
+                                      "h-6 w-6 p-0 opacity-60 hover:opacity-100",
+                                      fieldMode && "text-slate-300 hover:text-white hover:bg-slate-700"
+                                    )}
+                                    title="Modifier le type"
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              )}
                               {session.session_start_time && (
                                 <p className={cn(
                                   "text-xs",
