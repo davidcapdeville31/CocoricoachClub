@@ -67,20 +67,25 @@ export function PlayerTestsTab({ playerId, categoryId }: PlayerTestsTabProps) {
     },
   });
 
-  // Fetch generic tests for strength/musculation category
-  const { data: genericStrengthTests } = useQuery({
-    queryKey: ["generic_strength_tests", playerId],
+  // Fetch ALL generic tests for this player (from session builder)
+  const { data: allGenericTests } = useQuery({
+    queryKey: ["all_generic_tests", playerId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("generic_tests")
         .select("*")
         .eq("player_id", playerId)
-        .eq("test_category", "musculation")
         .order("test_date", { ascending: true });
       if (error) throw error;
       return data;
     },
   });
+
+  // Filter generic tests by category
+  const genericStrengthTests = allGenericTests?.filter(t => t.test_category === "musculation") || [];
+  const genericSpeedTests = allGenericTests?.filter(t => t.test_category === "vitesse") || [];
+  const genericMobilityTests = allGenericTests?.filter(t => t.test_category === "mobilite") || [];
+  const genericJumpTests = allGenericTests?.filter(t => t.test_category === "detente") || [];
 
   const { data: mobilityTests } = useQuery({
     queryKey: ["mobility_tests", playerId],
@@ -162,6 +167,29 @@ export function PlayerTestsTab({ playerId, categoryId }: PlayerTestsTabProps) {
     },
   });
 
+  // Combine speed tests from both tables
+  const allSpeedTestsData = [
+    ...(speedTests?.map(test => ({
+      id: test.id,
+      test_date: test.test_date,
+      test_type: test.test_type,
+      time_40m_seconds: test.time_40m_seconds,
+      time_1600m_minutes: test.time_1600m_minutes,
+      time_1600m_seconds: test.time_1600m_seconds,
+      speed_kmh: test.speed_kmh,
+      vma_kmh: test.vma_kmh,
+      source: "speed_tests" as const,
+    })) || []),
+    ...(genericSpeedTests.map(test => ({
+      id: test.id,
+      test_date: test.test_date,
+      test_type: test.test_type || "generic",
+      result_value: test.result_value,
+      result_unit: test.result_unit,
+      source: "generic_tests" as const,
+    })) || []),
+  ].sort((a, b) => new Date(a.test_date).getTime() - new Date(b.test_date).getTime());
+
   // Préparer les données pour les graphiques
   const sprint40mData = speedTests
     ?.filter((test) => test.test_type === "40m_sprint")
@@ -188,7 +216,7 @@ export function PlayerTestsTab({ playerId, categoryId }: PlayerTestsTabProps) {
       weight_kg: test.weight_kg,
       source: "strength_tests" as const,
     })) || []),
-    ...(genericStrengthTests?.map(test => ({
+    ...(genericStrengthTests.map(test => ({
       id: test.id,
       test_date: test.test_date,
       test_name: test.test_type?.replace(/_/g, " ") || "Test",
@@ -236,29 +264,74 @@ export function PlayerTestsTab({ playerId, categoryId }: PlayerTestsTabProps) {
 
   const mobilityTestTypes = [...new Set(mobilityTests?.map((test) => test.test_type) || [])];
 
-  // Prepare jump data for charts
-  const verticalJumpData = jumpTests
-    ?.filter((test) => test.test_type === "vertical_jump")
-    .map((test) => ({
-      date: new Date(test.test_date).toLocaleDateString("fr-FR"),
-      result: Number(test.result_cm),
-    })) || [];
+  // Combine jump tests from both tables
+  const allJumpTestsData = [
+    ...(jumpTests?.map(test => ({
+      id: test.id,
+      test_date: test.test_date,
+      test_type: test.test_type,
+      result_cm: Number(test.result_cm),
+      notes: test.notes,
+      source: "jump_tests" as const,
+    })) || []),
+    ...(genericJumpTests.map(test => ({
+      id: test.id,
+      test_date: test.test_date,
+      test_type: test.test_type || "generic",
+      result_cm: test.result_value,
+      notes: test.notes,
+      source: "generic_tests" as const,
+    })) || []),
+  ].sort((a, b) => new Date(a.test_date).getTime() - new Date(b.test_date).getTime());
 
-  const horizontalJumpData = jumpTests
-    ?.filter((test) => test.test_type === "horizontal_jump")
+  // Combine mobility tests from both tables
+  const allMobilityTestsData = [
+    ...(mobilityTests?.map(test => ({
+      id: test.id,
+      test_date: test.test_date,
+      test_type: test.test_type,
+      score: test.score,
+      left_score: test.left_score,
+      right_score: test.right_score,
+      notes: test.notes,
+      source: "mobility_tests" as const,
+    })) || []),
+    ...(genericMobilityTests.map(test => ({
+      id: test.id,
+      test_date: test.test_date,
+      test_type: test.test_type || "generic",
+      score: test.result_value,
+      left_score: null,
+      right_score: null,
+      notes: test.notes,
+      source: "generic_tests" as const,
+    })) || []),
+  ].sort((a, b) => new Date(a.test_date).getTime() - new Date(b.test_date).getTime());
+
+  // Prepare jump data for charts
+  const verticalJumpData = allJumpTestsData
+    .filter((test) => test.test_type === "vertical_jump" || test.test_type === "cmj")
     .map((test) => ({
       date: new Date(test.test_date).toLocaleDateString("fr-FR"),
       result: Number(test.result_cm),
-    })) || [];
+    }));
+
+  const horizontalJumpData = allJumpTestsData
+    .filter((test) => test.test_type === "horizontal_jump")
+    .map((test) => ({
+      date: new Date(test.test_date).toLocaleDateString("fr-FR"),
+      result: Number(test.result_cm),
+    }));
 
   return (
     <div className="space-y-6">
       <Tabs defaultValue="speed" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="speed">Vitesse</TabsTrigger>
           <TabsTrigger value="strength">Musculation</TabsTrigger>
           <TabsTrigger value="mobility">Mobilité</TabsTrigger>
           <TabsTrigger value="jump">Détente</TabsTrigger>
+          <TabsTrigger value="all">Tous</TabsTrigger>
         </TabsList>
 
         <TabsContent value="speed" className="space-y-6">
@@ -341,7 +414,7 @@ export function PlayerTestsTab({ playerId, categoryId }: PlayerTestsTabProps) {
               <CardTitle>Historique des tests de vitesse</CardTitle>
             </CardHeader>
             <CardContent>
-              {speedTests && speedTests.length > 0 ? (
+              {allSpeedTestsData && allSpeedTestsData.length > 0 ? (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -352,16 +425,22 @@ export function PlayerTestsTab({ playerId, categoryId }: PlayerTestsTabProps) {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {speedTests.map((test) => (
+                      {allSpeedTestsData.slice().reverse().map((test) => (
                         <TableRow key={test.id}>
                           <TableCell>{new Date(test.test_date).toLocaleDateString("fr-FR")}</TableCell>
                           <TableCell>
-                            {test.test_type === "40m_sprint" ? "Sprint 40m" : "Course 1600m"}
+                            {test.source === "generic_tests"
+                              ? (test.test_type?.replace(/_/g, " ") || "Test")
+                              : (test.test_type === "40m_sprint" ? "Sprint 40m" : "Course 1600m")
+                            }
                           </TableCell>
                           <TableCell>
-                            {test.test_type === "40m_sprint" 
-                              ? `${test.time_40m_seconds?.toFixed(2)}s - ${test.speed_kmh?.toFixed(2)} km/h`
-                              : `${test.time_1600m_minutes}:${test.time_1600m_seconds?.toString().padStart(2, "0")} - ${test.vma_kmh?.toFixed(2)} km/h VMA`
+                            {test.source === "generic_tests"
+                              ? `${test.result_value} ${test.result_unit || ""}`
+                              : (test.test_type === "40m_sprint" 
+                                ? `${test.time_40m_seconds?.toFixed(2)}s - ${test.speed_kmh?.toFixed(2)} km/h`
+                                : `${test.time_1600m_minutes}:${test.time_1600m_seconds?.toString().padStart(2, "0")} - ${test.vma_kmh?.toFixed(2)} km/h VMA`
+                              )
                             }
                           </TableCell>
                         </TableRow>
@@ -494,7 +573,7 @@ export function PlayerTestsTab({ playerId, categoryId }: PlayerTestsTabProps) {
               <CardTitle>Historique des tests de mobilité</CardTitle>
             </CardHeader>
             <CardContent>
-              {mobilityTests && mobilityTests.length > 0 ? (
+              {allMobilityTestsData && allMobilityTestsData.length > 0 ? (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -507,10 +586,15 @@ export function PlayerTestsTab({ playerId, categoryId }: PlayerTestsTabProps) {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {mobilityTests.map((test) => (
+                      {allMobilityTestsData.slice().reverse().map((test) => (
                         <TableRow key={test.id}>
                           <TableCell>{new Date(test.test_date).toLocaleDateString("fr-FR")}</TableCell>
-                          <TableCell>{MOBILITY_TYPE_LABELS[test.test_type] || test.test_type}</TableCell>
+                          <TableCell>
+                            {test.source === "generic_tests"
+                              ? (test.test_type?.replace(/_/g, " ") || "Test")
+                              : (MOBILITY_TYPE_LABELS[test.test_type] || test.test_type)
+                            }
+                          </TableCell>
                           <TableCell className="font-semibold">
                             {test.score ?? "-"}
                             {test.test_type === "fms" && test.score && <span className="text-muted-foreground">/21</span>}
@@ -577,7 +661,7 @@ export function PlayerTestsTab({ playerId, categoryId }: PlayerTestsTabProps) {
               <CardTitle>Historique des tests de détente</CardTitle>
             </CardHeader>
             <CardContent>
-              {jumpTests && jumpTests.length > 0 ? (
+              {allJumpTestsData && allJumpTestsData.length > 0 ? (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -589,10 +673,15 @@ export function PlayerTestsTab({ playerId, categoryId }: PlayerTestsTabProps) {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {jumpTests.map((test) => (
+                      {allJumpTestsData.slice().reverse().map((test) => (
                         <TableRow key={test.id}>
                           <TableCell>{new Date(test.test_date).toLocaleDateString("fr-FR")}</TableCell>
-                          <TableCell>{JUMP_TYPE_LABELS[test.test_type] || test.test_type}</TableCell>
+                          <TableCell>
+                            {test.source === "generic_tests"
+                              ? (test.test_type?.replace(/_/g, " ") || "Test")
+                              : (JUMP_TYPE_LABELS[test.test_type] || test.test_type)
+                            }
+                          </TableCell>
                           <TableCell className="font-semibold">{test.result_cm} cm</TableCell>
                           <TableCell className="max-w-[150px] truncate">{test.notes || "-"}</TableCell>
                         </TableRow>
@@ -602,6 +691,51 @@ export function PlayerTestsTab({ playerId, categoryId }: PlayerTestsTabProps) {
                 </div>
               ) : (
                 <p className="text-muted-foreground text-center py-4">Aucun test de détente</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* All tests tab */}
+        <TabsContent value="all" className="space-y-6">
+          <Card className="bg-gradient-card shadow-md">
+            <CardHeader>
+              <CardTitle>Historique complet des tests</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {allGenericTests && allGenericTests.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Catégorie</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Résultat</TableHead>
+                        <TableHead>Notes</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {allGenericTests.slice().reverse().map((test) => (
+                        <TableRow key={test.id}>
+                          <TableCell>{new Date(test.test_date).toLocaleDateString("fr-FR")}</TableCell>
+                          <TableCell className="capitalize">
+                            {test.test_category?.replace(/_/g, " ") || "-"}
+                          </TableCell>
+                          <TableCell>
+                            {test.test_type?.replace(/_/g, " ") || "-"}
+                          </TableCell>
+                          <TableCell className="font-semibold text-primary">
+                            {test.result_value} {test.result_unit || ""}
+                          </TableCell>
+                          <TableCell className="max-w-[150px] truncate">{test.notes || "-"}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-center py-4">Aucun test enregistré</p>
               )}
             </CardContent>
           </Card>
