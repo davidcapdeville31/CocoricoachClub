@@ -623,8 +623,8 @@ export function SessionFormDialog({
     const groupId = crypto.randomUUID();
     const startIndex = exercises.length;
     
-    // For pyramid methods and 5x5, we only need 1 exercise
-    const isPyramidOrSpecial = isDropMethod(method) || method === "five_by_five";
+    // For pyramid methods, 5x5, and death_by, we only need 1 exercise
+    const isPyramidOrSpecial = isDropMethod(method) || method === "five_by_five" || method === "death_by";
     const minExercises = isPyramidOrSpecial ? 1 : getMinExercisesForMethod(method);
     
     let newExercises: Exercise[];
@@ -674,6 +674,7 @@ export function SessionFormDialog({
         exercise.reps = "5";
         exercise.weight_percent_rm = 80;
       }
+      // death_by just uses default settings
       
       newExercises = [exercise];
     } else {
@@ -687,7 +688,7 @@ export function SessionFormDialog({
       const config = getCardioBlockConfig(method);
       const defaultBlockConfig: BlockConfig = {
         duration_minutes: config.showDuration ? 10 : undefined,
-        rounds: config.showRounds ? 3 : undefined,
+        rounds: method === "tabata" ? 8 : (config.showRounds ? 3 : undefined),
         work_seconds: config.showWorkRest ? 20 : undefined,
         rest_seconds: config.showWorkRest ? 10 : undefined,
         emom_interval: method === "emom" ? 1 : undefined,

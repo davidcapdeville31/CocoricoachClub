@@ -413,7 +413,7 @@ export function DailySessionView({ categoryId }: DailySessionViewProps) {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4" ref={printRef}>
-        {/* Today's Sessions */}
+        {/* Today's Sessions - Grouped by Training Type */}
         <Card className={cn(fieldMode && "bg-slate-800 border-slate-700")}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
@@ -445,7 +445,7 @@ export function DailySessionView({ categoryId }: DailySessionViewProps) {
                   <p>Aucune séance programmée aujourd'hui</p>
                 </div>
               ) : (
-                <div className="space-y-3 pr-2">
+                <div className="space-y-2 pr-2">
                   {todaySessions.map((session) => {
                     const exercises = exercisesBySession[session.id] || [];
                     const isExpanded = expandedSession === session.id;
@@ -454,13 +454,21 @@ export function DailySessionView({ categoryId }: DailySessionViewProps) {
                       <div
                         key={session.id}
                         className={cn(
-                          "p-4 rounded-lg border-2 print-session",
+                          "rounded-lg border-2 print-session overflow-hidden",
                           fieldMode 
                             ? "bg-slate-700 border-slate-600" 
                             : "bg-muted/50 border-border"
                         )}
                       >
-                        <div className="flex items-center justify-between mb-2">
+                        {/* Clickable Header */}
+                        <button
+                          type="button"
+                          className={cn(
+                            "w-full p-4 flex items-center justify-between text-left hover:bg-muted/50 transition-colors",
+                            fieldMode && "hover:bg-slate-600"
+                          )}
+                          onClick={() => setExpandedSession(isExpanded ? null : session.id)}
+                        >
                           <div className="flex items-center gap-3">
                             <div className={cn(
                               "p-2 rounded-lg",
@@ -474,17 +482,22 @@ export function DailySessionView({ categoryId }: DailySessionViewProps) {
                               <p className={cn("font-semibold", fieldMode && "text-white")}>
                                 {getSessionTypeLabel(session.training_type)}
                               </p>
-                              {session.notes && (
-                                <p className={cn("text-sm", fieldMode ? "text-slate-400" : "text-muted-foreground")}>
-                                  {session.notes}
+                              {session.session_start_time && (
+                                <p className={cn(
+                                  "text-xs",
+                                  fieldMode ? "text-slate-400" : "text-muted-foreground"
+                                )}>
+                                  {session.session_start_time.slice(0, 5)}
+                                  {session.session_end_time && ` - ${session.session_end_time.slice(0, 5)}`}
                                 </p>
                               )}
                             </div>
                           </div>
+                          
                           <div className="flex items-center gap-2">
                             {session.intensity && (
                               <Badge className={cn(
-                                "text-lg px-3",
+                                "text-sm px-2",
                                 session.intensity >= 8 
                                   ? "bg-red-500" 
                                   : session.intensity >= 6 
@@ -495,71 +508,66 @@ export function DailySessionView({ categoryId }: DailySessionViewProps) {
                                 RPE {session.intensity}
                               </Badge>
                             )}
+                            {exercises.length > 0 && (
+                              <Badge variant="outline" className="text-xs">
+                                {exercises.length} ex.
+                              </Badge>
+                            )}
+                            <svg 
+                              className={cn(
+                                "h-5 w-5 transition-transform",
+                                isExpanded && "rotate-180",
+                                fieldMode ? "text-slate-400" : "text-muted-foreground"
+                              )}
+                              fill="none" 
+                              viewBox="0 0 24 24" 
+                              stroke="currentColor"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
                           </div>
-                        </div>
-                        
-                        <div className={cn(
-                          "flex items-center gap-4 text-sm mb-2",
-                          fieldMode ? "text-slate-400" : "text-muted-foreground"
-                        )}>
-                          {session.session_start_time && (
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
-                              {session.session_start_time.slice(0, 5)}
-                              {session.session_end_time && ` - ${session.session_end_time.slice(0, 5)}`}
-                            </span>
-                          )}
-                        </div>
+                        </button>
 
-                        {/* Exercises with grouped blocks */}
-                        {exercises.length > 0 && (
+                        {/* Expandable Content */}
+                        {isExpanded && (
                           <div className={cn(
-                            "mt-3 pt-3 border-t",
+                            "p-4 pt-0 border-t",
                             fieldMode ? "border-slate-600" : "border-border"
                           )}>
-                            <div className="flex items-center justify-between mb-2">
+                            {session.notes && (
                               <p className={cn(
-                                "text-xs font-medium flex items-center gap-1",
-                                fieldMode ? "text-slate-300" : "text-muted-foreground"
+                                "text-sm mb-3 italic",
+                                fieldMode ? "text-slate-400" : "text-muted-foreground"
                               )}>
-                                <Dumbbell className="h-3 w-3" />
-                                Exercices ({exercises.length})
+                                {session.notes}
                               </p>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className={cn("h-6 text-xs", fieldMode && "hover:bg-slate-600")}
-                                onClick={() => setExpandedSession(isExpanded ? null : session.id)}
-                              >
-                                <Eye className="h-3 w-3 mr-1" />
-                                {isExpanded ? "Réduire" : "Voir tout"}
-                              </Button>
-                            </div>
-                            
-                            {isExpanded ? (
-                              <GroupedExerciseList
-                                exercises={exercises}
-                                fieldMode={fieldMode}
-                                maxHeight="300px"
-                                showScroll={true}
-                                compact={false}
-                              />
-                            ) : (
-                              <GroupedExerciseList
-                                exercises={exercises.slice(0, 4)}
-                                fieldMode={fieldMode}
-                                maxHeight="200px"
-                                showScroll={false}
-                                compact={true}
-                              />
                             )}
                             
-                            {!isExpanded && exercises.length > 4 && (
+                            {exercises.length > 0 ? (
+                              <div className="mt-3">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Dumbbell className={cn("h-4 w-4", fieldMode ? "text-slate-400" : "text-muted-foreground")} />
+                                  <span className={cn(
+                                    "text-xs font-medium",
+                                    fieldMode ? "text-slate-300" : "text-muted-foreground"
+                                  )}>
+                                    Exercices ({exercises.length})
+                                  </span>
+                                </div>
+                                <GroupedExerciseList
+                                  exercises={exercises}
+                                  fieldMode={fieldMode}
+                                  maxHeight="400px"
+                                  showScroll={true}
+                                  compact={false}
+                                />
+                              </div>
+                            ) : (
                               <p className={cn(
-                                "text-xs text-center pt-2",
+                                "text-sm",
                                 fieldMode ? "text-slate-500" : "text-muted-foreground"
                               )}>
-                                + {exercises.length - 4} autres exercices
+                                Aucun exercice détaillé
                               </p>
                             )}
                           </div>
