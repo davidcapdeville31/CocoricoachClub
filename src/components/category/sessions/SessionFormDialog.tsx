@@ -78,6 +78,7 @@ import {
 import { SessionGpsImport, type GpsPlayerData } from "@/components/category/gps/SessionGpsImport";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { TrainingMethodBlock } from "./TrainingMethodBlocks";
+import { SessionTestBlock, type SessionTest } from "./SessionTestBlock";
 
 interface SessionFormDialogProps {
   open: boolean;
@@ -236,6 +237,7 @@ export function SessionFormDialog({
   const [showAddExerciseDialog, setShowAddExerciseDialog] = useState(false);
   const [activeExercise, setActiveExercise] = useState<any>(null);
   const [gpsData, setGpsData] = useState<GpsPlayerData[]>([]);
+  const [sessionTests, setSessionTests] = useState<SessionTest[]>([]);
   
   // Block configurations for groups
   const [blockConfigs, setBlockConfigs] = useState<Record<string, BlockConfig>>({});
@@ -531,6 +533,44 @@ export function SessionFormDialog({
         }
       }
 
+      // Save session tests to generic_tests table
+      if (sessionTests.length > 0) {
+        const playersToUse =
+          playerSelectionMode === "specific" && selectedPlayers.length > 0
+            ? selectedPlayers
+            : players?.map((p) => p.id) || [];
+
+        const testRecords: any[] = [];
+        
+        sessionTests.forEach(test => {
+          if (!test.test_type) return; // Skip unconfigured tests
+          
+          // For each player with a result, create a test record
+          Object.entries(test.player_results).forEach(([playerId, resultValue]) => {
+            if (!resultValue || resultValue.trim() === "") return;
+            
+            // Only include if player is in the selection
+            if (!playersToUse.includes(playerId)) return;
+            
+            testRecords.push({
+              player_id: playerId,
+              category_id: categoryId,
+              test_date: date,
+              test_category: test.test_category,
+              test_type: test.test_type,
+              result_value: parseFloat(resultValue),
+              result_unit: test.result_unit || null,
+              notes: `Séance du ${date}${sessionId ? ` (Session ID: ${sessionId})` : ""}`,
+            });
+          });
+        });
+        
+        if (testRecords.length > 0) {
+          const { error } = await supabase.from("generic_tests").insert(testRecords);
+          if (error) throw error;
+        }
+      }
+
       return sessionId;
     },
     onSuccess: () => {
@@ -538,12 +578,17 @@ export function SessionFormDialog({
       queryClient.invalidateQueries({ queryKey: ["training_attendance"] });
       queryClient.invalidateQueries({ queryKey: ["gym-exercises"] });
       queryClient.invalidateQueries({ queryKey: ["gps-sessions", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["generic_tests", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["generic_tests_discovery", categoryId] });
+      
       const exerciseCount = exercises.filter((e) => e.exercise_name.trim()).length;
       const gpsCount = gpsData.filter(d => d.matchedPlayer).length;
+      const testCount = sessionTests.filter(t => t.test_type && Object.values(t.player_results).some(v => v)).length;
       
       let successMessage = editSession ? "Séance modifiée" : "Séance créée";
       if (exerciseCount > 0) successMessage += ` avec ${exerciseCount} exercice(s)`;
-      if (gpsCount > 0) successMessage += ` et ${gpsCount} données GPS`;
+      if (testCount > 0) successMessage += ` et ${testCount} test(s)`;
+      if (gpsCount > 0) successMessage += ` + ${gpsCount} données GPS`;
       
       toast.success(successMessage);
       onOpenChange(false);
@@ -567,6 +612,7 @@ export function SessionFormDialog({
     setShowLibraryFor(null);
     setBlockConfigs({});
     setGpsData([]);
+    setSessionTests([]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1705,13 +1751,21 @@ export function SessionFormDialog({
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <Tabs defaultValue="details" className="flex-1 flex flex-col overflow-hidden">
-            <TabsList className="grid w-full grid-cols-3 shrink-0">
+            <TabsList className="grid w-full grid-cols-4 shrink-0">
               <TabsTrigger value="details">Détails</TabsTrigger>
               <TabsTrigger value="exercises">
                 Exercices
                 {exercises.filter((e) => e.exercise_name.trim()).length > 0 && (
                   <Badge variant="secondary" className="ml-2">
                     {exercises.filter((e) => e.exercise_name.trim()).length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="tests">
+                Tests
+                {sessionTests.filter((t) => t.test_type).length > 0 && (
+                  <Badge variant="secondary" className="ml-2 bg-emerald-100 text-emerald-700">
+                    {sessionTests.filter((t) => t.test_type).length}
                   </Badge>
                 )}
               </TabsTrigger>
@@ -1858,6 +1912,24 @@ export function SessionFormDialog({
                     ) : null}
                   </DragOverlay>
                 </DndContext>
+              </TabsContent>
+
+              <TabsContent value="tests" className="h-full m-0">
+                <ScrollArea className="h-[50vh] pr-4">
+                  <SessionTestBlock
+                    tests={sessionTests}
+                    onTestsChange={setSessionTests}
+                    sportType={sportType}
+                    players={players?.map(p => ({ 
+                      id: p.id, 
+                      name: p.name, 
+                      position: p.position, 
+                      avatar_url: p.avatar_url 
+                    })) || []}
+                    selectedPlayers={selectedPlayers}
+                    playerSelectionMode={playerSelectionMode}
+                  />
+                </ScrollArea>
               </TabsContent>
 
               <TabsContent value="players" className="h-full m-0">
