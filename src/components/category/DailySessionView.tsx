@@ -115,6 +115,39 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
     enabled: sessionIds.length > 0,
   });
 
+  // Fetch tests for today's sessions
+  const { data: sessionTests } = useQuery({
+    queryKey: ["today_session_tests", sessionIds],
+    queryFn: async () => {
+      if (sessionIds.length === 0) return [];
+      // Tests are stored with session ID in notes field
+      const { data, error } = await supabase
+        .from("generic_tests")
+        .select("*, players!inner(name)")
+        .eq("category_id", categoryId)
+        .eq("test_date", today);
+      if (error) throw error;
+      // Filter tests that have a session ID matching one of today's sessions
+      return data?.filter(test => {
+        if (!test.notes) return false;
+        return sessionIds.some(id => test.notes?.includes(`Session ID: ${id}`));
+      }) || [];
+    },
+    enabled: sessionIds.length > 0,
+  });
+
+  // Group tests by session
+  const testsBySession = sessionTests?.reduce((acc, test) => {
+    const matchingSessionId = sessionIds.find(id => test.notes?.includes(`Session ID: ${id}`));
+    if (matchingSessionId) {
+      if (!acc[matchingSessionId]) {
+        acc[matchingSessionId] = [];
+      }
+      acc[matchingSessionId].push(test);
+    }
+    return acc;
+  }, {} as Record<string, typeof sessionTests>) || {};
+
   // Group exercises by session
   const exercisesBySession = sessionExercises?.reduce((acc, ex) => {
     if (!acc[ex.training_session_id]) {
@@ -462,6 +495,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                 <div className="space-y-2 pr-2">
                   {todaySessions.map((session) => {
                     const exercises = exercisesBySession[session.id] || [];
+                    const tests = testsBySession[session.id] || [];
                     const isExpanded = expandedSession === session.id;
 
                     return (
@@ -525,6 +559,14 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                             {exercises.length > 0 && (
                               <Badge variant="outline" className="text-xs">
                                 {exercises.length} ex.
+                              </Badge>
+                            )}
+                            {tests.length > 0 && (
+                              <Badge variant="outline" className={cn(
+                                "text-xs",
+                                fieldMode ? "border-emerald-600 text-emerald-400" : "border-emerald-500 text-emerald-600"
+                              )}>
+                                {tests.length} test{tests.length > 1 ? "s" : ""}
                               </Badge>
                             )}
                             <svg 
@@ -617,6 +659,60 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                               )}>
                                 Aucun exercice détaillé
                               </p>
+                            )}
+
+                            {/* Tests section */}
+                            {tests.length > 0 && (
+                              <div className="mt-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <ClipboardCheck className={cn("h-4 w-4", fieldMode ? "text-emerald-400" : "text-emerald-600")} />
+                                  <span className={cn(
+                                    "text-xs font-medium",
+                                    fieldMode ? "text-slate-300" : "text-muted-foreground"
+                                  )}>
+                                    Tests ({tests.length} résultat{tests.length > 1 ? "s" : ""})
+                                  </span>
+                                </div>
+                                <div className={cn(
+                                  "rounded-lg border p-3 space-y-2",
+                                  fieldMode ? "bg-emerald-900/20 border-emerald-700/50" : "bg-emerald-50/50 border-emerald-200"
+                                )}>
+                                  {/* Group tests by type */}
+                                  {Object.entries(
+                                    tests.reduce((acc, test) => {
+                                      const key = `${test.test_category}-${test.test_type}`;
+                                      if (!acc[key]) {
+                                        acc[key] = { category: test.test_category, type: test.test_type, unit: test.result_unit, results: [] };
+                                      }
+                                      acc[key].results.push({ playerName: test.players?.name, value: test.result_value });
+                                      return acc;
+                                    }, {} as Record<string, { category: string; type: string; unit: string | null; results: { playerName: string; value: number }[] }>)
+                                  ).map(([key, testGroup]) => (
+                                    <div key={key} className="space-y-1">
+                                      <p className={cn(
+                                        "text-xs font-medium",
+                                        fieldMode ? "text-emerald-300" : "text-emerald-700"
+                                      )}>
+                                        {testGroup.type.replace(/_/g, " ")} {testGroup.unit && `(${testGroup.unit})`}
+                                      </p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {testGroup.results.map((result, idx) => (
+                                          <Badge
+                                            key={idx}
+                                            variant="outline"
+                                            className={cn(
+                                              "text-xs",
+                                              fieldMode ? "border-emerald-600 text-emerald-300" : "border-emerald-300 text-emerald-700"
+                                            )}
+                                          >
+                                            {result.playerName}: {result.value}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
                             )}
                           </div>
                         )}
