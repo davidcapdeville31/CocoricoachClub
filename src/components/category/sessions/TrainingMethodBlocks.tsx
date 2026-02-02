@@ -56,9 +56,9 @@ interface BlockConfig {
   work_seconds?: number;
   rest_seconds?: number;
   rest_between_rounds?: number;
-  emom_interval?: number; // For E2MOM, E3MOM, etc.
-  emom_mode?: "single" | "multi"; // 1 exercise per interval vs multiple
-  time_cap_minutes?: number; // For "For Time"
+  emom_interval?: number;
+  emom_mode?: "single" | "multi";
+  time_cap_minutes?: number;
 }
 
 interface Exercise {
@@ -117,20 +117,100 @@ function getSlotLabels(method: string, slotIndex: number): { label: string; subl
   switch (method) {
     case "superset":
       return slotIndex === 0 
-        ? { label: "Exercice 1 (agoniste)", sublabel: "Glissez un exercice ici" }
-        : { label: "Exercice 2 (antagoniste)", sublabel: "Glissez un exercice ici" };
+        ? { label: "Exercice 1 (agoniste)", sublabel: "Entrez le nom de l'exercice" }
+        : { label: "Exercice 2 (antagoniste)", sublabel: "Entrez le nom de l'exercice" };
     case "bulgarian":
       return slotIndex === 0
-        ? { label: "Exercice lourd (85-95% 1RM)", sublabel: "Glissez un exercice lourd" }
-        : { label: "Exercice léger (explosif)", sublabel: "Glissez un exercice léger" };
+        ? { label: "Exercice lourd (85-95% 1RM)", sublabel: "Entrez le nom de l'exercice lourd" }
+        : { label: "Exercice léger (explosif)", sublabel: "Entrez le nom de l'exercice explosif" };
     case "triset":
     case "giant_set":
-      return { label: `Exercice ${slotIndex + 1}`, sublabel: "Glissez un exercice ici" };
+      return { label: `Exercice ${slotIndex + 1}`, sublabel: "Entrez le nom de l'exercice" };
     case "biset":
-      return { label: `Exercice ${slotIndex + 1}`, sublabel: "Glissez un exercice ici" };
+      return { label: `Exercice ${slotIndex + 1}`, sublabel: "Entrez le nom de l'exercice" };
     default:
-      return { label: `Exercice ${slotIndex + 1}`, sublabel: "Glissez un exercice ici" };
+      return { label: `Exercice ${slotIndex + 1}`, sublabel: "Entrez le nom de l'exercice" };
   }
+}
+
+// Exercise input with library autocomplete
+function ExerciseInput({
+  exercise,
+  exerciseIndex,
+  placeholder,
+  onUpdateExercise,
+  onSelectFromLibrary,
+  filteredLibrary,
+  searchQuery,
+  setSearchQuery,
+  showLibraryFor,
+  setShowLibraryFor,
+  className,
+}: {
+  exercise: Exercise;
+  exerciseIndex: number;
+  placeholder?: string;
+  onUpdateExercise: (index: number, field: keyof Exercise, value: any) => void;
+  onSelectFromLibrary: (index: number, libExercise: any) => void;
+  filteredLibrary: any[];
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
+  showLibraryFor: number | null;
+  setShowLibraryFor: (i: number | null) => void;
+  className?: string;
+}) {
+  return (
+    <Popover
+      open={showLibraryFor === exerciseIndex}
+      onOpenChange={(isOpen) => {
+        setShowLibraryFor(isOpen ? exerciseIndex : null);
+        if (isOpen) setSearchQuery(exercise.exercise_name);
+      }}
+    >
+      <PopoverTrigger asChild>
+        <div className={cn("flex-1 relative", className)}>
+          <Input
+            placeholder={placeholder || "Nom de l'exercice..."}
+            value={exercise.exercise_name}
+            onChange={(e) => {
+              onUpdateExercise(exerciseIndex, "exercise_name", e.target.value);
+              setSearchQuery(e.target.value);
+              setShowLibraryFor(exerciseIndex);
+            }}
+            className="h-9"
+          />
+          {exercise.library_exercise_id && (
+            <Library className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+          )}
+        </div>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="p-1 w-[--radix-popover-trigger-width] max-h-64 overflow-y-auto z-50"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        {filteredLibrary.length === 0 ? (
+          <div className="px-2 py-2 text-xs text-muted-foreground">
+            Aucun exercice trouvé - tapez pour créer
+          </div>
+        ) : (
+          filteredLibrary.slice(0, 12).map((libEx) => (
+            <button
+              key={libEx.id}
+              type="button"
+              className="w-full text-left px-2 py-2 hover:bg-muted rounded-sm text-sm flex justify-between items-center"
+              onClick={() => onSelectFromLibrary(exerciseIndex, libEx)}
+            >
+              <span className="truncate pr-2">{libEx.name}</span>
+              <Badge variant="outline" className="text-xs shrink-0">
+                {getCategoryLabel(libEx.category)}
+              </Badge>
+            </button>
+          ))
+        )}
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 // Exercise slot component for linkable methods
@@ -184,64 +264,30 @@ function ExerciseSlotCard({
       {/* Slot content */}
       <div className="flex-1">
         <div className={cn(
-          "border-2 border-dashed rounded-xl p-4 transition-all",
-          hasExercise ? "border-border bg-background" : "border-muted-foreground/30 bg-muted/20"
+          "border-2 rounded-xl p-4 transition-all",
+          hasExercise ? "border-border bg-background" : "border-dashed border-muted-foreground/30 bg-muted/20"
         )}>
-          {hasExercise ? (
-            <div className="space-y-3">
-              {/* Exercise name */}
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs shrink-0">{slotLabel}</Badge>
-                <Popover
-                  open={showLibraryFor === exerciseIndex}
-                  onOpenChange={(isOpen) => {
-                    setShowLibraryFor(isOpen ? exerciseIndex : null);
-                    if (isOpen && exercise) setSearchQuery(exercise.exercise_name);
-                  }}
-                >
-                  <PopoverTrigger asChild>
-                    <div className="flex-1 relative">
-                      <Input
-                        placeholder="Nom de l'exercice..."
-                        value={exercise.exercise_name}
-                        onChange={(e) => {
-                          onUpdateExercise(exerciseIndex, "exercise_name", e.target.value);
-                          setSearchQuery(e.target.value);
-                          setShowLibraryFor(exerciseIndex);
-                        }}
-                        className="h-9"
-                      />
-                      {exercise.library_exercise_id && (
-                        <Library className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
-                      )}
-                    </div>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    align="start"
-                    className="p-1 w-[--radix-popover-trigger-width] max-h-64 overflow-y-auto z-50"
-                    onOpenAutoFocus={(e) => e.preventDefault()}
-                  >
-                    {filteredLibrary.length === 0 ? (
-                      <div className="px-2 py-2 text-xs text-muted-foreground">
-                        Aucun exercice trouvé
-                      </div>
-                    ) : (
-                      filteredLibrary.slice(0, 12).map((libEx) => (
-                        <button
-                          key={libEx.id}
-                          type="button"
-                          className="w-full text-left px-2 py-2 hover:bg-muted rounded-sm text-sm flex justify-between items-center"
-                          onClick={() => onSelectFromLibrary(exerciseIndex, libEx)}
-                        >
-                          <span className="truncate pr-2">{libEx.name}</span>
-                          <Badge variant="outline" className="text-xs shrink-0">
-                            {getCategoryLabel(libEx.category)}
-                          </Badge>
-                        </button>
-                      ))
-                    )}
-                  </PopoverContent>
-                </Popover>
+          <div className="space-y-3">
+            {/* Exercise name input */}
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs shrink-0">{slotLabel}</Badge>
+              {exercise ? (
+                <ExerciseInput
+                  exercise={exercise}
+                  exerciseIndex={exerciseIndex}
+                  placeholder={slotSublabel}
+                  onUpdateExercise={onUpdateExercise}
+                  onSelectFromLibrary={onSelectFromLibrary}
+                  filteredLibrary={filteredLibrary}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  showLibraryFor={showLibraryFor}
+                  setShowLibraryFor={setShowLibraryFor}
+                />
+              ) : (
+                <Input placeholder={slotSublabel} disabled className="h-9" />
+              )}
+              {hasExercise && (
                 <Button
                   type="button"
                   variant="ghost"
@@ -251,9 +297,11 @@ function ExerciseSlotCard({
                 >
                   <X className="h-4 w-4" />
                 </Button>
-              </div>
-              
-              {/* Sets, Reps, Weight */}
+              )}
+            </div>
+            
+            {/* Sets, Reps, Weight - only show if exercise has name */}
+            {hasExercise && exercise && (
               <div className="grid grid-cols-4 gap-2">
                 <div>
                   <Label className="text-xs text-muted-foreground">Séries</Label>
@@ -295,13 +343,8 @@ function ExerciseSlotCard({
                   />
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center py-4 text-muted-foreground">
-              <Dumbbell className="h-5 w-5 mr-2 opacity-50" />
-              <span className="text-sm">{slotSublabel || "Glissez un exercice ici"}</span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -327,7 +370,7 @@ function EmomBlock({
 }: TrainingMethodBlockProps & { styleConfig: any }) {
   const emomInterval = blockConfig.emom_interval || 1;
   const duration = blockConfig.duration_minutes || 10;
-  const intervals = duration / emomInterval;
+  const intervals = Math.floor(duration / emomInterval);
   const mode = blockConfig.emom_mode || "single";
 
   return (
@@ -344,7 +387,7 @@ function EmomBlock({
               onUpdateBlockConfig(groupId, "emom_interval", interval);
             }
           }}
-          className="justify-start"
+          className="justify-start flex-wrap"
         >
           <ToggleGroupItem value="e1mom" className="data-[state=on]:bg-indigo-500 data-[state=on]:text-white">
             EMOM
@@ -365,28 +408,10 @@ function EmomBlock({
         <p className="text-xs text-muted-foreground mt-1">Toutes les {emomInterval > 1 ? `${emomInterval} minutes` : "minutes"}</p>
       </div>
 
-      {/* Mode selector */}
-      <div>
-        <Label className="text-xs text-muted-foreground mb-2 block">Mode</Label>
-        <ToggleGroup 
-          type="single" 
-          value={mode}
-          onValueChange={(v) => v && onUpdateBlockConfig(groupId, "emom_mode", v as "single" | "multi")}
-          className="justify-start"
-        >
-          <ToggleGroupItem value="single" className="data-[state=on]:bg-indigo-500 data-[state=on]:text-white">
-            1 exercice / intervalle
-          </ToggleGroupItem>
-          <ToggleGroupItem value="multi" className="data-[state=on]:bg-indigo-500 data-[state=on]:text-white">
-            Plusieurs exercices enchaînés / intervalle
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </div>
-
       {/* Duration config */}
       <div>
         <Label className="text-xs text-muted-foreground mb-2 block">Durée</Label>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="text-sm">Durée totale</span>
             <Input
@@ -398,20 +423,8 @@ function EmomBlock({
             />
             <span className="text-sm">min</span>
           </div>
-          <span className="text-muted-foreground">ou</span>
-          <div className="flex items-center gap-2">
-            <span className="text-sm">Nb intervalles</span>
-            <Input
-              type="number"
-              min="1"
-              className="h-8 w-20 text-sm"
-              value={intervals}
-              onChange={(e) => {
-                const newIntervals = parseInt(e.target.value) || 1;
-                onUpdateBlockConfig(groupId, "duration_minutes", newIntervals * emomInterval);
-              }}
-            />
-          </div>
+          <span className="text-muted-foreground">=</span>
+          <span className="text-sm font-medium">{intervals} intervalles</span>
         </div>
       </div>
 
@@ -420,94 +433,66 @@ function EmomBlock({
         EMOM • {intervals} intervalles × {emomInterval}min = {duration}min
       </div>
 
-      {/* Interval slots */}
+      {/* Exercise slots */}
       <div>
-        <p className="text-sm text-muted-foreground mb-3">Glissez les exercices dans les slots correspondants</p>
-        <div className="space-y-4">
+        <p className="text-sm text-muted-foreground mb-3">Exercices du bloc EMOM</p>
+        <div className="space-y-3">
           {exercises.map(({ exercise, index }, i) => (
-            <div key={exercise.id || index} className="space-y-2">
-              <div className="flex items-start gap-3">
-                <div 
-                  className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0 border-2",
-                    styleConfig.color || "bg-indigo-500",
-                    styleConfig.borderColor
-                  )}
-                >
-                  {i + 1}
+            <div key={exercise.id || index} className="flex items-start gap-3">
+              <div 
+                className={cn(
+                  "w-9 h-9 rounded-full flex items-center justify-center text-white font-bold shrink-0",
+                  styleConfig.color || "bg-indigo-500"
+                )}
+              >
+                {i + 1}
+              </div>
+              <div className="flex-1 border rounded-xl p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Dumbbell className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <ExerciseInput
+                    exercise={exercise}
+                    exerciseIndex={index}
+                    placeholder={`Minute ${i + 1} - Nom de l'exercice`}
+                    onUpdateExercise={onUpdateExercise}
+                    onSelectFromLibrary={onSelectFromLibrary}
+                    filteredLibrary={filteredLibrary}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    showLibraryFor={showLibraryFor}
+                    setShowLibraryFor={setShowLibraryFor}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive shrink-0"
+                    onClick={() => onRemoveExercise(index)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
-                <div className="flex-1">
-                  <div className="border-2 border-dashed rounded-xl p-3">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Dumbbell className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Minute {i + 1}</span>
+                {exercise.exercise_name && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Reps</Label>
+                      <Input
+                        className="h-8 text-xs"
+                        value={exercise.reps || ""}
+                        onChange={(e) => onUpdateExercise(index, "reps", e.target.value)}
+                      />
                     </div>
-                    <Popover
-                      open={showLibraryFor === index}
-                      onOpenChange={(isOpen) => {
-                        setShowLibraryFor(isOpen ? index : null);
-                        if (isOpen) setSearchQuery(exercise.exercise_name);
-                      }}
-                    >
-                      <PopoverTrigger asChild>
-                        <Input
-                          placeholder="Nom de l'exercice..."
-                          value={exercise.exercise_name}
-                          onChange={(e) => {
-                            onUpdateExercise(index, "exercise_name", e.target.value);
-                            setSearchQuery(e.target.value);
-                            setShowLibraryFor(index);
-                          }}
-                          className="h-9"
-                        />
-                      </PopoverTrigger>
-                      <PopoverContent
-                        align="start"
-                        className="p-1 w-[--radix-popover-trigger-width] max-h-64 overflow-y-auto z-50"
-                        onOpenAutoFocus={(e) => e.preventDefault()}
-                      >
-                        {filteredLibrary.length === 0 ? (
-                          <div className="px-2 py-2 text-xs text-muted-foreground">Aucun exercice trouvé</div>
-                        ) : (
-                          filteredLibrary.slice(0, 12).map((libEx) => (
-                            <button
-                              key={libEx.id}
-                              type="button"
-                              className="w-full text-left px-2 py-2 hover:bg-muted rounded-sm text-sm"
-                              onClick={() => onSelectFromLibrary(index, libEx)}
-                            >
-                              {libEx.name}
-                            </button>
-                          ))
-                        )}
-                      </PopoverContent>
-                    </Popover>
-                    {exercise.exercise_name && (
-                      <div className="mt-2 grid grid-cols-2 gap-2">
-                        <div>
-                          <Label className="text-xs text-muted-foreground">Reps</Label>
-                          <Input
-                            className="h-8 text-xs"
-                            value={exercise.reps || ""}
-                            onChange={(e) => onUpdateExercise(index, "reps", e.target.value)}
-                          />
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="self-end text-destructive"
-                          onClick={() => onRemoveExercise(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
+                    <div>
+                      <Label className="text-xs text-muted-foreground">%1RM</Label>
+                      <Input
+                        type="number"
+                        className="h-8 text-xs"
+                        value={exercise.weight_percent_rm || ""}
+                        onChange={(e) => onUpdateExercise(index, "weight_percent_rm", parseInt(e.target.value) || null)}
+                      />
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1 italic ml-4">
-                    ↳ Repos jusqu'au prochain EMOM (temps restant de l'intervalle)
-                  </p>
-                </div>
+                )}
               </div>
             </div>
           ))}
@@ -520,7 +505,7 @@ function EmomBlock({
               onClick={() => onAddExerciseToGroup(groupId, "emom")}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Ajouter un intervalle
+              Ajouter un exercice
             </Button>
           )}
         </div>
@@ -592,142 +577,323 @@ function PyramidBlock({
       {/* Exercise slot */}
       <div>
         <Label className="text-xs text-muted-foreground mb-2 block">Exercice</Label>
-        <div className="border-2 border-dashed rounded-xl p-4">
-          <Popover
-            open={showLibraryFor === exerciseIndex}
-            onOpenChange={(isOpen) => {
-              setShowLibraryFor(isOpen ? exerciseIndex : null);
-              if (isOpen) setSearchQuery(exercise.exercise_name);
-            }}
-          >
-            <PopoverTrigger asChild>
-              <div className="flex items-center gap-2">
-                <Dumbbell className="h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Glissez un exercice ici"
-                  value={exercise.exercise_name}
-                  onChange={(e) => {
-                    onUpdateExercise(exerciseIndex, "exercise_name", e.target.value);
-                    setSearchQuery(e.target.value);
-                    setShowLibraryFor(exerciseIndex);
-                  }}
-                  className="h-9"
-                />
-              </div>
-            </PopoverTrigger>
-            <PopoverContent
-              align="start"
-              className="p-1 w-[--radix-popover-trigger-width] max-h-64 overflow-y-auto z-50"
-              onOpenAutoFocus={(e) => e.preventDefault()}
-            >
-              {filteredLibrary.length === 0 ? (
-                <div className="px-2 py-2 text-xs text-muted-foreground">Aucun exercice trouvé</div>
-              ) : (
-                filteredLibrary.slice(0, 12).map((libEx) => (
-                  <button
-                    key={libEx.id}
-                    type="button"
-                    className="w-full text-left px-2 py-2 hover:bg-muted rounded-sm text-sm"
-                    onClick={() => onSelectFromLibrary(exerciseIndex, libEx)}
-                  >
-                    {libEx.name}
-                  </button>
-                ))
-              )}
-            </PopoverContent>
-          </Popover>
+        <div className="border rounded-xl p-4">
+          <div className="flex items-center gap-2">
+            <Dumbbell className="h-4 w-4 text-muted-foreground shrink-0" />
+            <ExerciseInput
+              exercise={exercise}
+              exerciseIndex={exerciseIndex}
+              placeholder="Nom de l'exercice..."
+              onUpdateExercise={onUpdateExercise}
+              onSelectFromLibrary={onSelectFromLibrary}
+              filteredLibrary={filteredLibrary}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              showLibraryFor={showLibraryFor}
+              setShowLibraryFor={setShowLibraryFor}
+            />
+          </div>
         </div>
       </div>
 
       {/* Series configuration */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <span className={cn("text-sm font-medium", isPyramidUp ? "text-emerald-600" : "text-teal-600")}>
-            Configuration des séries
-          </span>
-          <Button type="button" variant="outline" size="sm" onClick={addSet} className="h-7">
-            <Plus className="h-3 w-3 mr-1" />
-            Série
-          </Button>
-        </div>
+      {exercise.exercise_name && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <span className={cn("text-sm font-medium", isPyramidUp ? "text-emerald-600" : "text-teal-600")}>
+              Configuration des séries
+            </span>
+            <Button type="button" variant="outline" size="sm" onClick={addSet} className="h-7">
+              <Plus className="h-3 w-3 mr-1" />
+              Série
+            </Button>
+          </div>
 
-        <div className="space-y-2">
-          {dropSets.map((set, setIndex) => (
-            <div 
-              key={setIndex}
-              className={cn(
-                "rounded-lg p-3 border-2",
-                styleConfig.borderColor,
-                styleConfig.bgColor
-              )}
-            >
-              <div className="flex items-center gap-3">
-                <Badge className={cn("text-white", styleConfig.color)}>
-                  Série {setIndex + 1}
-                </Badge>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">Reps</span>
-                  <Input
-                    className="h-8 w-20 text-sm"
-                    value={set.reps}
-                    onChange={(e) => updateSet(setIndex, "reps", e.target.value)}
-                  />
+          <div className="space-y-2">
+            {dropSets.map((set, setIndex) => (
+              <div 
+                key={setIndex}
+                className={cn(
+                  "rounded-lg p-3 border-2",
+                  styleConfig.borderColor,
+                  styleConfig.bgColor
+                )}
+              >
+                <div className="flex items-center gap-3 flex-wrap">
+                  <Badge className={cn("text-white", styleConfig.color)}>
+                    Série {setIndex + 1}
+                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">Reps</span>
+                    <Input
+                      className="h-8 w-20 text-sm"
+                      value={set.reps}
+                      onChange={(e) => updateSet(setIndex, "reps", e.target.value)}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">%1RM</span>
+                    <Input
+                      type="number"
+                      min="40"
+                      max="100"
+                      className="h-8 w-20 text-sm"
+                      value={set.percentage}
+                      onChange={(e) => updateSet(setIndex, "percentage", parseInt(e.target.value) || 60)}
+                    />
+                  </div>
+                  {dropSets.length > 2 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-destructive ml-auto"
+                      onClick={() => removeSet(setIndex)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tempo and RPE */}
+      {exercise.exercise_name && (
+        <div className="flex items-center gap-4 pt-3 border-t flex-wrap">
+          <div className="flex items-center gap-2">
+            <Label className="text-sm">Tempo</Label>
+            <Input
+              className="h-8 w-24 text-sm"
+              placeholder="3-1-2-0"
+              value={exercise.tempo || ""}
+              onChange={(e) => onUpdateExercise(exerciseIndex, "tempo", e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Label className="text-sm">RPE cible</Label>
+            <Input
+              type="number"
+              min="1"
+              max="10"
+              className="h-8 w-16 text-sm"
+              value={exercise.target_rpe || ""}
+              onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Tabata Block Component
+function TabataBlock({
+  groupId,
+  exercises,
+  blockConfig,
+  styleConfig,
+  onUpdateBlockConfig,
+  onAddExerciseToGroup,
+  onRemoveExercise,
+  onUpdateExercise,
+  onSelectFromLibrary,
+  filteredLibrary,
+  searchQuery,
+  setSearchQuery,
+  showLibraryFor,
+  setShowLibraryFor,
+}: TrainingMethodBlockProps & { styleConfig: any }) {
+  const workSeconds = blockConfig.work_seconds || 20;
+  const restSeconds = blockConfig.rest_seconds || 10;
+  const cycles = blockConfig.rounds || 8;
+
+  return (
+    <div className="space-y-4">
+      {/* Tabata config */}
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Label className="text-sm">Work (s)</Label>
+          <Input
+            type="number"
+            min="5"
+            className="h-8 w-16 text-sm"
+            value={workSeconds}
+            onChange={(e) => onUpdateBlockConfig(groupId, "work_seconds", parseInt(e.target.value) || 20)}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Label className="text-sm">Rest (s)</Label>
+          <Input
+            type="number"
+            min="5"
+            className="h-8 w-16 text-sm"
+            value={restSeconds}
+            onChange={(e) => onUpdateBlockConfig(groupId, "rest_seconds", parseInt(e.target.value) || 10)}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Label className="text-sm">Cycles</Label>
+          <Input
+            type="number"
+            min="1"
+            className="h-8 w-16 text-sm"
+            value={cycles}
+            onChange={(e) => onUpdateBlockConfig(groupId, "rounds", parseInt(e.target.value) || 8)}
+          />
+        </div>
+      </div>
+
+      {/* Summary */}
+      <div className={cn("px-4 py-2 rounded-lg text-sm", styleConfig.bgColor)}>
+        Tabata • {cycles} cycles × ({workSeconds}s work / {restSeconds}s rest) = {Math.round((workSeconds + restSeconds) * cycles / 60)} min
+      </div>
+
+      {/* Exercise slots */}
+      <div>
+        <Label className="text-xs text-muted-foreground mb-2 block">Exercices du Tabata</Label>
+        <div className="space-y-3">
+          {exercises.map(({ exercise, index }, i) => (
+            <div key={exercise.id || index} className="flex items-start gap-3">
+              <div 
+                className={cn(
+                  "w-9 h-9 rounded-full flex items-center justify-center text-white font-bold shrink-0",
+                  styleConfig.color || "bg-yellow-500"
+                )}
+              >
+                {i + 1}
+              </div>
+              <div className="flex-1 border rounded-xl p-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm">%1RM</span>
-                  <Input
-                    type="number"
-                    min="40"
-                    max="100"
-                    className="h-8 w-20 text-sm"
-                    value={set.percentage}
-                    onChange={(e) => updateSet(setIndex, "percentage", parseInt(e.target.value) || 60)}
+                  <Dumbbell className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <ExerciseInput
+                    exercise={exercise}
+                    exerciseIndex={index}
+                    placeholder={`Exercice ${i + 1}`}
+                    onUpdateExercise={onUpdateExercise}
+                    onSelectFromLibrary={onSelectFromLibrary}
+                    filteredLibrary={filteredLibrary}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    showLibraryFor={showLibraryFor}
+                    setShowLibraryFor={setShowLibraryFor}
                   />
-                </div>
-                {dropSets.length > 2 && (
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 text-destructive ml-auto"
-                    onClick={() => removeSet(setIndex)}
+                    className="h-8 w-8 text-destructive shrink-0"
+                    onClick={() => onRemoveExercise(index)}
                   >
                     <X className="h-4 w-4" />
                   </Button>
-                )}
+                </div>
               </div>
             </div>
           ))}
         </div>
+        
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full mt-3"
+          onClick={() => onAddExerciseToGroup(groupId, "tabata")}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Ajouter un exercice
+        </Button>
       </div>
+    </div>
+  );
+}
 
-      {/* Tempo and RPE */}
-      <div className="flex items-center gap-4 pt-3 border-t">
-        <div className="flex items-center gap-2">
-          <Label className="text-sm">Tempo</Label>
-          <Input
-            className="h-8 w-24 text-sm"
-            placeholder="3-1-2-0"
-            value={exercise.tempo || ""}
-            onChange={(e) => onUpdateExercise(exerciseIndex, "tempo", e.target.value)}
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Label className="text-sm">RPE cible</Label>
-          <Input
-            type="number"
-            min="1"
-            max="10"
-            className="h-8 w-16 text-sm"
-            value={exercise.target_rpe || ""}
-            onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)}
-          />
-        </div>
-      </div>
+// Death By Block Component
+function DeathByBlock({
+  groupId,
+  exercises,
+  blockConfig,
+  styleConfig,
+  onUpdateBlockConfig,
+  onAddExerciseToGroup,
+  onRemoveExercise,
+  onUpdateExercise,
+  onSelectFromLibrary,
+  filteredLibrary,
+  searchQuery,
+  setSearchQuery,
+  showLibraryFor,
+  setShowLibraryFor,
+}: TrainingMethodBlockProps & { styleConfig: any }) {
+  const exercise = exercises[0]?.exercise;
+  const exerciseIndex = exercises[0]?.index;
 
-      <p className="text-xs text-muted-foreground italic">
-        Glissez un exercice depuis la bibliothèque pour appliquer {isPyramidUp ? "Pyramide Montante ↑" : "Pyramide Descendante ↓"}
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        +1 rep chaque minute jusqu'à l'échec. Minute 1 = 1 rep, Minute 2 = 2 reps, etc.
       </p>
+
+      {/* Exercise slot */}
+      <div>
+        <Label className="text-xs text-muted-foreground mb-2 block">Exercice</Label>
+        <div className="border rounded-xl p-4">
+          {exercise ? (
+            <div className="flex items-center gap-2">
+              <Dumbbell className="h-4 w-4 text-muted-foreground shrink-0" />
+              <ExerciseInput
+                exercise={exercise}
+                exerciseIndex={exerciseIndex}
+                placeholder="Nom de l'exercice..."
+                onUpdateExercise={onUpdateExercise}
+                onSelectFromLibrary={onSelectFromLibrary}
+                filteredLibrary={filteredLibrary}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                showLibraryFor={showLibraryFor}
+                setShowLibraryFor={setShowLibraryFor}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-destructive shrink-0"
+                onClick={() => onRemoveExercise(exerciseIndex)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => onAddExerciseToGroup(groupId, "death_by")}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Ajouter l'exercice
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Visual progression */}
+      {exercise?.exercise_name && (
+        <div className={cn("p-3 rounded-lg text-sm", styleConfig.bgColor)}>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge className="bg-red-600 text-white">Min 1</Badge>
+            <span>1 rep</span>
+            <span className="text-muted-foreground">→</span>
+            <Badge className="bg-red-600 text-white">Min 5</Badge>
+            <span>5 reps</span>
+            <span className="text-muted-foreground">→</span>
+            <Badge className="bg-red-600 text-white">Min 10</Badge>
+            <span>10 reps</span>
+            <span className="text-muted-foreground">→ ... jusqu'à l'échec</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -754,104 +920,14 @@ function CardioBlock({
     circuit: "Exercices du circuit",
     amrap: "Exercices du AMRAP",
     for_time: "Exercices du For Time",
-    tabata: "Exercices du Tabata",
   };
+
+  const filledExercises = exercises.filter(e => e.exercise.exercise_name.trim());
 
   return (
     <div className="space-y-4">
-      {/* Exercises list */}
-      <div>
-        <Label className="text-xs text-muted-foreground mb-2 block">{methodLabels[method] || "Exercices"}</Label>
-        <div className="space-y-3">
-          {exercises.map(({ exercise, index }, i) => (
-            <div key={exercise.id || index} className="flex items-start gap-3">
-              <div 
-                className={cn(
-                  "w-9 h-9 rounded-full flex items-center justify-center text-white font-bold shrink-0",
-                  styleConfig.color || "bg-primary"
-                )}
-              >
-                {i + 1}
-              </div>
-              <div className="flex-1 border-2 border-dashed rounded-xl p-3">
-                <div className="flex items-center gap-2">
-                  <Dumbbell className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <Popover
-                    open={showLibraryFor === index}
-                    onOpenChange={(isOpen) => {
-                      setShowLibraryFor(isOpen ? index : null);
-                      if (isOpen) setSearchQuery(exercise.exercise_name);
-                    }}
-                  >
-                    <PopoverTrigger asChild>
-                      <Input
-                        placeholder={`Exercice ${i + 1}`}
-                        value={exercise.exercise_name}
-                        onChange={(e) => {
-                          onUpdateExercise(index, "exercise_name", e.target.value);
-                          setSearchQuery(e.target.value);
-                          setShowLibraryFor(index);
-                        }}
-                        className="h-8 flex-1"
-                      />
-                    </PopoverTrigger>
-                    <PopoverContent
-                      align="start"
-                      className="p-1 w-[--radix-popover-trigger-width] max-h-64 overflow-y-auto z-50"
-                      onOpenAutoFocus={(e) => e.preventDefault()}
-                    >
-                      {filteredLibrary.length === 0 ? (
-                        <div className="px-2 py-2 text-xs text-muted-foreground">Aucun exercice trouvé</div>
-                      ) : (
-                        filteredLibrary.slice(0, 12).map((libEx) => (
-                          <button
-                            key={libEx.id}
-                            type="button"
-                            className="w-full text-left px-2 py-2 hover:bg-muted rounded-sm text-sm"
-                            onClick={() => onSelectFromLibrary(index, libEx)}
-                          >
-                            {libEx.name}
-                          </button>
-                        ))
-                      )}
-                    </PopoverContent>
-                  </Popover>
-                  {exercise.exercise_name && (
-                    <Input
-                      placeholder="Reps"
-                      value={exercise.reps || ""}
-                      onChange={(e) => onUpdateExercise(index, "reps", e.target.value)}
-                      className="h-8 w-20"
-                    />
-                  )}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-destructive shrink-0"
-                    onClick={() => onRemoveExercise(index)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full mt-3"
-          onClick={() => onAddExerciseToGroup(groupId, method)}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Ajouter un exercice
-        </Button>
-      </div>
-
-      {/* Method-specific config */}
-      <div className="flex items-center gap-4 pt-3 border-t">
+      {/* Method-specific config first */}
+      <div className="flex items-center gap-4 flex-wrap">
         {method === "circuit" && (
           <>
             <div className="flex items-center gap-2">
@@ -902,50 +978,75 @@ function CardioBlock({
             <span className="text-sm">min</span>
           </div>
         )}
-        {method === "tabata" && (
-          <>
-            <div className="flex items-center gap-2">
-              <Label className="text-sm">Work (s)</Label>
-              <Input
-                type="number"
-                min="1"
-                className="h-8 w-16 text-sm"
-                value={blockConfig.work_seconds || 20}
-                onChange={(e) => onUpdateBlockConfig(groupId, "work_seconds", parseInt(e.target.value) || 20)}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Label className="text-sm">Rest (s)</Label>
-              <Input
-                type="number"
-                min="0"
-                className="h-8 w-16 text-sm"
-                value={blockConfig.rest_seconds || 10}
-                onChange={(e) => onUpdateBlockConfig(groupId, "rest_seconds", parseInt(e.target.value) || 10)}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Label className="text-sm">Cycles</Label>
-              <Input
-                type="number"
-                min="1"
-                className="h-8 w-16 text-sm"
-                value={blockConfig.rounds || 8}
-                onChange={(e) => onUpdateBlockConfig(groupId, "rounds", parseInt(e.target.value) || 8)}
-              />
-            </div>
-          </>
-        )}
       </div>
 
-      <p className="text-xs text-muted-foreground italic">
-        Glissez les exercices dans les slots
-      </p>
+      {/* Exercises list */}
+      <div>
+        <Label className="text-xs text-muted-foreground mb-2 block">{methodLabels[method] || "Exercices"}</Label>
+        <div className="space-y-3">
+          {exercises.map(({ exercise, index }, i) => (
+            <div key={exercise.id || index} className="flex items-start gap-3">
+              <div 
+                className={cn(
+                  "w-9 h-9 rounded-full flex items-center justify-center text-white font-bold shrink-0",
+                  styleConfig.color || "bg-primary"
+                )}
+              >
+                {i + 1}
+              </div>
+              <div className="flex-1 border rounded-xl p-3">
+                <div className="flex items-center gap-2">
+                  <Dumbbell className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <ExerciseInput
+                    exercise={exercise}
+                    exerciseIndex={index}
+                    placeholder={`Exercice ${i + 1}`}
+                    onUpdateExercise={onUpdateExercise}
+                    onSelectFromLibrary={onSelectFromLibrary}
+                    filteredLibrary={filteredLibrary}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    showLibraryFor={showLibraryFor}
+                    setShowLibraryFor={setShowLibraryFor}
+                  />
+                  {exercise.exercise_name && (
+                    <Input
+                      placeholder="Reps"
+                      value={exercise.reps || ""}
+                      onChange={(e) => onUpdateExercise(index, "reps", e.target.value)}
+                      className="h-8 w-20"
+                    />
+                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive shrink-0"
+                    onClick={() => onRemoveExercise(index)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full mt-3"
+          onClick={() => onAddExerciseToGroup(groupId, method)}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Ajouter un exercice
+        </Button>
+      </div>
     </div>
   );
 }
 
-// Linkable method block (Superset, Biset, Triset, Bulgarian, 5x5)
+// Linkable method block (Superset, Biset, Triset, Bulgarian)
 function LinkableBlock({
   method,
   groupId,
@@ -972,7 +1073,7 @@ function LinkableBlock({
     const labels = getSlotLabels(method, i);
     slots.push({
       exercise: exerciseData?.exercise || null,
-      index: exerciseData?.index || -1,
+      index: exerciseData?.index ?? -1,
       label: labels.label,
       sublabel: labels.sublabel,
     });
@@ -1016,11 +1117,6 @@ function LinkableBlock({
           Ajouter un exercice
         </Button>
       )}
-
-      {/* Instruction text */}
-      <p className="text-sm text-muted-foreground text-center">
-        Glissez {minExercises} exercices depuis la bibliothèque
-      </p>
     </div>
   );
 }
@@ -1050,49 +1146,21 @@ function FiveByFiveBlock({
       </p>
 
       {/* Exercise slot */}
-      <div className="border-2 border-dashed rounded-xl p-4">
+      <div className="border rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Dumbbell className="h-4 w-4 text-muted-foreground" />
-          <Popover
-            open={showLibraryFor === exerciseIndex}
-            onOpenChange={(isOpen) => {
-              setShowLibraryFor(isOpen ? exerciseIndex : null);
-              if (isOpen) setSearchQuery(exercise.exercise_name);
-            }}
-          >
-            <PopoverTrigger asChild>
-              <Input
-                placeholder="Glissez un exercice ici"
-                value={exercise.exercise_name}
-                onChange={(e) => {
-                  onUpdateExercise(exerciseIndex, "exercise_name", e.target.value);
-                  setSearchQuery(e.target.value);
-                  setShowLibraryFor(exerciseIndex);
-                }}
-                className="h-9"
-              />
-            </PopoverTrigger>
-            <PopoverContent
-              align="start"
-              className="p-1 w-[--radix-popover-trigger-width] max-h-64 overflow-y-auto z-50"
-              onOpenAutoFocus={(e) => e.preventDefault()}
-            >
-              {filteredLibrary.length === 0 ? (
-                <div className="px-2 py-2 text-xs text-muted-foreground">Aucun exercice trouvé</div>
-              ) : (
-                filteredLibrary.slice(0, 12).map((libEx) => (
-                  <button
-                    key={libEx.id}
-                    type="button"
-                    className="w-full text-left px-2 py-2 hover:bg-muted rounded-sm text-sm"
-                    onClick={() => onSelectFromLibrary(exerciseIndex, libEx)}
-                  >
-                    {libEx.name}
-                  </button>
-                ))
-              )}
-            </PopoverContent>
-          </Popover>
+          <Dumbbell className="h-4 w-4 text-muted-foreground shrink-0" />
+          <ExerciseInput
+            exercise={exercise}
+            exerciseIndex={exerciseIndex}
+            placeholder="Nom de l'exercice..."
+            onUpdateExercise={onUpdateExercise}
+            onSelectFromLibrary={onSelectFromLibrary}
+            filteredLibrary={filteredLibrary}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            showLibraryFor={showLibraryFor}
+            setShowLibraryFor={setShowLibraryFor}
+          />
         </div>
         
         {exercise.exercise_name && (
@@ -1131,7 +1199,8 @@ export function TrainingMethodBlock(props: TrainingMethodBlockProps) {
   const { method, groupId, exercises, blockConfig, onUnlinkGroup, onValidate, onCancel } = props;
   const styleConfig = getTrainingStyleConfig(method);
   const minExercises = getMinExercisesForMethod(method);
-  const isComplete = exercises.length >= minExercises && exercises.every(e => e.exercise.exercise_name.trim());
+  const filledExercises = exercises.filter(e => e.exercise.exercise_name.trim());
+  const isComplete = filledExercises.length >= minExercises;
 
   // Render content based on method type
   const renderContent = () => {
@@ -1142,10 +1211,13 @@ export function TrainingMethodBlock(props: TrainingMethodBlockProps) {
       case "pyramid_down":
       case "pyramid_full":
         return <PyramidBlock {...props} styleConfig={styleConfig} />;
+      case "tabata":
+        return <TabataBlock {...props} styleConfig={styleConfig} />;
+      case "death_by":
+        return <DeathByBlock {...props} styleConfig={styleConfig} />;
       case "circuit":
       case "amrap":
       case "for_time":
-      case "tabata":
         return <CardioBlock {...props} styleConfig={styleConfig} />;
       case "five_by_five":
         return <FiveByFiveBlock {...props} styleConfig={styleConfig} />;
@@ -1163,19 +1235,19 @@ export function TrainingMethodBlock(props: TrainingMethodBlockProps) {
   return (
     <div
       className={cn(
-        "rounded-2xl border-2 p-5",
+        "rounded-2xl border-2 p-5 print-exercise-group",
         styleConfig.borderColor,
         styleConfig.bgColor
       )}
     >
       {/* Block header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-3">
           <Badge className={cn("text-white text-sm px-3 py-1", styleConfig.color)}>
             {styleConfig.label}
           </Badge>
           <span className="text-sm text-muted-foreground">
-            {exercises.filter(e => e.exercise.exercise_name.trim()).length}/{minExercises} exercices
+            {filledExercises.length}/{minExercises} exercices
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -1191,9 +1263,7 @@ export function TrainingMethodBlock(props: TrainingMethodBlockProps) {
               className={cn("text-white", styleConfig.color)}
               onClick={onValidate}
             >
-              {method === "superset" || method === "biset" || method === "triset" || method === "giant_set" || method === "bulgarian" 
-                ? "Valider le bloc" 
-                : "Valider"}
+              Valider le bloc
             </Button>
           )}
           <TooltipProvider>
