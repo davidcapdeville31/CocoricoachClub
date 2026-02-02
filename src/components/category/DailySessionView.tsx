@@ -24,7 +24,8 @@ import {
   Smile,
   Plus,
   Printer,
-  Eye
+  Eye,
+  ClipboardCheck
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -40,6 +41,7 @@ import { useFieldMode } from "@/contexts/FieldModeContext";
 import { AddWellnessDialog } from "./AddWellnessDialog";
 import { GroupedExerciseList } from "./GroupedExerciseList";
 import { printElement, exportSessionToPdf } from "@/lib/pdfExport";
+import { SessionFeedbackDialog } from "./calendar/SessionFeedbackDialog";
 
 interface DailySessionViewProps {
   categoryId: string;
@@ -61,8 +63,15 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
   const [showOnlyAtRisk, setShowOnlyAtRisk] = useState(false);
   const [wellnessDialogOpen, setWellnessDialogOpen] = useState(false);
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
+  const [rpeDialogOpen, setRpeDialogOpen] = useState(false);
+  const [rpeDialogSession, setRpeDialogSession] = useState<{ id: string; type: string } | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
   const today = format(new Date(), "yyyy-MM-dd");
+
+  const handleOpenRpeDialog = (session: { id: string; training_type: string }) => {
+    setRpeDialogSession({ id: session.id, type: session.training_type });
+    setRpeDialogOpen(true);
+  };
 
   const handlePrint = () => {
     if (printRef.current) {
@@ -539,8 +548,23 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                             "p-4 pt-0 border-t",
                             fieldMode ? "border-slate-600" : "border-border"
                           )}>
-                            {/* Print button for this session */}
-                            <div className="flex justify-end mb-3 mt-2">
+                            {/* Action buttons for this session */}
+                            <div className="flex justify-end gap-2 mb-3 mt-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenRpeDialog(session);
+                                }}
+                                className={cn(
+                                  "gap-1.5",
+                                  fieldMode && "border-slate-600 hover:bg-slate-700"
+                                )}
+                              >
+                                <ClipboardCheck className="h-3.5 w-3.5" />
+                                Ajouter RPE
+                              </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -554,7 +578,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                                 )}
                               >
                                 <Printer className="h-3.5 w-3.5" />
-                                Imprimer cette séance
+                                Imprimer
                               </Button>
                             </div>
 
@@ -680,6 +704,20 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
         onOpenChange={setWellnessDialogOpen} 
         categoryId={categoryId} 
       />
+
+      {/* RPE Dialog */}
+      {rpeDialogSession && (
+        <SessionFeedbackDialog
+          open={rpeDialogOpen}
+          onOpenChange={(open) => {
+            setRpeDialogOpen(open);
+            if (!open) setRpeDialogSession(null);
+          }}
+          sessionId={rpeDialogSession.id}
+          sessionType={rpeDialogSession.type}
+          categoryId={categoryId}
+        />
+      )}
     </div>
   );
 }
