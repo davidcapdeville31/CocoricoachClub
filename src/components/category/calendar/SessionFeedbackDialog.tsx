@@ -267,6 +267,7 @@ export function SessionFeedbackDialog({
       queryClient.invalidateQueries({ queryKey: ["training_sessions"] });
       queryClient.invalidateQueries({ queryKey: ["generic_tests", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["generic_tests_discovery", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["today_session_tests"] });
       
       let message = "";
       if (result.rpeCount > 0) message += `${result.rpeCount} RPE enregistré(s)`;
