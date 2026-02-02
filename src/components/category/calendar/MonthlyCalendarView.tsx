@@ -52,6 +52,7 @@ interface MonthlyCalendarViewProps {
   onExportPdf: () => void;
   isViewer: boolean;
   categoryId: string;
+  calendarRef?: React.RefObject<HTMLDivElement>;
   onEditSession?: (session: Session) => void;
   onViewSession?: (session: Session) => void;
   onDeleteSession?: (sessionId: string) => void;
@@ -72,6 +73,7 @@ export function MonthlyCalendarView({
   onExportPdf,
   isViewer,
   categoryId,
+  calendarRef,
   onEditSession,
   onViewSession,
   onDeleteSession,
@@ -140,7 +142,7 @@ export function MonthlyCalendarView({
 
   return (
     <>
-      <Card className="bg-gradient-card shadow-md">
+      <Card className="bg-gradient-card shadow-md" ref={calendarRef}>
         <CardHeader>
           <div className="flex justify-between items-center flex-wrap gap-4">
             <CardTitle>

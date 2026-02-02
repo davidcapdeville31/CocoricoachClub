@@ -64,8 +64,12 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
   };
 
   const handlePrint = () => {
+    // Use the calendar ref if available, otherwise fall back to PDF export
     if (calendarContentRef.current) {
       printElement(calendarContentRef.current, "Calendrier Global");
+    } else {
+      // Fallback: export PDF which works without ref
+      handleExportPdf();
     }
   };
 
@@ -256,6 +260,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
             sportType={sportType}
             trainingTypeLabels={trainingTypeLabels}
             categoryId={categoryId}
+            calendarRef={calendarContentRef}
             onDayClick={handleDayClick}
             onAddSession={() => setIsAddDialogOpen(true)}
             onAddMatch={() => setIsAddMatchDialogOpen(true)}
