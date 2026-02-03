@@ -1,0 +1,201 @@
+import * as React from "react";
+import * as TabsPrimitive from "@radix-ui/react-tabs";
+import { cn } from "@/lib/utils";
+
+// Define navigation color mappings
+export const NAV_COLORS = {
+  overview: {
+    base: "hsl(220 80% 55%)",
+    text: "text-[hsl(220_80%_55%)]",
+    bg: "bg-[hsl(220_80%_55%)]",
+    hover: "hover:bg-[hsl(220_80%_55%)/10]",
+  },
+  admin: {
+    base: "hsl(280 70% 55%)",
+    text: "text-[hsl(280_70%_55%)]",
+    bg: "bg-[hsl(280_70%_55%)]",
+    hover: "hover:bg-[hsl(280_70%_55%)/10]",
+  },
+  effectif: {
+    base: "hsl(200 85% 50%)",
+    text: "text-[hsl(200_85%_50%)]",
+    bg: "bg-[hsl(200_85%_50%)]",
+    hover: "hover:bg-[hsl(200_85%_50%)/10]",
+  },
+  planification: {
+    base: "hsl(35 90% 55%)",
+    text: "text-[hsl(35_90%_55%)]",
+    bg: "bg-[hsl(35_90%_55%)]",
+    hover: "hover:bg-[hsl(35_90%_55%)/10]",
+  },
+  programmation: {
+    base: "hsl(260 70% 60%)",
+    text: "text-[hsl(260_70%_60%)]",
+    bg: "bg-[hsl(260_70%_60%)]",
+    hover: "hover:bg-[hsl(260_70%_60%)/10]",
+  },
+  performance: {
+    base: "hsl(320 75% 55%)",
+    text: "text-[hsl(320_75%_55%)]",
+    bg: "bg-[hsl(320_75%_55%)]",
+    hover: "hover:bg-[hsl(320_75%_55%)/10]",
+  },
+  sante: {
+    base: "hsl(160 65% 45%)",
+    text: "text-[hsl(160_65%_45%)]",
+    bg: "bg-[hsl(160_65%_45%)]",
+    hover: "hover:bg-[hsl(160_65%_45%)/10]",
+  },
+  competition: {
+    base: "hsl(45 95% 50%)",
+    text: "text-[hsl(45_95%_48%)]",
+    bg: "bg-[hsl(45_95%_50%)]",
+    hover: "hover:bg-[hsl(45_95%_50%)/10]",
+  },
+  gps: {
+    base: "hsl(190 80% 45%)",
+    text: "text-[hsl(190_80%_45%)]",
+    bg: "bg-[hsl(190_80%_45%)]",
+    hover: "hover:bg-[hsl(190_80%_45%)/10]",
+  },
+  video: {
+    base: "hsl(350 80% 60%)",
+    text: "text-[hsl(350_80%_60%)]",
+    bg: "bg-[hsl(350_80%_60%)]",
+    hover: "hover:bg-[hsl(350_80%_60%)/10]",
+  },
+  communication: {
+    base: "hsl(210 80% 55%)",
+    text: "text-[hsl(210_80%_55%)]",
+    bg: "bg-[hsl(210_80%_55%)]",
+    hover: "hover:bg-[hsl(210_80%_55%)/10]",
+  },
+  settings: {
+    base: "hsl(220 15% 50%)",
+    text: "text-[hsl(220_15%_50%)]",
+    bg: "bg-[hsl(220_15%_50%)]",
+    hover: "hover:bg-[hsl(220_15%_50%)/10]",
+  },
+} as const;
+
+export type NavColorKey = keyof typeof NAV_COLORS;
+
+interface ColoredNavTabsListProps extends React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> {
+  children: React.ReactNode;
+}
+
+const ColoredNavTabsList = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.List>,
+  ColoredNavTabsListProps
+>(({ className, children, ...props }, ref) => (
+  <TabsPrimitive.List
+    ref={ref}
+    className={cn(
+      "inline-flex items-center gap-2 bg-white p-2 rounded-xl shadow-sm border border-border/50",
+      className
+    )}
+    {...props}
+  >
+    {children}
+  </TabsPrimitive.List>
+));
+ColoredNavTabsList.displayName = "ColoredNavTabsList";
+
+interface ColoredNavTabsTriggerProps extends React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger> {
+  colorKey: NavColorKey;
+  icon?: React.ReactNode;
+}
+
+const ColoredNavTabsTrigger = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Trigger>,
+  ColoredNavTabsTriggerProps
+>(({ className, colorKey, icon, children, ...props }, ref) => {
+  const colors = NAV_COLORS[colorKey];
+  
+  return (
+    <TabsPrimitive.Trigger
+      ref={ref}
+      className={cn(
+        "group relative inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm",
+        "transition-all duration-200 ease-out",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+        // Default state: colored text
+        colors.text,
+        colors.hover,
+        // Active state: colored background, white text
+        "data-[state=active]:text-white data-[state=active]:shadow-md",
+        className
+      )}
+      style={{
+        // Use inline style for dynamic active background color
+      }}
+      {...props}
+    >
+      {/* Background overlay for active state */}
+      <span 
+        className="absolute inset-0 rounded-lg opacity-0 transition-opacity duration-200 data-[state=active]:opacity-100 -z-10"
+        style={{ backgroundColor: colors.base }}
+        data-state={props["data-state"]}
+      />
+      {icon && (
+        <span className="shrink-0 transition-colors duration-200">
+          {icon}
+        </span>
+      )}
+      <span className="whitespace-nowrap">{children}</span>
+    </TabsPrimitive.Trigger>
+  );
+});
+ColoredNavTabsTrigger.displayName = "ColoredNavTabsTrigger";
+
+// Wrapper component that handles the active state styling
+interface ColoredTabTriggerProps extends Omit<ColoredNavTabsTriggerProps, "data-state"> {
+  value: string;
+}
+
+const ColoredTabTrigger = React.forwardRef<
+  HTMLButtonElement,
+  ColoredTabTriggerProps
+>(({ colorKey, icon, children, className, value, ...props }, ref) => {
+  const colors = NAV_COLORS[colorKey];
+  
+  return (
+    <TabsPrimitive.Trigger
+      ref={ref}
+      value={value}
+      className={cn(
+        "relative inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm",
+        "transition-all duration-200 ease-out",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        // Default state: colored text on white
+        colors.text,
+        colors.hover,
+        // Active state handled by data attribute
+        "data-[state=active]:text-white data-[state=active]:shadow-md",
+        className
+      )}
+      style={{
+        ["--tab-color" as string]: colors.base,
+      }}
+      {...props}
+    >
+      {/* Active background */}
+      <span 
+        className={cn(
+          "absolute inset-0 rounded-lg transition-all duration-200",
+          "opacity-0 scale-95",
+          "group-data-[state=active]:opacity-100 group-data-[state=active]:scale-100"
+        )}
+        style={{ backgroundColor: colors.base }}
+      />
+      {/* Content */}
+      <span className="relative z-10 flex items-center gap-2">
+        {icon && <span className="shrink-0">{icon}</span>}
+        <span className="whitespace-nowrap">{children}</span>
+      </span>
+    </TabsPrimitive.Trigger>
+  );
+});
+ColoredTabTrigger.displayName = "ColoredTabTrigger";
+
+export { ColoredNavTabsList, ColoredNavTabsTrigger, ColoredTabTrigger };

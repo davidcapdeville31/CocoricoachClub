@@ -2,8 +2,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, LayoutDashboard, Shield, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Lock, Settings, FileCode, MapPin, Video } from "lucide-react";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { ColoredNavTabsList, NAV_COLORS, NavColorKey } from "@/components/ui/colored-nav-tabs";
+import * as TabsPrimitive from "@radix-ui/react-tabs";
+import { ArrowLeft, LayoutDashboard, Shield, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Settings, FileCode, MapPin, Video } from "lucide-react";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CategoryCoverUpload } from "@/components/category/CategoryCoverUpload";
@@ -13,8 +15,9 @@ import { EditableRugbyType } from "@/components/category/EditableRugbyType";
 import { ViewerModeProvider, useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { usePublicAccess } from "@/contexts/PublicAccessContext";
 import { PublicDataProvider, usePublicDataContext } from "@/contexts/PublicDataContext";
-import { DisabledTabTrigger } from "@/components/ui/disabled-tab-trigger";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import React from "react";
 
 // New mega-tabs
 import { EffectifTab } from "@/components/category/tabs/EffectifTab";
@@ -28,6 +31,66 @@ import { ProgrammationTab } from "@/components/category/tabs/ProgrammationTab";
 import { GpsDataTab } from "@/components/category/gps/GpsDataTab";
 import { VideoAnalysisTab } from "@/components/category/video/VideoAnalysisTab";
 import { AdminTab } from "@/components/category/tabs/AdminTab";
+
+// Colored Tab Trigger Component
+interface ColoredTabTriggerProps {
+  value: string;
+  colorKey: NavColorKey;
+  icon: React.ReactNode;
+  label: string;
+  shortLabel?: string;
+  disabled?: boolean;
+}
+
+function ColoredTabTrigger({ value, colorKey, icon, label, shortLabel, disabled }: ColoredTabTriggerProps) {
+  const colors = NAV_COLORS[colorKey];
+  
+  if (disabled) {
+    return (
+      <div
+        className={cn(
+          "relative inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm",
+          "text-muted-foreground/50 cursor-not-allowed bg-muted/30"
+        )}
+        title="Accès restreint en mode lecture"
+      >
+        <span className="shrink-0 h-4 w-4">{icon}</span>
+        <span className="hidden sm:inline whitespace-nowrap">{label}</span>
+        {shortLabel && <span className="sm:hidden whitespace-nowrap">{shortLabel}</span>}
+      </div>
+    );
+  }
+  
+  return (
+    <TabsPrimitive.Trigger
+      value={value}
+      className={cn(
+        "group relative inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm",
+        "transition-all duration-200 ease-out",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        colors.text,
+        colors.hover,
+        "data-[state=active]:text-white data-[state=active]:shadow-lg"
+      )}
+    >
+      {/* Active background */}
+      <span 
+        className={cn(
+          "absolute inset-0 rounded-lg transition-all duration-200",
+          "opacity-0 scale-95",
+          "group-data-[state=active]:opacity-100 group-data-[state=active]:scale-100"
+        )}
+        style={{ backgroundColor: colors.base }}
+      />
+      {/* Content */}
+      <span className="relative z-10 flex items-center gap-2">
+        <span className="shrink-0 h-4 w-4">{icon}</span>
+        <span className="hidden sm:inline whitespace-nowrap">{label}</span>
+        {shortLabel && <span className="sm:hidden whitespace-nowrap">{shortLabel}</span>}
+      </span>
+    </TabsPrimitive.Trigger>
+  );
+}
 
 // Helper to check if GPS is available for sport
 const isGpsSportType = (sportType: string | undefined) => {
@@ -191,77 +254,99 @@ function CategoryDetailsContent() {
       <div className="container mx-auto max-w-7xl px-4 py-8">
         <Tabs defaultValue="overview" className="space-y-6">
           <div className="overflow-x-auto -mx-4 px-4 pb-2">
-            <TabsList className="inline-flex w-max min-w-full gap-1 h-auto bg-muted p-1">
-              <TabsTrigger value="overview" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-                <LayoutDashboard className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline">Vue Générale</span>
-                <span className="sm:hidden">Général</span>
-              </TabsTrigger>
+            <ColoredNavTabsList className="inline-flex w-max min-w-full">
+              <ColoredTabTrigger 
+                value="overview" 
+                colorKey="overview"
+                icon={<LayoutDashboard className="h-4 w-4" />}
+                label="Vue Générale"
+                shortLabel="Général"
+              />
               {!isViewer && (
-                <TabsTrigger value="admin" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-                  <Shield className="h-4 w-4 shrink-0" />
-                  <span>Admin</span>
-                </TabsTrigger>
+                <ColoredTabTrigger 
+                  value="admin" 
+                  colorKey="admin"
+                  icon={<Shield className="h-4 w-4" />}
+                  label="Admin"
+                />
               )}
-              <TabsTrigger value="effectif" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-                <Users className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline">Effectif</span>
-                <span className="sm:hidden">Équipe</span>
-              </TabsTrigger>
-              <TabsTrigger value="planification" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-                <Calendar className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline">Planification</span>
-                <span className="sm:hidden">Planning</span>
-              </TabsTrigger>
-              {/* Programmation - Grisé en mode viewer */}
-              <DisabledTabTrigger value="programmation" isDisabled={isViewer} className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-                <FileCode className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline">Programmation</span>
-                <span className="sm:hidden">Prog</span>
-              </DisabledTabTrigger>
-              {/* Entrainement - Grisé en mode viewer */}
-              <DisabledTabTrigger value="performance" isDisabled={isViewer} className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-                <Zap className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline">Entrainement</span>
-                <span className="sm:hidden">Entraîn</span>
-              </DisabledTabTrigger>
-              <TabsTrigger value="sante" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-                <Heart className="h-4 w-4 shrink-0" />
-                <span>Santé</span>
-              </TabsTrigger>
-              <TabsTrigger value="competition" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-                <Trophy className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline">Compétition</span>
-                <span className="sm:hidden">Compét</span>
-              </TabsTrigger>
-              {/* GPS - Only for Football and Rugby */}
+              <ColoredTabTrigger 
+                value="effectif" 
+                colorKey="effectif"
+                icon={<Users className="h-4 w-4" />}
+                label="Effectif"
+                shortLabel="Équipe"
+              />
+              <ColoredTabTrigger 
+                value="planification" 
+                colorKey="planification"
+                icon={<Calendar className="h-4 w-4" />}
+                label="Planification"
+                shortLabel="Planning"
+              />
+              <ColoredTabTrigger 
+                value="programmation" 
+                colorKey="programmation"
+                icon={<FileCode className="h-4 w-4" />}
+                label="Programmation"
+                shortLabel="Prog"
+                disabled={isViewer}
+              />
+              <ColoredTabTrigger 
+                value="performance" 
+                colorKey="performance"
+                icon={<Zap className="h-4 w-4" />}
+                label="Entrainement"
+                shortLabel="Entraîn"
+                disabled={isViewer}
+              />
+              <ColoredTabTrigger 
+                value="sante" 
+                colorKey="sante"
+                icon={<Heart className="h-4 w-4" />}
+                label="Santé"
+              />
+              <ColoredTabTrigger 
+                value="competition" 
+                colorKey="competition"
+                icon={<Trophy className="h-4 w-4" />}
+                label="Compétition"
+                shortLabel="Compét"
+              />
               {isGpsSportType(category?.rugby_type) && (
-                <TabsTrigger value="gps" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-                  <MapPin className="h-4 w-4 shrink-0" />
-                  <span>GPS</span>
-                </TabsTrigger>
+                <ColoredTabTrigger 
+                  value="gps" 
+                  colorKey="gps"
+                  icon={<MapPin className="h-4 w-4" />}
+                  label="GPS"
+                />
               )}
-              {/* Video Analysis - All sports */}
-              <TabsTrigger value="video" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-                <Video className="h-4 w-4 shrink-0" />
-                <span className="hidden sm:inline">Analyse Vidéo</span>
-                <span className="sm:hidden">Vidéo</span>
-              </TabsTrigger>
+              <ColoredTabTrigger 
+                value="video" 
+                colorKey="video"
+                icon={<Video className="h-4 w-4" />}
+                label="Analyse Vidéo"
+                shortLabel="Vidéo"
+              />
               {!isViewer && (
-                <TabsTrigger value="communication" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-                  <MessageSquare className="h-4 w-4 shrink-0" />
-                  <span className="hidden sm:inline">Communication</span>
-                  <span className="sm:hidden">Com</span>
-                </TabsTrigger>
+                <ColoredTabTrigger 
+                  value="communication" 
+                  colorKey="communication"
+                  icon={<MessageSquare className="h-4 w-4" />}
+                  label="Communication"
+                  shortLabel="Com"
+                />
               )}
               {!isViewer && (
-                <TabsTrigger value="settings" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-                  <Settings className="h-4 w-4 shrink-0" />
-                  <span className="hidden sm:inline">Paramètres</span>
-                  <span className="sm:hidden">Param</span>
-                </TabsTrigger>
+                <ColoredTabTrigger 
+                  value="settings" 
+                  colorKey="settings"
+                  icon={<Settings className="h-4 w-4" />}
+                  label="Paramètres"
+                  shortLabel="Param"
+                />
               )}
-            </TabsList>
+            </ColoredNavTabsList>
           </div>
 
           <TabsContent value="overview" className="space-y-4">
