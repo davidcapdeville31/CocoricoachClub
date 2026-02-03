@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, LayoutDashboard, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Lock, Settings } from "lucide-react";
+import { ArrowLeft, LayoutDashboard, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Lock, Settings, FileCode } from "lucide-react";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CategoryCoverUpload } from "@/components/category/CategoryCoverUpload";
@@ -24,6 +24,7 @@ import { SanteTab } from "@/components/category/tabs/SanteTab";
 import { CompetitionTab } from "@/components/category/tabs/CompetitionTab";
 import { CommunicationTab } from "@/components/category/tabs/CommunicationTab";
 import { SettingsTab } from "@/components/category/tabs/SettingsTab";
+import { ProgrammationTab } from "@/components/category/tabs/ProgrammationTab";
 
 function CategoryDetailsContent() {
   const { categoryId } = useParams();
@@ -198,6 +199,12 @@ function CategoryDetailsContent() {
                 <span className="hidden sm:inline">Planification</span>
                 <span className="sm:hidden">Planning</span>
               </TabsTrigger>
+              {/* Programmation - Grisé en mode viewer */}
+              <DisabledTabTrigger value="programmation" isDisabled={isViewer} className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
+                <FileCode className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Programmation</span>
+                <span className="sm:hidden">Prog</span>
+              </DisabledTabTrigger>
               {/* Entrainement - Grisé en mode viewer */}
               <DisabledTabTrigger value="performance" isDisabled={isViewer} className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
                 <Zap className="h-4 w-4 shrink-0" />
@@ -240,6 +247,10 @@ function CategoryDetailsContent() {
 
           <TabsContent value="planification" className="space-y-4">
             <PlanificationTab categoryId={categoryId!} />
+          </TabsContent>
+
+          <TabsContent value="programmation" className="space-y-4">
+            <ProgrammationTab categoryId={categoryId!} />
           </TabsContent>
 
           <TabsContent value="performance" className="space-y-4">

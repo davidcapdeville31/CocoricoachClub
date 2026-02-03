@@ -321,6 +321,19 @@ export const TRAINING_STYLES: TrainingStyleConfig[] = [
       methodeAccumulation: true, methodeIntensification: false,
     }
   },
+  { 
+    value: "vbt", 
+    label: "VBT (Velocity Based Training)", 
+    color: "bg-emerald-600",
+    borderColor: "border-emerald-600",
+    bgColor: "bg-emerald-600/10",
+    description: "Entraînement basé sur la vitesse d'exécution. Utilisez un encodeur pour adapter la charge en temps réel.",
+    characteristics: {
+      effortPercu: 4, hypertrophie: 3, forcePuissance: 5, enduranceMusculaire: 2,
+      vitesse: 5, stressNerveux: 4, stressMecanique: 4, experienceRequise: 4,
+      methodeAccumulation: false, methodeIntensification: true,
+    }
+  },
 ];
 
 // Helper functions
@@ -340,8 +353,11 @@ export const DROP_METHODS = ["drop_set", "pyramid_up", "pyramid_down", "pyramid_
 // Methods that use cluster sets configuration
 export const CLUSTER_METHODS = ["cluster", "rest_pause"];
 
-// Special methods with specific UI (e.g., 5x5)
-export const SPECIAL_METHODS = ["five_by_five", "super_pletnev", "isometric_overcoming", "isometric_yielding"];
+// Special methods with specific UI (e.g., 5x5, VBT)
+export const SPECIAL_METHODS = ["five_by_five", "super_pletnev", "isometric_overcoming", "isometric_yielding", "vbt"];
+
+// VBT method requires velocity input
+export const VBT_METHODS = ["vbt"];
 
 // All block methods that need the new block UI
 export const ALL_BLOCK_METHODS = [
@@ -357,6 +373,7 @@ export const isCardioBlockMethod = (method: string): boolean => CARDIO_BLOCK_MET
 export const isDropMethod = (method: string): boolean => DROP_METHODS.includes(method);
 export const isClusterMethod = (method: string): boolean => CLUSTER_METHODS.includes(method);
 export const isBlockMethod = (method: string): boolean => ALL_BLOCK_METHODS.includes(method);
+export const isVbtMethod = (method: string): boolean => VBT_METHODS.includes(method);
 
 // Get min exercises required for a linkable method
 export const getMinExercisesForMethod = (method: string): number => {
@@ -469,7 +486,7 @@ export const getCardioBlockConfig = (method: string): CardioBlockConfig => {
 
 // Styles for workout builder (subset for standard gym sessions)
 export const WORKOUT_BUILDER_STYLES = TRAINING_STYLES.filter(s => 
-  ["normal", "superset", "biset", "triset", "giant_set", "drop_set", "rest_pause", "pyramid_up", "pyramid_down", "five_by_five", "cluster", "bulgarian", "isometric_overcoming", "isometric_yielding", "amrap", "for_time", "circuit", "emom", "tabata", "death_by"].includes(s.value)
+  ["normal", "superset", "biset", "triset", "giant_set", "drop_set", "rest_pause", "pyramid_up", "pyramid_down", "five_by_five", "cluster", "bulgarian", "isometric_overcoming", "isometric_yielding", "amrap", "for_time", "circuit", "emom", "tabata", "death_by", "vbt"].includes(s.value)
 );
 
 // All styles for program builder

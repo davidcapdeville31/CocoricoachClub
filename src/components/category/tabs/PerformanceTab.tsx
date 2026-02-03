@@ -1,18 +1,14 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ClipboardCheck, Activity, BarChart3, Dumbbell, MapPin, History, CalendarDays, FolderOpen, Video } from "lucide-react";
-import { TestsTab } from "@/components/category/TestsTab";
+import { Activity, BarChart3, Dumbbell, MapPin, History, Video } from "lucide-react";
 import { AwcrTab } from "@/components/category/AwcrTab";
 import { AnalyticsTab } from "@/components/analytics/AnalyticsTab";
 import { PhysicalPreparationTab } from "@/components/category/PhysicalPreparationTab";
 import { GpsDataTab } from "@/components/category/gps/GpsDataTab";
 import { SessionHistoryTimeline } from "@/components/category/history/SessionHistoryTimeline";
-import { SessionsTab } from "@/components/category/sessions/SessionsTab";
-import { ProgramsTab } from "@/components/category/programs/ProgramsTab";
 import { VideoAnalysisTab } from "@/components/category/video/VideoAnalysisTab";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
-import { DisabledTabTrigger } from "@/components/ui/disabled-tab-trigger";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lock } from "lucide-react";
 import { isRugbyType } from "@/lib/constants/sportTypes";
@@ -74,29 +70,16 @@ export function PerformanceTab({ categoryId }: PerformanceTabProps) {
     sportLower.includes("handball") || 
     sportLower.includes("volleyball") ||
     sportLower.includes("volley");
+
   // En mode viewer, l'onglet Performance entier est désactivé
   if (isViewer) {
     return <PerformanceDisabledMessage />;
   }
 
   return (
-    <Tabs defaultValue="sessions" className="space-y-4">
+    <Tabs defaultValue="awcr" className="space-y-4">
       <div className="overflow-x-auto -mx-4 px-4 pb-2">
         <TabsList className="inline-flex w-max min-w-full gap-1 h-auto bg-muted p-1">
-          <TabsTrigger value="sessions" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-            <CalendarDays className="h-4 w-4 shrink-0" />
-            <span className="hidden sm:inline">Séances</span>
-            <span className="sm:hidden">Séan</span>
-          </TabsTrigger>
-          <TabsTrigger value="programs" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-            <FolderOpen className="h-4 w-4 shrink-0" />
-            <span className="hidden sm:inline">Programmes</span>
-            <span className="sm:hidden">Prog</span>
-          </TabsTrigger>
-          <TabsTrigger value="tests" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-            <ClipboardCheck className="h-4 w-4 shrink-0" />
-            Tests
-          </TabsTrigger>
           <TabsTrigger value="awcr" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
             <Activity className="h-4 w-4 shrink-0" />
             AWCR
@@ -131,18 +114,6 @@ export function PerformanceTab({ categoryId }: PerformanceTabProps) {
           )}
         </TabsList>
       </div>
-
-      <TabsContent value="sessions">
-        <SessionsTab categoryId={categoryId} />
-      </TabsContent>
-
-      <TabsContent value="programs">
-        <ProgramsTab categoryId={categoryId} />
-      </TabsContent>
-
-      <TabsContent value="tests">
-        <TestsTab categoryId={categoryId} sportType={category?.rugby_type} />
-      </TabsContent>
 
       <TabsContent value="awcr">
         <AwcrTab categoryId={categoryId} />
