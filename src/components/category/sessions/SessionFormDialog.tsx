@@ -1386,7 +1386,7 @@ export function SessionFormDialog({
                 }
               />
             </div>
-            {(exercise.exercise_category === "rowerg" || exercise.exercise_name.toLowerCase().includes("row")) && (
+            {(exercise.exercise_category === "ergo_rowerg" || exercise.exercise_name.toLowerCase().includes("row")) && (
               <div>
                 <Label className="text-xs text-muted-foreground">Stroke/min</Label>
                 <Input
