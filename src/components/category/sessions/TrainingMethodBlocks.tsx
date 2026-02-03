@@ -186,8 +186,9 @@ function ExerciseInput({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="p-1 w-[--radix-popover-trigger-width] max-h-64 overflow-y-auto z-50"
+        className="p-1 w-[--radix-popover-trigger-width] max-h-64 overflow-y-auto z-[100] bg-popover border shadow-lg"
         onOpenAutoFocus={(e) => e.preventDefault()}
+        sideOffset={4}
       >
         {filteredLibrary.length === 0 ? (
           <div className="px-2 py-2 text-xs text-muted-foreground">
@@ -1199,8 +1200,13 @@ export function TrainingMethodBlock(props: TrainingMethodBlockProps) {
   const { method, groupId, exercises, blockConfig, onUnlinkGroup, onValidate, onCancel } = props;
   const styleConfig = getTrainingStyleConfig(method);
   const minExercises = getMinExercisesForMethod(method);
+  const maxExercises = getMaxExercisesForMethod(method);
   const filledExercises = exercises.filter(e => e.exercise.exercise_name.trim());
   const isComplete = filledExercises.length >= minExercises;
+  
+  // For methods with flexible exercise count (EMOM, Tabata, Circuit, etc.), 
+  // show total count without max limit
+  const isFlexibleMethod = ["emom", "tabata", "circuit", "amrap", "for_time", "death_by"].includes(method);
 
   // Render content based on method type
   const renderContent = () => {
@@ -1247,7 +1253,10 @@ export function TrainingMethodBlock(props: TrainingMethodBlockProps) {
             {styleConfig.label}
           </Badge>
           <span className="text-sm text-muted-foreground">
-            {filledExercises.length}/{minExercises} exercices
+            {isFlexibleMethod 
+              ? `${filledExercises.length} exercice${filledExercises.length > 1 ? "s" : ""}`
+              : `${filledExercises.length}/${minExercises} exercices`
+            }
           </span>
         </div>
         <div className="flex items-center gap-2">
