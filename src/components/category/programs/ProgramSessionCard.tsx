@@ -30,6 +30,7 @@ import {
   isLinkableMethod,
   isDropMethod as checkIsDropMethod,
   isClusterMethod as checkIsClusterMethod,
+  isVbtMethod as checkIsVbtMethod,
   getMaxExercisesForMethod,
   LINKABLE_METHODS,
   DROP_METHODS,
@@ -90,6 +91,7 @@ interface ProgramExercise {
   rm_test_type?: string;
   erg_data?: ErgData;
   running_data?: RunningData;
+  target_velocity?: number; // VBT - target velocity in m/s
 }
 
 interface ProgramSession {
@@ -457,6 +459,7 @@ export function ProgramSessionCard({
 
   const isInDropMode = (method: string) => checkIsDropMethod(method);
   const isInClusterMode = (method: string) => checkIsClusterMethod(method);
+  const isInVbtMode = (method: string) => checkIsVbtMethod(method);
 
   // Render a single exercise card
   const renderExerciseCard = (
@@ -469,6 +472,7 @@ export function ProgramSessionCard({
     const styleConfig = getTrainingStyleConfig(exercise.method);
     const dropMode = isInDropMode(exercise.method);
     const clusterMode = isInClusterMode(exercise.method);
+    const vbtMode = isInVbtMode(exercise.method);
 
     const getExerciseStyle = () => {
       if (linkingFrom && isLinkable(index)) {
@@ -1074,23 +1078,46 @@ export function ProgramSessionCard({
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">%1RM</label>
+                      <label className="text-xs text-muted-foreground">{vbtMode ? "Kg" : "%1RM"}</label>
                       <Input
                         type="number"
                         min={0}
-                        max={100}
-                        value={exercise.percentage_1rm || ""}
+                        max={vbtMode ? undefined : 100}
+                        step={vbtMode ? "0.5" : "1"}
+                        value={vbtMode ? (exercise.percentage_1rm || "") : (exercise.percentage_1rm || "")}
                         onChange={(e) =>
                           updateExercise(
                             index,
                             "percentage_1rm",
-                            e.target.value ? parseInt(e.target.value) : null
+                            e.target.value ? parseFloat(e.target.value) : null
                           )
                         }
-                        placeholder="75"
+                        placeholder={vbtMode ? "60" : "75"}
                         className="h-8 text-sm"
                       />
                     </div>
+
+                    {/* VBT Velocity field */}
+                    {vbtMode && (
+                      <div className="space-y-1">
+                        <label className="text-xs text-muted-foreground">Vitesse (m/s)</label>
+                        <Input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={exercise.target_velocity || ""}
+                          onChange={(e) =>
+                            updateExercise(
+                              index,
+                              "target_velocity",
+                              e.target.value ? parseFloat(e.target.value) : null
+                            )
+                          }
+                          placeholder="0.75"
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                    )}
 
                     {!isGrouped && (
                       <div className="space-y-1">

@@ -64,6 +64,7 @@ interface ProgramExercise {
   id: string;
   exercise_name: string;
   library_exercise_id?: string;
+  exercise_category?: string;
   order_index: number;
   method: string;
   sets: number;
@@ -78,6 +79,9 @@ interface ProgramExercise {
   cluster_sets?: ClusterSet[];
   is_rm_test?: boolean;
   rm_test_type?: string;
+  target_velocity?: number;
+  erg_data?: any;
+  running_data?: any;
 }
 
 // Zone du corps options
@@ -103,6 +107,17 @@ const BASE_THEMES = [
     { value: "puissance", label: "Puissance" },
     { value: "vitesse", label: "Vitesse" },
     { value: "endurance_force", label: "Endurance de force" },
+  ]},
+  { value: "course", label: "Course", subOptions: [
+    { value: "ef", label: "Endurance Fondamentale" },
+    { value: "seuil", label: "Seuil" },
+    { value: "vma", label: "VMA" },
+    { value: "fractionne", label: "Fractionné" },
+    { value: "tempo_run", label: "Tempo Run" },
+    { value: "fartlek", label: "Fartlek" },
+    { value: "cote", label: "Côtes" },
+    { value: "sprint", label: "Sprint" },
+    { value: "recup_active", label: "Récupération active" },
   ]},
   { value: "reathletisation", label: "Réathlétisation", subOptions: [
     { value: "phase_1", label: "Phase 1 - Contrôle moteur" },
@@ -243,6 +258,7 @@ export function ProgramBuilderDialog({
             id: e.id,
             exercise_name: e.exercise_name,
             library_exercise_id: e.library_exercise_id,
+            exercise_category: e.exercise_category,
             order_index: e.order_index,
             method: e.method || "normal",
             sets: e.sets || 3,
@@ -257,6 +273,9 @@ export function ProgramBuilderDialog({
             cluster_sets: e.cluster_sets,
             is_rm_test: e.is_rm_test,
             rm_test_type: e.rm_test_type,
+            target_velocity: e.target_velocity,
+            erg_data: e.erg_data,
+            running_data: e.running_data,
           })).sort((a: any, b: any) => a.order_index - b.order_index) || [],
         })).sort((a: any, b: any) => a.session_number - b.session_number) || [],
       })) || [];
@@ -340,6 +359,7 @@ export function ProgramBuilderDialog({
             id: crypto.randomUUID(),
             exercise_name: droppedExercise.name,
             library_exercise_id: droppedExercise.id,
+            exercise_category: droppedExercise.category, // Pass category for specialized inputs
             order_index: session.exercises.length,
             method: "normal",
             sets: 3,
@@ -442,6 +462,7 @@ export function ProgramBuilderDialog({
               session_id: sessionData.id,
               exercise_name: ex.exercise_name,
               library_exercise_id: ex.library_exercise_id || null,
+              exercise_category: ex.exercise_category || null,
               order_index: idx,
               method: ex.method,
               sets: ex.sets,
@@ -456,6 +477,9 @@ export function ProgramBuilderDialog({
               cluster_sets: ex.cluster_sets ? JSON.stringify(ex.cluster_sets) : null,
               is_rm_test: ex.is_rm_test || false,
               rm_test_type: ex.rm_test_type || null,
+              target_velocity: ex.target_velocity || null,
+              erg_data: ex.erg_data ? JSON.stringify(ex.erg_data) : null,
+              running_data: ex.running_data ? JSON.stringify(ex.running_data) : null,
             }));
 
             const { error: exError } = await supabase
