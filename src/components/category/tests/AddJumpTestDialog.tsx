@@ -21,6 +21,9 @@ interface AddJumpTestDialogProps {
 const TEST_TYPES = [
   { value: "vertical_jump", label: "Saut Vertical (CMJ)" },
   { value: "horizontal_jump", label: "Saut Horizontal" },
+  { value: "force_platform_left", label: "Plateforme de Force (Pied Gauche)" },
+  { value: "force_platform_right", label: "Plateforme de Force (Pied Droit)" },
+  { value: "force_platform_both", label: "Plateforme de Force (2 Pieds)" },
 ];
 
 export function AddJumpTestDialog({ open, onOpenChange, categoryId, players }: AddJumpTestDialogProps) {

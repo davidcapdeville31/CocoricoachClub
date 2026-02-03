@@ -141,6 +141,7 @@ interface Exercise {
   block_config?: BlockConfig;
   tempo?: string;
   target_rpe?: number;
+  target_velocity?: number; // VBT - target velocity in m/s
 }
 
 const emptyExercise = (index: number, groupId?: string, groupOrder?: number, method?: string): Exercise => ({

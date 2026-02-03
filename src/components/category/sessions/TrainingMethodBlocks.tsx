@@ -35,6 +35,7 @@ import {
   getTrainingStyleConfig, 
   isCardioBlockMethod,
   isDropMethod,
+  isVbtMethod,
   getMaxExercisesForMethod,
   getMinExercisesForMethod,
 } from "@/lib/constants/trainingStyles";
@@ -81,6 +82,7 @@ interface Exercise {
   cluster_sets?: ClusterSet[];
   tempo?: string;
   target_rpe?: number;
+  target_velocity?: number; // VBT - target velocity in m/s
 }
 
 interface ExerciseSlot {
@@ -222,6 +224,7 @@ function ExerciseSlotCard({
   slotLabel,
   slotSublabel,
   styleConfig,
+  method,
   onUpdateExercise,
   onRemoveExercise,
   onSelectFromLibrary,
@@ -238,6 +241,7 @@ function ExerciseSlotCard({
   slotLabel: string;
   slotSublabel?: string;
   styleConfig: any;
+  method: string;
   onUpdateExercise: (index: number, field: keyof Exercise, value: any) => void;
   onRemoveExercise: (index: number) => void;
   onSelectFromLibrary: (index: number, libExercise: any) => void;
@@ -249,6 +253,7 @@ function ExerciseSlotCard({
   setShowLibraryFor: (i: number | null) => void;
 }) {
   const hasExercise = exercise && exercise.exercise_name.trim();
+  const isVbt = isVbtMethod(method);
   
   return (
     <div className="flex items-start gap-3">
@@ -303,7 +308,7 @@ function ExerciseSlotCard({
             
             {/* Sets, Reps, Weight - only show if exercise has name */}
             {hasExercise && exercise && (
-              <div className="grid grid-cols-4 gap-2">
+              <div className={cn("grid gap-2", isVbt ? "grid-cols-5" : "grid-cols-4")}>
                 <div>
                   <Label className="text-xs text-muted-foreground">Séries</Label>
                   <Input
@@ -323,16 +328,37 @@ function ExerciseSlotCard({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">%1RM</Label>
+                  <Label className="text-xs text-muted-foreground">{isVbt ? "Kg" : "%1RM"}</Label>
                   <Input
                     type="number"
                     min="0"
-                    max="100"
+                    max={isVbt ? undefined : 100}
+                    step={isVbt ? "0.5" : "1"}
                     className="h-8 text-xs"
-                    value={exercise.weight_percent_rm || ""}
-                    onChange={(e) => onUpdateExercise(exerciseIndex, "weight_percent_rm", parseInt(e.target.value) || null)}
+                    value={isVbt ? (exercise.weight_kg || "") : (exercise.weight_percent_rm || "")}
+                    onChange={(e) => {
+                      if (isVbt) {
+                        onUpdateExercise(exerciseIndex, "weight_kg", parseFloat(e.target.value) || null);
+                      } else {
+                        onUpdateExercise(exerciseIndex, "weight_percent_rm", parseInt(e.target.value) || null);
+                      }
+                    }}
                   />
                 </div>
+                {isVbt && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Vitesse (m/s)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      className="h-8 text-xs"
+                      placeholder="ex: 0.75"
+                      value={exercise.target_velocity || ""}
+                      onChange={(e) => onUpdateExercise(exerciseIndex, "target_velocity", parseFloat(e.target.value) || null)}
+                    />
+                  </div>
+                )}
                 <div>
                   <Label className="text-xs text-muted-foreground">Repos (s)</Label>
                   <Input
@@ -1093,6 +1119,7 @@ function LinkableBlock({
             slotLabel={slot.label || `Exercice ${i + 1}`}
             slotSublabel={slot.sublabel}
             styleConfig={styleConfig}
+            method={method}
             onUpdateExercise={onUpdateExercise}
             onRemoveExercise={onRemoveExercise}
             onSelectFromLibrary={onSelectFromLibrary}

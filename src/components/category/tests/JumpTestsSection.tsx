@@ -18,6 +18,9 @@ interface JumpTestsSectionProps {
 const TEST_TYPE_LABELS: Record<string, string> = {
   vertical_jump: "Saut Vertical (CMJ)",
   horizontal_jump: "Saut Horizontal",
+  force_platform_left: "Plateforme de Force (Pied Gauche)",
+  force_platform_right: "Plateforme de Force (Pied Droit)",
+  force_platform_both: "Plateforme de Force (2 Pieds)",
 };
 
 export function JumpTestsSection({ categoryId }: JumpTestsSectionProps) {
