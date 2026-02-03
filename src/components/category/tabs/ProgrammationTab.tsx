@@ -3,6 +3,7 @@ import { CalendarDays, FolderOpen, ClipboardCheck, Bell } from "lucide-react";
 import { TestsTab } from "@/components/category/TestsTab";
 import { SessionsTab } from "@/components/category/sessions/SessionsTab";
 import { ProgramsTab } from "@/components/category/programs/ProgramsTab";
+import { TestRemindersTab } from "@/components/category/TestRemindersTab";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -45,6 +46,11 @@ export function ProgrammationTab({ categoryId }: ProgrammationTabProps) {
             <ClipboardCheck className="h-4 w-4 shrink-0" />
             Tests
           </TabsTrigger>
+          <TabsTrigger value="test-reminders" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
+            <Bell className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">Rappels tests</span>
+            <span className="sm:hidden">Rappels</span>
+          </TabsTrigger>
         </TabsList>
       </div>
 
@@ -58,6 +64,10 @@ export function ProgrammationTab({ categoryId }: ProgrammationTabProps) {
 
       <TabsContent value="tests">
         <TestsTab categoryId={categoryId} sportType={sportType} />
+      </TabsContent>
+
+      <TabsContent value="test-reminders">
+        <TestRemindersTab categoryId={categoryId} />
       </TabsContent>
     </Tabs>
   );

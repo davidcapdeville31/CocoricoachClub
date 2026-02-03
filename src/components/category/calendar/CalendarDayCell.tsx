@@ -67,11 +67,12 @@ export function CalendarDayCell({
     <div
       ref={setNodeRef}
       className={cn(
-        "min-h-[120px] border-b border-r p-1.5 transition-colors relative",
+        "min-h-[120px] border-b border-r p-1.5 transition-colors relative cursor-pointer",
         !isCurrentMonth && "bg-muted/30 text-muted-foreground",
         isToday && "bg-primary/5",
         isOver && "bg-primary/10 ring-2 ring-primary/30 ring-inset"
       )}
+      onClick={() => onDayClick(day)}
     >
       {/* Day number - clickable */}
       <div
@@ -79,7 +80,10 @@ export function CalendarDayCell({
           "text-sm font-medium mb-1.5 cursor-pointer hover:text-primary transition-colors inline-block",
           isToday && "text-primary font-bold"
         )}
-        onClick={() => onDayClick(day)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onDayClick(day);
+        }}
       >
         {format(day, "d")}
       </div>
@@ -111,16 +115,17 @@ export function CalendarDayCell({
 
         {/* Sessions with vignettes */}
         {sessions.slice(0, 3 - matches.length).map((session) => (
-          <SessionVignette
-            key={session.id}
-            session={session}
-            onPreview={() => onPreviewSession(session)}
-            onEdit={() => onEditSession(session)}
-            onFeedback={() => onFeedbackSession(session)}
-            onDelete={() => onDeleteSession(session.id)}
-            isViewer={isViewer}
-            isDraggable={!isViewer}
-          />
+          <div key={session.id} onClick={(e) => e.stopPropagation()}>
+            <SessionVignette
+              session={session}
+              onPreview={() => onPreviewSession(session)}
+              onEdit={() => onEditSession(session)}
+              onFeedback={() => onFeedbackSession(session)}
+              onDelete={() => onDeleteSession(session.id)}
+              isViewer={isViewer}
+              isDraggable={!isViewer}
+            />
+          </div>
         ))}
 
         {/* More indicator */}

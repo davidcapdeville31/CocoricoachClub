@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, LayoutDashboard, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Lock, Settings, FileCode, MapPin, Video } from "lucide-react";
+import { ArrowLeft, LayoutDashboard, Shield, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Lock, Settings, FileCode, MapPin, Video } from "lucide-react";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CategoryCoverUpload } from "@/components/category/CategoryCoverUpload";
@@ -27,6 +27,7 @@ import { SettingsTab } from "@/components/category/tabs/SettingsTab";
 import { ProgrammationTab } from "@/components/category/tabs/ProgrammationTab";
 import { GpsDataTab } from "@/components/category/gps/GpsDataTab";
 import { VideoAnalysisTab } from "@/components/category/video/VideoAnalysisTab";
+import { AdminTab } from "@/components/category/tabs/AdminTab";
 
 // Helper to check if GPS is available for sport
 const isGpsSportType = (sportType: string | undefined) => {
@@ -196,6 +197,12 @@ function CategoryDetailsContent() {
                 <span className="hidden sm:inline">Vue Générale</span>
                 <span className="sm:hidden">Général</span>
               </TabsTrigger>
+              {!isViewer && (
+                <TabsTrigger value="admin" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
+                  <Shield className="h-4 w-4 shrink-0" />
+                  <span>Admin</span>
+                </TabsTrigger>
+              )}
               <TabsTrigger value="effectif" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
                 <Users className="h-4 w-4 shrink-0" />
                 <span className="hidden sm:inline">Effectif</span>
@@ -260,6 +267,12 @@ function CategoryDetailsContent() {
           <TabsContent value="overview" className="space-y-4">
             <OverviewTab categoryId={categoryId!} categoryName={displayCategoryName} />
           </TabsContent>
+
+          {!isViewer && (
+            <TabsContent value="admin" className="space-y-4">
+              <AdminTab categoryId={categoryId!} />
+            </TabsContent>
+          )}
 
           <TabsContent value="effectif" className="space-y-4">
             <EffectifTab categoryId={categoryId!} />
