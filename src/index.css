@@ -20,25 +20,25 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Deep Blue Primary - Trust & Expertise */
-    --background: 214 33% 97%;
-    --foreground: 207 22% 16%;
+    /* Pure White Background - Clean & Modern */
+    --background: 0 0% 100%;
+    --foreground: 220 20% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 207 22% 16%;
+    --card-foreground: 220 20% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 207 22% 16%;
+    --popover-foreground: 220 20% 15%;
 
     /* Deep Blue Primary #0B1F3A */
     --primary: 214 70% 14%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 214 30% 94%;
+    --secondary: 220 14% 96%;
     --secondary-foreground: 214 70% 14%;
 
-    --muted: 214 20% 95%;
-    --muted-foreground: 207 15% 40%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 45%;
 
     /* Cyan Performance #17A2B8 - Progression & Validation */
     --accent: 188 76% 40%;
@@ -52,7 +52,7 @@ All colors MUST be HSL.
     --warning-foreground: 0 0% 100%;
 
     /* Status colors - Performance indicators */
-    --status-optimal: 188 76% 40%;
+    --status-optimal: 160 65% 45%;
     --status-attention: 32 89% 55%;
     --status-critical: 0 84% 60%;
     
@@ -62,24 +62,38 @@ All colors MUST be HSL.
     --risk-high: 0 84% 60%;
 
     /* Success/Positive states */
-    --success: 160 60% 42%;
+    --success: 160 65% 45%;
     --success-foreground: 0 0% 100%;
 
-    --border: 214 20% 90%;
-    --input: 214 20% 90%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
     --ring: 188 76% 40%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+    
+    /* Tab/Navigation Colors - Vivid palette */
+    --nav-overview: 220 80% 55%;
+    --nav-admin: 280 70% 55%;
+    --nav-effectif: 200 85% 50%;
+    --nav-planification: 35 90% 55%;
+    --nav-programmation: 260 70% 60%;
+    --nav-performance: 320 75% 55%;
+    --nav-sante: 160 65% 45%;
+    --nav-competition: 45 95% 50%;
+    --nav-gps: 190 80% 45%;
+    --nav-video: 350 80% 60%;
+    --nav-communication: 210 80% 55%;
+    --nav-settings: 220 15% 50%;
     
     /* Gradients */
     --gradient-hero: linear-gradient(135deg, hsl(214 70% 14%), hsl(214 60% 22%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(214 20% 98%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 14% 98%));
     --gradient-performance: linear-gradient(135deg, hsl(188 76% 40%), hsl(188 70% 48%));
     
-    /* Shadows - subtle and professional */
-    --shadow-sm: 0 1px 3px hsl(214 70% 14% / 0.06), 0 1px 2px hsl(214 70% 14% / 0.04);
-    --shadow-md: 0 4px 6px hsl(214 70% 14% / 0.07), 0 2px 4px hsl(214 70% 14% / 0.05);
-    --shadow-lg: 0 10px 15px hsl(214 70% 14% / 0.08), 0 4px 6px hsl(214 70% 14% / 0.05);
+    /* Shadows - Modern elevated style */
+    --shadow-sm: 0 1px 2px hsl(220 20% 15% / 0.05);
+    --shadow-md: 0 4px 12px hsl(220 20% 15% / 0.08);
+    --shadow-lg: 0 12px 32px hsl(220 20% 15% / 0.12);
     
     --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -179,7 +193,20 @@ All colors MUST be HSL.
     --chart-3: 160 60% 48%;
     --chart-4: 32 89% 60%;
     --chart-5: 280 55% 60%;
-  }
+    
+    /* Nav colors - same in dark mode */
+    --nav-overview: 220 80% 60%;
+    --nav-admin: 280 70% 60%;
+    --nav-effectif: 200 85% 55%;
+    --nav-planification: 35 90% 60%;
+    --nav-programmation: 260 70% 65%;
+    --nav-performance: 320 75% 60%;
+    --nav-sante: 160 65% 50%;
+    --nav-competition: 45 95% 55%;
+    --nav-gps: 190 80% 50%;
+    --nav-video: 350 80% 65%;
+    --nav-communication: 210 80% 60%;
+    --nav-settings: 220 15% 55%;
   }
 
   /* Field Mode - High contrast dark theme for outdoor use */
@@ -242,6 +269,7 @@ All colors MUST be HSL.
     background-color: hsl(215 28% 10%);
     color: hsl(210 20% 95%);
   }
+}
 
 @layer base {
   * {
