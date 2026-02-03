@@ -3468,6 +3468,8 @@ export type Database = {
           cluster_sets: Json | null
           created_at: string
           drop_sets: Json | null
+          erg_data: Json | null
+          exercise_category: string | null
           exercise_name: string
           group_id: string | null
           group_order: number | null
@@ -3481,14 +3483,18 @@ export type Database = {
           reps: string | null
           rest_seconds: number | null
           rm_test_type: string | null
+          running_data: Json | null
           session_id: string
           sets: number | null
+          target_velocity: number | null
           tempo: string | null
         }
         Insert: {
           cluster_sets?: Json | null
           created_at?: string
           drop_sets?: Json | null
+          erg_data?: Json | null
+          exercise_category?: string | null
           exercise_name: string
           group_id?: string | null
           group_order?: number | null
@@ -3502,14 +3508,18 @@ export type Database = {
           reps?: string | null
           rest_seconds?: number | null
           rm_test_type?: string | null
+          running_data?: Json | null
           session_id: string
           sets?: number | null
+          target_velocity?: number | null
           tempo?: string | null
         }
         Update: {
           cluster_sets?: Json | null
           created_at?: string
           drop_sets?: Json | null
+          erg_data?: Json | null
+          exercise_category?: string | null
           exercise_name?: string
           group_id?: string | null
           group_order?: number | null
@@ -3523,8 +3533,10 @@ export type Database = {
           reps?: string | null
           rest_seconds?: number | null
           rm_test_type?: string | null
+          running_data?: Json | null
           session_id?: string
           sets?: number | null
+          target_velocity?: number | null
           tempo?: string | null
         }
         Relationships: [
