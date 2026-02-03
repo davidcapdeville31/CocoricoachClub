@@ -44,29 +44,27 @@ export const EXERCISE_CATEGORIES: ExerciseCategory[] = [
   { value: "prophylaxis", label: "Prophylaxie / Prévention", group: "reathletisation" },
   { value: "eccentric", label: "Travail excentrique", group: "reathletisation" },
   
-  // Ergomètres / Machines Cardio
-  { value: "ergometre", label: "Ergomètre / Machine Cardio", group: "cardio_machines" },
-  { value: "skierg", label: "SkiErg", group: "cardio_machines" },
-  { value: "rowerg", label: "RowErg (Rameur)", group: "cardio_machines" },
-  { value: "assault_bike", label: "Assault Bike", group: "cardio_machines" },
-  { value: "echo_bike", label: "Echo Bike", group: "cardio_machines" },
-  { value: "bikeerg", label: "BikeErg", group: "cardio_machines" },
+  // Ergo (Ergomètres)
+  { value: "ergo_rowerg", label: "RowErg (Rameur)", group: "ergo" },
+  { value: "ergo_skierg", label: "SkiErg", group: "ergo" },
+  { value: "ergo_bikeerg", label: "BikeErg", group: "ergo" },
+  { value: "ergo_assault", label: "Assault Bike / Echo Bike", group: "ergo" },
   
-  // Sled / Distance-based exercises
-  { value: "sled_push", label: "Sled Push", group: "cardio_machines" },
-  { value: "sled_pull", label: "Sled Pull", group: "cardio_machines" },
+  // Sled / Traîneau
+  { value: "sled_push", label: "Sled Push", group: "sled" },
+  { value: "sled_pull", label: "Sled Pull", group: "sled" },
   
-  // Running / Course à pied
-  { value: "running_ef", label: "Course - Endurance Fondamentale", group: "running" },
-  { value: "running_seuil", label: "Course - Seuil", group: "running" },
-  { value: "running_vma", label: "Course - VMA", group: "running" },
-  { value: "running_fractionne", label: "Course - Fractionné", group: "running" },
-  { value: "running_sprint", label: "Course - Sprint", group: "running" },
-  { value: "running_cote", label: "Course - Côte", group: "running" },
-  { value: "running_fartlek", label: "Course - Fartlek", group: "running" },
-  { value: "running_tempo", label: "Course - Tempo", group: "running" },
-  { value: "running_recup", label: "Course - Récupération", group: "running" },
-  { value: "running_ppg", label: "Course - PPG / Éducatifs", group: "running" },
+  // Course à pied
+  { value: "running_ef", label: "Endurance Fondamentale (EF)", group: "course" },
+  { value: "running_seuil", label: "Seuil", group: "course" },
+  { value: "running_vma", label: "VMA", group: "course" },
+  { value: "running_fractionne", label: "Fractionné", group: "course" },
+  { value: "running_sprint", label: "Sprint", group: "course" },
+  { value: "running_cote", label: "Course en côte", group: "course" },
+  { value: "running_fartlek", label: "Fartlek", group: "course" },
+  { value: "running_tempo", label: "Tempo Run", group: "course" },
+  { value: "running_recup", label: "Récupération active", group: "course" },
+  { value: "running_ppg", label: "PPG / Éducatifs", group: "course" },
   
   // Terrain - Général
   { value: "cardio", label: "Cardio", group: "terrain" },
@@ -241,8 +239,9 @@ export function isCategoryForSport(categoryValue: string, sportType?: string): b
 export const CATEGORY_GROUPS = [
   { value: "all", label: "Tous" },
   { value: "musculation", label: "Musculation" },
-  { value: "cardio_machines", label: "Ergomètres" },
-  { value: "running", label: "Course à pied" },
+  { value: "course", label: "Course" },
+  { value: "ergo", label: "Ergo" },
+  { value: "sled", label: "Traîneau" },
   { value: "reathletisation", label: "Réathlétisation" },
   { value: "terrain", label: "Terrain" },
   { value: "stretching_mobility", label: "Stretching / Mobilité" },
@@ -255,9 +254,9 @@ export const RUNNING_CATEGORIES = [
   "running_recup", "running_ppg"
 ];
 
-// Liste des catégories d'ergomètres (machines cardio avec métriques spécifiques)
-export const ERG_CATEGORIES = [
-  "ergometre", "skierg", "rowerg", "assault_bike", "echo_bike", "bikeerg"
+// Liste des catégories d'ergomètres
+export const ERGO_CATEGORIES = [
+  "ergo_rowerg", "ergo_skierg", "ergo_bikeerg", "ergo_assault"
 ];
 
 // Liste des catégories de sled (distance-based)
@@ -266,9 +265,12 @@ export const SLED_CATEGORIES = [
 ];
 
 // Check if an exercise category is an ergometer
-export function isErgCategory(category: string): boolean {
-  return ERG_CATEGORIES.includes(category);
+export function isErgoCategory(category: string): boolean {
+  return ERGO_CATEGORIES.includes(category);
 }
+
+// Alias pour compatibilité
+export const isErgCategory = isErgoCategory;
 
 // Check if an exercise category is a sled exercise (distance-based)
 export function isSledCategory(category: string): boolean {
