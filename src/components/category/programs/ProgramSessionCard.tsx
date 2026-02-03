@@ -522,7 +522,7 @@ export function ProgramSessionCard({
             </Badge>
           )}
 
-          {!isGrouped && (dropMode || clusterMode) && (
+          {!isGrouped && (dropMode || clusterMode || vbtMode) && (
             <Badge className={cn("text-white text-xs", styleConfig.color || "bg-primary")}>
               {getMethodLabel(exercise.method)}
             </Badge>
