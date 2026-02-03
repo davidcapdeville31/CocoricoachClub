@@ -271,6 +271,39 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
 
   const currentTest = availableTests.find(t => t.key === selectedTest);
 
+  // Custom tooltip component for better value display
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const value = payload[0].value;
+      const unit = currentTest?.unit || "";
+      
+      // Format time values specially
+      let displayValue: string;
+      if (unit === "min.s" || unit === "s") {
+        if (unit === "min.s" && value >= 60) {
+          const minutes = Math.floor(value / 60);
+          const seconds = Math.round(value % 60);
+          displayValue = `${minutes}'${seconds.toString().padStart(2, "0")}''`;
+        } else {
+          displayValue = `${value.toFixed(2)}s`;
+        }
+      } else {
+        displayValue = `${value} ${unit}`;
+      }
+
+      return (
+        <div className="rounded-lg border bg-background p-3 shadow-lg">
+          <p className="text-sm font-medium text-muted-foreground">{label}</p>
+          <p className="text-lg font-bold text-foreground">
+            {displayValue}
+          </p>
+          <p className="text-xs text-muted-foreground">Moyenne équipe</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   const renderChart = (data: { date: string; moyenne: number }[]) => {
     if (chartType === "bar") {
       return (
@@ -278,7 +311,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
           <YAxis />
-          <Tooltip />
+          <Tooltip content={<CustomTooltip />} />
           <Legend />
           <Bar 
             dataKey="moyenne" 
@@ -296,7 +329,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
           <YAxis />
-          <Tooltip />
+          <Tooltip content={<CustomTooltip />} />
           <Legend />
           <Area 
             type="monotone" 
@@ -315,7 +348,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" />
         <YAxis />
-        <Tooltip />
+        <Tooltip content={<CustomTooltip />} />
         <Legend />
         <Line 
           type="monotone" 
@@ -323,6 +356,8 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
           name="Moyenne équipe" 
           stroke="hsl(var(--primary))" 
           strokeWidth={2}
+          dot={{ r: 4, strokeWidth: 2 }}
+          activeDot={{ r: 6, strokeWidth: 2 }}
         />
       </LineChart>
     );

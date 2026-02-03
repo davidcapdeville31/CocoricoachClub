@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, LayoutDashboard, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Lock } from "lucide-react";
+import { ArrowLeft, LayoutDashboard, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Lock, Settings } from "lucide-react";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CategoryCoverUpload } from "@/components/category/CategoryCoverUpload";
@@ -23,6 +23,7 @@ import { PerformanceTab } from "@/components/category/tabs/PerformanceTab";
 import { SanteTab } from "@/components/category/tabs/SanteTab";
 import { CompetitionTab } from "@/components/category/tabs/CompetitionTab";
 import { CommunicationTab } from "@/components/category/tabs/CommunicationTab";
+import { SettingsTab } from "@/components/category/tabs/SettingsTab";
 
 function CategoryDetailsContent() {
   const { categoryId } = useParams();
@@ -219,6 +220,13 @@ function CategoryDetailsContent() {
                   <span className="sm:hidden">Com</span>
                 </TabsTrigger>
               )}
+              {!isViewer && (
+                <TabsTrigger value="settings" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
+                  <Settings className="h-4 w-4 shrink-0" />
+                  <span className="hidden sm:inline">Paramètres</span>
+                  <span className="sm:hidden">Param</span>
+                </TabsTrigger>
+              )}
             </TabsList>
           </div>
 
@@ -257,6 +265,12 @@ function CategoryDetailsContent() {
                 categoryId={categoryId!} 
                 isAcademy={isAcademy}
               />
+            </TabsContent>
+          )}
+
+          {!isViewer && (
+            <TabsContent value="settings" className="space-y-4">
+              <SettingsTab categoryId={categoryId!} />
             </TabsContent>
           )}
         </Tabs>

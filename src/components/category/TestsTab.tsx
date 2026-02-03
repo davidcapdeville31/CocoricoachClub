@@ -6,6 +6,8 @@ import { MobilityTestsSection } from "./tests/MobilityTestsSection";
 import { JumpTestsSection } from "./tests/JumpTestsSection";
 import { FieldTestsSection } from "./tests/FieldTestsSection";
 import { GenericTestsSection } from "./tests/GenericTestsSection";
+import { TestRemindersTab } from "./TestRemindersTab";
+import { Bell } from "lucide-react";
 
 interface TestsTabProps {
   categoryId: string;
@@ -20,13 +22,17 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="all" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="flex flex-wrap gap-1 h-auto">
             <TabsTrigger value="all">Tous</TabsTrigger>
             <TabsTrigger value="running">Course</TabsTrigger>
             <TabsTrigger value="strength">Musculation</TabsTrigger>
             <TabsTrigger value="mobility">Mobilité</TabsTrigger>
             <TabsTrigger value="jump">Détente</TabsTrigger>
             <TabsTrigger value="field">Tests Terrains</TabsTrigger>
+            <TabsTrigger value="reminders" className="flex items-center gap-1.5">
+              <Bell className="h-3.5 w-3.5" />
+              Rappels
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="space-y-6">
@@ -51,6 +57,10 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
 
           <TabsContent value="field">
             <FieldTestsSection categoryId={categoryId} sportType={sportType} />
+          </TabsContent>
+
+          <TabsContent value="reminders">
+            <TestRemindersTab categoryId={categoryId} />
           </TabsContent>
         </Tabs>
       </CardContent>
