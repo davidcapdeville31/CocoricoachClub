@@ -1,13 +1,14 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Calendar, Clock, Swords, Dumbbell } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Clock, Swords, Dumbbell, Printer } from "lucide-react";
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { TRAINING_TYPE_COLORS, getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
+import { printElement } from "@/lib/pdfExport";
 
 interface Session {
   id: string;
@@ -67,6 +68,14 @@ export function WeeklySessionsView({
     return matches.filter((match) => isSameDay(new Date(match.match_date), day));
   };
 
+  const weeklyCalendarRef = useRef<HTMLDivElement>(null);
+
+  const handlePrintWeekly = () => {
+    if (weeklyCalendarRef.current) {
+      printElement(weeklyCalendarRef.current, `Planning Hebdomadaire - Semaine ${weekNumber}`);
+    }
+  };
+
   return (
     <Card className="bg-gradient-card shadow-md mt-4">
       <CardHeader className="pb-3">
@@ -76,6 +85,15 @@ export function WeeklySessionsView({
             Vue Hebdomadaire - Semaine {weekNumber}
           </CardTitle>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={handlePrintWeekly}
+              title="Imprimer la semaine"
+            >
+              <Printer className="h-4 w-4" />
+            </Button>
             <Button
               variant="outline"
               size="icon"
@@ -99,7 +117,7 @@ export function WeeklySessionsView({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-7 gap-2">
+        <div ref={weeklyCalendarRef} className="grid grid-cols-7 gap-2 print:gap-1">
           {weekDays.map((day, index) => {
             const daySessions = getSessionsForDay(day);
             const dayMatches = getMatchesForDay(day);
