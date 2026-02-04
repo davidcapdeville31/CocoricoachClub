@@ -84,6 +84,7 @@ interface ProgramExercise {
   target_velocity?: number;
   erg_data?: any;
   running_data?: any;
+  bodyweight_data?: any;
 }
 
 // Zone du corps options
@@ -303,6 +304,7 @@ export function ProgramBuilderDialog({
             target_velocity: e.target_velocity,
             erg_data: e.erg_data,
             running_data: e.running_data,
+            bodyweight_data: e.bodyweight_data,
           })).sort((a: any, b: any) => a.order_index - b.order_index) || [],
         })).sort((a: any, b: any) => a.session_number - b.session_number) || [],
       })) || [];
@@ -507,6 +509,7 @@ export function ProgramBuilderDialog({
               target_velocity: ex.target_velocity || null,
               erg_data: ex.erg_data ? JSON.stringify(ex.erg_data) : null,
               running_data: ex.running_data ? JSON.stringify(ex.running_data) : null,
+              bodyweight_data: ex.bodyweight_data ? JSON.stringify(ex.bodyweight_data) : null,
             }));
 
             const { error: exError } = await supabase
