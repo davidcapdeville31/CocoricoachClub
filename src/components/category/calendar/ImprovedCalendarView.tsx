@@ -17,6 +17,7 @@ import { CalendarDayCell } from "./CalendarDayCell";
 import { SessionVignette } from "./SessionVignette";
 import { SessionFeedbackDialog } from "./SessionFeedbackDialog";
 import { CreateEventDialog } from "./CreateEventDialog";
+import { DailyCalendarView } from "./DailyCalendarView";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -576,170 +577,21 @@ export function ImprovedCalendarView({
                 })}
               </div>
             ) : (
-              // Daily View - Detailed single day view
-              <div className="space-y-4">
-                {calendarDays.map((day) => {
-                  const daySessions = getSessionsForDay(day);
-                  const dayMatches = getMatchesForDay(day);
-                  const isToday = isSameDay(day, new Date());
-                  const hasEvents = daySessions.length > 0 || dayMatches.length > 0;
-
-                  // Sort events by time
-                  const allEvents = [
-                    ...daySessions.map(s => ({ 
-                      type: 'session' as const, 
-                      data: s, 
-                      time: s.session_start_time || '00:00' 
-                    })),
-                    ...dayMatches.map(m => ({ 
-                      type: 'match' as const, 
-                      data: m, 
-                      time: m.match_time || '00:00' 
-                    }))
-                  ].sort((a, b) => a.time.localeCompare(b.time));
-
-                  return (
-                    <div
-                      key={day.toISOString()}
-                      className={cn(
-                        "rounded-xl border-2 overflow-hidden",
-                        isToday ? "border-primary shadow-lg" : "border-border"
-                      )}
-                    >
-                      {/* Day header */}
-                      <div 
-                        className={cn(
-                          "p-4 cursor-pointer",
-                          isToday ? "bg-primary/10" : "bg-muted/50"
-                        )}
-                        onClick={() => handleDayClickWithAdd(day)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className={cn(
-                              "text-sm font-medium uppercase tracking-wide",
-                              isToday ? "text-primary" : "text-muted-foreground"
-                            )}>
-                              {format(day, "EEEE", { locale: fr })}
-                            </p>
-                            <p className={cn(
-                              "text-3xl font-bold",
-                              isToday ? "text-primary" : "text-foreground"
-                            )}>
-                              {format(day, "d MMMM yyyy", { locale: fr })}
-                            </p>
-                          </div>
-                          {!isViewer && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDayClickWithAdd(day);
-                              }}
-                            >
-                              <Plus className="h-4 w-4 mr-1" />
-                              Ajouter
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Events list */}
-                      <div className="p-4 space-y-3">
-                        {hasEvents ? (
-                          allEvents.map((event, idx) => {
-                            if (event.type === 'match') {
-                              const match = event.data as Match;
-                              return (
-                                <div
-                                  key={`match-${match.id}`}
-                                  onClick={() => onViewMatch?.(match)}
-                                  className="flex items-start gap-4 p-4 rounded-lg bg-destructive/10 border border-destructive/20 cursor-pointer hover:bg-destructive/20 transition-colors"
-                                >
-                                  <div className="flex-shrink-0 w-16 text-center">
-                                    <p className="text-lg font-bold text-destructive">
-                                      {match.match_time ? formatTime(match.match_time) : "—"}
-                                    </p>
-                                  </div>
-                                  <div className="flex-1">
-                                    <p className="font-semibold text-foreground">
-                                      {isIndividualSport(sportType || "") ? "Compétition" : `vs ${match.opponent}`}
-                                    </p>
-                                    {match.location && (
-                                      <p className="text-sm text-muted-foreground mt-1">
-                                        📍 {match.location}
-                                      </p>
-                                    )}
-                                    <Badge variant="destructive" className="mt-2">
-                                      {match.is_home ? "Domicile" : "Extérieur"}
-                                    </Badge>
-                                  </div>
-                                </div>
-                              );
-                            } else {
-                              const session = event.data as Session;
-                              const bgColor = TRAINING_TYPE_COLORS[session.training_type] || "bg-primary";
-                              return (
-                                <div
-                                  key={`session-${session.id}`}
-                                  onClick={() => onViewSession?.(session)}
-                                  className={cn(
-                                    "flex items-start gap-4 p-4 rounded-lg cursor-pointer transition-colors",
-                                    bgColor.replace('bg-', 'bg-') + "/10",
-                                    "border hover:shadow-md"
-                                  )}
-                                  style={{ borderColor: `hsl(var(--${bgColor.replace('bg-', '')}))` }}
-                                >
-                                  <div className="flex-shrink-0 w-16 text-center">
-                                    <p className="text-lg font-bold text-foreground">
-                                      {session.session_start_time ? formatTime(session.session_start_time) : "—"}
-                                    </p>
-                                    {session.session_end_time && (
-                                      <p className="text-xs text-muted-foreground">
-                                        → {formatTime(session.session_end_time)}
-                                      </p>
-                                    )}
-                                  </div>
-                                  <div className="flex-1">
-                                    <p className="font-semibold text-foreground">
-                                      {trainingTypeLabels[session.training_type] || session.training_type}
-                                    </p>
-                                    {session.notes && (
-                                      <p className="text-sm text-muted-foreground mt-1">
-                                        {session.notes}
-                                      </p>
-                                    )}
-                                    {session.intensity && (
-                                      <Badge variant="outline" className="mt-2">
-                                        Intensité: {session.intensity}/10
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            }
-                          })
-                        ) : (
-                          <div className="text-center py-8 text-muted-foreground">
-                            <CalendarIcon className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                            <p>Aucun événement prévu</p>
-                            {!isViewer && (
-                              <Button 
-                                variant="link" 
-                                onClick={() => handleDayClickWithAdd(day)}
-                                className="mt-2"
-                              >
-                                Ajouter un événement
-                              </Button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              // Daily View - Use the new DailyCalendarView component
+              calendarDays.map((day) => (
+                <DailyCalendarView
+                  key={day.toISOString()}
+                  day={day}
+                  sessions={getSessionsForDay(day)}
+                  matches={getMatchesForDay(day)}
+                  sportType={sportType}
+                  trainingTypeLabels={trainingTypeLabels}
+                  isViewer={isViewer}
+                  onViewSession={onViewSession}
+                  onViewMatch={onViewMatch}
+                  onAddEvent={handleDayClickWithAdd}
+                />
+              ))
             )}
 
             {/* Drag overlay */}
