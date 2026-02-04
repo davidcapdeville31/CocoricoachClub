@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -21,7 +20,6 @@ import {
   Clock,
   MapPin,
   ChevronLeft,
-  User,
   CheckCircle2
 } from "lucide-react";
 import { format } from "date-fns";
@@ -240,8 +238,8 @@ export function CreateEventDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
           <DialogTitle className="flex items-center gap-2 text-xl">
             {step === "details" && (
               <Button variant="ghost" size="icon" className="h-8 w-8 mr-1" onClick={() => setStep("type")}>
@@ -256,45 +254,45 @@ export function CreateEventDialog({
           </p>
         </DialogHeader>
 
-        {step === "type" ? (
-          <div className="grid grid-cols-2 gap-3 mt-2">
-            {EVENT_TYPES.map((event) => {
-              const Icon = event.icon;
-              return (
-                <Card
-                  key={event.id}
-                  className={cn(
-                    "cursor-pointer transition-all border-2",
-                    event.bgColor,
-                    event.borderColor,
-                    event.hoverColor,
-                    "hover:shadow-md hover:scale-[1.02]"
-                  )}
-                  onClick={() => handleTypeSelect(event.id)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <div className={cn("p-2 rounded-lg", event.color)}>
-                        <Icon className="h-5 w-5 text-white" />
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {step === "type" ? (
+            <div className="grid grid-cols-2 gap-3">
+              {EVENT_TYPES.map((event) => {
+                const Icon = event.icon;
+                return (
+                  <Card
+                    key={event.id}
+                    className={cn(
+                      "cursor-pointer transition-all border-2",
+                      event.bgColor,
+                      event.borderColor,
+                      event.hoverColor,
+                      "hover:shadow-md hover:scale-[1.02]"
+                    )}
+                    onClick={() => handleTypeSelect(event.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className={cn("p-2 rounded-lg", event.color)}>
+                          <Icon className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm leading-tight">
+                            {event.label}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                            {event.description}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm leading-tight">
-                          {event.label}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                          {event.description}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="flex-1 overflow-hidden flex flex-col gap-4">
-            {/* Event details form */}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
             <div className="space-y-4">
+              {/* Event details form */}
               <div className="space-y-2">
                 <Label htmlFor="title">Titre</Label>
                 <Input
@@ -352,78 +350,80 @@ export function CreateEventDialog({
                   rows={2}
                 />
               </div>
-            </div>
 
-            {/* Player selection */}
-            <div className="flex-1 min-h-0 flex flex-col">
-              <div className="flex items-center justify-between mb-2">
-                <Label className="flex items-center gap-1">
-                  <Users className="h-3 w-3" /> Participants
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="selectAll"
-                    checked={selectAll}
-                    onCheckedChange={handleSelectAll}
-                  />
-                  <Label htmlFor="selectAll" className="text-xs cursor-pointer">
-                    Tous
+              {/* Player selection */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="flex items-center gap-1">
+                    <Users className="h-3 w-3" /> Participants
                   </Label>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="selectAll"
+                      checked={selectAll}
+                      onCheckedChange={handleSelectAll}
+                    />
+                    <Label htmlFor="selectAll" className="text-xs cursor-pointer">
+                      Tous
+                    </Label>
+                  </div>
                 </div>
-              </div>
-              
-              <ScrollArea className="flex-1 border rounded-lg p-2">
-                <div className="grid grid-cols-2 gap-2">
-                  {players?.map((player) => {
-                    const isSelected = selectedPlayers.includes(player.id);
-                    return (
-                      <div
-                        key={player.id}
-                        onClick={() => togglePlayer(player.id)}
-                        className={cn(
-                          "flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all",
-                          isSelected 
-                            ? "bg-primary/10 border-2 border-primary" 
-                            : "bg-muted/50 border-2 border-transparent hover:bg-muted"
-                        )}
-                      >
-                        <div className={cn(
-                          "h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium",
-                          isSelected ? "bg-primary text-primary-foreground" : "bg-muted-foreground/20"
-                        )}>
-                          {player.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{player.name}</p>
-                          {player.position && (
-                            <p className="text-xs text-muted-foreground">{player.position}</p>
+                
+                <div className="border rounded-lg p-2 max-h-[200px] overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-2">
+                    {players?.map((player) => {
+                      const isSelected = selectedPlayers.includes(player.id);
+                      return (
+                        <div
+                          key={player.id}
+                          onClick={() => togglePlayer(player.id)}
+                          className={cn(
+                            "flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all",
+                            isSelected 
+                              ? "bg-primary/10 border-2 border-primary" 
+                              : "bg-muted/50 border-2 border-transparent hover:bg-muted"
+                          )}
+                        >
+                          <div className={cn(
+                            "h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium shrink-0",
+                            isSelected ? "bg-primary text-primary-foreground" : "bg-muted-foreground/20"
+                          )}>
+                            {player.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{player.name}</p>
+                            {player.position && (
+                              <p className="text-xs text-muted-foreground">{player.position}</p>
+                            )}
+                          </div>
+                          {isSelected && (
+                            <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                           )}
                         </div>
-                        {isSelected && (
-                          <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                        )}
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </ScrollArea>
-              
-              {selectedPlayers.length > 0 && (
-                <Badge variant="secondary" className="mt-2 w-fit">
-                  {selectedPlayers.length} participant{selectedPlayers.length > 1 ? "s" : ""} sélectionné{selectedPlayers.length > 1 ? "s" : ""}
-                </Badge>
-              )}
+                
+                {selectedPlayers.length > 0 && (
+                  <Badge variant="secondary" className="w-fit">
+                    {selectedPlayers.length} participant{selectedPlayers.length > 1 ? "s" : ""} sélectionné{selectedPlayers.length > 1 ? "s" : ""}
+                  </Badge>
+                )}
+              </div>
             </div>
+          )}
+        </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => handleClose(false)}>
-                Annuler
-              </Button>
-              <Button onClick={handleSubmit} disabled={createEvent.isPending}>
-                {createEvent.isPending ? "Création..." : "Créer l'événement"}
-              </Button>
-            </DialogFooter>
-          </div>
+        {step === "details" && (
+          <DialogFooter className="px-6 py-4 border-t shrink-0">
+            <Button variant="outline" onClick={() => handleClose(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleSubmit} disabled={createEvent.isPending}>
+              {createEvent.isPending ? "Création..." : "Créer l'événement"}
+            </Button>
+          </DialogFooter>
         )}
       </DialogContent>
     </Dialog>
