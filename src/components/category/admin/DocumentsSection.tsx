@@ -90,14 +90,14 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
     queryKey: ["admin-documents", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("admin_documents")
+        .from("admin_documents" as any)
         .select("*, players(name)")
         .eq("category_id", categoryId)
         .order("expiry_date", { ascending: true, nullsFirst: false });
       if (error) throw error;
       
       // Calculate status based on expiry_date
-      return (data as AdminDocument[]).map((doc) => {
+      return (data as unknown as AdminDocument[]).map((doc) => {
         if (!doc.expiry_date) return { ...doc, status: "valid" };
         const daysUntilExpiry = differenceInDays(new Date(doc.expiry_date), new Date());
         if (daysUntilExpiry < 0) return { ...doc, status: "expired" };
@@ -109,7 +109,7 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
 
   const addDocumentMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase.from("admin_documents").insert({
+      const { error } = await supabase.from("admin_documents" as any).insert({
         category_id: categoryId,
         created_by: user?.id,
         player_id: data.player_id || null,
@@ -134,7 +134,7 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
 
   const deleteDocumentMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("admin_documents").delete().eq("id", id);
+      const { error } = await supabase.from("admin_documents" as any).delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

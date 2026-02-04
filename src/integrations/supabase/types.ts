@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_documents: {
+        Row: {
+          category_id: string
+          created_at: string
+          created_by: string | null
+          document_type: string
+          expiry_date: string | null
+          file_url: string | null
+          id: string
+          notes: string | null
+          player_id: string | null
+          status: string
+          title: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          created_by?: string | null
+          document_type: string
+          expiry_date?: string | null
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          player_id?: string | null
+          status?: string
+          title: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          created_by?: string | null
+          document_type?: string
+          expiry_date?: string | null
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          player_id?: string | null
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_documents_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_documents_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ambassador_invitations: {
         Row: {
           accepted_at: string | null
@@ -1121,6 +1178,56 @@ export type Database = {
           },
         ]
       }
+      equipment_inventory: {
+        Row: {
+          available_quantity: number
+          category: string
+          category_id: string
+          condition: string
+          created_at: string
+          id: string
+          last_maintenance: string | null
+          location: string | null
+          name: string
+          notes: string | null
+          quantity: number
+        }
+        Insert: {
+          available_quantity?: number
+          category?: string
+          category_id: string
+          condition?: string
+          created_at?: string
+          id?: string
+          last_maintenance?: string | null
+          location?: string | null
+          name: string
+          notes?: string | null
+          quantity?: number
+        }
+        Update: {
+          available_quantity?: number
+          category?: string
+          category_id?: string
+          condition?: string
+          created_at?: string
+          id?: string
+          last_maintenance?: string | null
+          location?: string | null
+          name?: string
+          notes?: string | null
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_inventory_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_library: {
         Row: {
           category: string
@@ -1168,6 +1275,95 @@ export type Database = {
           youtube_url?: string | null
         }
         Relationships: []
+      }
+      facilities: {
+        Row: {
+          capacity: number | null
+          category_id: string
+          created_at: string
+          id: string
+          location: string | null
+          name: string
+          type: string
+        }
+        Insert: {
+          capacity?: number | null
+          category_id: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          name: string
+          type?: string
+        }
+        Update: {
+          capacity?: number | null
+          category_id?: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          name?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facilities_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facility_bookings: {
+        Row: {
+          category_id: string
+          created_at: string
+          created_by: string | null
+          date: string
+          end_time: string
+          facility_id: string
+          id: string
+          start_time: string
+          title: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          created_by?: string | null
+          date: string
+          end_time: string
+          facility_id: string
+          id?: string
+          start_time: string
+          title: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          end_time?: string
+          facility_id?: string
+          id?: string
+          start_time?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facility_bookings_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facility_bookings_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       gathering_wellness_assessments: {
         Row: {
@@ -4301,6 +4497,74 @@ export type Database = {
           },
         ]
       }
+      recruitment_prospects: {
+        Row: {
+          birth_date: string | null
+          category_id: string
+          city: string | null
+          created_at: string
+          created_by: string | null
+          current_club: string | null
+          email: string | null
+          id: string
+          last_contact: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          position: string | null
+          rating: number | null
+          source: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          birth_date?: string | null
+          category_id: string
+          city?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_club?: string | null
+          email?: string | null
+          id?: string
+          last_contact?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          position?: string | null
+          rating?: number | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          birth_date?: string | null
+          category_id?: string
+          city?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_club?: string | null
+          email?: string | null
+          id?: string
+          last_contact?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          position?: string | null
+          rating?: number | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recruitment_prospects_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rehab_calendar_events: {
         Row: {
           category_id: string
@@ -5010,6 +5274,81 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      team_trips: {
+        Row: {
+          accommodation: string | null
+          category_id: string
+          created_at: string
+          created_by: string | null
+          departure_date: string
+          departure_time: string | null
+          destination: string
+          id: string
+          match_id: string | null
+          meal_plan: string | null
+          meeting_point: string | null
+          notes: string | null
+          return_date: string | null
+          return_time: string | null
+          title: string
+          transport_details: string | null
+          transport_type: string
+        }
+        Insert: {
+          accommodation?: string | null
+          category_id: string
+          created_at?: string
+          created_by?: string | null
+          departure_date: string
+          departure_time?: string | null
+          destination: string
+          id?: string
+          match_id?: string | null
+          meal_plan?: string | null
+          meeting_point?: string | null
+          notes?: string | null
+          return_date?: string | null
+          return_time?: string | null
+          title: string
+          transport_details?: string | null
+          transport_type?: string
+        }
+        Update: {
+          accommodation?: string | null
+          category_id?: string
+          created_at?: string
+          created_by?: string | null
+          departure_date?: string
+          departure_time?: string | null
+          destination?: string
+          id?: string
+          match_id?: string | null
+          meal_plan?: string | null
+          meeting_point?: string | null
+          notes?: string | null
+          return_date?: string | null
+          return_time?: string | null
+          title?: string
+          transport_details?: string | null
+          transport_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_trips_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_trips_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       template_exercises: {
         Row: {

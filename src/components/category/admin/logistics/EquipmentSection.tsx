@@ -77,20 +77,20 @@ export function EquipmentSection({ categoryId }: EquipmentSectionProps) {
     queryKey: ["equipment", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("equipment_inventory")
+        .from("equipment_inventory" as any)
         .select("*")
         .eq("category_id", categoryId)
         .order("category")
         .order("name");
       if (error) throw error;
-      return data as Equipment[];
+      return data as unknown as Equipment[];
     },
   });
 
   const addEquipmentMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const qty = parseInt(data.quantity);
-      const { error } = await supabase.from("equipment_inventory").insert({
+      const { error } = await supabase.from("equipment_inventory" as any).insert({
         category_id: categoryId,
         name: data.name,
         category: data.category,
@@ -113,7 +113,7 @@ export function EquipmentSection({ categoryId }: EquipmentSectionProps) {
   const updateQuantityMutation = useMutation({
     mutationFn: async ({ id, available }: { id: string; available: number }) => {
       const { error } = await supabase
-        .from("equipment_inventory")
+        .from("equipment_inventory" as any)
         .update({ available_quantity: available })
         .eq("id", id);
       if (error) throw error;
@@ -125,7 +125,7 @@ export function EquipmentSection({ categoryId }: EquipmentSectionProps) {
 
   const deleteEquipmentMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("equipment_inventory").delete().eq("id", id);
+      const { error } = await supabase.from("equipment_inventory" as any).delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

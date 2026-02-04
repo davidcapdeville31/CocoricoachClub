@@ -74,12 +74,12 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
     queryKey: ["facilities", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("facilities")
+        .from("facilities" as any)
         .select("*")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
-      return data as Facility[];
+      return data as unknown as Facility[];
     },
   });
 
@@ -88,7 +88,7 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
     queryFn: async () => {
       const weekEnd = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
       const { data, error } = await supabase
-        .from("facility_bookings")
+        .from("facility_bookings" as any)
         .select("*, facilities(*)")
         .eq("category_id", categoryId)
         .gte("date", format(currentWeekStart, "yyyy-MM-dd"))
@@ -96,13 +96,13 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
         .order("date")
         .order("start_time");
       if (error) throw error;
-      return data as Booking[];
+      return data as unknown as Booking[];
     },
   });
 
   const addFacilityMutation = useMutation({
     mutationFn: async (data: typeof facilityForm) => {
-      const { error } = await supabase.from("facilities").insert({
+      const { error } = await supabase.from("facilities" as any).insert({
         category_id: categoryId,
         name: data.name,
         type: data.type,
@@ -121,7 +121,7 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
 
   const addBookingMutation = useMutation({
     mutationFn: async (data: typeof bookingForm) => {
-      const { error } = await supabase.from("facility_bookings").insert({
+      const { error } = await supabase.from("facility_bookings" as any).insert({
         category_id: categoryId,
         created_by: user?.id,
         facility_id: data.facility_id,
@@ -142,7 +142,7 @@ export function FacilitiesSection({ categoryId }: FacilitiesSectionProps) {
 
   const deleteBookingMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("facility_bookings").delete().eq("id", id);
+      const { error } = await supabase.from("facility_bookings" as any).delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

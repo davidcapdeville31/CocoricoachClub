@@ -70,18 +70,18 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
     queryKey: ["trips", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("team_trips")
+        .from("team_trips" as any)
         .select("*")
         .eq("category_id", categoryId)
         .order("departure_date", { ascending: true });
       if (error) throw error;
-      return data as Trip[];
+      return data as unknown as Trip[];
     },
   });
 
   const addTripMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase.from("team_trips").insert({
+      const { error } = await supabase.from("team_trips" as any).insert({
         category_id: categoryId,
         created_by: user?.id,
         title: data.title,
@@ -113,7 +113,7 @@ export function TripsSection({ categoryId }: TripsSectionProps) {
 
   const deleteTripMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("team_trips").delete().eq("id", id);
+      const { error } = await supabase.from("team_trips" as any).delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
