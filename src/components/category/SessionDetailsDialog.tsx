@@ -95,6 +95,21 @@ export function SessionDetailsDialog({
     enabled: open && !!sessionId,
   });
 
+  // Fetch session blocks
+  const { data: sessionBlocks } = useQuery({
+    queryKey: ["session-blocks", sessionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("training_session_blocks")
+        .select("*")
+        .eq("training_session_id", sessionId)
+        .order("block_order");
+      if (error) throw error;
+      return data;
+    },
+    enabled: open && !!sessionId,
+  });
+
   // Fetch exercises for this session (deduplicated)
   const { data: exercises } = useQuery({
     queryKey: ["session-exercises-detail", sessionId],
@@ -441,6 +456,48 @@ export function SessionDetailsDialog({
                   {attendance.length} joueur(s)
                 </Badge>
               )}
+            </div>
+          )}
+
+          {/* Session Blocks - Thematic segments */}
+          {sessionBlocks && sessionBlocks.length > 0 && (
+            <div className="mb-4 space-y-2">
+              <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Blocs thématiques
+              </h4>
+              <div className="grid gap-2">
+                {sessionBlocks.map((block: any, idx: number) => (
+                  <div
+                    key={block.id}
+                    className="flex items-center gap-3 p-2 rounded-lg bg-muted/30 border-l-4"
+                    style={{
+                      borderLeftColor: block.intensity 
+                        ? `hsl(${Math.max(0, 120 - (block.intensity - 1) * 13)}, 70%, 50%)`
+                        : "hsl(var(--muted))"
+                    }}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="font-mono text-xs">
+                          {block.start_time || "?"} - {block.end_time || "?"}
+                        </Badge>
+                        <span className="font-medium text-sm">
+                          {trainingTypeLabels[block.training_type] || block.training_type}
+                        </span>
+                        {block.intensity && (
+                          <Badge variant="secondary" className="text-xs">
+                            RPE {block.intensity}
+                          </Badge>
+                        )}
+                      </div>
+                      {block.notes && (
+                        <p className="text-xs text-muted-foreground mt-1">{block.notes}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

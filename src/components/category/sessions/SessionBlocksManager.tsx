@@ -1,0 +1,296 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Trash2, GripVertical, Clock, ChevronUp, ChevronDown } from "lucide-react";
+import { CustomTrainingTypeSelect } from "./CustomTrainingTypeSelect";
+import { cn } from "@/lib/utils";
+
+export interface SessionBlock {
+  id?: string;
+  block_order: number;
+  start_time: string;
+  end_time: string;
+  training_type: string;
+  intensity: number | null;
+  notes: string;
+}
+
+interface SessionBlocksManagerProps {
+  blocks: SessionBlock[];
+  onBlocksChange: (blocks: SessionBlock[]) => void;
+  sportType?: string;
+  categoryId: string;
+  sessionStartTime?: string;
+  sessionEndTime?: string;
+}
+
+const INTENSITY_COLORS: Record<number, string> = {
+  1: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+  2: "bg-emerald-200 text-emerald-800 dark:bg-emerald-800/40 dark:text-emerald-400",
+  3: "bg-lime-100 text-lime-800 dark:bg-lime-900/30 dark:text-lime-400",
+  4: "bg-lime-200 text-lime-800 dark:bg-lime-800/40 dark:text-lime-400",
+  5: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+  6: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+  7: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
+  8: "bg-orange-200 text-orange-800 dark:bg-orange-800/40 dark:text-orange-400",
+  9: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+  10: "bg-red-200 text-red-800 dark:bg-red-800/40 dark:text-red-400",
+};
+
+export function SessionBlocksManager({
+  blocks,
+  onBlocksChange,
+  sportType,
+  categoryId,
+  sessionStartTime,
+  sessionEndTime,
+}: SessionBlocksManagerProps) {
+  const addBlock = () => {
+    const lastBlock = blocks[blocks.length - 1];
+    const newStartTime = lastBlock?.end_time || sessionStartTime || "";
+    
+    const newBlock: SessionBlock = {
+      block_order: blocks.length,
+      start_time: newStartTime,
+      end_time: "",
+      training_type: "",
+      intensity: null,
+      notes: "",
+    };
+    
+    onBlocksChange([...blocks, newBlock]);
+  };
+
+  const updateBlock = (index: number, field: keyof SessionBlock, value: any) => {
+    const updated = [...blocks];
+    updated[index] = { ...updated[index], [field]: value };
+    
+    // Auto-chain times: when end_time of a block changes, update start_time of next block
+    if (field === "end_time" && index < blocks.length - 1) {
+      updated[index + 1] = { ...updated[index + 1], start_time: value };
+    }
+    
+    onBlocksChange(updated);
+  };
+
+  const removeBlock = (index: number) => {
+    const updated = blocks.filter((_, i) => i !== index);
+    // Re-order blocks
+    onBlocksChange(updated.map((block, i) => ({ ...block, block_order: i })));
+  };
+
+  const moveBlock = (index: number, direction: "up" | "down") => {
+    if (
+      (direction === "up" && index === 0) ||
+      (direction === "down" && index === blocks.length - 1)
+    ) {
+      return;
+    }
+
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+    const updated = [...blocks];
+    [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
+    
+    // Update block_order
+    onBlocksChange(updated.map((block, i) => ({ ...block, block_order: i })));
+  };
+
+  const calculateDuration = (start: string, end: string): string => {
+    if (!start || !end) return "";
+    
+    const [startH, startM] = start.split(":").map(Number);
+    const [endH, endM] = end.split(":").map(Number);
+    
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    
+    if (endMinutes <= startMinutes) return "";
+    
+    const diff = endMinutes - startMinutes;
+    const hours = Math.floor(diff / 60);
+    const mins = diff % 60;
+    
+    if (hours > 0 && mins > 0) return `${hours}h${mins}min`;
+    if (hours > 0) return `${hours}h`;
+    return `${mins}min`;
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Label className="text-base font-medium flex items-center gap-2">
+          <Clock className="h-4 w-4" />
+          Blocs thématiques de la séance
+        </Label>
+        <Button type="button" variant="outline" size="sm" onClick={addBlock}>
+          <Plus className="h-4 w-4 mr-1" />
+          Ajouter un bloc
+        </Button>
+      </div>
+
+      {blocks.length === 0 ? (
+        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+          <p className="text-muted-foreground text-sm">
+            Aucun bloc thématique. Cliquez sur "Ajouter un bloc" pour structurer votre séance.
+          </p>
+          <p className="text-muted-foreground text-xs mt-1">
+            Ex: 18h30-19h Séparé, 19h-19h30 Physique, 19h30-20h Collectif
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {blocks.map((block, index) => {
+            const duration = calculateDuration(block.start_time, block.end_time);
+            
+            return (
+              <Card key={index} className="relative overflow-hidden">
+                <div 
+                  className="absolute left-0 top-0 bottom-0 w-1"
+                  style={{
+                    backgroundColor: block.intensity 
+                      ? `hsl(${Math.max(0, 120 - (block.intensity - 1) * 13)}, 70%, 50%)`
+                      : "hsl(var(--muted))"
+                  }}
+                />
+                <CardContent className="p-4 pl-5">
+                  <div className="flex items-start gap-3">
+                    {/* Reorder buttons */}
+                    <div className="flex flex-col gap-1 pt-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => moveBlock(index, "up")}
+                        disabled={index === 0}
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => moveBlock(index, "down")}
+                        disabled={index === blocks.length - 1}
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <div className="flex-1 space-y-3">
+                      {/* Header with block number and duration */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">
+                            Bloc {index + 1}
+                          </Badge>
+                          {duration && (
+                            <Badge variant="secondary" className="text-xs">
+                              {duration}
+                            </Badge>
+                          )}
+                          {block.intensity && (
+                            <Badge className={cn("text-xs", INTENSITY_COLORS[block.intensity])}>
+                              RPE {block.intensity}
+                            </Badge>
+                          )}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => removeBlock(index)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      {/* Time inputs */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Début</Label>
+                          <Input
+                            type="time"
+                            value={block.start_time}
+                            onChange={(e) => updateBlock(index, "start_time", e.target.value)}
+                            className="h-9"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Fin</Label>
+                          <Input
+                            type="time"
+                            value={block.end_time}
+                            onChange={(e) => updateBlock(index, "end_time", e.target.value)}
+                            className="h-9"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Training type and intensity */}
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="col-span-2 space-y-1">
+                          <Label className="text-xs text-muted-foreground">Thématique *</Label>
+                          <CustomTrainingTypeSelect
+                            value={block.training_type}
+                            onValueChange={(val) => updateBlock(index, "training_type", val)}
+                            sportType={sportType}
+                            categoryId={categoryId}
+                            placeholder="Sélectionner..."
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Intensité</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="10"
+                            placeholder="1-10"
+                            value={block.intensity ?? ""}
+                            onChange={(e) => updateBlock(index, "intensity", e.target.value ? parseInt(e.target.value) : null)}
+                            className="h-9"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Notes */}
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Notes (optionnel)</Label>
+                        <Textarea
+                          value={block.notes}
+                          onChange={(e) => updateBlock(index, "notes", e.target.value)}
+                          placeholder="Détails du bloc..."
+                          rows={1}
+                          className="min-h-[36px] resize-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {blocks.length > 0 && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addBlock}
+          className="w-full border-dashed"
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Ajouter un autre bloc
+        </Button>
+      )}
+    </div>
+  );
+}
