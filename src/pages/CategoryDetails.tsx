@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredNavTabsList, NAV_COLORS, NavColorKey } from "@/components/ui/colored-nav-tabs";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
-import { ArrowLeft, LayoutDashboard, Shield, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Settings, FileCode, MapPin, Video } from "lucide-react";
+import { ArrowLeft, LayoutDashboard, Shield, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Settings, FileCode, MapPin, Video, GraduationCap } from "lucide-react";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CategoryCoverUpload } from "@/components/category/CategoryCoverUpload";
@@ -31,6 +31,7 @@ import { ProgrammationTab } from "@/components/category/tabs/ProgrammationTab";
 import { GpsDataTab } from "@/components/category/gps/GpsDataTab";
 import { VideoAnalysisTab } from "@/components/category/video/VideoAnalysisTab";
 import { AdminTab } from "@/components/category/tabs/AdminTab";
+import { AcademicTab } from "@/components/category/tabs/AcademicTab";
 
 // Colored Tab Trigger Component - Large icons with labels below
 interface ColoredTabTriggerProps {
@@ -280,6 +281,15 @@ function CategoryDetailsContent() {
                   shortLabel="Admin"
                 />
               )}
+              {!isViewer && (
+                <ColoredTabTrigger
+                  value="academic" 
+                  colorKey="effectif"
+                  icon={<GraduationCap className="h-6 w-6 sm:h-7 sm:w-7" />}
+                  label="Académique"
+                  shortLabel="Acad"
+                />
+              )}
               <ColoredTabTrigger 
                 value="effectif" 
                 colorKey="effectif"
@@ -368,6 +378,12 @@ function CategoryDetailsContent() {
           {!isViewer && (
             <TabsContent value="admin" className="space-y-4">
               <AdminTab categoryId={categoryId!} />
+            </TabsContent>
+          )}
+
+          {!isViewer && (
+            <TabsContent value="academic" className="space-y-4">
+              <AcademicTab categoryId={categoryId!} />
             </TabsContent>
           )}
 
