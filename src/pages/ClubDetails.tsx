@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ChevronRight, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddCategoryDialog } from "@/components/categories/AddCategoryDialog";
@@ -132,54 +132,64 @@ function ClubDetailsContent() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="space-y-2">
             {categories?.map((category) => (
-              <Card
+              <div
                 key={category.id}
-                className="bg-gradient-card shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group animate-fade-in overflow-hidden"
+                className="flex items-center gap-4 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors group cursor-pointer"
                 onClick={() => navigate(`/categories/${category.id}`)}
               >
-                {category.cover_image_url && (
-                  <div 
-                    className="h-32 bg-cover bg-center relative"
-                    style={{ backgroundImage: `url(${category.cover_image_url})` }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/80" />
-                  </div>
-                )}
-                <CardHeader className={category.cover_image_url ? "pt-4" : ""}>
-                  <CardTitle className="flex justify-between items-start">
-                    <span className="text-foreground group-hover:text-primary transition-colors">
+                {/* Category image/icon */}
+                <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex items-center justify-center border flex-shrink-0">
+                  {category.cover_image_url ? (
+                    <img 
+                      src={category.cover_image_url} 
+                      alt={category.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Users className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </div>
+
+                {/* Name and info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-foreground group-hover:text-primary transition-colors truncate">
                       {category.name}
                     </span>
-                    {!isViewer && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (
-                            confirm(
-                              `Êtes-vous sûr de vouloir supprimer ${category.name} ?`
-                            )
-                          ) {
-                            deleteCategory.mutate(category.id);
-                          }
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Créé le{" "}
-                    {new Date(category.created_at).toLocaleDateString("fr-FR")}
+                    <span className="text-xs text-muted-foreground px-2 py-0.5 bg-muted rounded-full flex-shrink-0">
+                      {category.rugby_type === "7" ? "7s" : 
+                       category.rugby_type === "academie" ? "Académie" : 
+                       category.rugby_type === "national_team" ? "Équipe Nat." : 
+                       category.rugby_type}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Créé le {new Date(category.created_at).toLocaleDateString("fr-FR")}
                   </p>
-                </CardContent>
-              </Card>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {!isViewer && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm(`Êtes-vous sûr de vouloir supprimer ${category.name} ?`)) {
+                          deleteCategory.mutate(category.id);
+                        }
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  )}
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </div>
+              </div>
             ))}
           </div>
         )}
