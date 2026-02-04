@@ -614,23 +614,29 @@ export function ImprovedCalendarView({
         </CardContent>
       </Card>
 
-      {/* Add Event Dialog */}
-      {addEventDate && (
-        <CreateEventDialog
-          open={!!addEventDate}
-          onOpenChange={(open) => !open && setAddEventDate(null)}
-          date={addEventDate}
-          categoryId={categoryId}
-          onAddSession={() => {
-            onAddSession(addEventDate);
-            setAddEventDate(null);
-          }}
-          onAddMatch={() => {
-            onAddMatch(addEventDate);
-            setAddEventDate(null);
-          }}
-        />
-      )}
+      {/* Add Event Dialog - Always mounted to avoid portal removal issues */}
+      <CreateEventDialog
+        open={!!addEventDate}
+        onOpenChange={(open) => !open && setAddEventDate(null)}
+        date={addEventDate || new Date()}
+        categoryId={categoryId}
+        onAddSession={() => {
+          const dateToUse = addEventDate;
+          setAddEventDate(null);
+          // Defer callback to allow dialog to close properly
+          if (dateToUse) {
+            setTimeout(() => onAddSession(dateToUse), 0);
+          }
+        }}
+        onAddMatch={() => {
+          const dateToUse = addEventDate;
+          setAddEventDate(null);
+          // Defer callback to allow dialog to close properly
+          if (dateToUse) {
+            setTimeout(() => onAddMatch(dateToUse), 0);
+          }
+        }}
+      />
 
       {/* Feedback Dialog */}
       {feedbackSession && (
