@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { FileText, Download, User, Calendar, Trophy, Loader2, Users } from "lucide-react";
+import { FileText, Download, User, Calendar, Trophy, Loader2, Users, FileSpreadsheet } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import jsPDF from "jspdf";
+import { generateCsv, downloadCsv } from "@/lib/csv";
 
 interface ReportsTabProps {
   categoryId: string;
@@ -1240,12 +1241,167 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     }
   };
 
+  // CSV Export functions
+  const generateSquadCsv = async () => {
+    setGeneratingReport("squad-csv");
+    try {
+      const [injuriesRes, wellnessRes, awcrRes, speedTestsRes, jumpTestsRes, matchLineupsRes] = await Promise.all([
+        supabase.from("injuries").select("*").eq("category_id", categoryId),
+        supabase.from("wellness_tracking").select("*").eq("category_id", categoryId).order("tracking_date", { ascending: false }),
+        supabase.from("awcr_tracking").select("*").eq("category_id", categoryId).order("session_date", { ascending: false }),
+        supabase.from("speed_tests").select("*").eq("category_id", categoryId),
+        supabase.from("jump_tests").select("*").eq("category_id", categoryId),
+        supabase.from("match_lineups").select("*, matches(match_date)"),
+      ]);
+
+      // Filter match lineups by category's matches
+      const categoryMatchIds = matches.map(m => m.id);
+      const filteredLineups = (matchLineupsRes.data || []).filter(l => categoryMatchIds.includes(l.match_id));
+
+      // Build player summary CSV
+      const headers = ["Nom", "Position", "Blessures actives", "Fatigue", "Dernier AWCR", "Matchs joués", "Minutes jouées"];
+      const rows = players.map(player => {
+        const playerInjuries = (injuriesRes.data || []).filter(i => i.player_id === player.id && i.status !== 'healed').length;
+        const playerWellness = (wellnessRes.data || []).find(w => w.player_id === player.id);
+        const playerAwcr = (awcrRes.data || []).find(a => a.player_id === player.id);
+        const playerLineups = filteredLineups.filter(l => l.player_id === player.id);
+        const totalMinutes = playerLineups.reduce((sum, l) => sum + (l.minutes_played || 0), 0);
+        
+        return [
+          player.name,
+          player.position || "",
+          playerInjuries,
+          playerWellness?.general_fatigue?.toString() || "-",
+          playerAwcr?.awcr?.toFixed(2) || "-",
+          playerLineups.length,
+          totalMinutes,
+        ];
+      });
+
+      const csv = generateCsv(headers, rows);
+      downloadCsv(`effectif_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
+      toast.success("Export CSV généré");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de l'export CSV");
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  const generatePlayerCsv = async () => {
+    if (!selectedPlayer) {
+      toast.error("Veuillez sélectionner un joueur");
+      return;
+    }
+    setGeneratingReport("player-csv");
+    try {
+      const player = players.find(p => p.id === selectedPlayer);
+      if (!player) throw new Error("Joueur non trouvé");
+
+      const [injuriesRes, wellnessRes, speedTestsRes, jumpTestsRes, awcrRes] = await Promise.all([
+        supabase.from("injuries").select("*").eq("player_id", selectedPlayer).order("injury_date", { ascending: false }),
+        supabase.from("wellness_tracking").select("*").eq("player_id", selectedPlayer).order("tracking_date", { ascending: false }),
+        supabase.from("speed_tests").select("*").eq("player_id", selectedPlayer).order("test_date", { ascending: false }),
+        supabase.from("jump_tests").select("*").eq("player_id", selectedPlayer).order("test_date", { ascending: false }),
+        supabase.from("awcr_tracking").select("*").eq("player_id", selectedPlayer).order("session_date", { ascending: false }),
+      ]);
+
+      // Build comprehensive player CSV (wellness history)
+      const wellnessHeaders = ["Date", "Fatigue", "Sommeil (h)", "Qualité sommeil", "Stress", "Douleurs haut", "Douleurs bas"];
+      const wellnessRows = (wellnessRes.data || []).map(w => [
+        format(new Date(w.tracking_date), "dd/MM/yyyy"),
+        w.general_fatigue || "-",
+        w.sleep_duration || "-",
+        w.sleep_quality || "-",
+        w.stress_level || "-",
+        w.soreness_upper_body || "-",
+        w.soreness_lower_body || "-",
+      ]);
+
+      const csv = generateCsv(wellnessHeaders, wellnessRows);
+      downloadCsv(`joueur_${player.name.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
+      toast.success("Export CSV généré");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de l'export CSV");
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  const generateSeasonCsv = async () => {
+    setGeneratingReport("season-csv");
+    try {
+      const matchesData = matches || [];
+      
+      const headers = ["Date", "Adversaire", "Domicile", "Score", "Résultat", "Lieu"];
+      const rows = matchesData.map(m => {
+        const isWin = (m.is_home && (m.score_home || 0) > (m.score_away || 0)) || (!m.is_home && (m.score_away || 0) > (m.score_home || 0));
+        const isLoss = (m.is_home && (m.score_home || 0) < (m.score_away || 0)) || (!m.is_home && (m.score_away || 0) < (m.score_home || 0));
+        const result = isWin ? "Victoire" : isLoss ? "Défaite" : "Nul";
+        
+        return [
+          format(new Date(m.match_date), "dd/MM/yyyy"),
+          m.opponent,
+          m.is_home ? "Oui" : "Non",
+          `${m.score_home || 0} - ${m.score_away || 0}`,
+          result,
+          m.location || "",
+        ];
+      });
+
+      const csv = generateCsv(headers, rows);
+      downloadCsv(`saison_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
+      toast.success("Export CSV généré");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de l'export CSV");
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  const generateMatchCsv = async () => {
+    if (!selectedMatch) {
+      toast.error("Veuillez sélectionner un match");
+      return;
+    }
+    setGeneratingReport("match-csv");
+    try {
+      const match = matches.find(m => m.id === selectedMatch);
+      if (!match) throw new Error("Match non trouvé");
+
+      const { data: lineups } = await supabase
+        .from("match_lineups")
+        .select("*, players(name, position)")
+        .eq("match_id", selectedMatch);
+
+      const headers = ["Joueur", "Position", "Titulaire", "Minutes jouées"];
+      const rows = (lineups || []).map(l => [
+        l.players?.name || "-",
+        l.position || l.players?.position || "-",
+        l.is_starter ? "Oui" : "Non",
+        l.minutes_played || 0,
+      ]);
+
+      const csv = generateCsv(headers, rows);
+      downloadCsv(`match_${match.opponent.replace(/\s+/g, '_')}_${format(new Date(match.match_date), "yyyy-MM-dd")}.csv`, csv);
+      toast.success("Export CSV généré");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de l'export CSV");
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold">Rapports PDF</h2>
-        <p className="text-muted-foreground">Générez et exportez des rapports détaillés</p>
+        <h2 className="text-2xl font-bold">Rapports</h2>
+        <p className="text-muted-foreground">Générez et exportez des rapports en PDF ou CSV (Excel)</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1267,18 +1423,33 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
                 Blessures, wellness, tests physiques, temps de jeu...
               </p>
             </div>
-            <Button 
-              onClick={generateSquadReport} 
-              className="w-full"
-              disabled={generatingReport === "squad"}
-            >
-              {generatingReport === "squad" ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4 mr-2" />
-              )}
-              Générer le PDF
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={generateSquadReport} 
+                className="flex-1"
+                disabled={generatingReport === "squad" || generatingReport === "squad-csv"}
+              >
+                {generatingReport === "squad" ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <FileText className="h-4 w-4 mr-1" />
+                )}
+                PDF
+              </Button>
+              <Button 
+                onClick={generateSquadCsv}
+                variant="outline"
+                className="flex-1"
+                disabled={generatingReport === "squad" || generatingReport === "squad-csv"}
+              >
+                {generatingReport === "squad-csv" ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <FileSpreadsheet className="h-4 w-4 mr-1" />
+                )}
+                CSV
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -1306,18 +1477,33 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
                 ))}
               </SelectContent>
             </Select>
-            <Button 
-              onClick={generatePlayerReport} 
-              className="w-full"
-              disabled={!selectedPlayer || generatingReport === "player"}
-            >
-              {generatingReport === "player" ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4 mr-2" />
-              )}
-              Générer le PDF
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={generatePlayerReport} 
+                className="flex-1"
+                disabled={!selectedPlayer || generatingReport === "player" || generatingReport === "player-csv"}
+              >
+                {generatingReport === "player" ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <FileText className="h-4 w-4 mr-1" />
+                )}
+                PDF
+              </Button>
+              <Button 
+                onClick={generatePlayerCsv}
+                variant="outline"
+                className="flex-1"
+                disabled={!selectedPlayer || generatingReport === "player" || generatingReport === "player-csv"}
+              >
+                {generatingReport === "player-csv" ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <FileSpreadsheet className="h-4 w-4 mr-1" />
+                )}
+                CSV
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -1339,18 +1525,33 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
             <p className="text-sm">
               {players.length} joueurs • {matches.length} matchs
             </p>
-            <Button 
-              onClick={generateSeasonReport} 
-              className="w-full"
-              disabled={generatingReport === "season"}
-            >
-              {generatingReport === "season" ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4 mr-2" />
-              )}
-              Générer le PDF
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={generateSeasonReport} 
+                className="flex-1"
+                disabled={generatingReport === "season" || generatingReport === "season-csv"}
+              >
+                {generatingReport === "season" ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <FileText className="h-4 w-4 mr-1" />
+                )}
+                PDF
+              </Button>
+              <Button 
+                onClick={generateSeasonCsv}
+                variant="outline"
+                className="flex-1"
+                disabled={generatingReport === "season" || generatingReport === "season-csv"}
+              >
+                {generatingReport === "season-csv" ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <FileSpreadsheet className="h-4 w-4 mr-1" />
+                )}
+                CSV
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -1378,18 +1579,33 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
                 ))}
               </SelectContent>
             </Select>
-            <Button 
-              onClick={generateMatchReport} 
-              className="w-full"
-              disabled={!selectedMatch || generatingReport === "match"}
-            >
-              {generatingReport === "match" ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4 mr-2" />
-              )}
-              Générer le PDF
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={generateMatchReport} 
+                className="flex-1"
+                disabled={!selectedMatch || generatingReport === "match" || generatingReport === "match-csv"}
+              >
+                {generatingReport === "match" ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <FileText className="h-4 w-4 mr-1" />
+                )}
+                PDF
+              </Button>
+              <Button 
+                onClick={generateMatchCsv}
+                variant="outline"
+                className="flex-1"
+                disabled={!selectedMatch || generatingReport === "match" || generatingReport === "match-csv"}
+              >
+                {generatingReport === "match-csv" ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <FileSpreadsheet className="h-4 w-4 mr-1" />
+                )}
+                CSV
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
