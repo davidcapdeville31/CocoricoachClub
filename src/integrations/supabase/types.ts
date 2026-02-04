@@ -14,6 +14,111 @@ export type Database = {
   }
   public: {
     Tables: {
+      academic_absences: {
+        Row: {
+          absence_date: string
+          absence_type: string
+          category_id: string
+          created_at: string
+          duration_hours: number | null
+          id: string
+          justified: boolean | null
+          player_id: string
+          reason: string | null
+        }
+        Insert: {
+          absence_date: string
+          absence_type?: string
+          category_id: string
+          created_at?: string
+          duration_hours?: number | null
+          id?: string
+          justified?: boolean | null
+          player_id: string
+          reason?: string | null
+        }
+        Update: {
+          absence_date?: string
+          absence_type?: string
+          category_id?: string
+          created_at?: string
+          duration_hours?: number | null
+          id?: string
+          justified?: boolean | null
+          player_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academic_absences_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academic_absences_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academic_grades: {
+        Row: {
+          category_id: string
+          created_at: string
+          grade: number | null
+          grade_date: string
+          id: string
+          max_grade: number | null
+          notes: string | null
+          player_id: string
+          subject: string
+          term: string | null
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          grade?: number | null
+          grade_date?: string
+          id?: string
+          max_grade?: number | null
+          notes?: string | null
+          player_id: string
+          subject: string
+          term?: string | null
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          grade?: number | null
+          grade_date?: string
+          id?: string
+          max_grade?: number | null
+          notes?: string | null
+          player_id?: string
+          subject?: string
+          term?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academic_grades_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academic_grades_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_documents: {
         Row: {
           category_id: string
@@ -2455,6 +2560,201 @@ export type Database = {
           },
         ]
       }
+      mental_assessments: {
+        Row: {
+          anxiety_level: number | null
+          areas_to_improve: string | null
+          assessed_by: string | null
+          assessment_date: string
+          assessment_type: string
+          category_id: string
+          confidence_level: number | null
+          created_at: string
+          focus_level: number | null
+          id: string
+          mental_prep_notes: string | null
+          motivation_level: number | null
+          player_id: string
+          resilience_level: number | null
+          strengths: string | null
+          team_cohesion: number | null
+          updated_at: string
+        }
+        Insert: {
+          anxiety_level?: number | null
+          areas_to_improve?: string | null
+          assessed_by?: string | null
+          assessment_date?: string
+          assessment_type: string
+          category_id: string
+          confidence_level?: number | null
+          created_at?: string
+          focus_level?: number | null
+          id?: string
+          mental_prep_notes?: string | null
+          motivation_level?: number | null
+          player_id: string
+          resilience_level?: number | null
+          strengths?: string | null
+          team_cohesion?: number | null
+          updated_at?: string
+        }
+        Update: {
+          anxiety_level?: number | null
+          areas_to_improve?: string | null
+          assessed_by?: string | null
+          assessment_date?: string
+          assessment_type?: string
+          category_id?: string
+          confidence_level?: number | null
+          created_at?: string
+          focus_level?: number | null
+          id?: string
+          mental_prep_notes?: string | null
+          motivation_level?: number | null
+          player_id?: string
+          resilience_level?: number | null
+          strengths?: string | null
+          team_cohesion?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mental_assessments_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mental_assessments_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mental_goals: {
+        Row: {
+          category_id: string
+          created_at: string
+          goal_description: string | null
+          goal_title: string
+          goal_type: string
+          id: string
+          player_id: string
+          progress_percentage: number | null
+          status: string
+          target_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          goal_description?: string | null
+          goal_title: string
+          goal_type: string
+          id?: string
+          player_id: string
+          progress_percentage?: number | null
+          status?: string
+          target_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          goal_description?: string | null
+          goal_title?: string
+          goal_type?: string
+          id?: string
+          player_id?: string
+          progress_percentage?: number | null
+          status?: string
+          target_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mental_goals_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mental_goals_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mental_prep_sessions: {
+        Row: {
+          category_id: string
+          created_at: string
+          duration_minutes: number | null
+          exercises_practiced: string | null
+          homework: string | null
+          id: string
+          next_session_date: string | null
+          player_feedback: string | null
+          player_id: string
+          practitioner_name: string | null
+          session_date: string
+          session_type: string
+          topics_covered: string | null
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          duration_minutes?: number | null
+          exercises_practiced?: string | null
+          homework?: string | null
+          id?: string
+          next_session_date?: string | null
+          player_feedback?: string | null
+          player_id: string
+          practitioner_name?: string | null
+          session_date: string
+          session_type: string
+          topics_covered?: string | null
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          duration_minutes?: number | null
+          exercises_practiced?: string | null
+          homework?: string | null
+          id?: string
+          next_session_date?: string | null
+          player_feedback?: string | null
+          player_id?: string
+          practitioner_name?: string | null
+          session_date?: string
+          session_type?: string
+          topics_covered?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mental_prep_sessions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mental_prep_sessions_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -2835,6 +3135,66 @@ export type Database = {
           },
           {
             foreignKeyName: "nutrition_entries_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_academic_profiles: {
+        Row: {
+          category_id: string
+          class_name: string | null
+          created_at: string
+          grade_level: string | null
+          id: string
+          player_id: string
+          school_contact_email: string | null
+          school_contact_name: string | null
+          school_contact_phone: string | null
+          school_name: string | null
+          special_arrangements: string | null
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          class_name?: string | null
+          created_at?: string
+          grade_level?: string | null
+          id?: string
+          player_id: string
+          school_contact_email?: string | null
+          school_contact_name?: string | null
+          school_contact_phone?: string | null
+          school_name?: string | null
+          special_arrangements?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          class_name?: string | null
+          created_at?: string
+          grade_level?: string | null
+          id?: string
+          player_id?: string
+          school_contact_email?: string | null
+          school_contact_name?: string | null
+          school_contact_phone?: string | null
+          school_name?: string | null
+          special_arrangements?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_academic_profiles_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_academic_profiles_player_id_fkey"
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "players"
