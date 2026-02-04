@@ -1,4 +1,4 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { CalendarDays, FolderOpen, ClipboardCheck, Bell, Target, Timer } from "lucide-react";
 import { TestsTab } from "@/components/category/TestsTab";
 import { SessionsTab } from "@/components/category/sessions/SessionsTab";
@@ -8,6 +8,7 @@ import { LoadObjectivesSection } from "@/components/periodization/LoadObjectives
 import { PeriodizationTab } from "@/components/periodization/PeriodizationTab";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 
 interface ProgrammationTabProps {
   categoryId: string;
@@ -32,38 +33,56 @@ export function ProgrammationTab({ categoryId }: ProgrammationTabProps) {
 
   return (
     <Tabs defaultValue="sessions" className="space-y-4">
-      <div className="overflow-x-auto -mx-4 px-4 pb-2">
-        <TabsList className="inline-flex w-max min-w-full gap-1 h-auto bg-muted p-1">
-          <TabsTrigger value="sessions" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-            <CalendarDays className="h-4 w-4 shrink-0" />
+      <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
+        <ColoredSubTabsList colorKey="programmation" className="inline-flex w-max">
+          <ColoredSubTabsTrigger 
+            value="sessions" 
+            colorKey="programmation"
+            icon={<CalendarDays className="h-4 w-4" />}
+          >
             <span className="hidden sm:inline">Séances</span>
             <span className="sm:hidden">Séan</span>
-          </TabsTrigger>
-          <TabsTrigger value="programs" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-            <FolderOpen className="h-4 w-4 shrink-0" />
+          </ColoredSubTabsTrigger>
+          <ColoredSubTabsTrigger 
+            value="programs" 
+            colorKey="programmation"
+            icon={<FolderOpen className="h-4 w-4" />}
+          >
             <span className="hidden sm:inline">Programmes</span>
             <span className="sm:hidden">Prog</span>
-          </TabsTrigger>
-          <TabsTrigger value="objectives" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-            <Target className="h-4 w-4 shrink-0" />
+          </ColoredSubTabsTrigger>
+          <ColoredSubTabsTrigger 
+            value="objectives" 
+            colorKey="programmation"
+            icon={<Target className="h-4 w-4" />}
+          >
             <span className="hidden sm:inline">Objectifs</span>
             <span className="sm:hidden">Obj</span>
-          </TabsTrigger>
-          <TabsTrigger value="periodization" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-            <Timer className="h-4 w-4 shrink-0" />
+          </ColoredSubTabsTrigger>
+          <ColoredSubTabsTrigger 
+            value="periodization" 
+            colorKey="programmation"
+            icon={<Timer className="h-4 w-4" />}
+          >
             <span className="hidden sm:inline">Périodisation</span>
             <span className="sm:hidden">Période</span>
-          </TabsTrigger>
-          <TabsTrigger value="tests" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-            <ClipboardCheck className="h-4 w-4 shrink-0" />
+          </ColoredSubTabsTrigger>
+          <ColoredSubTabsTrigger 
+            value="tests" 
+            colorKey="programmation"
+            icon={<ClipboardCheck className="h-4 w-4" />}
+          >
             Tests
-          </TabsTrigger>
-          <TabsTrigger value="test-reminders" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-            <Bell className="h-4 w-4 shrink-0" />
+          </ColoredSubTabsTrigger>
+          <ColoredSubTabsTrigger 
+            value="test-reminders" 
+            colorKey="programmation"
+            icon={<Bell className="h-4 w-4" />}
+          >
             <span className="hidden sm:inline">Rappels tests</span>
             <span className="sm:hidden">Rappels</span>
-          </TabsTrigger>
-        </TabsList>
+          </ColoredSubTabsTrigger>
+        </ColoredSubTabsList>
       </div>
 
       <TabsContent value="sessions">
