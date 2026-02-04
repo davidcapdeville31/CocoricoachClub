@@ -364,7 +364,7 @@ export function SessionFormDialog({
         .from("training_session_blocks")
         .select("*")
         .eq("training_session_id", editSession.id)
-        .order("order_index");
+        .order("block_order");
       if (error) throw error;
       return data || [];
     },
@@ -717,6 +717,9 @@ export function SessionFormDialog({
       queryClient.invalidateQueries({ queryKey: ["generic_tests", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["generic_tests_discovery", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["session-blocks"] });
+      queryClient.invalidateQueries({ queryKey: ["session-blocks-calendar"] });
+      queryClient.invalidateQueries({ queryKey: ["session-blocks-edit"] });
+      queryClient.invalidateQueries({ queryKey: ["sessions", categoryId] });
       
       const exerciseCount = exercises.filter((e) => e.exercise_name.trim()).length;
       const gpsCount = gpsData.filter(d => d.matchedPlayer).length;

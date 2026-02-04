@@ -12,11 +12,11 @@ import { cn } from "@/lib/utils";
 export interface SessionBlock {
   id?: string;
   block_order: number;
-  start_time: string;
-  end_time: string;
+  start_time?: string;
+  end_time?: string;
   training_type: string;
-  intensity: number | null;
-  notes: string;
+  intensity?: number | null;
+  notes?: string;
 }
 
 interface SessionBlocksManagerProps {
@@ -51,15 +51,15 @@ export function SessionBlocksManager({
 }: SessionBlocksManagerProps) {
   const addBlock = () => {
     const lastBlock = blocks[blocks.length - 1];
-    const newStartTime = lastBlock?.end_time || sessionStartTime || "";
+    const newStartTime = lastBlock?.end_time || sessionStartTime || undefined;
     
     const newBlock: SessionBlock = {
       block_order: blocks.length,
       start_time: newStartTime,
-      end_time: "",
+      end_time: undefined,
       training_type: "",
       intensity: null,
-      notes: "",
+      notes: undefined,
     };
     
     onBlocksChange([...blocks, newBlock]);
@@ -99,7 +99,7 @@ export function SessionBlocksManager({
     onBlocksChange(updated.map((block, i) => ({ ...block, block_order: i })));
   };
 
-  const calculateDuration = (start: string, end: string): string => {
+  const calculateDuration = (start?: string, end?: string): string => {
     if (!start || !end) return "";
     
     const [startH, startM] = start.split(":").map(Number);
@@ -226,8 +226,8 @@ export function SessionBlocksManager({
                           <Label className="text-xs text-muted-foreground">Début</Label>
                           <Input
                             type="time"
-                            value={block.start_time}
-                            onChange={(e) => updateBlock(index, "start_time", e.target.value)}
+                            value={block.start_time || ""}
+                            onChange={(e) => updateBlock(index, "start_time", e.target.value || undefined)}
                             className="h-9"
                           />
                         </div>
@@ -235,8 +235,8 @@ export function SessionBlocksManager({
                           <Label className="text-xs text-muted-foreground">Fin</Label>
                           <Input
                             type="time"
-                            value={block.end_time}
-                            onChange={(e) => updateBlock(index, "end_time", e.target.value)}
+                            value={block.end_time || ""}
+                            onChange={(e) => updateBlock(index, "end_time", e.target.value || undefined)}
                             className="h-9"
                           />
                         </div>
@@ -272,8 +272,8 @@ export function SessionBlocksManager({
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Notes (optionnel)</Label>
                         <Textarea
-                          value={block.notes}
-                          onChange={(e) => updateBlock(index, "notes", e.target.value)}
+                          value={block.notes || ""}
+                          onChange={(e) => updateBlock(index, "notes", e.target.value || undefined)}
                           placeholder="Détails du bloc..."
                           rows={1}
                           className="min-h-[36px] resize-none"
