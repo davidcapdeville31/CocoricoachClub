@@ -93,3 +93,40 @@ export function parseCsvText(text: string): CsvParseResult {
 
   return { rows, delimiter };
 }
+
+/**
+ * Generate CSV content from headers and rows
+ */
+export function generateCsv(headers: string[], rows: (string | number | null | undefined)[][]): string {
+  const escapeCell = (value: string | number | null | undefined): string => {
+    if (value === null || value === undefined) return "";
+    const str = String(value);
+    // Escape quotes and wrap in quotes if contains delimiter, quote, or newline
+    if (str.includes(";") || str.includes('"') || str.includes("\n")) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+
+  const headerLine = headers.map(escapeCell).join(";");
+  const dataLines = rows.map(row => row.map(escapeCell).join(";"));
+  
+  // Add BOM for Excel to recognize UTF-8
+  return "\uFEFF" + [headerLine, ...dataLines].join("\n");
+}
+
+/**
+ * Download a CSV file
+ */
+export function downloadCsv(filename: string, csvContent: string): void {
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}

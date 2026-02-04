@@ -1,8 +1,9 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { MessageSquare, FileText, GraduationCap } from "lucide-react";
 import { MessagingTab } from "@/components/messaging/MessagingTab";
 import { ReportsTab } from "@/components/category/ReportsTab";
 import { AcademyTab } from "@/components/category/AcademyTab";
+import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 
 interface CommunicationTabProps {
   categoryId: string;
@@ -13,23 +14,32 @@ export function CommunicationTab({ categoryId, isAcademy }: CommunicationTabProp
   return (
     <Tabs defaultValue="messaging" className="space-y-4">
       <div className="overflow-x-auto -mx-4 px-4 pb-2">
-        <TabsList className="inline-flex w-max min-w-full gap-1 h-auto bg-muted p-1">
-          <TabsTrigger value="messaging" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-            <MessageSquare className="h-4 w-4 shrink-0" />
+        <ColoredSubTabsList colorKey="communication" className="inline-flex w-max min-w-full">
+          <ColoredSubTabsTrigger 
+            value="messaging" 
+            colorKey="communication"
+            icon={<MessageSquare className="h-4 w-4" />}
+          >
             <span className="hidden sm:inline">Messagerie</span>
             <span className="sm:hidden">Msg</span>
-          </TabsTrigger>
-          <TabsTrigger value="reports" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-            <FileText className="h-4 w-4 shrink-0" />
+          </ColoredSubTabsTrigger>
+          <ColoredSubTabsTrigger 
+            value="reports" 
+            colorKey="communication"
+            icon={<FileText className="h-4 w-4" />}
+          >
             Rapports
-          </TabsTrigger>
+          </ColoredSubTabsTrigger>
           {isAcademy && (
-            <TabsTrigger value="academy" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-1.5 whitespace-nowrap">
-              <GraduationCap className="h-4 w-4 shrink-0" />
+            <ColoredSubTabsTrigger 
+              value="academy" 
+              colorKey="communication"
+              icon={<GraduationCap className="h-4 w-4" />}
+            >
               Académie
-            </TabsTrigger>
+            </ColoredSubTabsTrigger>
           )}
-        </TabsList>
+        </ColoredSubTabsList>
       </div>
 
       <TabsContent value="messaging">
