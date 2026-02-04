@@ -164,6 +164,7 @@ export const EXERCISE_CATEGORIES: ExerciseCategory[] = [
   { value: "bodyweight_full", label: "Poids de corps - Full body", group: "bodyweight" },
   { value: "calisthenics", label: "Calisthenics", group: "bodyweight" },
   { value: "gymnastics", label: "Gymnastique", group: "bodyweight" },
+  { value: "weighted_calisthenics", label: "Calisthenics lesté", group: "bodyweight" },
   
   // CrossFit / Hyrox
   { value: "crossfit_wod", label: "WOD", group: "crossfit_hyrox" },
@@ -346,17 +347,24 @@ export const CATEGORY_GROUPS = [
 export const RUNNING_CATEGORIES = [
   "running_ef", "running_seuil", "running_vma", "running_fractionne", 
   "running_sprint", "running_cote", "running_fartlek", "running_tempo", 
-  "running_recup", "running_ppg"
+  "running_recup", "running_ppg", "running_trail"
 ];
 
-// Liste des catégories d'ergomètres
+// Liste des catégories d'ergomètres (avec métriques: distance, temps, watts, calories, RPM)
 export const ERGO_CATEGORIES = [
-  "ergo_rowerg", "ergo_skierg", "ergo_bikeerg", "ergo_assault"
+  "ergo_rowerg", "ergo_skierg", "ergo_bikeerg", "ergo_assault",
+  "ergo_treadmill", "ergo_elliptical", "ergo_stairmaster", "ergo_versaclimber"
 ];
 
 // Liste des catégories de sled (distance-based)
 export const SLED_CATEGORIES = [
-  "sled_push", "sled_pull"
+  "sled_push", "sled_pull", "sled_drag", "prowler"
+];
+
+// Liste des catégories poids de corps (possibilité de poids additionnel)
+export const BODYWEIGHT_CATEGORIES = [
+  "bodyweight_upper", "bodyweight_lower", "bodyweight_core", "bodyweight_full",
+  "calisthenics", "gymnastics", "weighted_calisthenics"
 ];
 
 // Check if an exercise category is an ergometer
@@ -377,9 +385,14 @@ export function isRunningCategory(category: string): boolean {
   return RUNNING_CATEGORIES.includes(category);
 }
 
+// Check if an exercise category is a bodyweight exercise
+export function isBodyweightCategory(category: string): boolean {
+  return BODYWEIGHT_CATEGORIES.includes(category);
+}
+
 // Check if an exercise has special metrics (not standard sets/reps)
 export function hasSpecialMetrics(category: string): boolean {
-  return isErgCategory(category) || isSledCategory(category) || isRunningCategory(category);
+  return isErgCategory(category) || isSledCategory(category) || isRunningCategory(category) || isBodyweightCategory(category);
 }
 
 export const EXERCISE_SUBCATEGORIES = [

@@ -22,7 +22,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { TEST_CATEGORIES } from "@/lib/constants/testCategories";
-import { isErgCategory, isSledCategory, isRunningCategory } from "@/lib/constants/exerciseCategories";
+import { isErgCategory, isSledCategory, isRunningCategory, isBodyweightCategory } from "@/lib/constants/exerciseCategories";
 import { cn } from "@/lib/utils";
 import {
   TRAINING_STYLES,
@@ -62,12 +62,17 @@ interface RunningData {
   vma_percentage?: number;
   pace_kmh?: number;
   pace_ms?: number;
+  pace_min_km?: number; // min/km pace
   intervals?: number;
   interval_distance_m?: number;
   interval_duration_s?: number;
   recovery_time_s?: number;
   recovery_distance_m?: number;
   elevation_gain_m?: number;
+}
+
+interface BodyweightData {
+  additional_weight_kg?: number; // optional added weight for weighted calisthenics
 }
 
 interface ProgramExercise {
@@ -91,6 +96,7 @@ interface ProgramExercise {
   rm_test_type?: string;
   erg_data?: ErgData;
   running_data?: RunningData;
+  bodyweight_data?: BodyweightData;
   target_velocity?: number; // VBT - target velocity in m/s
 }
 
@@ -789,9 +795,83 @@ export function ProgramSessionCard({
                 </div>
               </div>
             ) : isRunningCategory(exercise.exercise_category || "") ? (
-              // Running-specific inputs
+              // Running-specific inputs: km/h, temps, distance, min/km
               <div className="space-y-3">
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-5 gap-2">
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">Allure (km/h)</label>
+                    <Input
+                      type="number"
+                      min={0}
+                      step={0.1}
+                      value={exercise.running_data?.pace_kmh || ""}
+                      onChange={(e) => {
+                        const kmh = e.target.value ? parseFloat(e.target.value) : undefined;
+                        // Auto-calculate min/km from km/h (60 / km/h = min/km)
+                        const minKm = kmh && kmh > 0 ? parseFloat((60 / kmh).toFixed(2)) : undefined;
+                        updateExercise(index, "running_data", {
+                          ...exercise.running_data,
+                          pace_kmh: kmh,
+                          pace_min_km: minKm,
+                        });
+                      }}
+                      placeholder="12.5"
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">Allure (min/km)</label>
+                    <Input
+                      type="number"
+                      min={0}
+                      step={0.1}
+                      value={exercise.running_data?.pace_min_km || ""}
+                      onChange={(e) => {
+                        const minKm = e.target.value ? parseFloat(e.target.value) : undefined;
+                        // Auto-calculate km/h from min/km (60 / min/km = km/h)
+                        const kmh = minKm && minKm > 0 ? parseFloat((60 / minKm).toFixed(1)) : undefined;
+                        updateExercise(index, "running_data", {
+                          ...exercise.running_data,
+                          pace_min_km: minKm,
+                          pace_kmh: kmh,
+                        });
+                      }}
+                      placeholder="4.8"
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">Distance (m)</label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={exercise.running_data?.distance_meters || ""}
+                      onChange={(e) =>
+                        updateExercise(index, "running_data", {
+                          ...exercise.running_data,
+                          distance_meters: e.target.value ? parseInt(e.target.value) : undefined,
+                        })
+                      }
+                      placeholder="5000"
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">Durée (min)</label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={exercise.running_data?.duration_seconds ? Math.round(exercise.running_data.duration_seconds / 60) : ""}
+                      onChange={(e) =>
+                        updateExercise(index, "running_data", {
+                          ...exercise.running_data,
+                          duration_seconds: e.target.value ? parseInt(e.target.value) * 60 : undefined,
+                        })
+                      }
+                      placeholder="30"
+                      className="h-8 text-sm"
+                    />
+                  </div>
                   <div className="space-y-1">
                     <label className="text-xs text-muted-foreground">% VMA</label>
                     <Input
@@ -806,56 +886,6 @@ export function ProgramSessionCard({
                         })
                       }
                       placeholder="85"
-                      className="h-8 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs text-muted-foreground">Allure (km/h)</label>
-                    <Input
-                      type="number"
-                      min={0}
-                      step={0.1}
-                      value={exercise.running_data?.pace_kmh || ""}
-                      onChange={(e) =>
-                        updateExercise(index, "running_data", {
-                          ...exercise.running_data,
-                          pace_kmh: e.target.value ? parseFloat(e.target.value) : undefined,
-                        })
-                      }
-                      placeholder="12.5"
-                      className="h-8 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs text-muted-foreground">Allure (m/s)</label>
-                    <Input
-                      type="number"
-                      min={0}
-                      step={0.1}
-                      value={exercise.running_data?.pace_ms || ""}
-                      onChange={(e) =>
-                        updateExercise(index, "running_data", {
-                          ...exercise.running_data,
-                          pace_ms: e.target.value ? parseFloat(e.target.value) : undefined,
-                        })
-                      }
-                      placeholder="3.5"
-                      className="h-8 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs text-muted-foreground">Durée (s)</label>
-                    <Input
-                      type="number"
-                      min={0}
-                      value={exercise.running_data?.duration_seconds || ""}
-                      onChange={(e) =>
-                        updateExercise(index, "running_data", {
-                          ...exercise.running_data,
-                          duration_seconds: e.target.value ? parseInt(e.target.value) : undefined,
-                        })
-                      }
-                      placeholder="1200"
                       className="h-8 text-sm"
                     />
                   </div>
@@ -1024,6 +1054,98 @@ export function ProgramSessionCard({
                     </div>
                   </div>
                 )}
+              </div>
+            ) : isBodyweightCategory(exercise.exercise_category || "") ? (
+              // Bodyweight-specific inputs: séries, reps, poids additionnel optionnel
+              <div className="grid grid-cols-5 gap-2">
+                {!isGrouped && (
+                  <div className="space-y-1 col-span-1">
+                    <label className="text-xs text-muted-foreground">Méthode</label>
+                    <Select
+                      value={exercise.method}
+                      onValueChange={(value) => {
+                        if (LINKABLE_METHODS.includes(value)) {
+                          startLinking(index, value);
+                        } else if (DROP_METHODS.includes(value)) {
+                          initDropSets(index, value);
+                        } else if (CLUSTER_METHODS.includes(value)) {
+                          initClusterSets(index, value);
+                        } else {
+                          updateMultipleFields(index, {
+                            method: value,
+                            drop_sets: undefined,
+                            cluster_sets: undefined,
+                          });
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-80">
+                        {TRAINING_STYLES.map((style) => (
+                          <SelectItem key={style.value} value={style.value}>
+                            <span>{style.label}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">Séries</label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={exercise.sets}
+                    onChange={(e) =>
+                      updateExercise(index, "sets", parseInt(e.target.value) || 1)
+                    }
+                    className="h-8 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">Reps</label>
+                  <Input
+                    value={exercise.reps}
+                    onChange={(e) => updateExercise(index, "reps", e.target.value)}
+                    placeholder="10"
+                    className="h-8 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">Lest (+kg)</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step={0.5}
+                    value={exercise.bodyweight_data?.additional_weight_kg || ""}
+                    onChange={(e) =>
+                      updateExercise(index, "bodyweight_data", {
+                        ...exercise.bodyweight_data,
+                        additional_weight_kg: e.target.value ? parseFloat(e.target.value) : undefined,
+                      })
+                    }
+                    placeholder="0"
+                    className="h-8 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">Repos (s)</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={exercise.rest_seconds}
+                    onChange={(e) =>
+                      updateExercise(index, "rest_seconds", parseInt(e.target.value) || 0)
+                    }
+                    className="h-8 text-sm"
+                  />
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-6 gap-2">
