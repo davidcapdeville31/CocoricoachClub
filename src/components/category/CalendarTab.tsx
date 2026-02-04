@@ -230,7 +230,8 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="global" className="space-y-4">
-        <ColoredSubTabsList colorKey="planification">
+        <div className="flex justify-center">
+          <ColoredSubTabsList colorKey="planification" className="inline-flex w-max">
           <ColoredSubTabsTrigger value="global" colorKey="planification" icon={<CalendarIcon className="h-4 w-4" />}>
             <span className="hidden sm:inline">Calendrier Global</span>
             <span className="sm:hidden">Global</span>
@@ -252,7 +253,8 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
               <span className="sm:hidden">Obj.</span>
             </ColoredSubTabsTrigger>
           )}
-        </ColoredSubTabsList>
+          </ColoredSubTabsList>
+        </div>
 
         <TabsContent value="global">
           <ImprovedCalendarView
