@@ -138,24 +138,30 @@ export function ExerciseLibrarySection() {
                       // Get style based on group
                       const getGroupStyles = (group: string | null) => {
                         switch (group) {
+                          case "halterophilie":
+                            return { border: "border-l-yellow-600", bg: "bg-yellow-50", text: "text-yellow-700" };
                           case "musculation":
                             return { border: "border-l-orange-500", bg: "bg-orange-50", text: "text-orange-700" };
                           case "course":
                             return { border: "border-l-blue-500", bg: "bg-blue-50", text: "text-blue-700" };
                           case "ergo":
                             return { border: "border-l-cyan-500", bg: "bg-cyan-50", text: "text-cyan-700" };
-                          case "poids_corps":
+                          case "bodyweight":
                             return { border: "border-l-purple-500", bg: "bg-purple-50", text: "text-purple-700" };
-                          case "crossfit":
+                          case "crossfit_hyrox":
                             return { border: "border-l-red-500", bg: "bg-red-50", text: "text-red-700" };
                           case "sled":
                             return { border: "border-l-amber-500", bg: "bg-amber-50", text: "text-amber-700" };
                           case "plyometrie":
                             return { border: "border-l-green-500", bg: "bg-green-50", text: "text-green-700" };
-                          case "mobilite":
+                          case "stretching_mobility":
                             return { border: "border-l-teal-500", bg: "bg-teal-50", text: "text-teal-700" };
-                          case "core":
-                            return { border: "border-l-indigo-500", bg: "bg-indigo-50", text: "text-indigo-700" };
+                          case "reathletisation":
+                            return { border: "border-l-emerald-500", bg: "bg-emerald-50", text: "text-emerald-700" };
+                          case "pilates":
+                            return { border: "border-l-pink-500", bg: "bg-pink-50", text: "text-pink-700" };
+                          case "terrain":
+                            return { border: "border-l-green-600", bg: "bg-green-50", text: "text-green-700" };
                           default:
                             return { border: "border-l-muted", bg: "bg-muted/30", text: "text-muted-foreground" };
                         }
