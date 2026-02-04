@@ -1,59 +1,14 @@
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { ClipboardCheck, Users, FileSpreadsheet, History, FileText } from "lucide-react";
+import { ClipboardCheck, Users, FileSpreadsheet, Mail, FileText } from "lucide-react";
 import { AttendanceTab } from "@/components/category/attendance/AttendanceTab";
 import { CategoryCollaborationTab } from "@/components/category/CategoryCollaborationTab";
 import { MedicalRecordsTab } from "@/components/health/MedicalRecordsTab";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MatchSheetsSection } from "@/components/category/admin/MatchSheetsSection";
+import { ConvocationsSection } from "@/components/category/admin/ConvocationsSection";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 
 interface AdminTabProps {
   categoryId: string;
-}
-
-function ConvocationsSection({ categoryId }: { categoryId: string }) {
-  return (
-    <Card className="bg-gradient-card shadow-md">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileSpreadsheet className="h-5 w-5 text-primary" />
-          Convocations
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground text-sm">
-          Gérez les convocations pour les matchs et regroupements. Créez des groupes, exportez des listes.
-        </p>
-        <div className="mt-4 p-8 border-2 border-dashed border-muted-foreground/20 rounded-lg text-center">
-          <p className="text-muted-foreground">
-            Fonctionnalité à venir — Convocations de joueurs pour matchs et compétitions
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function AuditSection({ categoryId }: { categoryId: string }) {
-  return (
-    <Card className="bg-gradient-card shadow-md">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <History className="h-5 w-5 text-primary" />
-          Journal d'activité
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground text-sm">
-          Historique des actions effectuées dans cette catégorie (modifications, suppressions, ajouts).
-        </p>
-        <div className="mt-4 p-8 border-2 border-dashed border-muted-foreground/20 rounded-lg text-center">
-          <p className="text-muted-foreground">
-            Fonctionnalité à venir — Suivi des modifications et audits
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  );
 }
 
 export function AdminTab({ categoryId }: AdminTabProps) {
@@ -70,36 +25,36 @@ export function AdminTab({ categoryId }: AdminTabProps) {
             <span className="sm:hidden">Prés</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
-            value="staff" 
+            value="matchsheets" 
             colorKey="admin"
-            icon={<Users className="h-4 w-4" />}
+            icon={<FileSpreadsheet className="h-4 w-4" />}
           >
-            <span className="hidden sm:inline">Staff & Rôles</span>
-            <span className="sm:hidden">Staff</span>
+            <span className="hidden sm:inline">Feuilles de Match</span>
+            <span className="sm:hidden">Feuilles</span>
+          </ColoredSubTabsTrigger>
+          <ColoredSubTabsTrigger 
+            value="convocations" 
+            colorKey="admin"
+            icon={<Mail className="h-4 w-4" />}
+          >
+            <span className="hidden sm:inline">Convocations</span>
+            <span className="sm:hidden">Convoc</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
             value="medical" 
             colorKey="admin"
             icon={<FileText className="h-4 w-4" />}
           >
-            <span className="hidden sm:inline">Suivi Médical</span>
-            <span className="sm:hidden">Médical</span>
+            <span className="hidden sm:inline">Certificats Médicaux</span>
+            <span className="sm:hidden">Certif</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
-            value="convocations" 
+            value="staff" 
             colorKey="admin"
-            icon={<FileSpreadsheet className="h-4 w-4" />}
+            icon={<Users className="h-4 w-4" />}
           >
-            <span className="hidden sm:inline">Convocations</span>
-            <span className="sm:hidden">Convoc</span>
-          </ColoredSubTabsTrigger>
-          <ColoredSubTabsTrigger 
-            value="audit" 
-            colorKey="admin"
-            icon={<History className="h-4 w-4" />}
-          >
-            <span className="hidden sm:inline">Journal</span>
-            <span className="sm:hidden">Log</span>
+            <span className="hidden sm:inline">Staff & Rôles</span>
+            <span className="sm:hidden">Staff</span>
           </ColoredSubTabsTrigger>
         </ColoredSubTabsList>
       </div>
@@ -108,20 +63,20 @@ export function AdminTab({ categoryId }: AdminTabProps) {
         <AttendanceTab categoryId={categoryId} />
       </TabsContent>
 
-      <TabsContent value="staff">
-        <CategoryCollaborationTab categoryId={categoryId} />
-      </TabsContent>
-
-      <TabsContent value="medical">
-        <MedicalRecordsTab categoryId={categoryId} />
+      <TabsContent value="matchsheets">
+        <MatchSheetsSection categoryId={categoryId} />
       </TabsContent>
 
       <TabsContent value="convocations">
         <ConvocationsSection categoryId={categoryId} />
       </TabsContent>
 
-      <TabsContent value="audit">
-        <AuditSection categoryId={categoryId} />
+      <TabsContent value="medical">
+        <MedicalRecordsTab categoryId={categoryId} />
+      </TabsContent>
+
+      <TabsContent value="staff">
+        <CategoryCollaborationTab categoryId={categoryId} />
       </TabsContent>
     </Tabs>
   );

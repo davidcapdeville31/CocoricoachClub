@@ -4,15 +4,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { ClipboardCheck, Calendar, Users, TrendingUp, ChevronRight } from "lucide-react";
-import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { ClipboardCheck, Calendar, Users, TrendingUp, ChevronRight, Filter, Clock, AlertCircle, CheckCircle } from "lucide-react";
+import { format, startOfMonth, endOfMonth, subMonths, isWithinInterval, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { SessionAttendanceDialog } from "./SessionAttendanceDialog";
 import { PostSessionRpeDialog } from "./PostSessionRpeDialog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface AttendanceTabProps {
   categoryId: string;
@@ -24,6 +27,13 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [rpeDialogOpen, setRpeDialogOpen] = useState(false);
   const [presentPlayerIds, setPresentPlayerIds] = useState<string[]>([]);
+  
+  // Date range filter
+  const [startDate, setStartDate] = useState(() => {
+    const date = subMonths(new Date(), 1);
+    return format(date, "yyyy-MM-dd");
+  });
+  const [endDate, setEndDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
 
   // Fetch recent sessions
   const { data: sessions } = useQuery({
@@ -34,7 +44,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
         .select("*")
         .eq("category_id", categoryId)
         .order("session_date", { ascending: false })
-        .limit(30);
+        .limit(100);
       if (error) throw error;
       return data;
     },
@@ -68,11 +78,31 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     },
   });
 
-  // Calculate stats per player
+  // Filter sessions by date range
+  const filteredSessions = sessions?.filter((session) => {
+    const sessionDate = parseISO(session.session_date);
+    return isWithinInterval(sessionDate, {
+      start: parseISO(startDate),
+      end: parseISO(endDate),
+    });
+  });
+
+  // Filter attendance by date range
+  const filteredAttendance = attendance?.filter((a) => {
+    const attendanceDate = parseISO(a.attendance_date);
+    return isWithinInterval(attendanceDate, {
+      start: parseISO(startDate),
+      end: parseISO(endDate),
+    });
+  });
+
+  // Calculate stats per player with date filtering
   const playerStats = players?.map((player) => {
-    const playerAttendance = attendance?.filter((a) => a.player_id === player.id) || [];
+    const playerAttendance = filteredAttendance?.filter((a) => a.player_id === player.id) || [];
     const present = playerAttendance.filter((a) => a.status === "present").length;
     const late = playerAttendance.filter((a) => a.status === "late").length;
+    const lateJustified = playerAttendance.filter((a) => a.status === "late" && a.late_justified).length;
+    const lateUnjustified = late - lateJustified;
     const absent = playerAttendance.filter((a) => a.status === "absent").length;
     const excused = playerAttendance.filter((a) => a.status === "excused").length;
     const total = playerAttendance.length;
@@ -82,6 +112,8 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
       ...player,
       present,
       late,
+      lateJustified,
+      lateUnjustified,
       absent,
       excused,
       total,
@@ -104,7 +136,6 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
 
   const handleAttendanceSaved = (playerIds: string[]) => {
     setPresentPlayerIds(playerIds);
-    // Open RPE dialog after a small delay to let the attendance dialog close
     setTimeout(() => {
       setRpeDialogOpen(true);
     }, 100);
@@ -136,18 +167,85 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   };
 
   // Calculate overall stats
-  const totalSessions = sessions?.length || 0;
-  const sessionsWithAttendance = sessions?.filter(
+  const totalFilteredSessions = filteredSessions?.length || 0;
+  const sessionsWithAttendance = filteredSessions?.filter(
     (s) => getSessionAttendanceCount(s.id, s.session_date) > 0
   ).length || 0;
   const averageRate = playerStats?.length 
     ? Math.round(playerStats.reduce((acc, p) => acc + p.rate, 0) / playerStats.length)
     : 0;
 
+  // Total late stats
+  const totalLate = playerStats?.reduce((acc, p) => acc + p.late, 0) || 0;
+  const totalLateJustified = playerStats?.reduce((acc, p) => acc + p.lateJustified, 0) || 0;
+  const totalLateUnjustified = totalLate - totalLateJustified;
+
+  const setDatePreset = (preset: string) => {
+    const now = new Date();
+    switch (preset) {
+      case "week":
+        setStartDate(format(subMonths(now, 0), "yyyy-MM-dd").replace(/-\d{2}$/, "-" + String(now.getDate() - 7).padStart(2, "0")));
+        break;
+      case "month":
+        setStartDate(format(startOfMonth(now), "yyyy-MM-dd"));
+        break;
+      case "3months":
+        setStartDate(format(subMonths(now, 3), "yyyy-MM-dd"));
+        break;
+      case "season":
+        // Assume season starts in September
+        const seasonStart = new Date(now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1, 8, 1);
+        setStartDate(format(seasonStart, "yyyy-MM-dd"));
+        break;
+    }
+    setEndDate(format(now, "yyyy-MM-dd"));
+  };
+
   return (
     <div className="space-y-6">
+      {/* Date Range Filter */}
+      <Card>
+        <CardContent className="py-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Période :</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-40"
+              />
+              <span className="text-muted-foreground">au</span>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-40"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setDatePreset("week")}>
+                7 jours
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setDatePreset("month")}>
+                Ce mois
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setDatePreset("3months")}>
+                3 mois
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setDatePreset("season")}>
+                Saison
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -156,7 +254,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Séances</p>
-                <p className="text-2xl font-bold">{sessionsWithAttendance}/{totalSessions}</p>
+                <p className="text-2xl font-bold">{sessionsWithAttendance}/{totalFilteredSessions}</p>
               </div>
             </div>
           </CardContent>
@@ -187,6 +285,25 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
             </div>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Clock className="h-5 w-5 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Retards</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold text-orange-600">{totalLate}</span>
+                  <div className="text-xs">
+                    <div className="text-green-600">✓ {totalLateJustified}</div>
+                    <div className="text-red-600">✗ {totalLateUnjustified}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue="sessions" className="space-y-4">
@@ -206,20 +323,20 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ClipboardCheck className="h-5 w-5" />
-                Séances récentes
+                Séances ({totalFilteredSessions})
               </CardTitle>
               <CardDescription>
                 Cliquez sur une séance pour faire l'appel
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {!sessions || sessions.length === 0 ? (
+              {!filteredSessions || filteredSessions.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">
-                  Aucune séance programmée
+                  Aucune séance sur cette période
                 </p>
               ) : (
                 <div className="space-y-2">
-                  {sessions.map((session) => {
+                  {filteredSessions.map((session) => {
                     const attendanceCount = getSessionAttendanceCount(session.id, session.session_date);
                     const hasAttendance = attendanceCount > 0;
                     const isToday = session.session_date === format(new Date(), "yyyy-MM-dd");
@@ -286,7 +403,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                 Statistiques par joueur
               </CardTitle>
               <CardDescription>
-                Taux de présence basé sur toutes les séances enregistrées
+                Du {format(parseISO(startDate), "dd/MM/yyyy")} au {format(parseISO(endDate), "dd/MM/yyyy")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -301,7 +418,12 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                       <TableRow>
                         <TableHead>Joueur</TableHead>
                         <TableHead className="text-center">Présent</TableHead>
-                        <TableHead className="text-center">Retard</TableHead>
+                        <TableHead className="text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            Retards
+                          </div>
+                        </TableHead>
                         <TableHead className="text-center">Excusé</TableHead>
                         <TableHead className="text-center">Absent</TableHead>
                         <TableHead className="text-center">Taux</TableHead>
@@ -319,11 +441,33 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-center text-green-600 font-medium">
-                            {player.present}
+                          <TableCell className="text-center">
+                            <span className="text-green-600 font-medium">{player.present}</span>
                           </TableCell>
-                          <TableCell className="text-center text-orange-600 font-medium">
-                            {player.late}
+                          <TableCell className="text-center">
+                            {player.late > 0 ? (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-auto p-1">
+                                    <span className="text-orange-600 font-medium">{player.late}</span>
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-2">
+                                  <div className="space-y-1 text-sm">
+                                    <div className="flex items-center gap-2 text-green-600">
+                                      <CheckCircle className="h-3 w-3" />
+                                      Justifiés: {player.lateJustified}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-red-600">
+                                      <AlertCircle className="h-3 w-3" />
+                                      Non justifiés: {player.lateUnjustified}
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            ) : (
+                              <span className="text-muted-foreground">0</span>
+                            )}
                           </TableCell>
                           <TableCell className="text-center text-amber-600 font-medium">
                             {player.excused}

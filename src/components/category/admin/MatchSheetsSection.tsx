@@ -1,0 +1,608 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { toast } from "sonner";
+import { Plus, FileSpreadsheet, Users, Star, Clock, MapPin, Trash2, Edit, Send, Check } from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+
+interface MatchSheetsSectionProps {
+  categoryId: string;
+}
+
+export function MatchSheetsSection({ categoryId }: MatchSheetsSectionProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingSheet, setEditingSheet] = useState<any>(null);
+  const [name, setName] = useState("");
+  const [sheetDate, setSheetDate] = useState(new Date().toISOString().split("T")[0]);
+  const [opponent, setOpponent] = useState("");
+  const [location, setLocation] = useState("");
+  const [matchTime, setMatchTime] = useState("");
+  const [notes, setNotes] = useState("");
+  const [matchId, setMatchId] = useState<string>("");
+  const [selectedPlayers, setSelectedPlayers] = useState<Record<string, {
+    selected: boolean;
+    isStarter: boolean;
+    isCaptain: boolean;
+    jerseyNumber: number;
+    position: string;
+  }>>({});
+  
+  const queryClient = useQueryClient();
+
+  // Fetch match sheets
+  const { data: matchSheets, isLoading } = useQuery({
+    queryKey: ["match_sheets", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("match_sheets")
+        .select("*, match_sheet_players(*, players(name, position))")
+        .eq("category_id", categoryId)
+        .order("sheet_date", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch players
+  const { data: players } = useQuery({
+    queryKey: ["players", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("id, name, position")
+        .eq("category_id", categoryId)
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch upcoming matches
+  const { data: matches } = useQuery({
+    queryKey: ["upcoming_matches", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("matches")
+        .select("*")
+        .eq("category_id", categoryId)
+        .gte("match_date", new Date().toISOString().split("T")[0])
+        .order("match_date", { ascending: true })
+        .limit(20);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const resetForm = () => {
+    setName("");
+    setSheetDate(new Date().toISOString().split("T")[0]);
+    setOpponent("");
+    setLocation("");
+    setMatchTime("");
+    setNotes("");
+    setMatchId("");
+    setSelectedPlayers({});
+    setEditingSheet(null);
+  };
+
+  const openDialog = (sheet?: any) => {
+    if (sheet) {
+      setEditingSheet(sheet);
+      setName(sheet.name);
+      setSheetDate(sheet.sheet_date);
+      setOpponent(sheet.opponent || "");
+      setLocation(sheet.location || "");
+      setMatchTime(sheet.match_time || "");
+      setNotes(sheet.notes || "");
+      setMatchId(sheet.match_id || "");
+      
+      // Initialize selected players from existing sheet
+      const playersMap: Record<string, any> = {};
+      sheet.match_sheet_players?.forEach((msp: any) => {
+        playersMap[msp.player_id] = {
+          selected: true,
+          isStarter: msp.is_starter,
+          isCaptain: msp.is_captain,
+          jerseyNumber: msp.jersey_number || 0,
+          position: msp.position || "",
+        };
+      });
+      setSelectedPlayers(playersMap);
+    } else {
+      resetForm();
+      // Initialize with all players deselected
+      const playersMap: Record<string, any> = {};
+      players?.forEach((p) => {
+        playersMap[p.id] = {
+          selected: false,
+          isStarter: true,
+          isCaptain: false,
+          jerseyNumber: 0,
+          position: p.position || "",
+        };
+      });
+      setSelectedPlayers(playersMap);
+    }
+    setIsDialogOpen(true);
+  };
+
+  const saveMatchSheet = useMutation({
+    mutationFn: async () => {
+      const sheetData = {
+        category_id: categoryId,
+        name,
+        sheet_date: sheetDate,
+        opponent: opponent || null,
+        location: location || null,
+        match_time: matchTime || null,
+        notes: notes || null,
+        match_id: matchId || null,
+        status: editingSheet?.status || "draft",
+      };
+
+      let sheetId: string;
+
+      if (editingSheet) {
+        const { error } = await supabase
+          .from("match_sheets")
+          .update(sheetData)
+          .eq("id", editingSheet.id);
+        if (error) throw error;
+        sheetId = editingSheet.id;
+
+        // Delete existing players
+        await supabase
+          .from("match_sheet_players")
+          .delete()
+          .eq("match_sheet_id", sheetId);
+      } else {
+        const { data, error } = await supabase
+          .from("match_sheets")
+          .insert(sheetData)
+          .select()
+          .single();
+        if (error) throw error;
+        sheetId = data.id;
+      }
+
+      // Insert selected players
+      const playersToInsert = Object.entries(selectedPlayers)
+        .filter(([_, data]) => data.selected)
+        .map(([playerId, data], index) => ({
+          match_sheet_id: sheetId,
+          player_id: playerId,
+          is_starter: data.isStarter,
+          is_captain: data.isCaptain,
+          jersey_number: data.jerseyNumber || null,
+          position: data.position || null,
+          order_index: index,
+        }));
+
+      if (playersToInsert.length > 0) {
+        const { error: playersError } = await supabase
+          .from("match_sheet_players")
+          .insert(playersToInsert);
+        if (playersError) throw playersError;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["match_sheets"] });
+      toast.success(editingSheet ? "Feuille de match mise à jour" : "Feuille de match créée");
+      setIsDialogOpen(false);
+      resetForm();
+    },
+    onError: () => {
+      toast.error("Erreur lors de l'enregistrement");
+    },
+  });
+
+  const deleteMatchSheet = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("match_sheets")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["match_sheets"] });
+      toast.success("Feuille de match supprimée");
+    },
+  });
+
+  const updateStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { error } = await supabase
+        .from("match_sheets")
+        .update({ status })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["match_sheets"] });
+      toast.success("Statut mis à jour");
+    },
+  });
+
+  const togglePlayer = (playerId: string) => {
+    setSelectedPlayers({
+      ...selectedPlayers,
+      [playerId]: {
+        ...selectedPlayers[playerId],
+        selected: !selectedPlayers[playerId]?.selected,
+      },
+    });
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "draft":
+        return <Badge variant="outline">Brouillon</Badge>;
+      case "sent":
+        return <Badge className="bg-blue-100 text-blue-700">Envoyée</Badge>;
+      case "confirmed":
+        return <Badge className="bg-green-100 text-green-700">Confirmée</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const selectedCount = Object.values(selectedPlayers).filter((p) => p.selected).length;
+  const startersCount = Object.values(selectedPlayers).filter((p) => p.selected && p.isStarter).length;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <FileSpreadsheet className="h-5 w-5 text-primary" />
+            Feuilles de Match
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Créez et gérez les compositions d'équipe pour les matchs
+          </p>
+        </div>
+        <Button onClick={() => openDialog()}>
+          <Plus className="h-4 w-4 mr-2" />
+          Nouvelle feuille
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <Card>
+          <CardContent className="py-8 text-center text-muted-foreground">
+            Chargement...
+          </CardContent>
+        </Card>
+      ) : matchSheets && matchSheets.length > 0 ? (
+        <div className="grid gap-4">
+          {matchSheets.map((sheet) => (
+            <Card key={sheet.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="font-semibold">{sheet.name}</h4>
+                      {getStatusBadge(sheet.status)}
+                    </div>
+                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5" />
+                        {format(new Date(sheet.sheet_date), "dd/MM/yyyy", { locale: fr })}
+                        {sheet.match_time && ` à ${sheet.match_time.slice(0, 5)}`}
+                      </span>
+                      {sheet.opponent && (
+                        <span>vs {sheet.opponent}</span>
+                      )}
+                      {sheet.location && (
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-3.5 w-3.5" />
+                          {sheet.location}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant="secondary">
+                        <Users className="h-3 w-3 mr-1" />
+                        {sheet.match_sheet_players?.length || 0} joueurs
+                      </Badge>
+                      <Badge variant="outline">
+                        {sheet.match_sheet_players?.filter((p: any) => p.is_starter).length || 0} titulaires
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    {sheet.status === "draft" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateStatus.mutate({ id: sheet.id, status: "sent" })}
+                      >
+                        <Send className="h-4 w-4 mr-1" />
+                        Envoyer
+                      </Button>
+                    )}
+                    {sheet.status === "sent" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateStatus.mutate({ id: sheet.id, status: "confirmed" })}
+                      >
+                        <Check className="h-4 w-4 mr-1" />
+                        Confirmer
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => openDialog(sheet)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive"
+                      onClick={() => deleteMatchSheet.mutate(sheet.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="py-8 text-center text-muted-foreground">
+            <FileSpreadsheet className="h-12 w-12 mx-auto mb-3 opacity-50" />
+            <p>Aucune feuille de match créée</p>
+            <Button className="mt-4" onClick={() => openDialog()}>
+              <Plus className="h-4 w-4 mr-2" />
+              Créer une feuille
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Create/Edit Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>
+              {editingSheet ? "Modifier la feuille de match" : "Nouvelle feuille de match"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+            {/* Basic info */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2 col-span-2">
+                <Label>Nom de la feuille *</Label>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Ex: Match J5 vs Racing"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Date du match</Label>
+                <Input
+                  type="date"
+                  value={sheetDate}
+                  onChange={(e) => setSheetDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Heure</Label>
+                <Input
+                  type="time"
+                  value={matchTime}
+                  onChange={(e) => setMatchTime(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Adversaire</Label>
+                <Input
+                  value={opponent}
+                  onChange={(e) => setOpponent(e.target.value)}
+                  placeholder="Nom de l'équipe adverse"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Lieu</Label>
+                <Input
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="Stade / Complexe"
+                />
+              </div>
+            </div>
+
+            {matches && matches.length > 0 && (
+              <div className="space-y-2">
+                <Label>Lier à un match existant</Label>
+                <Select value={matchId} onValueChange={setMatchId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un match (optionnel)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Aucun</SelectItem>
+                    {matches.map((match) => (
+                      <SelectItem key={match.id} value={match.id}>
+                        {format(new Date(match.match_date), "dd/MM")} - {match.opponent}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label>Notes</Label>
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Instructions, consignes..."
+                rows={2}
+              />
+            </div>
+
+            {/* Player selection */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Sélection des joueurs</Label>
+                <div className="flex gap-2 text-sm">
+                  <Badge variant="secondary">{selectedCount} sélectionnés</Badge>
+                  <Badge variant="outline">{startersCount} titulaires</Badge>
+                </div>
+              </div>
+              <Card>
+                <ScrollArea className="h-[300px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12"></TableHead>
+                        <TableHead>Joueur</TableHead>
+                        <TableHead className="w-20">N°</TableHead>
+                        <TableHead className="w-24">Poste</TableHead>
+                        <TableHead className="w-24 text-center">Titulaire</TableHead>
+                        <TableHead className="w-24 text-center">Capitaine</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {players?.map((player) => {
+                        const playerData = selectedPlayers[player.id] || {
+                          selected: false,
+                          isStarter: true,
+                          isCaptain: false,
+                          jerseyNumber: 0,
+                          position: player.position || "",
+                        };
+                        
+                        return (
+                          <TableRow 
+                            key={player.id}
+                            className={playerData.selected ? "bg-primary/5" : ""}
+                          >
+                            <TableCell>
+                              <Checkbox
+                                checked={playerData.selected}
+                                onCheckedChange={() => togglePlayer(player.id)}
+                              />
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {player.name}
+                              {playerData.isCaptain && (
+                                <Star className="h-3 w-3 inline ml-1 text-yellow-500 fill-yellow-500" />
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                type="number"
+                                className="w-16 h-8"
+                                value={playerData.jerseyNumber || ""}
+                                onChange={(e) => setSelectedPlayers({
+                                  ...selectedPlayers,
+                                  [player.id]: {
+                                    ...playerData,
+                                    jerseyNumber: parseInt(e.target.value) || 0,
+                                  },
+                                })}
+                                disabled={!playerData.selected}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                className="w-20 h-8"
+                                value={playerData.position}
+                                onChange={(e) => setSelectedPlayers({
+                                  ...selectedPlayers,
+                                  [player.id]: {
+                                    ...playerData,
+                                    position: e.target.value,
+                                  },
+                                })}
+                                placeholder={player.position || ""}
+                                disabled={!playerData.selected}
+                              />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Checkbox
+                                checked={playerData.isStarter}
+                                onCheckedChange={(checked) => setSelectedPlayers({
+                                  ...selectedPlayers,
+                                  [player.id]: {
+                                    ...playerData,
+                                    isStarter: !!checked,
+                                  },
+                                })}
+                                disabled={!playerData.selected}
+                              />
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Checkbox
+                                checked={playerData.isCaptain}
+                                onCheckedChange={(checked) => {
+                                  // Only one captain allowed
+                                  const updated = { ...selectedPlayers };
+                                  Object.keys(updated).forEach((id) => {
+                                    updated[id] = { ...updated[id], isCaptain: false };
+                                  });
+                                  updated[player.id] = { ...playerData, isCaptain: !!checked };
+                                  setSelectedPlayers(updated);
+                                }}
+                                disabled={!playerData.selected}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </Card>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button 
+              onClick={() => saveMatchSheet.mutate()}
+              disabled={!name || saveMatchSheet.isPending}
+            >
+              {editingSheet ? "Mettre à jour" : "Créer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

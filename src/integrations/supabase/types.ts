@@ -912,6 +912,130 @@ export type Database = {
           },
         ]
       }
+      convocation_recipients: {
+        Row: {
+          convocation_id: string
+          created_at: string
+          id: string
+          notified_at: string | null
+          player_id: string
+          response: string | null
+          response_date: string | null
+          response_reason: string | null
+        }
+        Insert: {
+          convocation_id: string
+          created_at?: string
+          id?: string
+          notified_at?: string | null
+          player_id: string
+          response?: string | null
+          response_date?: string | null
+          response_reason?: string | null
+        }
+        Update: {
+          convocation_id?: string
+          created_at?: string
+          id?: string
+          notified_at?: string | null
+          player_id?: string
+          response?: string | null
+          response_date?: string | null
+          response_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "convocation_recipients_convocation_id_fkey"
+            columns: ["convocation_id"]
+            isOneToOne: false
+            referencedRelation: "convocations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "convocation_recipients_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      convocations: {
+        Row: {
+          category_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          event_date: string
+          event_time: string | null
+          event_type: string
+          id: string
+          location: string | null
+          match_id: string | null
+          name: string
+          response_deadline: string | null
+          status: string | null
+          training_session_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_date: string
+          event_time?: string | null
+          event_type: string
+          id?: string
+          location?: string | null
+          match_id?: string | null
+          name: string
+          response_deadline?: string | null
+          status?: string | null
+          training_session_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_date?: string
+          event_time?: string | null
+          event_type?: string
+          id?: string
+          location?: string | null
+          match_id?: string | null
+          name?: string
+          response_deadline?: string | null
+          status?: string | null
+          training_session_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "convocations_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "convocations_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "convocations_training_session_id_fkey"
+            columns: ["training_session_id"]
+            isOneToOne: false
+            referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_stats: {
         Row: {
           category_id: string
@@ -1703,6 +1827,123 @@ export type Database = {
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_sheet_players: {
+        Row: {
+          created_at: string
+          id: string
+          is_captain: boolean | null
+          is_starter: boolean | null
+          jersey_number: number | null
+          match_sheet_id: string
+          notes: string | null
+          order_index: number | null
+          player_id: string
+          position: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_captain?: boolean | null
+          is_starter?: boolean | null
+          jersey_number?: number | null
+          match_sheet_id: string
+          notes?: string | null
+          order_index?: number | null
+          player_id: string
+          position?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_captain?: boolean | null
+          is_starter?: boolean | null
+          jersey_number?: number | null
+          match_sheet_id?: string
+          notes?: string | null
+          order_index?: number | null
+          player_id?: string
+          position?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_sheet_players_match_sheet_id_fkey"
+            columns: ["match_sheet_id"]
+            isOneToOne: false
+            referencedRelation: "match_sheets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_sheet_players_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_sheets: {
+        Row: {
+          category_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          location: string | null
+          match_id: string | null
+          match_time: string | null
+          name: string
+          notes: string | null
+          opponent: string | null
+          sheet_date: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          location?: string | null
+          match_id?: string | null
+          match_time?: string | null
+          name: string
+          notes?: string | null
+          opponent?: string | null
+          sheet_date?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          location?: string | null
+          match_id?: string | null
+          match_time?: string | null
+          name?: string
+          notes?: string | null
+          opponent?: string | null
+          sheet_date?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_sheets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_sheets_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
             referencedColumns: ["id"]
           },
         ]
@@ -5008,6 +5249,9 @@ export type Database = {
           category_id: string
           created_at: string
           id: string
+          late_justified: boolean | null
+          late_minutes: number | null
+          late_reason: string | null
           player_id: string
           status: string
           training_session_id: string | null
@@ -5018,6 +5262,9 @@ export type Database = {
           category_id: string
           created_at?: string
           id?: string
+          late_justified?: boolean | null
+          late_minutes?: number | null
+          late_reason?: string | null
           player_id: string
           status?: string
           training_session_id?: string | null
@@ -5028,6 +5275,9 @@ export type Database = {
           category_id?: string
           created_at?: string
           id?: string
+          late_justified?: boolean | null
+          late_minutes?: number | null
+          late_reason?: string | null
           player_id?: string
           status?: string
           training_session_id?: string | null
