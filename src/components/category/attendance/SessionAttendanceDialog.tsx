@@ -55,6 +55,8 @@ const WELLNESS_LABELS = {
 interface PlayerAttendanceData {
   status: string;
   reason: string;
+  lateMinutes: number;
+  lateJustified: boolean;
   wellnessEnabled: boolean;
   wellness: {
     sleepQuality: number;
@@ -137,7 +139,9 @@ export function SessionAttendanceDialog({
         
         initial[p.id] = {
           status: existingAtt?.status || "present",
-          reason: existingAtt?.absence_reason || "",
+          reason: existingAtt?.absence_reason || existingAtt?.late_reason || "",
+          lateMinutes: existingAtt?.late_minutes || 0,
+          lateJustified: existingAtt?.late_justified || false,
           wellnessEnabled: !!existingWell,
           wellness: {
             sleepQuality: existingWell?.sleep_quality || 3,
@@ -175,6 +179,9 @@ export function SessionAttendanceDialog({
         training_session_id: session.id,
         status: data.status,
         absence_reason: data.status !== "present" ? data.reason : null,
+        late_minutes: data.status === "late" ? data.lateMinutes : null,
+        late_justified: data.status === "late" ? data.lateJustified : null,
+        late_reason: data.status === "late" ? data.reason : null,
       }));
 
       const { error: attError } = await supabase.from("training_attendance").insert(attendanceEntries);
@@ -238,7 +245,9 @@ export function SessionAttendanceDialog({
       updated[p.id] = { 
         ...attendance[p.id], 
         status, 
-        reason: attendance[p.id]?.reason || "" 
+        reason: attendance[p.id]?.reason || "",
+        lateMinutes: attendance[p.id]?.lateMinutes || 0,
+        lateJustified: attendance[p.id]?.lateJustified || false,
       };
     });
     setAttendance(updated);
@@ -367,6 +376,8 @@ export function SessionAttendanceDialog({
               const playerData = attendance[player.id] || { 
                 status: "present", 
                 reason: "", 
+                lateMinutes: 0,
+                lateJustified: false,
                 wellnessEnabled: false,
                 wellness: {
                   sleepQuality: 3,
@@ -452,8 +463,55 @@ export function SessionAttendanceDialog({
                       </div>
                     </div>
 
-                    {/* Absence reason */}
-                    {!isPresent && (
+                    {/* Late details */}
+                    {playerData.status === "late" && (
+                      <div className="mt-2 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            placeholder="Minutes de retard"
+                            value={playerData.lateMinutes || ""}
+                            onChange={(e) =>
+                              setAttendance({
+                                ...attendance,
+                                [player.id]: { ...playerData, lateMinutes: parseInt(e.target.value) || 0 },
+                              })
+                            }
+                            className="w-32 bg-background"
+                          />
+                          <span className="text-sm text-muted-foreground">min</span>
+                          <div className="flex items-center gap-2 ml-4">
+                            <Switch
+                              id={`justified-${player.id}`}
+                              checked={playerData.lateJustified}
+                              onCheckedChange={(checked) =>
+                                setAttendance({
+                                  ...attendance,
+                                  [player.id]: { ...playerData, lateJustified: checked },
+                                })
+                              }
+                            />
+                            <Label htmlFor={`justified-${player.id}`} className="text-sm">
+                              {playerData.lateJustified ? "Justifié ✓" : "Non justifié"}
+                            </Label>
+                          </div>
+                        </div>
+                        <Input
+                          placeholder="Raison du retard (optionnel)..."
+                          value={playerData.reason}
+                          onChange={(e) =>
+                            setAttendance({
+                              ...attendance,
+                              [player.id]: { ...playerData, reason: e.target.value },
+                            })
+                          }
+                          className="bg-background"
+                        />
+                      </div>
+                    )}
+
+                    {/* Absence/Excused reason */}
+                    {(playerData.status === "absent" || playerData.status === "excused") && (
                       <div className="mt-2">
                         <Input
                           placeholder="Raison (optionnel)..."
@@ -464,7 +522,7 @@ export function SessionAttendanceDialog({
                               [player.id]: { ...playerData, reason: e.target.value },
                             })
                           }
-                          className="bg-white"
+                          className="bg-background"
                         />
                       </div>
                     )}
