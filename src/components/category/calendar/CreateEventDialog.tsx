@@ -162,12 +162,13 @@ export function CreateEventDialog({
     const eventType = EVENT_TYPES.find(t => t.id === typeId);
     
     if (eventType?.useExistingDialog) {
+      // Just call the callbacks - parent handles the timing/deferral
+      resetForm();
       if (typeId === "session" || typeId === "test") {
         onAddSession();
       } else if (typeId === "match") {
         onAddMatch();
       }
-      handleClose(false);
     } else {
       setSelectedType(typeId);
       setStep("details");
