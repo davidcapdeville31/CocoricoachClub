@@ -5225,6 +5225,50 @@ export type Database = {
           },
         ]
       }
+      training_session_blocks: {
+        Row: {
+          block_order: number
+          created_at: string
+          end_time: string | null
+          id: string
+          intensity: number | null
+          notes: string | null
+          start_time: string | null
+          training_session_id: string
+          training_type: string
+        }
+        Insert: {
+          block_order?: number
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          intensity?: number | null
+          notes?: string | null
+          start_time?: string | null
+          training_session_id: string
+          training_type: string
+        }
+        Update: {
+          block_order?: number
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          intensity?: number | null
+          notes?: string | null
+          start_time?: string | null
+          training_session_id?: string
+          training_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_session_blocks_training_session_id_fkey"
+            columns: ["training_session_id"]
+            isOneToOne: false
+            referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_sessions: {
         Row: {
           category_id: string

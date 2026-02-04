@@ -34,6 +34,8 @@ import { EXERCISE_CATEGORIES, getCategoryLabel, getCategoriesForSport, isCategor
 import { getTrainingTypesForSport, trainingTypeHasExercises } from "@/lib/constants/trainingTypes";
 import { QuickAddExerciseDialog } from "@/components/library/QuickAddExerciseDialog";
 import { SessionGpsImport, type GpsPlayerData } from "@/components/category/gps/SessionGpsImport";
+import { SessionBlocksManager, type SessionBlock } from "@/components/category/sessions/SessionBlocksManager";
+
 interface AddSessionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -84,6 +86,7 @@ export function AddSessionDialog({
   const [showLibraryFor, setShowLibraryFor] = useState<number | null>(null);
   const [showAddExerciseDialog, setShowAddExerciseDialog] = useState(false);
   const [gpsData, setGpsData] = useState<GpsPlayerData[]>([]);
+  const [sessionBlocks, setSessionBlocks] = useState<SessionBlock[]>([]);
   const queryClient = useQueryClient();
   const exercisesSectionRef = useRef<HTMLDivElement | null>(null);
 
@@ -172,7 +175,12 @@ export function AddSessionDialog({
 
   const addSession = useMutation({
     mutationFn: async () => {
-      // Create the session
+      // Create the session - use first block type if blocks exist, otherwise use selected type
+      const mainType = sessionBlocks.length > 0 ? sessionBlocks[0].training_type : type;
+      const mainIntensity = sessionBlocks.length > 0 
+        ? sessionBlocks.reduce((max, b) => Math.max(max, b.intensity || 0), 0)
+        : (intensity ? parseInt(intensity) : null);
+      
       const { data: sessionData, error: sessionError } = await supabase
         .from("training_sessions")
         .insert([{
@@ -180,8 +188,8 @@ export function AddSessionDialog({
           session_date: date,
           session_start_time: startTime || null,
           session_end_time: endTime || null,
-          training_type: type,
-          intensity: intensity ? parseInt(intensity) : null,
+          training_type: mainType || "autre",
+          intensity: mainIntensity,
           notes: notes || null,
         }])
         .select()
@@ -189,12 +197,35 @@ export function AddSessionDialog({
       
       if (sessionError) throw sessionError;
 
+      // If session blocks exist, create them
+      if (sessionBlocks.length > 0) {
+        const blockRecords = sessionBlocks
+          .filter(block => block.training_type)
+          .map((block, idx) => ({
+            training_session_id: sessionData.id,
+            block_order: idx,
+            start_time: block.start_time || null,
+            end_time: block.end_time || null,
+            training_type: block.training_type,
+            intensity: block.intensity,
+            notes: block.notes || null,
+          }));
+
+        if (blockRecords.length > 0) {
+          const { error: blocksError } = await supabase
+            .from("training_session_blocks")
+            .insert(blockRecords);
+          
+          if (blocksError) throw blocksError;
+        }
+      }
+
       // Determine which players to use
       const playersToUse = playerSelectionMode === "specific" && selectedPlayers.length > 0 
         ? selectedPlayers 
         : players?.map(p => p.id) || [];
 
-      // Create attendance records for selected players
+      // Create attendance records for selected players (one attendance per session, not per block!)
       if (playersToUse.length > 0) {
         const attendanceRecords = playersToUse.map(playerId => ({
           player_id: playerId,
@@ -245,7 +276,7 @@ export function AddSessionDialog({
           category_id: categoryId,
           player_id: d.matchedPlayer!.id,
           session_date: date,
-          session_name: type || null,
+          session_name: mainType || null,
           training_session_id: sessionData.id,
           source: 'catapult' as const,
           total_distance_m: d.total_distance_m,
@@ -276,10 +307,15 @@ export function AddSessionDialog({
       queryClient.invalidateQueries({ queryKey: ["training_attendance"] });
       queryClient.invalidateQueries({ queryKey: ["gym-exercises"] });
       queryClient.invalidateQueries({ queryKey: ["gps-sessions", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["session-blocks"] });
+      
       const exerciseCount = exercises.filter(e => e.exercise_name.trim()).length;
       const gpsCount = gpsData.filter(d => d.matchedPlayer).length;
+      const blockCount = sessionBlocks.filter(b => b.training_type).length;
+      
       let message = "Séance ajoutée";
-      if (exerciseCount > 0) message += ` avec ${exerciseCount} exercice(s)`;
+      if (blockCount > 0) message += ` avec ${blockCount} bloc(s)`;
+      if (exerciseCount > 0) message += ` et ${exerciseCount} exercice(s)`;
       if (gpsCount > 0) message += ` et ${gpsCount} données GPS`;
       toast.success(message);
       resetForm();
@@ -304,6 +340,7 @@ export function AddSessionDialog({
     setSearchQuery("");
     setShowLibraryFor(null);
     setGpsData([]);
+    setSessionBlocks([]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -319,11 +356,14 @@ export function AddSessionDialog({
       return;
     }
     
+    // Validate: either blocks with valid types OR a single type
+    const hasValidBlocks = sessionBlocks.length > 0 && sessionBlocks.some(b => b.training_type);
     const hasValidType = type && type.trim().length > 0;
-    if (date && hasValidType) {
+    
+    if (date && (hasValidBlocks || hasValidType)) {
       addSession.mutate();
-    } else if (!hasValidType) {
-      toast.error("Veuillez sélectionner ou saisir un type d'entraînement");
+    } else if (!hasValidType && !hasValidBlocks) {
+      toast.error("Veuillez sélectionner un type d'entraînement ou ajouter des blocs thématiques");
     }
   };
 
@@ -434,30 +474,45 @@ export function AddSessionDialog({
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="type">Type d'entraînement *</Label>
-                <CustomTrainingTypeSelect
-                  value={type}
-                  onValueChange={handleTypeChange}
-                  sportType={sportType}
-                  categoryId={categoryId}
-                  showExerciseIcon={true}
-                  placeholder="Sélectionner un type"
-                />
-              </div>
+              {/* Session Blocks Manager - for multi-theme sessions */}
+              <SessionBlocksManager
+                blocks={sessionBlocks}
+                onBlocksChange={setSessionBlocks}
+                sportType={sportType}
+                categoryId={categoryId}
+                sessionStartTime={startTime}
+                sessionEndTime={endTime}
+              />
 
-              <div className="space-y-2">
-                <Label htmlFor="intensity">Intensité (1-10)</Label>
-                <Input
-                  id="intensity"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={intensity}
-                  onChange={(e) => setIntensity(e.target.value)}
-                  placeholder="De 1 à 10"
-                />
-              </div>
+              {/* Single type fallback - only shown if no blocks */}
+              {sessionBlocks.length === 0 && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="type">Type d'entraînement * (si pas de blocs)</Label>
+                    <CustomTrainingTypeSelect
+                      value={type}
+                      onValueChange={handleTypeChange}
+                      sportType={sportType}
+                      categoryId={categoryId}
+                      showExerciseIcon={true}
+                      placeholder="Sélectionner un type"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="intensity">Intensité (1-10)</Label>
+                    <Input
+                      id="intensity"
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={intensity}
+                      onChange={(e) => setIntensity(e.target.value)}
+                      placeholder="De 1 à 10"
+                    />
+                  </div>
+                </>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="notes">Notes</Label>
