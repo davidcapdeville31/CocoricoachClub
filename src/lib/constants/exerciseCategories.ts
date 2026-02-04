@@ -9,6 +9,7 @@ import {
   Activity, 
   Flame, 
   PersonStanding,
+  Medal,
   type LucideIcon 
 } from "lucide-react";
 
@@ -31,6 +32,14 @@ export interface CategoryGroupConfig {
 }
 
 export const CATEGORY_GROUP_CONFIGS: Record<string, CategoryGroupConfig> = {
+  halterophilie: {
+    value: "halterophilie",
+    label: "Haltérophilie",
+    color: "text-yellow-600",
+    bgColor: "bg-yellow-600/10",
+    borderColor: "border-yellow-600/30",
+    icon: Medal,
+  },
   musculation: {
     value: "musculation",
     label: "Musculation",
@@ -133,6 +142,24 @@ export function getCategoryColor(categoryValue: string): { color: string; bgColo
 }
 
 export const EXERCISE_CATEGORIES: ExerciseCategory[] = [
+  // Haltérophilie - Mouvements complets
+  { value: "halterophilie_snatch", label: "Arraché (Snatch)", group: "halterophilie" },
+  { value: "halterophilie_clean", label: "Épaulé (Clean)", group: "halterophilie" },
+  { value: "halterophilie_jerk", label: "Jeté (Jerk)", group: "halterophilie" },
+  { value: "halterophilie_clean_jerk", label: "Épaulé-Jeté", group: "halterophilie" },
+  
+  // Haltérophilie - Semi-technique & Éducatifs
+  { value: "halterophilie_pulls", label: "Tirages (Pulls)", group: "halterophilie" },
+  { value: "halterophilie_positions", label: "Travail de positions", group: "halterophilie" },
+  { value: "halterophilie_hang", label: "Suspendus (Hang)", group: "halterophilie" },
+  { value: "halterophilie_blocks", label: "Blocs", group: "halterophilie" },
+  { value: "halterophilie_complexes", label: "Complexes", group: "halterophilie" },
+  
+  // Haltérophilie - Accessoires & Renforcement
+  { value: "halterophilie_squats", label: "Squats Haltéro", group: "halterophilie" },
+  { value: "halterophilie_presses", label: "Développés Haltéro", group: "halterophilie" },
+  { value: "halterophilie_pulls_strength", label: "Tirages Force", group: "halterophilie" },
+  
   // Musculation - Haut du corps
   { value: "upper_push", label: "Haut - Poussée", group: "musculation" },
   { value: "upper_pull", label: "Haut - Tirage", group: "musculation" },
@@ -152,7 +179,6 @@ export const EXERCISE_CATEGORIES: ExerciseCategory[] = [
   { value: "musculation", label: "Musculation (général)", group: "musculation" },
   
   // Musculation - Méthodes spécifiques
-  { value: "halterophilie", label: "Haltérophilie", group: "musculation" },
   { value: "plyometrics", label: "Pliométrie", group: "musculation" },
   { value: "isometrics", label: "Isométrie", group: "musculation" },
   { value: "explosive", label: "Explosivité", group: "musculation" },
@@ -331,6 +357,7 @@ export const EXERCISE_CATEGORIES: ExerciseCategory[] = [
 // Groupes de catégories pour filtrage rapide
 export const CATEGORY_GROUPS = [
   { value: "all", label: "Tous" },
+  { value: "halterophilie", label: "Haltérophilie" },
   { value: "musculation", label: "Musculation" },
   { value: "bodyweight", label: "Poids de corps" },
   { value: "crossfit_hyrox", label: "CrossFit / Hyrox" },
@@ -342,6 +369,14 @@ export const CATEGORY_GROUPS = [
   { value: "terrain", label: "Terrain" },
   { value: "stretching_mobility", label: "Échauffement / Mobilité" },
 ] as const;
+
+// Liste des catégories d'haltérophilie
+export const HALTEROPHILIE_CATEGORIES = [
+  "halterophilie_snatch", "halterophilie_clean", "halterophilie_jerk", 
+  "halterophilie_clean_jerk", "halterophilie_pulls", "halterophilie_positions",
+  "halterophilie_hang", "halterophilie_blocks", "halterophilie_complexes",
+  "halterophilie_squats", "halterophilie_presses", "halterophilie_pulls_strength"
+];
 
 // Liste des catégories de course à pied (métriques spécialisées)
 export const RUNNING_CATEGORIES = [
