@@ -334,8 +334,16 @@ export function hasGroupedTrainingTypes(sportType: string | undefined): boolean 
 
 // Get label for a training type
 export function getTrainingTypeLabel(value: string): string {
+  // First check exact match
   const type = ALL_TRAINING_TYPES.find(t => t.value === value);
-  return type?.label || value;
+  if (type) return type.label;
+  
+  // Fallback labels for legacy values
+  const legacyLabels: Record<string, string> = {
+    video: "Analyse Vidéo",
+    autre: "Autre",
+  };
+  return legacyLabels[value] || value;
 }
 
 // Check if training type has exercises
@@ -350,6 +358,7 @@ export const TRAINING_TYPE_COLORS: Record<string, string> = {
   tactique: "bg-blue-500",
   opposition: "bg-orange-600",
   video: "bg-purple-500",
+  video_analyse: "bg-purple-500",
   individuel: "bg-training-collectif",
   competition_training: "bg-rose-400",
   technique_individuelle: "bg-training-technique",
@@ -362,7 +371,6 @@ export const TRAINING_TYPE_COLORS: Record<string, string> = {
   recuperation: "bg-sky-400",
   reunion: "bg-indigo-500",
   medical: "bg-sky-500",
-  video_analyse: "bg-purple-500",
   match: "bg-rose-500",
   // Rugby specific
   touches: "bg-green-500",
