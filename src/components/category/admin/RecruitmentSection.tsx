@@ -83,18 +83,18 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
     queryKey: ["prospects", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("recruitment_prospects")
+        .from("recruitment_prospects" as any)
         .select("*")
         .eq("category_id", categoryId)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as Prospect[];
+      return data as unknown as Prospect[];
     },
   });
 
   const addProspectMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase.from("recruitment_prospects").insert({
+      const { error } = await supabase.from("recruitment_prospects" as any).insert({
         category_id: categoryId,
         created_by: user?.id,
         name: data.name,
@@ -125,7 +125,7 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase
-        .from("recruitment_prospects")
+        .from("recruitment_prospects" as any)
         .update({ status, last_contact: new Date().toISOString() })
         .eq("id", id);
       if (error) throw error;
@@ -138,7 +138,7 @@ export function RecruitmentSection({ categoryId }: RecruitmentSectionProps) {
 
   const deleteProspectMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("recruitment_prospects").delete().eq("id", id);
+      const { error } = await supabase.from("recruitment_prospects" as any).delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
