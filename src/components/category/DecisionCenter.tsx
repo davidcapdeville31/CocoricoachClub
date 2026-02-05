@@ -1,36 +1,44 @@
- import { useState } from "react";
- import { useQuery } from "@tanstack/react-query";
- import { useNavigate } from "react-router-dom";
- import { supabase } from "@/integrations/supabase/client";
- import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
- import { Button } from "@/components/ui/button";
- import { Badge } from "@/components/ui/badge";
- import { Progress } from "@/components/ui/progress";
- import { 
-   Users, 
-   AlertTriangle, 
-   Calendar, 
-   Activity,
-   CheckCircle,
-   XCircle,
-   Clock,
-   TrendingUp,
-   Brain,
-   FileWarning,
-   Pencil,
-   Bell,
-   User,
-   ChevronRight
- } from "lucide-react";
- import { format, addDays, subDays } from "date-fns";
- import { fr } from "date-fns/locale";
- import { cn } from "@/lib/utils";
- import { 
-   calculateWeightedWellnessScore, 
-   getWellnessRiskLevel,
-   type WellnessEntry 
- } from "@/lib/wellnessCalculations";
- import { EditSessionDialog } from "./EditSessionDialog";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  Users, 
+  AlertTriangle, 
+  Calendar, 
+  Activity,
+  CheckCircle,
+  XCircle,
+  Clock,
+  TrendingUp,
+  Brain,
+  FileWarning,
+  Pencil,
+  Bell,
+  User,
+  ChevronRight
+} from "lucide-react";
+import { format, addDays, subDays } from "date-fns";
+import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { 
+  calculateWeightedWellnessScore, 
+  getWellnessRiskLevel,
+  type WellnessEntry 
+} from "@/lib/wellnessCalculations";
+import { SessionFormDialog } from "./sessions/SessionFormDialog";
+import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesDialog";
  
  interface DecisionCenterProps {
    categoryId: string;
@@ -68,8 +76,10 @@
    const navigate = useNavigate();
    const today = format(new Date(), "yyyy-MM-dd");
    const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
-   const [editSessionOpen, setEditSessionOpen] = useState(false);
-   const [editingSession, setEditingSession] = useState<any>(null);
+  const [editSessionOpen, setEditSessionOpen] = useState(false);
+  const [editingSession, setEditingSession] = useState<any>(null);
+  const [notifyDialogOpen, setNotifyDialogOpen] = useState(false);
+  const [athleteSelectOpen, setAthleteSelectOpen] = useState(false);
  
    // Fetch players
    const { data: players = [] } = useQuery({
@@ -576,60 +586,108 @@
          </Card>
        </div>
  
-       {/* 4️⃣ RACCOURCIS ACTION */}
-       <Card>
-         <CardHeader className="pb-2">
-           <CardTitle className="text-base">Actions rapides</CardTitle>
-         </CardHeader>
-         <CardContent>
-           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-             <Button 
-               variant="outline" 
-               className="h-auto py-3 flex flex-col items-center gap-1"
-               onClick={() => todaySessions[0] && handleEditSession(todaySessions[0])}
-               disabled={todaySessions.length === 0}
-             >
-               <Pencil className="h-5 w-5 text-primary" />
-               <span className="text-xs">Modifier séance</span>
-             </Button>
-             <Button 
-               variant="outline" 
-               className="h-auto py-3 flex flex-col items-center gap-1"
-               onClick={() => playersToAdapt[0] && navigate(`/players/${playersToAdapt[0].id}`)}
-               disabled={playersToAdapt.length === 0}
-             >
-               <Activity className="h-5 w-5 text-orange-500" />
-               <span className="text-xs">Adapter charge</span>
-             </Button>
-             <Button 
-               variant="outline" 
-               className="h-auto py-3 flex flex-col items-center gap-1"
-               onClick={() => navigate(`/category/${categoryId}?tab=communication`)}
-             >
-               <Bell className="h-5 w-5 text-blue-500" />
-               <span className="text-xs">Notification</span>
-             </Button>
-             <Button 
-               variant="outline" 
-               className="h-auto py-3 flex flex-col items-center gap-1"
-               onClick={() => navigate(`/category/${categoryId}?tab=effectif`)}
-             >
-               <User className="h-5 w-5 text-green-500" />
-               <span className="text-xs">Fiche athlète</span>
-             </Button>
-           </div>
-         </CardContent>
-       </Card>
- 
-       {/* Edit Session Dialog */}
-       {editingSession && (
-         <EditSessionDialog
-           open={editSessionOpen}
-           onOpenChange={setEditSessionOpen}
-           session={editingSession}
-           categoryId={categoryId}
-         />
-       )}
-     </div>
-   );
- }
+        {/* 4️⃣ RACCOURCIS ACTION */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Actions rapides</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <Button 
+                variant="outline" 
+                className="h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => todaySessions[0] && handleEditSession(todaySessions[0])}
+                disabled={todaySessions.length === 0}
+              >
+                <Pencil className="h-5 w-5 text-primary" />
+                <span className="text-xs">Modifier séance</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => playersToAdapt[0] && navigate(`/players/${playersToAdapt[0].id}`)}
+                disabled={playersToAdapt.length === 0}
+              >
+                <Activity className="h-5 w-5 text-orange-500" />
+                <span className="text-xs">Adapter charge</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setNotifyDialogOpen(true)}
+              >
+                <Bell className="h-5 w-5 text-blue-500" />
+                <span className="text-xs">Notification</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setAthleteSelectOpen(true)}
+              >
+                <User className="h-5 w-5 text-green-500" />
+                <span className="text-xs">Fiche athlète</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Edit Session Dialog - Using SessionFormDialog for full editing */}
+        <SessionFormDialog
+          open={editSessionOpen}
+          onOpenChange={(open) => {
+            setEditSessionOpen(open);
+            if (!open) setEditingSession(null);
+          }}
+          categoryId={categoryId}
+          editSession={editingSession}
+        />
+
+        {/* Notify Athletes Dialog */}
+        <NotifyAthletesDialog
+          open={notifyDialogOpen}
+          onOpenChange={setNotifyDialogOpen}
+          athletes={players.map(p => ({ id: p.id, name: p.name }))}
+          eventType="custom"
+          defaultSubject="Message de l'équipe"
+        />
+
+        {/* Athlete Selection Dialog */}
+        <Dialog open={athleteSelectOpen} onOpenChange={setAthleteSelectOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Choisir un athlète
+              </DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="max-h-[400px]">
+              <div className="space-y-1 p-1">
+                {players.map(player => (
+                  <Button
+                    key={player.id}
+                    variant="ghost"
+                    className="w-full justify-between h-auto py-3"
+                    onClick={() => {
+                      navigate(`/players/${player.id}`);
+                      setAthleteSelectOpen(false);
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span>{player.name}</span>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                ))}
+                {players.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Aucun athlète dans cette catégorie
+                  </p>
+                )}
+              </div>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
