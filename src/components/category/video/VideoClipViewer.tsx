@@ -207,6 +207,21 @@ export function VideoClipViewer({
     return `${mins}'${secs.toString().padStart(2, "0")}`;
   };
 
+  // Build URL with timestamp for playback
+  const getClipUrlWithTimestamp = (url: string, startTime: number) => {
+    // YouTube
+    if (url.includes("youtube.com") || url.includes("youtu.be")) {
+      const separator = url.includes("?") ? "&" : "?";
+      return `${url}${separator}t=${Math.floor(startTime)}`;
+    }
+    // Vimeo
+    if (url.includes("vimeo.com")) {
+      return `${url}#t=${Math.floor(startTime)}s`;
+    }
+    // For other sources, return as-is
+    return url;
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -354,7 +369,7 @@ export function VideoClipViewer({
                                 className="h-8 w-8"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  window.open(clip.clip_url, "_blank");
+                                  window.open(getClipUrlWithTimestamp(clip.clip_url, clip.start_time_seconds), "_blank");
                                 }}
                               >
                                 <ExternalLink className="h-4 w-4" />
