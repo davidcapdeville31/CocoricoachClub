@@ -36,6 +36,7 @@ export function AddPlayerDialog({
 }: AddPlayerDialogProps) {
   const [playerName, setPlayerName] = useState("");
   const [playerEmail, setPlayerEmail] = useState("");
+  const [playerPhone, setPlayerPhone] = useState("");
   const [birthYear, setBirthYear] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [discipline, setDiscipline] = useState("");
@@ -70,13 +71,14 @@ export function AddPlayerDialog({
   const availableSpecialties = discipline && isAthletics ? ATHLETISME_SPECIALTIES[discipline] || [] : [];
 
   const addPlayer = useMutation({
-    mutationFn: async (data: { name: string; email?: string; birth_year?: number; birth_date?: string; discipline?: string; specialty?: string; position?: string }) => {
+    mutationFn: async (data: { name: string; email?: string; phone?: string; birth_year?: number; birth_date?: string; discipline?: string; specialty?: string; position?: string }) => {
       const { error } = await supabase
         .from("players")
         .insert({ 
           name: data.name, 
           category_id: categoryId,
           email: data.email || null,
+          phone: data.phone || null,
           birth_year: data.birth_year,
           birth_date: data.birth_date || null,
           discipline: data.discipline || null,
@@ -84,20 +86,17 @@ export function AddPlayerDialog({
           position: data.position || null
         });
       if (error) throw error;
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["players", categoryId] });
       toast.success("Athlète ajouté avec succès");
       setPlayerName("");
       setPlayerEmail("");
+      setPlayerPhone("");
       setBirthYear("");
       setBirthDate("");
       setDiscipline("");
       setSpecialty("");
-      setPosition("");
-      onOpenChange(false);
-      setDiscipline("");
       setPosition("");
       onOpenChange(false);
     },
@@ -146,6 +145,7 @@ export function AddPlayerDialog({
     addPlayer.mutate({
       name: result.data.name,
       email: playerEmail.trim() || undefined,
+      phone: playerPhone.trim() || undefined,
       birth_year: result.data.birthYear,
       birth_date: birthDate || undefined,
       discipline: discipline || undefined,
@@ -186,7 +186,21 @@ export function AddPlayerDialog({
                 placeholder="athlete@email.com"
               />
               <p className="text-xs text-muted-foreground">
-                L'email permettra de générer un lien d'accès athlète
+                Pour envoyer des notifications par email
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="playerPhone">Téléphone (optionnel)</Label>
+              <Input
+                id="playerPhone"
+                type="tel"
+                value={playerPhone}
+                onChange={(e) => setPlayerPhone(e.target.value)}
+                placeholder="+33 6 12 34 56 78"
+              />
+              <p className="text-xs text-muted-foreground">
+                Pour envoyer des notifications par SMS
               </p>
             </div>
 
