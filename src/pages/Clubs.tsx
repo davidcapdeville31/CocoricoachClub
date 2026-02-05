@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, LogOut, Shield, Settings } from "lucide-react";
+ import { Plus, LogOut, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AddClubDialog } from "@/components/clubs/AddClubDialog";
@@ -202,15 +202,6 @@ export default function Clubs() {
                   <Shield className="h-5 w-5" />
                 </Button>
               )}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/settings")}
-                className="text-primary-foreground hover:bg-primary-foreground/10"
-                title="Paramètres"
-              >
-                <Settings className="h-5 w-5" />
-              </Button>
               <Button
                 variant="ghost"
                 size="icon"

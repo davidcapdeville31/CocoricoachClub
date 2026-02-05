@@ -26,6 +26,7 @@ import Install from "./pages/Install";
 import Admin from "./pages/Admin";
  import SuperAdmin from "./pages/SuperAdmin";
 import Settings from "./pages/Settings";
+ import AdminClub from "./pages/AdminClub";
 import AcceptAmbassadorInvitation from "./pages/AcceptAmbassadorInvitation";
 import NotFound from "./pages/NotFound";
 
@@ -60,6 +61,10 @@ const CategoryDetailsWithAuth = () => (
 const PlayerDetailsWithAuth = () => (
   <AuthGuard><PlayerDetails /></AuthGuard>
 );
+
+ const AdminClubWithAuth = () => (
+   <AuthGuard><AdminClub /></AuthGuard>
+ );
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -104,6 +109,7 @@ const App = () => (
                   <Route path="/ambassador-invitation" element={<AcceptAmbassadorInvitation />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/clubs/:clubId" element={<ClubDetailsWithAuth />} />
+                   <Route path="/clubs/:clubId/admin" element={<AdminClubWithAuth />} />
                   <Route path="/categories/:categoryId" element={<CategoryDetailsWithAuth />} />
                   <Route path="/players/:playerId" element={<PlayerDetailsWithAuth />} />
                   <Route path="*" element={<NotFound />} />
