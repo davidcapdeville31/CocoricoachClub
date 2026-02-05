@@ -31,6 +31,7 @@ import {
   ExternalLink,
   Plus,
   Eye,
+  Scissors,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AddClipDialog } from "./AddClipDialog";
@@ -55,6 +56,7 @@ interface VideoAnalysis {
 interface VideoAnalysisListProps {
   analyses: VideoAnalysis[];
   onSelectAnalysis: (id: string) => void;
+  onEditAnalysis?: (analysis: VideoAnalysis) => void;
   onRefresh: () => void;
   categoryId: string;
   sportType?: string;
@@ -63,6 +65,7 @@ interface VideoAnalysisListProps {
 export function VideoAnalysisList({
   analyses,
   onSelectAnalysis,
+  onEditAnalysis,
   onRefresh,
   categoryId,
   sportType,
@@ -209,6 +212,17 @@ export function VideoAnalysisList({
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-2">
+                  {analysis.video_url && onEditAnalysis && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => onEditAnalysis(analysis)}
+                    >
+                      <Scissors className="h-4 w-4 mr-1" />
+                      Découper
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
@@ -216,7 +230,7 @@ export function VideoAnalysisList({
                     onClick={() => setAddClipAnalysisId(analysis.id)}
                   >
                     <Plus className="h-4 w-4 mr-1" />
-                    Ajouter clip
+                    Clip
                   </Button>
                   <Button
                     size="sm"
@@ -224,7 +238,7 @@ export function VideoAnalysisList({
                     onClick={() => onSelectAnalysis(analysis.id)}
                   >
                     <Eye className="h-4 w-4 mr-1" />
-                    Voir clips
+                    Voir
                   </Button>
                 </div>
               </CardContent>
