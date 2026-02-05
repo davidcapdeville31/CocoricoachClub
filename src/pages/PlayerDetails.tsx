@@ -23,6 +23,7 @@ import { TransferPlayerDialog } from "@/components/player/TransferPlayerDialog";
 import { PlayerTransferHistory } from "@/components/player/PlayerTransferHistory";
 import { AthleteAccessSection } from "@/components/player/AthleteAccessSection";
 import { PlayerAdditionalInfoSection } from "@/components/player/PlayerAdditionalInfoSection";
+import { PlayerPersonalInfoSection } from "@/components/player/PlayerPersonalInfoSection";
 import { PlayerReferenceCard } from "@/components/player/PlayerReferenceCard";
 import { ViewerModeProvider, useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { Badge } from "@/components/ui/badge";
@@ -394,6 +395,14 @@ function PlayerDetailsContent() {
             playerId={playerId!} 
             categoryId={player.category_id}
             birthYear={player.birth_year}
+          />
+        </div>
+
+        {/* Personal Info Section (Email, Phone, Birth date) */}
+        <div className="mb-6">
+          <PlayerPersonalInfoSection 
+            playerId={playerId!}
+            isViewer={isViewer}
           />
         </div>
 
