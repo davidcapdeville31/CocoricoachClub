@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash2, Pencil, Check, X, Camera, ImagePlus, ImageMinus, ChevronRight } from "lucide-react";
+ import { Trash2, Pencil, Check, X, Camera, ImagePlus, ImageMinus, ChevronRight, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
@@ -254,6 +254,18 @@ export function ClubCard({ club, onDelete }: ClubCardProps) {
 
       {/* Actions */}
       <div className="flex items-center gap-1 flex-shrink-0">
+         <Button
+           variant="ghost"
+           size="sm"
+           className="h-8 px-2 opacity-0 group-hover:opacity-100 transition-opacity gap-1"
+           onClick={(e) => {
+             e.stopPropagation();
+             navigate(`/clubs/${club.id}/admin`);
+           }}
+         >
+           <Shield className="h-4 w-4" />
+           <span className="hidden sm:inline text-xs">Admin Club</span>
+         </Button>
         <Button
           variant="ghost"
           size="icon"
