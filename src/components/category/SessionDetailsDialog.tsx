@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Dumbbell, Users, Activity, Clock, Calendar, Printer, Calculator, Info } from "lucide-react";
+import { Dumbbell, Users, Activity, Clock, Calendar, Printer, Calculator, Info, Bell } from "lucide-react";
 import { getCategoryLabel } from "@/lib/constants/exerciseCategories";
 import { printElement } from "@/lib/pdfExport";
 import { getTrainingStyleConfig, isLinkableMethod, isCardioBlockMethod } from "@/lib/constants/trainingStyles";
@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { calculateWeightedRpe, formatDuration } from "@/lib/weightedRpeCalculations";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesDialog";
 
 interface SessionDetailsDialogProps {
   open: boolean;
@@ -75,6 +76,7 @@ export function SessionDetailsDialog({
 }: SessionDetailsDialogProps) {
   const queryClient = useQueryClient();
   const [rpeValues, setRpeValues] = useState<Record<string, { rpe: string; duration: string }>>({});
+  const [isNotifyOpen, setIsNotifyOpen] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
@@ -689,7 +691,28 @@ export function SessionDetailsDialog({
             </TabsContent>
           </div>
         </Tabs>
+
+        {/* Notify Button in Header */}
+        <div className="absolute top-4 right-12">
+          <Button variant="outline" size="sm" onClick={() => setIsNotifyOpen(true)}>
+            <Bell className="h-4 w-4 mr-2" />
+            Notifier
+          </Button>
+        </div>
       </DialogContent>
+
+      {/* Notify Athletes Dialog */}
+      <NotifyAthletesDialog
+        open={isNotifyOpen}
+        onOpenChange={setIsNotifyOpen}
+        athletes={players || []}
+        eventType="session"
+        defaultSubject={`Séance du ${format(new Date(sessionDate), "EEEE d MMMM", { locale: fr })}`}
+        eventDetails={{
+          date: format(new Date(sessionDate), "EEEE d MMMM yyyy", { locale: fr }),
+          time: session?.session_start_time ? session.session_start_time.slice(0, 5) : undefined,
+        }}
+      />
     </Dialog>
   );
 }

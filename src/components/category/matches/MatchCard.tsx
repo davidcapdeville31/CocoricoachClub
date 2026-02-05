@@ -25,6 +25,7 @@ import {
   ChevronDown,
   ChevronUp,
   Lock,
+  Bell,
 } from "lucide-react";
 import { MatchLineupDialog } from "./MatchLineupDialog";
 import { SportMatchStatsDialog } from "./SportMatchStatsDialog";
@@ -32,6 +33,7 @@ import { CompetitionRoundsDialog } from "./CompetitionRoundsDialog";
 import { AggregatedRoundStatsDialog } from "./AggregatedRoundStatsDialog";
 import { EditMatchDialog } from "./EditMatchDialog";
 import { AddSubMatchDialog } from "./AddSubMatchDialog";
+import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesDialog";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import {
   DropdownMenu,
@@ -81,6 +83,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false }: MatchCardPr
   const [isAddSubMatchOpen, setIsAddSubMatchOpen] = useState(false);
   const [isSubMatchesExpanded, setIsSubMatchesExpanded] = useState(false);
   const [isEditingScore, setIsEditingScore] = useState(false);
+  const [isNotifyOpen, setIsNotifyOpen] = useState(false);
   const [scoreHome, setScoreHome] = useState(match.score_home?.toString() || "");
   const [scoreAway, setScoreAway] = useState(match.score_away?.toString() || "");
   const queryClient = useQueryClient();
@@ -136,6 +139,21 @@ export function MatchCard({ match, categoryId, isSubMatch = false }: MatchCardPr
       return data as Match[];
     },
     enabled: !isSubMatch && !match.parent_match_id,
+  });
+
+  // Fetch players for notifications
+  const { data: players } = useQuery({
+    queryKey: ["players-for-notify", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("id, name, email, phone")
+        .eq("category_id", categoryId)
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: isNotifyOpen,
   });
 
   const sportType = category?.rugby_type || "XV";
@@ -441,6 +459,11 @@ export function MatchCard({ match, categoryId, isSubMatch = false }: MatchCardPr
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setIsNotifyOpen(true)} className="text-primary">
+                  <Bell className="h-4 w-4 mr-2" />
+                  Notifier les athlètes
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={() => {
                     if (confirm(isIndividual ? "Supprimer cette compétition ?" : "Supprimer ce match ?")) {
@@ -541,6 +564,23 @@ export function MatchCard({ match, categoryId, isSubMatch = false }: MatchCardPr
           }}
         />
       )}
+
+      {/* Notify Athletes Dialog */}
+      <NotifyAthletesDialog
+        open={isNotifyOpen}
+        onOpenChange={setIsNotifyOpen}
+        athletes={players || []}
+        eventType="match"
+        defaultSubject={isIndividual 
+          ? `Compétition: ${match.competition || match.opponent || "Compétition"}`
+          : `Match ${match.is_home ? "vs" : "@"} ${match.opponent}`
+        }
+        eventDetails={{
+          date: format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: fr }),
+          time: match.match_time ? match.match_time.slice(0, 5) : undefined,
+          location: match.location || undefined,
+        }}
+      />
     </>
   );
 }
