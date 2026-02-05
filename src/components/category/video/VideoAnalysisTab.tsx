@@ -1,16 +1,18 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
-import { Video, Plus, Film, Users, BarChart3 } from "lucide-react";
+import { Video, Plus, Film, Users, BarChart3, Scissors } from "lucide-react";
 import { AddVideoAnalysisDialog } from "./AddVideoAnalysisDialog";
 import { VideoAnalysisList } from "./VideoAnalysisList";
 import { VideoClipViewer } from "./VideoClipViewer";
 import { PlayerClipsView } from "./PlayerClipsView";
+import { VideoAnalysisEditor } from "./VideoAnalysisEditor";
+import { DirectClipImport } from "./DirectClipImport";
 
 interface VideoAnalysisTabProps {
   categoryId: string;
@@ -20,6 +22,9 @@ interface VideoAnalysisTabProps {
 export function VideoAnalysisTab({ categoryId, sportType }: VideoAnalysisTabProps) {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedAnalysisId, setSelectedAnalysisId] = useState<string | null>(null);
+  const [editingAnalysisId, setEditingAnalysisId] = useState<string | null>(null);
+  const [showDirectImport, setShowDirectImport] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: videoAnalyses, isLoading, refetch } = useQuery({
     queryKey: ["video-analyses", categoryId],
@@ -103,14 +108,48 @@ export function VideoAnalysisTab({ categoryId, sportType }: VideoAnalysisTabProp
                   </p>
                 </div>
               </div>
-              <Button onClick={() => setShowAddDialog(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Nouvelle Analyse
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setShowDirectImport(true)}>
+                  <Scissors className="h-4 w-4 mr-2" />
+                  Importer Clips
+                </Button>
+                <Button onClick={() => setShowAddDialog(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nouvelle Analyse
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Direct Import Mode */}
+      {showDirectImport && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Scissors className="h-5 w-5" />
+                Import Direct de Clips
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setShowDirectImport(false)}>
+                Fermer
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <DirectClipImport
+              categoryId={categoryId}
+              sportType={sportType}
+              onSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ["video-clips-count"] });
+                queryClient.invalidateQueries({ queryKey: ["video-analyses"] });
+                setShowDirectImport(false);
+              }}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Main Tabs */}
       <Tabs defaultValue="analyses" className="space-y-4">
@@ -141,10 +180,30 @@ export function VideoAnalysisTab({ categoryId, sportType }: VideoAnalysisTabProp
         </div>
 
         <TabsContent value="analyses">
-          {!selectedAnalysisId ? (
+          {editingAnalysisId ? (
+            (() => {
+              const analysis = videoAnalyses?.find(a => a.id === editingAnalysisId);
+              return analysis ? (
+                <VideoAnalysisEditor
+                  analysisId={editingAnalysisId}
+                  analysisTitle={analysis.title}
+                  categoryId={categoryId}
+                  matchId={analysis.matches?.id}
+                  videoUrl={analysis.video_url}
+                  sportType={sportType}
+                  onBack={() => setEditingAnalysisId(null)}
+                  onClipCreated={() => {
+                    queryClient.invalidateQueries({ queryKey: ["video-clips"] });
+                    queryClient.invalidateQueries({ queryKey: ["video-clips-count"] });
+                  }}
+                />
+              ) : null;
+            })()
+          ) : !selectedAnalysisId ? (
             <VideoAnalysisList
               analyses={videoAnalyses || []}
               onSelectAnalysis={setSelectedAnalysisId}
+              onEditAnalysis={(analysis) => setEditingAnalysisId(analysis.id)}
               onRefresh={refetch}
               categoryId={categoryId}
               sportType={sportType}
