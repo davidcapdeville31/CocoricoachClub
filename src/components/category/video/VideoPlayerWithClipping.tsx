@@ -137,21 +137,48 @@ export function VideoPlayerWithClipping({
   };
 
   // Parse embedded video URL for iframe
-  const getEmbedUrl = (url: string) => {
+  const getEmbedUrl = (url: string, startTime?: number) => {
     // YouTube
     if (url.includes("youtube.com") || url.includes("youtu.be")) {
       const videoId = url.includes("youtu.be")
         ? url.split("/").pop()?.split("?")[0]
         : new URL(url).searchParams.get("v");
-      return `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
+      const startParam = startTime ? `&start=${Math.floor(startTime)}` : "";
+      return `https://www.youtube.com/embed/${videoId}?enablejsapi=1${startParam}`;
     }
     // Vimeo
     if (url.includes("vimeo.com")) {
       const videoId = url.split("/").pop()?.split("?")[0];
-      return `https://player.vimeo.com/video/${videoId}?api=1`;
+      const startParam = startTime ? `#t=${Math.floor(startTime)}s` : "";
+      return `https://player.vimeo.com/video/${videoId}?api=1${startParam}`;
     }
     // Return original for other sources
     return url;
+  };
+
+  // Preview clip from start time
+  const previewClip = () => {
+    if (clipStartTime === null) {
+      toast.error("Veuillez d'abord définir le début du clip");
+      return;
+    }
+    
+    if (iframeRef.current && isEmbeddable) {
+      // Reload iframe with start time parameter
+      const newUrl = getEmbedUrl(videoUrl, clipStartTime);
+      iframeRef.current.src = newUrl;
+      toast.success(`Prévisualisation à partir de ${formatTime(clipStartTime)}`);
+    } else {
+      // For external sources, open with timestamp if supported
+      let externalUrl = videoUrl;
+      if (videoUrl.includes("youtube.com") || videoUrl.includes("youtu.be")) {
+        externalUrl = `${videoUrl}${videoUrl.includes("?") ? "&" : "?"}t=${Math.floor(clipStartTime)}`;
+      } else if (videoUrl.includes("vimeo.com")) {
+        externalUrl = `${videoUrl}#t=${Math.floor(clipStartTime)}s`;
+      }
+      window.open(externalUrl, "_blank");
+      toast.info(`Vidéo ouverte à ${formatTime(clipStartTime)}`);
+    }
   };
 
   // Mark clip start at current time
@@ -416,10 +443,21 @@ export function VideoPlayerWithClipping({
             </div>
 
             {clipStartTime !== null && (
-              <Badge variant="secondary">
-                Clip: {formatTime(clipStartTime)}
-                {clipEndTime !== null && ` → ${formatTime(clipEndTime)}`}
-              </Badge>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge variant="secondary">
+                  Clip: {formatTime(clipStartTime)}
+                  {clipEndTime !== null && ` → ${formatTime(clipEndTime)}`}
+                </Badge>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={previewClip}
+                >
+                  <Play className="h-4 w-4 mr-1" />
+                  Prévisualiser
+                </Button>
+              </div>
             )}
           </div>
         </CardContent>
