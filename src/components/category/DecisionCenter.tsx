@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +40,7 @@ import {
 } from "@/lib/wellnessCalculations";
 import { SessionFormDialog } from "./sessions/SessionFormDialog";
 import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesDialog";
+import { AddWellnessDialog } from "./AddWellnessDialog";
  
  interface DecisionCenterProps {
    categoryId: string;
@@ -81,6 +82,7 @@ import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesD
   const [editingSession, setEditingSession] = useState<any>(null);
   const [notifyDialogOpen, setNotifyDialogOpen] = useState(false);
   const [athleteSelectOpen, setAthleteSelectOpen] = useState(false);
+  const [wellnessDialogOpen, setWellnessDialogOpen] = useState(false);
  
    // Fetch players
    const { data: players = [] } = useQuery({
@@ -125,21 +127,44 @@ import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesD
      },
    });
  
-   // Fetch wellness data
-   const { data: wellnessData = [] } = useQuery({
-     queryKey: ["wellness_decision", categoryId],
-     queryFn: async () => {
-       const weekAgo = subDays(new Date(), 7).toISOString().split("T")[0];
-       const { data, error } = await supabase
-         .from("wellness_tracking")
-         .select("*")
-         .eq("category_id", categoryId)
-         .gte("tracking_date", weekAgo)
-         .order("tracking_date", { ascending: false });
-       if (error) throw error;
-       return data;
-     },
-   });
+  // Fetch wellness data
+    const { data: wellnessData = [], refetch: refetchWellness } = useQuery({
+      queryKey: ["wellness_decision", categoryId],
+      queryFn: async () => {
+        const weekAgo = subDays(new Date(), 7).toISOString().split("T")[0];
+        const { data, error } = await supabase
+          .from("wellness_tracking")
+          .select("*")
+          .eq("category_id", categoryId)
+          .gte("tracking_date", weekAgo)
+          .order("tracking_date", { ascending: false });
+        if (error) throw error;
+        return data;
+      },
+    });
+
+    // Subscribe to wellness changes for real-time updates
+    useEffect(() => {
+      const channel = supabase
+        .channel(`wellness_${categoryId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'wellness_tracking',
+            filter: `category_id=eq.${categoryId}`,
+          },
+          () => {
+            refetchWellness();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        channel.unsubscribe();
+      };
+    }, [categoryId, refetchWellness]);
  
    // Fetch today's sessions
    const { data: todaySessions = [] } = useQuery({
@@ -502,6 +527,14 @@ import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesD
                     </span>
                   </div>
                 )}
+                <Button
+                  size="sm"
+                  onClick={() => setWellnessDialogOpen(true)}
+                  className="w-full"
+                >
+                  <Pencil className="h-4 w-4 mr-1" />
+                  Ajouter manuel
+                </Button>
               </div>
             </div>
             
@@ -778,6 +811,13 @@ import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesD
             </ScrollArea>
           </DialogContent>
         </Dialog>
+
+        {/* Wellness Dialog */}
+        <AddWellnessDialog
+          open={wellnessDialogOpen}
+          onOpenChange={setWellnessDialogOpen}
+          categoryId={categoryId}
+        />
       </div>
     );
   }
