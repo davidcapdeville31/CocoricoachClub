@@ -238,10 +238,10 @@ export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) 
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Activity className="h-5 w-5" />
-          Évaluation du Risque de Blessure
+          Risque de Blessure (EWMA + Wellness)
         </CardTitle>
         <CardDescription>
-          Analyse combinée EWMA + Wellness pondéré avec détection de tendances
+          Ratio EWMA (Charge Aiguë / Charge Chronique) combiné avec Score Wellness pondéré
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
