@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -14,8 +15,17 @@ import {
 } from "@/components/ui/select";
 import { Dumbbell, Search, GripVertical, Plus } from "lucide-react";
 import { useDraggable } from "@dnd-kit/core";
-import { CATEGORY_GROUPS, getCategoriesByGroup, isCategoryForSport } from "@/lib/constants/exerciseCategories";
+import { 
+  CATEGORY_GROUPS, 
+  getCategoriesByGroup, 
+  isCategoryForSport, 
+  getCategoryColor,
+  getCategoryLabel,
+  getCategoryGroupConfig,
+  EXERCISE_CATEGORIES
+} from "@/lib/constants/exerciseCategories";
 import { QuickAddExerciseDialog } from "@/components/library/QuickAddExerciseDialog";
+import { cn } from "@/lib/utils";
 
 interface ExerciseLibrarySidebarProps {
   sportType?: string;
@@ -35,26 +45,34 @@ function DraggableExercise({ exercise }: DraggableExerciseProps) {
     data: exercise,
   });
 
-  const getCategoryLabel = (category: string) => {
-    const allCategories = getCategoriesByGroup("all");
-    return allCategories.find((c) => c.value === category)?.label || category;
-  };
+  const categoryColors = getCategoryColor(exercise.category);
+  const categoryInfo = EXERCISE_CATEGORIES.find(c => c.value === exercise.category);
+  const groupConfig = categoryInfo?.group ? getCategoryGroupConfig(categoryInfo.group) : null;
+  const IconComponent = groupConfig?.icon || Dumbbell;
 
   return (
     <div
       ref={setNodeRef}
       {...attributes}
       {...listeners}
-      className={`flex items-center gap-3 p-3 rounded-lg border cursor-grab active:cursor-grabbing transition-colors hover:bg-accent ${
-        isDragging ? "opacity-50 bg-accent" : "bg-card"
-      }`}
+      className={cn(
+        "flex items-center gap-3 p-3 rounded-lg border-2 cursor-grab active:cursor-grabbing transition-all hover:shadow-md",
+        categoryColors.borderColor,
+        categoryColors.bgColor,
+        isDragging && "opacity-50 shadow-lg"
+      )}
     >
-      <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
+      <div className={cn("p-1.5 rounded-md", categoryColors.bgColor)}>
+        <IconComponent className={cn("h-4 w-4", categoryColors.color)} />
+      </div>
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm truncate">{exercise.name}</p>
-        <p className="text-xs text-muted-foreground truncate">
+        <Badge 
+          variant="outline" 
+          className={cn("text-xs mt-1", categoryColors.color, categoryColors.borderColor)}
+        >
           {getCategoryLabel(exercise.category)}
-        </p>
+        </Badge>
       </div>
     </div>
   );
