@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Plus, MessageSquare, Users, Hash } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Plus, MessageSquare, Users, Hash, User, Trash2, MoreVertical } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -17,6 +18,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -39,12 +56,81 @@ interface ConversationListProps {
   onSelect: (id: string) => void;
 }
 
+interface Player {
+  id: string;
+  name: string;
+}
+
+interface StaffMember {
+  id: string;
+  user_id: string;
+  profile: {
+    full_name: string | null;
+  } | null;
+}
+
 export function ConversationList({ categoryId, selectedId, onSelect }: ConversationListProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState("group");
+  const [selectedRecipientId, setSelectedRecipientId] = useState<string>("");
+  const [selectedRecipientType, setSelectedRecipientType] = useState<"player" | "staff">("player");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // Fetch players for private messages
+  const { data: players } = useQuery({
+    queryKey: ["category-players-messaging", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("id, name")
+        .eq("category_id", categoryId)
+        .order("name");
+      if (error) throw error;
+      return data as Player[];
+    },
+  });
+
+  // Fetch staff members for private messages
+  const { data: staffMembers } = useQuery({
+    queryKey: ["category-staff-messaging", categoryId],
+    queryFn: async () => {
+      const { data: category } = await supabase
+        .from("categories")
+        .select("club_id")
+        .eq("id", categoryId)
+        .single();
+
+      if (!category) return [];
+
+      const { data: members, error } = await supabase
+        .from("club_members")
+        .select("id, user_id")
+        .eq("club_id", category.club_id);
+
+      if (error) throw error;
+      
+      // Fetch profiles separately
+      const userIds = (members || []).filter(m => m.user_id !== user?.id).map(m => m.user_id);
+      if (userIds.length === 0) return [];
+
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", userIds);
+
+      return (members || [])
+        .filter(m => m.user_id !== user?.id)
+        .map(m => ({
+          ...m,
+          profile: profiles?.find(p => p.id === m.user_id) || null
+        })) as StaffMember[];
+    },
+    enabled: !!user,
+  });
 
   const { data: conversations, isLoading } = useQuery({
     queryKey: ["conversations", categoryId],
@@ -65,14 +151,12 @@ export function ConversationList({ categoryId, selectedId, onSelect }: Conversat
     queryFn: async () => {
       if (!user) return true;
       
-      // Check if STAFF and STAFF+Joueurs groups exist
       const staffGroupName = "Staff";
       const allGroupName = "Staff + Joueurs";
       
       const hasStaffGroup = conversations?.some(c => c.name === staffGroupName);
       const hasAllGroup = conversations?.some(c => c.name === allGroupName);
       
-      // Create missing groups
       if (!hasStaffGroup) {
         const { data: conv } = await supabase
           .from("conversations")
@@ -115,7 +199,6 @@ export function ConversationList({ categoryId, selectedId, onSelect }: Conversat
         }
       }
       
-      // Invalidate to refetch conversations list
       if (!hasStaffGroup || !hasAllGroup) {
         queryClient.invalidateQueries({ queryKey: ["conversations", categoryId] });
       }
@@ -129,7 +212,49 @@ export function ConversationList({ categoryId, selectedId, onSelect }: Conversat
     mutationFn: async () => {
       if (!user) return;
       
-      // Create conversation
+      // For direct messages, create a conversation with the selected recipient
+      if (newType === "direct") {
+        if (!selectedRecipientId) {
+          throw new Error("Veuillez sélectionner un destinataire");
+        }
+
+        const recipientName = selectedRecipientType === "player" 
+          ? players?.find(p => p.id === selectedRecipientId)?.name
+          : staffMembers?.find(s => s.user_id === selectedRecipientId)?.profile?.full_name || "Staff";
+
+        const { data: conv, error: convError } = await supabase
+          .from("conversations")
+          .insert({
+            category_id: categoryId,
+            name: `Message privé - ${recipientName}`,
+            conversation_type: "direct",
+            created_by: user.id,
+          })
+          .select()
+          .single();
+        
+        if (convError) throw convError;
+
+        // Add creator as participant
+        await supabase.from("conversation_participants").insert({
+          conversation_id: conv.id,
+          user_id: user.id,
+          is_admin: true,
+        });
+
+        // For staff, add them directly as participant
+        if (selectedRecipientType === "staff") {
+          await supabase.from("conversation_participants").insert({
+            conversation_id: conv.id,
+            user_id: selectedRecipientId,
+            is_admin: false,
+          });
+        }
+
+        return conv;
+      }
+      
+      // For groups/channels
       const { data: conv, error: convError } = await supabase
         .from("conversations")
         .insert({
@@ -143,7 +268,6 @@ export function ConversationList({ categoryId, selectedId, onSelect }: Conversat
       
       if (convError) throw convError;
 
-      // Add creator as participant
       const { error: partError } = await supabase
         .from("conversation_participants")
         .insert({
@@ -161,14 +285,58 @@ export function ConversationList({ categoryId, selectedId, onSelect }: Conversat
       toast.success("Conversation créée");
       setCreateOpen(false);
       setNewName("");
+      setNewType("group");
+      setSelectedRecipientId("");
       if (conv) {
         onSelect(conv.id);
       }
     },
-    onError: () => {
-      toast.error("Erreur lors de la création");
+    onError: (error: any) => {
+      toast.error(error.message || "Erreur lors de la création");
     },
   });
+
+  const deleteConversation = useMutation({
+    mutationFn: async (conversationId: string) => {
+      // Delete messages first
+      await supabase
+        .from("messages")
+        .delete()
+        .eq("conversation_id", conversationId);
+
+      // Delete participants
+      await supabase
+        .from("conversation_participants")
+        .delete()
+        .eq("conversation_id", conversationId);
+
+      // Delete conversation
+      const { error } = await supabase
+        .from("conversations")
+        .delete()
+        .eq("id", conversationId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conversations", categoryId] });
+      toast.success("Conversation supprimée");
+      setDeleteDialogOpen(false);
+      setConversationToDelete(null);
+      if (selectedId === conversationToDelete) {
+        onSelect("");
+      }
+    },
+    onError: () => {
+      toast.error("Erreur lors de la suppression");
+    },
+  });
+
+  const handleDeleteClick = (e: React.MouseEvent, convId: string) => {
+    e.stopPropagation();
+    setConversationToDelete(convId);
+    setDeleteDialogOpen(true);
+  };
 
   const getConversationIcon = (type: string) => {
     switch (type) {
@@ -176,95 +344,226 @@ export function ConversationList({ categoryId, selectedId, onSelect }: Conversat
         return <Users className="h-4 w-4" />;
       case "channel":
         return <Hash className="h-4 w-4" />;
+      case "direct":
+        return <User className="h-4 w-4" />;
       default:
         return <MessageSquare className="h-4 w-4" />;
     }
   };
 
+  const isDefaultGroup = (convName: string | null) => {
+    return convName === "Staff" || convName === "Staff + Joueurs";
+  };
+
   return (
-    <Card className="h-[500px]">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Conversations</CardTitle>
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button size="icon" variant="outline" className="h-8 w-8">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Nouvelle conversation</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label>Nom</Label>
-                  <Input
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Ex: Staff technique"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Type</Label>
-                  <Select value={newType} onValueChange={setNewType}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="group">Groupe</SelectItem>
-                      <SelectItem value="direct">Message privé</SelectItem>
-                      <SelectItem value="channel">Canal (annonces)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setCreateOpen(false)}>
-                    Annuler
-                  </Button>
-                  <Button onClick={() => createConversation.mutate()}>
-                    Créer
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        <ScrollArea className="h-[420px]">
-          {conversations?.length === 0 ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">
-              Aucune conversation. Créez-en une !
-            </div>
-          ) : (
-            <div className="space-y-1 p-2">
-              {conversations?.map((conv) => (
-                <button
-                  key={conv.id}
-                  onClick={() => onSelect(conv.id)}
-                  className={cn(
-                    "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors",
-                    selectedId === conv.id
-                      ? "bg-primary/10 text-primary"
-                      : "hover:bg-muted"
-                  )}
-                >
-                  {getConversationIcon(conv.conversation_type)}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">
-                      {conv.name || "Conversation sans nom"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {conv.conversation_type === "channel" ? "Canal" : "Groupe"}
-                    </p>
+    <>
+      <Card className="h-[500px]">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Conversations</CardTitle>
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+              <DialogTrigger asChild>
+                <Button size="icon" variant="outline" className="h-8 w-8">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Nouvelle conversation</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label>Type</Label>
+                    <Select value={newType} onValueChange={(value) => {
+                      setNewType(value);
+                      setSelectedRecipientId("");
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="group">Groupe</SelectItem>
+                        <SelectItem value="direct">Message privé</SelectItem>
+                        <SelectItem value="channel">Canal (annonces)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
-      </CardContent>
-    </Card>
+
+                  {newType === "direct" ? (
+                    <>
+                      <div className="space-y-2">
+                        <Label>Type de destinataire</Label>
+                        <Select 
+                          value={selectedRecipientType} 
+                          onValueChange={(value: "player" | "staff") => {
+                            setSelectedRecipientType(value);
+                            setSelectedRecipientId("");
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="player">Joueur</SelectItem>
+                            <SelectItem value="staff">Staff</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Destinataire</Label>
+                        <Select value={selectedRecipientId} onValueChange={setSelectedRecipientId}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {selectedRecipientType === "player" ? (
+                              players?.map((player) => (
+                                <SelectItem key={player.id} value={player.id}>
+                                  <div className="flex items-center gap-2">
+                                    <Avatar className="h-6 w-6">
+                                      <AvatarFallback className="text-xs">
+                                        {player.name.substring(0, 2).toUpperCase()}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    {player.name}
+                                  </div>
+                                </SelectItem>
+                              ))
+                            ) : (
+                              staffMembers?.map((member) => (
+                                <SelectItem key={member.user_id} value={member.user_id}>
+                                  <div className="flex items-center gap-2">
+                                    <Avatar className="h-6 w-6">
+                                      <AvatarFallback className="text-xs">
+                                        {(member.profile?.full_name || "?").substring(0, 2).toUpperCase()}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    {member.profile?.full_name || "Membre du staff"}
+                                  </div>
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="space-y-2">
+                      <Label>Nom</Label>
+                      <Input
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        placeholder="Ex: Staff technique"
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setCreateOpen(false)}>
+                      Annuler
+                    </Button>
+                    <Button 
+                      onClick={() => createConversation.mutate()}
+                      disabled={newType === "direct" && !selectedRecipientId}
+                    >
+                      Créer
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <ScrollArea className="h-[420px]">
+            {conversations?.length === 0 ? (
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                Aucune conversation. Créez-en une !
+              </div>
+            ) : (
+              <div className="space-y-1 p-2">
+                {conversations?.map((conv) => (
+                  <div
+                    key={conv.id}
+                    className={cn(
+                      "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors group",
+                      selectedId === conv.id
+                        ? "bg-primary/10 text-primary"
+                        : "hover:bg-muted"
+                    )}
+                  >
+                    <button
+                      onClick={() => onSelect(conv.id)}
+                      className="flex items-center gap-3 flex-1 min-w-0"
+                    >
+                      {getConversationIcon(conv.conversation_type)}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">
+                          {conv.name || "Conversation sans nom"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {conv.conversation_type === "channel" 
+                            ? "Canal" 
+                            : conv.conversation_type === "direct"
+                            ? "Message privé"
+                            : "Groupe"}
+                        </p>
+                      </div>
+                    </button>
+
+                    {/* Delete button - hidden for default groups */}
+                    {!isDefaultGroup(conv.name) && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem 
+                            className="text-destructive focus:text-destructive"
+                            onClick={(e) => handleDeleteClick(e as any, conv.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Supprimer
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer la conversation ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action supprimera définitivement la conversation et tous ses messages.
+              Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => conversationToDelete && deleteConversation.mutate(conversationToDelete)}
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
