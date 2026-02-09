@@ -299,16 +299,20 @@ export function ConversationList({ categoryId, selectedId, onSelect }: Conversat
   const deleteConversation = useMutation({
     mutationFn: async (conversationId: string) => {
       // Delete messages first
-      await supabase
+      const { error: msgError } = await supabase
         .from("messages")
         .delete()
         .eq("conversation_id", conversationId);
+      
+      if (msgError) console.warn("Error deleting messages:", msgError);
 
       // Delete participants
-      await supabase
+      const { error: partError } = await supabase
         .from("conversation_participants")
         .delete()
         .eq("conversation_id", conversationId);
+      
+      if (partError) console.warn("Error deleting participants:", partError);
 
       // Delete conversation
       const { error } = await supabase
@@ -317,17 +321,27 @@ export function ConversationList({ categoryId, selectedId, onSelect }: Conversat
         .eq("id", conversationId);
 
       if (error) throw error;
+      
+      return conversationId;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["conversations", categoryId] });
-      toast.success("Conversation supprimée");
+    onSuccess: (deletedId) => {
+      // Close dialog first
       setDeleteDialogOpen(false);
-      setConversationToDelete(null);
-      if (selectedId === conversationToDelete) {
+      
+      // If deleted conversation was selected, deselect it
+      if (selectedId === deletedId) {
         onSelect("");
       }
+      
+      // Force refetch conversations
+      queryClient.invalidateQueries({ queryKey: ["conversations", categoryId] });
+      queryClient.refetchQueries({ queryKey: ["conversations", categoryId] });
+      
+      setConversationToDelete(null);
+      toast.success("Conversation supprimée");
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Error deleting conversation:", error);
       toast.error("Erreur lors de la suppression");
     },
   });
