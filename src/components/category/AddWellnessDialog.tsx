@@ -99,7 +99,9 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
       return playerName;
     },
     onSuccess: (playerName) => {
+      // Invalidate both queries to update WellnessTab and DecisionCenter
       queryClient.invalidateQueries({ queryKey: ["wellness_tracking", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["wellness_decision", categoryId] });
       toast.success(`Wellness enregistré pour ${playerName}`);
       // Reset form but keep dialog open and keep the same date
       const currentDate = date;
