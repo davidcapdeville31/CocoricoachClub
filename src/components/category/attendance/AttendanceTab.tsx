@@ -13,7 +13,7 @@ import { ClipboardCheck, Calendar, Users, TrendingUp, ChevronRight, Filter, Cloc
 import { format, startOfMonth, endOfMonth, subMonths, isWithinInterval, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { SessionAttendanceDialog } from "./SessionAttendanceDialog";
-import { PostSessionRpeDialog } from "./PostSessionRpeDialog";
+
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
@@ -25,8 +25,6 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
   const { isViewer } = useViewerModeContext();
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [rpeDialogOpen, setRpeDialogOpen] = useState(false);
-  const [presentPlayerIds, setPresentPlayerIds] = useState<string[]>([]);
   
   // Date range filter
   const [startDate, setStartDate] = useState(() => {
@@ -134,12 +132,6 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
     setDialogOpen(true);
   };
 
-  const handleAttendanceSaved = (playerIds: string[]) => {
-    setPresentPlayerIds(playerIds);
-    setTimeout(() => {
-      setRpeDialogOpen(true);
-    }, 100);
-  };
 
   const getSessionLabel = (session: any) => {
     // Simplified display: just show "Séance" with time
@@ -564,15 +556,6 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
         onOpenChange={setDialogOpen}
         session={selectedSession}
         categoryId={categoryId}
-        onAttendanceSaved={handleAttendanceSaved}
-      />
-
-      <PostSessionRpeDialog
-        open={rpeDialogOpen}
-        onOpenChange={setRpeDialogOpen}
-        session={selectedSession}
-        categoryId={categoryId}
-        presentPlayerIds={presentPlayerIds}
       />
     </div>
   );
