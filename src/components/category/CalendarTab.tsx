@@ -11,6 +11,7 @@ import { AddMatchCalendarDialog } from "./matches/AddMatchCalendarDialog";
 import { QuickTestEntryDialog } from "./QuickTestEntryDialog";
 import { SessionDetailsDialog } from "./SessionDetailsDialog";
 import { MatchRpeDialog } from "./MatchRpeDialog";
+import { MatchLineupDialog } from "./matches/MatchLineupDialog";
 import { DailySessionsDialog } from "./DailySessionsDialog";
 import { format, isSameDay, startOfWeek, addDays } from "date-fns";
 import { useNavigate } from "react-router-dom";
@@ -46,6 +47,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     date: string;
     opponent: string;
   } | null>(null);
+  const [lineupMatchId, setLineupMatchId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { isViewer } = useViewerModeContext();
@@ -212,6 +214,23 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     },
   });
 
+  const deleteMatch = useMutation({
+    mutationFn: async (matchId: string) => {
+      const { error } = await supabase
+        .from("matches")
+        .delete()
+        .eq("id", matchId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
+      toast.success("Match supprimé avec succès");
+    },
+    onError: () => {
+      toast.error("Erreur lors de la suppression du match");
+    },
+  });
+
   // Helper to get actual date from weekly planning item
   const getWeeklyPlanningDate = (item: { week_start_date: string; day_of_week: number }) => {
     const weekStart = startOfWeek(new Date(item.week_start_date), { weekStartsOn: 1 });
@@ -295,6 +314,8 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
             onRescheduleSession={(sessionId, newDate) => {
               rescheduleSession.mutate({ sessionId, newDate });
             }}
+            onDeleteMatch={(matchId) => deleteMatch.mutate(matchId)}
+            onLineupMatch={(matchId) => setLineupMatchId(matchId)}
           />
         </TabsContent>
 
@@ -401,9 +422,23 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
             });
             setIsDailyDialogOpen(false);
           }}
+          onDeleteMatch={(matchId) => deleteMatch.mutate(matchId)}
+          onLineupMatch={(matchId) => {
+            setLineupMatchId(matchId);
+            setIsDailyDialogOpen(false);
+          }}
           trainingTypeLabels={trainingTypeLabels}
           trainingTypeColors={TRAINING_TYPE_COLORS}
           isViewer={isViewer}
+        />
+      )}
+
+      {lineupMatchId && (
+        <MatchLineupDialog
+          open={true}
+          onOpenChange={(open) => !open && setLineupMatchId(null)}
+          matchId={lineupMatchId}
+          categoryId={categoryId}
         />
       )}
     </div>

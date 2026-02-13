@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Pencil, ArrowRight, Clock, MapPin, ChevronRight, X } from "lucide-react";
+import { Calendar, Pencil, ArrowRight, Clock, MapPin, ChevronRight, X, Trash2, Users } from "lucide-react";
 import { format, isToday, isTomorrow, isYesterday } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -54,6 +54,8 @@ interface DailySessionsDialogProps {
   onRescheduleSession: (sessionId: string, newDate: Date) => void;
   onViewMatch: (match: Match) => void;
   onViewSession: (session: Session) => void;
+  onDeleteMatch?: (matchId: string) => void;
+  onLineupMatch?: (matchId: string) => void;
   trainingTypeLabels: Record<string, string>;
   trainingTypeColors: Record<string, string>;
   isViewer?: boolean;
@@ -70,6 +72,8 @@ export function DailySessionsDialog({
   onRescheduleSession,
   onViewMatch,
   onViewSession,
+  onDeleteMatch,
+  onLineupMatch,
   trainingTypeLabels,
   trainingTypeColors,
   isViewer = false,
@@ -194,6 +198,42 @@ export function DailySessionsDialog({
                       </p>
                     )}
                   </div>
+
+                  {/* Action buttons */}
+                  {!isViewer && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      {onLineupMatch && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          title="Composition d'équipe"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onLineupMatch(match.id);
+                          }}
+                        >
+                          <Users className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {onDeleteMatch && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          title="Supprimer le match"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm("Supprimer ce match ?")) {
+                              onDeleteMatch(match.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
 
                   {/* Arrow */}
                   <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-foreground transition-colors shrink-0" />

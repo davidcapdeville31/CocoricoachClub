@@ -70,6 +70,8 @@ interface ImprovedCalendarViewProps {
   onViewMatch?: (match: Match) => void;
   onDeleteSession?: (sessionId: string) => void;
   onRescheduleSession?: (sessionId: string, newDate: Date) => void;
+  onDeleteMatch?: (matchId: string) => void;
+  onLineupMatch?: (matchId: string) => void;
 }
 
 const DAYS_OF_WEEK = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
@@ -93,6 +95,8 @@ export function ImprovedCalendarView({
   onViewMatch,
   onDeleteSession,
   onRescheduleSession,
+  onDeleteMatch,
+  onLineupMatch,
 }: ImprovedCalendarViewProps) {
   const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -596,6 +600,8 @@ export function ImprovedCalendarView({
                   onViewSession={onViewSession}
                   onViewMatch={onViewMatch}
                   onAddEvent={handleDayClickWithAdd}
+                  onDeleteMatch={onDeleteMatch}
+                  onLineupMatch={onLineupMatch}
                 />
               ))
             )}
