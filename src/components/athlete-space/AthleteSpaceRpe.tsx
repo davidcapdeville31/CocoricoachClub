@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +28,7 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("training_sessions")
-        .select("id, session_date, training_type, session_start_time, session_end_time")
+        .select("id, session_date, training_type, session_start_time, session_end_time, notes")
         .eq("category_id", categoryId)
         .eq("session_date", today)
         .order("session_start_time");
@@ -36,6 +36,19 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
       return data || [];
     },
   });
+
+  // Extract tests from session notes
+  const getTestNamesForSession = (notes: string | null): string[] => {
+    if (!notes) return [];
+    const match = notes.match(/<!--TESTS:(.*?)-->/);
+    if (!match) return [];
+    try {
+      const tests = JSON.parse(match[1]);
+      return tests.map((t: any) => t.test_type || t.test_category).filter(Boolean);
+    } catch {
+      return [];
+    }
+  };
 
   // Fetch already submitted RPEs
   const { data: submittedRpes = [] } = useQuery({
@@ -126,6 +139,13 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-sm">{getTrainingTypeLabel(session.training_type)}</p>
+                      {session.training_type === "test" && (
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {getTestNamesForSession(session.notes as any).map((testName, idx) => (
+                            <div key={idx}>{testName}</div>
+                          ))}
+                        </div>
+                      )}
                       {session.session_start_time && (
                         <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                           <Clock className="h-3 w-3" />
@@ -201,12 +221,21 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {doneSessions.map(s => (
-                <div key={s.id} className="flex items-center justify-between p-2 rounded bg-status-optimal/10">
-                  <span className="text-sm">{getTrainingTypeLabel(s.training_type)}</span>
-                  <CheckCircle2 className="h-4 w-4 text-status-optimal" />
-                </div>
-              ))}
+               {doneSessions.map(s => (
+                 <div key={s.id} className="flex items-center justify-between p-2 rounded bg-status-optimal/10">
+                   <div className="flex flex-col gap-0.5">
+                     <span className="text-sm font-medium">{getTrainingTypeLabel(s.training_type)}</span>
+                     {s.training_type === "test" && (
+                       <div className="text-xs text-muted-foreground">
+                         {getTestNamesForSession(s.notes as any).map((testName, idx) => (
+                           <div key={idx}>{testName}</div>
+                         ))}
+                       </div>
+                     )}
+                   </div>
+                   <CheckCircle2 className="h-4 w-4 text-status-optimal" />
+                 </div>
+               ))}
             </div>
           </CardContent>
         </Card>
