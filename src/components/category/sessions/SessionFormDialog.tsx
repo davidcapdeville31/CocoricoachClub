@@ -645,6 +645,29 @@ export function SessionFormDialog({
           .from("generic_tests")
           .delete()
           .like("notes", `%Session ID: ${editSession.id}%`);
+
+        // Update attendance records when editing
+        await supabase
+          .from("training_attendance")
+          .delete()
+          .eq("training_session_id", editSession.id);
+
+        const playersToUse =
+          playerSelectionMode === "specific" && selectedPlayers.length > 0
+            ? selectedPlayers
+            : players?.map((p) => p.id) || [];
+
+        if (playersToUse.length > 0) {
+          const attendanceRecords = playersToUse.map((playerId) => ({
+            player_id: playerId,
+            category_id: categoryId,
+            attendance_date: date,
+            training_session_id: sessionId!,
+            status: "present",
+          }));
+
+          await supabase.from("training_attendance").insert(attendanceRecords);
+        }
       } else {
         const { data, error } = await supabase
           .from("training_sessions")
@@ -765,6 +788,8 @@ export function SessionFormDialog({
       queryClient.invalidateQueries({ queryKey: ["today_session_exercises"] });
       queryClient.invalidateQueries({ queryKey: ["today_session_tests"] });
       queryClient.invalidateQueries({ queryKey: ["training_attendance"] });
+      queryClient.invalidateQueries({ queryKey: ["session-attendance"] });
+      queryClient.invalidateQueries({ queryKey: ["session-attendance-edit"] });
       queryClient.invalidateQueries({ queryKey: ["gym-exercises"] });
       queryClient.invalidateQueries({ queryKey: ["gps-sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["generic_tests", categoryId] });
