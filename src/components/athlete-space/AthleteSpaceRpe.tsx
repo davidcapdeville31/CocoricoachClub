@@ -37,6 +37,27 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
     },
   });
 
+  // Fetch test results for today (to show which tests were done)
+  const testSessionIds = sessions.filter(s => s.training_type === "test").map(s => s.id);
+  const { data: testResults = [] } = useQuery({
+    queryKey: ["athlete-space-test-results", playerId, today],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("generic_tests")
+        .select("id, test_type, test_category, result_value, result_unit, notes")
+        .eq("player_id", playerId)
+        .eq("test_date", today);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: testSessionIds.length > 0,
+  });
+
+  // Map test results to sessions via notes containing "Session ID: xxx"
+  const getTestResultsForSession = (sessionId: string) => {
+    return testResults.filter(t => t.notes?.includes(`Session ID: ${sessionId}`));
+  };
+
   // Extract tests from session notes
   const getTestNamesForSession = (notes: string | null): string[] => {
     if (!notes) return [];
@@ -141,8 +162,14 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
                       {session.training_type === "test" && (
                         <div className="text-xs text-muted-foreground mt-0.5">
                           {getTestNamesForSession(session.notes as any).map((testName, idx) => (
-                            <div key={idx}>{testName}</div>
+                            <div key={idx}>📋 {testName}</div>
                           ))}
+                          {getTestResultsForSession(session.id).map((result, idx) => (
+                            <div key={`r-${idx}`}>✅ {result.test_type}: {result.result_value} {result.result_unit || ""}</div>
+                          ))}
+                          {getTestNamesForSession(session.notes as any).length === 0 && getTestResultsForSession(session.id).length === 0 && (
+                            <div className="italic">Test prévu</div>
+                          )}
                         </div>
                       )}
                       {session.session_start_time && (
@@ -224,13 +251,16 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
                  <div key={s.id} className="flex items-center justify-between p-2 rounded bg-status-optimal/10">
                    <div className="flex flex-col gap-0.5">
                      <span className="text-sm font-medium">{getTrainingTypeLabel(s.training_type)}</span>
-                     {s.training_type === "test" && (
-                       <div className="text-xs text-muted-foreground">
-                         {getTestNamesForSession(s.notes as any).map((testName, idx) => (
-                           <div key={idx}>{testName}</div>
-                         ))}
-                       </div>
-                     )}
+                      {s.training_type === "test" && (
+                        <div className="text-xs text-muted-foreground">
+                          {getTestNamesForSession(s.notes as any).map((testName, idx) => (
+                            <div key={idx}>📋 {testName}</div>
+                          ))}
+                          {getTestResultsForSession(s.id).map((result, idx) => (
+                            <div key={`r-${idx}`}>✅ {result.test_type}: {result.result_value} {result.result_unit || ""}</div>
+                          ))}
+                        </div>
+                      )}
                    </div>
                    <CheckCircle2 className="h-4 w-4 text-status-optimal" />
                  </div>
