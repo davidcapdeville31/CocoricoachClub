@@ -308,7 +308,7 @@ function ExerciseSlotCard({
             
             {/* Sets, Reps, Weight - only show if exercise has name */}
             {hasExercise && exercise && (
-              <div className={cn("grid gap-2", isVbt ? "grid-cols-5" : "grid-cols-4")}>
+              <div className={cn("grid gap-2", isVbt ? "grid-cols-6" : "grid-cols-4")}>
                 <div>
                   <Label className="text-xs text-muted-foreground">Séries</Label>
                   <Input
@@ -346,18 +346,32 @@ function ExerciseSlotCard({
                   />
                 </div>
                 {isVbt && (
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Vitesse (m/s)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      className="h-8 text-xs"
-                      placeholder="ex: 0.75"
-                      value={exercise.target_velocity || ""}
-                      onChange={(e) => onUpdateExercise(exerciseIndex, "target_velocity", parseFloat(e.target.value) || null)}
-                    />
-                  </div>
+                  <>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">V. min (m/s)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className="h-8 text-xs"
+                        placeholder="0.8"
+                        value={exercise.target_velocity || ""}
+                        onChange={(e) => onUpdateExercise(exerciseIndex, "target_velocity", parseFloat(e.target.value) || null)}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">V. max (m/s)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className="h-8 text-xs"
+                        placeholder="1.0"
+                        value={exercise.target_rpe || ""}
+                        onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseFloat(e.target.value) || null)}
+                      />
+                    </div>
+                  </>
                 )}
                 <div>
                   <Label className="text-xs text-muted-foreground">Repos (s)</Label>

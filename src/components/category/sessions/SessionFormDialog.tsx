@@ -50,6 +50,8 @@ import {
   Minus,
   Timer,
   Repeat,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getCategoryLabel, getCategoriesForSport, isCategoryForSport, isErgCategory, isSledCategory, isRunningCategory, hasSpecialMetrics } from "@/lib/constants/exerciseCategories";
@@ -1067,6 +1069,14 @@ export function SessionFormDialog({
     setExercises([...exercises, exercise]);
   };
 
+  const moveExercise = (index: number, direction: "up" | "down") => {
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= exercises.length) return;
+    const updated = [...exercises];
+    [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
+    setExercises(updated.map((e, i) => ({ ...e, order_index: i })));
+  };
+
   const updateExercise = (index: number, field: keyof Exercise, value: any) => {
     const updated = [...exercises];
     updated[index] = { ...updated[index], [field]: value };
@@ -1339,6 +1349,33 @@ export function SessionFormDialog({
             <Badge className={cn("text-white text-xs", styleConfig.color)}>
               {styleConfig.label}
             </Badge>
+          )}
+
+          {!isGrouped && (
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => moveExercise(index, "up")}
+                disabled={index === 0}
+                title="Monter"
+                className="h-7 w-7"
+              >
+                <ArrowUp className="h-3 w-3" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => moveExercise(index, "down")}
+                disabled={index === exercises.length - 1}
+                title="Descendre"
+                className="h-7 w-7"
+              >
+                <ArrowDown className="h-3 w-3" />
+              </Button>
+            </>
           )}
 
           <Button
