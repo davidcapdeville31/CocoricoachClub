@@ -873,7 +873,7 @@ export function SessionFormDialog({
     const startIndex = exercises.length;
     
     // For pyramid methods, 5x5, and death_by, we only need 1 exercise
-    const isPyramidOrSpecial = isDropMethod(method) || method === "five_by_five" || method === "death_by";
+    const isPyramidOrSpecial = isDropMethod(method) || method === "five_by_five" || method === "death_by" || method === "vbt";
     const minExercises = isPyramidOrSpecial ? 1 : getMinExercisesForMethod(method);
     
     let newExercises: Exercise[];
@@ -2299,6 +2299,7 @@ export function SessionFormDialog({
       ...CARDIO_BLOCK_METHODS.map(m => getTrainingStyleConfig(m)),
       ...DROP_METHODS.map(m => getTrainingStyleConfig(m)),
       getTrainingStyleConfig("five_by_five"),
+      getTrainingStyleConfig("vbt"),
     ];
 
     return (
