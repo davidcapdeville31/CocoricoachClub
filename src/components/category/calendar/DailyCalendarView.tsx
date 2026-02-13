@@ -1,6 +1,6 @@
 import { format, isToday as checkIsToday, isTomorrow, isYesterday } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Plus, Clock, MapPin, ChevronRight, Zap, Calendar } from "lucide-react";
+import { Plus, Clock, MapPin, ChevronRight, Zap, Calendar, Users, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TRAINING_TYPE_COLORS } from "@/lib/constants/trainingTypes";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
@@ -43,6 +43,8 @@ interface DailyCalendarViewProps {
   onViewSession?: (session: Session) => void;
   onViewMatch?: (match: Match) => void;
   onAddEvent?: (day: Date) => void;
+  onDeleteMatch?: (matchId: string) => void;
+  onLineupMatch?: (matchId: string) => void;
 }
 
 export function DailyCalendarView({
@@ -55,6 +57,8 @@ export function DailyCalendarView({
   onViewSession,
   onViewMatch,
   onAddEvent,
+  onDeleteMatch,
+  onLineupMatch,
 }: DailyCalendarViewProps) {
   const isToday = checkIsToday(day);
   const hasEvents = sessions.length > 0 || matches.length > 0;
@@ -222,6 +226,40 @@ export function DailyCalendarView({
                           </p>
                         )}
                       </div>
+                      {!isViewer && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          {onLineupMatch && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              title="Composition d'équipe"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onLineupMatch(match.id);
+                              }}
+                            >
+                              <Users className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {onDeleteMatch && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              title="Supprimer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm("Supprimer ce match ?")) {
+                                  onDeleteMatch(match.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      )}
                       <ChevronRight className="h-5 w-5 text-muted-foreground/50 group-hover:text-foreground transition-colors" />
                     </div>
                   </div>
