@@ -3,11 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Activity, TrendingUp, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Activity, TrendingUp, AlertTriangle, CheckCircle2, MapPin, Calendar as CalendarIcon } from "lucide-react";
 import { calculateEWMASeries, transformToDailyLoadData } from "@/lib/trainingLoadCalculations";
-import { format, subDays } from "date-fns";
+import { format, subDays, startOfWeek, endOfWeek, addWeeks } from "date-fns";
 import { fr } from "date-fns/locale";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
+import { AthleteSpaceRpe } from "./AthleteSpaceRpe";
+import { AthleteSpaceWellness } from "./AthleteSpaceWellness";
 
 interface Props {
   playerId: string;
@@ -60,16 +62,18 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
     },
   });
 
-  const { data: nextTest } = useQuery({
-    queryKey: ["athlete-space-next-test", categoryId],
+  const { data: nextMatch } = useQuery({
+    queryKey: ["athlete-space-next-match", categoryId],
     queryFn: async () => {
       const today = new Date().toISOString().split("T")[0];
+      const weekEnd = format(endOfWeek(addWeeks(new Date(), 1), { weekStartsOn: 1 }), "yyyy-MM-dd");
       const { data, error } = await supabase
-        .from("test_reminders")
+        .from("matches")
         .select("*")
         .eq("category_id", categoryId)
-        .eq("is_active", true)
-        .order("start_date", { ascending: true })
+        .gte("match_date", today)
+        .lte("match_date", weekEnd)
+        .order("match_date", { ascending: true })
         .limit(1)
         .maybeSingle();
       if (error) throw error;
@@ -145,6 +149,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
 
   return (
     <div className="space-y-6">
+      {/* Status + EWMA */}
       <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.performance.base}40`, backgroundColor: `${NAV_COLORS.performance.base}08` }}>
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
@@ -173,6 +178,46 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
         </CardContent>
       </Card>
 
+      {/* Next match */}
+      {nextMatch && (
+        <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.video.base}40`, backgroundColor: `${NAV_COLORS.video.base}08` }}>
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${NAV_COLORS.video.base}20` }}>
+                <CalendarIcon className="h-6 w-6" style={{ color: NAV_COLORS.video.base }} />
+              </div>
+              <div className="flex-1">
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">Prochain match</p>
+                <p className="font-bold text-base" style={{ color: NAV_COLORS.video.base }}>
+                  {nextMatch.opponent || "Compétition"}
+                </p>
+                <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <CalendarIcon className="h-3 w-3" />
+                    {format(new Date(nextMatch.match_date), "EEEE d MMMM", { locale: fr })}
+                  </span>
+                  {nextMatch.match_time && (
+                    <span>{nextMatch.match_time.slice(0, 5)}</span>
+                  )}
+                  {nextMatch.location && (
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {nextMatch.location}
+                    </span>
+                  )}
+                </div>
+              </div>
+              {nextMatch.is_home !== null && (
+                <Badge variant="outline" className="text-xs" style={{ borderColor: NAV_COLORS.video.base, color: NAV_COLORS.video.base }}>
+                  {nextMatch.is_home ? "Dom." : "Ext."}
+                </Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* KPI cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card className="shadow-sm border-2" style={{ borderColor: `${NAV_COLORS.sante.base}40`, backgroundColor: `${NAV_COLORS.sante.base}08` }}>
           <CardContent className="pt-4 pb-3 px-4">
@@ -197,13 +242,18 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
         <Card className="shadow-sm border-2" style={{ borderColor: `${NAV_COLORS.planification.base}40`, backgroundColor: `${NAV_COLORS.planification.base}08` }}>
           <CardContent className="pt-4 pb-3 px-4">
             <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">Prochain test</p>
-            <p className="text-sm font-semibold" style={{ color: NAV_COLORS.planification.base }}>
-              {nextTest?.start_date ? format(new Date(nextTest.start_date), "dd MMM", { locale: fr }) : "—"}
-            </p>
+            <p className="text-sm font-semibold" style={{ color: NAV_COLORS.planification.base }}>—</p>
           </CardContent>
         </Card>
       </div>
 
+      {/* RPE du jour */}
+      <AthleteSpaceRpe playerId={playerId} categoryId={categoryId} />
+
+      {/* Wellness du jour */}
+      <AthleteSpaceWellness playerId={playerId} categoryId={categoryId} />
+
+      {/* Charge chart */}
       {chartData.length > 0 && (
         <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.effectif.base}40`, backgroundColor: `${NAV_COLORS.effectif.base}08` }}>
           <CardHeader className="pb-2">
@@ -224,6 +274,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
         </Card>
       )}
 
+      {/* Feedback */}
       <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.gps.base}40`, backgroundColor: `${NAV_COLORS.gps.base}08` }}>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2" style={{ color: NAV_COLORS.gps.base }}>
