@@ -80,7 +80,6 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
         session_date: today,
         rpe,
         duration_minutes: durationMin,
-        training_load: rpe * durationMin,
         training_session_id: selectedSession,
       });
       if (error) throw error;
