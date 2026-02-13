@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,12 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Activity, CheckCircle2, Clock, Calendar } from "lucide-react";
+import { Activity, CheckCircle2, Clock, Calendar, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { getTestLabel } from "@/lib/constants/testCategories";
+import { getDisplayNotes } from "@/lib/utils/sessionNotes";
 
 interface Props {
   playerId: string;
@@ -22,24 +23,30 @@ interface Props {
 export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
   const queryClient = useQueryClient();
   const today = new Date().toISOString().split("T")[0];
+  const endDate = addDays(new Date(), 14).toISOString().split("T")[0];
 
-  // Fetch today's sessions
-  const { data: sessions = [] } = useQuery({
-    queryKey: ["athlete-space-sessions", categoryId, today],
+  // Fetch sessions: today + upcoming (next 14 days)
+  const { data: allSessions = [] } = useQuery({
+    queryKey: ["athlete-space-sessions", categoryId, today, endDate],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("training_sessions")
         .select("id, session_date, training_type, session_start_time, session_end_time, notes")
         .eq("category_id", categoryId)
-        .eq("session_date", today)
+        .gte("session_date", today)
+        .lte("session_date", endDate)
+        .order("session_date")
         .order("session_start_time");
       if (error) throw error;
       return data || [];
     },
   });
 
-  // Fetch test results for today (to show which tests were done)
-  const testSessionIds = sessions.filter(s => s.training_type === "test").map(s => s.id);
+  const todaySessions = allSessions.filter(s => s.session_date === today);
+  const upcomingSessions = allSessions.filter(s => s.session_date > today);
+
+  // Fetch test results for today
+  const testSessionIds = todaySessions.filter(s => s.training_type === "test").map(s => s.id);
   const { data: testResults = [] } = useQuery({
     queryKey: ["athlete-space-test-results", playerId, today],
     queryFn: async () => {
@@ -54,12 +61,10 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
     enabled: testSessionIds.length > 0,
   });
 
-  // Map test results to sessions via notes containing "Session ID: xxx"
   const getTestResultsForSession = (sessionId: string) => {
     return testResults.filter(t => t.notes?.includes(`Session ID: ${sessionId}`));
   };
 
-  // Extract tests from session notes
   const getTestNamesForSession = (notes: string | null): string[] => {
     if (!notes) return [];
     const match = notes.match(/<!--TESTS:(.*?)-->/);
@@ -132,12 +137,42 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
     return "Maximal";
   };
 
-  const pendingSessions = sessions.filter(s => !completedSessionIds.has(s.id));
-  const doneSessions = sessions.filter(s => completedSessionIds.has(s.id));
+  const pendingSessions = todaySessions.filter(s => !completedSessionIds.has(s.id));
+  const doneSessions = todaySessions.filter(s => completedSessionIds.has(s.id));
+
+  // Group upcoming sessions by date
+  const upcomingByDate = upcomingSessions.reduce<Record<string, typeof upcomingSessions>>((acc, s) => {
+    if (!acc[s.session_date]) acc[s.session_date] = [];
+    acc[s.session_date].push(s);
+    return acc;
+  }, {});
+
+  const renderTestInfo = (session: typeof todaySessions[0]) => {
+    if (session.training_type !== "test") return null;
+    const testNames = getTestNamesForSession(session.notes);
+    const results = session.session_date === today ? getTestResultsForSession(session.id) : [];
+    if (testNames.length === 0 && results.length === 0) {
+      return <div className="text-xs text-muted-foreground mt-0.5 italic">Test prévu</div>;
+    }
+    return (
+      <div className="text-xs text-muted-foreground mt-0.5">
+        {testNames.map((name, idx) => <div key={idx}>📋 {name}</div>)}
+        {results.map((r, idx) => (
+          <div key={`r-${idx}`}>✅ {r.test_type}: {r.result_value} {r.result_unit || ""}</div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderSessionNotes = (notes: string | null) => {
+    const display = getDisplayNotes(notes);
+    if (!display) return null;
+    return <p className="text-xs text-muted-foreground mt-0.5 italic">{display}</p>;
+  };
 
   return (
     <div className="space-y-6">
-      {/* Pending sessions */}
+      {/* Today: Pending sessions */}
       {pendingSessions.length > 0 ? (
         <Card className="bg-gradient-card shadow-md border-accent/30">
           <CardHeader className="pb-3">
@@ -160,19 +195,8 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-sm">{getTrainingTypeLabel(session.training_type)}</p>
-                      {session.training_type === "test" && (
-                        <div className="text-xs text-muted-foreground mt-0.5">
-                          {getTestNamesForSession(session.notes as any).map((testName, idx) => (
-                            <div key={idx}>📋 {testName}</div>
-                          ))}
-                          {getTestResultsForSession(session.id).map((result, idx) => (
-                            <div key={`r-${idx}`}>✅ {result.test_type}: {result.result_value} {result.result_unit || ""}</div>
-                          ))}
-                          {getTestNamesForSession(session.notes as any).length === 0 && getTestResultsForSession(session.id).length === 0 && (
-                            <div className="italic">Test prévu</div>
-                          )}
-                        </div>
-                      )}
+                      {renderTestInfo(session)}
+                      {renderSessionNotes(session.notes)}
                       {session.session_start_time && (
                         <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                           <Clock className="h-3 w-3" />
@@ -232,7 +256,7 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
           <CardContent className="py-8 text-center">
             <CheckCircle2 className="h-10 w-10 text-status-optimal mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">
-              {sessions.length === 0
+              {todaySessions.length === 0
                 ? "Aucune séance prévue aujourd'hui"
                 : "Tous les RPE du jour sont enregistrés 👏"}
             </p>
@@ -252,21 +276,60 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
                  <div key={s.id} className="flex items-center justify-between p-2 rounded bg-status-optimal/10">
                    <div className="flex flex-col gap-0.5">
                      <span className="text-sm font-medium">{getTrainingTypeLabel(s.training_type)}</span>
-                      {s.training_type === "test" && (
-                        <div className="text-xs text-muted-foreground">
-                          {getTestNamesForSession(s.notes as any).map((testName, idx) => (
-                            <div key={idx}>📋 {testName}</div>
-                          ))}
-                          {getTestResultsForSession(s.id).map((result, idx) => (
-                            <div key={`r-${idx}`}>✅ {result.test_type}: {result.result_value} {result.result_unit || ""}</div>
-                          ))}
-                        </div>
-                      )}
+                      {renderTestInfo(s)}
                    </div>
                    <CheckCircle2 className="h-4 w-4 text-status-optimal" />
                  </div>
                ))}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Upcoming sessions (read-only) */}
+      {Object.keys(upcomingByDate).length > 0 && (
+        <Card className="bg-gradient-card">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              Prochaines séances
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {Object.entries(upcomingByDate).map(([date, dateSessions]) => (
+              <div key={date}>
+                <p className="text-xs font-semibold text-muted-foreground mb-2">
+                  📅 {format(parseISO(date), "EEEE d MMMM", { locale: fr })}
+                </p>
+                <div className="space-y-2">
+                  {dateSessions.map(session => (
+                    <div
+                      key={session.id}
+                      className="p-3 rounded-lg border border-border bg-muted/20 opacity-80"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-sm">{getTrainingTypeLabel(session.training_type)}</p>
+                          {renderTestInfo(session)}
+                          {renderSessionNotes(session.notes)}
+                          {session.session_start_time && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                              <Clock className="h-3 w-3" />
+                              {session.session_start_time?.slice(0, 5)}
+                              {session.session_end_time && ` - ${session.session_end_time.slice(0, 5)}`}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Lock className="h-3 w-3" />
+                          <span className="text-xs">Jour J</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </CardContent>
         </Card>
       )}
