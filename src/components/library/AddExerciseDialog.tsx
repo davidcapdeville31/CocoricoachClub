@@ -252,7 +252,7 @@ export function AddExerciseDialog() {
                     ))}
                   </SelectGroup>
                   <SelectGroup>
-                    <SelectLabel className={`text-xs font-semibold ${CATEGORY_GROUP_CONFIGS.reathletisation?.color}`}>Réathlétisation</SelectLabel>
+                    <SelectLabel className={`text-xs font-semibold ${CATEGORY_GROUP_CONFIGS.reathletisation?.color}`}>Rehab / Réathlé</SelectLabel>
                     {groupedCategories.reathletisation.map((cat) => (
                       <SelectItem key={cat.value} value={cat.value}>
                         {cat.label}
