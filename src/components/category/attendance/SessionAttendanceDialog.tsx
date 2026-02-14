@@ -57,8 +57,8 @@ export function SessionAttendanceDialog({
   const queryClient = useQueryClient();
   const [attendance, setAttendance] = useState<Record<string, PlayerAttendanceData>>({});
 
-  // Fetch players
-  const { data: players } = useQuery({
+  // Fetch all players for the category
+  const { data: allPlayers } = useQuery({
     queryKey: ["players", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -87,6 +87,18 @@ export function SessionAttendanceDialog({
     },
     enabled: !!session,
   });
+
+  // Filter players: only show those assigned to this session
+  // If attendance records exist, show only those players
+  // If no records exist, show all players (session for everyone)
+  const players = (() => {
+    if (!allPlayers) return [];
+    if (existingAttendance && existingAttendance.length > 0) {
+      const assignedIds = new Set(existingAttendance.map(a => a.player_id));
+      return allPlayers.filter(p => assignedIds.has(p.id));
+    }
+    return allPlayers;
+  })();
 
   // Initialize attendance state
   useEffect(() => {
