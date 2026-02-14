@@ -60,6 +60,7 @@ import { getTrainingTypesForSport, trainingTypeHasExercises } from "@/lib/consta
 import { QuickAddExerciseDialog } from "@/components/library/QuickAddExerciseDialog";
 import { DndContext, DragEndEvent, DragStartEvent, DragOverlay, useDraggable, useDroppable } from "@dnd-kit/core";
 import { ExerciseLibrarySidebar } from "@/components/category/programs/ExerciseLibrarySidebar";
+import { TrainingMethodSelect } from "@/components/category/sessions/TrainingMethodSelect";
 import {
   TRAINING_STYLES,
   getTrainingStyleConfig,
@@ -1426,47 +1427,32 @@ export function SessionFormDialog({
 
         {/* Row 1: Category selection */}
         <div className="grid grid-cols-2 gap-2">
-          {!isGrouped && (
-            <div>
-              <Label className="text-xs text-muted-foreground">Méthode</Label>
-              <Select
-                value={exercise.set_type}
-                onValueChange={(v) => {
-                  if (LINKABLE_METHODS.includes(v) || CARDIO_BLOCK_METHODS.includes(v)) {
-                    // For block methods, convert to block and remove this exercise
-                    removeExercise(index);
-                    createMethodBlock(v);
-                  } else if (DROP_METHODS.includes(v)) {
-                    initDropSets(index, v);
-                  } else if (CLUSTER_METHODS.includes(v)) {
-                    initClusterSets(index, v);
-                  } else {
-                    updateMultipleFields(index, {
-                      set_type: v,
-                      drop_sets: undefined,
-                      cluster_sets: undefined,
-                    });
-                  }
-                }}
-              >
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="max-h-80">
-                  {TRAINING_STYLES.map((style) => (
-                    <SelectItem key={style.value} value={style.value}>
-                      <div className="flex items-center gap-2">
-                        {style.color && (
-                          <div className={cn("w-2 h-2 rounded-full", style.color)} />
-                        )}
-                        <span>{style.label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+           {!isGrouped && (
+             <div>
+               <Label className="text-xs text-muted-foreground">Méthode</Label>
+               <TrainingMethodSelect
+                 value={exercise.set_type}
+                 onValueChange={(v) => {
+                   if (LINKABLE_METHODS.includes(v) || CARDIO_BLOCK_METHODS.includes(v)) {
+                     // For block methods, convert to block and remove this exercise
+                     removeExercise(index);
+                     createMethodBlock(v);
+                   } else if (DROP_METHODS.includes(v)) {
+                     initDropSets(index, v);
+                   } else if (CLUSTER_METHODS.includes(v)) {
+                     initClusterSets(index, v);
+                   } else {
+                     updateMultipleFields(index, {
+                       set_type: v,
+                       drop_sets: undefined,
+                       cluster_sets: undefined,
+                     });
+                   }
+                 }}
+                 showColorDot={true}
+               />
+             </div>
+           )}
           <div className={isGrouped ? "col-span-2" : ""}>
             <Label className="text-xs text-muted-foreground">Catégorie</Label>
             <Select

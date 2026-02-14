@@ -24,6 +24,7 @@ import {
 import { TEST_CATEGORIES } from "@/lib/constants/testCategories";
 import { isErgCategory, isSledCategory, isRunningCategory, isBodyweightCategory } from "@/lib/constants/exerciseCategories";
 import { cn } from "@/lib/utils";
+import { TrainingMethodSelect } from "@/components/category/sessions/TrainingMethodSelect";
 import {
   TRAINING_STYLES,
   getTrainingStyleConfig,
@@ -1059,39 +1060,29 @@ export function ProgramSessionCard({
               // Bodyweight-specific inputs: séries, reps, poids additionnel optionnel
               <div className="grid grid-cols-5 gap-2">
                 {!isGrouped && (
-                  <div className="space-y-1 col-span-1">
-                    <label className="text-xs text-muted-foreground">Méthode</label>
-                    <Select
-                      value={exercise.method}
-                      onValueChange={(value) => {
-                        if (LINKABLE_METHODS.includes(value)) {
-                          startLinking(index, value);
-                        } else if (DROP_METHODS.includes(value)) {
-                          initDropSets(index, value);
-                        } else if (CLUSTER_METHODS.includes(value)) {
-                          initClusterSets(index, value);
-                        } else {
-                          updateMultipleFields(index, {
-                            method: value,
-                            drop_sets: undefined,
-                            cluster_sets: undefined,
-                          });
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-80">
-                        {TRAINING_STYLES.map((style) => (
-                          <SelectItem key={style.value} value={style.value}>
-                            <span>{style.label}</span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+                   <div className="space-y-1 col-span-1">
+                     <label className="text-xs text-muted-foreground">Méthode</label>
+                     <TrainingMethodSelect
+                       value={exercise.method}
+                       onValueChange={(value) => {
+                         if (LINKABLE_METHODS.includes(value)) {
+                           startLinking(index, value);
+                         } else if (DROP_METHODS.includes(value)) {
+                           initDropSets(index, value);
+                         } else if (CLUSTER_METHODS.includes(value)) {
+                           initClusterSets(index, value);
+                         } else {
+                           updateMultipleFields(index, {
+                             method: value,
+                             drop_sets: undefined,
+                             cluster_sets: undefined,
+                           });
+                         }
+                       }}
+                       triggerClassName="h-8 text-xs"
+                     />
+                   </div>
+                 )}
                 
                 <div className="space-y-1">
                   <label className="text-xs text-muted-foreground">Séries</label>
@@ -1148,57 +1139,32 @@ export function ProgramSessionCard({
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-6 gap-2">
-                {!isGrouped && (
-                  <div className="space-y-1 col-span-2">
-                    <label className="text-xs text-muted-foreground">Méthode</label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div>
-                            <Select
-                              value={exercise.method}
-                              onValueChange={(value) => {
-                                if (LINKABLE_METHODS.includes(value)) {
-                                  startLinking(index, value);
-                                } else if (DROP_METHODS.includes(value)) {
-                                  initDropSets(index, value);
-                                } else if (CLUSTER_METHODS.includes(value)) {
-                                  initClusterSets(index, value);
-                                } else {
-                                  updateMultipleFields(index, {
-                                    method: value,
-                                    drop_sets: undefined,
-                                    cluster_sets: undefined,
-                                  });
-                                }
-                              }}
-                            >
-                              <SelectTrigger className="h-8 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="max-h-80">
-                                {TRAINING_STYLES.map((style) => (
-                                  <SelectItem key={style.value} value={style.value}>
-                                    <div className="flex items-center gap-2">
-                                      {style.color && (
-                                        <div className={cn("w-2 h-2 rounded-full", style.color)} />
-                                      )}
-                                      <span>{style.label}</span>
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{getMethodDescription(exercise.method)}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                )}
+               <div className="grid grid-cols-6 gap-2">
+                 {!isGrouped && (
+                   <div className="space-y-1 col-span-2">
+                     <label className="text-xs text-muted-foreground">Méthode</label>
+                     <TrainingMethodSelect
+                       value={exercise.method}
+                       onValueChange={(value) => {
+                         if (LINKABLE_METHODS.includes(value)) {
+                           startLinking(index, value);
+                         } else if (DROP_METHODS.includes(value)) {
+                           initDropSets(index, value);
+                         } else if (CLUSTER_METHODS.includes(value)) {
+                           initClusterSets(index, value);
+                         } else {
+                           updateMultipleFields(index, {
+                             method: value,
+                             drop_sets: undefined,
+                             cluster_sets: undefined,
+                           });
+                         }
+                       }}
+                       showColorDot={true}
+                       triggerClassName="h-8 text-xs"
+                     />
+                   </div>
+                 )}
 
                 {!dropMode && !clusterMode && (
                   <>
