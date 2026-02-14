@@ -15,17 +15,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { PlayerSelection } from "./PlayerSelection";
 import { getTestCategoriesForSport, TestOption } from "@/lib/constants/testCategories";
-import { HierarchicalTestSelector, resolveTestCategory } from "./HierarchicalTestSelector";
+import { HierarchicalTestSelector, resolveTestCategory, resolveGroupAndZone } from "./HierarchicalTestSelector";
+import { useEffect } from "react";
 
 interface UnifiedTestDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   categoryId: string;
   sportType?: string;
+  defaultFilterCategory?: string;
+  defaultFilterTestType?: string;
 }
 
 export function UnifiedTestDialog({
-  open, onOpenChange, categoryId, sportType,
+  open, onOpenChange, categoryId, sportType, defaultFilterCategory, defaultFilterTestType,
 }: UnifiedTestDialogProps) {
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [selectionMode, setSelectionMode] = useState<"all" | "specific">("all");
@@ -39,6 +42,21 @@ export function UnifiedTestDialog({
   const [customTestUnit, setCustomTestUnit] = useState("");
   const [isCustom, setIsCustom] = useState(false);
   const queryClient = useQueryClient();
+
+  // Pre-select group/zone/test when dialog opens with a default filter
+  useEffect(() => {
+    if (open && defaultFilterCategory) {
+      const { group, zone } = resolveGroupAndZone(defaultFilterCategory, sportType || "");
+      setSelectedGroup(group);
+      setSelectedZone(zone);
+      if (defaultFilterTestType) {
+        setSelectedTest(defaultFilterTestType);
+      } else {
+        setSelectedTest("");
+      }
+      setPlayerResults({});
+    }
+  }, [open, defaultFilterCategory, defaultFilterTestType, sportType]);
 
   const AVAILABLE_UNITS = [
     { value: "kg", label: "Kilogrammes (kg)" },

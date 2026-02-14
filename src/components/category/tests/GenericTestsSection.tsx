@@ -316,6 +316,8 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         onOpenChange={setIsDialogOpen}
         categoryId={categoryId}
         sportType={sportType}
+        defaultFilterCategory={filterCategory !== "all" ? filterCategory : undefined}
+        defaultFilterTestType={filterTestType !== "all" ? filterTestType : undefined}
       />
 
       {filterTestType !== "all" && selectedCategory && (() => {
