@@ -92,32 +92,34 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
   });
 
   // Generic tests - group by test_type for charts
-  const genericByType: Record<string, { date: string; value: number; unit: string; label: string }[]> = {};
+  const genericByType: Record<string, { date: string; value: number; unit: string; label: string; categoryLabel: string }[]> = {};
   genericTests.forEach(t => {
     const key = `${t.test_category}__${t.test_type}`;
     if (!genericByType[key]) genericByType[key] = [];
     
-    // Get human-readable label
     const cat = testCategories.find(c => c.value === t.test_category);
     const testDef = cat?.tests.find(tt => tt.value === t.test_type);
     const label = testDef?.label || t.test_type?.replace(/_/g, " ") || "Test";
+    const categoryLabel = cat?.label || t.test_category?.replace(/_/g, " ") || "";
     
     genericByType[key].push({
       date: format(new Date(t.test_date), "dd/MM", { locale: fr }),
       value: t.result_value,
       unit: t.result_unit || "",
       label,
+      categoryLabel,
     });
   });
 
   // Latest generic test results for summary
-  const latestGenericByType: Record<string, { value: number; unit: string; label: string; date: string }> = {};
+  const latestGenericByType: Record<string, { value: number; unit: string; label: string; categoryLabel: string; date: string }> = {};
   genericTests.forEach(t => {
     const key = `${t.test_category}__${t.test_type}`;
     const cat = testCategories.find(c => c.value === t.test_category);
     const testDef = cat?.tests.find(tt => tt.value === t.test_type);
     const label = testDef?.label || t.test_type?.replace(/_/g, " ") || "Test";
-    latestGenericByType[key] = { value: t.result_value, unit: t.result_unit || "", label, date: t.test_date };
+    const categoryLabel = cat?.label || t.test_category?.replace(/_/g, " ") || "";
+    latestGenericByType[key] = { value: t.result_value, unit: t.result_unit || "", label, categoryLabel, date: t.test_date };
   });
 
   const getProgressionFeedback = (): string[] => {
@@ -210,6 +212,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
             <div className="grid grid-cols-2 gap-3">
               {Object.entries(latestGenericByType).map(([key, test]) => (
                 <div key={key} className="p-3 rounded-lg bg-muted/30 text-center">
+                  <p className="text-[10px] text-muted-foreground/70 uppercase tracking-wide">{test.categoryLabel}</p>
                   <p className="text-xs text-muted-foreground mb-1">{test.label}</p>
                   <p className="text-lg font-bold">{test.value} <span className="text-xs font-normal text-muted-foreground">{test.unit}</span></p>
                   <p className="text-[10px] text-muted-foreground">
@@ -268,7 +271,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
           <Card key={key} className="bg-gradient-card shadow-md">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
-                Évolution {data[0].label}
+                <span className="text-muted-foreground">{data[0].categoryLabel} :</span> {data[0].label}
                 <Badge variant="secondary" className="text-[10px]">{data[0].unit}</Badge>
               </CardTitle>
             </CardHeader>
