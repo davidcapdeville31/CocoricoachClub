@@ -147,7 +147,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
   });
   
   const lowWellnessPlayers = Object.values(latestWellness).filter((w: any) => {
-    const avgScore = (w.sleep_quality + w.fatigue + w.stress + w.upper_body_soreness + w.lower_body_soreness) / 5;
+    const avgScore = (w.sleep_quality + w.general_fatigue + w.stress_level + w.soreness_upper_body + w.soreness_lower_body) / 5;
     return avgScore < 2.5;
   });
 
