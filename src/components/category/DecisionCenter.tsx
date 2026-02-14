@@ -87,6 +87,7 @@ import { AddWellnessDialog } from "./AddWellnessDialog";
   const [athleteSelectOpen, setAthleteSelectOpen] = useState(false);
   const [wellnessDialogOpen, setWellnessDialogOpen] = useState(false);
   const [attendanceDetailOpen, setAttendanceDetailOpen] = useState(false);
+  const [adaptChargeOpen, setAdaptChargeOpen] = useState(false);
  
     // Fetch players
     const { data: players = [] } = useQuery({
@@ -389,7 +390,7 @@ import { AddWellnessDialog } from "./AddWellnessDialog";
        }
      });
      
-     return toAdapt.slice(0, 4);
+     return toAdapt;
    };
  
     const groupStatus = calculateGroupStatus();
@@ -915,11 +916,16 @@ import { AddWellnessDialog } from "./AddWellnessDialog";
               <Button 
                 variant="outline" 
                 className="h-auto py-3 flex flex-col items-center gap-1"
-                onClick={() => playersToAdapt[0] && navigate(`/players/${playersToAdapt[0].id}`)}
+                onClick={() => setAdaptChargeOpen(true)}
                 disabled={playersToAdapt.length === 0}
               >
                 <Activity className="h-5 w-5 text-orange-500" />
                 <span className="text-xs">Adapter charge</span>
+                {playersToAdapt.length > 0 && (
+                  <Badge variant="destructive" className="text-[10px] h-4 px-1">
+                    {playersToAdapt.length}
+                  </Badge>
+                )}
               </Button>
               <Button 
                 variant="outline" 
@@ -1006,7 +1012,48 @@ import { AddWellnessDialog } from "./AddWellnessDialog";
           categoryId={categoryId}
         />
 
-        {/* Attendance Detail Dialog - Grouped by session */}
+        {/* Adapt Charge Dialog */}
+        <Dialog open={adaptChargeOpen} onOpenChange={setAdaptChargeOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-orange-500" />
+                Joueurs à adapter ({playersToAdapt.length})
+              </DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="max-h-[400px]">
+              <div className="space-y-1 p-1">
+                {playersToAdapt.map(player => (
+                  <Button
+                    key={player.id}
+                    variant="ghost"
+                    className="w-full justify-between h-auto py-3"
+                    onClick={() => {
+                      navigate(`/players/${player.id}`);
+                      setAdaptChargeOpen(false);
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <User className="h-4 w-4 text-orange-500" />
+                      <div className="text-left">
+                        <p className="font-medium">{player.name}</p>
+                        <p className="text-xs text-muted-foreground">{player.reason}</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                ))}
+                {playersToAdapt.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Aucun joueur ne nécessite d'adaptation
+                  </p>
+                )}
+              </div>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+
+
         <Dialog open={attendanceDetailOpen} onOpenChange={setAttendanceDetailOpen}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
