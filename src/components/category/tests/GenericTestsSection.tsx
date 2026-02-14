@@ -36,13 +36,17 @@ interface GenericTestsSectionProps {
 
 export function GenericTestsSection({ categoryId, sportType, defaultCategory }: GenericTestsSectionProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [filterCategory, setFilterCategory] = useState<string>(defaultCategory || "all");
+  const [filterCategory, setFilterCategory] = useState<string>(defaultCategory === "rehab" ? "all" : (defaultCategory || "all"));
   const [filterTestType, setFilterTestType] = useState<string>("all");
+  const isRehabMode = defaultCategory === "rehab";
   const queryClient = useQueryClient();
   const { isViewer } = useViewerModeContext();
 
-  // Get filtered test categories based on sport type
-  const baseTestCategories = getTestCategoriesForSport(sportType || "");
+  // Get filtered test categories based on sport type and mode
+  const allSportCategories = getTestCategoriesForSport(sportType || "");
+  const baseTestCategories = isRehabMode
+    ? allSportCategories.filter(c => c.value.startsWith("rehab_"))
+    : allSportCategories.filter(c => !c.value.startsWith("rehab_"));
 
   // Fetch all tests to discover unique categories and types from DB
   const { data: allTestsForDiscovery } = useQuery({
@@ -103,13 +107,20 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
   }, [baseTestCategories, allTestsForDiscovery]);
 
   const { data: tests, isLoading } = useQuery({
-    queryKey: ["generic_tests", categoryId, filterCategory, filterTestType],
+    queryKey: ["generic_tests", categoryId, filterCategory, filterTestType, isRehabMode],
     queryFn: async () => {
       let query = supabase
         .from("generic_tests")
         .select("*, players(name)")
         .eq("category_id", categoryId)
         .order("test_date", { ascending: false });
+
+      if (isRehabMode) {
+        query = query.like("test_category", "rehab_%");
+      } else {
+        // In normal mode, exclude rehab tests
+        query = query.not("test_category", "like", "rehab_%");
+      }
 
       if (filterCategory !== "all") {
         query = query.eq("test_category", filterCategory);
@@ -151,7 +162,9 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
   return (
     <Card className="bg-gradient-card">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg">Tous les Tests de Performance</CardTitle>
+        <CardTitle className="text-lg">
+          {isRehabMode ? "Tests de Réathlétisation" : "Tous les Tests de Performance"}
+        </CardTitle>
         {!isViewer && (
           <Button size="sm" onClick={() => setIsDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-1" /> Ajouter un test
