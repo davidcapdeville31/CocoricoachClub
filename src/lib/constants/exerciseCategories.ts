@@ -98,10 +98,10 @@ export const CATEGORY_GROUP_CONFIGS: Record<string, CategoryGroupConfig> = {
   },
   reathletisation: {
     value: "reathletisation",
-    label: "Réathlétisation",
-    color: "text-emerald-500",
-    bgColor: "bg-emerald-500/10",
-    borderColor: "border-emerald-500/30",
+    label: "Rehab / Réathlé",
+    color: "text-emerald-600",
+    bgColor: "bg-emerald-600/10",
+    borderColor: "border-emerald-600/30",
     icon: Heart,
   },
   terrain: {
@@ -211,18 +211,62 @@ export const EXERCISE_CATEGORIES: ExerciseCategory[] = [
   { value: "yoga_stretch", label: "Yoga Étirement", group: "pilates" },
   { value: "pilates_core", label: "Pilates Core", group: "pilates" },
   
-  // Réathlétisation
-  { value: "reathletisation_lower", label: "Réathé - Membres inférieurs", group: "reathletisation" },
-  { value: "reathletisation_upper", label: "Réathé - Membres supérieurs", group: "reathletisation" },
-  { value: "reathletisation_trunk", label: "Réathé - Tronc / Rachis", group: "reathletisation" },
+  // Rehab / Réathlétisation - Catégories par zone
+  { value: "reathletisation_lower", label: "Rehab - Membres inférieurs", group: "reathletisation" },
+  { value: "reathletisation_upper", label: "Rehab - Membres supérieurs", group: "reathletisation" },
+  { value: "reathletisation_trunk", label: "Rehab - Tronc / Rachis", group: "reathletisation" },
+  
+  // Rehab - Stabilité articulaire
+  { value: "shoulder_stability", label: "Rehab - Stabilité épaule", group: "reathletisation" },
+  { value: "knee_stability", label: "Rehab - Stabilité genou", group: "reathletisation" },
+  { value: "ankle_stability", label: "Rehab - Stabilité cheville", group: "reathletisation" },
+  { value: "hip_stability", label: "Rehab - Stabilité hanche", group: "reathletisation" },
+  { value: "wrist_hand_rehab", label: "Rehab - Poignet / Main", group: "reathletisation" },
+  { value: "elbow_rehab", label: "Rehab - Coude", group: "reathletisation" },
+  
+  // Rehab - Proprioception & Neuromusculaire
   { value: "proprioception", label: "Proprioception", group: "reathletisation" },
   { value: "neuromuscular", label: "Activation neuromusculaire", group: "reathletisation" },
-  { value: "shoulder_stability", label: "Stabilité épaule", group: "reathletisation" },
-  { value: "knee_stability", label: "Stabilité genou", group: "reathletisation" },
-  { value: "ankle_stability", label: "Stabilité cheville", group: "reathletisation" },
-  { value: "hip_stability", label: "Stabilité hanche", group: "reathletisation" },
-  { value: "prophylaxis", label: "Prophylaxie / Prévention", group: "reathletisation" },
+  { value: "balance_training", label: "Équilibre / Balance", group: "reathletisation" },
+  
+  // Rehab - Travail musculaire spécifique
   { value: "eccentric", label: "Travail excentrique", group: "reathletisation" },
+  { value: "isometric_rehab", label: "Isométrique (rehab)", group: "reathletisation" },
+  { value: "concentric_rehab", label: "Concentrique progressif", group: "reathletisation" },
+  
+  // Rehab - Mobilité & Amplitude
+  { value: "rom_restoration", label: "Récupération amplitude (ROM)", group: "reathletisation" },
+  { value: "joint_mobilization", label: "Mobilisation articulaire", group: "reathletisation" },
+  { value: "scar_tissue_work", label: "Travail cicatriciel / Adhérences", group: "reathletisation" },
+  
+  // Rehab - Contrôle moteur & Fonctionnel
+  { value: "motor_control", label: "Contrôle moteur", group: "reathletisation" },
+  { value: "functional_rehab", label: "Fonctionnel / Gestes sportifs adaptés", group: "reathletisation" },
+  { value: "gait_retraining", label: "Rééducation à la marche", group: "reathletisation" },
+  { value: "running_rehab", label: "Reprise course progressive", group: "reathletisation" },
+  
+  // Rehab - Renforcement spécifique kiné
+  { value: "rotator_cuff", label: "Coiffe des rotateurs", group: "reathletisation" },
+  { value: "scapular_control", label: "Contrôle scapulaire", group: "reathletisation" },
+  { value: "hamstring_rehab", label: "Ischio-jambiers (rehab)", group: "reathletisation" },
+  { value: "quadriceps_rehab", label: "Quadriceps (rehab)", group: "reathletisation" },
+  { value: "calf_rehab", label: "Mollet / Tendon d'Achille", group: "reathletisation" },
+  { value: "adductor_rehab", label: "Adducteurs (rehab)", group: "reathletisation" },
+  { value: "hip_flexor_rehab", label: "Fléchisseurs de hanche", group: "reathletisation" },
+  { value: "spinal_stabilization", label: "Stabilisation rachidienne", group: "reathletisation" },
+  { value: "cervical_rehab", label: "Cervicales (rehab)", group: "reathletisation" },
+  
+  // Rehab - Protocoles & Prévention
+  { value: "prophylaxis", label: "Prophylaxie / Prévention", group: "reathletisation" },
+  { value: "nordic_hamstring", label: "Nordic Hamstring", group: "reathletisation" },
+  { value: "copenhagen_adductor", label: "Copenhagen Adducteurs", group: "reathletisation" },
+  { value: "theraband_exercises", label: "Exercices élastiques / Theraband", group: "reathletisation" },
+  { value: "aquatic_rehab", label: "Rééducation aquatique / Balnéo", group: "reathletisation" },
+  { value: "electrostimulation", label: "Électrostimulation (EMS)", group: "reathletisation" },
+  { value: "cryotherapy_protocol", label: "Cryothérapie / Protocole froid", group: "reathletisation" },
+  { value: "plyometric_rehab", label: "Pliométrie progressive (rehab)", group: "reathletisation" },
+  { value: "agility_rehab", label: "Agilité progressive (rehab)", group: "reathletisation" },
+  { value: "sport_specific_rehab", label: "Retour sport spécifique", group: "reathletisation" },
   
   // Ergo (Ergomètres) / Cardio machines
   { value: "ergo_rowerg", label: "RowErg (Rameur)", group: "ergo" },
@@ -365,7 +409,7 @@ export const CATEGORY_GROUPS = [
   { value: "ergo", label: "Ergo / Cardio" },
   { value: "sled", label: "Traîneau" },
   { value: "pilates", label: "Pilates / Yoga" },
-  { value: "reathletisation", label: "Réathlétisation" },
+  { value: "reathletisation", label: "Rehab / Réathlé" },
   { value: "terrain", label: "Terrain" },
   { value: "stretching_mobility", label: "Échauffement / Mobilité" },
 ] as const;
@@ -441,11 +485,11 @@ export const EXERCISE_SUBCATEGORIES = [
   { value: "force_max", label: "Force maximale", parentCategory: "musculation" },
   { value: "endurance_force", label: "Endurance de force", parentCategory: "musculation" },
   
-  // Réathlétisation
-  { value: "phase1_protection", label: "Phase 1 - Protection", parentCategory: "reathletisation" },
-  { value: "phase2_controlled", label: "Phase 2 - Contrôlé", parentCategory: "reathletisation" },
-  { value: "phase3_progressive", label: "Phase 3 - Progressif", parentCategory: "reathletisation" },
-  { value: "phase4_return", label: "Phase 4 - Retour terrain", parentCategory: "reathletisation" },
+  // Rehab / Réathlé
+  { value: "phase1_protection", label: "Phase 1 - Réhabilitation", parentCategory: "reathletisation" },
+  { value: "phase2_controlled", label: "Phase 2 - Renforcement", parentCategory: "reathletisation" },
+  { value: "phase3_progressive", label: "Phase 3 - Retour terrain", parentCategory: "reathletisation" },
+  { value: "phase4_return", label: "Phase 4 - Retour compétition", parentCategory: "reathletisation" },
   { value: "prevention", label: "Prévention", parentCategory: "reathletisation" },
   
   // Stretching & Mobilité
