@@ -80,6 +80,7 @@ import {
 import { SessionGpsImport, type GpsPlayerData } from "@/components/category/gps/SessionGpsImport";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { TrainingMethodBlock } from "./TrainingMethodBlocks";
+import { TrainingMethodSelect } from "./TrainingMethodSelect";
 import { SessionTestBlock, type SessionTest } from "./SessionTestBlock";
 import { SessionBlocksManager, type SessionBlock } from "./SessionBlocksManager";
 
@@ -1429,7 +1430,7 @@ export function SessionFormDialog({
            {!isGrouped && (
              <div>
                <Label className="text-xs text-muted-foreground">Méthode</Label>
-               <Select
+               <TrainingMethodSelect
                  value={exercise.set_type}
                  onValueChange={(v) => {
                    if (LINKABLE_METHODS.includes(v) || CARDIO_BLOCK_METHODS.includes(v)) {
@@ -1447,23 +1448,8 @@ export function SessionFormDialog({
                      });
                    }
                  }}
-               >
-                 <SelectTrigger className="h-8 text-xs">
-                   <SelectValue />
-                 </SelectTrigger>
-                 <SelectContent className="max-h-80">
-                   {TRAINING_STYLES.map((style) => (
-                     <SelectItem key={style.value} value={style.value}>
-                       <div className="flex items-center gap-2">
-                         {style.color && (
-                           <div className={cn("w-2 h-2 rounded-full", style.color)} />
-                         )}
-                         <span>{style.label}</span>
-                       </div>
-                     </SelectItem>
-                   ))}
-                 </SelectContent>
-               </Select>
+                 showColorDot
+               />
              </div>
            )}
           <div className={isGrouped ? "col-span-2" : ""}>
