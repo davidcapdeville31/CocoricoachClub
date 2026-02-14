@@ -40,10 +40,9 @@ function TestCategoryTrigger({ value, label, colorIndex }: { value: string; labe
         "transition-all duration-200 ease-out whitespace-nowrap",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         "hover:opacity-80",
-        "data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:scale-105",
+        "data-[state=active]:shadow-md data-[state=active]:scale-105",
       )}
       style={{
-        color: color,
         borderWidth: "2px",
         borderColor: color,
         borderStyle: "solid",
@@ -58,7 +57,11 @@ function TestCategoryTrigger({ value, label, colorIndex }: { value: string; labe
         )}
         style={{ backgroundColor: color }}
       />
-      <span className="relative z-10">{label}</span>
+      {/* Colored text by default, white text when active (dual-span trick to avoid inline style override) */}
+      <span className="relative z-10">
+        <span className="group-data-[state=active]:hidden" style={{ color }}>{label}</span>
+        <span className="hidden group-data-[state=active]:inline text-white">{label}</span>
+      </span>
     </TabsPrimitive.Trigger>
   );
 }
