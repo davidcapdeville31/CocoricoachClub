@@ -1679,8 +1679,8 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     }
   };
 
-  // Date range component
-  const DateRangeInputs = ({ from, to, onFromChange, onToChange }: { from: string; to: string; onFromChange: (v: string) => void; onToChange: (v: string) => void }) => (
+  // Date range rendering helper (not a component to avoid remounting/focus loss)
+  const renderDateRange = (from: string, to: string, onFromChange: (v: string) => void, onToChange: (v: string) => void) => (
     <div className="grid grid-cols-2 gap-2">
       <div>
         <Label className="text-xs text-muted-foreground">Du</Label>
@@ -1713,7 +1713,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <DateRangeInputs from={overviewDateFrom} to={overviewDateTo} onFromChange={setOverviewDateFrom} onToChange={setOverviewDateTo} />
+            {renderDateRange(overviewDateFrom, overviewDateTo, setOverviewDateFrom, setOverviewDateTo)}
             <div className="flex gap-2">
               <Button 
                 onClick={generateSquadReport} 
@@ -1768,7 +1768,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
                 ))}
               </SelectContent>
             </Select>
-            <DateRangeInputs from={playerDateFrom} to={playerDateTo} onFromChange={setPlayerDateFrom} onToChange={setPlayerDateTo} />
+            {renderDateRange(playerDateFrom, playerDateTo, setPlayerDateFrom, setPlayerDateTo)}
             <div className="flex gap-2">
               <Button 
                 onClick={generatePlayerReport} 
@@ -1913,7 +1913,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <DateRangeInputs from={attendanceDateFrom} to={attendanceDateTo} onFromChange={setAttendanceDateFrom} onToChange={setAttendanceDateTo} />
+            {renderDateRange(attendanceDateFrom, attendanceDateTo, setAttendanceDateFrom, setAttendanceDateTo)}
             <div className="flex gap-2">
               <Button 
                 onClick={generateAttendanceReport} 
