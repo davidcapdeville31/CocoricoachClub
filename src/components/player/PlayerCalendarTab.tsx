@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X, Dumbbell, Activity, CheckCircle2, Swords, Video, Stethoscope, Users } from "lucide-react";
 import { isWithinInterval, parseISO } from "date-fns";
+import { getDisplayNotes, parseTestsFromNotes } from "@/lib/utils/sessionNotes";
+import { TEST_CATEGORIES } from "@/lib/constants/testCategories";
 
 interface PlayerCalendarTabProps {
   playerId: string;
@@ -41,6 +43,15 @@ const getTrainingTypeIcon = (type: string) => {
     case "reunion": return Users;
     default: return Activity;
   }
+};
+
+// Helper to get human-readable test name from test_type
+const getTestLabel = (testType: string): string => {
+  for (const category of TEST_CATEGORIES) {
+    const test = category.tests.find((t) => t.value === testType);
+    if (test) return test.label;
+  }
+  return testType.replace(/_/g, " ");
 };
 
 export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabProps) {
@@ -278,9 +289,26 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
                               </span>
                             )}
                           </div>
-                          {event.notes && (
-                            <p className="text-sm mt-2 text-muted-foreground ml-6">{event.notes}</p>
-                          )}
+                          {(() => {
+                            const tests = parseTestsFromNotes(event.notes);
+                            const displayNotes = getDisplayNotes(event.notes);
+                            return (
+                              <>
+                                {tests.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-2 ml-6">
+                                    {tests.map((t, i) => (
+                                      <Badge key={i} variant="outline" className="text-xs bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30">
+                                        {getTestLabel(t.test_type)}{t.result_unit ? ` (${t.result_unit})` : ''}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                )}
+                                {displayNotes && (
+                                  <p className="text-sm mt-2 text-muted-foreground ml-6">{displayNotes}</p>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       );
                     } else if (event._type === 'match') {
