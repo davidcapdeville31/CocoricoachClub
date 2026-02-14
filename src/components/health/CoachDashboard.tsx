@@ -459,20 +459,30 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
           <CardTitle className="text-lg">Distribution EWMA</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div className="p-4 bg-blue-500/10 rounded-lg">
-              <p className="text-2xl font-bold text-blue-600">{lowEwma.length}</p>
-              <p className="text-sm text-muted-foreground">Sous-entraînés (&lt;0.8)</p>
+          {ewmaValues.length === 0 ? (
+            <div className="text-center py-6 text-muted-foreground">
+              <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="font-medium">Aucune donnée EWMA disponible</p>
+              <p className="text-sm mt-1">
+                Les ratios EWMA sont calculés automatiquement lorsque les joueurs ont suffisamment de sessions RPE enregistrées (minimum 7 jours de données).
+              </p>
             </div>
-            <div className="p-4 bg-green-500/10 rounded-lg">
-              <p className="text-2xl font-bold text-green-600">{optimalEwma.length}</p>
-              <p className="text-sm text-muted-foreground">Zone optimale (0.8-1.3)</p>
+          ) : (
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="p-4 bg-blue-500/10 rounded-lg">
+                <p className="text-2xl font-bold text-blue-600">{lowEwma.length}</p>
+                <p className="text-sm text-muted-foreground">Sous-entraînés (&lt;0.8)</p>
+              </div>
+              <div className="p-4 bg-green-500/10 rounded-lg">
+                <p className="text-2xl font-bold text-green-600">{optimalEwma.length}</p>
+                <p className="text-sm text-muted-foreground">Zone optimale (0.8-1.3)</p>
+              </div>
+              <div className="p-4 bg-orange-500/10 rounded-lg">
+                <p className="text-2xl font-bold text-orange-600">{highEwma.length}</p>
+                <p className="text-sm text-muted-foreground">Surcharge (&gt;1.3)</p>
+              </div>
             </div>
-            <div className="p-4 bg-orange-500/10 rounded-lg">
-              <p className="text-2xl font-bold text-orange-600">{highEwma.length}</p>
-              <p className="text-sm text-muted-foreground">Surcharge (&gt;1.3)</p>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>
