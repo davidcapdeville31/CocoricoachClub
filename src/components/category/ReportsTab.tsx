@@ -14,6 +14,7 @@ import jsPDF from "jspdf";
 import { generateCsv, downloadCsv } from "@/lib/csv";
 import { preparePdfWithSettings, drawPdfHeader as drawPdfHeaderCustom, drawSectionTitle, drawTableHeader as drawTableHeaderLib, drawTableRow as drawTableRowLib, checkPageBreak as checkPageBreakLib, type PdfCustomSettings } from "@/lib/pdfExport";
 import { getStatsForSport, type StatField } from "@/lib/constants/sportStats";
+import { TEST_CATEGORIES, getTestLabel } from "@/lib/constants/testCategories";
 
 interface ReportsTabProps {
   categoryId: string;
@@ -307,96 +308,101 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         yPos += 10;
       }
 
-      // Speed Tests Section
-      yPos = localCheckPageBreak(pdf, yPos, 30);
-      pdf.setFontSize(12);
-      pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(...defaultColors.dark);
-      pdf.text("TESTS DE VITESSE", margin, yPos);
-      yPos += 8;
+      // ===== TESTS SECTION - Grouped by category =====
+      // Combine all test sources into a unified list
+      const allTestResults: Array<{test_type: string; test_category: string; result_value: number; result_unit: string | null; test_date: string}> = [];
 
-      const speedTests = speedTestsRes.data || [];
-      if (speedTests.length > 0) {
-        const speedHeaders = ["Type", "Résultat", "Date"];
-        const speedColWidths = [60, 60, 60];
-        yPos = drawTableHeaderPdf(pdf, speedHeaders, speedColWidths, yPos, margin, contentWidth);
+      // Add speed tests
+      (speedTestsRes.data || []).forEach(t => {
+        if (t.test_type === '40m' && t.time_40m_seconds) {
+          allTestResults.push({ test_type: 'Sprint 40m', test_category: 'sprint', result_value: t.time_40m_seconds, result_unit: 's', test_date: t.test_date });
+        } else if (t.test_type === '1600m' && t.vma_kmh) {
+          allTestResults.push({ test_type: 'Test 1600m (VMA)', test_category: 'cardio', result_value: t.vma_kmh, result_unit: 'km/h', test_date: t.test_date });
+        }
+      });
 
-        speedTests.forEach((test, index) => {
-          yPos = localCheckPageBreak(pdf, yPos, 10);
-          let result = '-';
-          if (test.test_type === '40m' && test.time_40m_seconds) {
-            result = `${test.time_40m_seconds}s (${test.speed_kmh?.toFixed(1) || '-'} km/h)`;
-          } else if (test.test_type === '1600m') {
-            result = `VMA: ${test.vma_kmh || '-'} km/h`;
-          }
-          yPos = drawTableRowPdf(pdf, [
-            test.test_type === '40m' ? 'Sprint 40m' : 'Test 1600m',
-            result,
-            format(new Date(test.test_date), "dd/MM/yy")
-          ], speedColWidths, yPos, index % 2 === 1, margin, contentWidth);
+      // Add jump tests
+      (jumpTestsRes.data || []).forEach(t => {
+        allTestResults.push({ test_type: t.test_type, test_category: 'saut', result_value: t.result_cm, result_unit: 'cm', test_date: t.test_date });
+      });
+
+      // Add generic tests
+      (genericTestsRes.data || []).forEach(t => {
+        allTestResults.push({ test_type: t.test_type, test_category: t.test_category, result_value: t.result_value, result_unit: t.result_unit, test_date: t.test_date });
+      });
+
+      if (allTestResults.length > 0) {
+        // Group by test_category
+        const groupedTests: Record<string, typeof allTestResults> = {};
+        allTestResults.forEach(t => {
+          const cat = t.test_category || 'autres';
+          if (!groupedTests[cat]) groupedTests[cat] = [];
+          groupedTests[cat].push(t);
         });
-        yPos += 5;
-      } else {
-        pdf.setFontSize(9);
-        pdf.setTextColor(...defaultColors.muted);
-        pdf.text("Aucun test enregistré", margin, yPos);
-        yPos += 10;
-      }
 
-      // Jump Tests Section
-      yPos = localCheckPageBreak(pdf, yPos, 30);
-      pdf.setFontSize(12);
-      pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(...defaultColors.dark);
-      pdf.text("TESTS DE SAUT", margin, yPos);
-      yPos += 8;
+        // Get nice category labels from TEST_CATEGORIES
+        const getCategoryLabel = (catValue: string): string => {
+          const found = TEST_CATEGORIES.find(c => c.value === catValue);
+          if (found) return found.label;
+          // Capitalize fallback
+          return catValue.charAt(0).toUpperCase() + catValue.slice(1).replace(/_/g, ' ');
+        };
 
-      const jumpTests = jumpTestsRes.data || [];
-      if (jumpTests.length > 0) {
-        const jumpHeaders = ["Type", "Résultat", "Date"];
-        const jumpColWidths = [60, 60, 60];
-        yPos = drawTableHeaderPdf(pdf, jumpHeaders, jumpColWidths, yPos, margin, contentWidth);
+        // Sort categories for consistent order
+        const orderedCategories = Object.keys(groupedTests).sort((a, b) => getCategoryLabel(a).localeCompare(getCategoryLabel(b)));
 
-        jumpTests.forEach((test, index) => {
-          yPos = localCheckPageBreak(pdf, yPos, 10);
-          yPos = drawTableRowPdf(pdf, [
-            test.test_type,
-            `${test.result_cm} cm`,
-            format(new Date(test.test_date), "dd/MM/yy")
-          ], jumpColWidths, yPos, index % 2 === 1, margin, contentWidth);
-        });
-        yPos += 5;
-      } else {
-        pdf.setFontSize(9);
-        pdf.setTextColor(...defaultColors.muted);
-        pdf.text("Aucun test enregistré", margin, yPos);
-        yPos += 10;
-      }
-
-      // Generic Tests Section
-      const genericTests = genericTestsRes.data || [];
-      if (genericTests.length > 0) {
+        // Section header
         yPos = localCheckPageBreak(pdf, yPos, 30);
         pdf.setFontSize(12);
         pdf.setFont("helvetica", "bold");
         pdf.setTextColor(...defaultColors.dark);
-        pdf.text("AUTRES TESTS", margin, yPos);
+        pdf.text("TESTS DE PERFORMANCE", margin, yPos);
         yPos += 8;
 
-        const genHeaders = ["Test", "Catégorie", "Résultat", "Date"];
-        const genColWidths = [50, 40, 45, 45];
-        yPos = drawTableHeaderPdf(pdf, genHeaders, genColWidths, yPos, margin, contentWidth);
+        for (const catKey of orderedCategories) {
+          const tests = groupedTests[catKey];
+          yPos = localCheckPageBreak(pdf, yPos, 25);
 
-        genericTests.forEach((test, index) => {
-          yPos = localCheckPageBreak(pdf, yPos, 10);
-          yPos = drawTableRowPdf(pdf, [
-            test.test_type,
-            test.test_category,
-            `${test.result_value}${test.result_unit ? ` ${test.result_unit}` : ''}`,
-            format(new Date(test.test_date), "dd/MM/yy")
-          ], genColWidths, yPos, index % 2 === 1, margin, contentWidth);
-        });
+          // Sub-header for category
+          pdf.setFontSize(10);
+          pdf.setFont("helvetica", "bold");
+          pdf.setTextColor(...defaultColors.primary);
+          pdf.text(getCategoryLabel(catKey), margin + 2, yPos);
+          yPos += 6;
+
+          const testHeaders = ["Test", "Résultat", "Date"];
+          const testColWidths = [70, 55, 55];
+          yPos = drawTableHeaderPdf(pdf, testHeaders, testColWidths, yPos, margin, contentWidth);
+
+          // Sort tests by date desc within category
+          tests.sort((a, b) => new Date(b.test_date).getTime() - new Date(a.test_date).getTime());
+
+          tests.forEach((test, index) => {
+            yPos = localCheckPageBreak(pdf, yPos, 10);
+            // Try to get a nice label from the library
+            const testLabel = getTestLabel(test.test_type) !== test.test_type 
+              ? getTestLabel(test.test_type).split(' - ').pop() || test.test_type 
+              : test.test_type;
+            yPos = drawTableRowPdf(pdf, [
+              testLabel,
+              `${test.result_value}${test.result_unit ? ` ${test.result_unit}` : ''}`,
+              format(new Date(test.test_date), "dd/MM/yy")
+            ], testColWidths, yPos, index % 2 === 1, margin, contentWidth);
+          });
+          yPos += 4;
+        }
         yPos += 5;
+      } else {
+        yPos = localCheckPageBreak(pdf, yPos, 20);
+        pdf.setFontSize(12);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(...defaultColors.dark);
+        pdf.text("TESTS DE PERFORMANCE", margin, yPos);
+        yPos += 8;
+        pdf.setFontSize(9);
+        pdf.setTextColor(...defaultColors.muted);
+        pdf.text("Aucun test enregistré", margin, yPos);
+        yPos += 10;
       }
 
       // Match Stats Section
