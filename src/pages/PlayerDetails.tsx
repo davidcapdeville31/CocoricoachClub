@@ -447,7 +447,7 @@ function PlayerDetailsContent() {
           </TabsContent>
 
           <TabsContent value="tests">
-            <PlayerTestsTab playerId={playerId!} categoryId={player.category_id} />
+            <PlayerTestsTab playerId={playerId!} categoryId={player.category_id} sportType={sportType} />
           </TabsContent>
 
           <TabsContent value="matches">
