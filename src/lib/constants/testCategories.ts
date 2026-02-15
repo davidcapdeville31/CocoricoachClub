@@ -521,6 +521,267 @@ export const TEST_CATEGORIES: TestCategory[] = [
       { value: "judo_golden_score_endurance", label: "Endurance golden score", unit: "score" },
     ],
   },
+  // Mobilité / Souplesse (tous sports)
+  {
+    value: "mobilite",
+    label: "Mobilité / Souplesse",
+    tests: [
+      { value: "sit_and_reach", label: "Sit and Reach", unit: "cm" },
+      { value: "hip_flexion_d", label: "Flexion hanche - Droit", unit: "°" },
+      { value: "hip_flexion_g", label: "Flexion hanche - Gauche", unit: "°" },
+      { value: "hip_extension_d", label: "Extension hanche - Droit", unit: "°" },
+      { value: "hip_extension_g", label: "Extension hanche - Gauche", unit: "°" },
+      { value: "ankle_dorsiflexion_d", label: "Dorsiflexion cheville - Droit", unit: "°" },
+      { value: "ankle_dorsiflexion_g", label: "Dorsiflexion cheville - Gauche", unit: "°" },
+      { value: "shoulder_flexion_d", label: "Flexion épaule - Droit", unit: "°" },
+      { value: "shoulder_flexion_g", label: "Flexion épaule - Gauche", unit: "°" },
+      { value: "shoulder_rotation_ext_d", label: "Rotation ext. épaule - Droit", unit: "°" },
+      { value: "shoulder_rotation_ext_g", label: "Rotation ext. épaule - Gauche", unit: "°" },
+      { value: "thoracic_rotation_d", label: "Rotation thoracique - Droit", unit: "°" },
+      { value: "thoracic_rotation_g", label: "Rotation thoracique - Gauche", unit: "°" },
+      { value: "thomas_test_d", label: "Thomas Test - Droit", unit: "°" },
+      { value: "thomas_test_g", label: "Thomas Test - Gauche", unit: "°" },
+      { value: "straight_leg_raise_d", label: "Straight Leg Raise - Droit", unit: "°" },
+      { value: "straight_leg_raise_g", label: "Straight Leg Raise - Gauche", unit: "°" },
+    ],
+  },
+  // Agilité (tous sports)
+  {
+    value: "agilite",
+    label: "Agilité / Changement de direction",
+    tests: [
+      { value: "illinois_test", label: "Illinois Agility Test", unit: "s", isTime: true },
+      { value: "t_test", label: "T-Test", unit: "s", isTime: true },
+      { value: "pro_agility_5_10_5", label: "Pro Agility (5-10-5)", unit: "s", isTime: true },
+      { value: "l_drill", label: "L-Drill (3 Cone)", unit: "s", isTime: true },
+      { value: "arrowhead_test", label: "Arrowhead Agility Test", unit: "s", isTime: true },
+      { value: "505_test", label: "505 Agility Test", unit: "s", isTime: true },
+      { value: "reactive_agility", label: "Test d'agilité réactive", unit: "s", isTime: true },
+      { value: "hexagon_test", label: "Hexagon Test", unit: "s", isTime: true },
+    ],
+  },
+  // Gainage / Core (tous sports)
+  {
+    value: "gainage",
+    label: "Gainage / Core",
+    tests: [
+      { value: "planche_ventrale", label: "Planche ventrale", unit: "s", isTime: true },
+      { value: "planche_laterale_d", label: "Planche latérale - Droit", unit: "s", isTime: true },
+      { value: "planche_laterale_g", label: "Planche latérale - Gauche", unit: "s", isTime: true },
+      { value: "sorensen_test", label: "Test de Sorensen (dorsal)", unit: "s", isTime: true },
+      { value: "mcgill_flexion", label: "McGill - Flexion", unit: "s", isTime: true },
+      { value: "mcgill_extension", label: "McGill - Extension", unit: "s", isTime: true },
+      { value: "sit_ups_1min", label: "Sit-ups 1 min", unit: "reps" },
+      { value: "anti_rotation_d", label: "Anti-rotation Pallof - Droit", unit: "s", isTime: true },
+      { value: "anti_rotation_g", label: "Anti-rotation Pallof - Gauche", unit: "s", isTime: true },
+    ],
+  },
+  // Rugby specific tests
+  {
+    value: "rugby_specific",
+    label: "Tests Spécifiques",
+    group: "rugby",
+    groupLabel: "Rugby",
+    tests: [
+      { value: "rugby_bronco", label: "Bronco Test", unit: "min.s", isTime: true },
+      { value: "rugby_yo_yo_ir1", label: "Yo-Yo IR1", unit: "m" },
+      { value: "rugby_yo_yo_ir2", label: "Yo-Yo IR2", unit: "m" },
+      { value: "rugby_repeated_sprint_6x30", label: "RSA 6x30m", unit: "moyenne s", isTime: true },
+      { value: "rugby_scrum_force", label: "Force en mêlée (individuel)", unit: "kg" },
+      { value: "rugby_tackle_power", label: "Puissance plaquage", unit: "W" },
+      { value: "rugby_prone_30m", label: "Prone to Sprint 30m", unit: "s", isTime: true },
+      { value: "rugby_159_test", label: "Test 1-5-9", unit: "s", isTime: true },
+    ],
+  },
+  // Football specific tests
+  {
+    value: "football_physique",
+    label: "Tests Physiques",
+    group: "football",
+    groupLabel: "Football",
+    tests: [
+      { value: "football_yo_yo_ir1", label: "Yo-Yo IR1", unit: "m" },
+      { value: "football_yo_yo_ir2", label: "Yo-Yo IR2", unit: "m" },
+      { value: "football_rsa_6x20", label: "RSA 6x20m", unit: "moyenne s", isTime: true },
+      { value: "football_illinois", label: "Illinois Agility", unit: "s", isTime: true },
+      { value: "football_sprint_5m", label: "Sprint 5m", unit: "s", isTime: true },
+      { value: "football_sprint_10m", label: "Sprint 10m", unit: "s", isTime: true },
+      { value: "football_sprint_20m", label: "Sprint 20m", unit: "s", isTime: true },
+      { value: "football_sprint_30m", label: "Sprint 30m", unit: "s", isTime: true },
+      { value: "football_arrowhead_d", label: "Arrowhead Agility - Droit", unit: "s", isTime: true },
+      { value: "football_arrowhead_g", label: "Arrowhead Agility - Gauche", unit: "s", isTime: true },
+    ],
+  },
+  {
+    value: "football_technique",
+    label: "Compétences spécifiques",
+    group: "football",
+    groupLabel: "Football",
+    tests: [
+      { value: "football_passing_accuracy", label: "Précision de passe", unit: "score" },
+      { value: "football_shooting_speed", label: "Vitesse de frappe", unit: "km/h" },
+      { value: "football_dribbling_test", label: "Test de dribble (circuit)", unit: "s", isTime: true },
+      { value: "football_juggling", label: "Jonglage (60 sec)", unit: "reps" },
+    ],
+  },
+  // Handball specific tests
+  {
+    value: "handball_physique",
+    label: "Tests Physiques",
+    group: "handball",
+    groupLabel: "Handball",
+    tests: [
+      { value: "handball_yo_yo_ir1", label: "Yo-Yo IR1", unit: "m" },
+      { value: "handball_sprint_5m", label: "Sprint 5m", unit: "s", isTime: true },
+      { value: "handball_sprint_10m", label: "Sprint 10m", unit: "s", isTime: true },
+      { value: "handball_sprint_20m", label: "Sprint 20m", unit: "s", isTime: true },
+      { value: "handball_505_test", label: "505 Agility Test", unit: "s", isTime: true },
+      { value: "handball_t_test", label: "T-Test", unit: "s", isTime: true },
+      { value: "handball_rsa", label: "RSA (Repeated Sprint)", unit: "moyenne s", isTime: true },
+    ],
+  },
+  {
+    value: "handball_technique",
+    label: "Compétences spécifiques",
+    group: "handball",
+    groupLabel: "Handball",
+    tests: [
+      { value: "handball_throw_speed_7m", label: "Vitesse de tir 7m", unit: "km/h" },
+      { value: "handball_throw_speed_9m", label: "Vitesse de tir 9m", unit: "km/h" },
+      { value: "handball_throw_speed_wing", label: "Vitesse de tir ailier", unit: "km/h" },
+      { value: "handball_throw_accuracy", label: "Précision de tir", unit: "%" },
+      { value: "handball_defensive_reaction", label: "Temps de réaction défensive", unit: "ms", isTime: true },
+    ],
+  },
+  // Natation specific tests
+  {
+    value: "natation_bassin",
+    label: "Épreuves Bassin",
+    group: "natation",
+    groupLabel: "Natation",
+    tests: [
+      { value: "natation_50m_nl", label: "50m Nage Libre", unit: "s", isTime: true },
+      { value: "natation_100m_nl", label: "100m Nage Libre", unit: "min.s", isTime: true },
+      { value: "natation_200m_nl", label: "200m Nage Libre", unit: "min.s", isTime: true },
+      { value: "natation_400m_nl", label: "400m Nage Libre", unit: "min.s", isTime: true },
+      { value: "natation_800m_nl", label: "800m Nage Libre", unit: "min.s", isTime: true },
+      { value: "natation_1500m_nl", label: "1500m Nage Libre", unit: "min.s", isTime: true },
+      { value: "natation_100m_dos", label: "100m Dos", unit: "min.s", isTime: true },
+      { value: "natation_100m_brasse", label: "100m Brasse", unit: "min.s", isTime: true },
+      { value: "natation_100m_papillon", label: "100m Papillon", unit: "min.s", isTime: true },
+      { value: "natation_200m_4n", label: "200m 4 Nages", unit: "min.s", isTime: true },
+      { value: "natation_400m_4n", label: "400m 4 Nages", unit: "min.s", isTime: true },
+    ],
+  },
+  {
+    value: "natation_physio",
+    label: "Tests Physiologiques",
+    group: "natation",
+    groupLabel: "Natation",
+    tests: [
+      { value: "natation_css", label: "Critical Swim Speed (CSS)", unit: "m/s" },
+      { value: "natation_lactate_test", label: "Step Test Lactate", unit: "mmol/L" },
+      { value: "natation_max_velocity", label: "Vitesse max (sprint 15m)", unit: "m/s" },
+      { value: "natation_stroke_count_50", label: "Nombre de coups 50m", unit: "coups" },
+      { value: "natation_stroke_rate", label: "Fréquence de nage", unit: "c/min" },
+      { value: "natation_distance_per_stroke", label: "Distance par coup", unit: "m" },
+    ],
+  },
+  // Cyclisme specific tests
+  {
+    value: "cyclisme_puissance",
+    label: "Puissance / Endurance",
+    group: "cyclisme",
+    groupLabel: "Cyclisme",
+    tests: [
+      { value: "cyclisme_ftp", label: "FTP (Functional Threshold Power)", unit: "W" },
+      { value: "cyclisme_ftp_kg", label: "FTP / kg", unit: "W/kg" },
+      { value: "cyclisme_map", label: "Puissance Aérobie Max (MAP)", unit: "W" },
+      { value: "cyclisme_map_kg", label: "MAP / kg", unit: "W/kg" },
+      { value: "cyclisme_5s_power", label: "Puissance max 5s", unit: "W" },
+      { value: "cyclisme_1min_power", label: "Puissance max 1 min", unit: "W" },
+      { value: "cyclisme_5min_power", label: "Puissance max 5 min", unit: "W" },
+      { value: "cyclisme_20min_power", label: "Puissance max 20 min", unit: "W" },
+      { value: "cyclisme_vo2max", label: "VO2max (labo)", unit: "ml/kg/min" },
+      { value: "cyclisme_lactate_threshold", label: "Seuil lactique", unit: "W" },
+      { value: "cyclisme_hr_max", label: "FC Max", unit: "bpm" },
+    ],
+  },
+  {
+    value: "cyclisme_sprint",
+    label: "Sprint / Piste",
+    group: "cyclisme",
+    groupLabel: "Cyclisme",
+    tests: [
+      { value: "cyclisme_200m_lance", label: "200m lancé (piste)", unit: "s", isTime: true },
+      { value: "cyclisme_500m_da", label: "500m départ arrêté", unit: "s", isTime: true },
+      { value: "cyclisme_1000m_da", label: "1000m départ arrêté", unit: "min.s", isTime: true },
+      { value: "cyclisme_peak_power", label: "Pic de puissance (Wingate)", unit: "W" },
+      { value: "cyclisme_peak_power_kg", label: "Pic de puissance / kg", unit: "W/kg" },
+      { value: "cyclisme_mean_power_30s", label: "Puissance moyenne 30s (Wingate)", unit: "W" },
+      { value: "cyclisme_fatigue_index", label: "Indice de fatigue (Wingate)", unit: "%" },
+    ],
+  },
+  // Tennis specific tests
+  {
+    value: "tennis_physique",
+    label: "Tests Physiques",
+    group: "tennis",
+    groupLabel: "Tennis",
+    tests: [
+      { value: "tennis_spider_test", label: "Spider Test", unit: "s", isTime: true },
+      { value: "tennis_fan_drill", label: "Fan Drill", unit: "s", isTime: true },
+      { value: "tennis_hexagon", label: "Hexagon Test", unit: "s", isTime: true },
+      { value: "tennis_sprint_5m", label: "Sprint 5m", unit: "s", isTime: true },
+      { value: "tennis_sprint_10m", label: "Sprint 10m", unit: "s", isTime: true },
+      { value: "tennis_sprint_20m", label: "Sprint 20m", unit: "s", isTime: true },
+      { value: "tennis_yo_yo_ir1", label: "Yo-Yo IR1", unit: "m" },
+      { value: "tennis_sit_and_reach", label: "Sit and Reach", unit: "cm" },
+      { value: "tennis_medicine_ball_throw", label: "Lancer médecine-ball", unit: "m" },
+    ],
+  },
+  {
+    value: "tennis_technique",
+    label: "Compétences spécifiques",
+    group: "tennis",
+    groupLabel: "Tennis",
+    tests: [
+      { value: "tennis_serve_speed_1st", label: "Vitesse 1er service", unit: "km/h" },
+      { value: "tennis_serve_speed_2nd", label: "Vitesse 2ème service", unit: "km/h" },
+      { value: "tennis_serve_accuracy", label: "Précision service", unit: "%" },
+      { value: "tennis_forehand_speed", label: "Vitesse coup droit", unit: "km/h" },
+      { value: "tennis_backhand_speed", label: "Vitesse revers", unit: "km/h" },
+    ],
+  },
+  // Volleyball specific tests
+  {
+    value: "volleyball_physique",
+    label: "Tests Physiques",
+    group: "volleyball",
+    groupLabel: "Volleyball",
+    tests: [
+      { value: "volleyball_block_jump", label: "Block Jump (reach)", unit: "cm" },
+      { value: "volleyball_approach_jump", label: "Approach Jump (attaque)", unit: "cm" },
+      { value: "volleyball_standing_reach", label: "Standing Reach", unit: "cm" },
+      { value: "volleyball_t_test", label: "T-Test Agility", unit: "s", isTime: true },
+      { value: "volleyball_pro_agility", label: "Pro Agility (5-10-5)", unit: "s", isTime: true },
+      { value: "volleyball_sprint_5m", label: "Sprint 5m", unit: "s", isTime: true },
+      { value: "volleyball_sprint_10m", label: "Sprint 10m", unit: "s", isTime: true },
+      { value: "volleyball_beep_test", label: "Beep Test", unit: "palier" },
+    ],
+  },
+  {
+    value: "volleyball_technique",
+    label: "Compétences spécifiques",
+    group: "volleyball",
+    groupLabel: "Volleyball",
+    tests: [
+      { value: "volleyball_spike_speed", label: "Vitesse de smash", unit: "km/h" },
+      { value: "volleyball_serve_speed", label: "Vitesse de service", unit: "km/h" },
+      { value: "volleyball_serve_accuracy", label: "Précision service", unit: "%" },
+      { value: "volleyball_pass_accuracy", label: "Précision de réception", unit: "score" },
+    ],
+  },
   // Réathlétisation / Kiné - Force musculaire bilatérale
   {
     value: "rehab_ischio_quadri",
@@ -764,51 +1025,41 @@ export function getAllTests(): TestOption[] {
 export function getTestCategoriesForSport(sportType: string): TestCategory[] {
   const baseSport = sportType?.split('_')[0]?.toLowerCase() || sportType?.toLowerCase();
   
+  // Sport-specific prefixes to exclude from base
+  const sportPrefixes = [
+    "bowling_", "basketball_", "aviron_", "athletisme_", "judo_",
+    "rugby_", "football_", "handball_", "natation_", "cyclisme_",
+    "tennis_", "volleyball_",
+  ];
+  
   const baseCategories = TEST_CATEGORIES.filter(cat => 
-    !cat.value.startsWith("bowling_") && 
-    !cat.value.startsWith("basketball_") && 
-    !cat.value.startsWith("aviron_") &&
-    !cat.value.startsWith("athletisme_") &&
-    !cat.value.startsWith("judo_") &&
+    !sportPrefixes.some(prefix => cat.value.startsWith(prefix)) &&
     !cat.value.startsWith("rehab_")
   );
 
   // Rehab categories are always included
   const rehabCategories = TEST_CATEGORIES.filter(cat => cat.value.startsWith("rehab_"));
   
-  if (baseSport === "bowling") {
-    const bowlingCategories = TEST_CATEGORIES.filter(cat => 
-      cat.value.startsWith("bowling_")
-    );
-    return [...baseCategories, ...rehabCategories, ...bowlingCategories];
-  }
-  
-  if (baseSport === "basketball") {
-    const basketballCategories = TEST_CATEGORIES.filter(cat => 
-      cat.value.startsWith("basketball_")
-    );
-    return [...baseCategories, ...rehabCategories, ...basketballCategories];
-  }
-  
-  if (baseSport === "aviron") {
-    const avironCategories = TEST_CATEGORIES.filter(cat => 
-      cat.value.startsWith("aviron_")
-    );
-    return [...baseCategories, ...rehabCategories, ...avironCategories];
-  }
-  
-  if (baseSport === "athletisme") {
-    const athletismeCategories = TEST_CATEGORIES.filter(cat => 
-      cat.value.startsWith("athletisme_")
-    );
-    return [...baseCategories, ...rehabCategories, ...athletismeCategories];
-  }
-  
-  if (baseSport === "judo") {
-    const judoCategories = TEST_CATEGORIES.filter(cat => 
-      cat.value.startsWith("judo_")
-    );
-    return [...baseCategories, ...rehabCategories, ...judoCategories];
+  // Map sport name to prefix
+  const sportPrefixMap: Record<string, string> = {
+    bowling: "bowling_",
+    basketball: "basketball_",
+    aviron: "aviron_",
+    athletisme: "athletisme_",
+    judo: "judo_",
+    rugby: "rugby_",
+    football: "football_",
+    handball: "handball_",
+    natation: "natation_",
+    cyclisme: "cyclisme_",
+    tennis: "tennis_",
+    volleyball: "volleyball_",
+  };
+
+  const prefix = baseSport ? sportPrefixMap[baseSport] : null;
+  if (prefix) {
+    const sportCategories = TEST_CATEGORIES.filter(cat => cat.value.startsWith(prefix));
+    return [...baseCategories, ...rehabCategories, ...sportCategories];
   }
   
   return [...baseCategories, ...rehabCategories];
