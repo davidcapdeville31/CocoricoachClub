@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { toast } from "sonner";
 import { Plus, Utensils, Droplets, Apple, Beef, Wheat, Flame, Target, ClipboardList } from "lucide-react";
 import { format } from "date-fns";
@@ -316,16 +317,16 @@ export function PlayerNutritionTab({ playerId, categoryId }: PlayerNutritionTabP
       </div>
 
       <Tabs defaultValue="objectives" className="w-full">
-        <TabsList>
-          <TabsTrigger value="objectives" className="flex items-center gap-1">
-            <Target className="h-4 w-4" />
-            Objectifs
-          </TabsTrigger>
-          <TabsTrigger value="tracking" className="flex items-center gap-1">
-            <ClipboardList className="h-4 w-4" />
-            Suivi
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex justify-center">
+          <ColoredSubTabsList colorKey="competition" className="inline-flex w-max">
+            <ColoredSubTabsTrigger value="objectives" colorKey="competition" icon={<Target className="h-4 w-4" />}>
+              Objectifs
+            </ColoredSubTabsTrigger>
+            <ColoredSubTabsTrigger value="tracking" colorKey="competition" icon={<ClipboardList className="h-4 w-4" />}>
+              Suivi
+            </ColoredSubTabsTrigger>
+          </ColoredSubTabsList>
+        </div>
 
         <TabsContent value="objectives" className="mt-4">
           {objectives ? (

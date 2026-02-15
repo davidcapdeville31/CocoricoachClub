@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Trophy, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { getStatCategories } from "@/lib/constants/sportStats";
 import { useStatPreferences } from "@/hooks/use-stat-preferences";
 
@@ -133,11 +134,13 @@ export function PlayerMatchesTab({ playerId, categoryId, playerName, sportType =
         </CardHeader>
         <CardContent>
           <Tabs defaultValue={statCategories[0]?.key || "general"} className="w-full">
-            <TabsList className={`grid w-full grid-cols-${Math.min(statCategories.length, 4)}`}>
-              {statCategories.map(cat => (
-                <TabsTrigger key={cat.key} value={cat.key}>{cat.label}</TabsTrigger>
-              ))}
-            </TabsList>
+            <div className="flex justify-center">
+              <ColoredSubTabsList colorKey="overview" className="inline-flex w-max">
+                {statCategories.map(cat => (
+                  <ColoredSubTabsTrigger key={cat.key} value={cat.key} colorKey="overview">{cat.label}</ColoredSubTabsTrigger>
+                ))}
+              </ColoredSubTabsList>
+            </div>
 
             {statCategories.map(cat => {
               const categoryStats = sportStats.filter(s => s.category === cat.key);

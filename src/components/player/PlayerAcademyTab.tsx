@@ -3,7 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -307,28 +308,25 @@ export function PlayerAcademyTab({ playerId, categoryId, playerName }: PlayerAca
   return (
     <div className="space-y-6">
       <Tabs defaultValue="academic" className="space-y-4">
-        <TabsList className="flex-wrap h-auto gap-1">
-          <TabsTrigger value="academic" className="gap-2">
-            <GraduationCap className="h-4 w-4" />
-            Scolaire
-          </TabsTrigger>
-          <TabsTrigger value="staff" className="gap-2">
-            <Users className="h-4 w-4" />
-            Notes Staff
-          </TabsTrigger>
-          <TabsTrigger value="development" className="gap-2">
-            <Target className="h-4 w-4" />
-            Développement
-          </TabsTrigger>
-          <TabsTrigger value="selections" className="gap-2">
-            <Award className="h-4 w-4" />
-            Sélections
-          </TabsTrigger>
-          <TabsTrigger value="contacts" className="gap-2">
-            <Phone className="h-4 w-4" />
-            Contacts
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex justify-center">
+          <ColoredSubTabsList colorKey="effectif" className="inline-flex w-max">
+            <ColoredSubTabsTrigger value="academic" colorKey="effectif" icon={<GraduationCap className="h-4 w-4" />}>
+              Scolaire
+            </ColoredSubTabsTrigger>
+            <ColoredSubTabsTrigger value="staff" colorKey="effectif" icon={<Users className="h-4 w-4" />}>
+              Notes Staff
+            </ColoredSubTabsTrigger>
+            <ColoredSubTabsTrigger value="development" colorKey="effectif" icon={<Target className="h-4 w-4" />}>
+              Développement
+            </ColoredSubTabsTrigger>
+            <ColoredSubTabsTrigger value="selections" colorKey="effectif" icon={<Award className="h-4 w-4" />}>
+              Sélections
+            </ColoredSubTabsTrigger>
+            <ColoredSubTabsTrigger value="contacts" colorKey="effectif" icon={<Phone className="h-4 w-4" />}>
+              Contacts
+            </ColoredSubTabsTrigger>
+          </ColoredSubTabsList>
+        </div>
 
         {/* Academic Tab */}
         <TabsContent value="academic">
