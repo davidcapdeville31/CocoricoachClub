@@ -53,11 +53,40 @@ const hexToRgb = (hex: string): [number, number, number] => {
   ];
 };
 
-// Load image as base64 for jsPDF
+// Detect image format from base64 data URL
+const detectImageFormat = (dataUrl: string): string => {
+  if (dataUrl.includes("image/png")) return "PNG";
+  if (dataUrl.includes("image/jpeg") || dataUrl.includes("image/jpg")) return "JPEG";
+  if (dataUrl.includes("image/webp")) return "WEBP";
+  return "PNG"; // default
+};
+
+// Load image as base64 for jsPDF - robust CORS handling
 const loadImageAsBase64 = async (url: string): Promise<string | null> => {
+  if (!url) return null;
+
+  // Add cache-busting to avoid CORS preflight caching issues
+  const cacheBustedUrl = url + (url.includes("?") ? "&" : "?") + "t=" + Date.now();
+
+  // Strategy 1: fetch blob directly (most reliable for CORS)
   try {
-    // Use an Image element to handle CORS properly
-    return new Promise((resolve) => {
+    const response = await fetch(cacheBustedUrl, { mode: "cors" });
+    if (response.ok) {
+      const blob = await response.blob();
+      return new Promise<string | null>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+    }
+  } catch {
+    // fetch failed, try Image element
+  }
+
+  // Strategy 2: Image element + canvas
+  try {
+    return new Promise<string | null>((resolve) => {
       const img = new Image();
       img.crossOrigin = "anonymous";
       img.onload = () => {
@@ -73,19 +102,8 @@ const loadImageAsBase64 = async (url: string): Promise<string | null> => {
           resolve(null);
         }
       };
-      img.onerror = () => {
-        // Fallback: try fetch
-        fetch(url, { mode: "cors" })
-          .then(r => r.blob())
-          .then(blob => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = () => resolve(null);
-            reader.readAsDataURL(blob);
-          })
-          .catch(() => resolve(null));
-      };
-      img.src = url;
+      img.onerror = () => resolve(null);
+      img.src = cacheBustedUrl;
     });
   } catch {
     return null;
@@ -120,7 +138,8 @@ export const drawPdfHeader = (
   // Draw logo if available
   if (customSettings?.show_logo !== false && logoBase64) {
     try {
-      pdf.addImage(logoBase64, "PNG", margin, 4, 27, 27);
+      const fmt = detectImageFormat(logoBase64);
+      pdf.addImage(logoBase64, fmt, margin, 4, 27, 27);
       xOffset = margin + 32;
     } catch {
       // Logo failed, continue without it
@@ -277,10 +296,19 @@ export const drawTableRow = (
   return y + 6;
 };
 
-// Check if page break needed
-export const checkPageBreak = (pdf: jsPDF, yPos: number, needed: number = 25): number => {
+// Check if page break needed (optionally draws footer on new pages)
+export const checkPageBreak = (pdf: jsPDF, yPos: number, needed: number = 25, customSettings?: PdfCustomSettings | null): number => {
   if (yPos + needed > pdf.internal.pageSize.getHeight() - 15) {
     pdf.addPage();
+    // Draw footer on new page
+    if (customSettings?.footer_text) {
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      pdf.setFontSize(7);
+      pdf.setTextColor(...colors.muted);
+      pdf.text(customSettings.footer_text, pageWidth / 2, pageHeight - 5, { align: "center" });
+      pdf.setTextColor(...colors.dark);
+    }
     return 20;
   }
   return yPos;
@@ -545,7 +573,8 @@ export const exportSessionToPdf = async (
   // Logo
   if (customSettings?.show_logo !== false && logoBase64) {
     try {
-      pdf.addImage(logoBase64, "PNG", margin, 5, 30, 30);
+      const fmt = detectImageFormat(logoBase64);
+      pdf.addImage(logoBase64, fmt, margin, 5, 30, 30);
       xOffset = margin + 35;
     } catch { /* ignore */ }
   }
