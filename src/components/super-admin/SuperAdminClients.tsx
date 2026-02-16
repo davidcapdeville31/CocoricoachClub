@@ -310,7 +310,8 @@ export function SuperAdminClients() {
      },
      onSuccess: () => {
        toast.success("Client supprimé");
-       queryClient.invalidateQueries({ queryKey: ["super-admin-clients"] });
+        queryClient.invalidateQueries({ queryKey: ["super-admin-clients"] });
+        queryClient.invalidateQueries({ queryKey: ["super-admin-dashboard-stats"] });
      },
      onError: () => {
        toast.error("Erreur lors de la suppression");

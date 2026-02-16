@@ -9,6 +9,7 @@ import { fr } from "date-fns/locale";
 export function SuperAdminDashboard() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ["super-admin-dashboard-stats"],
+    refetchOnMount: "always",
     queryFn: async () => {
       const { data: clients } = await supabase
         .from("clients")
