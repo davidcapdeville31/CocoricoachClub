@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { playerSchema } from "@/lib/validations";
 import { ATHLETISME_DISCIPLINES, ATHLETISME_SPECIALTIES, JUDO_WEIGHT_CATEGORIES, AVIRON_ROLES, isAthletismeCategory, isJudoCategory, isIndividualSport } from "@/lib/constants/sportTypes";
 import { getPositionsForSport } from "@/lib/constants/sportPositions";
-import { Loader2, Send, UserPlus } from "lucide-react";
+import { Loader2, Send, UserPlus, Copy, Check } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface AddPlayerDialogWithInviteProps {
@@ -50,6 +50,8 @@ export function AddPlayerDialogWithInvite({
   const [sendInvitation, setSendInvitation] = useState(true);
   const [validationError, setValidationError] = useState("");
   const [isInviting, setIsInviting] = useState(false);
+  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch category with club info
@@ -86,6 +88,24 @@ export function AddPlayerDialogWithInvite({
     setPosition("");
     setSendInvitation(true);
     setValidationError("");
+    setGeneratedLink(null);
+    setLinkCopied(false);
+  };
+
+  const copyLink = async (link: string) => {
+    try {
+      await navigator.clipboard.writeText(link);
+      setLinkCopied(true);
+      toast.success("Lien copié !");
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      toast.error("Impossible de copier le lien");
+    }
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onOpenChange(false);
   };
 
   const addPlayer = useMutation({
@@ -226,8 +246,10 @@ export function AddPlayerDialogWithInvite({
 
         if (sendError) {
           console.error("Error sending invitation:", sendError);
-          toast.warning("Athlète ajouté mais erreur lors de l'envoi de l'invitation");
+          setGeneratedLink(invitationLink);
+          toast.warning("Athlète ajouté mais erreur lors de l'envoi. Copiez le lien ci-dessous.");
         } else {
+          setGeneratedLink(invitationLink);
           toast.success("Athlète ajouté et invitation envoyée ! 📧");
         }
         
@@ -235,10 +257,11 @@ export function AddPlayerDialogWithInvite({
       } else {
         toast.success("Athlète ajouté avec succès");
       }
-
       queryClient.invalidateQueries({ queryKey: ["players", categoryId] });
-      resetForm();
-      onOpenChange(false);
+      if (!sendInvitation) {
+        resetForm();
+        onOpenChange(false);
+      }
     } catch (error: any) {
       console.error("Error:", error);
       toast.error(error.message || "Erreur lors de l'ajout de l'athlète");
@@ -249,7 +272,7 @@ export function AddPlayerDialogWithInvite({
   const isLoading = addPlayer.isPending || isInviting;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -257,6 +280,29 @@ export function AddPlayerDialogWithInvite({
             Ajouter un athlète
           </DialogTitle>
         </DialogHeader>
+
+        {generatedLink ? (
+          <div className="space-y-4">
+            <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-4 rounded-lg space-y-3">
+              <p className="text-sm font-medium text-green-800 dark:text-green-200 flex items-center gap-2">
+                <Check className="h-4 w-4" />
+                Athlète ajouté et invitation créée !
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Si l'email/SMS ne fonctionne pas, copiez et partagez ce lien manuellement :
+              </p>
+              <div className="flex items-center gap-2">
+                <Input value={generatedLink} readOnly className="text-xs" />
+                <Button size="sm" variant="outline" onClick={() => copyLink(generatedLink)}>
+                  {linkCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handleClose}>Fermer</Button>
+            </DialogFooter>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             {/* First Name */}
@@ -505,6 +551,7 @@ export function AddPlayerDialogWithInvite({
             </Button>
           </DialogFooter>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   );

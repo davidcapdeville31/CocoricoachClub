@@ -12,7 +12,7 @@
  import { Textarea } from "@/components/ui/textarea";
  import { Checkbox } from "@/components/ui/checkbox";
  import { toast } from "@/components/ui/sonner";
-import { Plus, Edit, Pause, Play, Trash2, Building2, Mail, Video, MapPin, FolderOpen, User, Gift, DollarSign } from "lucide-react";
+import { Plus, Edit, Pause, Play, Trash2, Building2, Mail, Video, MapPin, FolderOpen, User, Gift, DollarSign, Copy, Link, Check } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { InviteClientDialog } from "./InviteClientDialog";
@@ -60,7 +60,9 @@ export function SuperAdminClients() {
     });
     const [clubName, setClubName] = useState("");
     const [clubSport, setClubSport] = useState<MainSportCategory>("rugby");
-    const [categoryDrafts, setCategoryDrafts] = useState<CategoryDraft[]>([]);
+     const [categoryDrafts, setCategoryDrafts] = useState<CategoryDraft[]>([]);
+     const [generatedInviteLink, setGeneratedInviteLink] = useState<string | null>(null);
+     const [linkCopied, setLinkCopied] = useState(false);
  
      // Fetch formal clients with their subscriptions
      const { data: clients = [], isLoading } = useQuery({
@@ -228,12 +230,75 @@ export function SuperAdminClients() {
             }
           }
         }
+
+        // Send invitation email to the club admin if email is provided
+        if (data.email) {
+          try {
+            const { data: currentUser } = await supabase.auth.getUser();
+            if (!currentUser.user) throw new Error("Non authentifié");
+
+            // Create ambassador invitation for the club admin
+            const { data: invitation, error: invError } = await supabase
+              .from("ambassador_invitations")
+              .insert({
+                email: data.email,
+                name: data.name,
+                invited_by: currentUser.user.id,
+                status: "pending",
+              })
+              .select("token")
+              .single();
+
+            if (invError) throw invError;
+
+            const invitationLink = `${window.location.origin}/accept-ambassador-invitation?token=${invitation.token}`;
+
+            // Get inviter profile name
+            const { data: inviterProfile } = await supabase
+              .from("profiles")
+              .select("full_name")
+              .eq("id", currentUser.user.id)
+              .single();
+
+            // Try to send email
+            try {
+              const { error: emailError } = await supabase.functions.invoke("send-invitation-email", {
+                body: {
+                  email: data.email,
+                  invitationType: "club_admin",
+                  inviterName: inviterProfile?.full_name || "CocoriCoach",
+                  invitationLink,
+                },
+              });
+
+              if (emailError) {
+                console.error("Email sending failed:", emailError);
+              }
+            } catch (e) {
+              console.error("Email sending error:", e);
+            }
+
+            return { invitationLink };
+          } catch (e) {
+            console.error("Invitation creation error:", e);
+            return { invitationLink: null };
+          }
+        }
+
+        return { invitationLink: null };
       },
-      onSuccess: () => {
-        toast.success("Client créé avec succès");
+      onSuccess: (result) => {
         queryClient.invalidateQueries({ queryKey: ["super-admin-clients"] });
-        setIsAddDialogOpen(false);
-        resetForm();
+        queryClient.invalidateQueries({ queryKey: ["super-admin-dashboard-stats"] });
+        
+        if (result?.invitationLink) {
+          setGeneratedInviteLink(result.invitationLink);
+          toast.success("Client créé et invitation envoyée par email !");
+        } else {
+          toast.success("Client créé avec succès");
+          setIsAddDialogOpen(false);
+          resetForm();
+        }
       },
       onError: () => {
         toast.error("Erreur lors de la création");
@@ -336,6 +401,19 @@ export function SuperAdminClients() {
       setClubName("");
       setClubSport("rugby");
       setCategoryDrafts([]);
+      setGeneratedInviteLink(null);
+      setLinkCopied(false);
+    };
+
+    const copyInviteLink = async (link: string) => {
+      try {
+        await navigator.clipboard.writeText(link);
+        setLinkCopied(true);
+        toast.success("Lien copié !");
+        setTimeout(() => setLinkCopied(false), 2000);
+      } catch {
+        toast.error("Impossible de copier le lien");
+      }
     };
  
    const openEditDialog = (client: Client) => {
@@ -563,18 +641,49 @@ export function SuperAdminClients() {
                    Ajoutez une nouvelle organisation cliente
                  </DialogDescription>
                </DialogHeader>
-                {clientFormContent}
-               <DialogFooter>
-                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                   Annuler
-                 </Button>
-                 <Button
-                   onClick={() => createClient.mutate(formData)}
-                   disabled={!formData.name || createClient.isPending}
-                 >
-                   Créer
-                 </Button>
-               </DialogFooter>
+                {generatedInviteLink ? (
+                  <div className="space-y-4">
+                    <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-4 rounded-lg space-y-3">
+                      <p className="text-sm font-medium text-green-800 dark:text-green-200 flex items-center gap-2">
+                        <Check className="h-4 w-4" />
+                        Client créé avec succès !
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Un email d'invitation a été envoyé. Si l'email ne fonctionne pas, copiez et partagez ce lien manuellement :
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Input value={generatedInviteLink} readOnly className="text-xs" />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => copyInviteLink(generatedInviteLink)}
+                        >
+                          {linkCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button onClick={() => { setIsAddDialogOpen(false); resetForm(); }}>
+                        Fermer
+                      </Button>
+                    </DialogFooter>
+                  </div>
+                ) : (
+                  <>
+                    {clientFormContent}
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                        Annuler
+                      </Button>
+                      <Button
+                        onClick={() => createClient.mutate(formData)}
+                        disabled={!formData.name || createClient.isPending}
+                      >
+                        {createClient.isPending ? "Création..." : "Créer"}
+                      </Button>
+                    </DialogFooter>
+                  </>
+                )}
               </DialogContent>
             </Dialog>
           </div>
