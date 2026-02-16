@@ -181,7 +181,6 @@ const handler = async (req: Request): Promise<Response> => {
           results.errors.push(`SMS ${athlete.phone}: ${errorMessage}`);
         }
       }
-      }
 
       // Send push notification if channel selected
       if (channels.includes("push") && athlete.email) {
@@ -224,6 +223,7 @@ const handler = async (req: Request): Promise<Response> => {
           results.errors.push(`Push ${athlete.email}: ${errorMessage}`);
         }
       }
+    }
 
     console.log("Notification results:", results);
 
