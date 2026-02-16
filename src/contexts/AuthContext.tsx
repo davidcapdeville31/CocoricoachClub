@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { initOneSignal, oneSignalLogin, oneSignalLogout, buildUserTags } from "@/lib/onesignal";
 
 const OFFLINE_SESSION_KEY = "rugby-offline-session";
 const OFFLINE_USER_KEY = "rugby-offline-user";
@@ -45,6 +46,17 @@ function loadOfflineSession(): { user: User | null; isOfflineSession: boolean } 
   return { user: null, isOfflineSession: false };
 }
 
+// Handle OneSignal user sync (non-blocking)
+async function syncOneSignalUser(user: User) {
+  try {
+    await initOneSignal();
+    const tags = await buildUserTags(user.id);
+    await oneSignalLogin(user.id, user.email || "", tags);
+  } catch (err) {
+    console.error("[OneSignal] Sync error (non-blocking):", err);
+  }
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -63,6 +75,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Initialize OneSignal SDK early
+    initOneSignal().catch(() => {});
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
@@ -73,6 +88,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Save session for offline use
         saveOfflineSession(session, session?.user ?? null);
+
+        // Sync OneSignal on login (non-blocking, deferred)
+        if (session?.user) {
+          setTimeout(() => syncOneSignalUser(session.user), 1000);
+        }
       }
     );
 
@@ -83,8 +103,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session.user);
         setIsOfflineSession(false);
         saveOfflineSession(session, session.user);
+        // Sync OneSignal for existing session
+        setTimeout(() => syncOneSignalUser(session.user), 1000);
       } else if (!navigator.onLine) {
-        // If offline and no active session, try to load from localStorage
         const { user: offlineUser, isOfflineSession: isOffline } = loadOfflineSession();
         if (offlineUser) {
           setUser(offlineUser);
@@ -95,9 +116,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     }).catch((error) => {
       console.error("Error getting session:", error);
-      // If error (likely offline), try to load offline session
       if (!navigator.onLine) {
-        const { user: offlineUser, isOfflineSession: isOffline } = loadOfflineSession();
+        const { user: offlineUser } = loadOfflineSession();
         if (offlineUser) {
           setUser(offlineUser);
           setIsOfflineSession(true);
@@ -111,11 +131,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     try {
+      // Logout from OneSignal first (non-blocking)
+      oneSignalLogout().catch(() => {});
       await supabase.auth.signOut();
     } catch (error) {
       console.error("Error signing out:", error);
     }
-    // Clear offline session
     saveOfflineSession(null, null);
     setUser(null);
     setSession(null);
