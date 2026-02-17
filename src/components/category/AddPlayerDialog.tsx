@@ -45,18 +45,34 @@ export function AddPlayerDialog({
   const [validationError, setValidationError] = useState("");
   const queryClient = useQueryClient();
 
-  // Fetch category to check sport type
+  // Fetch category to check sport type and club_id
   const { data: category } = useQuery({
     queryKey: ["category", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("rugby_type")
+        .select("rugby_type, club_id")
         .eq("id", categoryId)
         .single();
       if (error) throw error;
       return data;
     },
+  });
+
+  // Fetch active season for the club
+  const { data: activeSeason } = useQuery({
+    queryKey: ["active-season", category?.club_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("seasons")
+        .select("id")
+        .eq("club_id", category!.club_id)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!category?.club_id,
   });
 
   const sportType = category?.rugby_type || "XV";
@@ -83,7 +99,8 @@ export function AddPlayerDialog({
           birth_date: data.birth_date || null,
           discipline: data.discipline || null,
           specialty: data.specialty || null,
-          position: data.position || null
+          position: data.position || null,
+          season_id: activeSeason?.id || null,
         });
       if (error) throw error;
     },

@@ -41,6 +41,7 @@
  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ClubMembersManagement } from "@/components/club/ClubMembersManagement";
 import { ClubInvitationsSection } from "@/components/club/ClubInvitationsSection";
+import { SeasonManager } from "@/components/club/SeasonManager";
  
  export default function AdminClub() {
    const { clubId } = useParams();
@@ -415,14 +416,15 @@ import { ClubInvitationsSection } from "@/components/club/ClubInvitationsSection
  
          {/* TABS PRINCIPALES */}
          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-           <TabsList className="grid w-full grid-cols-6">
-             <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-             <TabsTrigger value="categories">Catégories</TabsTrigger>
-             <TabsTrigger value="users">Utilisateurs</TabsTrigger>
-             {isAdmin && <TabsTrigger value="subscription">Abonnement</TabsTrigger>}
-             <TabsTrigger value="videos">Vidéos</TabsTrigger>
-             {isAdmin && <TabsTrigger value="settings">Paramètres</TabsTrigger>}
-           </TabsList>
+            <TabsList className="grid w-full grid-cols-7">
+              <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+              <TabsTrigger value="categories">Catégories</TabsTrigger>
+              <TabsTrigger value="users">Utilisateurs</TabsTrigger>
+              <TabsTrigger value="seasons">Saisons</TabsTrigger>
+              {isAdmin && <TabsTrigger value="subscription">Abonnement</TabsTrigger>}
+              <TabsTrigger value="videos">Vidéos</TabsTrigger>
+              {isAdmin && <TabsTrigger value="settings">Paramètres</TabsTrigger>}
+            </TabsList>
  
            {/* 🧭 3. ACCÈS AUX CATÉGORIES */}
            <TabsContent value="overview" className="space-y-6">
@@ -685,8 +687,13 @@ import { ClubInvitationsSection } from "@/components/club/ClubInvitationsSection
              </TabsContent>
            )}
  
-           {/* 🎥 6. VIDÉOS & TUTORIELS */}
-           <TabsContent value="videos" className="space-y-4">
+            {/* 📅 SAISONS */}
+            <TabsContent value="seasons" className="space-y-4">
+              <SeasonManager clubId={clubId!} categories={categories} />
+            </TabsContent>
+
+            {/* 🎥 6. VIDÉOS & TUTORIELS */}
+            <TabsContent value="videos" className="space-y-4">
              <h2 className="text-xl font-bold">Vidéos & Tutoriels</h2>
              <TutorialVideosSection />
            </TabsContent>
