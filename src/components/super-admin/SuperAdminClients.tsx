@@ -540,7 +540,7 @@ export function SuperAdminClients() {
            />
          </div>
          <div className="space-y-2">
-           <Label>Athlètes max</Label>
+           <Label>Athlètes max / catégorie</Label>
            <Input
              type="number"
              min={1}
@@ -778,7 +778,7 @@ export function SuperAdminClients() {
                      <div className="text-xs space-y-1">
                        <p>{client.max_clubs} clubs</p>
                        <p>{client.max_categories_per_club} cat./club</p>
-                       <p>{client.max_athletes} athlètes</p>
+                       <p>{client.max_athletes} athlètes/cat.</p>
                      </div>
                    </TableCell>
                    <TableCell>
