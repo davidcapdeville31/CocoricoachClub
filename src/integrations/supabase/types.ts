@@ -4541,6 +4541,7 @@ export type Database = {
           phone: string | null
           position: string | null
           pwa_install_dismissed: boolean | null
+          season_id: string | null
           specialty: string | null
           user_id: string | null
         }
@@ -4571,6 +4572,7 @@ export type Database = {
           phone?: string | null
           position?: string | null
           pwa_install_dismissed?: boolean | null
+          season_id?: string | null
           specialty?: string | null
           user_id?: string | null
         }
@@ -4601,6 +4603,7 @@ export type Database = {
           phone?: string | null
           position?: string | null
           pwa_install_dismissed?: boolean | null
+          season_id?: string | null
           specialty?: string | null
           user_id?: string | null
         }
@@ -4610,6 +4613,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "players_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
             referencedColumns: ["id"]
           },
         ]
@@ -5832,6 +5842,54 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seasons: {
+        Row: {
+          club_id: string
+          created_at: string
+          end_date: string
+          id: string
+          is_active: boolean
+          name: string
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          end_date: string
+          id?: string
+          is_active?: boolean
+          name: string
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seasons_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "admin_all_clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seasons_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
             referencedColumns: ["id"]
           },
         ]
