@@ -287,8 +287,10 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
                           value={member.role}
                           onValueChange={(value: string) => updateRoleMutation.mutate({ memberId: member.id, newRole: value })}
                         >
-                          <SelectTrigger className="w-44">
-                            <SelectValue />
+                          <SelectTrigger className="w-52">
+                            <SelectValue>
+                              {getRoleConfig(member.role).label}
+                            </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
                             {AVAILABLE_ROLES.map((role) => (
