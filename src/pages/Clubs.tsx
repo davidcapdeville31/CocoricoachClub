@@ -25,18 +25,36 @@ export default function Clubs() {
     }
   }, [user, authLoading, navigate]);
 
-  // Fetch only clubs owned by the current user
+  // Fetch clubs owned by user OR where user is a club member
   const { data: clubs, isLoading } = useQuery({
     queryKey: ["my-clubs", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data, error } = await supabase
+      
+      // Get clubs owned by user
+      const { data: ownedClubs, error: ownedError } = await supabase
         .from("clubs")
         .select("*")
-        .eq("user_id", user.id)
-        .order("name");
-      if (error) throw error;
-      return data;
+        .eq("user_id", user.id);
+      if (ownedError) throw ownedError;
+
+      // Get clubs where user is a member
+      const { data: memberClubs, error: memberError } = await supabase
+        .from("club_members")
+        .select("club_id, clubs(*)")
+        .eq("user_id", user.id);
+      if (memberError) throw memberError;
+
+      // Merge and deduplicate
+      const allClubs = [...(ownedClubs || [])];
+      const ownedIds = new Set(allClubs.map(c => c.id));
+      for (const mc of memberClubs || []) {
+        if (mc.clubs && !ownedIds.has((mc.clubs as any).id)) {
+          allClubs.push(mc.clubs as any);
+        }
+      }
+      
+      return allClubs.sort((a, b) => a.name.localeCompare(b.name));
     },
     enabled: !!user?.id,
   });
