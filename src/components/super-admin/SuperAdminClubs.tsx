@@ -4,8 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
 import { Building2, Pause, Play, ChevronDown, ChevronRight, FolderOpen, Gift, User, DollarSign } from "lucide-react";
 import { format } from "date-fns";
@@ -14,8 +12,6 @@ import { fr } from "date-fns/locale";
 export function SuperAdminClubs() {
   const queryClient = useQueryClient();
   const [expandedClubs, setExpandedClubs] = useState<Set<string>>(new Set());
-  const [linkingClub, setLinkingClub] = useState<string | null>(null);
-  const [selectedClientId, setSelectedClientId] = useState<string>("");
 
   // Fetch clubs
   const { data: clubs = [], isLoading } = useQuery({
@@ -58,19 +54,7 @@ export function SuperAdminClubs() {
     },
   });
 
-  // Fetch clients for linking
-  const { data: clients = [] } = useQuery({
-    queryKey: ["super-admin-clients-list"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("clients")
-        .select("id, name")
-        .eq("status", "active")
-        .order("name");
-      if (error) throw error;
-      return data;
-    },
-  });
+
 
   // Fetch approved_users to know free/paid status per owner
   const { data: approvedUsers = [] } = useQuery({
@@ -99,22 +83,7 @@ export function SuperAdminClubs() {
     },
   });
 
-  // Link club to client
-  const linkToClient = useMutation({
-    mutationFn: async ({ clubId, clientId }: { clubId: string; clientId: string | null }) => {
-      const { error } = await supabase
-        .from("clubs")
-        .update({ client_id: clientId })
-        .eq("id", clubId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Club lié au client");
-      queryClient.invalidateQueries({ queryKey: ["super-admin-all-clubs"] });
-      setLinkingClub(null);
-      setSelectedClientId("");
-    },
-  });
+
 
   // Toggle free/paid status for a club owner
   const toggleFreeStatus = useMutation({
@@ -233,15 +202,7 @@ export function SuperAdminClubs() {
                         </>
                       )}
 
-                      {!hasClient && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setLinkingClub(club.id)}
-                        >
-                          Lier à un client
-                        </Button>
-                      )}
+                      
                       <Badge variant="secondary">
                         {clubCategories.length} catégorie(s)
                       </Badge>
@@ -278,15 +239,19 @@ export function SuperAdminClubs() {
                           Aucune catégorie
                         </p>
                       ) : (
-                        <div className="flex flex-wrap gap-2">
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium mb-2">Catégories ({clubCategories.length})</p>
                           {clubCategories.map((cat: any) => (
-                            <Badge key={cat.id} variant="outline" className="text-xs">
-                              <FolderOpen className="h-3 w-3 mr-1" />
-                              {cat.name}
-                              <span className="ml-1 text-muted-foreground">
-                                ({cat.rugby_type} - {cat.gender})
+                            <div key={cat.id} className="flex items-center gap-2 pl-4 py-1 text-sm border-l-2 border-muted">
+                              <FolderOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                              <span>{cat.name}</span>
+                              <span className="text-muted-foreground text-xs">
+                                {cat.rugby_type} · {cat.gender}
                               </span>
-                            </Badge>
+                              {cat.gps_enabled && <Badge variant="outline" className="text-[10px] px-1 py-0">GPS</Badge>}
+                              {cat.video_enabled && <Badge variant="outline" className="text-[10px] px-1 py-0">Vidéo</Badge>}
+                              {cat.academy_enabled && <Badge variant="outline" className="text-[10px] px-1 py-0">Académie</Badge>}
+                            </div>
                           ))}
                         </div>
                       )}
@@ -298,42 +263,8 @@ export function SuperAdminClubs() {
           </div>
         )}
 
-        {/* Link to client dialog */}
-        <Dialog open={!!linkingClub} onOpenChange={(open) => !open && setLinkingClub(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Lier le club à un client</DialogTitle>
-              <DialogDescription>
-                Sélectionnez le client propriétaire de ce club
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un client" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client: any) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setLinkingClub(null)}>
-                Annuler
-              </Button>
-              <Button
-                onClick={() => linkingClub && linkToClient.mutate({ clubId: linkingClub, clientId: selectedClientId || null })}
-                disabled={!selectedClientId}
-              >
-                Lier
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+
+
       </CardContent>
     </Card>
   );
