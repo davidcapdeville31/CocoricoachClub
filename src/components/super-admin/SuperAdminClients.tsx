@@ -254,7 +254,7 @@ export function SuperAdminClients() {
 
             if (invError) throw invError;
 
-            const invitationLink = `${window.location.origin}/accept-ambassador-invitation?token=${invitation.token}`;
+            const invitationLink = `${window.location.origin}/ambassador-invitation?token=${invitation.token}`;
 
             // Get inviter profile name
             const { data: inviterProfile } = await supabase
