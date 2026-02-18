@@ -11,13 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, GraduationCap, Users, Target, Trash2, Award, ClipboardCheck, Phone, Star } from "lucide-react";
+import { Plus, GraduationCap, Users, Target, Trash2, Award, Star } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { SelectionsSection } from "./academy/SelectionsSection";
-import { AttendanceSection } from "./academy/AttendanceSection";
-import { ContactsSection } from "./academy/ContactsSection";
 import { EvaluationsSection } from "./academy/EvaluationsSection";
 
 interface AcademyTabProps {
@@ -228,14 +226,6 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
             <Award className="h-4 w-4" />
             Sélections
           </TabsTrigger>
-          <TabsTrigger value="attendance" className="gap-2">
-            <ClipboardCheck className="h-4 w-4" />
-            Présences
-          </TabsTrigger>
-          <TabsTrigger value="contacts" className="gap-2">
-            <Phone className="h-4 w-4" />
-            Contacts
-          </TabsTrigger>
           <TabsTrigger value="evaluations" className="gap-2">
             <Star className="h-4 w-4" />
             Évaluations
@@ -409,15 +399,6 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
           <SelectionsSection categoryId={categoryId} players={players} />
         </TabsContent>
 
-        {/* Attendance Tab */}
-        <TabsContent value="attendance">
-          <AttendanceSection categoryId={categoryId} players={players} />
-        </TabsContent>
-
-        {/* Contacts Tab */}
-        <TabsContent value="contacts">
-          <ContactsSection categoryId={categoryId} players={players} />
-        </TabsContent>
 
         {/* Evaluations Tab */}
         <TabsContent value="evaluations">
