@@ -101,7 +101,7 @@ export function SessionFeedbackDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, name, avatar_url")
+        .select("id, name, first_name, avatar_url")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
@@ -492,10 +492,10 @@ export function SessionFeedbackDialog({
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={player.avatar_url || undefined} />
                         <AvatarFallback className="text-xs">
-                          {player.name.slice(0, 2).toUpperCase()}
+                          {(player.first_name || player.name).slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <Label className="w-28 font-medium truncate">{player.name}</Label>
+                      <Label className="w-28 font-medium truncate">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</Label>
                       {existing ? (
                         <span className="text-sm text-muted-foreground">
                           ✓ RPE {existing.rpe} - {existing.duration_minutes}min
@@ -643,10 +643,10 @@ export function SessionFeedbackDialog({
                                 <Avatar className="h-5 w-5 shrink-0">
                                   <AvatarImage src={player.avatar_url || undefined} />
                                   <AvatarFallback className="text-[10px]">
-                                    {player.name.slice(0, 2).toUpperCase()}
+                                    {(player.first_name || player.name).slice(0, 2).toUpperCase()}
                                   </AvatarFallback>
                                 </Avatar>
-                                <span className="text-xs truncate flex-1">{player.name}</span>
+                                <span className="text-xs truncate flex-1">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
                                 <Input
                                   type="number"
                                   step="0.01"

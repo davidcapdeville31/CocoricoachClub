@@ -63,7 +63,7 @@ export function SessionAttendanceDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, name, position, avatar_url")
+        .select("id, name, first_name, position, avatar_url")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
@@ -286,7 +286,7 @@ export function SessionAttendanceDialog({
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <StatusIcon className={cn("h-5 w-5 flex-shrink-0", statusInfo.color)} />
-                        <span className="font-medium truncate">{player.name}</span>
+                        <span className="font-medium truncate">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
                         {player.position && (
                           <Badge variant="outline" className="text-xs hidden sm:inline-flex">
                             {player.position}

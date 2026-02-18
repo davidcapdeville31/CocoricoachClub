@@ -650,7 +650,7 @@ export function SessionDetailsDialog({
                           wasPresent ? "bg-muted/50" : "bg-muted/20 opacity-60"
                         }`}
                       >
-                        <Label className="w-36 font-medium truncate">{player.name}</Label>
+                        <Label className="w-36 font-medium truncate">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</Label>
                         {!wasPresent && attendance && attendance.length > 0 ? (
                           <span className="text-xs text-muted-foreground italic">
                             Non présent

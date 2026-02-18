@@ -297,7 +297,7 @@ export function SessionFormDialog({
     queryFn: async () => {
       const { data: playersData, error: playersError } = await supabase
         .from("players")
-        .select("id, name, position, avatar_url")
+        .select("id, name, first_name, position, avatar_url")
         .eq("category_id", categoryId)
         .order("name");
       if (playersError) throw playersError;
@@ -2750,10 +2750,10 @@ export function SessionFormDialog({
                               <Avatar className="h-6 w-6">
                                 <AvatarImage src={player.avatar_url || undefined} />
                                 <AvatarFallback className="text-xs">
-                                  {player.name.slice(0, 2).toUpperCase()}
+                                  {(player.first_name || player.name).slice(0, 2).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
-                              <span className="text-sm truncate flex-1">{player.name}</span>
+                              <span className="text-sm truncate flex-1">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
                               {player.isInjured && (
                                 <AlertTriangle className="h-3 w-3 text-amber-500 flex-shrink-0" />
                               )}
