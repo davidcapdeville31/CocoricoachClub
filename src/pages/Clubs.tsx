@@ -145,10 +145,13 @@ export default function Clubs() {
 
   // Redirect pure athletes to athlete-space
   useEffect(() => {
-    if (athleteCheckLoading || !athleteCategories || isLoading) return;
+    if (athleteCheckLoading || !athleteCategories) return;
+    // Wait for clubs to finish loading (isLoading could be false if query is disabled)
+    if (isLoading) return;
     const hasOnlyAthleteRole = athleteCategories.length > 0 && athleteCategories.every(cm => cm.role === "athlete");
     const hasNoClubs = !clubs || clubs.length === 0;
-    if (hasOnlyAthleteRole && hasNoClubs && !isSuperAdmin) {
+    const notSuperAdmin = isSuperAdmin === false;
+    if (hasOnlyAthleteRole && hasNoClubs && notSuperAdmin) {
       navigate("/athlete-space", { replace: true });
     }
   }, [athleteCategories, athleteCheckLoading, clubs, isLoading, isSuperAdmin, navigate]);
