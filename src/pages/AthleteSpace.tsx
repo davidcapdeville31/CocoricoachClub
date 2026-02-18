@@ -590,7 +590,7 @@ export default function AthleteSpace() {
 
           {!isSuperAdminView && (
             <TabsContent value="messaging">
-              <MessagingTab categoryId={athleteInfo.category_id} />
+              <MessagingTab categoryId={athleteInfo.category_id} isAthlete={true} />
             </TabsContent>
           )}
         </Tabs>

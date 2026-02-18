@@ -55,6 +55,7 @@ interface ConversationListProps {
   categoryId: string;
   selectedId?: string;
   onSelect: (id: string) => void;
+  isAthlete?: boolean;
 }
 
 interface Player {
@@ -70,7 +71,7 @@ interface StaffMember {
   } | null;
 }
 
-export function ConversationList({ categoryId, selectedId, onSelect }: ConversationListProps) {
+export function ConversationList({ categoryId, selectedId, onSelect, isAthlete = false }: ConversationListProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState("group");
@@ -166,19 +167,24 @@ export function ConversationList({ categoryId, selectedId, onSelect }: Conversat
       if (error) throw error;
       
       // Filter: show group/channel conversations + only DMs where user is participant
+      // Athletes should NOT see the "Staff" group
       return (data as Conversation[]).filter(conv => {
         if (conv.conversation_type === "direct") {
           return participantConvIds.includes(conv.id);
         }
-        return true; // Show all groups/channels
+        // Hide "Staff" group from athletes
+        if (isAthlete && conv.name === "Staff") {
+          return false;
+        }
+        return true; // Show all other groups/channels
       });
     },
     enabled: !!user,
   });
 
-  // Auto-create default conversations if missing
+  // Auto-create default conversations if missing AND auto-join athlete to "Staff + Joueurs"
   const { data: defaultGroupsCreated } = useQuery({
-    queryKey: ["default-conversations-check", categoryId],
+    queryKey: ["default-conversations-check", categoryId, isAthlete, user?.id],
     queryFn: async () => {
       if (!user) return true;
       
@@ -188,50 +194,76 @@ export function ConversationList({ categoryId, selectedId, onSelect }: Conversat
       const hasStaffGroup = conversations?.some(c => c.name === staffGroupName);
       const hasAllGroup = conversations?.some(c => c.name === allGroupName);
       
-      if (!hasStaffGroup) {
-        const { data: conv } = await supabase
-          .from("conversations")
-          .insert({
-            category_id: categoryId,
-            name: staffGroupName,
-            conversation_type: "group",
-            created_by: user.id,
-          })
-          .select()
-          .single();
-          
-        if (conv) {
-          await supabase.from("conversation_participants").insert({
-            conversation_id: conv.id,
-            user_id: user.id,
-            is_admin: true,
-          });
+      // Only staff creates default groups
+      if (!isAthlete) {
+        if (!hasStaffGroup) {
+          const { data: conv } = await supabase
+            .from("conversations")
+            .insert({
+              category_id: categoryId,
+              name: staffGroupName,
+              conversation_type: "group",
+              created_by: user.id,
+            })
+            .select()
+            .single();
+            
+          if (conv) {
+            await supabase.from("conversation_participants").insert({
+              conversation_id: conv.id,
+              user_id: user.id,
+              is_admin: true,
+            });
+          }
+        }
+        
+        if (!hasAllGroup) {
+          const { data: conv } = await supabase
+            .from("conversations")
+            .insert({
+              category_id: categoryId,
+              name: allGroupName,
+              conversation_type: "group",
+              created_by: user.id,
+            })
+            .select()
+            .single();
+            
+          if (conv) {
+            await supabase.from("conversation_participants").insert({
+              conversation_id: conv.id,
+              user_id: user.id,
+              is_admin: true,
+            });
+          }
+        }
+        
+        if (!hasStaffGroup || !hasAllGroup) {
+          queryClient.invalidateQueries({ queryKey: ["conversations", categoryId] });
         }
       }
-      
-      if (!hasAllGroup) {
-        const { data: conv } = await supabase
-          .from("conversations")
-          .insert({
-            category_id: categoryId,
-            name: allGroupName,
-            conversation_type: "group",
-            created_by: user.id,
-          })
-          .select()
-          .single();
+
+      // Auto-join athlete to "Staff + Joueurs" if not already a participant
+      if (isAthlete) {
+        const allGroupConv = conversations?.find(c => c.name === allGroupName);
+        if (allGroupConv) {
+          // Check if already a participant
+          const { data: existing } = await supabase
+            .from("conversation_participants")
+            .select("id")
+            .eq("conversation_id", allGroupConv.id)
+            .eq("user_id", user.id)
+            .maybeSingle();
           
-        if (conv) {
-          await supabase.from("conversation_participants").insert({
-            conversation_id: conv.id,
-            user_id: user.id,
-            is_admin: true,
-          });
+          if (!existing) {
+            await supabase.from("conversation_participants").insert({
+              conversation_id: allGroupConv.id,
+              user_id: user.id,
+              is_admin: false,
+            });
+            queryClient.invalidateQueries({ queryKey: ["conversations", categoryId] });
+          }
         }
-      }
-      
-      if (!hasStaffGroup || !hasAllGroup) {
-        queryClient.invalidateQueries({ queryKey: ["conversations", categoryId] });
       }
       
       return true;
