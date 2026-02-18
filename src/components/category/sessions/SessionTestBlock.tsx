@@ -28,7 +28,7 @@ interface SessionTestBlockProps {
   tests: SessionTest[];
   onTestsChange: (tests: SessionTest[]) => void;
   sportType?: string;
-  players: { id: string; name: string; position?: string | null; avatar_url?: string | null }[];
+  players: { id: string; name: string; first_name?: string | null; position?: string | null; avatar_url?: string | null }[];
   selectedPlayers: string[];
   playerSelectionMode: "all" | "specific";
   hideResults?: boolean;
@@ -226,9 +226,9 @@ export function SessionTestBlock({
                             <div key={player.id} className={cn("flex items-center gap-2 p-2 rounded-lg border", test.player_results[player.id] ? "border-emerald-300 bg-emerald-50/50 dark:bg-emerald-900/10" : "border-border")}>
                               <Avatar className="h-6 w-6 shrink-0">
                                 <AvatarImage src={player.avatar_url || undefined} />
-                                <AvatarFallback className="text-xs">{player.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                                <AvatarFallback className="text-xs">{(player.first_name || player.name).slice(0, 2).toUpperCase()}</AvatarFallback>
                               </Avatar>
-                              <span className="text-sm truncate flex-1">{player.name}</span>
+                              <span className="text-sm truncate flex-1">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
                               <Input type="number" step="0.01" placeholder={test.result_unit || "valeur"} className="h-7 w-20 text-xs" value={test.player_results[player.id] || ""} onChange={(e) => updatePlayerResult(test.id, player.id, e.target.value)} />
                             </div>
                           ))}
