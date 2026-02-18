@@ -9,6 +9,34 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { signUpSchema, loginSchema } from "@/lib/validations";
 
+async function getPostLoginRedirect(userId: string): Promise<string> {
+  // Check if user has only athlete role and no clubs
+  const { data: categoryRoles } = await supabase
+    .from("category_members")
+    .select("role")
+    .eq("user_id", userId);
+
+  const { data: ownedClubs } = await supabase
+    .from("clubs")
+    .select("id")
+    .eq("user_id", userId)
+    .limit(1);
+
+  const { data: memberClubs } = await supabase
+    .from("club_members")
+    .select("club_id")
+    .eq("user_id", userId)
+    .limit(1);
+
+  const hasOnlyAthleteRole = categoryRoles && categoryRoles.length > 0 && categoryRoles.every(r => r.role === "athlete");
+  const hasNoClubs = (!ownedClubs || ownedClubs.length === 0) && (!memberClubs || memberClubs.length === 0);
+
+  if (hasOnlyAthleteRole && hasNoClubs) {
+    return "/athlete-space";
+  }
+  return "/";
+}
+
 export default function Auth() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +70,14 @@ export default function Auth() {
       }
 
       toast.success("Connexion réussie");
-      navigate("/");
+      const { data: sessionData } = await supabase.auth.getSession();
+      const uid = sessionData?.session?.user?.id;
+      if (uid) {
+        const dest = await getPostLoginRedirect(uid);
+        navigate(dest);
+      } else {
+        navigate("/");
+      }
     } catch (error: any) {
       if (error.errors) {
         toast.error(error.errors[0].message);
@@ -86,7 +121,14 @@ export default function Auth() {
       }
 
       toast.success("Compte créé avec succès");
-      navigate("/");
+      const { data: sessionData } = await supabase.auth.getSession();
+      const uid = sessionData?.session?.user?.id;
+      if (uid) {
+        const dest = await getPostLoginRedirect(uid);
+        navigate(dest);
+      } else {
+        navigate("/");
+      }
     } catch (error: any) {
       if (error.errors) {
         toast.error(error.errors[0].message);
