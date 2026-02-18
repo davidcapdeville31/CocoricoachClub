@@ -6,9 +6,10 @@ import { MessageCircle } from "lucide-react";
 
 interface MessagingTabProps {
   categoryId: string;
+  isAthlete?: boolean;
 }
 
-export function MessagingTab({ categoryId }: MessagingTabProps) {
+export function MessagingTab({ categoryId, isAthlete = false }: MessagingTabProps) {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
 
   return (
@@ -18,6 +19,7 @@ export function MessagingTab({ categoryId }: MessagingTabProps) {
           categoryId={categoryId}
           selectedId={selectedConversationId || undefined}
           onSelect={setSelectedConversationId}
+          isAthlete={isAthlete}
         />
       </div>
       <div className="lg:col-span-2">
