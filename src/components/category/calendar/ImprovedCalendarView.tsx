@@ -118,7 +118,7 @@ export function ImprovedCalendarView({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, name, email, phone")
+        .select("id, name, first_name, email, phone")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
@@ -368,7 +368,7 @@ export function ImprovedCalendarView({
                                 checked={selectedPlayerIds.includes(player.id)}
                                 onCheckedChange={() => togglePlayer(player.id)}
                               />
-                              <span className="text-sm">{player.name}</span>
+                              <span className="text-sm">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
                             </label>
                           ))}
                         </div>
