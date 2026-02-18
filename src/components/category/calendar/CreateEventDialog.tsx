@@ -131,7 +131,7 @@ export function CreateEventDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, name, position")
+        .select("id, name, first_name, position")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
@@ -392,10 +392,10 @@ export function CreateEventDialog({
                             "h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium shrink-0",
                             isSelected ? "bg-primary text-primary-foreground" : "bg-muted-foreground/20"
                           )}>
-                            {player.name.charAt(0).toUpperCase()}
+                            {(player.first_name || player.name).charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{player.name}</p>
+                            <p className="text-sm font-medium truncate">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</p>
                             {player.position && (
                               <p className="text-xs text-muted-foreground">{player.position}</p>
                             )}
