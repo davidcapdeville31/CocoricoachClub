@@ -1,70 +1,26 @@
 /**
- * OneSignal Web SDK integration for CocoriCoach PWA
- * Handles initialization, external_id assignment, and dynamic tag management
+ * OneSignal integration for CocoriCoach PWA
+ * Uses the classic OneSignal Web SDK (v1)
  */
 
 import { supabase } from "@/integrations/supabase/client";
 
-// Declare OneSignal global types
 declare global {
   interface Window {
-    OneSignalDeferred?: Array<(OneSignal: any) => void>;
     OneSignal?: any;
   }
 }
 
 let isInitialized = false;
-let cachedAppId: string | null = null;
 
 /**
- * Fetch OneSignal App ID from backend (it's a public key but we keep it configurable)
- */
-async function getOneSignalAppId(): Promise<string | null> {
-  if (cachedAppId) return cachedAppId;
-
-  try {
-    const { data, error } = await supabase.functions.invoke("get-onesignal-config");
-    if (error) {
-      console.error("[OneSignal] Error fetching config:", error);
-      return null;
-    }
-    cachedAppId = data?.appId || null;
-    return cachedAppId;
-  } catch (err) {
-    console.error("[OneSignal] Failed to fetch config:", err);
-    return null;
-  }
-}
-
-/**
- * Initialize OneSignal SDK
+ * Initialize OneSignal SDK (already loaded via index.html)
  */
 export async function initOneSignal(): Promise<void> {
   if (isInitialized) return;
-  if (typeof window === "undefined") return;
-
-  const appId = await getOneSignalAppId();
-  if (!appId) {
-    console.warn("[OneSignal] No App ID available, skipping init");
-    return;
-  }
-
-  try {
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    window.OneSignalDeferred.push(async (OneSignal: any) => {
-      await OneSignal.init({
-        appId,
-        serviceWorkerParam: { scope: "/" },
-        serviceWorkerPath: "/OneSignalSDKWorker.js",
-        notifyButton: { enable: false },
-        allowLocalhostAsSecureOrigin: true,
-      });
-      isInitialized = true;
-      console.log("[OneSignal] SDK initialized successfully");
-    });
-  } catch (err) {
-    console.error("[OneSignal] Init error:", err);
-  }
+  if (typeof window === "undefined" || !window.OneSignal) return;
+  isInitialized = true;
+  console.log("[OneSignal] SDK ready");
 }
 
 /**
@@ -75,25 +31,24 @@ export async function oneSignalLogin(
   email: string,
   userTags: Record<string, string>
 ): Promise<void> {
-  if (typeof window === "undefined" || !window.OneSignal) {
-    console.warn("[OneSignal] SDK not loaded yet");
-    return;
-  }
+  if (typeof window === "undefined" || !window.OneSignal) return;
 
   try {
-    // Set external_id to user's auth UUID
-    await window.OneSignal.login(userId);
-    console.log("[OneSignal] User logged in with external_id:", userId);
+    const OneSignal = window.OneSignal;
+    OneSignal.push(function () {
+      // Set external user id
+      OneSignal.setExternalUserId(userId);
+      console.log("[OneSignal] External user ID set:", userId);
 
-    // Set tags for filtering
-    const tags: Record<string, string> = {
-      user_id: userId,
-      email: email,
-      ...userTags,
-    };
-
-    await window.OneSignal.User.addTags(tags);
-    console.log("[OneSignal] Tags set:", tags);
+      // Send all tags
+      const tags: Record<string, string> = {
+        user_id: userId,
+        email: email,
+        ...userTags,
+      };
+      OneSignal.sendTags(tags);
+      console.log("[OneSignal] Tags sent:", tags);
+    });
   } catch (err) {
     console.error("[OneSignal] Login error:", err);
   }
@@ -106,15 +61,22 @@ export async function oneSignalLogout(): Promise<void> {
   if (typeof window === "undefined" || !window.OneSignal) return;
 
   try {
-    await window.OneSignal.logout();
-    console.log("[OneSignal] User logged out");
+    const OneSignal = window.OneSignal;
+    OneSignal.push(function () {
+      OneSignal.removeExternalUserId();
+      OneSignal.deleteTags([
+        "user_id", "email", "club_ids", "category_ids",
+        "role", "user_type", "is_super_admin",
+      ]);
+      console.log("[OneSignal] User logged out, tags cleared");
+    });
   } catch (err) {
     console.error("[OneSignal] Logout error:", err);
   }
 }
 
 /**
- * Update OneSignal tags (e.g., when switching club/category context)
+ * Update OneSignal tags
  */
 export async function updateOneSignalTags(
   tags: Record<string, string>
@@ -122,8 +84,10 @@ export async function updateOneSignalTags(
   if (typeof window === "undefined" || !window.OneSignal) return;
 
   try {
-    await window.OneSignal.User.addTags(tags);
-    console.log("[OneSignal] Tags updated:", tags);
+    window.OneSignal.push(function () {
+      window.OneSignal!.sendTags(tags);
+      console.log("[OneSignal] Tags updated:", tags);
+    });
   } catch (err) {
     console.error("[OneSignal] Tag update error:", err);
   }
@@ -136,8 +100,10 @@ export async function removeOneSignalTags(tagKeys: string[]): Promise<void> {
   if (typeof window === "undefined" || !window.OneSignal) return;
 
   try {
-    await window.OneSignal.User.removeTags(tagKeys);
-    console.log("[OneSignal] Tags removed:", tagKeys);
+    window.OneSignal.push(function () {
+      window.OneSignal!.deleteTags(tagKeys);
+      console.log("[OneSignal] Tags removed:", tagKeys);
+    });
   } catch (err) {
     console.error("[OneSignal] Tag removal error:", err);
   }
@@ -188,7 +154,6 @@ export async function buildUserTags(userId: string): Promise<Record<string, stri
     categoryMemberships?.forEach((m) => roles.add(m.role));
     if (ownedClubs && ownedClubs.length > 0) roles.add("admin");
 
-    // Set role hierarchy: admin > coach > physio > doctor > viewer > athlete
     const roleHierarchy = ["admin", "coach", "physio", "doctor", "viewer", "athlete"];
     for (const r of roleHierarchy) {
       if (roles.has(r)) {
