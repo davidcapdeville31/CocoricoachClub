@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useResendInvitation, getInvitationStatus } from "@/hooks/useResendInvitation";
 
 interface AthleteAccessSectionProps {
   playerId: string;
@@ -24,6 +25,7 @@ export function AthleteAccessSection({ playerId, categoryId, playerName }: Athle
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [emailValue, setEmailValue] = useState("");
+  const resendMutation = useResendInvitation();
 
   // Fetch player email and user_id
   const { data: player } = useQuery({
@@ -59,7 +61,7 @@ export function AthleteAccessSection({ playerId, categoryId, playerName }: Athle
     queryFn: async () => {
       const { data, error } = await supabase
         .from("athlete_invitations")
-        .select("token, status, email")
+        .select("id, token, status, email, expires_at, category_id, club_id")
         .eq("player_id", playerId)
         .order("created_at", { ascending: false })
         .limit(1)
@@ -67,7 +69,7 @@ export function AthleteAccessSection({ playerId, categoryId, playerName }: Athle
       if (error) throw error;
       return data;
     },
-    enabled: !player?.user_id, // Only fetch if player has no linked account
+    enabled: !player?.user_id,
   });
 
   // Create invitation link
@@ -255,33 +257,58 @@ export function AthleteAccessSection({ playerId, categoryId, playerName }: Athle
               <Link2 className="h-4 w-4" />
               Lien d'inscription
             </Label>
-            {invitation?.token ? (
-              <div className="p-3 rounded-lg bg-accent/30 border border-border space-y-2">
-                <p className="text-xs text-muted-foreground">
-                  Partagez ce lien pour que l'athlète crée son compte et accède à l'application.
-                </p>
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={`${window.location.origin}/accept-athlete-invitation?token=${invitation.token}`}
-                    readOnly
-                    className="text-xs"
-                  />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      navigator.clipboard.writeText(`${window.location.origin}/accept-athlete-invitation?token=${invitation.token}`);
-                      toast.success("Lien d'inscription copié !");
-                    }}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
+            {invitation?.token ? (() => {
+              const invStatus = getInvitationStatus(invitation.status, invitation.expires_at);
+              return (
+                <div className="p-3 rounded-lg bg-accent/30 border border-border space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    {invStatus === "expired"
+                      ? "Le lien d'inscription a expiré. Renvoyez une nouvelle invitation."
+                      : "Partagez ce lien pour que l'athlète crée son compte et accède à l'application."}
+                  </p>
+                  {invStatus === "pending" && (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={`${window.location.origin}/accept-athlete-invitation?token=${invitation.token}`}
+                        readOnly
+                        className="text-xs"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/accept-athlete-invitation?token=${invitation.token}`);
+                          toast.success("Lien d'inscription copié !");
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {invStatus === "accepted" ? "✅ Acceptée" : invStatus === "expired" ? "⏰ Expiré" : "⏳ En attente"}
+                    </Badge>
+                    {invStatus !== "accepted" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => resendMutation.mutate({
+                          tableName: "athlete_invitations",
+                          invitationId: invitation.id,
+                          invitationType: "athlete" as any,
+                          invalidateKeys: [["athlete-invitation", playerId]],
+                        })}
+                        disabled={resendMutation.isPending}
+                      >
+                        <RefreshCw className={`h-4 w-4 mr-1 ${resendMutation.isPending ? "animate-spin" : ""}`} />
+                        {invStatus === "expired" ? "Renvoyer" : "Renvoyer l'email"}
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                <Badge variant="secondary" className="text-xs">
-                  {invitation.status === "accepted" ? "Acceptée" : "En attente"}
-                </Badge>
-              </div>
-            ) : (
+              );
+            })() : (
               <div className="p-3 rounded-lg border border-border space-y-2">
                 {player?.email ? (
                   <>
