@@ -39,8 +39,22 @@ export function AthleteAccessSection({ playerId, categoryId, playerName }: Athle
     },
   });
 
+  // Fetch category to get club_id
+  const { data: category } = useQuery({
+    queryKey: ["category-club", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("club_id")
+        .eq("id", categoryId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Fetch athlete invitation link (only if player not yet connected)
-  const { data: invitation } = useQuery({
+  const { data: invitation, refetch: refetchInvitation } = useQuery({
     queryKey: ["athlete-invitation", playerId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -54,6 +68,29 @@ export function AthleteAccessSection({ playerId, categoryId, playerName }: Athle
       return data;
     },
     enabled: !player?.user_id, // Only fetch if player has no linked account
+  });
+
+  // Create invitation link
+  const createInvitation = useMutation({
+    mutationFn: async () => {
+      if (!player?.email) throw new Error("L'athlète doit avoir un email renseigné");
+      if (!category?.club_id) throw new Error("Club introuvable");
+      const { error } = await supabase.from("athlete_invitations").insert({
+        player_id: playerId,
+        category_id: categoryId,
+        club_id: category.club_id,
+        email: player.email,
+        invited_by: user?.id,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      refetchInvitation();
+      toast.success("Lien d'inscription généré");
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Erreur lors de la génération du lien");
+    },
   });
 
   const playerIsConnected = !!player?.user_id;
@@ -212,37 +249,61 @@ export function AthleteAccessSection({ playerId, categoryId, playerName }: Athle
         </div>
 
         {/* Invitation Link Section - hidden when player is connected */}
-        {!playerIsConnected && invitation?.token && (
+        {!playerIsConnected && (
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <Link2 className="h-4 w-4" />
               Lien d'inscription
             </Label>
-            <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 space-y-2">
-              <p className="text-xs text-muted-foreground">
-                Partagez ce lien pour que l'athlète crée son compte et accède à l'application.
-              </p>
-              <div className="flex items-center gap-2">
-                <Input
-                  value={`${window.location.origin}/accept-athlete-invitation?token=${invitation.token}`}
-                  readOnly
-                  className="text-xs"
-                />
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/accept-athlete-invitation?token=${invitation.token}`);
-                    toast.success("Lien d'inscription copié !");
-                  }}
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
+            {invitation?.token ? (
+              <div className="p-3 rounded-lg bg-accent/30 border border-border space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Partagez ce lien pour que l'athlète crée son compte et accède à l'application.
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={`${window.location.origin}/accept-athlete-invitation?token=${invitation.token}`}
+                    readOnly
+                    className="text-xs"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/accept-athlete-invitation?token=${invitation.token}`);
+                      toast.success("Lien d'inscription copié !");
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <Badge variant="secondary" className="text-xs">
+                  {invitation.status === "accepted" ? "Acceptée" : "En attente"}
+                </Badge>
               </div>
-              <Badge variant="secondary" className="text-xs">
-                {invitation.status === "accepted" ? "Acceptée" : "En attente"}
-              </Badge>
-            </div>
+            ) : (
+              <div className="p-3 rounded-lg border border-border space-y-2">
+                {player?.email ? (
+                  <>
+                    <p className="text-xs text-muted-foreground">
+                      Générez un lien d'inscription pour que l'athlète crée son compte.
+                    </p>
+                    <Button
+                      size="sm"
+                      onClick={() => createInvitation.mutate()}
+                      disabled={createInvitation.isPending}
+                    >
+                      <Mail className="h-4 w-4 mr-2" />
+                      Générer le lien d'inscription
+                    </Button>
+                  </>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Renseignez d'abord l'email de l'athlète pour pouvoir générer un lien d'inscription.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
