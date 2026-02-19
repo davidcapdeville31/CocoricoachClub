@@ -12,10 +12,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Trash2, Copy } from "lucide-react";
+import { Trash2, Copy, RefreshCw, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useResendInvitation, getInvitationStatus } from "@/hooks/useResendInvitation";
 
 interface InvitationsSectionProps {
   clubId: string;
@@ -24,6 +25,15 @@ interface InvitationsSectionProps {
 
 export function InvitationsSection({ clubId, canManage }: InvitationsSectionProps) {
   const queryClient = useQueryClient();
+  const resendMutation = useResendInvitation();
+
+  const { data: club } = useQuery({
+    queryKey: ["club-name-for-resend", clubId],
+    queryFn: async () => {
+      const { data } = await supabase.from("clubs").select("name").eq("id", clubId).single();
+      return data;
+    },
+  });
 
   const { data: invitations, isLoading } = useQuery({
     queryKey: ["club-invitations", clubId],
@@ -58,7 +68,6 @@ export function InvitationsSection({ clubId, canManage }: InvitationsSectionProp
 
   const copyInvitationLink = async (invitation: any) => {
     try {
-      // Viewer: generate a public (no-auth) read-only link
       if (invitation.role === "viewer") {
         const { data: userData } = await supabase.auth.getUser();
         const userId = userData.user?.id;
@@ -84,7 +93,6 @@ export function InvitationsSection({ clubId, canManage }: InvitationsSectionProp
         return;
       }
 
-      // Other roles: classic invitation flow (requires login)
       const link = `${window.location.origin}/accept-invitation?token=${invitation.token}`;
       await navigator.clipboard.writeText(link);
       toast.success("Lien d'invitation copié");
@@ -110,11 +118,16 @@ export function InvitationsSection({ clubId, canManage }: InvitationsSectionProp
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const getStatusBadge = (status: string) => {
-    if (status === "accepted") {
-      return <Badge variant="outline" className="text-blue-600 border-blue-600">Acceptée</Badge>;
+  const getStatusBadge = (status: string, expiresAt?: string | null) => {
+    const effectiveStatus = getInvitationStatus(status, expiresAt);
+    switch (effectiveStatus) {
+      case "accepted":
+        return <Badge variant="outline" className="text-green-600 border-green-600"><CheckCircle2 className="h-3 w-3 mr-1" />Activé</Badge>;
+      case "expired":
+        return <Badge variant="outline" className="text-destructive border-destructive">Expiré</Badge>;
+      default:
+        return <Badge variant="outline" className="text-amber-600 border-amber-600">En attente</Badge>;
     }
-    return <Badge variant="outline" className="text-green-600 border-green-600">En attente</Badge>;
   };
 
   if (!canManage && (!invitations || invitations.length === 0)) {
@@ -139,43 +152,66 @@ export function InvitationsSection({ clubId, canManage }: InvitationsSectionProp
               </TableRow>
             </TableHeader>
             <TableBody>
-              {invitations.map((invitation) => (
-                <TableRow key={invitation.id}>
-                  <TableCell className="font-medium">{invitation.email}</TableCell>
-                  <TableCell>{getRoleBadge(invitation.role)}</TableCell>
-                  <TableCell>
-                    {format(new Date(invitation.created_at), "dd MMM yyyy", { locale: fr })}
-                  </TableCell>
-                  <TableCell>
-                    {getStatusBadge(invitation.status)}
-                  </TableCell>
-                  {canManage && (
+              {invitations.map((invitation: any) => {
+                const effectiveStatus = getInvitationStatus(invitation.status, invitation.expires_at);
+                return (
+                  <TableRow key={invitation.id}>
+                    <TableCell className="font-medium">{invitation.email}</TableCell>
+                    <TableCell>{getRoleBadge(invitation.role)}</TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Copier le lien d'invitation"
-                          onClick={() => copyInvitationLink(invitation)}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        {invitation.status === "pending" && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title="Annuler l'invitation"
-                            onClick={() => deleteInvitation.mutate(invitation.id)}
-                            disabled={deleteInvitation.isPending}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        )}
-                      </div>
+                      {format(new Date(invitation.created_at), "dd MMM yyyy", { locale: fr })}
                     </TableCell>
-                  )}
-                </TableRow>
-              ))}
+                    <TableCell>
+                      {getStatusBadge(invitation.status, invitation.expires_at)}
+                    </TableCell>
+                    {canManage && (
+                      <TableCell>
+                        <div className="flex gap-1">
+                          {effectiveStatus === "pending" && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title="Copier le lien d'invitation"
+                              onClick={() => copyInvitationLink(invitation)}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {effectiveStatus !== "accepted" && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title={effectiveStatus === "expired" ? "Renvoyer (nouveau lien)" : "Renvoyer l'email"}
+                              onClick={() => resendMutation.mutate({
+                                tableName: "club_invitations",
+                                invitationId: invitation.id,
+                                invitationType: "collaborator",
+                                clubName: club?.name,
+                                role: invitation.role,
+                                invalidateKeys: [["club-invitations", clubId]],
+                              })}
+                              disabled={resendMutation.isPending}
+                            >
+                              <RefreshCw className={`h-4 w-4 ${resendMutation.isPending ? "animate-spin" : ""}`} />
+                            </Button>
+                          )}
+                          {effectiveStatus !== "accepted" && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title="Annuler l'invitation"
+                              onClick={() => deleteInvitation.mutate(invitation.id)}
+                              disabled={deleteInvitation.isPending}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         ) : (
