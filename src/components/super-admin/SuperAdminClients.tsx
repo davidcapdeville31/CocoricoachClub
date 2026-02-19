@@ -12,7 +12,7 @@
  import { Textarea } from "@/components/ui/textarea";
  import { Checkbox } from "@/components/ui/checkbox";
  import { toast } from "@/components/ui/sonner";
-import { Plus, Edit, Pause, Play, Trash2, Building2, Mail, Video, MapPin, FolderOpen, User, Gift, DollarSign, Copy, Link, Check, GraduationCap } from "lucide-react";
+import { Plus, Edit, Pause, Play, Trash2, Building2, Mail, Video, MapPin, FolderOpen, User, Gift, DollarSign, Copy, Link, Check, GraduationCap, Search } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { InviteClientDialog } from "./InviteClientDialog";
@@ -63,8 +63,9 @@ export function SuperAdminClients() {
     const [clubName, setClubName] = useState("");
     const [clubSport, setClubSport] = useState<MainSportCategory>("rugby");
      const [categoryDrafts, setCategoryDrafts] = useState<CategoryDraft[]>([]);
-     const [generatedInviteLink, setGeneratedInviteLink] = useState<string | null>(null);
-     const [linkCopied, setLinkCopied] = useState(false);
+      const [generatedInviteLink, setGeneratedInviteLink] = useState<string | null>(null);
+      const [linkCopied, setLinkCopied] = useState(false);
+      const [searchQuery, setSearchQuery] = useState("");
  
      // Fetch formal clients with their subscriptions
      const { data: clients = [], isLoading } = useQuery({
@@ -638,11 +639,20 @@ export function SuperAdminClients() {
                Gérez les organisations clientes et leurs limites
              </CardDescription>
            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setIsInviteDialogOpen(true)}>
-                <Mail className="h-4 w-4 mr-2" />
-                Inviter un client
-              </Button>
+             <div className="flex gap-2 items-center">
+               <div className="relative">
+                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                 <Input
+                   placeholder="Rechercher un client ou club..."
+                   value={searchQuery}
+                   onChange={(e) => setSearchQuery(e.target.value)}
+                   className="pl-9 w-64"
+                 />
+               </div>
+               <Button variant="outline" onClick={() => setIsInviteDialogOpen(true)}>
+                 <Mail className="h-4 w-4 mr-2" />
+                 Inviter un client
+               </Button>
               <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
                   <Button>
@@ -708,34 +718,53 @@ export function SuperAdminClients() {
        <CardContent>
          {isLoading ? (
            <p className="text-muted-foreground">Chargement...</p>
-         ) : clients.length === 0 ? (
-           <p className="text-muted-foreground text-center py-8">Aucun client enregistré</p>
-         ) : (
-           <Table>
-             <TableHeader>
-               <TableRow>
-                 <TableHead>Client</TableHead>
-                 <TableHead>Contact</TableHead>
-                 <TableHead>Statut</TableHead>
-                  <TableHead>Options</TableHead>
-                  <TableHead>Abonnement</TableHead>
-                  <TableHead>Limites</TableHead>
-                  <TableHead>Créé le</TableHead>
-                 <TableHead className="text-right">Actions</TableHead>
-               </TableRow>
-             </TableHeader>
-             <TableBody>
-               {clients.map((client) => (
-                 <TableRow key={client.id}>
-                   <TableCell className="font-medium">{client.name}</TableCell>
-                   <TableCell>
+          ) : (() => {
+            // Filter clients based on search query
+            const query = searchQuery.toLowerCase().trim();
+            const filteredClients = query
+              ? clients.filter((client: any) => {
+                  const nameMatch = client.name?.toLowerCase().includes(query);
+                  const emailMatch = client.email?.toLowerCase().includes(query);
+                  // Check if any club linked to this client matches
+                  const clubMatch = clubOwners.some((owner: any) =>
+                    owner.clubs.some((club: any) =>
+                      club.client_id === client.id && club.name.toLowerCase().includes(query)
+                    )
+                  );
+                  return nameMatch || emailMatch || clubMatch;
+                })
+              : clients;
+
+            return filteredClients.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">
+                {query ? "Aucun client trouvé pour cette recherche" : "Aucun client enregistré"}
+              </p>
+            ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Statut</TableHead>
+                   <TableHead>Options</TableHead>
+                   <TableHead>Abonnement</TableHead>
+                   <TableHead>Limites</TableHead>
+                   <TableHead>Créé le</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredClients.map((client: any) => (
+                  <TableRow key={client.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openEditDialog(client)}>
+                    <TableCell className="font-medium">{client.name}</TableCell>
+                    <TableCell>
                      <div className="text-sm">
                        {client.email && <p>{client.email}</p>}
                        {client.phone && <p className="text-muted-foreground">{client.phone}</p>}
                      </div>
                    </TableCell>
                    <TableCell>{getStatusBadge(client.status)}</TableCell>
-                   <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                      <div className="flex flex-col gap-1.5">
                        <div className="flex items-center gap-2">
                          <Checkbox
@@ -800,13 +829,13 @@ export function SuperAdminClients() {
                    <TableCell>
                      {format(new Date(client.created_at), "dd MMM yyyy", { locale: fr })}
                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Copier le lien d'invitation"
-                          onClick={async () => {
+                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                       <div className="flex justify-end gap-1">
+                         <Button
+                           variant="ghost"
+                           size="icon"
+                           title="Copier le lien d'invitation"
+                           onClick={async () => {
                             if (!client.email) {
                               toast.error("Pas d'email pour ce client");
                               return;
@@ -876,9 +905,10 @@ export function SuperAdminClients() {
                     </TableCell>
                  </TableRow>
                ))}
-             </TableBody>
-           </Table>
-          )}
+              </TableBody>
+            </Table>
+           );
+          })()}
 
           {/* Auto-detected Club Owners section */}
           <div className="mt-8 border-t pt-6">
