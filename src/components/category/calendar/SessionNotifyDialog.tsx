@@ -87,7 +87,7 @@ export function SessionNotifyDialog({
         // If no players in tracking, get all players from category as fallback
         const { data: allPlayers, error: playersError } = await supabase
           .from("players")
-          .select("id, name, email, phone")
+          .select("id, name, email, phone, user_id")
           .eq("category_id", categoryId);
         
         if (playersError) throw playersError;
@@ -96,10 +96,10 @@ export function SessionNotifyDialog({
       
       const playerIds = tracking.map(t => t.player_id);
       
-      // Get player details
+      // Get player details including user_id for push targeting
       const { data: players, error: playersError } = await supabase
         .from("players")
-        .select("id, name, email, phone")
+        .select("id, name, email, phone, user_id")
         .in("id", playerIds);
       
       if (playersError) throw playersError;
@@ -127,18 +127,33 @@ export function SessionNotifyDialog({
         time: session.session_start_time ? session.session_start_time.substring(0, 5) : undefined,
       };
 
-      // Send push via targeted notification (by category)
+      // Send push via targeted notification — by user_id (P1: precise targeting, no tags needed)
       if (sendPush) {
+        // Collect user_ids of players with an app account
+        const targetUserIds = athletes
+          .map((a: any) => a.user_id)
+          .filter(Boolean) as string[];
+
+        const pushBody: Record<string, unknown> = {
+          title: selectedType?.label || "Notification",
+          message: finalMessage,
+          channels: ["push"],
+          event_type: "session",
+          session_id: session.id,
+          event_details: eventDetails,
+        };
+
+        if (targetUserIds.length > 0) {
+          // Precise: only notify players with an app account
+          pushBody.target_user_ids = targetUserIds;
+        } else {
+          // Fallback broadcast: all players of the category
+          pushBody.category_ids = [categoryId];
+          pushBody.roles = ["player"];
+        }
+
         const { data: pushData, error: pushError } = await supabase.functions.invoke("send-targeted-notification", {
-          body: {
-            title: selectedType?.label || "Notification",
-            message: finalMessage,
-            category_ids: [categoryId],
-            roles: ["player"],
-            channels: ["push"],
-            event_type: "session",
-            event_details: eventDetails,
-          },
+          body: pushBody,
         });
         if (!pushError && pushData) results.pushSent = pushData.pushSent || 0;
       }
