@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Mail, Phone, Send, Loader2, Users, Trophy, Bell } from "lucide-react";
+import { Mail, Send, Loader2, Users, Trophy, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -43,7 +43,6 @@ export function MatchNotifyDialog({
 }: MatchNotifyDialogProps) {
   const [message, setMessage] = useState("");
   const [sendEmail, setSendEmail] = useState(true);
-  const [sendSms, setSendSms] = useState(false);
   const [sendPush, setSendPush] = useState(true);
 
   const isIndividual = isIndividualSport(sportType || "");
@@ -109,7 +108,6 @@ export function MatchNotifyDialog({
 
   const athletes = matchPlayers?.players || [];
   const athletesWithEmail = athletes.filter((a) => a.email).length;
-  const athletesWithPhone = athletes.filter((a) => a.phone).length;
 
   const defaultMessage = isIndividual 
     ? "Vous êtes convoqué(e) pour la compétition. Merci de confirmer votre présence."
@@ -119,16 +117,15 @@ export function MatchNotifyDialog({
 
   const sendNotification = useMutation({
     mutationFn: async () => {
-      const channels: ("email" | "sms" | "push")[] = [];
+      const channels: ("email" | "push")[] = [];
       if (sendEmail) channels.push("email");
-      if (sendSms) channels.push("sms");
       if (sendPush) channels.push("push");
 
       if (channels.length === 0) {
         throw new Error("Veuillez sélectionner au moins un canal de notification");
       }
 
-      const results: { emailsSent: number; smsSent: number; pushSent: number } = { emailsSent: 0, smsSent: 0, pushSent: 0 };
+      const results: { emailsSent: number; pushSent: number } = { emailsSent: 0, pushSent: 0 };
       const subject = isIndividual ? "Convocation compétition" : `Convocation match vs ${match.opponent}`;
       const eventDetails = {
         date: format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: fr }),
@@ -152,29 +149,20 @@ export function MatchNotifyDialog({
         if (!pushError && pushData) results.pushSent = pushData.pushSent || 0;
       }
 
-      // Send email/SMS via individual notification
-      if (sendEmail || sendSms) {
-        const athletesToNotify = athletes.filter((a) => {
-          if (sendEmail && a.email) return true;
-          if (sendSms && a.phone) return true;
-          return false;
-        });
+      // Send email via individual notification
+      if (sendEmail) {
+        const athletesToNotify = athletes.filter((a) => a.email);
 
         if (athletesToNotify.length > 0) {
-          const individualChannels: ("email" | "sms")[] = [];
-          if (sendEmail) individualChannels.push("email");
-          if (sendSms) individualChannels.push("sms");
-
           const { data, error } = await supabase.functions.invoke("notify-athletes", {
             body: {
               athletes: athletesToNotify.map((a) => ({
                 name: a.name,
                 email: a.email,
-                phone: a.phone,
               })),
               subject,
               message: finalMessage,
-              channels: individualChannels,
+              channels: ["email"],
               eventType: "match",
               eventDetails,
             },
@@ -182,7 +170,6 @@ export function MatchNotifyDialog({
 
           if (!error && data) {
             results.emailsSent = data.emailsSent || 0;
-            results.smsSent = data.smsSent || 0;
           }
         }
       }
@@ -192,7 +179,6 @@ export function MatchNotifyDialog({
     onSuccess: (data) => {
       const parts = [];
       if (data.emailsSent > 0) parts.push(`${data.emailsSent} email(s)`);
-      if (data.smsSent > 0) parts.push(`${data.smsSent} SMS`);
       if (data.pushSent > 0) parts.push(`${data.pushSent} push`);
       
       toast.success(`Convocations envoyées : ${parts.join(", ") || "aucune"}`);
@@ -229,7 +215,7 @@ export function MatchNotifyDialog({
             <span className="text-sm">
               <strong>{athletes.length}</strong> athlète(s) 
               {matchPlayers?.fromMatch ? " (convoqués)" : " (tous)"} • 
-              <span className="text-muted-foreground"> {athletesWithEmail} avec email, {athletesWithPhone} avec téléphone</span>
+              <span className="text-muted-foreground"> {athletesWithEmail} avec email</span>
             </span>
           </div>
 
@@ -252,25 +238,6 @@ export function MatchNotifyDialog({
                   Email
                   <Badge variant="secondary" className="text-xs">
                     {athletesWithEmail}
-                  </Badge>
-                </label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="sendSms"
-                  checked={sendSms}
-                  onCheckedChange={(checked) => setSendSms(checked as boolean)}
-                  disabled={athletesWithPhone === 0}
-                />
-                <label
-                  htmlFor="sendSms"
-                  className="flex items-center gap-2 text-sm font-medium cursor-pointer"
-                >
-                  <Phone className="h-4 w-4" />
-                  SMS
-                  <Badge variant="secondary" className="text-xs">
-                    {athletesWithPhone}
                   </Badge>
                 </label>
               </div>
@@ -325,7 +292,7 @@ export function MatchNotifyDialog({
             </Button>
             <Button
               type="submit"
-              disabled={sendNotification.isPending || (!sendEmail && !sendSms && !sendPush) || loadingPlayers}
+              disabled={sendNotification.isPending || (!sendEmail && !sendPush) || loadingPlayers}
             >
               {sendNotification.isPending ? (
                 <>

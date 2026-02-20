@@ -27,18 +27,60 @@ export async function initOneSignal(): Promise<void> {
 /**
  * Trigger the OneSignal native push permission prompt.
  * Returns true if granted, false otherwise.
+ * Has a 10s timeout to avoid infinite loading.
  */
 export async function requestOneSignalPermission(): Promise<boolean> {
-  if (typeof window === "undefined" || !window.OneSignal) return false;
+  // If no OneSignal SDK, fall back to native browser prompt
+  if (typeof window === "undefined") return false;
+
+  // If browser doesn't support notifications at all
+  if (!("Notification" in window)) {
+    console.warn("[OneSignal] Notifications not supported in this browser");
+    return false;
+  }
+
+  // If already granted, return immediately
+  if (Notification.permission === "granted") return true;
+  // If already denied, can't re-prompt
+  if (Notification.permission === "denied") return false;
+
   return new Promise((resolve) => {
-    try {
-      window.OneSignal.push(async function () {
-        await window.OneSignal.showNativePrompt();
+    // Safety timeout: resolve after 10s to avoid infinite loading
+    const timeout = setTimeout(() => {
+      console.warn("[OneSignal] Permission request timed out");
+      resolve(Notification.permission === "granted");
+    }, 10000);
+
+    const doRequest = async () => {
+      try {
+        if (window.OneSignal) {
+          await window.OneSignal.showNativePrompt();
+        } else {
+          // Fallback: use native browser API
+          const result = await Notification.requestPermission();
+          clearTimeout(timeout);
+          resolve(result === "granted");
+          return;
+        }
+        clearTimeout(timeout);
         resolve(Notification.permission === "granted");
-      });
-    } catch (err) {
-      console.error("[OneSignal] Permission request error:", err);
-      resolve(false);
+      } catch (err) {
+        console.error("[OneSignal] Permission request error:", err);
+        clearTimeout(timeout);
+        // Try native fallback
+        try {
+          const result = await Notification.requestPermission();
+          resolve(result === "granted");
+        } catch {
+          resolve(false);
+        }
+      }
+    };
+
+    if (window.OneSignal) {
+      window.OneSignal.push(doRequest);
+    } else {
+      doRequest();
     }
   });
 }
@@ -207,6 +249,10 @@ export async function buildUserTags(userId: string): Promise<Record<string, stri
 
     // Determine user_type (player vs staff)
     tags.user_type = roles.has("athlete") && roles.size === 1 ? "player" : "staff";
+
+    // All users receive wellness & RPE daily notifications
+    tags.wellness_notifications = "true";
+    tags.rpe_notifications = "true";
 
     // Check super admin
     const { data: isSuperAdmin } = await supabase
