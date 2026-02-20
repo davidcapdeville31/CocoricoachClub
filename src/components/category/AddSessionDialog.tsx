@@ -852,9 +852,9 @@ export function AddSessionDialog({
                       {players?.map((player) => (
                         <div
                           key={player.id}
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); togglePlayer(player.id); }}
+                          onClick={() => togglePlayer(player.id)}
                           className={cn(
-                            "flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-colors",
+                            "flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-colors select-none",
                             selectedPlayers.includes(player.id)
                               ? "border-primary bg-primary/10"
                               : "border-border hover:bg-muted/50",
@@ -863,17 +863,16 @@ export function AddSessionDialog({
                         >
                           <Checkbox
                             checked={selectedPlayers.includes(player.id)}
-                            onCheckedChange={() => togglePlayer(player.id)}
-                            onClick={(e) => e.stopPropagation()}
+                            className="pointer-events-none"
                           />
-                          <Avatar className="h-6 w-6">
+                          <Avatar className="h-6 w-6 pointer-events-none">
                             <AvatarImage src={player.avatar_url || undefined} />
                             <AvatarFallback className="text-xs">{(player.first_name || player.name).slice(0, 2).toUpperCase()}</AvatarFallback>
                           </Avatar>
-                          <span className="text-sm truncate flex-1">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
-                          {player.isInjured && <AlertTriangle className="h-3 w-3 text-amber-500 flex-shrink-0" />}
+                          <span className="text-sm truncate flex-1 pointer-events-none">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
+                          {player.isInjured && <AlertTriangle className="h-3 w-3 text-amber-500 flex-shrink-0 pointer-events-none" />}
                           {player.position && (
-                            <Badge variant="outline" className="text-xs flex-shrink-0">
+                            <Badge variant="outline" className="text-xs flex-shrink-0 pointer-events-none">
                               {player.position}
                             </Badge>
                           )}
