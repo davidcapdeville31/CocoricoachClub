@@ -46,14 +46,14 @@ function loadOfflineSession(): { user: User | null; isOfflineSession: boolean } 
   return { user: null, isOfflineSession: false };
 }
 
-// Handle OneSignal user sync (non-blocking)
+// Handle OneSignal user sync (non-blocking, fully silent)
 async function syncOneSignalUser(user: User) {
   try {
     await initOneSignal();
     const tags = await buildUserTags(user.id);
     await oneSignalLogin(user.id, user.email || "", tags);
-  } catch (err) {
-    console.error("[OneSignal] Sync error (non-blocking):", err);
+  } catch {
+    // Silently ignore — OneSignal failures must never affect the app
   }
 }
 
@@ -75,8 +75,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Initialize OneSignal SDK early
-    initOneSignal().catch(() => {});
+    // Initialize OneSignal SDK early — fully silent, never crash the app
+    try {
+      initOneSignal().catch(() => {});
+    } catch {
+      // OneSignal may throw synchronously on unsupported origins/browsers
+    }
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
