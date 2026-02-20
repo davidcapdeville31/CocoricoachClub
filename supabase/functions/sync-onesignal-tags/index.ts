@@ -38,45 +38,39 @@ serve(async (req: Request) => {
       supabase.from("profiles").select("email, full_name").eq("id", user_id).single(),
       supabase.from("club_members").select("club_id, role").eq("user_id", user_id),
       supabase.from("clubs").select("id, name").eq("user_id", user_id),
-      supabase.from("category_members").select("category_id, role, categories(name)").eq("user_id", user_id),
+      supabase.from("category_members").select("category_id, role, categories(id, club_id)").eq("user_id", user_id),
       supabase.from("super_admin_users").select("id").eq("user_id", user_id).limit(1),
     ]);
 
     const userEmail = profile?.email || "";
 
-    // ── 2. Build tags (limités au strict minimum pour le plan gratuit) ────────
-    const tags: Record<string, string> = {};
-
-    // Club IDs (pour ciblage par club)
-    const allClubIds = new Set<string>();
-    clubMemberships?.forEach((m: any) => allClubIds.add(m.club_id));
-    ownedClubs?.forEach((c: any) => allClubIds.add(c.id));
-    tags.club_ids = Array.from(allClubIds).join(",");
-
-    // Category IDs (pour ciblage par équipe)
-    if (categoryMemberships && categoryMemberships.length > 0) {
-      tags.category_ids = categoryMemberships.map((m: any) => m.category_id).join(",");
-    } else {
-      tags.category_ids = "";
-    }
-
-    // Rôle (hiérarchie)
+    // ── 2. Build tags — FREE PLAN: max 2 tags ────────────────────────────────
+    // Tag 1: role (hiérarchie)
     const roles = new Set<string>();
     clubMemberships?.forEach((m: any) => roles.add(m.role));
     categoryMemberships?.forEach((m: any) => roles.add(m.role));
     if (ownedClubs && ownedClubs.length > 0) roles.add("admin");
+    if (superAdminData && superAdminData.length > 0) roles.add("super_admin");
 
-    const roleHierarchy = ["admin", "coach", "physio", "doctor", "viewer", "athlete"];
+    let role = "viewer";
+    const roleHierarchy = ["super_admin", "admin", "coach", "physio", "doctor", "athlete", "viewer"];
     for (const r of roleHierarchy) {
-      if (roles.has(r)) { tags.role = r; break; }
+      if (roles.has(r)) { role = r; break; }
     }
 
-    if (superAdminData && superAdminData.length > 0) {
-      tags.role = "super_admin";
-    }
+    // Tag 2: club_ids (ciblage par club — inclut les clubs via catégories pour les athletes)
+    const allClubIds = new Set<string>();
+    clubMemberships?.forEach((m: any) => allClubIds.add(m.club_id));
+    ownedClubs?.forEach((c: any) => allClubIds.add(c.id));
+    categoryMemberships?.forEach((m: any) => {
+      const cat = m.categories as any;
+      if (cat?.club_id) allClubIds.add(cat.club_id);
+    });
 
-    // Type (player vs staff) — pour ciblage global
-    tags.user_type = roles.has("athlete") && roles.size === 1 ? "player" : "staff";
+    const tags: Record<string, string> = {
+      role,
+      club_ids: Array.from(allClubIds).join(","),
+    };
 
     const baseHeaders = {
       "Content-Type": "application/json",
