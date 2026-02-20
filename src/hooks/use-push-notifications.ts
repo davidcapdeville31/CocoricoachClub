@@ -5,12 +5,13 @@ import { toast } from "sonner";
 
 // Check if the browser supports push notifications
 const isPushSupported = () => {
-  return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+  return (
+    typeof window !== "undefined" &&
+    "serviceWorker" in navigator &&
+    "PushManager" in window &&
+    "Notification" in window
+  );
 };
-
-// VAPID public key - this should match the one in your edge function
-// For demo purposes, we'll generate notifications without actual push
-// In production, you'd need to set up a proper VAPID key pair
 
 export function usePushNotifications() {
   const { user } = useAuth();
@@ -21,9 +22,10 @@ export function usePushNotifications() {
 
   // Check if push notifications are supported
   useEffect(() => {
-    setIsSupported(isPushSupported());
-    if ("Notification" in window) {
-      setPermission(Notification.permission);
+    const supported = isPushSupported();
+    setIsSupported(supported);
+    if (supported && "Notification" in window) {
+      setPermission(window.Notification.permission);
     }
   }, []);
 
@@ -56,9 +58,9 @@ export function usePushNotifications() {
     }
 
     try {
-      const result = await Notification.requestPermission();
+      const result = await window.Notification.requestPermission();
       setPermission(result);
-      
+
       if (result === "granted") {
         toast.success("Notifications activées !");
         return true;
@@ -66,7 +68,7 @@ export function usePushNotifications() {
         toast.error("Notifications refusées. Vous pouvez les activer dans les paramètres du navigateur.");
         return false;
       }
-      
+
       return false;
     } catch (error) {
       console.error("Error requesting permission:", error);
@@ -91,7 +93,7 @@ export function usePushNotifications() {
 
     try {
       // First request permission if not already granted
-      if (Notification.permission !== "granted") {
+      if ("Notification" in window && window.Notification.permission !== "granted") {
         const granted = await requestPermission();
         if (!granted) {
           setIsLoading(false);
@@ -100,10 +102,8 @@ export function usePushNotifications() {
       }
 
       // Register service worker if not already registered
-      const registration = await navigator.serviceWorker.ready;
+      await navigator.serviceWorker.ready;
 
-      // For now, we'll store a placeholder subscription
-      // In a full implementation, you'd use the PushManager with a VAPID key
       const { error } = await supabase
         .from("push_subscriptions")
         .upsert({
@@ -157,7 +157,9 @@ export function usePushNotifications() {
 
   // Show a local notification (for testing or when online)
   const showLocalNotification = useCallback(async (title: string, body: string, options?: NotificationOptions) => {
-    if (Notification.permission !== "granted") {
+    if (!("Notification" in window)) return;
+
+    if (window.Notification.permission !== "granted") {
       const granted = await requestPermission();
       if (!granted) return;
     }
@@ -171,8 +173,12 @@ export function usePushNotifications() {
         ...options,
       });
     } catch (error) {
-      // Fallback to regular notification
-      new Notification(title, { body, icon: "/pwa-192x192.png", ...options });
+      // Fallback to regular notification (guarded)
+      try {
+        new window.Notification(title, { body, icon: "/pwa-192x192.png", ...options });
+      } catch {
+        // silently ignore if still unsupported
+      }
     }
   }, [requestPermission]);
 

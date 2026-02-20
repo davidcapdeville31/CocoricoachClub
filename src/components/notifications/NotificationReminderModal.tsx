@@ -21,8 +21,9 @@ export function NotificationReminderModal() {
     const onboardingDone = localStorage.getItem(`${ONBOARDING_KEY}_${user.id}`);
     if (!onboardingDone) return;
 
-    // Don't show if already granted or denied
-    const perm = Notification.permission;
+    // Don't show if already granted or denied (guard for browsers without Notification API)
+    if (!("Notification" in window)) return;
+    const perm = window.Notification.permission;
     if (perm === "granted" || perm === "denied") return;
 
     // Check if we already showed it today
