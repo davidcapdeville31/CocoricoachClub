@@ -141,6 +141,7 @@ export function useSessionNotifications() {
       // Add session ID as tag for analytics
       if (sessionId) {
         requestBody.session_id = sessionId;
+        requestBody.training_id = sessionId;
       }
 
       console.log(`[SessionNotification] Sending push for "${action}":`, requestBody);
