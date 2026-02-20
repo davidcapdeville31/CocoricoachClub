@@ -13,6 +13,10 @@ declare global {
 
 let isInitialized = false;
 
+/** Safe check: does this browser support the Notification API? */
+const hasNotificationAPI = () =>
+  typeof window !== "undefined" && "Notification" in window;
+
 /**
  * Initialize OneSignal SDK (already loaded via index.html)
  * Does NOT auto-prompt — permission is requested explicitly via UI components.
@@ -30,25 +34,24 @@ export async function initOneSignal(): Promise<void> {
  * Has a 10s timeout to avoid infinite loading.
  */
 export async function requestOneSignalPermission(): Promise<boolean> {
-  // If no OneSignal SDK, fall back to native browser prompt
   if (typeof window === "undefined") return false;
 
-  // If browser doesn't support notifications at all
-  if (!("Notification" in window)) {
+  // If browser doesn't support notifications at all (e.g. iOS Safari < 16.4)
+  if (!hasNotificationAPI()) {
     console.warn("[OneSignal] Notifications not supported in this browser");
     return false;
   }
 
   // If already granted, return immediately
-  if (Notification.permission === "granted") return true;
+  if (window.Notification.permission === "granted") return true;
   // If already denied, can't re-prompt
-  if (Notification.permission === "denied") return false;
+  if (window.Notification.permission === "denied") return false;
 
   return new Promise((resolve) => {
     // Safety timeout: resolve after 10s to avoid infinite loading
     const timeout = setTimeout(() => {
       console.warn("[OneSignal] Permission request timed out");
-      resolve(Notification.permission === "granted");
+      resolve(hasNotificationAPI() && window.Notification.permission === "granted");
     }, 10000);
 
     const doRequest = async () => {
@@ -57,20 +60,24 @@ export async function requestOneSignalPermission(): Promise<boolean> {
           await window.OneSignal.showNativePrompt();
         } else {
           // Fallback: use native browser API
-          const result = await Notification.requestPermission();
+          const result = await window.Notification.requestPermission();
           clearTimeout(timeout);
           resolve(result === "granted");
           return;
         }
         clearTimeout(timeout);
-        resolve(Notification.permission === "granted");
+        resolve(hasNotificationAPI() && window.Notification.permission === "granted");
       } catch (err) {
         console.error("[OneSignal] Permission request error:", err);
         clearTimeout(timeout);
         // Try native fallback
         try {
-          const result = await Notification.requestPermission();
-          resolve(result === "granted");
+          if (hasNotificationAPI()) {
+            const result = await window.Notification.requestPermission();
+            resolve(result === "granted");
+          } else {
+            resolve(false);
+          }
         } catch {
           resolve(false);
         }
@@ -89,8 +96,8 @@ export async function requestOneSignalPermission(): Promise<boolean> {
  * Check current OneSignal push permission status.
  */
 export function getOneSignalPermission(): NotificationPermission {
-  if (typeof window === "undefined" || !("Notification" in window)) return "default";
-  return Notification.permission;
+  if (!hasNotificationAPI()) return "default";
+  return window.Notification.permission;
 }
 
 /**
