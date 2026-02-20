@@ -197,8 +197,8 @@ export function MatchNotifyDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
+      <DialogContent className="max-w-lg flex flex-col max-h-[90vh]">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Trophy className="h-5 w-5" />
             Notification de convocation
@@ -208,7 +208,8 @@ export function MatchNotifyDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 overflow-y-auto space-y-4 pr-1">
           {/* Athletes summary */}
           <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -281,8 +282,9 @@ export function MatchNotifyDialog({
             {match.match_time && <p>🕐 {match.match_time.substring(0, 5)}</p>}
             {match.location && <p>📍 {match.location}</p>}
           </div>
+          </div>{/* end scrollable area */}
 
-          <DialogFooter>
+          <DialogFooter className="flex-shrink-0 pt-4 border-t">
             <Button
               type="button"
               variant="outline"
