@@ -9,11 +9,12 @@ interface SessionNotificationPayload {
   action: SessionNotificationAction;
   sessionId?: string;
   categoryId: string;
+  clubId?: string;
   sessionDate: string;
   sessionStartTime?: string | null;
   sessionType?: string;
   location?: string | null;
-  /** Specific player IDs to notify. undefined = all category members. */
+  /** Specific player IDs to notify. undefined/empty = broadcast to entire category. */
   participantPlayerIds?: string[];
 }
 
@@ -46,36 +47,70 @@ function getTypeLabel(type?: string): string {
 }
 
 /**
- * Tags each participant in OneSignal with "participates_training_<session_id>" = "true".
+ * Step 1 — Tags each participant in OneSignal BEFORE sending the push.
+ *
+ * Tags written per player:
+ *   participates_training_<session_id> = "true"  → precise per-session filter
+ *   role                               = "athlete"
+ *   club_id                            = <club_id>
+ *
  * Runs silently — failures never block the UI.
+ * Returns tagging summary for logging.
  */
 async function tagSessionParticipants(
   sessionId: string,
   playerIds: string[],
+  clubId?: string,
   action: "add" | "remove" = "add"
-): Promise<void> {
-  if (!sessionId || playerIds.length === 0) return;
+): Promise<{ tagged: number; skipped: number; errors: string[] }> {
+  if (!sessionId || playerIds.length === 0) {
+    return { tagged: 0, skipped: 0, errors: [] };
+  }
+
+  console.log(
+    `[SessionNotification] Step 1 — Tagging ${playerIds.length} player(s) for session ${sessionId} (action=${action})`
+  );
 
   try {
-    console.log(
-      `[SessionNotification] Tagging ${playerIds.length} participant(s) for session ${sessionId} (action=${action})`
-    );
-
     const { data, error } = await supabase.functions.invoke("tag-session-participants", {
-      body: { session_id: sessionId, player_ids: playerIds, action },
+      body: {
+        session_id: sessionId,
+        player_ids: playerIds,
+        club_id: clubId,
+        action,
+      },
     });
 
     if (error) {
       console.error("[SessionNotification] tag-session-participants error:", error);
-      return;
+      return { tagged: 0, skipped: playerIds.length, errors: [error.message] };
     }
 
+    const result = {
+      tagged: data?.tagged ?? 0,
+      skipped: data?.skipped ?? 0,
+      errors: data?.errors ?? [],
+    };
+
     console.log(
-      `[SessionNotification] Tagging result — tagged: ${data?.tagged}, skipped: ${data?.skipped}, errors: ${data?.errors?.length ?? 0}`,
-      data?.errors?.length ? data.errors : ""
+      `[SessionNotification] Tagging done — tagged: ${result.tagged} | skipped: ${result.skipped} | errors: ${result.errors.length}`
     );
+
+    if (result.skipped > 0) {
+      console.warn(
+        `[SessionNotification] ${result.skipped} player(s) skipped (no user account / not subscribed)`
+      );
+    }
+
+    if (result.errors.length > 0) {
+      console.error("[SessionNotification] Tagging errors:", result.errors);
+    }
+
+    return result;
   } catch (err) {
-    console.error("[SessionNotification] Failed to tag participants:", err);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[SessionNotification] Failed to tag participants:", msg);
+    return { tagged: 0, skipped: playerIds.length, errors: [msg] };
   }
 }
 
@@ -83,12 +118,18 @@ async function tagSessionParticipants(
  * Hook centralisé pour déclencher les notifications push OneSignal
  * lors des actions sur les séances d'entraînement.
  *
- * Flow (joueurs spécifiques) :
- *   1. Tag each player: participates_training_<session_id> = "true"
- *   2. Send push via filter: tag "participates_training_<session_id>" = "true"
+ * ─── Flux complet (joueurs spécifiques) ──────────────────────────────────────
+ *   Step 1 — Tag participants: participates_training_<session_id> = "true"
+ *              + role = "athlete", club_id = <club_id>
+ *   Step 2 — Send push via P0 filter: tag "participates_training_<session_id>" = "true"
  *
- * Flow (toute la catégorie) :
- *   1. Send push via category_ids filter
+ * ─── Flux fallback (toute la catégorie) ──────────────────────────────────────
+ *   Step 1 — Skipped (no specific players)
+ *   Step 2 — Send push via P2 broadcast: category_ids filter
+ *
+ * ─── Annulation ──────────────────────────────────────────────────────────────
+ *   Step 1 — Remove tag (action = "remove")
+ *   Step 2 — Send push via existing tags (still valid during current session)
  */
 export function useSessionNotifications() {
   const notify = useCallback(
@@ -97,6 +138,7 @@ export function useSessionNotifications() {
         action,
         sessionId,
         categoryId,
+        clubId,
         sessionDate,
         sessionStartTime,
         sessionType,
@@ -126,18 +168,38 @@ export function useSessionNotifications() {
       const hasSpecificPlayers =
         participantPlayerIds && participantPlayerIds.length > 0;
 
-      // ── Step 1: Tag participants (only when specific players selected) ───────
-      if (hasSpecificPlayers && sessionId && action !== "cancelled") {
-        await tagSessionParticipants(sessionId, participantPlayerIds!);
+      console.log(`[SessionNotification] ─── Notification "${action}" ─────────────────────`);
+      console.log(`[SessionNotification] Session ID: ${sessionId ?? "N/A"}`);
+      console.log(`[SessionNotification] Category ID: ${categoryId}`);
+      console.log(`[SessionNotification] Club ID: ${clubId ?? "N/A"}`);
+      console.log(
+        `[SessionNotification] Players: ${hasSpecificPlayers ? participantPlayerIds!.length : "all (broadcast)"}`
+      );
+      console.log(`[SessionNotification] Title: ${title}`);
+      console.log(`[SessionNotification] Message: ${message}`);
+
+      // ── Step 1: Tag participants (always when we have a session + player list) ──
+      let tagResult = { tagged: 0, skipped: 0, errors: [] as string[] };
+
+      if (hasSpecificPlayers && sessionId) {
+        if (action === "cancelled") {
+          // Remove tag on cancellation so future notifications don't reach them via stale tags
+          console.log("[SessionNotification] Step 1 — Removing participation tags (cancellation)");
+          tagResult = await tagSessionParticipants(sessionId, participantPlayerIds!, clubId, "remove");
+        } else {
+          // Add/refresh tags before sending (ensures tags exist even on first send)
+          console.log("[SessionNotification] Step 1 — Adding participation tags");
+          tagResult = await tagSessionParticipants(sessionId, participantPlayerIds!, clubId, "add");
+        }
+
+        console.log(
+          `[SessionNotification] Step 1 done — ${tagResult.tagged} tagged, ${tagResult.skipped} skipped, ${tagResult.errors.length} error(s)`
+        );
+      } else {
+        console.log("[SessionNotification] Step 1 — Skipped (no specific players → broadcast mode)");
       }
 
-      // When cancelling, remove the participation tag so future notifications
-      // don't accidentally reach them via old tags
-      if (hasSpecificPlayers && sessionId && action === "cancelled") {
-        tagSessionParticipants(sessionId, participantPlayerIds!, "remove").catch(() => {});
-      }
-
-      // ── Step 2: Build push payload ───────────────────────────────────────────
+      // ── Step 2: Build push payload ────────────────────────────────────────────
       const requestBody: Record<string, unknown> = {
         title,
         message,
@@ -152,23 +214,24 @@ export function useSessionNotifications() {
         },
       };
 
+      let mode: string;
+
       if (hasSpecificPlayers && sessionId) {
-        // P0 — per-session participant tag filter (most precise)
+        // P0 — per-session participant tag filter (most precise targeting)
         requestBody.training_session_id = sessionId;
-        console.log(
-          `[SessionNotification] ${action} — using participates_training_${sessionId} filter`
-        );
+        mode = `P0 (participates_training_${sessionId})`;
+        console.log(`[SessionNotification] Step 2 — Mode: ${mode}`);
       } else {
         // P2 — broadcast to entire category
         requestBody.category_ids = [categoryId];
-        console.log(
-          `[SessionNotification] ${action} — broadcasting to category ${categoryId}`
-        );
+        if (clubId) requestBody.club_id = clubId;
+        mode = `P2 (broadcast category ${categoryId})`;
+        console.log(`[SessionNotification] Step 2 — Mode: ${mode}`);
       }
 
-      console.log(`[SessionNotification] Sending push for "${action}":`, requestBody);
+      // ── Step 3: Send notification ──────────────────────────────────────────────
+      console.log(`[SessionNotification] Step 3 — Sending push via ${mode}...`);
 
-      // ── Step 3: Send notification ────────────────────────────────────────────
       try {
         const { data, error } = await supabase.functions.invoke(
           "send-targeted-notification",
@@ -176,32 +239,41 @@ export function useSessionNotifications() {
         );
 
         if (error) {
-          console.error("[SessionNotification] Edge function error:", error);
+          console.error("[SessionNotification] ❌ Edge function error:", error);
           return;
         }
 
-        console.log("[SessionNotification] API response:", data);
+        console.log("[SessionNotification] Step 3 — OneSignal API response:", data);
 
         if (data?.errors?.length > 0) {
-          console.warn("[SessionNotification] Partial errors:", data.errors);
+          console.warn("[SessionNotification] ⚠️  Partial errors:", data.errors);
         }
 
         const pushSent = data?.pushSent ?? 0;
-        const mode = data?.mode ?? "unknown";
+        const responseMode = data?.mode ?? "unknown";
+
+        console.log(`[SessionNotification] ─── Summary ─────────────────────────────────────`);
+        console.log(`[SessionNotification] Tagging — tagged: ${tagResult.tagged} | skipped: ${tagResult.skipped}`);
+        console.log(`[SessionNotification] Push — mode: ${responseMode} | devices reached: ${pushSent}`);
+        console.log(`[SessionNotification] Errors — tagging: ${tagResult.errors.length} | push: ${data?.errors?.length ?? 0}`);
 
         if (pushSent === 0) {
           console.warn(
-            `[SessionNotification] 0 push sent (mode=${mode}). ` +
-            `Vérifier : tags OneSignal synchronisés, joueurs abonnés aux notifications.`
+            `[SessionNotification] ⚠️  0 push envoyés. Vérifications suggérées:\n` +
+            `  • Tags OneSignal synchronisés sur les appareils des joueurs?\n` +
+            `  • Joueurs abonnés aux notifications push?\n` +
+            `  • participates_training_${sessionId} tag posé avant l'envoi?\n` +
+            `  • Tagging result: tagged=${tagResult.tagged}, skipped=${tagResult.skipped}`
           );
         } else {
           console.log(
-            `[SessionNotification] ✅ Push envoyé à ${pushSent} appareil(s) (mode=${mode}).`
+            `[SessionNotification] ✅ Push envoyé à ${pushSent} appareil(s) (mode=${responseMode}).`
           );
         }
       } catch (err) {
         // Never surface notification errors to the user
-        console.error("[SessionNotification] Failed to send notification:", err);
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error("[SessionNotification] ❌ Failed to send notification:", msg);
       }
     },
     []
