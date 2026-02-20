@@ -153,10 +153,11 @@ serve(async (req: Request) => {
           pushBody.web_url = url;
         }
 
-        // Add custom data for analytics
+        // Add custom data for analytics + OneSignal tags
         pushBody.data = {
           event_type: event_type || "custom",
           session_id: session_id || null,
+          training_id: session_id || null,
           sent_at: new Date().toISOString(),
         };
 
