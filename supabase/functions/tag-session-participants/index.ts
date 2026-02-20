@@ -4,12 +4,19 @@
  * Tags each participant of a training session in OneSignal so they can be
  * targeted precisely per-session, regardless of shared URLs or category.
  *
- * Tag written per player:
- *   participates_training_<session_id> = "true"
+ * Tags written per player:
+ *   participates_training_<session_id> = "true"   (precise per-session targeting)
+ *   role                               = "athlete" (general role)
+ *   club_id                            = "<club_id>" (club targeting)
  *
  * Usage:
  *   POST /tag-session-participants
- *   { "session_id": "<uuid>", "player_ids": ["<uuid>", ...], "action": "add" | "remove" }
+ *   {
+ *     "session_id": "<uuid>",
+ *     "player_ids": ["<uuid>", ...],
+ *     "club_id": "<uuid>",          // optional — enriches general tags
+ *     "action": "add" | "remove"    // default: add
+ *   }
  */
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -23,7 +30,16 @@ const corsHeaders = {
 interface TagRequest {
   session_id: string;
   player_ids: string[];
+  club_id?: string;
   action?: "add" | "remove"; // default: add
+}
+
+interface TagResult {
+  player_id: string;
+  user_id: string;
+  status: "tagged" | "skipped" | "error";
+  reason?: string;
+  onesignal_response?: unknown;
 }
 
 serve(async (req: Request) => {
@@ -43,12 +59,13 @@ serve(async (req: Request) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const body: TagRequest = await req.json();
-    const { session_id, player_ids, action = "add" } = body;
+    const { session_id, player_ids, club_id, action = "add" } = body;
 
     if (!session_id) throw new Error("session_id is required");
     if (!player_ids || player_ids.length === 0) {
+      console.log(`[tag-session-participants] No player_ids provided for session ${session_id}`);
       return new Response(
-        JSON.stringify({ success: true, tagged: 0, message: "No player_ids provided" }),
+        JSON.stringify({ success: true, tagged: 0, skipped: 0, errors: [], details: [], message: "No player_ids provided" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -56,29 +73,56 @@ serve(async (req: Request) => {
     // Resolve player_ids → user_ids (only players with an active account)
     const { data: players, error: playersError } = await supabase
       .from("players")
-      .select("id, user_id")
+      .select("id, user_id, name")
       .in("id", player_ids)
       .not("user_id", "is", null);
 
     if (playersError) throw playersError;
 
     const tagKey = `participates_training_${session_id}`;
-    const results = { tagged: 0, skipped: 0, errors: [] as string[] };
+    const tagValue = action === "add" ? "true" : ""; // empty string removes the tag in OneSignal
+    const detailedResults: TagResult[] = [];
+    let tagged = 0;
+    let skipped = 0;
+    const errors: string[] = [];
 
-    console.log(
-      `[tag-session-participants] Session ${session_id} — action=${action}, ` +
-      `${player_ids.length} player_ids → ${players?.length ?? 0} with user accounts`
-    );
+    console.log(`[tag-session-participants] ── Session: ${session_id} ──────────────────────`);
+    console.log(`[tag-session-participants] Action: ${action}`);
+    console.log(`[tag-session-participants] Player IDs received: ${player_ids.length}`);
+    console.log(`[tag-session-participants] Players with accounts: ${players?.length ?? 0}`);
+    if (club_id) console.log(`[tag-session-participants] Club ID: ${club_id}`);
 
+    // Log players without accounts
+    const playerMap = new Map((players ?? []).map((p) => [p.id, p]));
+    for (const pid of player_ids) {
+      if (!playerMap.has(pid)) {
+        console.warn(`[tag-session-participants] ⚠️  Player ${pid} — no user account (not subscribed)`);
+        detailedResults.push({ player_id: pid, user_id: "N/A", status: "skipped", reason: "no user account" });
+        skipped++;
+      }
+    }
+
+    // Tag each player in OneSignal
     for (const player of players ?? []) {
       if (!player.user_id) {
-        results.skipped++;
-        console.warn(`[tag-session-participants] Player ${player.id} has no user_id — skipping`);
+        detailedResults.push({ player_id: player.id, user_id: "N/A", status: "skipped", reason: "null user_id" });
+        skipped++;
         continue;
       }
 
-      // PATCH tags via OneSignal REST API (external_id = user_id)
-      const tagValue = action === "add" ? "true" : ""; // empty string removes the tag in OneSignal
+      // Build tag payload
+      const tags: Record<string, string> = {
+        [tagKey]: tagValue,
+        training_id: action === "add" ? session_id : "", // backwards compatibility
+      };
+
+      // Add general role/club tags when tagging (not removing)
+      if (action === "add") {
+        tags.role = "athlete";
+        tags.user_type = "player";
+        if (club_id) tags.club_id = club_id;
+      }
+
       const url = `https://api.onesignal.com/apps/${ONESIGNAL_APP_ID}/users/by/external_id/${player.user_id}`;
 
       try {
@@ -88,46 +132,71 @@ serve(async (req: Request) => {
             "Content-Type": "application/json",
             Authorization: `Key ${ONESIGNAL_REST_API_KEY}`,
           },
-          body: JSON.stringify({
-            tags: {
-              [tagKey]: tagValue,
-              // Keep training_id for backwards compatibility
-              training_id: action === "add" ? session_id : "",
-            },
-          }),
+          body: JSON.stringify({ tags }),
         });
 
         const json = await res.json();
 
         if (res.ok) {
-          results.tagged++;
+          tagged++;
+          const result: TagResult = {
+            player_id: player.id,
+            user_id: player.user_id,
+            status: "tagged",
+            onesignal_response: json,
+          };
+          detailedResults.push(result);
           console.log(
-            `[tag-session-participants] ✅ ${action} tag "${tagKey}" for user ${player.user_id}:`,
-            json
+            `[tag-session-participants] ✅ ${action} "${tagKey}" — Player: ${player.name ?? player.id} | User: ${player.user_id}`
           );
         } else {
-          results.errors.push(`user ${player.user_id}: ${JSON.stringify(json)}`);
+          const reason = JSON.stringify(json);
+          errors.push(`user ${player.user_id} (${player.name}): ${reason}`);
+          detailedResults.push({
+            player_id: player.id,
+            user_id: player.user_id,
+            status: "error",
+            reason,
+          });
           console.error(
-            `[tag-session-participants] ❌ Failed for user ${player.user_id}:`,
-            JSON.stringify(json)
+            `[tag-session-participants] ❌ Failed — Player: ${player.name ?? player.id} | User: ${player.user_id} | Error: ${reason}`
           );
         }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
-        results.errors.push(`user ${player.user_id}: ${msg}`);
-        console.error(`[tag-session-participants] Exception for user ${player.user_id}:`, msg);
+        errors.push(`user ${player.user_id}: ${msg}`);
+        detailedResults.push({
+          player_id: player.id,
+          user_id: player.user_id,
+          status: "error",
+          reason: msg,
+        });
+        console.error(`[tag-session-participants] ❌ Exception — User: ${player.user_id}:`, msg);
       }
     }
 
-    console.log(`[tag-session-participants] Done — tagged: ${results.tagged}, skipped: ${results.skipped}, errors: ${results.errors.length}`);
+    console.log(`[tag-session-participants] ── Summary ──────────────────────────────────`);
+    console.log(`[tag-session-participants] Tagged: ${tagged} | Skipped: ${skipped} | Errors: ${errors.length}`);
+    if (errors.length > 0) {
+      console.error(`[tag-session-participants] Errors:`, errors);
+    }
 
     return new Response(
-      JSON.stringify({ success: true, session_id, tagKey, action, ...results }),
+      JSON.stringify({
+        success: true,
+        session_id,
+        tagKey,
+        action,
+        tagged,
+        skipped,
+        errors,
+        details: detailedResults,
+      }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("[tag-session-participants] Error:", error);
+    console.error("[tag-session-participants] Fatal error:", error);
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
