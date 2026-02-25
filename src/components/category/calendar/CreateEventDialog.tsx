@@ -186,9 +186,10 @@ export function CreateEventDialog({
     }
   };
 
-  const handleSelectAll = (checked: boolean) => {
-    setSelectAll(checked);
-    if (checked && players) {
+  const handleSelectAll = (checked: boolean | string) => {
+    const isChecked = Boolean(checked);
+    setSelectAll(isChecked);
+    if (isChecked && players) {
       setSelectedPlayers(players.map(p => p.id));
     } else {
       setSelectedPlayers([]);
@@ -368,15 +369,19 @@ export function CreateEventDialog({
                   <Label className="flex items-center gap-1">
                     <Users className="h-3 w-3" /> Participants
                   </Label>
-                  <div className="flex items-center gap-2">
+                  <div
+                    className="flex items-center gap-2 cursor-pointer"
+                    onClick={() => handleSelectAll(!selectAll)}
+                    role="checkbox"
+                    aria-checked={selectAll}
+                  >
                     <Checkbox
-                      id="selectAll"
                       checked={selectAll}
-                      onCheckedChange={handleSelectAll}
+                      className="pointer-events-none"
                     />
-                    <Label htmlFor="selectAll" className="text-xs cursor-pointer">
+                    <span className="text-xs pointer-events-none">
                       Tous
-                    </Label>
+                    </span>
                   </div>
                 </div>
                 
@@ -396,19 +401,19 @@ export function CreateEventDialog({
                           )}
                         >
                           <div className={cn(
-                            "h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium shrink-0",
+                            "h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium shrink-0 pointer-events-none",
                             isSelected ? "bg-primary text-primary-foreground" : "bg-muted-foreground/20"
                           )}>
                             {(player.first_name || player.name).charAt(0).toUpperCase()}
                           </div>
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0 pointer-events-none">
                             <p className="text-sm font-medium truncate">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</p>
                             {player.position && (
                               <p className="text-xs text-muted-foreground">{player.position}</p>
                             )}
                           </div>
                           {isSelected && (
-                            <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                            <CheckCircle2 className="h-4 w-4 text-primary shrink-0 pointer-events-none" />
                           )}
                         </div>
                       );
