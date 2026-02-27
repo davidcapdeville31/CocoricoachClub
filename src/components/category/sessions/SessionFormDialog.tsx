@@ -2824,10 +2824,16 @@ export function SessionFormDialog({
                                 player.isInjured && "border-amber-300 bg-amber-50/50"
                               )}
                             >
-                              <Checkbox
-                                checked={selectedPlayers.includes(player.id)}
-                                className="pointer-events-none"
-                              />
+                              <div
+                                className={cn(
+                                  "h-4 w-4 rounded-sm border flex items-center justify-center shrink-0 pointer-events-none",
+                                  selectedPlayers.includes(player.id)
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : "border-primary/50 bg-background"
+                                )}
+                              >
+                                {selectedPlayers.includes(player.id) && <Check className="h-3 w-3" />}
+                              </div>
                               <Avatar className="h-6 w-6 pointer-events-none">
                                 <AvatarImage src={player.avatar_url || undefined} />
                                 <AvatarFallback className="text-xs">
