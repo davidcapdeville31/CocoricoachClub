@@ -1,10 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { TrendingUp, Clock, Trophy, FlaskConical } from "lucide-react";
+import { TrendingUp, Clock, Trophy, FlaskConical, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
@@ -17,6 +18,7 @@ interface Props {
 
 export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Props) {
   const testCategories = useMemo(() => getTestCategoriesForSport(sportType || ""), [sportType]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const { data: speedTests = [] } = useQuery({
     queryKey: ["athlete-space-speed-tests", playerId],
@@ -44,7 +46,6 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
     },
   });
 
-  // Fetch generic tests (from session builder)
   const { data: genericTests = [] } = useQuery({
     queryKey: ["athlete-space-generic-tests", playerId],
     queryFn: async () => {
@@ -92,7 +93,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
   });
 
   // Generic tests - group by test_type for charts
-  const genericByType: Record<string, { date: string; value: number; unit: string; label: string; categoryLabel: string }[]> = {};
+  const genericByType: Record<string, { date: string; value: number; unit: string; label: string; categoryLabel: string; categoryValue: string }[]> = {};
   genericTests.forEach(t => {
     const key = `${t.test_category}__${t.test_type}`;
     if (!genericByType[key]) genericByType[key] = [];
@@ -108,24 +109,83 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
       unit: t.result_unit || "",
       label,
       categoryLabel,
+      categoryValue: t.test_category,
     });
   });
 
   // Latest generic test results for summary
-  const latestGenericByType: Record<string, { value: number; unit: string; label: string; categoryLabel: string; date: string }> = {};
+  const latestGenericByType: Record<string, { value: number; unit: string; label: string; categoryLabel: string; categoryValue: string; date: string }> = {};
   genericTests.forEach(t => {
     const key = `${t.test_category}__${t.test_type}`;
     const cat = testCategories.find(c => c.value === t.test_category);
     const testDef = cat?.tests.find(tt => tt.value === t.test_type);
     const label = testDef?.label || t.test_type?.replace(/_/g, " ") || "Test";
     const categoryLabel = cat?.label || t.test_category?.replace(/_/g, " ") || "";
-    latestGenericByType[key] = { value: t.result_value, unit: t.result_unit || "", label, categoryLabel, date: t.test_date };
+    latestGenericByType[key] = { value: t.result_value, unit: t.result_unit || "", label, categoryLabel, categoryValue: t.test_category, date: t.test_date };
   });
+
+  // Determine which categories actually have data
+  const categoriesWithData = useMemo(() => {
+    const catSet = new Set<string>();
+    // Speed tests → mapped to "sprint" or "speed"
+    if (speedTests.length > 0) catSet.add("__speed__");
+    // Strength tests → mapped to "strength"  
+    if (strengthTests.length > 0) catSet.add("__strength__");
+    // Generic tests
+    genericTests.forEach(t => catSet.add(t.test_category));
+    return catSet;
+  }, [speedTests, strengthTests, genericTests]);
+
+  // Build filter tabs from categories that have data
+  const availableFilters = useMemo(() => {
+    const filters: { value: string; label: string }[] = [];
+    
+    // Check for speed tests
+    if (categoriesWithData.has("__speed__")) {
+      filters.push({ value: "__speed__", label: "Vitesse" });
+    }
+    // Check for strength tests
+    if (categoriesWithData.has("__strength__")) {
+      filters.push({ value: "__strength__", label: "Musculation" });
+    }
+    // Generic test categories
+    testCategories.forEach(cat => {
+      if (categoriesWithData.has(cat.value)) {
+        filters.push({ value: cat.value, label: cat.label });
+      }
+    });
+    // Also check for generic categories not in testCategories definition
+    categoriesWithData.forEach(catValue => {
+      if (catValue.startsWith("__")) return;
+      if (!testCategories.find(c => c.value === catValue)) {
+        filters.push({ value: catValue, label: catValue.replace(/_/g, " ") });
+      }
+    });
+    
+    return filters;
+  }, [categoriesWithData, testCategories]);
+
+  // Filter logic
+  const showSpeed = selectedCategory === "all" || selectedCategory === "__speed__";
+  const showStrength = selectedCategory === "all" || selectedCategory === "__strength__";
+  const filteredGenericByType = useMemo(() => {
+    if (selectedCategory === "all") return genericByType;
+    return Object.fromEntries(
+      Object.entries(genericByType).filter(([, data]) => data[0]?.categoryValue === selectedCategory)
+    );
+  }, [selectedCategory, genericByType]);
+
+  const filteredLatestGeneric = useMemo(() => {
+    if (selectedCategory === "all") return latestGenericByType;
+    return Object.fromEntries(
+      Object.entries(latestGenericByType).filter(([, data]) => data.categoryValue === selectedCategory)
+    );
+  }, [selectedCategory, latestGenericByType]);
 
   const getProgressionFeedback = (): string[] => {
     const msgs: string[] = [];
 
-    if (speedTests.length >= 2) {
+    if (showSpeed && speedTests.length >= 2) {
       const latest = speedTests[speedTests.length - 1];
       const previous = speedTests[speedTests.length - 2];
       if (latest.time_40m_seconds && previous.time_40m_seconds) {
@@ -138,25 +198,26 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
       }
     }
 
-    Object.entries(strengthByExercise).forEach(([exercise, data]) => {
-      if (data.length >= 2) {
-        const latest = data[data.length - 1].value;
-        const previous = data[data.length - 2].value;
-        const diff = latest - previous;
-        if (diff > 0) {
-          msgs.push(`💪 ${exercise}: +${diff}kg depuis ton dernier test. Belle progression !`);
+    if (showStrength) {
+      Object.entries(strengthByExercise).forEach(([exercise, data]) => {
+        if (data.length >= 2) {
+          const latest = data[data.length - 1].value;
+          const previous = data[data.length - 2].value;
+          const diff = latest - previous;
+          if (diff > 0) {
+            msgs.push(`💪 ${exercise}: +${diff}kg depuis ton dernier test. Belle progression !`);
+          }
         }
-      }
-    });
+      });
+    }
 
     // Generic tests progression feedback
-    Object.entries(genericByType).forEach(([, data]) => {
+    Object.entries(filteredGenericByType).forEach(([, data]) => {
       if (data.length >= 2) {
         const latest = data[data.length - 1];
         const previous = data[data.length - 2];
         const diff = latest.value - previous.value;
         const isTimeTest = latest.unit === "s" || latest.unit === "min";
-        // For time-based tests, lower is better
         if (isTimeTest) {
           if (diff < 0) {
             msgs.push(`⏱️ ${latest.label}: -${Math.abs(diff).toFixed(1)}${latest.unit} par rapport à ton dernier test !`);
@@ -185,11 +246,54 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
 
   return (
     <div className="space-y-6">
+      {/* Category filter tabs */}
+      {availableFilters.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-muted-foreground">Filtrer par catégorie</span>
+          </div>
+          <ScrollArea className="w-full whitespace-nowrap">
+            <div className="flex gap-2 pb-2">
+              <button
+                onClick={() => setSelectedCategory("all")}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
+                  selectedCategory === "all"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                }`}
+              >
+                Tous les tests
+              </button>
+              {availableFilters.map(f => (
+                <button
+                  key={f.value}
+                  onClick={() => setSelectedCategory(f.value)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
+                    selectedCategory === f.value
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </div>
+      )}
+
       <Card className="bg-gradient-card shadow-md">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-accent" />
             Ta progression
+            {selectedCategory !== "all" && (
+              <Badge variant="secondary" className="text-[10px]">
+                {availableFilters.find(f => f.value === selectedCategory)?.label}
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -200,7 +304,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
       </Card>
 
       {/* Latest generic test results summary */}
-      {Object.keys(latestGenericByType).length > 0 && (
+      {Object.keys(filteredLatestGeneric).length > 0 && (
         <Card className="bg-gradient-card shadow-md">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -210,7 +314,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3">
-              {Object.entries(latestGenericByType).map(([key, test]) => (
+              {Object.entries(filteredLatestGeneric).map(([key, test]) => (
                 <div key={key} className="p-3 rounded-lg bg-muted/30 text-center">
                   <p className="text-[10px] text-muted-foreground/70 uppercase tracking-wide">{test.categoryLabel}</p>
                   <p className="text-xs text-muted-foreground mb-1">{test.label}</p>
@@ -225,7 +329,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
         </Card>
       )}
 
-      {speedChartData.length > 1 && (
+      {showSpeed && speedChartData.length > 1 && (
         <Card className="bg-gradient-card shadow-md">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Évolution vitesse (40m)</CardTitle>
@@ -244,7 +348,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
         </Card>
       )}
 
-      {Object.entries(strengthByExercise).map(([exercise, data]) => (
+      {showStrength && Object.entries(strengthByExercise).map(([exercise, data]) => (
         data.length > 1 && (
           <Card key={exercise} className="bg-gradient-card shadow-md">
             <CardHeader className="pb-2">
@@ -266,7 +370,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
       ))}
 
       {/* Generic tests evolution charts */}
-      {Object.entries(genericByType).map(([key, data], i) => (
+      {Object.entries(filteredGenericByType).map(([key, data], i) => (
         data.length > 1 && (
           <Card key={key} className="bg-gradient-card shadow-md">
             <CardHeader className="pb-2">
@@ -293,7 +397,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
         )
       ))}
 
-      {matchStats.length > 0 && (
+      {selectedCategory === "all" && matchStats.length > 0 && (
         <Card className="bg-gradient-card shadow-md">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
