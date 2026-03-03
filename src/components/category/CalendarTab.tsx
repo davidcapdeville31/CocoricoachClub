@@ -316,7 +316,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
             }}
             onDeleteMatch={(matchId) => deleteMatch.mutate(matchId)}
             onStatsMatch={(match) => {
-              navigate(`/category/${categoryId}?tab=competition`);
+              navigate(`/categories/${categoryId}?tab=competition`);
             }}
             onLineupMatch={(matchId) => setLineupMatchId(matchId)}
           />
