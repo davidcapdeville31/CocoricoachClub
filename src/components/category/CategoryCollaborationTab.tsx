@@ -68,14 +68,29 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
         .order("created_at", { ascending: false });
       if (error) throw error;
       
-      // Fetch profiles for each member
+      // Fetch profiles and player names for each member
       const membersWithProfiles = await Promise.all(
         data.map(async (member: any) => {
           const { data: profileData } = await supabase
             .rpc("get_safe_profile", { profile_id: member.user_id });
+          const profile = profileData?.[0] || null;
+          
+          // If full_name is empty, try to get name from linked player
+          let displayName = profile?.full_name;
+          if (!displayName) {
+            const { data: playerData } = await supabase
+              .from("players")
+              .select("name, first_name")
+              .eq("user_id", member.user_id)
+              .maybeSingle();
+            if (playerData) {
+              displayName = [playerData.first_name, playerData.name].filter(Boolean).join(" ");
+            }
+          }
+          
           return {
             ...member,
-            profile: profileData?.[0] || null,
+            profile: profile ? { ...profile, full_name: displayName || profile?.email || "Utilisateur" } : null,
           };
         })
       );
@@ -96,14 +111,28 @@ export function CategoryCollaborationTab({ categoryId }: CategoryCollaborationTa
         .order("created_at", { ascending: false });
       if (error) throw error;
       
-      // Fetch profiles for each member
+      // Fetch profiles and player names for each member
       const membersWithProfiles = await Promise.all(
         data.map(async (member: any) => {
           const { data: profileData } = await supabase
             .rpc("get_safe_profile", { profile_id: member.user_id });
+          const profile = profileData?.[0] || null;
+          
+          let displayName = profile?.full_name;
+          if (!displayName) {
+            const { data: playerData } = await supabase
+              .from("players")
+              .select("name, first_name")
+              .eq("user_id", member.user_id)
+              .maybeSingle();
+            if (playerData) {
+              displayName = [playerData.first_name, playerData.name].filter(Boolean).join(" ");
+            }
+          }
+          
           return {
             ...member,
-            profile: profileData?.[0] || null,
+            profile: profile ? { ...profile, full_name: displayName || profile?.email || "Utilisateur" } : null,
           };
         })
       );
