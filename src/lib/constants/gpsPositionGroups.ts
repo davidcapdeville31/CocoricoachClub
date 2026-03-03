@@ -210,6 +210,76 @@ export const RUGBY_7S_TEMPLATES: GpsObjectiveTemplate[] = [
       },
     ],
   },
+  {
+    id: "7s_jeu_reduit",
+    name: "Jeu réduit (7s)",
+    session_type: "jeu_reduit",
+    groups: [
+      {
+        position_group: "Avants",
+        targets_min: { total_distance_m: 900, high_speed_distance_m: 120, sprint_count: 3, vmax_percentage: 80 },
+        targets: { total_distance_m: 1400, high_speed_distance_m: 250, sprint_count: 7, vmax_percentage: 90 },
+      },
+      {
+        position_group: "Arrières",
+        targets_min: { total_distance_m: 1100, high_speed_distance_m: 200, sprint_count: 5, vmax_percentage: 85 },
+        targets: { total_distance_m: 1700, high_speed_distance_m: 400, sprint_count: 10, vmax_percentage: 95 },
+      },
+    ],
+  },
+  {
+    id: "7s_recuperation",
+    name: "Récupération (7s)",
+    session_type: "recuperation",
+    groups: [
+      {
+        position_group: "Avants",
+        targets_min: { total_distance_m: 500, high_speed_distance_m: 30, sprint_count: 0, vmax_percentage: 45 },
+        targets: { total_distance_m: 900, high_speed_distance_m: 80, sprint_count: 1, vmax_percentage: 60 },
+      },
+      {
+        position_group: "Arrières",
+        targets_min: { total_distance_m: 600, high_speed_distance_m: 50, sprint_count: 0, vmax_percentage: 50 },
+        targets: { total_distance_m: 1100, high_speed_distance_m: 120, sprint_count: 2, vmax_percentage: 65 },
+      },
+    ],
+  },
+  {
+    id: "7s_activation",
+    name: "Activation (7s)",
+    session_type: "activation",
+    calendar_context: "match_week",
+    groups: [
+      {
+        position_group: "Avants",
+        targets_min: { total_distance_m: 700, high_speed_distance_m: 80, sprint_count: 2, vmax_percentage: 70 },
+        targets: { total_distance_m: 1200, high_speed_distance_m: 180, sprint_count: 5, vmax_percentage: 85 },
+      },
+      {
+        position_group: "Arrières",
+        targets_min: { total_distance_m: 900, high_speed_distance_m: 130, sprint_count: 3, vmax_percentage: 75 },
+        targets: { total_distance_m: 1400, high_speed_distance_m: 280, sprint_count: 7, vmax_percentage: 90 },
+      },
+    ],
+  },
+  {
+    id: "7s_tournoi_prep",
+    name: "Prépa tournoi (7s)",
+    session_type: "match_simulation",
+    calendar_context: "congestion",
+    groups: [
+      {
+        position_group: "Avants",
+        targets_min: { total_distance_m: 800, high_speed_distance_m: 100, sprint_count: 3, vmax_percentage: 80 },
+        targets: { total_distance_m: 1300, high_speed_distance_m: 220, sprint_count: 7, vmax_percentage: 92 },
+      },
+      {
+        position_group: "Arrières",
+        targets_min: { total_distance_m: 1000, high_speed_distance_m: 180, sprint_count: 5, vmax_percentage: 85 },
+        targets: { total_distance_m: 1600, high_speed_distance_m: 350, sprint_count: 10, vmax_percentage: 97 },
+      },
+    ],
+  },
 ];
 
 // ===================== RUGBY XIII =====================
@@ -217,7 +287,7 @@ export const RUGBY_XIII_GPS_GROUPS: GpsPositionGroup[] = [
   {
     id: "avants",
     label: "Avants",
-    positions: ["Pilier gauche", "Talonneur", "Pilier droit", "2ème ligne", "Lock"],
+    positions: ["Pilier gauche", "Talonneur", "Pilier droit", "2ème ligne gauche", "2ème ligne droit", "Troisième ligne centre"],
   },
   {
     id: "arrieres",
@@ -241,6 +311,92 @@ export const RUGBY_XIII_TEMPLATES: GpsObjectiveTemplate[] = [
         position_group: "Arrières",
         targets_min: { total_distance_m: 6500, high_speed_distance_m: 700, sprint_count: 12, vmax_percentage: 85 },
         targets: { total_distance_m: 9500, high_speed_distance_m: 1100, sprint_count: 22, vmax_percentage: 100 },
+      },
+    ],
+  },
+  {
+    id: "xiii_vitesse",
+    name: "Vitesse (XIII)",
+    session_type: "vitesse",
+    groups: [
+      {
+        position_group: "Avants",
+        targets_min: { total_distance_m: 3000, high_speed_distance_m: 250, sprint_count: 4, vmax_percentage: 80 },
+        targets: { total_distance_m: 4500, high_speed_distance_m: 500, sprint_count: 8, vmax_percentage: 92 },
+      },
+      {
+        position_group: "Arrières",
+        targets_min: { total_distance_m: 4000, high_speed_distance_m: 500, sprint_count: 8, vmax_percentage: 85 },
+        targets: { total_distance_m: 6000, high_speed_distance_m: 850, sprint_count: 16, vmax_percentage: 98 },
+      },
+    ],
+  },
+  {
+    id: "xiii_contact",
+    name: "Contact (XIII)",
+    session_type: "contact",
+    groups: [
+      {
+        position_group: "Avants",
+        targets_min: { total_distance_m: 2800, high_speed_distance_m: 180, sprint_count: 3, vmax_percentage: 70 },
+        targets: { total_distance_m: 4200, high_speed_distance_m: 380, sprint_count: 6, vmax_percentage: 82 },
+      },
+      {
+        position_group: "Arrières",
+        targets_min: { total_distance_m: 3200, high_speed_distance_m: 280, sprint_count: 5, vmax_percentage: 75 },
+        targets: { total_distance_m: 5000, high_speed_distance_m: 550, sprint_count: 10, vmax_percentage: 88 },
+      },
+    ],
+  },
+  {
+    id: "xiii_jeu_reduit",
+    name: "Jeu réduit (XIII)",
+    session_type: "jeu_reduit",
+    groups: [
+      {
+        position_group: "Avants",
+        targets_min: { total_distance_m: 3500, high_speed_distance_m: 300, sprint_count: 4, vmax_percentage: 75 },
+        targets: { total_distance_m: 5200, high_speed_distance_m: 600, sprint_count: 9, vmax_percentage: 88 },
+      },
+      {
+        position_group: "Arrières",
+        targets_min: { total_distance_m: 4500, high_speed_distance_m: 550, sprint_count: 7, vmax_percentage: 80 },
+        targets: { total_distance_m: 6500, high_speed_distance_m: 900, sprint_count: 14, vmax_percentage: 93 },
+      },
+    ],
+  },
+  {
+    id: "xiii_recuperation",
+    name: "Récupération (XIII)",
+    session_type: "recuperation",
+    groups: [
+      {
+        position_group: "Avants",
+        targets_min: { total_distance_m: 1500, high_speed_distance_m: 50, sprint_count: 0, vmax_percentage: 45 },
+        targets: { total_distance_m: 2500, high_speed_distance_m: 130, sprint_count: 2, vmax_percentage: 65 },
+      },
+      {
+        position_group: "Arrières",
+        targets_min: { total_distance_m: 2000, high_speed_distance_m: 80, sprint_count: 0, vmax_percentage: 50 },
+        targets: { total_distance_m: 3200, high_speed_distance_m: 200, sprint_count: 3, vmax_percentage: 70 },
+      },
+    ],
+  },
+  {
+    id: "xiii_activation",
+    name: "Activation (XIII)",
+    session_type: "activation",
+    calendar_context: "match_week",
+    groups: [
+      {
+        position_group: "Avants",
+        targets_min: { total_distance_m: 1800, high_speed_distance_m: 100, sprint_count: 2, vmax_percentage: 65 },
+        targets: { total_distance_m: 3000, high_speed_distance_m: 250, sprint_count: 5, vmax_percentage: 80 },
+      },
+      {
+        position_group: "Arrières",
+        targets_min: { total_distance_m: 2200, high_speed_distance_m: 150, sprint_count: 3, vmax_percentage: 70 },
+        targets: { total_distance_m: 3500, high_speed_distance_m: 350, sprint_count: 7, vmax_percentage: 85 },
       },
     ],
   },
