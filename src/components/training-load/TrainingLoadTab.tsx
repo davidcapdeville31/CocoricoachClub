@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -31,6 +32,22 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
   const [periodDays, setPeriodDays] = useState<number>(56);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isTeamDialogOpen, setIsTeamDialogOpen] = useState(false);
+
+  // Realtime sync for training data
+  useRealtimeSync({
+    tables: ["training_sessions", "training_session_blocks", "awcr_tracking", "wellness_tracking"],
+    categoryId,
+    queryKeys: [
+      ["training-load", categoryId],
+      ["team-training-load", categoryId],
+      ["load-calendar-sessions", categoryId],
+      ["awcr_tracking", categoryId],
+      ["awcr-data", categoryId],
+      ["training_sessions", categoryId],
+      ["wellness_tracking", categoryId],
+    ],
+    channelName: `training-load-sync-${categoryId}`,
+  });
 
   // Individual athlete data (if selected)
   const { 

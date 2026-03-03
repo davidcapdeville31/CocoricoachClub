@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,16 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
   const { isViewer } = useViewerModeContext();
+
+  useRealtimeSync({
+    tables: ["wellness_tracking"],
+    categoryId,
+    queryKeys: [
+      ["wellness_tracking", categoryId],
+      ["wellness_decision", categoryId],
+    ],
+    channelName: `wellness-sync-${categoryId}`,
+  });
 
   const { data: category } = useQuery({
     queryKey: ["category", categoryId],
