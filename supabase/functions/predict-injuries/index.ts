@@ -88,15 +88,15 @@ serve(async (req) => {
     if (playersError) throw playersError;
     console.log(`Found ${players?.length || 0} players`);
 
-    // Fetch recent AWCR data (last 14 days)
-    const twoWeeksAgo = new Date();
-    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    // Fetch recent AWCR data (last 28 days for EWMA calculation)
+    const fourWeeksAgo = new Date();
+    fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
     const { data: awcrData, error: awcrError } = await supabase
       .from('awcr_tracking')
-      .select('player_id, session_date, awcr, training_load, acute_load, chronic_load')
+      .select('player_id, session_date, awcr, training_load, acute_load, chronic_load, rpe, duration_minutes')
       .eq('category_id', categoryId)
-      .gte('session_date', twoWeeksAgo.toISOString().split('T')[0])
-      .order('session_date', { ascending: false });
+      .gte('session_date', fourWeeksAgo.toISOString().split('T')[0])
+      .order('session_date', { ascending: true });
 
     if (awcrError) throw awcrError;
     console.log(`Found ${awcrData?.length || 0} AWCR records`);
@@ -106,7 +106,7 @@ serve(async (req) => {
       .from('wellness_tracking')
       .select('player_id, tracking_date, sleep_quality, sleep_duration, general_fatigue, stress_level, soreness_upper_body, soreness_lower_body, has_specific_pain, pain_location')
       .eq('category_id', categoryId)
-      .gte('tracking_date', twoWeeksAgo.toISOString().split('T')[0])
+      .gte('tracking_date', fourWeeksAgo.toISOString().split('T')[0])
       .order('tracking_date', { ascending: false });
 
     if (wellnessError) throw wellnessError;
@@ -121,13 +121,36 @@ serve(async (req) => {
     if (injuriesError) throw injuriesError;
     console.log(`Found ${injuries?.length || 0} injury records`);
 
+    // Calculate EWMA for each player
+    const LAMBDA_ACUTE = 2 / (7 + 1);
+    const LAMBDA_CHRONIC = 2 / (28 + 1);
+
+    function calculatePlayerEWMA(playerEntries: any[]) {
+      if (playerEntries.length === 0) return null;
+      const sorted = [...playerEntries].sort((a, b) => a.session_date.localeCompare(b.session_date));
+      let ewmaAcute = 0;
+      let ewmaChronic = 0;
+      sorted.forEach((entry, i) => {
+        const load = entry.training_load || (entry.rpe * entry.duration_minutes) || 0;
+        if (i === 0) {
+          ewmaAcute = load;
+          ewmaChronic = load;
+        } else {
+          ewmaAcute = LAMBDA_ACUTE * load + (1 - LAMBDA_ACUTE) * ewmaAcute;
+          ewmaChronic = LAMBDA_CHRONIC * load + (1 - LAMBDA_CHRONIC) * ewmaChronic;
+        }
+      });
+      const ratio = ewmaChronic > 0 ? ewmaAcute / ewmaChronic : 0;
+      return { acute: Math.round(ewmaAcute * 100) / 100, chronic: Math.round(ewmaChronic * 100) / 100, ratio: Math.round(ratio * 100) / 100 };
+    }
+
     // Prepare data for AI analysis
     const playerDataSummary = players?.map(player => {
       const playerAwcr = awcrData?.filter(a => a.player_id === player.id) || [];
       const playerWellness = wellnessData?.filter(w => w.player_id === player.id) || [];
       const playerInjuries = injuries?.filter(i => i.player_id === player.id) || [];
 
-      const latestAwcr = playerAwcr[0];
+      const latestAwcr = playerAwcr.length > 0 ? playerAwcr[playerAwcr.length - 1] : null;
       const latestWellness = playerWellness[0];
 
       const avgAwcr = playerAwcr.length > 0 
@@ -137,9 +160,17 @@ serve(async (req) => {
         ? playerAwcr.reduce((sum, a) => sum + (a.training_load || 0), 0) / playerAwcr.length
         : null;
 
+      const ewma = calculatePlayerEWMA(playerAwcr);
+
       return {
         name: player.name,
         id: player.id,
+        ewma: ewma ? {
+          acute: ewma.acute,
+          chronic: ewma.chronic,
+          ratio: ewma.ratio,
+          risk: ewma.ratio > 1.5 || ewma.ratio < 0.8 ? "danger" : ewma.ratio > 1.3 || ewma.ratio < 0.85 ? "warning" : "optimal"
+        } : null,
         awcr: {
           latest: latestAwcr?.awcr,
           average: avgAwcr?.toFixed(2),
@@ -189,6 +220,7 @@ Pour chaque joueur, fournis:
 4. Des recommandations personnalisées
 
 Critères d'évaluation:
+- EWMA ratio > 1.3 ou < 0.85 = vigilance, > 1.5 ou < 0.8 = danger
 - AWCR > 1.3 ou < 0.8 = risque élevé
 - Charge d'entraînement élevée + mauvaise récupération = risque élevé
 - Fatigue élevée (>4/5) + douleurs (>3/5) = risque modéré à élevé
