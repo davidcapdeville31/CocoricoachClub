@@ -447,7 +447,7 @@ export function SessionFeedbackDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+      <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
@@ -477,12 +477,12 @@ export function SessionFeedbackDialog({
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="rpe" className="flex-1 flex flex-col min-h-0 mt-4">
+          <TabsContent value="rpe" className="flex-1 flex flex-col min-h-0 mt-4 overflow-hidden">
             <p className="text-sm text-muted-foreground mb-3">
               RPE: Rate of Perceived Exertion (0-10). La durée est pré-remplie depuis les horaires de la séance.
             </p>
 
-            <ScrollArea className="flex-1 max-h-[55vh] pr-2">
+            <ScrollArea className="flex-1 min-h-0" style={{ maxHeight: "calc(90vh - 220px)" }}>
               <div className="space-y-2">
                 {playersToShow.map((player) => {
                   const existing = existingRpe?.find((r) => r.player_id === player.id);
@@ -555,7 +555,7 @@ export function SessionFeedbackDialog({
               </Button>
             </div>
 
-            <ScrollArea className="flex-1 max-h-[55vh] pr-2">
+            <ScrollArea className="flex-1 min-h-0" style={{ maxHeight: "calc(90vh - 220px)" }}>
               {sessionTests.length === 0 ? (
                 <div className="border-2 border-dashed border-emerald-500/30 rounded-xl p-6 bg-emerald-500/5 text-center">
                   <ClipboardCheck className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
