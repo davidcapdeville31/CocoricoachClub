@@ -3,10 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Upload, MapPin, Activity, Zap, Timer, TrendingUp } from "lucide-react";
+import { Upload, MapPin, Activity, Zap, Timer, TrendingUp, Target } from "lucide-react";
 import { GpsImportDialog } from "./GpsImportDialog";
 import { GpsSessionsList } from "./GpsSessionsList";
 import { GpsAnalyticsDashboard } from "./GpsAnalyticsDashboard";
+import { GpsObjectivesDashboard } from "./GpsObjectivesDashboard";
 import { WeeklyGpsRecommendations } from "./WeeklyGpsRecommendations";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
@@ -55,6 +56,45 @@ export function GpsDataTab({ categoryId }: GpsDataTabProps) {
       return data;
     },
   });
+
+  const { data: categoryData } = useQuery({
+    queryKey: ['category-sport-type-gps-tab', categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('rugby_type')
+        .eq('id', categoryId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch sessions with objectives (linked training sessions)
+  const { data: sessionsWithObjectives } = useQuery({
+    queryKey: ['gps-sessions-with-objectives', categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('gps_session_objectives')
+        .select('training_session_id, position_group')
+        .eq('category_id', categoryId);
+      if (error) throw error;
+      // Get unique training session IDs
+      const sessionIds = [...new Set(data?.map(o => o.training_session_id) || [])];
+      if (sessionIds.length === 0) return [];
+      
+      const { data: sessions, error: sessError } = await supabase
+        .from('training_sessions')
+        .select('id, session_date, training_type')
+        .in('id', sessionIds)
+        .order('session_date', { ascending: false })
+        .limit(5);
+      if (sessError) throw sessError;
+      return sessions || [];
+    },
+  });
+
+  const sportType = categoryData?.rugby_type || 'XV';
 
   // Calculate summary stats
   const summaryStats = gpsSessions ? {
@@ -146,6 +186,21 @@ export function GpsDataTab({ categoryId }: GpsDataTabProps) {
 
       {/* Weekly Recommendations */}
       <WeeklyGpsRecommendations categoryId={categoryId} />
+
+      {/* GPS Objectives Dashboards for recent sessions */}
+      {sessionsWithObjectives && sessionsWithObjectives.length > 0 && (
+        <div className="space-y-4">
+          {sessionsWithObjectives.map(session => (
+            <GpsObjectivesDashboard
+              key={session.id}
+              categoryId={categoryId}
+              trainingSessionId={session.id}
+              sportType={sportType}
+              sessionDate={session.session_date}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Main content tabs */}
       <Tabs defaultValue="sessions" className="space-y-4">

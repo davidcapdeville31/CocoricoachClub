@@ -79,6 +79,7 @@ import {
   ALL_BLOCK_METHODS,
 } from "@/lib/constants/trainingStyles";
 import { SessionGpsImport, type GpsPlayerData } from "@/components/category/gps/SessionGpsImport";
+import { GpsObjectivesForm } from "@/components/category/gps/GpsObjectivesForm";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { TrainingMethodBlock } from "./TrainingMethodBlocks";
 import { TrainingMethodSelect } from "./TrainingMethodSelect";
@@ -2613,6 +2614,17 @@ export function SessionFormDialog({
                           players={players.map(p => ({ id: p.id, name: p.name, position: p.position }))}
                           onGpsDataChange={setGpsData}
                           gpsData={gpsData}
+                        />
+                      </div>
+                    )}
+
+                    {/* GPS Objectives - Only visible when editing a session */}
+                    {showGpsImport && editSession && (
+                      <div className="pt-4 border-t">
+                        <GpsObjectivesForm
+                          categoryId={categoryId}
+                          trainingSessionId={editSession.id}
+                          sportType={sportType || "XV"}
                         />
                       </div>
                     )}

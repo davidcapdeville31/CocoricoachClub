@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Upload, FileText, Check, AlertCircle, Loader2, Link2, Eye, EyeOff, Dumbbell, ClipboardList } from "lucide-react";
+import { Upload, FileText, Check, AlertCircle, Loader2, Link2, Eye, EyeOff, Dumbbell, ClipboardList, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -27,6 +27,8 @@ import {
   type MetricKey,
 } from "./gpsImportUtils";
 import { useBulkCreatePerformanceReferences, type CreateReferenceInput } from "@/hooks/use-performance-references";
+import { GpsObjectivesForm } from "./GpsObjectivesForm";
+import { GpsObjectivesDashboard } from "./GpsObjectivesDashboard";
 
 interface Player {
   id: string;
@@ -106,7 +108,24 @@ export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuc
     enabled: !!sessionDate && sessionType === 'training',
   });
 
+  // Fetch category sport type
+  const { data: categoryData } = useQuery({
+    queryKey: ["category-sport-type-gps", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("rugby_type")
+        .eq("id", categoryId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const sportType = categoryData?.rugby_type || "XV";
+
   const selectedTest = TEST_TYPES.find(t => t.value === selectedTestType);
+
 
   const resetState = useCallback(() => {
     setStep('upload');
@@ -607,6 +626,15 @@ export function GpsImportDialog({ open, onOpenChange, categoryId, players, onSuc
                     </SelectContent>
                   </Select>
                 </div>
+              )}
+
+              {/* GPS Objectives Form - when linked to a session */}
+              {sessionType === 'training' && selectedSessionId && (
+                <GpsObjectivesForm
+                  categoryId={categoryId}
+                  trainingSessionId={selectedSessionId}
+                  sportType={sportType}
+                />
               )}
 
               {/* Performance reference checkbox - only for test mode */}
