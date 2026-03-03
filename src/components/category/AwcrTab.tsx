@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,18 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
   const [isOfflineDialogOpen, setIsOfflineDialogOpen] = useState(false);
   const { isOnline } = useOnlineStatus();
   const { isViewer } = useViewerModeContext();
+
+  // Realtime sync for AWCR data
+  useRealtimeSync({
+    tables: ["awcr_tracking", "training_sessions"],
+    categoryId,
+    queryKeys: [
+      ["awcr_tracking", categoryId],
+      ["awcr-data", categoryId],
+      ["training_sessions", categoryId],
+    ],
+    channelName: `awcr-sync-${categoryId}`,
+  });
 
   const { data: awcrData, isLoading } = useQuery({
     queryKey: ["awcr_tracking", categoryId],

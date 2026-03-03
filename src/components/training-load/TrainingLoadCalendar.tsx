@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useState, useMemo } from "react";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, addWeeks, subWeeks, addMonths, subMonths, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
@@ -27,6 +28,13 @@ type ViewMode = "week" | "month";
 export function TrainingLoadCalendar({ categoryId }: TrainingLoadCalendarProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  useRealtimeSync({
+    tables: ["training_sessions", "training_session_blocks"],
+    categoryId,
+    queryKeys: [["load-calendar-sessions", categoryId]],
+    channelName: `load-calendar-sync-${categoryId}`,
+  });
 
   const dateRange = useMemo(() => {
     if (viewMode === "week") {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -84,8 +84,9 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
  }
  
  export function DecisionCenter({ categoryId, categoryName }: DecisionCenterProps) {
-   const navigate = useNavigate();
-   const today = format(new Date(), "yyyy-MM-dd");
+    const navigate = useNavigate();
+    const queryClient = useQueryClient();
+    const today = format(new Date(), "yyyy-MM-dd");
    const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
   const [editSessionOpen, setEditSessionOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<any>(null);
@@ -224,7 +225,43 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
         channel.unsubscribe();
       };
     }, [categoryId, refetchWellness]);
- 
+
+    // Subscribe to training/AWCR changes for real-time updates
+    useEffect(() => {
+      const channel = supabase
+        .channel(`training_decision_${categoryId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'training_sessions',
+            filter: `category_id=eq.${categoryId}`,
+          },
+          () => {
+            queryClient.invalidateQueries({ queryKey: ["today_sessions_decision", categoryId] });
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'awcr_tracking',
+            filter: `category_id=eq.${categoryId}`,
+          },
+          () => {
+            queryClient.invalidateQueries({ queryKey: ["awcr_decision", categoryId] });
+            queryClient.invalidateQueries({ queryKey: ["priority_alerts_decision", categoryId] });
+          }
+        )
+        .subscribe();
+
+      return () => {
+        channel.unsubscribe();
+      };
+    }, [categoryId, queryClient]);
+
    // Fetch today's sessions
    const { data: todaySessions = [] } = useQuery({
      queryKey: ["today_sessions_decision", categoryId, today],
