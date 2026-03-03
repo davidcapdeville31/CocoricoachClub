@@ -137,10 +137,9 @@ export function GpsObjectivesDashboard({
       const tGreen = Number(objective.tolerance_green) || 15;
       const tOrange = Number(objective.tolerance_orange) || 30;
 
-      // Use sprint_count if available, otherwise fall back to sprint_distance_m
-      const actualSprint = gps.sprint_count != null 
-        ? Number(gps.sprint_count) 
-        : (gps.sprint_distance_m != null ? Number(gps.sprint_distance_m) : null);
+      // Only compare sprint_count to target_sprint_count (same unit)
+      // sprint_distance_m is in meters and cannot be compared to a count target
+      const actualSprint = gps.sprint_count != null ? Number(gps.sprint_count) : null;
       const targetSprint = objective.target_sprint_count;
 
       const statuses = {
@@ -388,13 +387,18 @@ export function GpsObjectivesDashboard({
                           />
                         </TableCell>
                         <TableCell className="text-center">
-                          <MetricCell
-                            actual={p.actualSprint ?? null}
-                            target={p.objective?.target_sprint_count}
-                            toleranceGreen={tGreen}
-                            toleranceOrange={tOrange}
-                            unit={p.gps.sprint_count != null ? "" : "m"}
-                          />
+                          {p.gps.sprint_count != null ? (
+                            <MetricCell
+                              actual={p.actualSprint ?? null}
+                              target={p.objective?.target_sprint_count}
+                              toleranceGreen={tGreen}
+                              toleranceOrange={tOrange}
+                            />
+                          ) : (
+                            <span className="text-sm text-muted-foreground">
+                              {p.gps.sprint_distance_m != null ? `${Math.round(Number(p.gps.sprint_distance_m))}m` : "—"}
+                            </span>
+                          )}
                         </TableCell>
                       </TableRow>
                     );
