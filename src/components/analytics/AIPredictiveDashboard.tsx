@@ -125,7 +125,7 @@ export function AIPredictiveDashboard({ categoryId }: AIPredictiveDashboardProps
               <div>
                 <CardTitle>Dashboard Prédictif IA</CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Analyse intelligente des risques de blessure basée sur AWCR et Wellness
+                  Analyse intelligente des risques de blessure basée sur EWMA, AWCR et Wellness
                 </p>
               </div>
             </div>

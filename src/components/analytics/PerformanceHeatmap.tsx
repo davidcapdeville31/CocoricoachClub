@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -202,8 +202,8 @@ export function PerformanceHeatmap({ categoryId }: PerformanceHeatmapProps) {
 
               {/* Player rows */}
               {players?.map((player) => (
-                <>
-                  <div key={player.id} className="text-sm p-2 truncate sticky left-0 bg-background z-10 border-r">
+                <React.Fragment key={player.id}>
+                  <div className="text-sm p-2 truncate sticky left-0 bg-background z-10 border-r">
                     {player.name}
                   </div>
                   {daysInMonth.map((day) => {
@@ -217,7 +217,7 @@ export function PerformanceHeatmap({ categoryId }: PerformanceHeatmapProps) {
                       />
                     );
                   })}
-                </>
+                </React.Fragment>
               ))}
             </div>
           </div>

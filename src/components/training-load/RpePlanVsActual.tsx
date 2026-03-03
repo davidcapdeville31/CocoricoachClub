@@ -27,10 +27,15 @@ import { fr } from "date-fns/locale";
 import {
   BarChart,
   Bar,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
   ResponsiveContainer,
   ReferenceLine,
   Cell,
@@ -55,6 +60,7 @@ interface PlayerRpeComparison {
 export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualProps) {
   const [periodDays, setPeriodDays] = useState(7);
   const [showDetails, setShowDetails] = useState(false);
+  const [chartType, setChartType] = useState<"bar" | "line" | "area">("bar");
 
   // Fetch training sessions with planned intensity
   const { data: sessionsData, isLoading } = useQuery({
@@ -313,6 +319,16 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
                   <SelectItem value="28">28 jours</SelectItem>
                 </SelectContent>
               </Select>
+              <Select value={chartType} onValueChange={(v) => setChartType(v as "bar" | "line" | "area")}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bar">Barres</SelectItem>
+                  <SelectItem value="line">Courbes</SelectItem>
+                  <SelectItem value="area">Aires</SelectItem>
+                </SelectContent>
+              </Select>
               <Button
                 variant="outline"
                 size="sm"
@@ -369,17 +385,12 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
           {/* Chart */}
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={chartData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis type="number" domain={[0, 10]} />
-                <YAxis 
-                  type="category" 
-                  dataKey="name" 
-                  width={80}
-                  className="text-xs"
-                />
-                <Tooltip 
-                  content={({ active, payload }) => {
+              {chartType === "bar" ? (
+                <BarChart data={chartData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis type="number" domain={[0, 10]} />
+                  <YAxis type="category" dataKey="name" width={80} className="text-xs" />
+                  <Tooltip content={({ active, payload }) => {
                     if (!active || !payload?.length) return null;
                     const data = payload[0]?.payload;
                     return (
@@ -387,32 +398,46 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
                         <p className="font-medium">{data.name}</p>
                         <p className="text-sm">Prévu: <span className="font-semibold">{data.planned}</span></p>
                         <p className="text-sm">Réel: <span className="font-semibold">{data.actual}</span></p>
-                        <p className={`text-sm font-bold ${
-                          data.difference > 1 ? "text-red-500" : 
-                          data.difference < -1 ? "text-blue-500" : "text-green-500"
-                        }`}>
+                        <p className={`text-sm font-bold ${data.difference > 1 ? "text-red-500" : data.difference < -1 ? "text-blue-500" : "text-green-500"}`}>
                           Écart: {data.difference > 0 ? "+" : ""}{data.difference}
                         </p>
                       </div>
                     );
-                  }}
-                />
-                <Bar dataKey="planned" fill="hsl(var(--muted-foreground))" name="Prévu" opacity={0.5} />
-                <Bar dataKey="actual" name="Réel">
-                  {chartData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`}
-                      fill={
+                  }} />
+                  <Bar dataKey="planned" fill="hsl(var(--muted-foreground))" name="Prévu" opacity={0.5} />
+                  <Bar dataKey="actual" name="Réel">
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={
                         entry.difference >= 2 ? "hsl(0, 84%, 60%)" :
                         entry.difference >= 1 ? "hsl(45, 93%, 47%)" :
                         entry.difference <= -2 ? "hsl(210, 100%, 50%)" :
                         "hsl(142, 76%, 36%)"
-                      }
-                    />
-                  ))}
-                </Bar>
-                <ReferenceLine x={0} stroke="hsl(var(--muted-foreground))" />
-              </BarChart>
+                      } />
+                    ))}
+                  </Bar>
+                  <ReferenceLine x={0} stroke="hsl(var(--muted-foreground))" />
+                </BarChart>
+              ) : chartType === "line" ? (
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="name" className="text-xs" />
+                  <YAxis domain={[0, 10]} className="text-xs" />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="planned" stroke="hsl(var(--muted-foreground))" strokeWidth={2} strokeDasharray="5 5" name="Prévu" dot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="actual" stroke="hsl(var(--primary))" strokeWidth={2} name="Réel" dot={{ r: 4 }} />
+                </LineChart>
+              ) : (
+                <AreaChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="name" className="text-xs" />
+                  <YAxis domain={[0, 10]} className="text-xs" />
+                  <Tooltip />
+                  <Legend />
+                  <Area type="monotone" dataKey="planned" fill="hsl(var(--muted))" stroke="hsl(var(--muted-foreground))" fillOpacity={0.3} name="Prévu" />
+                  <Area type="monotone" dataKey="actual" fill="hsl(var(--primary) / 0.2)" stroke="hsl(var(--primary))" fillOpacity={0.5} name="Réel" />
+                </AreaChart>
+              )}
             </ResponsiveContainer>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">

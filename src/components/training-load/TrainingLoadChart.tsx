@@ -249,7 +249,7 @@ export function TrainingLoadChart({
                     strokeWidth={2}
                     dot={{ r: 3 }}
                     activeDot={{ r: 6 }}
-                    name="Ratio EWMA"
+                    name={selectedMetric.startsWith("awcr_") ? "Ratio AWCR" : "Ratio EWMA"}
                   />
                 </ComposedChart>
               </ResponsiveContainer>
