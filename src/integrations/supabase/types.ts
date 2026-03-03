@@ -2042,6 +2042,110 @@ export type Database = {
         }
         Relationships: []
       }
+      gps_objective_templates: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_system: boolean | null
+          name: string
+          sport_type: string
+          template_data: Json
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_system?: boolean | null
+          name: string
+          sport_type?: string
+          template_data?: Json
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_system?: boolean | null
+          name?: string
+          sport_type?: string
+          template_data?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gps_objective_templates_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gps_session_objectives: {
+        Row: {
+          additional_kpis: Json | null
+          category_id: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          position_group: string
+          target_high_speed_distance_m: number | null
+          target_sprint_count: number | null
+          target_total_distance_m: number | null
+          target_vmax_percentage: number | null
+          tolerance_green: number | null
+          tolerance_orange: number | null
+          training_session_id: string
+        }
+        Insert: {
+          additional_kpis?: Json | null
+          category_id: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          position_group: string
+          target_high_speed_distance_m?: number | null
+          target_sprint_count?: number | null
+          target_total_distance_m?: number | null
+          target_vmax_percentage?: number | null
+          tolerance_green?: number | null
+          tolerance_orange?: number | null
+          training_session_id: string
+        }
+        Update: {
+          additional_kpis?: Json | null
+          category_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          position_group?: string
+          target_high_speed_distance_m?: number | null
+          target_sprint_count?: number | null
+          target_total_distance_m?: number | null
+          target_vmax_percentage?: number | null
+          tolerance_green?: number | null
+          tolerance_orange?: number | null
+          training_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gps_session_objectives_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gps_session_objectives_training_session_id_fkey"
+            columns: ["training_session_id"]
+            isOneToOne: false
+            referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gps_sessions: {
         Row: {
           accelerations: number | null
