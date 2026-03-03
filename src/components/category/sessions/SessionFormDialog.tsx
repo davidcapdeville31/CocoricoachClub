@@ -973,14 +973,13 @@ export function SessionFormDialog({
       return;
     }
 
-    // Validate: either blocks with valid types OR a single type
+    // Validate: must have blocks with valid types
     const hasValidBlocks = sessionBlocks.length > 0 && sessionBlocks.some(b => b.training_type);
-    const hasValidType = type && type.trim().length > 0;
 
-    if (date && (hasValidBlocks || hasValidType)) {
+    if (date && hasValidBlocks) {
       saveSession.mutate();
-    } else if (!hasValidType && !hasValidBlocks) {
-      toast.error("Veuillez sélectionner un type d'entraînement ou ajouter des blocs thématiques");
+    } else if (!hasValidBlocks) {
+      toast.error("Veuillez ajouter au moins un bloc thématique");
     }
   };
 
@@ -2579,17 +2578,18 @@ export function SessionFormDialog({
                       sessionEndTime={endTime}
                     />
 
-                    {/* Single type fallback - only shown if no blocks */}
+                    {/* Intensity - only shown if no blocks */}
                     {sessionBlocks.length === 0 && (
                       <div className="space-y-2">
-                        <Label htmlFor="type">Type d'entraînement *</Label>
-                        <CustomTrainingTypeSelect
-                          value={type}
-                          onValueChange={setType}
-                          sportType={sportType}
-                          categoryId={categoryId}
-                          required={true}
-                          placeholder="Sélectionner un type"
+                        <Label htmlFor="intensity-no-blocks">Intensité (1-10)</Label>
+                        <Input
+                          id="intensity-no-blocks"
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={intensity}
+                          onChange={(e) => setIntensity(e.target.value)}
+                          placeholder="De 1 à 10"
                         />
                       </div>
                     )}

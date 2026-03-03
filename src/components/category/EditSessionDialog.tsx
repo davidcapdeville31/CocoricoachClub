@@ -20,8 +20,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { getTrainingTypesForSport } from "@/lib/constants/trainingTypes";
-import { CustomTrainingTypeSelect } from "@/components/category/sessions/CustomTrainingTypeSelect";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 
 interface Session {
@@ -71,7 +69,7 @@ export function EditSessionDialog({
     enabled: open,
   });
 
-  const trainingTypes = getTrainingTypesForSport(category?.rugby_type);
+  
 
   useEffect(() => {
     if (session) {
@@ -136,7 +134,7 @@ export function EditSessionDialog({
       return;
     }
 
-    if (date && type) {
+    if (date) {
       updateSession.mutate();
     }
   };
@@ -181,17 +179,6 @@ export function EditSessionDialog({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-type">Type d'entraînement *</Label>
-              <CustomTrainingTypeSelect
-                value={type}
-                onValueChange={setType}
-                sportType={category?.rugby_type}
-                categoryId={categoryId}
-                required={true}
-                placeholder="Sélectionner un type"
-              />
-            </div>
 
             <div className="space-y-2">
               <Label htmlFor="edit-intensity">Intensité (1-10)</Label>
@@ -221,7 +208,7 @@ export function EditSessionDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Annuler
             </Button>
-            <Button type="submit" disabled={!date || !type || updateSession.isPending}>
+            <Button type="submit" disabled={!date || updateSession.isPending}>
               {updateSession.isPending ? "Enregistrement..." : "Enregistrer"}
             </Button>
           </DialogFooter>

@@ -87,6 +87,7 @@ export interface SessionBlockSummary {
 }
 
 export function calculateBlocksSummary(blocks: Array<{
+  training_type?: string;
   session_type?: string | null;
   objective?: string | null;
   target_intensity?: string | null;
@@ -94,7 +95,7 @@ export function calculateBlocksSummary(blocks: Array<{
   contact_charge?: string | null;
   intensity?: number | null;
 }>): SessionBlockSummary {
-  const filledBlocks = blocks.filter(b => b.session_type || b.objective || b.target_intensity);
+  const filledBlocks = blocks.filter(b => b.training_type || b.objective || b.target_intensity);
   if (filledBlocks.length === 0) {
     return {
       avgIntensity: null,
@@ -133,11 +134,11 @@ export function calculateBlocksSummary(blocks: Array<{
     .sort((a, b) => b[1] - a[1])
     .map(([obj]) => obj);
 
-  // Session types - main (most frequent) + secondary
+  // Session types - based on training_type (thématique)
   const typeCounts = new Map<string, number>();
   filledBlocks.forEach(b => {
-    if (b.session_type) {
-      typeCounts.set(b.session_type, (typeCounts.get(b.session_type) || 0) + 1);
+    if (b.training_type) {
+      typeCounts.set(b.training_type, (typeCounts.get(b.training_type) || 0) + 1);
     }
   });
   const sortedTypes = Array.from(typeCounts.entries()).sort((a, b) => b[1] - a[1]);
@@ -149,7 +150,7 @@ export function calculateBlocksSummary(blocks: Array<{
   if (uniqueTypes.length === 1) {
     mainSessionType = uniqueTypes[0];
   } else if (uniqueTypes.length > 1) {
-    mainSessionType = "mixte";
+    mainSessionType = "Mixte";
     secondarySessionTypes = uniqueTypes;
   }
 

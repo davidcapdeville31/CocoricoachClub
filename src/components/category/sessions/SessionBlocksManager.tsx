@@ -11,12 +11,10 @@ import { CustomTrainingTypeSelect } from "./CustomTrainingTypeSelect";
 import { cn } from "@/lib/utils";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import {
-  SESSION_TYPES,
   SESSION_OBJECTIVES,
   TARGET_INTENSITIES,
   VOLUME_OPTIONS,
   CONTACT_CHARGE_OPTIONS,
-  getSessionTypeLabel,
   getIntensityLabel,
   getContactChargeLabel,
   calculateBlocksSummary,
@@ -295,34 +293,19 @@ export function SessionBlocksManager({
                         </div>
                       </div>
 
-                      {/* New enrichment fields */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Type de séance</Label>
-                          <Select value={block.session_type || ""} onValueChange={(val) => updateBlock(index, "session_type", val || undefined)}>
-                            <SelectTrigger className="h-9">
-                              <SelectValue placeholder="Sélectionner..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {SESSION_TYPES.map(t => (
-                                <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Objectif principal</Label>
-                          <Select value={block.objective || ""} onValueChange={(val) => updateBlock(index, "objective", val || undefined)}>
-                            <SelectTrigger className="h-9">
-                              <SelectValue placeholder="Sélectionner..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {SESSION_OBJECTIVES.map(o => (
-                                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                      {/* Enrichment fields */}
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Objectif principal</Label>
+                        <Select value={block.objective || ""} onValueChange={(val) => updateBlock(index, "objective", val || undefined)}>
+                          <SelectTrigger className="h-9">
+                            <SelectValue placeholder="Sélectionner..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {SESSION_OBJECTIVES.map(o => (
+                              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <div className={cn("grid gap-3", isRugby ? "grid-cols-3" : "grid-cols-2")}>
@@ -414,12 +397,12 @@ export function SessionBlocksManager({
                   <div className="flex flex-wrap gap-2 mt-2">
                     {summary.mainSessionType && (
                       <Badge variant="default" className="text-xs">
-                        {getSessionTypeLabel(summary.mainSessionType)}
+                        {summary.mainSessionType}
                       </Badge>
                     )}
                     {summary.secondarySessionTypes.length > 0 && summary.secondarySessionTypes.map(t => (
                       <Badge key={t} variant="outline" className="text-xs">
-                        {getSessionTypeLabel(t)}
+                        {t}
                       </Badge>
                     ))}
                     {summary.avgIntensity && (
