@@ -139,56 +139,55 @@ export function SessionNotifyDialog({
         time: session.session_start_time ? session.session_start_time.substring(0, 5) : undefined,
       };
 
-      // ── Step 2: Send push via include_external_user_ids (P1 — precise targeting) ──
-      if (sendPush) {
-        // Collect user_ids of players with an app account
-        const targetUserIds = athletes
-          .map((a: any) => a.user_id)
-          .filter(Boolean) as string[];
+      // Collect user_ids of players with an app account
+      const targetUserIds = athletes
+        .map((a: any) => a.user_id)
+        .filter(Boolean) as string[];
 
-        console.log(`[SessionNotification] Step 2 — ${targetUserIds.length} player(s) with app account (external_id targets)`);
-        console.log(`[SessionNotification] Step 2 — Session: ${session.id} | Type: ${notificationType}`);
+      // Build channels array based on checkboxes
+      const channels: ("push" | "email")[] = [];
+      if (sendPush) channels.push("push");
+      if (sendEmail) channels.push("email");
 
-        const pushBody: Record<string, unknown> = {
-          title: selectedType?.label || "Notification",
-          message: finalMessage,
-          channels: sendEmail ? ["push", "email"] : ["push"],
-          event_type: "session",
-          session_id: session.id,
-          event_details: eventDetails,
-          url: `https://cocoricoachclub.com/categories/${categoryId}`,
-        };
+      console.log(`[SessionNotification] Step 2 — ${targetUserIds.length} player(s) with app account`);
+      console.log(`[SessionNotification] Step 2 — Session: ${session.id} | Channels: ${channels.join(", ")}`);
 
-        if (targetUserIds.length > 0) {
-          // P1 — precise: include_external_user_ids via target_user_ids
-          pushBody.target_user_ids = targetUserIds;
-          console.log(`[SessionNotification] Step 2 — Mode P1: include_external_user_ids → [${targetUserIds.join(", ")}]`);
-        } else {
-          // P2 fallback broadcast: category broadcast
-          pushBody.category_ids = [categoryId];
-          pushBody.roles = ["player"];
-          console.warn("[SessionNotification] Step 2 — No user_id found → fallback P2 category broadcast");
-        }
+      const requestBody: Record<string, unknown> = {
+        title: selectedType?.label || "Notification",
+        message: finalMessage,
+        channels,
+        event_type: "session",
+        session_id: session.id,
+        event_details: eventDetails,
+        url: `https://cocoricoachclub.com/categories/${categoryId}`,
+      };
 
-        const { data: pushData, error: pushError } = await supabase.functions.invoke("send-targeted-notification", {
-          body: pushBody,
-        });
+      if (targetUserIds.length > 0) {
+        requestBody.target_user_ids = targetUserIds;
+        console.log(`[SessionNotification] Step 2 — Mode P1: external_ids → [${targetUserIds.join(", ")}]`);
+      } else {
+        requestBody.category_ids = [categoryId];
+        requestBody.roles = ["player"];
+        console.warn("[SessionNotification] Step 2 — No user_id found → fallback P2 category broadcast");
+      }
 
-        if (pushError) {
-          console.error("[SessionNotification] Step 2 — ❌ Push error:", pushError.message);
-        } else if (pushData) {
-          results.pushSent = pushData.pushSent || 0;
-          results.emailsSent = pushData.emailsSent || 0;
-          console.log(`[SessionNotification] Step 2 — ✅ Push: ${results.pushSent} device(s), Email: ${results.emailsSent}. Mode: ${pushData.mode}`);
-          if (pushData.errors?.length > 0) {
-            console.warn(`[SessionNotification] Step 3 — Errors: ${pushData.errors.length}`, pushData.errors);
-          } else {
-            console.log(`[SessionNotification] Step 3 — Errors: 0`);
-          }
+      const { data, error } = await supabase.functions.invoke("send-targeted-notification", {
+        body: requestBody,
+      });
+
+      if (error) {
+        console.error("[SessionNotification] ❌ Error:", error.message);
+        throw new Error(error.message);
+      }
+      
+      if (data) {
+        results.pushSent = data.pushSent || 0;
+        results.emailsSent = data.emailsSent || 0;
+        console.log(`[SessionNotification] ✅ Push: ${results.pushSent}, Email: ${results.emailsSent}. Mode: ${data.mode}`);
+        if (data.errors?.length > 0) {
+          console.warn(`[SessionNotification] Errors:`, data.errors);
         }
       }
-      // Email is now included in the push notification channels above
-      // via send-targeted-notification edge function (channels: ["push", "email"])
 
       return results;
     },
