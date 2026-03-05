@@ -221,7 +221,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf,
         `FICHE JOUEUR`,
         `${[player.first_name, player.name].filter(Boolean).join(" ")} - ${player.position || 'Position non définie'}`,
-        `${category?.clubs?.name} - ${category?.name} | ${format(new Date(), "d MMMM yyyy", { locale: fr })}${dateRange ? ` | ${dateRange}` : ""}`,
+        `${category?.clubs?.name} - ${category?.name}${seasonName ? ` • ${seasonName}` : ''} | ${format(new Date(), "d MMMM yyyy", { locale: fr })}${dateRange ? ` | ${dateRange}` : ""}`,
         pdfSettings,
         logoBase64
       );
