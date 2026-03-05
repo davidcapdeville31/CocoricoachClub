@@ -435,7 +435,7 @@ export function SportMatchStatsDialog({
                             <Label className="text-sm">Temps de jeu effectif (min)</Label>
                             <Input
                               type="number"
-                              value={effectivePlayTime}
+                              value={effectivePlayTime || ""}
                               onChange={(e) => setEffectivePlayTime(parseInt(e.target.value) || 0)}
                               min={0}
                               max={120}
