@@ -158,7 +158,7 @@ export function ConversationList({ categoryId, selectedId, onSelect, isAthlete =
       
       const participantConvIds = (participantData || []).map(p => p.conversation_id);
       
-      // Fetch all category conversations
+      // Fetch conversations for this category where user is a participant
       const { data, error } = await supabase
         .from("conversations")
         .select("*")
@@ -166,17 +166,12 @@ export function ConversationList({ categoryId, selectedId, onSelect, isAthlete =
         .order("updated_at", { ascending: false });
       if (error) throw error;
       
-      // Filter: show group/channel conversations + only DMs where user is participant
-      // Athletes should NOT see the "Staff" group
+      // Only show conversations where user is a participant
+      // Hide "Staff" group from athletes
       return (data as Conversation[]).filter(conv => {
-        if (conv.conversation_type === "direct") {
-          return participantConvIds.includes(conv.id);
-        }
-        // Hide "Staff" group from athletes
-        if (isAthlete && conv.name === "Staff") {
-          return false;
-        }
-        return true; // Show all other groups/channels
+        if (!participantConvIds.includes(conv.id)) return false;
+        if (isAthlete && conv.name === "Staff") return false;
+        return true;
       });
     },
     enabled: !!user,
