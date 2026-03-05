@@ -61,6 +61,7 @@ interface ConversationListProps {
 interface Player {
   id: string;
   name: string;
+  user_id: string | null;
 }
 
 interface StaffMember {
