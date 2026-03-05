@@ -209,8 +209,17 @@ export function SportMatchStatsDialog({
       if (statsData.length > 0) {
         // Build sport-specific data object for each player
         const statsToInsert = statsData.map((s) => {
-          // Build sport_data JSON with all sport-specific stats
+          // Build sport_data JSON with ALL stats (not just filtered) to avoid data loss
+          const allStats = [
+            ...getStatsForSport(sportType, false),
+            ...getStatsForSport(sportType, true)
+          ];
           const sportData: Record<string, number> = {};
+          allStats.forEach(stat => {
+            const val = Number(s[stat.key]) || 0;
+            if (val !== 0) sportData[stat.key] = val;
+          });
+          // Also include filtered stats
           sportStats.forEach(stat => {
             sportData[stat.key] = Number(s[stat.key]) || 0;
           });
