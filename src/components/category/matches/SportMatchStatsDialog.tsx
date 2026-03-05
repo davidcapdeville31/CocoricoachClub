@@ -118,8 +118,12 @@ export function SportMatchStatsDialog({
   useEffect(() => {
     if (matchData) {
       setEffectivePlayTime(matchData.effective_play_time ?? 0);
-      setLongestPlaySequence(matchData.longest_play_sequence ?? 0);
-      setAveragePlaySequence(matchData.average_play_sequence ?? 0);
+      const lps = matchData.longest_play_sequence ?? 0;
+      const aps = matchData.average_play_sequence ?? 0;
+      setLongestPlaySequence(lps);
+      setAveragePlaySequence(aps);
+      setLongestPlaySequenceText(lps ? formatSecondsToMinutes(lps) : "");
+      setAveragePlaySequenceText(aps ? formatSecondsToMinutes(aps) : "");
     }
   }, [matchData]);
 
