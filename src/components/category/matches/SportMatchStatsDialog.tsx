@@ -357,6 +357,19 @@ export function SportMatchStatsDialog({
 
   const renderStatInput = (player: PlayerStats, stat: StatField) => {
     const rawValue = player[stat.key] as number;
+    
+    // Auto-computed percentage stats are read-only
+    if (stat.computedFrom) {
+      return (
+        <div key={stat.key}>
+          <Label className="text-xs">{stat.shortLabel}</Label>
+          <div className="h-8 flex items-center justify-center rounded-md border bg-muted/50 text-sm font-semibold text-primary">
+            {rawValue || 0}%
+          </div>
+        </div>
+      );
+    }
+    
     const displayValue = rawValue === 0 ? "" : String(rawValue);
     
     return (
