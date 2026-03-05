@@ -70,6 +70,8 @@ export function SportMatchStatsDialog({
   const [effectivePlayTime, setEffectivePlayTime] = useState<number>(0);
   const [longestPlaySequence, setLongestPlaySequence] = useState<number>(0);
   const [averagePlaySequence, setAveragePlaySequence] = useState<number>(0);
+  const [longestPlaySequenceText, setLongestPlaySequenceText] = useState<string>("");
+  const [averagePlaySequenceText, setAveragePlaySequenceText] = useState<string>("");
   const [showGpsImport, setShowGpsImport] = useState(false);
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
   const queryClient = useQueryClient();
