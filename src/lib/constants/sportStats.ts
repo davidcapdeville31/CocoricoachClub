@@ -5,10 +5,13 @@ export interface StatField {
   label: string;
   shortLabel: string;
   category: "scoring" | "attack" | "defense" | "general" | "individual";
-  type: "number" | "time";
+  type: "number" | "time" | "percentage";
   min?: number;
   max?: number;
-  isMatchLevel?: boolean; // If true, this stat is for the whole match, not per player
+  isMatchLevel?: boolean;
+  // For auto-computed percentage stats: defines source keys
+  // successKey = numerator, totalKey = denominator (if explicit), failureKey = if set, total = successKey + failureKey
+  computedFrom?: { successKey: string; totalKey?: string; failureKey?: string };
 }
 
 // Rugby stats (XV, 7s, XIII) - Enriched
@@ -40,7 +43,7 @@ export const RUGBY_STATS: StatField[] = [
   // Individual Stats - Defense
   { key: "tackles", label: "Plaquages réalisés", shortLabel: "Plaquages", category: "defense", type: "number" },
   { key: "tacklesMissed", label: "Plaquages ratés", shortLabel: "Ratés", category: "defense", type: "number" },
-  { key: "tackleSuccess", label: "% plaquages réussis", shortLabel: "% Plaq.", category: "defense", type: "number", max: 100 },
+  { key: "tackleSuccess", label: "% plaquages réussis", shortLabel: "% Plaq.", category: "defense", type: "percentage", max: 100, computedFrom: { successKey: "tackles", failureKey: "tacklesMissed" } },
   { key: "dominantTackles", label: "Plaquages dominants", shortLabel: "Plaq. dom.", category: "defense", type: "number" },
   { key: "defensiveRecoveries", label: "Ballons récupérés", shortLabel: "Récup.", category: "defense", type: "number" },
   { key: "turnoversLost", label: "Ballons perdus", shortLabel: "Pertes", category: "defense", type: "number" },
@@ -91,7 +94,7 @@ export const FOOTBALL_STATS: StatField[] = [
   // Individual Stats - Attack
   { key: "passes", label: "Passes réussies", shortLabel: "Passes", category: "attack", type: "number" },
   { key: "passesAttempted", label: "Passes tentées", shortLabel: "P. tent.", category: "attack", type: "number" },
-  { key: "passAccuracy", label: "% Passes réussies", shortLabel: "% Passes", category: "attack", type: "number", max: 100 },
+  { key: "passAccuracy", label: "% Passes réussies", shortLabel: "% Passes", category: "attack", type: "percentage", max: 100, computedFrom: { successKey: "passes", totalKey: "passesAttempted" } },
   { key: "longBalls", label: "Longs ballons réussis", shortLabel: "Longs B.", category: "attack", type: "number" },
   { key: "throughBalls", label: "Passes en profondeur", shortLabel: "Profondeur", category: "attack", type: "number" },
   { key: "duelsWon", label: "Duels gagnés", shortLabel: "Duels", category: "attack", type: "number" },
@@ -123,7 +126,7 @@ export const FOOTBALL_GOALKEEPER_STATS: StatField[] = [
   { key: "yellowCards", label: "Cartons jaunes", shortLabel: "Jaunes", category: "general", type: "number" },
   { key: "redCards", label: "Cartons rouges", shortLabel: "Rouges", category: "general", type: "number" },
   { key: "saves", label: "Arrêts", shortLabel: "Arrêts", category: "scoring", type: "number" },
-  { key: "savePercentage", label: "% Arrêts", shortLabel: "% Arrêts", category: "scoring", type: "number", max: 100 },
+  { key: "savePercentage", label: "% Arrêts", shortLabel: "% Arrêts", category: "scoring", type: "percentage", max: 100, computedFrom: { successKey: "saves", failureKey: "goalsAgainst" } },
   { key: "goalsAgainst", label: "Buts encaissés", shortLabel: "Buts enc.", category: "scoring", type: "number" },
   { key: "cleanSheets", label: "Clean sheets", shortLabel: "CS", category: "scoring", type: "number" },
   { key: "penaltiesSaved", label: "Pénaltys arrêtés", shortLabel: "Pén. arrêtés", category: "defense", type: "number" },
@@ -131,7 +134,7 @@ export const FOOTBALL_GOALKEEPER_STATS: StatField[] = [
   { key: "punches", label: "Dégagements poings", shortLabel: "Poings", category: "defense", type: "number" },
   { key: "throwouts", label: "Relances à la main", shortLabel: "Rel. main", category: "attack", type: "number" },
   { key: "goalKicks", label: "Relances au pied", shortLabel: "Rel. pied", category: "attack", type: "number" },
-  { key: "passAccuracy", label: "% Passes réussies", shortLabel: "% Passes", category: "attack", type: "number", max: 100 },
+  { key: "passAccuracy", label: "% Passes réussies", shortLabel: "% Passes", category: "attack", type: "percentage", max: 100, computedFrom: { successKey: "passes", totalKey: "passesAttempted" } },
 ];
 
 // Handball stats - Enriched
@@ -146,7 +149,7 @@ export const HANDBALL_STATS: StatField[] = [
   // Individual Stats - Scoring
   { key: "goals", label: "Buts", shortLabel: "Buts", category: "scoring", type: "number" },
   { key: "shots", label: "Tirs", shortLabel: "Tirs", category: "scoring", type: "number" },
-  { key: "shootingPercentage", label: "% Réussite tirs", shortLabel: "% Tir", category: "scoring", type: "number", max: 100 },
+  { key: "shootingPercentage", label: "% Réussite tirs", shortLabel: "% Tir", category: "scoring", type: "percentage", max: 100, computedFrom: { successKey: "goals", totalKey: "shots" } },
   { key: "goalsFromWing", label: "Buts ailier", shortLabel: "B. ailier", category: "scoring", type: "number" },
   { key: "goalsFromPivot", label: "Buts pivot", shortLabel: "B. pivot", category: "scoring", type: "number" },
   { key: "goalsFromBackcourt", label: "Buts arrière", shortLabel: "B. arrière", category: "scoring", type: "number" },
@@ -175,7 +178,7 @@ export const HANDBALL_GOALKEEPER_STATS: StatField[] = [
   { key: "redCards", label: "Cartons rouges", shortLabel: "Rouges", category: "general", type: "number" },
   { key: "twoMinutes", label: "Exclusions 2 min", shortLabel: "2 min", category: "general", type: "number" },
   { key: "saves", label: "Arrêts", shortLabel: "Arrêts", category: "scoring", type: "number" },
-  { key: "savePercentage", label: "% Arrêts", shortLabel: "% Arrêts", category: "scoring", type: "number", max: 100 },
+  { key: "savePercentage", label: "% Arrêts", shortLabel: "% Arrêts", category: "scoring", type: "percentage", max: 100, computedFrom: { successKey: "saves", failureKey: "goalsAgainst" } },
   { key: "goalsAgainst", label: "Buts encaissés", shortLabel: "Buts enc.", category: "scoring", type: "number" },
   { key: "sevenMetersSaved", label: "7m arrêtés", shortLabel: "7m arr.", category: "defense", type: "number" },
   { key: "fastBreakSaves", label: "Arrêts contre-attaque", shortLabel: "Arr. CA", category: "defense", type: "number" },
@@ -197,18 +200,18 @@ export const VOLLEYBALL_STATS: StatField[] = [
   { key: "points", label: "Points marqués", shortLabel: "Points", category: "scoring", type: "number" },
   { key: "kills", label: "Points marqués (kill)", shortLabel: "Kills", category: "scoring", type: "number" },
   { key: "aces", label: "Aces", shortLabel: "Aces", category: "scoring", type: "number" },
-  { key: "acePercentage", label: "% Aces", shortLabel: "% Aces", category: "scoring", type: "number", max: 100 },
+  { key: "acePercentage", label: "% Aces", shortLabel: "% Aces", category: "scoring", type: "percentage", max: 100, computedFrom: { successKey: "aces", totalKey: "serviceAttempts" } },
   { key: "attackErrors", label: "Erreurs d'attaque", shortLabel: "Err. att.", category: "scoring", type: "number" },
   { key: "attackAttempts", label: "Tentatives d'attaque", shortLabel: "Tent. att.", category: "scoring", type: "number" },
-  { key: "attackPercentage", label: "% Attaque", shortLabel: "% Att.", category: "scoring", type: "number", max: 100 },
-  { key: "killPercentage", label: "% Kill", shortLabel: "% Kill", category: "scoring", type: "number", max: 100 },
+  { key: "attackPercentage", label: "% Attaque", shortLabel: "% Att.", category: "scoring", type: "percentage", max: 100, computedFrom: { successKey: "kills", totalKey: "attackAttempts" } },
+  { key: "killPercentage", label: "% Kill", shortLabel: "% Kill", category: "scoring", type: "percentage", max: 100, computedFrom: { successKey: "kills", totalKey: "attackAttempts" } },
   // Individual Stats - Attack
   { key: "sets", label: "Passes (sets)", shortLabel: "Sets", category: "attack", type: "number" },
   { key: "setAssists", label: "Passes décisives", shortLabel: "Assists", category: "attack", type: "number" },
   { key: "setErrors", label: "Erreurs de passe", shortLabel: "Err. passe", category: "attack", type: "number" },
   { key: "serviceErrors", label: "Erreurs au service", shortLabel: "Err. serv.", category: "attack", type: "number" },
   { key: "serviceAttempts", label: "Services tentés", shortLabel: "Serv. tent.", category: "attack", type: "number" },
-  { key: "serviceAcePercentage", label: "% Ace service", shortLabel: "% Ace", category: "attack", type: "number", max: 100 },
+  { key: "serviceAcePercentage", label: "% Ace service", shortLabel: "% Ace", category: "attack", type: "percentage", max: 100, computedFrom: { successKey: "aces", totalKey: "serviceAttempts" } },
   // Individual Stats - Defense
   { key: "blocks", label: "Contres", shortLabel: "Contres", category: "defense", type: "number" },
   { key: "blockSolos", label: "Contres solo", shortLabel: "C. solo", category: "defense", type: "number" },
@@ -218,7 +221,7 @@ export const VOLLEYBALL_STATS: StatField[] = [
   { key: "digErrors", label: "Erreurs de réception déf.", shortLabel: "Err. dig", category: "defense", type: "number" },
   { key: "receptionErrors", label: "Erreurs de réception", shortLabel: "Err. réc.", category: "defense", type: "number" },
   { key: "receptionAttempts", label: "Réceptions tentées", shortLabel: "Réc. tent.", category: "defense", type: "number" },
-  { key: "receptionPercentage", label: "% Réception", shortLabel: "% Réc.", category: "defense", type: "number", max: 100 },
+  { key: "receptionPercentage", label: "% Réception", shortLabel: "% Réc.", category: "defense", type: "percentage", max: 100, computedFrom: { successKey: "digs", totalKey: "receptionAttempts" } },
   { key: "perfectReceptions", label: "Réceptions parfaites", shortLabel: "Réc. parf.", category: "defense", type: "number" },
 ];
 
@@ -236,15 +239,15 @@ export const BASKETBALL_STATS: StatField[] = [
   { key: "points", label: "Points", shortLabel: "Points", category: "scoring", type: "number" },
   { key: "fieldGoalsMade", label: "Paniers réussis", shortLabel: "FG", category: "scoring", type: "number" },
   { key: "fieldGoalsAttempted", label: "Paniers tentés", shortLabel: "FGA", category: "scoring", type: "number" },
-  { key: "fieldGoalPercentage", label: "% Paniers", shortLabel: "FG%", category: "scoring", type: "number", max: 100 },
+  { key: "fieldGoalPercentage", label: "% Paniers", shortLabel: "FG%", category: "scoring", type: "percentage", max: 100, computedFrom: { successKey: "fieldGoalsMade", totalKey: "fieldGoalsAttempted" } },
   { key: "threePointersMade", label: "3 points réussis", shortLabel: "3P", category: "scoring", type: "number" },
   { key: "threePointersAttempted", label: "3 points tentés", shortLabel: "3PA", category: "scoring", type: "number" },
-  { key: "threePointPercentage", label: "% 3 points", shortLabel: "3P%", category: "scoring", type: "number", max: 100 },
+  { key: "threePointPercentage", label: "% 3 points", shortLabel: "3P%", category: "scoring", type: "percentage", max: 100, computedFrom: { successKey: "threePointersMade", totalKey: "threePointersAttempted" } },
   { key: "twoPointersMade", label: "2 points réussis", shortLabel: "2P", category: "scoring", type: "number" },
   { key: "twoPointersAttempted", label: "2 points tentés", shortLabel: "2PA", category: "scoring", type: "number" },
   { key: "freeThrowsMade", label: "Lancers francs réussis", shortLabel: "FT", category: "scoring", type: "number" },
   { key: "freeThrowsAttempted", label: "Lancers francs tentés", shortLabel: "FTA", category: "scoring", type: "number" },
-  { key: "freeThrowPercentage", label: "% Lancers francs", shortLabel: "FT%", category: "scoring", type: "number", max: 100 },
+  { key: "freeThrowPercentage", label: "% Lancers francs", shortLabel: "FT%", category: "scoring", type: "percentage", max: 100, computedFrom: { successKey: "freeThrowsMade", totalKey: "freeThrowsAttempted" } },
   { key: "pointsInPaint", label: "Points dans la raquette", shortLabel: "Raquette", category: "scoring", type: "number" },
   { key: "fastBreakPoints", label: "Points contre-attaque", shortLabel: "CA", category: "scoring", type: "number" },
   { key: "secondChancePoints", label: "2nde chance", shortLabel: "2nde ch.", category: "scoring", type: "number" },
@@ -285,7 +288,7 @@ export const JUDO_STATS: StatField[] = [
   // === ATTAQUE ===
   { key: "attackAttempts", label: "Attaques tentées", shortLabel: "Att. tentées", category: "attack", type: "number" },
   { key: "attackEffective", label: "Attaques efficaces", shortLabel: "Att. eff.", category: "attack", type: "number" },
-  { key: "attackEffectivePercent", label: "% attaques efficaces", shortLabel: "% Eff.", category: "attack", type: "number", max: 100 },
+  { key: "attackEffectivePercent", label: "% attaques efficaces", shortLabel: "% Eff.", category: "attack", type: "percentage", max: 100, computedFrom: { successKey: "attackEffective", totalKey: "attackAttempts" } },
   { key: "techniqueNageWaza", label: "Nage-waza (debout)", shortLabel: "Nage-waza", category: "attack", type: "number" },
   { key: "techniqueNeWaza", label: "Ne-waza (sol)", shortLabel: "Ne-waza", category: "attack", type: "number" },
   { key: "dominantSideRight", label: "Côté dominant: Droite", shortLabel: "Droite", category: "attack", type: "number", max: 1 },
@@ -298,7 +301,7 @@ export const JUDO_STATS: StatField[] = [
   { key: "attacksReceived", label: "Attaques subies", shortLabel: "Att. subies", category: "defense", type: "number" },
   { key: "scoresConceded", label: "Scores concédés", shortLabel: "Sc. concédés", category: "defense", type: "number" },
   { key: "attacksNeutralized", label: "Attaques neutralisées", shortLabel: "Neutralisées", category: "defense", type: "number" },
-  { key: "defensiveQuality", label: "% qualité défensive", shortLabel: "% Déf.", category: "defense", type: "number", max: 100 },
+  { key: "defensiveQuality", label: "% qualité défensive", shortLabel: "% Déf.", category: "defense", type: "percentage", max: 100, computedFrom: { successKey: "attacksNeutralized", totalKey: "attacksReceived" } },
   
   // === PÉNALITÉS ===
   { key: "shidoReceived", label: "Shido reçus", shortLabel: "Shido reçus", category: "general", type: "number", max: 3 },
@@ -311,7 +314,7 @@ export const JUDO_STATS: StatField[] = [
   { key: "armLockAttempts", label: "Tentatives clé de bras", shortLabel: "Tent. clé", category: "attack", type: "number" },
   { key: "chokeAttempts", label: "Tentatives étranglement", shortLabel: "Tent. étrang.", category: "attack", type: "number" },
   { key: "neWazaSuccess", label: "Réussites ne-waza", shortLabel: "Réussites sol", category: "attack", type: "number" },
-  { key: "neWazaEfficiency", label: "% efficacité ne-waza", shortLabel: "% Ne-waza", category: "attack", type: "number", max: 100 },
+  { key: "neWazaEfficiency", label: "% efficacité ne-waza", shortLabel: "% Ne-waza", category: "attack", type: "percentage", max: 100, computedFrom: { successKey: "neWazaSuccess", totalKey: "immobilizationAttempts" } },
   
   // === PHYSIQUE & RYTHME ===
   { key: "effectiveEngagementTime", label: "Temps engagement effectif (sec)", shortLabel: "Eng. eff.", category: "general", type: "number" },
@@ -384,9 +387,9 @@ export const BOWLING_STATS: StatField[] = [
   { key: "splitOnLastThrow", label: "Splits sur 11e/12e lancer (non comptés)", shortLabel: "Splits excl.", category: "scoring", type: "number" },
   
   // Precision statistics (calculés automatiquement)
-  { key: "strikePercentage", label: "% de strikes", shortLabel: "% Strikes", category: "attack", type: "number", max: 100 },
-  { key: "sparePercentage", label: "% de spares (hors splits)", shortLabel: "% Spares", category: "attack", type: "number", max: 100 },
-  { key: "splitConversionRate", label: "% conversion splits", shortLabel: "% Split Conv.", category: "attack", type: "number", max: 100 },
+  { key: "strikePercentage", label: "% de strikes", shortLabel: "% Strikes", category: "attack", type: "percentage", max: 100 },
+  { key: "sparePercentage", label: "% de spares (hors splits)", shortLabel: "% Spares", category: "attack", type: "percentage", max: 100, computedFrom: { successKey: "spares", totalKey: "spareOpportunities" } },
+  { key: "splitConversionRate", label: "% conversion splits", shortLabel: "% Split Conv.", category: "attack", type: "percentage", max: 100, computedFrom: { successKey: "splitConverted", totalKey: "splitCount" } },
   { key: "spareOpportunities", label: "Opportunités de spare", shortLabel: "Opp. Spare", category: "attack", type: "number" },
   { key: "pinsPerFrame", label: "Pins par frame", shortLabel: "Pins/Frame", category: "attack", type: "number" },
   { key: "targetHitRate", label: "Taux de touche de la cible", shortLabel: "% Cible", category: "attack", type: "number", max: 100 },
