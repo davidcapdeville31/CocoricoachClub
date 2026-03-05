@@ -426,9 +426,9 @@ export default function AthleteSpace() {
       <main className="max-w-5xl mx-auto px-4 py-6">
        <Tabs defaultValue="dashboard" className="w-full">
             <TabsList className="w-full flex overflow-x-auto gap-1.5 h-auto flex-nowrap justify-start bg-transparent p-0 mb-6 scrollbar-none pb-1">
-              <TabsTrigger 
+             <TabsTrigger 
                 value="dashboard" 
-                className="athlete-tab gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
+                className="athlete-tab shrink-0 gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
                 style={{
                   color: NAV_COLORS.sante.base,
                   backgroundColor: `${NAV_COLORS.sante.base}15`,
@@ -442,7 +442,7 @@ export default function AthleteSpace() {
               </TabsTrigger>
               <TabsTrigger 
                 value="rpe"
-                className="athlete-tab gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
+                className="athlete-tab shrink-0 gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
                 style={{
                   color: NAV_COLORS.performance.base,
                   backgroundColor: `${NAV_COLORS.performance.base}15`,
@@ -455,7 +455,7 @@ export default function AthleteSpace() {
               </TabsTrigger>
               <TabsTrigger 
                 value="wellness"
-                className="athlete-tab gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
+                className="athlete-tab shrink-0 gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
                 style={{
                   color: NAV_COLORS.sante.base,
                   backgroundColor: `${NAV_COLORS.sante.base}15`,
@@ -468,7 +468,7 @@ export default function AthleteSpace() {
               </TabsTrigger>
               <TabsTrigger 
                 value="progression"
-                className="athlete-tab gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
+                className="athlete-tab shrink-0 gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
                 style={{
                   color: NAV_COLORS.programmation.base,
                   backgroundColor: `${NAV_COLORS.programmation.base}15`,
@@ -481,7 +481,7 @@ export default function AthleteSpace() {
               </TabsTrigger>
               <TabsTrigger 
                 value="objectives"
-                className="athlete-tab gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
+                className="athlete-tab shrink-0 gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
                 style={{
                   color: NAV_COLORS.planification.base,
                   backgroundColor: `${NAV_COLORS.planification.base}15`,
@@ -494,7 +494,7 @@ export default function AthleteSpace() {
               </TabsTrigger>
               <TabsTrigger 
                 value="health"
-                className="athlete-tab gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
+                className="athlete-tab shrink-0 gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
                 style={{
                   color: NAV_COLORS.sante.base,
                   backgroundColor: `${NAV_COLORS.sante.base}15`,
@@ -507,7 +507,7 @@ export default function AthleteSpace() {
               </TabsTrigger>
               <TabsTrigger 
                 value="education"
-                className="athlete-tab gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
+                className="athlete-tab shrink-0 gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
                 style={{
                   color: NAV_COLORS.effectif.base,
                   backgroundColor: `${NAV_COLORS.effectif.base}15`,
@@ -519,9 +519,9 @@ export default function AthleteSpace() {
                  Conseils
                 </TabsTrigger>
                {!isSuperAdminView && (
-                 <TabsTrigger 
+                  <TabsTrigger 
                     value="messaging"
-                    className="athlete-tab relative gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
+                    className="athlete-tab shrink-0 relative gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
                     style={{
                       color: NAV_COLORS.communication.base,
                       backgroundColor: `${NAV_COLORS.communication.base}15`,
@@ -539,9 +539,9 @@ export default function AthleteSpace() {
                   </TabsTrigger>
                 )}
                {!isSuperAdminView && (
-                 <TabsTrigger 
+                  <TabsTrigger 
                     value="settings"
-                    className="athlete-tab gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
+                    className="athlete-tab shrink-0 gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
                     style={{
                       color: NAV_COLORS.effectif.base,
                       backgroundColor: `${NAV_COLORS.effectif.base}15`,
