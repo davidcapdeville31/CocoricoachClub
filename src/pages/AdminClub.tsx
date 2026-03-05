@@ -54,9 +54,10 @@ import { SeasonManager } from "@/components/club/SeasonManager";
     const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
     const [isInviteOpen, setIsInviteOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("overview");
-    const [isEditingSettings, setIsEditingSettings] = useState(false);
-    const [editClubName, setEditClubName] = useState("");
-    const [editClubSport, setEditClubSport] = useState("");
+     const [isEditingSettings, setIsEditingSettings] = useState(false);
+     const [editClubName, setEditClubName] = useState("");
+     const [editClubSport, setEditClubSport] = useState("");
+     const [pdfOpen, setPdfOpen] = useState(false);
  
    // Fetch club data
    const { data: club, isLoading: clubLoading } = useQuery({
