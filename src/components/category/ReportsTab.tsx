@@ -708,7 +708,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const match = matches.find(m => m.id === selectedMatch);
       if (!match) throw new Error("Match non trouvé");
 
-      const { settings: pdfSettings, logoBase64 } = await preparePdfWithSettings(categoryId);
+      const { settings: pdfSettings, logoBase64, seasonName: sn2 } = await preparePdfWithSettings(categoryId);
 
       // Fetch match data + stat preferences
       const [lineupsRes, statsRes, statPrefsRes, customStatsRes] = await Promise.all([
