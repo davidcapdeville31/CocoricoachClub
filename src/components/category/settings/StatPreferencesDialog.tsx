@@ -131,8 +131,14 @@ export function StatPreferencesDialog({
     }
   }, [statCategories, selectedCategory]);
 
-  const savePrefs = useMutation({
-    mutationFn: async () => {
+  // Auto-save with debounce
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState(false);
+
+  const doSave = useCallback(async (stats: string[]) => {
+    setIsSaving(true);
+    try {
       const { data: existing } = await supabase
         .from("category_stat_preferences")
         .select("id")
@@ -143,7 +149,7 @@ export function StatPreferencesDialog({
         const { error } = await supabase
           .from("category_stat_preferences")
           .update({
-            enabled_stats: enabledStats,
+            enabled_stats: stats,
             sport_type: sportType,
             updated_by: user?.id,
           })
@@ -155,22 +161,40 @@ export function StatPreferencesDialog({
           .insert({
             category_id: categoryId,
             sport_type: sportType,
-            enabled_stats: enabledStats,
+            enabled_stats: stats,
             updated_by: user?.id,
           });
         if (error) throw error;
       }
-    },
-    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stat-preferences", categoryId] });
-      toast.success("Préférences de statistiques enregistrées");
-      onOpenChange(false);
-    },
-    onError: (error) => {
+      setLastSaved(true);
+      setTimeout(() => setLastSaved(false), 2000);
+    } catch (error) {
       console.error("Error saving stat preferences:", error);
       toast.error("Erreur lors de l'enregistrement");
-    },
-  });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [categoryId, sportType, user?.id, queryClient]);
+
+  // Trigger auto-save when enabledStats changes (debounced)
+  const hasInitialized = useRef(false);
+  useEffect(() => {
+    if (!hasInitialized.current) {
+      // Skip the first render (initialization)
+      if (initializedRef.current) {
+        hasInitialized.current = true;
+      }
+      return;
+    }
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      doSave(enabledStats);
+    }, 800);
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [enabledStats, doSave]);
 
   const deleteCustomStat = useMutation({
     mutationFn: async (statId: string) => {
