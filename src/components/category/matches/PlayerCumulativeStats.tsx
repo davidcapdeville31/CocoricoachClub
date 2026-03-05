@@ -73,6 +73,9 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV" }: PlayerCu
         const sportData = (stat as { sport_data?: Record<string, number> }).sport_data || {};
         
         sportStats.forEach(statField => {
+          // Skip auto-computed percentage stats during aggregation
+          if (statField.computedFrom) return;
+          
           const value = sportData[statField.key] || 
                        stat[statField.key as keyof typeof stat] || 
                        stat[statField.key.replace(/([A-Z])/g, '_$1').toLowerCase() as keyof typeof stat] || 
@@ -83,6 +86,21 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV" }: PlayerCu
           }
           p.sportData[statField.key] += Number(value) || 0;
         });
+      });
+
+      // Now compute percentage stats from aggregated totals
+      Object.values(aggregated).forEach(p => {
+        sportStats.forEach(statField => {
+          if (statField.computedFrom) {
+            const { successKey, totalKey, failureKey } = statField.computedFrom;
+            const success = p.sportData[successKey] || 0;
+            const total = totalKey 
+              ? (p.sportData[totalKey] || 0)
+              : success + (p.sportData[failureKey!] || 0);
+            p.sportData[statField.key] = total > 0 ? Math.round((success / total) * 100) : 0;
+          }
+        });
+      });
       });
 
       return Object.values(aggregated);
