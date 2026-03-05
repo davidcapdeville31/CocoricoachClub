@@ -47,14 +47,14 @@ export function ClubPdfSettingsSection({ clubId }: ClubPdfSettingsProps) {
   const { data: savedSettings, isLoading } = useQuery({
     queryKey: ["pdf-settings-club", clubId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase
         .from("pdf_settings")
-        .select("*")
-        .eq("club_id" as any, clubId)
+        .select("*") as any)
+        .eq("club_id", clubId)
         .is("category_id", null)
         .maybeSingle();
       if (error) throw error;
-      return data;
+      return data as any;
     },
   });
 
