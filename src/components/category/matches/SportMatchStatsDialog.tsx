@@ -79,7 +79,11 @@ export function SportMatchStatsDialog({
   
   // Use filtered stats from preferences; only fall back to all stats if NO preferences configured AND filtered is empty
   const sportStats = hasCustomPreferences ? filteredStats : (filteredStats.length > 0 ? filteredStats : getStatsForSport(sportType, selectedPlayer?.isGoalkeeper ?? false));
-  const statCategories = getStatCategories(sportType);
+  const allStatCategories = getStatCategories(sportType);
+  // Only show categories that have at least one enabled stat
+  const statCategories = allStatCategories.filter(cat => 
+    sportStats.some(s => s.category === cat.key)
+  );
 
   // Set default stat category
   useEffect(() => {
