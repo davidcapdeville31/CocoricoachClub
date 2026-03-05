@@ -156,6 +156,36 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [rpe, setRpe] = useState(5);
   const [duration, setDuration] = useState("");
+  const [durationLocked, setDurationLocked] = useState(false);
+
+  // Calculate duration from session start/end times
+  const getSessionDuration = (session: { session_start_time?: string | null; session_end_time?: string | null }) => {
+    if (!session.session_start_time || !session.session_end_time) return null;
+    const [sh, sm] = session.session_start_time.split(":").map(Number);
+    const [eh, em] = session.session_end_time.split(":").map(Number);
+    const diff = (eh * 60 + em) - (sh * 60 + sm);
+    return diff > 0 ? diff : null;
+  };
+
+  const handleSelectSession = (sessionId: string) => {
+    if (sessionId === selectedSession) {
+      setSelectedSession(null);
+      return;
+    }
+    setSelectedSession(sessionId);
+    setRpe(5);
+    const session = todaySessions.find(s => s.id === sessionId);
+    if (session) {
+      const calcDuration = getSessionDuration(session);
+      if (calcDuration) {
+        setDuration(calcDuration.toString());
+        setDurationLocked(true);
+      } else {
+        setDuration("");
+        setDurationLocked(false);
+      }
+    }
+  };
 
   const submitRpe = useMutation({
     mutationFn: async () => {
