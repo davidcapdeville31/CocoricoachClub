@@ -288,7 +288,7 @@ export const JUDO_STATS: StatField[] = [
   // === ATTAQUE ===
   { key: "attackAttempts", label: "Attaques tentées", shortLabel: "Att. tentées", category: "attack", type: "number" },
   { key: "attackEffective", label: "Attaques efficaces", shortLabel: "Att. eff.", category: "attack", type: "number" },
-  { key: "attackEffectivePercent", label: "% attaques efficaces", shortLabel: "% Eff.", category: "attack", type: "number", max: 100 },
+  { key: "attackEffectivePercent", label: "% attaques efficaces", shortLabel: "% Eff.", category: "attack", type: "percentage", max: 100, computedFrom: { successKey: "attackEffective", totalKey: "attackAttempts" } },
   { key: "techniqueNageWaza", label: "Nage-waza (debout)", shortLabel: "Nage-waza", category: "attack", type: "number" },
   { key: "techniqueNeWaza", label: "Ne-waza (sol)", shortLabel: "Ne-waza", category: "attack", type: "number" },
   { key: "dominantSideRight", label: "Côté dominant: Droite", shortLabel: "Droite", category: "attack", type: "number", max: 1 },
