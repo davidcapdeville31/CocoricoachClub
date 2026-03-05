@@ -46,6 +46,7 @@ import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesD
 import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { AddWellnessDialog } from "./AddWellnessDialog";
+import { SessionFeedbackDialog } from "./calendar/SessionFeedbackDialog";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
  
  interface DecisionCenterProps {
