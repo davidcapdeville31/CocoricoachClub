@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -108,6 +108,7 @@ export function StatPreferencesDialog({
     // Reset when dialog reopens
     if (!open) {
       initializedRef.current = false;
+      if (hasInitialized) hasInitialized.current = false;
       return;
     }
     if (initializedRef.current) return;
@@ -131,8 +132,14 @@ export function StatPreferencesDialog({
     }
   }, [statCategories, selectedCategory]);
 
-  const savePrefs = useMutation({
-    mutationFn: async () => {
+  // Auto-save with debounce
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState(false);
+
+  const doSave = useCallback(async (stats: string[]) => {
+    setIsSaving(true);
+    try {
       const { data: existing } = await supabase
         .from("category_stat_preferences")
         .select("id")
@@ -143,7 +150,7 @@ export function StatPreferencesDialog({
         const { error } = await supabase
           .from("category_stat_preferences")
           .update({
-            enabled_stats: enabledStats,
+            enabled_stats: stats,
             sport_type: sportType,
             updated_by: user?.id,
           })
@@ -155,22 +162,40 @@ export function StatPreferencesDialog({
           .insert({
             category_id: categoryId,
             sport_type: sportType,
-            enabled_stats: enabledStats,
+            enabled_stats: stats,
             updated_by: user?.id,
           });
         if (error) throw error;
       }
-    },
-    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stat-preferences", categoryId] });
-      toast.success("Préférences de statistiques enregistrées");
-      onOpenChange(false);
-    },
-    onError: (error) => {
+      setLastSaved(true);
+      setTimeout(() => setLastSaved(false), 2000);
+    } catch (error) {
       console.error("Error saving stat preferences:", error);
       toast.error("Erreur lors de l'enregistrement");
-    },
-  });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [categoryId, sportType, user?.id, queryClient]);
+
+  // Trigger auto-save when enabledStats changes (debounced)
+  const hasInitialized = useRef(false);
+  useEffect(() => {
+    if (!hasInitialized.current) {
+      // Skip the first render (initialization)
+      if (initializedRef.current) {
+        hasInitialized.current = true;
+      }
+      return;
+    }
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      doSave(enabledStats);
+    }, 800);
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [enabledStats, doSave]);
 
   const deleteCustomStat = useMutation({
     mutationFn: async (statId: string) => {
@@ -409,14 +434,17 @@ export function StatPreferencesDialog({
           </ScrollArea>
 
           <DialogFooter className="mt-4">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mr-auto">
+              {isSaving && <span>Enregistrement...</span>}
+              {lastSaved && !isSaving && (
+                <span className="flex items-center gap-1 text-green-600">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Sauvegardé
+                </span>
+              )}
+            </div>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Annuler
-            </Button>
-            <Button 
-              onClick={() => savePrefs.mutate()} 
-              disabled={savePrefs.isPending || enabledStats.length === 0}
-            >
-              {savePrefs.isPending ? "Enregistrement..." : "Enregistrer"}
+              Fermer
             </Button>
           </DialogFooter>
         </DialogContent>
