@@ -314,7 +314,7 @@ export const JUDO_STATS: StatField[] = [
   { key: "armLockAttempts", label: "Tentatives clé de bras", shortLabel: "Tent. clé", category: "attack", type: "number" },
   { key: "chokeAttempts", label: "Tentatives étranglement", shortLabel: "Tent. étrang.", category: "attack", type: "number" },
   { key: "neWazaSuccess", label: "Réussites ne-waza", shortLabel: "Réussites sol", category: "attack", type: "number" },
-  { key: "neWazaEfficiency", label: "% efficacité ne-waza", shortLabel: "% Ne-waza", category: "attack", type: "number", max: 100 },
+  { key: "neWazaEfficiency", label: "% efficacité ne-waza", shortLabel: "% Ne-waza", category: "attack", type: "percentage", max: 100, computedFrom: { successKey: "neWazaSuccess", totalKey: "immobilizationAttempts" } },
   
   // === PHYSIQUE & RYTHME ===
   { key: "effectiveEngagementTime", label: "Temps engagement effectif (sec)", shortLabel: "Eng. eff.", category: "general", type: "number" },
