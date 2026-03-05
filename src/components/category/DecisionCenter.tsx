@@ -312,7 +312,42 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
       },
     });
 
-    // Fetch expired documents
+    // Fetch today's RPE data
+    const { data: todayRpeData = [] } = useQuery({
+      queryKey: ["today_rpe_decision", categoryId, today],
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from("awcr_tracking")
+          .select("player_id, rpe, training_session_id")
+          .eq("category_id", categoryId)
+          .eq("session_date", today);
+        if (error) throw error;
+        return data;
+      },
+    });
+
+    // Subscribe to RPE changes for real-time updates
+    useEffect(() => {
+      const channel = supabase
+        .channel(`rpe_decision_${categoryId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'awcr_tracking',
+            filter: `category_id=eq.${categoryId}`,
+          },
+          () => {
+            queryClient.invalidateQueries({ queryKey: ["today_rpe_decision", categoryId] });
+          }
+        )
+        .subscribe();
+
+      return () => { channel.unsubscribe(); };
+    }, [categoryId, queryClient]);
+
+
     const { data: expiredDocs = [] } = useQuery({
       queryKey: ["expired_docs", categoryId],
       queryFn: async () => {
