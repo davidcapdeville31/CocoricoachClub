@@ -19,6 +19,7 @@ import { AthleteSpaceObjectives } from "@/components/athlete-space/AthleteSpaceO
 import { AthleteSpaceHealth } from "@/components/athlete-space/AthleteSpaceHealth";
 import { AthleteSpaceEducation } from "@/components/athlete-space/AthleteSpaceEducation";
 import { MessagingTab } from "@/components/messaging/MessagingTab";
+import { AthleteSpaceSettings } from "@/components/athlete-space/AthleteSpaceSettings";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
 interface AthleteInfo {
