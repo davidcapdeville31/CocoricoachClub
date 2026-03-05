@@ -275,7 +275,7 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
             {pendingSessions.map(session => (
               <div key={session.id}>
                 <button
-                  onClick={() => setSelectedSession(session.id === selectedSession ? null : session.id)}
+                  onClick={() => handleSelectSession(session.id)}
                   className={`w-full text-left p-3 rounded-lg border transition-colors ${
                     selectedSession === session.id
                       ? "border-accent bg-accent/5"
