@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, User, LogOut, Activity, Heart, BarChart3, Target, Video, BookOpen, Shield, ArrowLeft, Search, ChevronRight, MessageSquare } from "lucide-react";
+import { Loader2, User, LogOut, Activity, Heart, BarChart3, Target, Video, BookOpen, Shield, ArrowLeft, Search, ChevronRight, MessageSquare, Settings } from "lucide-react";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { AthletePWAInstallPopup } from "@/components/athlete/AthletePWAInstallPopup";
 import { AthleteSpaceDashboard } from "@/components/athlete-space/AthleteSpaceDashboard";
@@ -19,6 +19,7 @@ import { AthleteSpaceObjectives } from "@/components/athlete-space/AthleteSpaceO
 import { AthleteSpaceHealth } from "@/components/athlete-space/AthleteSpaceHealth";
 import { AthleteSpaceEducation } from "@/components/athlete-space/AthleteSpaceEducation";
 import { MessagingTab } from "@/components/messaging/MessagingTab";
+import { AthleteSpaceSettings } from "@/components/athlete-space/AthleteSpaceSettings";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
 interface AthleteInfo {
@@ -536,7 +537,22 @@ export default function AthleteSpace() {
                       </span>
                     )}
                   </TabsTrigger>
-               )}
+                )}
+               {!isSuperAdminView && (
+                 <TabsTrigger 
+                    value="settings"
+                    className="athlete-tab gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
+                    style={{
+                      color: NAV_COLORS.effectif.base,
+                      backgroundColor: `${NAV_COLORS.effectif.base}15`,
+                      borderBottom: `3px solid ${NAV_COLORS.effectif.base}`,
+                      ["--tab-color" as string]: NAV_COLORS.effectif.base,
+                    }}
+                  >
+                    <Settings className="h-3.5 w-3.5" />
+                    Paramètres
+                  </TabsTrigger>
+                )}
              </TabsList>
 
           <TabsContent value="dashboard">
@@ -591,6 +607,12 @@ export default function AthleteSpace() {
           {!isSuperAdminView && (
             <TabsContent value="messaging">
               <MessagingTab categoryId={athleteInfo.category_id} isAthlete={true} />
+            </TabsContent>
+          )}
+
+          {!isSuperAdminView && (
+            <TabsContent value="settings">
+              <AthleteSpaceSettings />
             </TabsContent>
           )}
         </Tabs>

@@ -156,6 +156,36 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [rpe, setRpe] = useState(5);
   const [duration, setDuration] = useState("");
+  const [durationLocked, setDurationLocked] = useState(false);
+
+  // Calculate duration from session start/end times
+  const getSessionDuration = (session: { session_start_time?: string | null; session_end_time?: string | null }) => {
+    if (!session.session_start_time || !session.session_end_time) return null;
+    const [sh, sm] = session.session_start_time.split(":").map(Number);
+    const [eh, em] = session.session_end_time.split(":").map(Number);
+    const diff = (eh * 60 + em) - (sh * 60 + sm);
+    return diff > 0 ? diff : null;
+  };
+
+  const handleSelectSession = (sessionId: string) => {
+    if (sessionId === selectedSession) {
+      setSelectedSession(null);
+      return;
+    }
+    setSelectedSession(sessionId);
+    setRpe(5);
+    const session = todaySessions.find(s => s.id === sessionId);
+    if (session) {
+      const calcDuration = getSessionDuration(session);
+      if (calcDuration) {
+        setDuration(calcDuration.toString());
+        setDurationLocked(true);
+      } else {
+        setDuration("");
+        setDurationLocked(false);
+      }
+    }
+  };
 
   const submitRpe = useMutation({
     mutationFn: async () => {
@@ -245,7 +275,7 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
             {pendingSessions.map(session => (
               <div key={session.id}>
                 <button
-                  onClick={() => setSelectedSession(session.id === selectedSession ? null : session.id)}
+                  onClick={() => handleSelectSession(session.id)}
                   className={`w-full text-left p-3 rounded-lg border transition-colors ${
                     selectedSession === session.id
                       ? "border-accent bg-accent/5"
@@ -289,13 +319,27 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
                     </div>
                     <div>
                       <Label className="text-sm">Durée (minutes)</Label>
-                      <Input
-                        type="number"
-                        value={duration}
-                        onChange={e => setDuration(e.target.value)}
-                        placeholder="Ex: 90"
-                        className="mt-1"
-                      />
+                      {durationLocked ? (
+                        <div className="mt-1 flex items-center gap-2">
+                          <Input
+                            type="number"
+                            value={duration}
+                            readOnly
+                            className="bg-muted/50 cursor-not-allowed"
+                          />
+                          <Badge variant="secondary" className="text-xs whitespace-nowrap shrink-0">
+                            {duration}'
+                          </Badge>
+                        </div>
+                      ) : (
+                        <Input
+                          type="number"
+                          value={duration}
+                          onChange={e => setDuration(e.target.value)}
+                          placeholder="Ex: 90"
+                          className="mt-1"
+                        />
+                      )}
                     </div>
                     <Button
                       onClick={() => submitRpe.mutate()}

@@ -104,14 +104,35 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
     mutationFn: async () => {
       if (!newMessage.trim() || !user) return;
       
+      const messageContent = newMessage.trim();
+      
       const { error } = await supabase.from("messages").insert({
         conversation_id: conversationId,
         sender_id: user.id,
-        content: newMessage.trim(),
+        content: messageContent,
         is_announcement: isAnnouncement,
         read_by: [user.id],
       });
       if (error) throw error;
+
+      // Send push notification to other participants (fire & forget)
+      try {
+        const otherParticipants = participants?.filter(p => p.user_id !== user.id) || [];
+        if (otherParticipants.length > 0) {
+          const target_user_ids = otherParticipants.map(p => p.user_id);
+          await supabase.functions.invoke("send-targeted-notification", {
+            body: {
+              title: isAnnouncement ? "📢 Nouvelle annonce" : "💬 Nouveau message",
+              message: messageContent.length > 100 ? messageContent.substring(0, 100) + "..." : messageContent,
+              target_user_ids,
+              channels: ["push"],
+              data: { conversationId, type: "chat_message" },
+            },
+          });
+        }
+      } catch (e) {
+        console.warn("[ChatWindow] Push notification failed:", e);
+      }
     },
     onSuccess: () => {
       setNewMessage("");
