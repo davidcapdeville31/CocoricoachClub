@@ -159,7 +159,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       if (!player) throw new Error("Joueur non trouvé");
 
       // Prepare custom PDF settings
-      const { settings: pdfSettings, logoBase64 } = await preparePdfWithSettings(categoryId);
+      const { settings: pdfSettings, logoBase64, seasonName } = await preparePdfWithSettings(categoryId);
 
       // Build date filters
       const dateFilters = (query: any) => {
