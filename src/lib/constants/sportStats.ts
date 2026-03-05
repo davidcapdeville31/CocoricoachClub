@@ -178,7 +178,7 @@ export const HANDBALL_GOALKEEPER_STATS: StatField[] = [
   { key: "redCards", label: "Cartons rouges", shortLabel: "Rouges", category: "general", type: "number" },
   { key: "twoMinutes", label: "Exclusions 2 min", shortLabel: "2 min", category: "general", type: "number" },
   { key: "saves", label: "Arrêts", shortLabel: "Arrêts", category: "scoring", type: "number" },
-  { key: "savePercentage", label: "% Arrêts", shortLabel: "% Arrêts", category: "scoring", type: "number", max: 100 },
+  { key: "savePercentage", label: "% Arrêts", shortLabel: "% Arrêts", category: "scoring", type: "percentage", max: 100, computedFrom: { successKey: "saves", failureKey: "goalsAgainst" } },
   { key: "goalsAgainst", label: "Buts encaissés", shortLabel: "Buts enc.", category: "scoring", type: "number" },
   { key: "sevenMetersSaved", label: "7m arrêtés", shortLabel: "7m arr.", category: "defense", type: "number" },
   { key: "fastBreakSaves", label: "Arrêts contre-attaque", shortLabel: "Arr. CA", category: "defense", type: "number" },
