@@ -537,7 +537,22 @@ export default function AthleteSpace() {
                       </span>
                     )}
                   </TabsTrigger>
-               )}
+                )}
+               {!isSuperAdminView && (
+                 <TabsTrigger 
+                    value="settings"
+                    className="athlete-tab gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
+                    style={{
+                      color: NAV_COLORS.effectif.base,
+                      backgroundColor: `${NAV_COLORS.effectif.base}15`,
+                      borderBottom: `3px solid ${NAV_COLORS.effectif.base}`,
+                      ["--tab-color" as string]: NAV_COLORS.effectif.base,
+                    }}
+                  >
+                    <Settings className="h-3.5 w-3.5" />
+                    Paramètres
+                  </TabsTrigger>
+                )}
              </TabsList>
 
           <TabsContent value="dashboard">
