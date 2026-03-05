@@ -840,6 +840,90 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
           </CardContent>
         </Card>
 
+        {/* 1.55️⃣ RPE DU JOUR */}
+        {rpeStatus.length > 0 && (
+          <Card className="border-2 border-indigo-500/20 bg-gradient-to-r from-indigo-500/5 to-transparent">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Activity className="h-5 w-5 text-indigo-600" />
+                RPE post-séance du jour
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {rpeStatus.map(session => (
+                <div key={session.sessionId} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{session.sessionName}</span>
+                      {session.sessionTime && (
+                        <Badge variant="outline" className="text-xs">{session.sessionTime}</Badge>
+                      )}
+                      <span className="text-xs text-muted-foreground">
+                        RPE cible: {session.plannedIntensity}/10
+                      </span>
+                    </div>
+                    <span className={cn(
+                      "text-xl font-bold",
+                      session.filledPercent >= 80 ? "text-green-600" : 
+                      session.filledPercent >= 50 ? "text-yellow-600" : "text-red-600"
+                    )}>
+                      {session.filledPercent}%
+                    </span>
+                  </div>
+                  <Progress 
+                    value={session.filledPercent} 
+                    className={cn(
+                      "h-3",
+                      session.filledPercent >= 80 ? "[&>div]:bg-green-500" : 
+                      session.filledPercent >= 50 ? "[&>div]:bg-yellow-500" : "[&>div]:bg-red-500"
+                    )}
+                  />
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">
+                      {session.filledCount} / {session.totalParticipants} ont rempli leur RPE
+                    </p>
+                    <div className="flex items-center gap-2">
+                      {session.filledPercent === 100 ? (
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-green-100 dark:bg-green-900/30">
+                          <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                          <span className="text-xs font-semibold text-green-700 dark:text-green-400">Complété</span>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs"
+                          onClick={() => {
+                            setRpeDialogSessionId(session.sessionId);
+                            setRpeDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-3 w-3 mr-1" />
+                          Saisir RPE
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  {session.missingPlayers.length > 0 && session.missingPlayers.length <= 8 && (
+                    <div className="flex flex-wrap gap-1">
+                      {session.missingPlayers.map((name, idx) => (
+                        <Badge key={idx} variant="outline" className="text-xs text-muted-foreground">
+                          {name}
+                        </Badge>
+                      ))}
+                      {session.missingPlayers.length > 8 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{session.missingPlayers.length - 8}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
         {/* 1.6️⃣ PRÉSENCES DU JOUR */}
           <Card className="border-2 border-blue-500/20 bg-gradient-to-r from-blue-500/5 to-transparent">
             <CardHeader className="pb-2">
