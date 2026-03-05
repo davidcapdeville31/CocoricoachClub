@@ -108,6 +108,7 @@ export function StatPreferencesDialog({
     // Reset when dialog reopens
     if (!open) {
       initializedRef.current = false;
+      if (hasInitialized) hasInitialized.current = false;
       return;
     }
     if (initializedRef.current) return;
