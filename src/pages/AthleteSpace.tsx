@@ -518,7 +518,7 @@ export default function AthleteSpace() {
                 <BookOpen className="h-3.5 w-3.5" />
                   Conseils
                  </TabsTrigger>
-               {!isSuperAdminView && (
+               {(
                   <TabsTrigger 
                     value="messaging"
                     className="athlete-tab shrink-0 relative gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
@@ -538,7 +538,7 @@ export default function AthleteSpace() {
                     )}
                   </TabsTrigger>
                 )}
-               {!isSuperAdminView && (
+               {(
                   <TabsTrigger 
                     value="settings"
                      className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
@@ -604,17 +604,13 @@ export default function AthleteSpace() {
             <AthleteSpaceEducation sportType={athleteInfo.sport_type} />
           </TabsContent>
 
-          {!isSuperAdminView && (
-            <TabsContent value="messaging">
+          <TabsContent value="messaging">
               <MessagingTab categoryId={athleteInfo.category_id} isAthlete={true} />
             </TabsContent>
-          )}
 
-          {!isSuperAdminView && (
             <TabsContent value="settings">
               <AthleteSpaceSettings />
             </TabsContent>
-          )}
         </Tabs>
       </main>
     </div>
