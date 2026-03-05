@@ -43,7 +43,7 @@ export const RUGBY_STATS: StatField[] = [
   // Individual Stats - Defense
   { key: "tackles", label: "Plaquages réalisés", shortLabel: "Plaquages", category: "defense", type: "number" },
   { key: "tacklesMissed", label: "Plaquages ratés", shortLabel: "Ratés", category: "defense", type: "number" },
-  { key: "tackleSuccess", label: "% plaquages réussis", shortLabel: "% Plaq.", category: "defense", type: "number", max: 100 },
+  { key: "tackleSuccess", label: "% plaquages réussis", shortLabel: "% Plaq.", category: "defense", type: "percentage", max: 100, computedFrom: { successKey: "tackles", failureKey: "tacklesMissed" } },
   { key: "dominantTackles", label: "Plaquages dominants", shortLabel: "Plaq. dom.", category: "defense", type: "number" },
   { key: "defensiveRecoveries", label: "Ballons récupérés", shortLabel: "Récup.", category: "defense", type: "number" },
   { key: "turnoversLost", label: "Ballons perdus", shortLabel: "Pertes", category: "defense", type: "number" },
