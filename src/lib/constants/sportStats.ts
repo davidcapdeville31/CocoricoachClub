@@ -134,7 +134,7 @@ export const FOOTBALL_GOALKEEPER_STATS: StatField[] = [
   { key: "punches", label: "Dégagements poings", shortLabel: "Poings", category: "defense", type: "number" },
   { key: "throwouts", label: "Relances à la main", shortLabel: "Rel. main", category: "attack", type: "number" },
   { key: "goalKicks", label: "Relances au pied", shortLabel: "Rel. pied", category: "attack", type: "number" },
-  { key: "passAccuracy", label: "% Passes réussies", shortLabel: "% Passes", category: "attack", type: "number", max: 100 },
+  { key: "passAccuracy", label: "% Passes réussies", shortLabel: "% Passes", category: "attack", type: "percentage", max: 100, computedFrom: { successKey: "passes", totalKey: "passesAttempted" } },
 ];
 
 // Handball stats - Enriched
