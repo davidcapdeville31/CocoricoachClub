@@ -3684,7 +3684,8 @@ export type Database = {
       pdf_settings: {
         Row: {
           accent_color: string | null
-          category_id: string
+          category_id: string | null
+          club_id: string | null
           club_name_override: string | null
           created_at: string
           footer_text: string | null
@@ -3699,7 +3700,8 @@ export type Database = {
         }
         Insert: {
           accent_color?: string | null
-          category_id: string
+          category_id?: string | null
+          club_id?: string | null
           club_name_override?: string | null
           created_at?: string
           footer_text?: string | null
@@ -3714,7 +3716,8 @@ export type Database = {
         }
         Update: {
           accent_color?: string | null
-          category_id?: string
+          category_id?: string | null
+          club_id?: string | null
           club_name_override?: string | null
           created_at?: string
           footer_text?: string | null
@@ -3733,6 +3736,20 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: true
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdf_settings_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "admin_all_clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdf_settings_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
             referencedColumns: ["id"]
           },
         ]
