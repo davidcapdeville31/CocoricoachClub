@@ -96,6 +96,8 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
   const [wellnessDialogOpen, setWellnessDialogOpen] = useState(false);
   const [attendanceDetailOpen, setAttendanceDetailOpen] = useState(false);
   const [adaptChargeOpen, setAdaptChargeOpen] = useState(false);
+  const [rpeDialogOpen, setRpeDialogOpen] = useState(false);
+  const [rpeDialogSessionId, setRpeDialogSessionId] = useState<string | null>(null);
  
     // Fetch players
     const { data: players = [] } = useQuery({
