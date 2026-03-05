@@ -425,10 +425,10 @@ export default function AthleteSpace() {
       {/* Content */}
       <main className="max-w-5xl mx-auto px-4 py-6">
        <Tabs defaultValue="dashboard" className="w-full">
-            <TabsList className="w-full flex overflow-x-auto gap-1.5 h-auto flex-nowrap justify-start bg-transparent p-0 mb-6 scrollbar-none pb-1">
-             <TabsTrigger 
-                value="dashboard" 
-                className="athlete-tab shrink-0 gap-1.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 data-[state=active]:shadow-lg"
+             <TabsList className="w-full flex overflow-x-auto gap-1 h-auto flex-nowrap justify-start bg-transparent p-0 mb-6 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <TabsTrigger 
+                 value="dashboard" 
+                 className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
                 style={{
                   color: NAV_COLORS.sante.base,
                   backgroundColor: `${NAV_COLORS.sante.base}15`,
