@@ -29,6 +29,27 @@ import { Switch } from "@/components/ui/switch";
 import { useStatPreferences } from "@/hooks/use-stat-preferences";
 import { MatchGpsImport } from "./MatchGpsImport";
 
+// Convert seconds to minutes display format (e.g., 185 => "3'05")
+function formatSecondsToMinutes(totalSeconds: number): string {
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = Math.round(totalSeconds % 60);
+  return `${mins}'${secs.toString().padStart(2, '0')}`;
+}
+
+// Parse minutes input (accepts "2'45", "2.45", or raw number as seconds)
+function parseMinutesToSeconds(input: string): number {
+  if (!input || input.trim() === "") return 0;
+  if (input.includes("'")) {
+    const [mins, secs] = input.split("'");
+    return (parseInt(mins) || 0) * 60 + (parseInt(secs) || 0);
+  }
+  if (input.includes(".")) {
+    const [mins, secs] = input.split(".");
+    return (parseInt(mins) || 0) * 60 + (parseInt(secs) || 0);
+  }
+  return parseInt(input) || 0;
+}
+
 interface SportMatchStatsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
