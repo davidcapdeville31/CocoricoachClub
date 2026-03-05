@@ -46,6 +46,7 @@ import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesD
 import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { AddWellnessDialog } from "./AddWellnessDialog";
+import { SessionFeedbackDialog } from "./calendar/SessionFeedbackDialog";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
  
  interface DecisionCenterProps {
@@ -95,6 +96,8 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
   const [wellnessDialogOpen, setWellnessDialogOpen] = useState(false);
   const [attendanceDetailOpen, setAttendanceDetailOpen] = useState(false);
   const [adaptChargeOpen, setAdaptChargeOpen] = useState(false);
+  const [rpeDialogOpen, setRpeDialogOpen] = useState(false);
+  const [rpeDialogSessionId, setRpeDialogSessionId] = useState<string | null>(null);
  
     // Fetch players
     const { data: players = [] } = useQuery({
@@ -309,7 +312,42 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
       },
     });
 
-    // Fetch expired documents
+    // Fetch today's RPE data
+    const { data: todayRpeData = [] } = useQuery({
+      queryKey: ["today_rpe_decision", categoryId, today],
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from("awcr_tracking")
+          .select("player_id, rpe, training_session_id")
+          .eq("category_id", categoryId)
+          .eq("session_date", today);
+        if (error) throw error;
+        return data;
+      },
+    });
+
+    // Subscribe to RPE changes for real-time updates
+    useEffect(() => {
+      const channel = supabase
+        .channel(`rpe_decision_${categoryId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'awcr_tracking',
+            filter: `category_id=eq.${categoryId}`,
+          },
+          () => {
+            queryClient.invalidateQueries({ queryKey: ["today_rpe_decision", categoryId] });
+          }
+        )
+        .subscribe();
+
+      return () => { channel.unsubscribe(); };
+    }, [categoryId, queryClient]);
+
+
     const { data: expiredDocs = [] } = useQuery({
       queryKey: ["expired_docs", categoryId],
       queryFn: async () => {
@@ -501,7 +539,50 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
     };
     
     const wellnessStatus = getTodayWellnessStatus();
- 
+
+    // Calculate today's RPE status per session
+    const getTodayRpeStatus = () => {
+      if (todaySessions.length === 0) return [];
+      
+      return todaySessions.map(session => {
+        // Get participants for this session (from attendance or all players)
+        const sessionAttendance = todayAttendance.filter(
+          a => a.training_session_id === session.id && (a.status === "present" || a.status === "late")
+        );
+        const participantIds = sessionAttendance.length > 0 
+          ? sessionAttendance.map(a => a.player_id)
+          : players.map(p => p.id);
+        
+        const totalParticipants = participantIds.length;
+        const sessionRpe = todayRpeData.filter(r => r.training_session_id === session.id);
+        const filledIds = new Set(sessionRpe.map(r => r.player_id));
+        const filledCount = participantIds.filter(id => filledIds.has(id)).length;
+        const filledPercent = totalParticipants > 0 ? Math.round((filledCount / totalParticipants) * 100) : 0;
+        
+        const missingPlayers = players
+          .filter(p => participantIds.includes(p.id) && !filledIds.has(p.id))
+          .map(p => getFullName(p));
+        const filledPlayers = players
+          .filter(p => participantIds.includes(p.id) && filledIds.has(p.id))
+          .map(p => getFullName(p));
+        
+        return {
+          sessionId: session.id,
+          sessionName: session.training_type,
+          sessionTime: session.session_start_time?.slice(0, 5) || "",
+          plannedIntensity: session.planned_intensity || 5,
+          totalParticipants,
+          filledCount,
+          filledPercent,
+          filledPlayers,
+          missingPlayers,
+        };
+      });
+    };
+
+    const rpeStatus = getTodayRpeStatus();
+
+
    const getAlertIcon = (type: PriorityAlert["type"]) => {
      switch (type) {
        case "overload": return <TrendingUp className="h-4 w-4" />;
@@ -758,6 +839,90 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
             )}
           </CardContent>
         </Card>
+
+        {/* 1.55️⃣ RPE DU JOUR */}
+        {rpeStatus.length > 0 && (
+          <Card className="border-2 border-indigo-500/20 bg-gradient-to-r from-indigo-500/5 to-transparent">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Activity className="h-5 w-5 text-indigo-600" />
+                RPE post-séance du jour
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {rpeStatus.map(session => (
+                <div key={session.sessionId} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{session.sessionName}</span>
+                      {session.sessionTime && (
+                        <Badge variant="outline" className="text-xs">{session.sessionTime}</Badge>
+                      )}
+                      <span className="text-xs text-muted-foreground">
+                        RPE cible: {session.plannedIntensity}/10
+                      </span>
+                    </div>
+                    <span className={cn(
+                      "text-xl font-bold",
+                      session.filledPercent >= 80 ? "text-green-600" : 
+                      session.filledPercent >= 50 ? "text-yellow-600" : "text-red-600"
+                    )}>
+                      {session.filledPercent}%
+                    </span>
+                  </div>
+                  <Progress 
+                    value={session.filledPercent} 
+                    className={cn(
+                      "h-3",
+                      session.filledPercent >= 80 ? "[&>div]:bg-green-500" : 
+                      session.filledPercent >= 50 ? "[&>div]:bg-yellow-500" : "[&>div]:bg-red-500"
+                    )}
+                  />
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">
+                      {session.filledCount} / {session.totalParticipants} ont rempli leur RPE
+                    </p>
+                    <div className="flex items-center gap-2">
+                      {session.filledPercent === 100 ? (
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-green-100 dark:bg-green-900/30">
+                          <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                          <span className="text-xs font-semibold text-green-700 dark:text-green-400">Complété</span>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs"
+                          onClick={() => {
+                            setRpeDialogSessionId(session.sessionId);
+                            setRpeDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-3 w-3 mr-1" />
+                          Saisir RPE
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  {session.missingPlayers.length > 0 && session.missingPlayers.length <= 8 && (
+                    <div className="flex flex-wrap gap-1">
+                      {session.missingPlayers.map((name, idx) => (
+                        <Badge key={idx} variant="outline" className="text-xs text-muted-foreground">
+                          {name}
+                        </Badge>
+                      ))}
+                      {session.missingPlayers.length > 8 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{session.missingPlayers.length - 8}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {/* 1.6️⃣ PRÉSENCES DU JOUR */}
           <Card className="border-2 border-blue-500/20 bg-gradient-to-r from-blue-500/5 to-transparent">
@@ -1454,6 +1619,20 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* RPE Feedback Dialog */}
+        {rpeDialogSessionId && (
+          <SessionFeedbackDialog
+            open={rpeDialogOpen}
+            onOpenChange={(open) => {
+              setRpeDialogOpen(open);
+              if (!open) setRpeDialogSessionId(null);
+            }}
+            sessionId={rpeDialogSessionId}
+            sessionType={todaySessions.find(s => s.id === rpeDialogSessionId)?.training_type || "Séance"}
+            categoryId={categoryId}
+          />
+        )}
       </div>
     );
   }
