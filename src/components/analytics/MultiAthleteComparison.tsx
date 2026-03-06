@@ -575,7 +575,7 @@ export function MultiAthleteComparison({ categoryId, sportType = "XV" }: MultiAt
                     style={{ backgroundColor: ATHLETE_COLORS[index % ATHLETE_COLORS.length] }}
                   />
                   <span>
-                    {player?.name}
+                    {player?.fullName}
                     {hasDisciplineFilter && player?.discipline && (
                       <span className="text-xs opacity-70 ml-1">
                         ({getDisciplineLabel(player.discipline)})
