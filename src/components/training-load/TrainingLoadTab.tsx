@@ -299,18 +299,6 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
         </Card>
       )}
 
-      {/* Dialogs */}
-      <AddAwcrDialog
-        open={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
-        categoryId={categoryId}
-      />
-
-      <QuickTeamRpeDialog
-        open={isTeamDialogOpen}
-        onOpenChange={setIsTeamDialogOpen}
-        categoryId={categoryId}
-      />
     </div>
   );
 }
