@@ -234,7 +234,7 @@ export function PerformanceHeatmap({ categoryId }: PerformanceHeatmapProps) {
               {players?.map((player) => (
                 <React.Fragment key={player.id}>
                   <div className="text-sm p-2 truncate sticky left-0 bg-background z-10 border-r">
-                    {player.name}
+                    {[player.first_name, player.name].filter(Boolean).join(" ")}
                   </div>
                   {daysInMonth.map((day) => {
                     const value = getValueForCell(player.id, day);

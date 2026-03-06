@@ -387,7 +387,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
                 <SelectContent>
                   <SelectItem value="all">Tous les athlètes</SelectItem>
                   {filteredPlayers.map(player => (
-                    <SelectItem key={player.id} value={player.id}>{player.name}</SelectItem>
+                    <SelectItem key={player.id} value={player.id}>{player.fullName}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

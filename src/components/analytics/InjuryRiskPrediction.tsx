@@ -218,6 +218,9 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
                   {risk.awcr !== undefined && (
                     <p><strong>AWCR:</strong> {risk.awcr.toFixed(2)}</p>
                   )}
+                  {risk.ewmaRatio !== undefined && risk.ewmaRatio > 0 && (
+                    <p><strong>EWMA:</strong> {risk.ewmaRatio.toFixed(2)}</p>
+                  )}
                   {risk.acuteLoad !== undefined && (
                     <p><strong>Charge aiguë:</strong> {Math.round(risk.acuteLoad)}</p>
                   )}

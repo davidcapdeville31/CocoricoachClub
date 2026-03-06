@@ -799,8 +799,8 @@ export function MultiAthleteComparison({ categoryId, sportType = "XV" }: MultiAt
                           return (
                             <Radar
                               key={athleteId}
-                              name={player?.name || `Athlete ${index + 1}`}
-                              dataKey={player?.name || `Athlete ${index + 1}`}
+                              name={player?.fullName || `Athlete ${index + 1}`}
+                              dataKey={player?.fullName || `Athlete ${index + 1}`}
                               stroke={ATHLETE_COLORS[index % ATHLETE_COLORS.length]}
                               fill={ATHLETE_COLORS[index % ATHLETE_COLORS.length]}
                               fillOpacity={0.25}
