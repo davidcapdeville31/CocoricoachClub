@@ -85,15 +85,10 @@ export function AdminTab({ categoryId }: AdminTabProps) {
       </TabsContent>
 
       <TabsContent value="documents">
-        <DocumentsSection categoryId={categoryId} />
-      </TabsContent>
-
-      <TabsContent value="logistics">
-        <LogisticsSection categoryId={categoryId} />
-      </TabsContent>
-
-      <TabsContent value="medical">
-        <MedicalRecordsTab categoryId={categoryId} />
+        <div className="space-y-8">
+          <DocumentsSection categoryId={categoryId} />
+          <MedicalRecordsTab categoryId={categoryId} />
+        </div>
       </TabsContent>
 
       <TabsContent value="reports">
