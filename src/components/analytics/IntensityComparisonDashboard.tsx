@@ -233,7 +233,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
       
       return {
         id: player.id,
-        name: player.name,
+        name: player.fullName,
         position: player.position,
         avgDiff: parseFloat(avgDiff.toFixed(1)),
         sessionsCount: count,
