@@ -18,6 +18,8 @@ interface AwcrData {
   session_date: string;
   awcr: number | null;
   training_load: number | null;
+  acute_load: number | null;
+  chronic_load: number | null;
 }
 
 interface WellnessData {
