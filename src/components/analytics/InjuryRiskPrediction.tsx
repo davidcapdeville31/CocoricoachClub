@@ -87,6 +87,9 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
     const acuteLoad = Number(latest.acute_load || 0);
     const chronicLoad = Number(latest.chronic_load || 0);
 
+    // Calcul du ratio EWMA à partir des charges aiguë/chronique
+    const ewmaRatio = chronicLoad > 0 ? acuteLoad / chronicLoad : 0;
+
     // Facteur 1: AWCR élevé (>1.5) ou très bas (<0.8)
     if (awcr > 1.5) {
       riskScore += 30;
@@ -94,6 +97,15 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
     } else if (awcr < 0.8 && awcr > 0) {
       riskScore += 20;
       factors.push(`AWCR faible (${awcr.toFixed(2)})`);
+    }
+
+    // Facteur EWMA
+    if (ewmaRatio > 1.5) {
+      riskScore += 25;
+      factors.push(`EWMA élevé (${ewmaRatio.toFixed(2)})`);
+    } else if (ewmaRatio < 0.8 && ewmaRatio > 0) {
+      riskScore += 15;
+      factors.push(`EWMA faible (${ewmaRatio.toFixed(2)})`);
     }
 
     // Facteur 2: Charge aiguë élevée
