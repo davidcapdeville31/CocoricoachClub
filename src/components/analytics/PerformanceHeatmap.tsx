@@ -78,11 +78,27 @@ export function PerformanceHeatmap({ categoryId }: PerformanceHeatmapProps) {
     },
   });
 
+  const getMetricDescription = (metric: MetricType): string => {
+    switch (metric) {
+      case "awcr":
+        return "Ratio AWCR (Gabbett) : Charge Aiguë / Charge Chronique. Zone optimale : 0.80 – 1.30.";
+      case "ewma_ratio":
+        return "Ratio EWMA : Moyenne mobile pondérée exponentiellement (λ=0.25 aiguë, λ=0.069 chronique). Zone optimale : 0.80 – 1.30.";
+      case "training_load":
+        return "Charge d'entraînement quotidienne (sRPE = RPE × Durée en minutes).";
+      case "wellness":
+        return "Moyenne de la fatigue générale et de la qualité du sommeil (échelle 1-5). Plus le score est bas, meilleur est le bien-être.";
+      case "soreness":
+        return "Moyenne des douleurs musculaires haut et bas du corps (échelle 1-5). Plus le score est bas, mieux c'est.";
+    }
+  };
+
   const getColorForValue = (value: number | null, metric: MetricType): string => {
     if (value === null) return "bg-muted/20";
 
     switch (metric) {
       case "awcr":
+      case "ewma_ratio":
         if (value < 0.8) return "bg-destructive";
         if (value > 1.3) return "bg-destructive/80";
         if (value >= 0.8 && value <= 1.0) return "bg-success";
