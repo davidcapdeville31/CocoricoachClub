@@ -41,11 +41,11 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, name, position")
+        .select("id, name, first_name, position")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
-      return data;
+      return data?.map(p => ({ ...p, fullName: [p.first_name, p.name].filter(Boolean).join(" ") }));
     },
   });
 
