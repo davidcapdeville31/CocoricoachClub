@@ -86,6 +86,9 @@ export function AdminTab({ categoryId }: AdminTabProps) {
         <MatchSheetsSection categoryId={categoryId} />
       </TabsContent>
 
+      <TabsContent value="logistics">
+        <LogisticsSection categoryId={categoryId} />
+      </TabsContent>
 
       <TabsContent value="recruitment">
         <RecruitmentSection categoryId={categoryId} />
