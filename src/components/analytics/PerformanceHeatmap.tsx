@@ -11,7 +11,7 @@ interface PerformanceHeatmapProps {
   categoryId: string;
 }
 
-type MetricType = "awcr" | "wellness" | "training_load" | "soreness";
+type MetricType = "awcr" | "ewma_ratio" | "wellness" | "training_load" | "soreness";
 
 interface AwcrData {
   player_id: string;
