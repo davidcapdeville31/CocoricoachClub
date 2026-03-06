@@ -55,7 +55,7 @@ export function PerformanceHeatmap({ categoryId }: PerformanceHeatmapProps) {
       const endDate = format(endOfMonth(selectedMonth), "yyyy-MM-dd");
       const { data, error } = await supabase
         .from("awcr_tracking")
-        .select("player_id, session_date, awcr, training_load")
+        .select("player_id, session_date, awcr, training_load, acute_load, chronic_load")
         .eq("category_id", categoryId)
         .gte("session_date", startDate)
         .lte("session_date", endDate);
