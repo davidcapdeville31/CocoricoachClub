@@ -23,16 +23,10 @@ interface WellnessTabProps {
   categoryId: string;
 }
 
-const getScoreColor = (score: number) => {
-  if (score <= 2) return "bg-green-500";
-  if (score <= 3) return "bg-yellow-500";
-  return "bg-red-500";
-};
-
-const getScoreBadge = (score: number) => {
-  if (score <= 2) return "default";
-  if (score <= 3) return "secondary";
-  return "destructive";
+const getScoreBadgeClass = (score: number) => {
+  if (score <= 2) return "bg-status-optimal/15 text-status-optimal border-status-optimal/30";
+  if (score <= 3) return "bg-status-attention/15 text-status-attention border-status-attention/30";
+  return "bg-status-critical/15 text-status-critical border-status-critical/30";
 };
 
 export function WellnessTab({ categoryId }: WellnessTabProps) {
@@ -208,37 +202,37 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
                         {format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: fr })}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant={getScoreBadge(entry.sleep_quality)}>
+                        <Badge variant="outline" className={getScoreBadgeClass(entry.sleep_quality)}>
                           {entry.sleep_quality}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant={getScoreBadge(entry.sleep_duration)}>
+                        <Badge variant="outline" className={getScoreBadgeClass(entry.sleep_duration)}>
                           {entry.sleep_duration}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant={getScoreBadge(entry.general_fatigue)}>
+                        <Badge variant="outline" className={getScoreBadgeClass(entry.general_fatigue)}>
                           {entry.general_fatigue}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant={getScoreBadge(entry.stress_level)}>
+                        <Badge variant="outline" className={getScoreBadgeClass(entry.stress_level)}>
                           {entry.stress_level}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant={getScoreBadge(entry.soreness_upper_body)}>
+                        <Badge variant="outline" className={getScoreBadgeClass(entry.soreness_upper_body)}>
                           {entry.soreness_upper_body}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant={getScoreBadge(entry.soreness_lower_body)}>
+                        <Badge variant="outline" className={getScoreBadgeClass(entry.soreness_lower_body)}>
                           {entry.soreness_lower_body}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant={getScoreBadge(parseFloat(calculateWellnessScore(entry)))}>
+                        <Badge variant="outline" className={getScoreBadgeClass(parseFloat(calculateWellnessScore(entry)))}>
                           {calculateWellnessScore(entry)}
                         </Badge>
                       </TableCell>
