@@ -105,11 +105,11 @@ export function MultiAthleteComparison({ categoryId, sportType = "XV" }: MultiAt
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, name, discipline")
+        .select("id, name, first_name, discipline")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
-      return data;
+      return data?.map(p => ({ ...p, fullName: [p.first_name, p.name].filter(Boolean).join(" ") }));
     },
   });
 
