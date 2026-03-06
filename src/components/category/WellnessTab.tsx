@@ -23,16 +23,10 @@ interface WellnessTabProps {
   categoryId: string;
 }
 
-const getScoreColor = (score: number) => {
-  if (score <= 2) return "bg-green-500";
-  if (score <= 3) return "bg-yellow-500";
-  return "bg-red-500";
-};
-
-const getScoreBadge = (score: number) => {
-  if (score <= 2) return "default";
-  if (score <= 3) return "secondary";
-  return "destructive";
+const getScoreBadgeClass = (score: number) => {
+  if (score <= 2) return "bg-status-optimal/15 text-status-optimal border-status-optimal/30";
+  if (score <= 3) return "bg-status-attention/15 text-status-attention border-status-attention/30";
+  return "bg-status-critical/15 text-status-critical border-status-critical/30";
 };
 
 export function WellnessTab({ categoryId }: WellnessTabProps) {
