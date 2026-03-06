@@ -15,8 +15,6 @@ import { TrainingLoadCalendar } from "./TrainingLoadCalendar";
 import { TrainingDistribution } from "./TrainingDistribution";
 import { useTrainingLoad, useTeamTrainingLoad } from "@/hooks/use-training-load";
 import { MetricType, METRICS_CONFIG } from "@/lib/trainingLoadCalculations";
-import { AddAwcrDialog } from "@/components/category/AddAwcrDialog";
-import { QuickTeamRpeDialog } from "@/components/category/QuickTeamRpeDialog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 
 interface TrainingLoadTabProps {
