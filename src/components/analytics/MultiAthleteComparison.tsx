@@ -431,7 +431,7 @@ export function MultiAthleteComparison({ categoryId, sportType = "XV" }: MultiAt
         const maxVal = Math.max(...allValues, 1);
         const normalizedValue = value ? (value / maxVal) * 100 : 0;
         
-        dataPoint[player?.name || `Athlete ${index + 1}`] = Math.round(normalizedValue);
+        dataPoint[player?.fullName || `Athlete ${index + 1}`] = Math.round(normalizedValue);
       });
 
       return dataPoint;
