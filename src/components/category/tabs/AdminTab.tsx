@@ -59,6 +59,7 @@ export function AdminTab({ categoryId }: AdminTabProps) {
           >
             <span className="hidden sm:inline">Logistique</span>
             <span className="sm:hidden">Logi</span>
+          </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
             value="reports" 
             colorKey="admin"
