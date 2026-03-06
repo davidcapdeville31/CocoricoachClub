@@ -49,24 +49,8 @@ export function AdminTab({ categoryId }: AdminTabProps) {
             colorKey="admin"
             icon={<FolderOpen className="h-4 w-4" />}
           >
-            <span className="hidden sm:inline">Documents</span>
+            <span className="hidden sm:inline">Documents & Certificats</span>
             <span className="sm:hidden">Docs</span>
-          </ColoredSubTabsTrigger>
-          <ColoredSubTabsTrigger 
-            value="logistics" 
-            colorKey="admin"
-            icon={<Truck className="h-4 w-4" />}
-          >
-            <span className="hidden sm:inline">Logistique</span>
-            <span className="sm:hidden">Logi</span>
-          </ColoredSubTabsTrigger>
-          <ColoredSubTabsTrigger 
-            value="medical" 
-            colorKey="admin"
-            icon={<FileText className="h-4 w-4" />}
-          >
-            <span className="hidden sm:inline">Certificats Médicaux</span>
-            <span className="sm:hidden">Certif</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
             value="reports" 
