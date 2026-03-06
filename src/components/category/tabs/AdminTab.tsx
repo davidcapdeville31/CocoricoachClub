@@ -49,7 +49,7 @@ export function AdminTab({ categoryId }: AdminTabProps) {
             colorKey="admin"
             icon={<FolderOpen className="h-4 w-4" />}
           >
-            <span className="hidden sm:inline">Documents</span>
+            <span className="hidden sm:inline">Documents & Certificats</span>
             <span className="sm:hidden">Docs</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
@@ -59,14 +59,6 @@ export function AdminTab({ categoryId }: AdminTabProps) {
           >
             <span className="hidden sm:inline">Logistique</span>
             <span className="sm:hidden">Logi</span>
-          </ColoredSubTabsTrigger>
-          <ColoredSubTabsTrigger 
-            value="medical" 
-            colorKey="admin"
-            icon={<FileText className="h-4 w-4" />}
-          >
-            <span className="hidden sm:inline">Certificats Médicaux</span>
-            <span className="sm:hidden">Certif</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
             value="reports" 
@@ -95,21 +87,19 @@ export function AdminTab({ categoryId }: AdminTabProps) {
         <MatchSheetsSection categoryId={categoryId} />
       </TabsContent>
 
+      <TabsContent value="logistics">
+        <LogisticsSection categoryId={categoryId} />
+      </TabsContent>
 
       <TabsContent value="recruitment">
         <RecruitmentSection categoryId={categoryId} />
       </TabsContent>
 
       <TabsContent value="documents">
-        <DocumentsSection categoryId={categoryId} />
-      </TabsContent>
-
-      <TabsContent value="logistics">
-        <LogisticsSection categoryId={categoryId} />
-      </TabsContent>
-
-      <TabsContent value="medical">
-        <MedicalRecordsTab categoryId={categoryId} />
+        <div className="space-y-8">
+          <DocumentsSection categoryId={categoryId} />
+          <MedicalRecordsTab categoryId={categoryId} />
+        </div>
       </TabsContent>
 
       <TabsContent value="reports">
