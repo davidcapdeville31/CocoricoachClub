@@ -177,23 +177,6 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
             </SelectContent>
           </Select>
 
-          {/* Add buttons */}
-          {!isViewer && (
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => setIsTeamDialogOpen(true)}
-                className="gap-1"
-              >
-                <Users className="h-4 w-4" />
-                Saisie équipe
-              </Button>
-              <Button onClick={() => setIsAddDialogOpen(true)} className="gap-1">
-                <Plus className="h-4 w-4" />
-                Ajouter RPE
-              </Button>
-            </div>
-          )}
         </div>
       </div>
 
