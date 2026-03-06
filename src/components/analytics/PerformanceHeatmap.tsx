@@ -131,6 +131,16 @@ export function PerformanceHeatmap({ categoryId }: PerformanceHeatmapProps) {
         (d) => d.player_id === playerId && d.session_date === dateStr
       );
       return record?.awcr ?? null;
+    } else if (selectedMetric === "ewma_ratio") {
+      // EWMA ratio uses the same awcr field but filtered differently - for now same data source
+      const record = awcrData?.find(
+        (d) => d.player_id === playerId && d.session_date === dateStr
+      );
+      // Use acute/chronic to compute EWMA if available, fallback to awcr
+      if (record && record.acute_load && record.chronic_load && record.chronic_load > 0) {
+        return record.acute_load / record.chronic_load;
+      }
+      return record?.awcr ?? null;
     } else if (selectedMetric === "training_load") {
       const record = awcrData?.find(
         (d) => d.player_id === playerId && d.session_date === dateStr
