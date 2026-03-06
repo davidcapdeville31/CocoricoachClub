@@ -197,8 +197,8 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
         <AlertTriangle className="h-4 w-4" />
         <AlertTitle>Prédiction de Risque de Blessure</AlertTitle>
         <AlertDescription>
-          Cette analyse se base sur les charges d'entraînement (AWCR), les variations de charge et l'historique de blessures.
-          Un ratio AWCR entre 0.8 et 1.3 est considéré comme optimal.
+          Cette analyse se base sur les ratios AWCR et EWMA, les variations de charge et l'historique de blessures.
+          Un ratio entre 0.8 et 1.3 est considéré comme optimal pour les deux modèles.
         </AlertDescription>
       </Alert>
 
