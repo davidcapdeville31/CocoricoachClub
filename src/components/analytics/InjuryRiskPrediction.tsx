@@ -17,6 +17,7 @@ interface PlayerRisk {
   riskScore: number;
   factors: string[];
   awcr?: number;
+  ewmaRatio?: number;
   acuteLoad?: number;
   chronicLoad?: number;
 }
