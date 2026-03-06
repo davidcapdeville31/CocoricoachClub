@@ -210,10 +210,13 @@ export function PerformanceHeatmap({ categoryId }: PerformanceHeatmapProps) {
         </Select>
       </div>
 
+      {/* Metric description */}
+      <p className="text-sm text-muted-foreground italic">{getMetricDescription(selectedMetric)}</p>
+
       <Card className="overflow-x-auto">
         <CardHeader>
           <CardTitle>
-            Heatmap - {selectedMetric === "awcr" ? "EWMA" : selectedMetric === "training_load" ? "Charge" : selectedMetric === "wellness" ? "Wellness" : "Douleurs"} - {format(selectedMonth, "MMMM yyyy", { locale: fr })}
+            Heatmap - {selectedMetric === "awcr" ? "AWCR" : selectedMetric === "ewma_ratio" ? "EWMA" : selectedMetric === "training_load" ? "Charge" : selectedMetric === "wellness" ? "Wellness" : "Douleurs"} - {format(selectedMonth, "MMMM yyyy", { locale: fr })}
           </CardTitle>
         </CardHeader>
         <CardContent>
