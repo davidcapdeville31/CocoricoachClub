@@ -487,6 +487,12 @@ function PlayerDetailsContent() {
                 playerName={fullName}
               />
               <PlayerAwcrTab playerId={playerId!} categoryId={player.category_id} />
+              <PlayerReportSection 
+                playerId={playerId!} 
+                categoryId={player.category_id} 
+                playerName={fullName}
+                sportType={sportType}
+              />
             </div>
           </TabsContent>
 
