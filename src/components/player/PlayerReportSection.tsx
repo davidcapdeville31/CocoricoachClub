@@ -1,0 +1,802 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
+import { FileText, Download, Loader2, FileSpreadsheet, Calendar } from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import jsPDF from "jspdf";
+import { generateCsv, downloadCsv } from "@/lib/csv";
+import { preparePdfWithSettings, drawPdfHeader as drawPdfHeaderCustom, type PdfCustomSettings } from "@/lib/pdfExport";
+import { TEST_CATEGORIES, getTestLabel } from "@/lib/constants/testCategories";
+import { getStatsForSport } from "@/lib/constants/sportStats";
+
+interface PlayerReportSectionProps {
+  playerId: string;
+  categoryId: string;
+  playerName: string;
+  sportType?: string;
+}
+
+type ReportSection = "tests" | "biometrics" | "wellness" | "matches";
+
+const SECTION_LABELS: Record<ReportSection, string> = {
+  tests: "Tests de performance",
+  biometrics: "Données biométriques",
+  wellness: "Wellness",
+  matches: "Statistiques matchs",
+};
+
+export function PlayerReportSection({ playerId, categoryId, playerName, sportType }: PlayerReportSectionProps) {
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [selectedSections, setSelectedSections] = useState<ReportSection[]>(["tests", "biometrics", "wellness", "matches"]);
+  const [generating, setGenerating] = useState<"pdf" | "csv" | null>(null);
+
+  const { data: player } = useQuery({
+    queryKey: ["player-report-info", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("*, categories(name, club_id, clubs(name, sport, logo_url))")
+        .eq("id", playerId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: category } = useQuery({
+    queryKey: ["category-report", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*, clubs(name, sport)")
+        .eq("id", categoryId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const toggleSection = (s: ReportSection) => {
+    setSelectedSections(prev =>
+      prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]
+    );
+  };
+
+  // PDF color palette
+  const colors = {
+    primary: [34, 67, 120] as [number, number, number],
+    secondary: [59, 130, 246] as [number, number, number],
+    success: [39, 174, 96] as [number, number, number],
+    warning: [234, 179, 8] as [number, number, number],
+    danger: [239, 68, 68] as [number, number, number],
+    dark: [30, 41, 59] as [number, number, number],
+    light: [241, 245, 249] as [number, number, number],
+    white: [255, 255, 255] as [number, number, number],
+    muted: [100, 116, 139] as [number, number, number],
+  };
+
+  const drawTableHeaderPdf = (pdf: jsPDF, headers: string[], colWidths: number[], y: number, margin: number) => {
+    const contentWidth = colWidths.reduce((a, b) => a + b, 0);
+    pdf.setFillColor(...colors.dark);
+    pdf.rect(margin, y, contentWidth, 8, 'F');
+    pdf.setTextColor(...colors.white);
+    pdf.setFontSize(8);
+    pdf.setFont("helvetica", "bold");
+    let xPos = margin + 2;
+    headers.forEach((header, i) => {
+      pdf.text(header.substring(0, Math.floor(colWidths[i] / 2.8)), xPos, y + 5.5);
+      xPos += colWidths[i];
+    });
+    pdf.setFont("helvetica", "normal");
+    pdf.setTextColor(...colors.dark);
+    return y + 8;
+  };
+
+  const drawTableRowPdf = (pdf: jsPDF, values: string[], colWidths: number[], y: number, isAlternate: boolean, margin: number, rowColors?: ([number, number, number] | null)[]) => {
+    const contentWidth = colWidths.reduce((a, b) => a + b, 0);
+    if (isAlternate) {
+      pdf.setFillColor(...colors.light);
+      pdf.rect(margin, y, contentWidth, 7, 'F');
+    }
+    pdf.setFontSize(8);
+    let xPos = margin + 2;
+    values.forEach((value, i) => {
+      if (rowColors?.[i]) {
+        pdf.setTextColor(...rowColors[i]!);
+        pdf.setFont("helvetica", "bold");
+      } else {
+        pdf.setTextColor(...colors.dark);
+        pdf.setFont("helvetica", "normal");
+      }
+      pdf.text((value || "-").substring(0, 28), xPos, y + 5);
+      xPos += colWidths[i];
+    });
+    pdf.setFont("helvetica", "normal");
+    pdf.setTextColor(...colors.dark);
+    return y + 7;
+  };
+
+  const localCheckPageBreak = (pdf: jsPDF, yPos: number, needed: number = 25, customSettings?: PdfCustomSettings | null): number => {
+    if (yPos + needed > pdf.internal.pageSize.getHeight() - 15) {
+      pdf.addPage();
+      if (customSettings?.footer_text) {
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        pdf.setFontSize(7);
+        pdf.setTextColor(...colors.muted);
+        pdf.text(customSettings.footer_text, pageWidth / 2, pageHeight - 5, { align: "center" });
+        pdf.setTextColor(...colors.dark);
+      }
+      return 20;
+    }
+    return yPos;
+  };
+
+  const loadImageAsBase64 = async (url: string): Promise<string | null> => {
+    if (!url) return null;
+    try {
+      const response = await fetch(url + (url.includes("?") ? "&" : "?") + "t=" + Date.now(), { mode: "cors" });
+      if (response.ok) {
+        const blob = await response.blob();
+        return new Promise<string | null>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = () => resolve(null);
+          reader.readAsDataURL(blob);
+        });
+      }
+    } catch { /* ignore */ }
+    return null;
+  };
+
+  const fetchAllData = async () => {
+    const [
+      measurementsRes,
+      bodyCompRes,
+      genericTestsRes,
+      speedTestsRes,
+      jumpTestsRes,
+      wellnessRes,
+      matchLineupsRes,
+      matchStatsRes,
+      injuriesRes,
+      awcrRes,
+    ] = await Promise.all([
+      supabase.from("player_measurements").select("*").eq("player_id", playerId).order("measurement_date", { ascending: false }),
+      supabase.from("body_composition").select("*").eq("player_id", playerId).order("measurement_date", { ascending: false }),
+      (() => {
+        let q = supabase.from("generic_tests").select("*").eq("player_id", playerId);
+        if (dateFrom) q = q.gte("test_date", dateFrom);
+        if (dateTo) q = q.lte("test_date", dateTo);
+        return q.order("test_date", { ascending: false });
+      })(),
+      (() => {
+        let q = supabase.from("speed_tests").select("*").eq("player_id", playerId);
+        if (dateFrom) q = q.gte("test_date", dateFrom);
+        if (dateTo) q = q.lte("test_date", dateTo);
+        return q.order("test_date", { ascending: false });
+      })(),
+      (() => {
+        let q = supabase.from("jump_tests").select("*").eq("player_id", playerId);
+        if (dateFrom) q = q.gte("test_date", dateFrom);
+        if (dateTo) q = q.lte("test_date", dateTo);
+        return q.order("test_date", { ascending: false });
+      })(),
+      (() => {
+        let q = supabase.from("wellness_tracking").select("*").eq("player_id", playerId);
+        if (dateFrom) q = q.gte("tracking_date", dateFrom);
+        if (dateTo) q = q.lte("tracking_date", dateTo);
+        return q.order("tracking_date", { ascending: false });
+      })(),
+      supabase.from("match_lineups").select("*, matches(match_date, opponent)").eq("player_id", playerId),
+      (() => {
+        let q = supabase.from("player_match_stats").select("*, matches(match_date, opponent)").eq("player_id", playerId);
+        if (dateFrom) q = q.gte("matches.match_date", dateFrom);
+        if (dateTo) q = q.lte("matches.match_date", dateTo);
+        return q;
+      })(),
+      (() => {
+        let q = supabase.from("injuries").select("*").eq("player_id", playerId);
+        if (dateFrom) q = q.gte("injury_date", dateFrom);
+        if (dateTo) q = q.lte("injury_date", dateTo);
+        return q.order("injury_date", { ascending: false });
+      })(),
+      supabase.from("awcr_tracking").select("*").eq("player_id", playerId).order("session_date", { ascending: false }).limit(1),
+    ]);
+
+    return {
+      measurements: measurementsRes.data || [],
+      bodyComps: bodyCompRes.data || [],
+      genericTests: genericTestsRes.data || [],
+      speedTests: speedTestsRes.data || [],
+      jumpTests: jumpTestsRes.data || [],
+      wellness: wellnessRes.data || [],
+      matchLineups: matchLineupsRes.data || [],
+      matchStats: matchStatsRes.data || [],
+      injuries: injuriesRes.data || [],
+      awcr: awcrRes.data || [],
+    };
+  };
+
+  const buildTestGroups = (data: Awaited<ReturnType<typeof fetchAllData>>) => {
+    const allTests: Array<{ test_type: string; test_category: string; result_value: number; result_unit: string | null; test_date: string }> = [];
+
+    data.speedTests.forEach(t => {
+      if (t.test_type === '40m' && t.time_40m_seconds) {
+        allTests.push({ test_type: 'Sprint 40m', test_category: 'sprint', result_value: t.time_40m_seconds, result_unit: 's', test_date: t.test_date });
+      } else if (t.test_type === '1600m' && t.vma_kmh) {
+        allTests.push({ test_type: 'Test 1600m (VMA)', test_category: 'cardio', result_value: t.vma_kmh, result_unit: 'km/h', test_date: t.test_date });
+      }
+    });
+
+    data.jumpTests.forEach(t => {
+      allTests.push({ test_type: t.test_type, test_category: 'saut', result_value: t.result_cm, result_unit: 'cm', test_date: t.test_date });
+    });
+
+    data.genericTests.forEach(t => {
+      allTests.push({ test_type: t.test_type, test_category: t.test_category, result_value: t.result_value, result_unit: t.result_unit, test_date: t.test_date });
+    });
+
+    // Group by category
+    const grouped: Record<string, typeof allTests> = {};
+    allTests.forEach(t => {
+      const cat = t.test_category || 'autres';
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(t);
+    });
+
+    return { allTests, grouped };
+  };
+
+  const getCategoryLabel = (catValue: string): string => {
+    const found = TEST_CATEGORIES.find(c => c.value === catValue);
+    if (found) return found.label;
+    return catValue.charAt(0).toUpperCase() + catValue.slice(1).replace(/_/g, ' ');
+  };
+
+  // ===================== PDF GENERATION =====================
+  const generatePdf = async () => {
+    if (selectedSections.length === 0) {
+      toast.error("Sélectionnez au moins une section");
+      return;
+    }
+
+    setGenerating("pdf");
+    try {
+      const data = await fetchAllData();
+      const { settings: pdfSettings, logoBase64, seasonName } = await preparePdfWithSettings(categoryId);
+
+      const pdf = new jsPDF();
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const margin = 15;
+      const contentWidth = pageWidth - 2 * margin;
+
+      const headerColor = pdfSettings?.header_color
+        ? [parseInt(pdfSettings.header_color.slice(1, 3), 16), parseInt(pdfSettings.header_color.slice(3, 5), 16), parseInt(pdfSettings.header_color.slice(5, 7), 16)] as [number, number, number]
+        : colors.primary;
+
+      // ===== CUSTOM HEADER: Logo + Photo + Player Info =====
+      pdf.setFillColor(...headerColor);
+      pdf.rect(0, 0, pageWidth, 42, 'F');
+
+      let xOffset = margin;
+
+      // Club logo
+      if (logoBase64 && pdfSettings?.show_logo !== false) {
+        try {
+          const fmt = logoBase64.includes("image/png") ? "PNG" : "JPEG";
+          pdf.addImage(logoBase64, fmt, margin, 4, 30, 30);
+          xOffset = margin + 35;
+        } catch { /* ignore */ }
+      }
+
+      // Player photo
+      let photoOffset = xOffset;
+      if (player?.avatar_url) {
+        const avatarBase64 = await loadImageAsBase64(player.avatar_url);
+        if (avatarBase64) {
+          try {
+            const fmt = avatarBase64.includes("image/png") ? "PNG" : "JPEG";
+            pdf.addImage(avatarBase64, fmt, xOffset, 4, 30, 30);
+            photoOffset = xOffset + 35;
+          } catch { /* ignore */ }
+        }
+      }
+
+      // Player info text
+      pdf.setTextColor(...colors.white);
+      pdf.setFontSize(16);
+      pdf.setFont("helvetica", "bold");
+      const fullName = [player?.first_name, player?.name].filter(Boolean).join(" ") || playerName;
+      pdf.text(fullName.toUpperCase(), photoOffset, 14);
+
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+      const infoLine1 = [
+        player?.position ? `Poste: ${player.position}` : null,
+        player?.birth_date ? `Né le ${format(new Date(player.birth_date), "dd/MM/yyyy")}` : null,
+      ].filter(Boolean).join("  |  ");
+      if (infoLine1) pdf.text(infoLine1, photoOffset, 22);
+
+      pdf.setFontSize(9);
+      const clubCatLine = `${category?.clubs?.name || ""} - ${category?.name || ""}${seasonName ? ` • ${seasonName}` : ""}`;
+      pdf.text(clubCatLine, photoOffset, 30);
+
+      const dateRange = dateFrom || dateTo
+        ? `Période: ${dateFrom ? format(new Date(dateFrom), "dd/MM/yyyy") : "début"} - ${dateTo ? format(new Date(dateTo), "dd/MM/yyyy") : "aujourd'hui"}`
+        : "";
+      if (dateRange) {
+        pdf.setFontSize(8);
+        pdf.text(dateRange, photoOffset, 37);
+      }
+
+      pdf.setTextColor(...colors.dark);
+
+      // Footer
+      if (pdfSettings?.footer_text) {
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        pdf.setFontSize(7);
+        pdf.setTextColor(...colors.muted);
+        pdf.text(pdfSettings.footer_text, pageWidth / 2, pageHeight - 5, { align: "center" });
+        pdf.setTextColor(...colors.dark);
+      }
+
+      let yPos = 52;
+
+      // ===== KPI CARDS =====
+      const matchCount = data.matchLineups.length;
+      const totalMinutes = data.matchLineups.reduce((sum, m) => sum + (m.minutes_played || 0), 0);
+      const activeInjuries = data.injuries.filter(i => i.status !== 'healed').length;
+      const latestAwcr = data.awcr[0]?.awcr;
+
+      const cardWidth = (contentWidth - 15) / 4;
+      const cardHeight = 20;
+
+      const drawKpi = (x: number, value: string, label: string, color: [number, number, number]) => {
+        pdf.setFillColor(...color);
+        pdf.roundedRect(x, yPos, cardWidth, cardHeight, 2, 2, 'F');
+        pdf.setTextColor(...colors.white);
+        pdf.setFontSize(14);
+        pdf.setFont("helvetica", "bold");
+        const vw = pdf.getTextWidth(value);
+        pdf.text(value, x + (cardWidth - vw) / 2, yPos + cardHeight / 2);
+        pdf.setFontSize(7);
+        pdf.setFont("helvetica", "normal");
+        const lw = pdf.getTextWidth(label);
+        pdf.text(label, x + (cardWidth - lw) / 2, yPos + cardHeight / 2 + 7);
+      };
+
+      drawKpi(margin, String(matchCount), "MATCHS", colors.primary);
+      drawKpi(margin + cardWidth + 5, String(totalMinutes), "MINUTES", colors.primary);
+      drawKpi(margin + (cardWidth + 5) * 2, String(activeInjuries), "BLESSURES", activeInjuries > 0 ? colors.danger : colors.success);
+      drawKpi(margin + (cardWidth + 5) * 3, latestAwcr ? latestAwcr.toFixed(2) : '-', "EWMA", latestAwcr ? (latestAwcr > 1.5 ? colors.danger : latestAwcr < 0.8 ? colors.warning : colors.success) : colors.muted);
+
+      pdf.setTextColor(...colors.dark);
+      yPos += cardHeight + 12;
+
+      // ===== TESTS SECTION =====
+      if (selectedSections.includes("tests")) {
+        const { grouped } = buildTestGroups(data);
+        const orderedCategories = Object.keys(grouped).sort((a, b) => getCategoryLabel(a).localeCompare(getCategoryLabel(b)));
+
+        if (orderedCategories.length > 0) {
+          yPos = localCheckPageBreak(pdf, yPos, 30, pdfSettings);
+          pdf.setFillColor(...colors.light);
+          pdf.rect(margin, yPos, contentWidth, 8, 'F');
+          pdf.setTextColor(...colors.primary);
+          pdf.setFontSize(11);
+          pdf.setFont("helvetica", "bold");
+          pdf.text("TESTS DE PERFORMANCE", margin + 3, yPos + 5.5);
+          pdf.setFont("helvetica", "normal");
+          pdf.setTextColor(...colors.dark);
+          yPos += 12;
+
+          for (const catKey of orderedCategories) {
+            const tests = grouped[catKey];
+            yPos = localCheckPageBreak(pdf, yPos, 25, pdfSettings);
+
+            pdf.setFontSize(10);
+            pdf.setFont("helvetica", "bold");
+            pdf.setTextColor(...colors.primary);
+            pdf.text(getCategoryLabel(catKey), margin + 2, yPos);
+            yPos += 6;
+
+            // Group by test type to show progression
+            const testsByType: Record<string, typeof tests> = {};
+            tests.forEach(t => {
+              if (!testsByType[t.test_type]) testsByType[t.test_type] = [];
+              testsByType[t.test_type].push(t);
+            });
+
+            const testHeaders = ["Test", "1er résultat", "Date", "Dernier", "Date", "Progression"];
+            const testColWidths = [42, 25, 25, 25, 25, 28];
+            yPos = drawTableHeaderPdf(pdf, testHeaders, testColWidths, yPos, margin);
+
+            Object.entries(testsByType).forEach(([testType, results], index) => {
+              yPos = localCheckPageBreak(pdf, yPos, 10, pdfSettings);
+              results.sort((a, b) => new Date(a.test_date).getTime() - new Date(b.test_date).getTime());
+              const first = results[0];
+              const last = results[results.length - 1];
+              const progression = results.length > 1
+                ? (((last.result_value - first.result_value) / first.result_value) * 100).toFixed(1) + "%"
+                : "-";
+              const progColor: [number, number, number] | null = results.length > 1
+                ? (last.result_value >= first.result_value ? colors.success : colors.danger)
+                : null;
+
+              const label = getTestLabel(testType) !== testType
+                ? getTestLabel(testType).split(' - ').pop() || testType
+                : testType;
+
+              yPos = drawTableRowPdf(pdf, [
+                label,
+                `${first.result_value}${first.result_unit ? ` ${first.result_unit}` : ''}`,
+                format(new Date(first.test_date), "dd/MM/yy"),
+                results.length > 1 ? `${last.result_value}${last.result_unit ? ` ${last.result_unit}` : ''}` : '-',
+                results.length > 1 ? format(new Date(last.test_date), "dd/MM/yy") : '-',
+                progression,
+              ], testColWidths, yPos, index % 2 === 1, margin, [null, null, null, null, null, progColor]);
+            });
+            yPos += 4;
+          }
+        }
+      }
+
+      // ===== BIOMETRICS SECTION =====
+      if (selectedSections.includes("biometrics")) {
+        yPos = localCheckPageBreak(pdf, yPos, 40, pdfSettings);
+        pdf.setFillColor(...colors.light);
+        pdf.rect(margin, yPos, contentWidth, 8, 'F');
+        pdf.setTextColor(...colors.primary);
+        pdf.setFontSize(11);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("DONNÉES BIOMÉTRIQUES", margin + 3, yPos + 5.5);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(...colors.dark);
+        yPos += 12;
+
+        // Weight tracking table
+        if (data.bodyComps.length > 0 || data.measurements.length > 0) {
+          const bioHeaders = ["Date", "Poids (kg)", "Taille (cm)", "% Graisse", "Masse musc. (kg)", "IMC"];
+          const bioColWidths = [28, 27, 27, 27, 33, 28];
+          yPos = drawTableHeaderPdf(pdf, bioHeaders, bioColWidths, yPos, margin);
+
+          // Merge measurements + body comp by date
+          const allBioData = [
+            ...data.measurements.map(m => ({
+              date: m.measurement_date,
+              weight: m.weight_kg,
+              height: m.height_cm,
+              fat: null as number | null,
+              muscle: null as number | null,
+              bmi: null as number | null,
+            })),
+            ...data.bodyComps.map(b => ({
+              date: b.measurement_date,
+              weight: b.weight_kg,
+              height: b.height_cm,
+              fat: b.body_fat_percentage,
+              muscle: b.muscle_mass_kg,
+              bmi: b.bmi,
+            })),
+          ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 12);
+
+          allBioData.forEach((bio, index) => {
+            yPos = localCheckPageBreak(pdf, yPos, 10, pdfSettings);
+            yPos = drawTableRowPdf(pdf, [
+              format(new Date(bio.date), "dd/MM/yy"),
+              bio.weight ? String(bio.weight) : '-',
+              bio.height ? String(bio.height) : '-',
+              bio.fat ? `${bio.fat}%` : '-',
+              bio.muscle ? String(bio.muscle) : '-',
+              bio.bmi ? bio.bmi.toFixed(1) : '-',
+            ], bioColWidths, yPos, index % 2 === 1, margin);
+          });
+          yPos += 5;
+        } else {
+          pdf.setFontSize(9);
+          pdf.setTextColor(...colors.muted);
+          pdf.text("Aucune mesure biométrique enregistrée", margin, yPos);
+          yPos += 10;
+        }
+      }
+
+      // ===== WELLNESS SECTION =====
+      if (selectedSections.includes("wellness")) {
+        yPos = localCheckPageBreak(pdf, yPos, 40, pdfSettings);
+        pdf.setFillColor(...colors.light);
+        pdf.rect(margin, yPos, contentWidth, 8, 'F');
+        pdf.setTextColor(...colors.primary);
+        pdf.setFontSize(11);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("WELLNESS", margin + 3, yPos + 5.5);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(...colors.dark);
+        yPos += 12;
+
+        if (data.wellness.length > 0) {
+          const wHeaders = ["Date", "Sommeil", "Fatigue", "Stress", "Haut", "Bas", "Moyenne"];
+          const wColWidths = [30, 24, 24, 24, 24, 24, 26];
+          yPos = drawTableHeaderPdf(pdf, wHeaders, wColWidths, yPos, margin);
+
+          data.wellness.slice(0, 15).forEach((w, index) => {
+            yPos = localCheckPageBreak(pdf, yPos, 10, pdfSettings);
+            const vals = [w.sleep_quality, w.general_fatigue, w.stress_level, w.soreness_upper_body, w.soreness_lower_body].filter(v => v != null) as number[];
+            const avg = vals.length > 0 ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : '-';
+            const avgNum = parseFloat(avg);
+            const avgColor: [number, number, number] | null = !isNaN(avgNum) ? (avgNum >= 4 ? colors.success : avgNum >= 3 ? colors.warning : colors.danger) : null;
+            yPos = drawTableRowPdf(pdf, [
+              format(new Date(w.tracking_date), "dd/MM/yy"),
+              `${w.sleep_quality || '-'}/5`,
+              `${w.general_fatigue || '-'}/5`,
+              `${w.stress_level || '-'}/5`,
+              `${w.soreness_upper_body || '-'}/5`,
+              `${w.soreness_lower_body || '-'}/5`,
+              avg !== '-' ? `${avg}/5` : '-',
+            ], wColWidths, yPos, index % 2 === 1, margin, [null, null, null, null, null, null, avgColor]);
+          });
+          yPos += 5;
+        } else {
+          pdf.setFontSize(9);
+          pdf.setTextColor(...colors.muted);
+          pdf.text("Aucune donnée wellness enregistrée", margin, yPos);
+          yPos += 10;
+        }
+      }
+
+      // ===== MATCHES SECTION =====
+      if (selectedSections.includes("matches")) {
+        yPos = localCheckPageBreak(pdf, yPos, 40, pdfSettings);
+        pdf.setFillColor(...colors.light);
+        pdf.rect(margin, yPos, contentWidth, 8, 'F');
+        pdf.setTextColor(...colors.primary);
+        pdf.setFontSize(11);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("STATISTIQUES MATCHS", margin + 3, yPos + 5.5);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(...colors.dark);
+        yPos += 12;
+
+        const matchStats = data.matchStats.filter(s => s.matches != null);
+        if (matchStats.length > 0) {
+          // Get stat preferences
+          const { data: statPrefs } = await supabase
+            .from("category_stat_preferences")
+            .select("enabled_stats")
+            .eq("category_id", categoryId)
+            .maybeSingle();
+
+          const allStatsDef = getStatsForSport(category?.clubs?.sport || "rugby");
+          const enabledKeys = (statPrefs?.enabled_stats as string[]) || allStatsDef.map(s => s.key);
+          const statKeyToDbCol: Record<string, string> = {
+            tries: "tries", tackles: "tackles", carries: "carries", breakthroughs: "breakthroughs",
+            offloads: "offloads", conversions: "conversions", penaltiesScored: "penalties_scored",
+            dropGoals: "drop_goals", metersGained: "meters_gained", tacklesMissed: "tackles_missed",
+            turnoversWon: "turnovers_won", totalContacts: "total_contacts", defensiveRecoveries: "defensive_recoveries",
+            yellowCards: "yellow_cards", redCards: "red_cards",
+          };
+
+          const displayStats = allStatsDef.filter(s => enabledKeys.includes(s.key) && statKeyToDbCol[s.key]);
+          const limitedStats = displayStats.slice(0, 5);
+
+          const mHeaders = ["Adversaire", "Date", ...limitedStats.map(s => s.shortLabel)];
+          const mColWidths = [40, 25, ...limitedStats.map(() => Math.floor((contentWidth - 65) / limitedStats.length))];
+          yPos = drawTableHeaderPdf(pdf, mHeaders, mColWidths, yPos, margin);
+
+          matchStats.forEach((stat: any, index) => {
+            yPos = localCheckPageBreak(pdf, yPos, 10, pdfSettings);
+            const sportData = (stat.sport_data && typeof stat.sport_data === 'object') ? stat.sport_data as Record<string, any> : {};
+            yPos = drawTableRowPdf(pdf, [
+              stat.matches?.opponent || '-',
+              stat.matches?.match_date ? format(new Date(stat.matches.match_date), "dd/MM") : '-',
+              ...limitedStats.map(s => {
+                const dbCol = statKeyToDbCol[s.key];
+                const val = dbCol ? stat[dbCol] : sportData[s.key];
+                return val != null ? String(val) : '-';
+              })
+            ], mColWidths, yPos, index % 2 === 1, margin);
+          });
+        } else {
+          pdf.setFontSize(9);
+          pdf.setTextColor(...colors.muted);
+          pdf.text("Aucune statistique de match enregistrée", margin, yPos);
+          yPos += 10;
+        }
+      }
+
+      // Generation date
+      yPos += 10;
+      yPos = localCheckPageBreak(pdf, yPos, 15, pdfSettings);
+      pdf.setFontSize(7);
+      pdf.setTextColor(...colors.muted);
+      pdf.text(`Généré le ${format(new Date(), "d MMMM yyyy à HH:mm", { locale: fr })}`, margin, yPos);
+
+      const filename = `fiche_${[player?.first_name, player?.name].filter(Boolean).join('_').replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`;
+      pdf.save(filename);
+      toast.success("Rapport PDF généré");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de la génération du PDF");
+    } finally {
+      setGenerating(null);
+    }
+  };
+
+  // ===================== CSV GENERATION =====================
+  const generateCsvExport = async () => {
+    if (selectedSections.length === 0) {
+      toast.error("Sélectionnez au moins une section");
+      return;
+    }
+
+    setGenerating("csv");
+    try {
+      const data = await fetchAllData();
+      const fullName = [player?.first_name, player?.name].filter(Boolean).join(" ") || playerName;
+
+      if (selectedSections.includes("tests")) {
+        const { allTests } = buildTestGroups(data);
+        if (allTests.length > 0) {
+          const headers = ["Joueur", "Catégorie", "Test", "Résultat", "Unité", "Date"];
+          const rows = allTests.map(t => [
+            fullName,
+            getCategoryLabel(t.test_category),
+            getTestLabel(t.test_type) !== t.test_type ? getTestLabel(t.test_type) : t.test_type,
+            t.result_value,
+            t.result_unit || '',
+            format(new Date(t.test_date), "dd/MM/yyyy"),
+          ]);
+          downloadCsv(`tests_${fullName.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, generateCsv(headers, rows));
+        }
+      }
+
+      if (selectedSections.includes("biometrics")) {
+        const allBio = [
+          ...data.measurements.map(m => ({ date: m.measurement_date, weight: m.weight_kg, height: m.height_cm, fat: null, muscle: null, bmi: null })),
+          ...data.bodyComps.map(b => ({ date: b.measurement_date, weight: b.weight_kg, height: b.height_cm, fat: b.body_fat_percentage, muscle: b.muscle_mass_kg, bmi: b.bmi })),
+        ];
+        if (allBio.length > 0) {
+          const headers = ["Joueur", "Date", "Poids (kg)", "Taille (cm)", "% Graisse", "Masse musc. (kg)", "IMC"];
+          const rows = allBio.map(b => [fullName, format(new Date(b.date), "dd/MM/yyyy"), b.weight, b.height, b.fat, b.muscle, b.bmi]);
+          downloadCsv(`biometrie_${fullName.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, generateCsv(headers, rows));
+        }
+      }
+
+      if (selectedSections.includes("wellness")) {
+        if (data.wellness.length > 0) {
+          const headers = ["Joueur", "Date", "Sommeil", "Fatigue", "Stress", "Haut du corps", "Bas du corps"];
+          const rows = data.wellness.map(w => [
+            fullName, format(new Date(w.tracking_date), "dd/MM/yyyy"),
+            w.sleep_quality, w.general_fatigue, w.stress_level, w.soreness_upper_body, w.soreness_lower_body,
+          ]);
+          downloadCsv(`wellness_${fullName.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, generateCsv(headers, rows));
+        }
+      }
+
+      if (selectedSections.includes("matches")) {
+        const matchStats = data.matchStats.filter(s => s.matches != null);
+        if (matchStats.length > 0) {
+          const headers = ["Joueur", "Adversaire", "Date"];
+          const rows = matchStats.map((s: any) => [fullName, s.matches?.opponent || '-', s.matches?.match_date ? format(new Date(s.matches.match_date), "dd/MM/yyyy") : '-']);
+          downloadCsv(`matchs_${fullName.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, generateCsv(headers, rows));
+        }
+      }
+
+      toast.success("Export CSV généré");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de l'export CSV");
+    } finally {
+      setGenerating(null);
+    }
+  };
+
+  return (
+    <Card className="bg-gradient-card shadow-md">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <FileText className="h-5 w-5 text-primary" />
+          Rapport individuel
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Générez un rapport PDF ou CSV personnalisé pour ce joueur
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Date Range */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1 space-y-1.5">
+            <Label className="text-xs flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              Date de début
+            </Label>
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={e => setDateFrom(e.target.value)}
+              className="h-9"
+            />
+          </div>
+          <div className="flex-1 space-y-1.5">
+            <Label className="text-xs flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              Date de fin
+            </Label>
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={e => setDateTo(e.target.value)}
+              className="h-9"
+            />
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Section toggles */}
+        <div className="space-y-2">
+          <Label className="text-xs font-medium">Sections à inclure</Label>
+          <div className="grid grid-cols-2 gap-2">
+            {(Object.entries(SECTION_LABELS) as [ReportSection, string][]).map(([key, label]) => (
+              <div
+                key={key}
+                className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-colors ${
+                  selectedSections.includes(key)
+                    ? "bg-primary/10 border-primary/30"
+                    : "border-border hover:bg-muted/50"
+                }`}
+                onClick={() => toggleSection(key)}
+              >
+                <Checkbox
+                  checked={selectedSections.includes(key)}
+                  className="pointer-events-none"
+                />
+                <span className="text-sm">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Export buttons */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button
+            onClick={generatePdf}
+            disabled={generating !== null || selectedSections.length === 0}
+            className="flex-1"
+          >
+            {generating === "pdf" ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            Exporter PDF
+          </Button>
+          <Button
+            variant="outline"
+            onClick={generateCsvExport}
+            disabled={generating !== null || selectedSections.length === 0}
+            className="flex-1"
+          >
+            {generating === "csv" ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+            )}
+            Exporter CSV
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

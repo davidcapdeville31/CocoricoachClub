@@ -14,6 +14,7 @@ import { PlayerTestsTab } from "@/components/player/PlayerTestsTab";
 import { PlayerCalendarTab } from "@/components/player/PlayerCalendarTab";
 import { PlayerAwcrTab } from "@/components/player/PlayerAwcrTab";
 import { PlayerTrainingLoadCard } from "@/components/player/PlayerTrainingLoadCard";
+import { PlayerReportSection } from "@/components/player/PlayerReportSection";
 import { PlayerProfile } from "@/components/player/PlayerProfile";
 import { PlayerInjuriesTab } from "@/components/player/PlayerInjuriesTab";
 import { PlayerBiometrics } from "@/components/player/PlayerBiometrics";
@@ -486,6 +487,12 @@ function PlayerDetailsContent() {
                 playerName={fullName}
               />
               <PlayerAwcrTab playerId={playerId!} categoryId={player.category_id} />
+              <PlayerReportSection 
+                playerId={playerId!} 
+                categoryId={player.category_id} 
+                playerName={fullName}
+                sportType={sportType}
+              />
             </div>
           </TabsContent>
 
