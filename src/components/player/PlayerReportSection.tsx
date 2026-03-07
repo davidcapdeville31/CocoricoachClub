@@ -323,7 +323,7 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
       pdf.setFont("helvetica", "normal");
       const infoLine1 = [
         player?.position ? `Poste: ${player.position}` : null,
-        player?.date_of_birth ? `Né le ${format(new Date(player.date_of_birth), "dd/MM/yyyy")}` : null,
+        player?.birth_date ? `Né le ${format(new Date(player.birth_date), "dd/MM/yyyy")}` : null,
       ].filter(Boolean).join("  |  ");
       if (infoLine1) pdf.text(infoLine1, photoOffset, 22);
 
