@@ -11,7 +11,8 @@ import { FileText, Download, User, Calendar, Trophy, Loader2, Users, FileSpreads
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import jsPDF from "jspdf";
-import { generateCsv, downloadCsv } from "@/lib/csv";
+import ExcelJS from "exceljs";
+import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, addFooter, downloadWorkbook } from "@/lib/excelExport";
 import { preparePdfWithSettings, drawPdfHeader as drawPdfHeaderCustom, drawSectionTitle, drawTableHeader as drawTableHeaderLib, drawTableRow as drawTableRowLib, checkPageBreak as checkPageBreakLib, type PdfCustomSettings } from "@/lib/pdfExport";
 import { getStatsForSport, type StatField } from "@/lib/constants/sportStats";
 import { TEST_CATEGORIES, getTestLabel } from "@/lib/constants/testCategories";
