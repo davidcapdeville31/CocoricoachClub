@@ -840,11 +840,11 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
             const avgNum = parseFloat(avg);
             yPos = drawTableRowPdf(pdf, [
               format(new Date(w.tracking_date), "dd/MM/yy"),
-              `${w.sleep_quality || '-'}/5`,
-              `${w.general_fatigue || '-'}/5`,
-              `${w.stress_level || '-'}/5`,
-              `${w.soreness_upper_body || '-'}/5`,
-              `${w.soreness_lower_body || '-'}/5`,
+              w.sleep_quality != null ? `${w.sleep_quality}/5` : '-',
+              w.general_fatigue != null ? `${w.general_fatigue}/5` : '-',
+              w.stress_level != null ? `${w.stress_level}/5` : '-',
+              w.soreness_upper_body != null ? `${w.soreness_upper_body}/5` : '-',
+              w.soreness_lower_body != null ? `${w.soreness_lower_body}/5` : '-',
               avg !== '-' ? `${avg}/5` : '-',
             ], wColWidths, yPos, index % 2 === 1, margin, [
               null,
