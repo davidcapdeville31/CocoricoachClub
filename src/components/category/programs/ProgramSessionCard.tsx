@@ -192,16 +192,6 @@ export function ProgramSessionCard({
     setSearchQuery("");
   };
 
-  // Reset linking state when exercises change
-  useEffect(() => {
-    if (linkingFrom) {
-      const stillValid = session.exercises[linkingFrom.index];
-      if (!stillValid) {
-        setLinkingFrom(null);
-        setSelectedForLinking([]);
-      }
-    }
-  }, [session.exercises]);
 
   // Organize exercises into groups for rendering
   const exerciseGroups = useMemo(() => {
