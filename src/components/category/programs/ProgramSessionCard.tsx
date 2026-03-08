@@ -312,6 +312,12 @@ export function ProgramSessionCard({
   };
 
   const cancelLinking = () => {
+    // Reset method back to normal for all selected exercises
+    if (linkingFrom) {
+      selectedForLinking.forEach(i => {
+        updateExercise(i, "method", "normal");
+      });
+    }
     setLinkingFrom(null);
     setSelectedForLinking([]);
   };
