@@ -119,7 +119,10 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
         pdf.setTextColor(...colors.dark);
         pdf.setFont("helvetica", "normal");
       }
-      pdf.text((value || "-").substring(0, 28), xPos, y + 5);
+      const maxChars = Math.max(4, Math.floor(colWidths[i] / 2.2));
+      const displayVal = (value || "-");
+      const text = displayVal.length > maxChars ? displayVal.substring(0, maxChars - 1) + '.' : displayVal;
+      pdf.text(text, xPos, y + 5);
       xPos += colWidths[i];
     });
     pdf.setFont("helvetica", "normal");
