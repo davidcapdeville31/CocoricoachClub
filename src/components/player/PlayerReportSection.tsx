@@ -482,9 +482,17 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
 
       // ===== KPI CARDS =====
       const matchCount = data.matchLineups.length;
-      const totalMinutes = data.matchLineups.reduce((sum, m) => sum + (m.minutes_played || 0), 0);
+      // Sum minutes from lineups, fallback to sport_data.minutes_played from match stats
+      let totalMinutes = data.matchLineups.reduce((sum, m) => sum + (m.minutes_played || 0), 0);
+      if (totalMinutes === 0 && data.matchStats.length > 0) {
+        totalMinutes = data.matchStats.reduce((sum, s: any) => {
+          const sd = s.sport_data as Record<string, any> | null;
+          return sum + (sd?.minutes_played || 0);
+        }, 0);
+      }
       const activeInjuries = data.injuries.filter(i => i.status !== 'healed').length;
-      const latestAwcr = data.awcr[0]?.awcr;
+      // Use EWMA ratio from latest awcr_tracking entry
+      const latestAwcr = data.awcr.length > 0 ? data.awcr[0]?.awcr : null;
 
       const cardWidth = (contentWidth - 15) / 4;
       const cardHeight = 20;
