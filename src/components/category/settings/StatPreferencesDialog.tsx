@@ -216,6 +216,7 @@ export function StatPreferencesDialog({
   });
 
   const toggleStat = (statKey: string) => {
+    userHasEdited.current = true;
     setEnabledStats(prev =>
       prev.includes(statKey)
         ? prev.filter(k => k !== statKey)
