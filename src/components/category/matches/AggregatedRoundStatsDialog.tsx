@@ -95,7 +95,7 @@ export function AggregatedRoundStatsDialog({
         .select(`
           *,
           competition_round_stats(*),
-          players(id, name)
+          players(id, name, discipline, specialty)
         `)
         .eq("match_id", matchId)
         .order("round_number");
