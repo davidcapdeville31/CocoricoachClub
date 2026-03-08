@@ -129,7 +129,7 @@ export function PlayerMatchStatsDialog({
         const player = l.players as { id: string; name: string } | null;
         return {
           playerId: l.player_id,
-          playerName: player?.name || "Joueur",
+          playerName: [player?.first_name, player?.name].filter(Boolean).join(" ") || "Joueur",
           tries: existing?.tries ?? 0,
           conversions: existing?.conversions ?? 0,
           penaltiesScored: existing?.penalties_scored ?? 0,

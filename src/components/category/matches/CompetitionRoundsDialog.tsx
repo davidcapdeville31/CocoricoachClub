@@ -278,7 +278,7 @@ export function CompetitionRoundsDialog({
         
         return {
           playerId: l.player_id,
-          playerName: player?.name || "Athlète",
+          playerName: [player?.first_name, player?.name].filter(Boolean).join(" ") || "Athlète",
           boat_type: l.boat_type || undefined,
           crew_role: l.crew_role || undefined,
           seat_position: l.seat_position || undefined,
