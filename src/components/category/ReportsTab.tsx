@@ -1415,37 +1415,80 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     try {
       const branding = await getExcelBranding(categoryId);
       const matchesData = matches || [];
-      const headers = ["Date", "Adversaire", "Domicile", "Score", "Résultat", "Lieu"];
+      
+      // Also fetch injuries & player stats for enrichment
+      const [injuriesRes, awcrRes] = await Promise.all([
+        supabase.from("injuries").select("*, players(name, first_name)").eq("category_id", categoryId),
+        supabase.from("awcr_tracking").select("*").eq("category_id", categoryId).order("session_date", { ascending: false }),
+      ]);
+      
+      const headers = ["Date", "Adversaire", "Domicile", "Score Dom.", "Score Ext.", "Écart", "Résultat", "Lieu"];
       const rows = matchesData.map(m => {
         const isWin = (m.is_home && (m.score_home || 0) > (m.score_away || 0)) || (!m.is_home && (m.score_away || 0) > (m.score_home || 0));
         const isLoss = (m.is_home && (m.score_home || 0) < (m.score_away || 0)) || (!m.is_home && (m.score_away || 0) < (m.score_home || 0));
         const result = isWin ? "Victoire" : isLoss ? "Défaite" : "Nul";
+        const diff = (m.score_home || 0) - (m.score_away || 0);
         return [
           format(new Date(m.match_date), "dd/MM/yyyy"), m.opponent,
-          m.is_home ? "Oui" : "Non", `${m.score_home || 0} - ${m.score_away || 0}`,
+          m.is_home ? "Oui" : "Non", m.score_home ?? 0, m.score_away ?? 0,
+          diff > 0 ? `+${diff}` : String(diff),
           result, m.location || "",
         ];
       });
-      const wins = rows.filter(r => r[4] === "Victoire").length;
-      const losses = rows.filter(r => r[4] === "Défaite").length;
-      const draws = rows.filter(r => r[4] === "Nul").length;
+      const wins = rows.filter(r => r[6] === "Victoire").length;
+      const losses = rows.filter(r => r[6] === "Défaite").length;
+      const draws = rows.filter(r => r[6] === "Nul").length;
+      const totalScoreFor = matchesData.reduce((s, m) => s + (m.is_home ? (m.score_home || 0) : (m.score_away || 0)), 0);
+      const totalScoreAgainst = matchesData.reduce((s, m) => s + (m.is_home ? (m.score_away || 0) : (m.score_home || 0)), 0);
 
       const workbook = new ExcelJS.Workbook();
       const sheet = workbook.addWorksheet("Bilan de Saison");
       const dataStart = addBrandedHeader(sheet, "BILAN DE SAISON", branding, [
         ["Matchs joués", `${matchesData.length}`],
         ["Bilan", `${wins}V / ${draws}N / ${losses}D`],
+        ["Points marqués/encaissés", `${totalScoreFor} / ${totalScoreAgainst} (diff: ${totalScoreFor - totalScoreAgainst > 0 ? '+' : ''}${totalScoreFor - totalScoreAgainst})`],
       ]);
       headers.forEach((h, i) => { sheet.getCell(dataStart, i + 1).value = h; });
       styleDataHeaderRow(sheet, dataStart, headers.length, branding.headerColor);
       rows.forEach((row, ri) => {
         const r = sheet.getRow(dataStart + 1 + ri);
         row.forEach((val, ci) => { r.getCell(ci + 1).value = val as any; });
-        const resultCell = r.getCell(5);
-        if (row[4] === "Victoire") resultCell.font = { color: { argb: "FF22C55E" }, bold: true };
-        else if (row[4] === "Défaite") resultCell.font = { color: { argb: "FFEF4444" }, bold: true };
+        const resultCell = r.getCell(7);
+        if (row[6] === "Victoire") resultCell.font = { color: { argb: "FF22C55E" }, bold: true };
+        else if (row[6] === "Défaite") resultCell.font = { color: { argb: "FFEF4444" }, bold: true };
       });
       addZebraRows(sheet, dataStart + 1, dataStart + rows.length, headers.length);
+
+      // Injuries sheet
+      const allInjuries = injuriesRes.data || [];
+      const injuredOrRecovering = allInjuries.filter((i: any) => i.status === 'active' || i.status === 'recovering');
+      if (injuredOrRecovering.length > 0) {
+        const injSheet = workbook.addWorksheet("Blessures");
+        const injStart = addBrandedHeader(injSheet, "BILAN MÉDICAL", branding, [
+          ["Blessures totales", `${allInjuries.length}`],
+          ["Actives", `${allInjuries.filter((i: any) => i.status === 'active').length}`],
+          ["Réathlétisation", `${allInjuries.filter((i: any) => i.status === 'recovering').length}`],
+        ]);
+        const injHeaders = ["Joueur", "Blessure", "Sévérité", "Statut", "Date", "Retour estimé"];
+        injHeaders.forEach((h, i) => { injSheet.getCell(injStart, i + 1).value = h; });
+        styleDataHeaderRow(injSheet, injStart, injHeaders.length, branding.headerColor);
+        injuredOrRecovering.forEach((inj: any, ri) => {
+          const r = injSheet.getRow(injStart + 1 + ri);
+          const playerFullName = [inj.players?.first_name, inj.players?.name].filter(Boolean).join(" ") || 'Inconnu';
+          const statusMap: Record<string, string> = { active: 'Blessé', recovering: 'Réathlétisation' };
+          r.getCell(1).value = playerFullName;
+          r.getCell(2).value = inj.injury_type || '-';
+          r.getCell(3).value = inj.severity || '-';
+          r.getCell(4).value = statusMap[inj.status] || inj.status;
+          if (inj.status === 'active') r.getCell(4).font = { color: { argb: 'FFEF4444' }, bold: true };
+          else r.getCell(4).font = { color: { argb: 'FFEAB308' }, bold: true };
+          r.getCell(5).value = inj.injury_date ? format(new Date(inj.injury_date), "dd/MM/yyyy") : '-';
+          r.getCell(6).value = inj.estimated_return_date ? format(new Date(inj.estimated_return_date), "dd/MM/yyyy") : '-';
+        });
+        addZebraRows(injSheet, injStart + 1, injStart + injuredOrRecovering.length, injHeaders.length);
+        injHeaders.forEach((_, i) => { injSheet.getColumn(i + 1).width = i === 0 ? 25 : 18; });
+      }
+
       addFooter(sheet, dataStart + rows.length + 1, headers.length, branding.footerText);
       headers.forEach((_, i) => { sheet.getColumn(i + 1).width = i === 1 ? 25 : 16; });
 
