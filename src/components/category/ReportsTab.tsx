@@ -374,7 +374,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       }).sort((a, b) => (b[1] as number) - (a[1] as number));
 
       const csv = generateCsv(headers, rows);
-      downloadCsv(`tdj_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
+      downloadCsv(`tdj_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
       toast.success("Export CSV généré");
     } catch (error) {
       console.error(error);
