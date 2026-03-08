@@ -149,7 +149,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
   const generateTdjReport = async () => {
     setGeneratingReport("tdj");
     try {
-      const { settings: pdfSettings, logoBase64, seasonName } = await preparePdfWithSettings(categoryId);
+      const { settings: pdfSettings, logoBase64, seasonName, clubName: cn1, categoryName: catName1 } = await preparePdfWithSettings(categoryId);
 
       // Fetch all matches with lineups, stats and injuries
       let matchQuery = supabase.from("matches").select("id, match_date, opponent, is_home").eq("category_id", categoryId).order("match_date");
@@ -246,7 +246,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       let yPos = drawPdfHeaderCustom(
         pdf,
         `SUIVI TEMPS DE JEU${seasonName ? ` - ${seasonName}` : ""}`,
-        `${category?.clubs?.name} - ${category?.name}`,
+        `${cn1 || category?.clubs?.name || ''} - ${catName1 || category?.name || ''}`,
         `${matchesData.length} matchs | ${format(new Date(), "d MMMM yyyy", { locale: fr })}${dateRange ? ` | ${dateRange}` : ""}`,
         pdfSettings,
         logoBase64
@@ -307,7 +307,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         );
       });
 
-      pdf.save(`tdj_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+      pdf.save(`tdj_${(catName1 || category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
       toast.success("Rapport Temps de Jeu généré");
     } catch (error) {
       console.error(error);
@@ -374,7 +374,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       }).sort((a, b) => (b[1] as number) - (a[1] as number));
 
       const csv = generateCsv(headers, rows);
-      downloadCsv(`tdj_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
+      downloadCsv(`tdj_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
       toast.success("Export CSV généré");
     } catch (error) {
       console.error(error);
@@ -389,7 +389,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     setGeneratingReport("season");
     
     try {
-      const { settings: pdfSettings, logoBase64, seasonName: sName } = await preparePdfWithSettings(categoryId);
+      const { settings: pdfSettings, logoBase64, seasonName: sName, clubName: cn2, categoryName: catName2 } = await preparePdfWithSettings(categoryId);
 
       const [matchesRes, injuriesRes, goalsRes, awcrRes] = await Promise.all([
         supabase.from("matches").select("*").eq("category_id", categoryId).order("match_date"),
@@ -419,7 +419,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       let yPos = drawPdfHeaderCustom(
         pdf,
         `BILAN DE SAISON${sName ? ` - ${sName}` : ` ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`}`,
-        `${category?.clubs?.name} - ${category?.name}`,
+        `${cn2 || category?.clubs?.name || ''} - ${catName2 || category?.name || ''}`,
         `Généré le ${format(new Date(), "d MMMM yyyy", { locale: fr })}`,
         pdfSettings,
         logoBase64
@@ -569,7 +569,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         pdf.text(stat.label, margin + (statBoxWidth + 5) * i + (statBoxWidth - labelWidth) / 2, yPos + 15);
       });
 
-      pdf.save(`bilan_saison_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+      pdf.save(`bilan_saison_${(catName2 || category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
       toast.success("Rapport de saison généré");
     } catch (error) {
       console.error(error);
@@ -826,7 +826,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     setGeneratingReport("squad");
     
     try {
-      const { settings: pdfSettings, logoBase64, seasonName: sn3 } = await preparePdfWithSettings(categoryId);
+      const { settings: pdfSettings, logoBase64, seasonName: sn3, clubName: cn3, categoryName: catName3 } = await preparePdfWithSettings(categoryId);
 
       const { data: categoryMatches } = await supabase
         .from("matches")
@@ -938,7 +938,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       yPos = drawPdfHeaderCustom(
         pdf,
         "VUE D'ENSEMBLE DE L'EFFECTIF",
-        `${category?.clubs?.name} - ${category?.name}${sn3 ? ` • ${sn3}` : ''}`,
+        `${cn3 || category?.clubs?.name || ''} - ${catName3 || category?.name || ''}${sn3 ? ` • ${sn3}` : ''}`,
         `Généré le ${format(new Date(), "d MMMM yyyy", { locale: fr })}${dateRange ? ` | ${dateRange.trim()}` : ""}`,
         pdfSettings,
         logoBase64
@@ -1257,7 +1257,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         });
       }
 
-      pdf.save(`effectif_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+      pdf.save(`effectif_${(catName3 || category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
       toast.success("Rapport d'effectif généré");
     } catch (error) {
       console.error(error);
@@ -1303,7 +1303,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       });
 
       const csv = generateCsv(headers, rows);
-      downloadCsv(`effectif_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
+      downloadCsv(`effectif_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
       toast.success("Export CSV généré");
     } catch (error) {
       console.error(error);
@@ -1336,7 +1336,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       });
 
       const csv = generateCsv(headers, rows);
-      downloadCsv(`saison_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
+      downloadCsv(`saison_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
       toast.success("Export CSV généré");
     } catch (error) {
       console.error(error);
@@ -1385,7 +1385,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     setGeneratingReport("attendance");
     
     try {
-      const { settings: pdfSettings, logoBase64, seasonName: sn4 } = await preparePdfWithSettings(categoryId);
+      const { settings: pdfSettings, logoBase64, seasonName: sn4, clubName: cn4, categoryName: catName4 } = await preparePdfWithSettings(categoryId);
 
       // Fetch attendance data with date filtering
       const [sessionsRes, attendanceRes] = await Promise.all([
@@ -1396,7 +1396,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
           return q;
         })(),
         (() => {
-          let q = supabase.from("training_attendance").select("*, training_sessions!inner(session_date, session_type, duration_minutes, intensity)").eq("category_id", categoryId);
+          let q = supabase.from("training_attendance").select("*, training_sessions!inner(session_date, training_type, intensity, session_start_time, session_end_time)").eq("category_id", categoryId);
           if (attendanceDateFrom) q = q.gte("training_sessions.session_date", attendanceDateFrom);
           if (attendanceDateTo) q = q.lte("training_sessions.session_date", attendanceDateTo);
           return q;
@@ -1470,7 +1470,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       let yPos = drawPdfHeaderCustom(
         pdf,
         "RAPPORT DE PRÉSENCES",
-        `${category?.clubs?.name} - ${category?.name}${sn4 ? ` • ${sn4}` : ''}`,
+        `${cn4 || category?.clubs?.name || ''} - ${catName4 || category?.name || ''}${sn4 ? ` • ${sn4}` : ''}`,
         `Généré le ${format(new Date(), "d MMMM yyyy", { locale: fr })}${dateRange}`,
         pdfSettings,
         logoBase64
@@ -1614,7 +1614,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         });
       }
 
-      pdf.save(`presences_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+      pdf.save(`presences_${(catName4 || category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
       toast.success("Rapport de présences généré");
     } catch (error) {
       console.error(error);
@@ -1658,7 +1658,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       ]);
 
       const csv = generateCsv(headers, rows);
-      downloadCsv(`presences_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
+      downloadCsv(`presences_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
       toast.success("Export CSV généré");
     } catch (error) {
       console.error(error);
