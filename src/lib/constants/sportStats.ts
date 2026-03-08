@@ -199,6 +199,7 @@ export const VOLLEYBALL_STATS: StatField[] = [
   { key: "attackJumps", label: "Sauts d'attaque", shortLabel: "S. attaque", category: "general", type: "number" },
   { key: "blockJumps", label: "Sauts de contre", shortLabel: "S. contre", category: "general", type: "number" },
   { key: "manOfMatch", label: "Joueur du match", shortLabel: "JDM", category: "general", type: "number", max: 1 },
+  { key: "fouls", label: "Fautes", shortLabel: "Fautes", category: "general", type: "number" },
   // Individual Stats - Scoring
   { key: "points", label: "Points marqués", shortLabel: "Points", category: "scoring", type: "number" },
   { key: "kills", label: "Points marqués (kill)", shortLabel: "Kills", category: "scoring", type: "number" },
