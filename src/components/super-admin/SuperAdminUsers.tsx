@@ -30,6 +30,7 @@ interface AdminUser {
   is_super_admin: boolean;
   is_approved?: boolean;
   is_free_user?: boolean;
+  is_staff?: boolean;
 }
 
 export function SuperAdminUsers() {
