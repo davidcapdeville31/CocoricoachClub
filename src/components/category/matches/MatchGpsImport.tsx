@@ -461,7 +461,7 @@ export function MatchGpsImport({
                                   <SelectItem key={player.id} value={player.id}>
                                     <div className="flex items-center gap-2">
                                       <User className="h-3 w-3" />
-                                      <span>{player.name}</span>
+                                      <span>{[player.first_name, player.name].filter(Boolean).join(" ")}</span>
                                       {player.position && (
                                         <Badge variant="outline" className="text-xs ml-1">
                                           {player.position}
