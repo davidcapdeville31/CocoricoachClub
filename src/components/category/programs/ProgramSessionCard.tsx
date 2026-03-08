@@ -1693,9 +1693,12 @@ export function ProgramSessionCard({
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Cliquez sur les exercices à lier ensemble (max {linkingFrom.maxCount})
+            {session.exercises.filter((ex, i) => !ex.group_id && !selectedForLinking.includes(i)).length === 0 && selectedForLinking.length < 2
+              ? "Ajoutez un exercice ci-dessous pour compléter le bloc"
+              : `Cliquez sur les exercices à lier ensemble (max ${linkingFrom.maxCount})`
+            }
           </p>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button
               size="sm"
               onClick={confirmLinking}
@@ -1705,6 +1708,30 @@ export function ProgramSessionCard({
               <Link2 className="h-3 w-3 mr-1" />
               Valider le bloc
             </Button>
+            {selectedForLinking.length < linkingFrom.maxCount && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const newExercise: ProgramExercise = {
+                    id: crypto.randomUUID(),
+                    exercise_name: "Nouvel exercice",
+                    order_index: session.exercises.length,
+                    method: "normal",
+                    sets: 3,
+                    reps: "10",
+                    rest_seconds: 90,
+                  };
+                  const newExercises = [...session.exercises, newExercise];
+                  const newIndex = newExercises.length - 1;
+                  onUpdate({ ...session, exercises: newExercises });
+                  setSelectedForLinking(prev => [...prev, newIndex]);
+                }}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Ajouter un exercice
+              </Button>
+            )}
             <Button variant="outline" size="sm" onClick={cancelLinking}>
               Annuler
             </Button>
