@@ -1673,6 +1673,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
   const generateAttendanceCsv = async () => {
     setGeneratingReport("attendance-csv");
     try {
+      const branding = await getExcelBranding(categoryId);
       const { data: attendanceData } = await supabase
         .from("training_attendance")
         .select("*")
@@ -1698,17 +1699,37 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       }).sort((a, b) => b.rate - a.rate);
 
       const headers = ["Joueur", "Position", "Présent", "Retard justifié", "Retard non justifié", "Excusé", "Absent", "Total", "Taux (%)"];
-      const rows = playerStats.map((p) => [
-        p.name, p.position, p.present, p.lateJustified, p.lateUnjustified,
-        p.excused, p.absent, p.total, p.rate,
+
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet("Rapport de Présences");
+      const avgRate = playerStats.length > 0 ? Math.round(playerStats.reduce((s, p) => s + p.rate, 0) / playerStats.length) : 0;
+      const dataStart = addBrandedHeader(sheet, "RAPPORT DE PRÉSENCES", branding, [
+        ["Joueurs", `${playerStats.length}`],
+        ["Taux moyen", `${avgRate}%`],
       ]);
 
-      const csv = generateCsv(headers, rows);
-      downloadCsv(`presences_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
-      toast.success("Export CSV généré");
+      headers.forEach((h, i) => { sheet.getCell(dataStart, i + 1).value = h; });
+      styleDataHeaderRow(sheet, dataStart, headers.length, branding.headerColor);
+
+      playerStats.forEach((p, ri) => {
+        const r = sheet.getRow(dataStart + 1 + ri);
+        const vals = [p.name, p.position, p.present, p.lateJustified, p.lateUnjustified, p.excused, p.absent, p.total, p.rate];
+        vals.forEach((val, ci) => { r.getCell(ci + 1).value = val as any; });
+        // Color code rate
+        const rateCell = r.getCell(9);
+        if (p.rate >= 80) rateCell.font = { color: { argb: "FF22C55E" }, bold: true };
+        else if (p.rate < 50) rateCell.font = { color: { argb: "FFEF4444" }, bold: true };
+      });
+      addZebraRows(sheet, dataStart + 1, dataStart + playerStats.length, headers.length);
+      addFooter(sheet, dataStart + playerStats.length + 1, headers.length, branding.footerText);
+
+      headers.forEach((_, i) => { sheet.getColumn(i + 1).width = i === 0 ? 25 : 18; });
+
+      await downloadWorkbook(workbook, `presences_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+      toast.success("Export Excel généré");
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de l'export CSV");
+      toast.error("Erreur lors de l'export Excel");
     } finally {
       setGeneratingReport(null);
     }
