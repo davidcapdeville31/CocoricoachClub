@@ -45,7 +45,7 @@ export function useStatPreferences({
       return allEnabled.length > 0 ? allEnabled : null;
     },
     enabled: !!categoryId,
-    staleTime: 30000, // Cache for 30s to avoid resetting open dialogs
+    staleTime: 5000, // Short cache - invalidation from preferences dialog will force refetch
   });
 
   // Fetch custom stats for the category
@@ -61,7 +61,7 @@ export function useStatPreferences({
       return data as CustomStat[];
     },
     enabled: !!categoryId,
-    staleTime: 30000,
+    staleTime: 5000,
   });
 
   // Fetch match-level overrides if matchId is provided
