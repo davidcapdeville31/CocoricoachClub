@@ -1591,15 +1591,25 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         const minutesByType: Record<string, number> = {};
         const minutesByIntensity: Record<string, number> = {};
 
+        const calcDuration = (session: any): number => {
+          if (session.session_start_time && session.session_end_time) {
+            const [sh, sm] = session.session_start_time.split(':').map(Number);
+            const [eh, em] = session.session_end_time.split(':').map(Number);
+            return (eh * 60 + em) - (sh * 60 + sm);
+          }
+          return 60; // default 60 min
+        };
+
         playerAttendance.filter(a => a.status === "present" || a.status === "late").forEach(a => {
           const session = sessionMap[a.training_session_id];
           if (session) {
-            const dur = session.duration_minutes || 0;
+            const dur = calcDuration(session);
             totalMinutes += dur;
-            const sType = session.session_type || 'Autre';
+            const sType = session.training_type || 'Autre';
             minutesByType[sType] = (minutesByType[sType] || 0) + dur;
-            const intensity = session.intensity || 'moyenne';
-            minutesByIntensity[intensity] = (minutesByIntensity[intensity] || 0) + dur;
+            const intensityVal = session.intensity || session.planned_intensity || 5;
+            const intensityLabel = intensityVal >= 8 ? 'haute' : intensityVal >= 5 ? 'moyenne' : 'basse';
+            minutesByIntensity[intensityLabel] = (minutesByIntensity[intensityLabel] || 0) + dur;
           }
         });
 
