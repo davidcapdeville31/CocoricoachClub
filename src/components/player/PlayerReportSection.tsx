@@ -669,6 +669,16 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
             ], bioColWidths, yPos, index % 2 === 1, margin);
           });
           yPos += 5;
+
+          // === BIOMETRICS LINE CHART (Weight evolution) ===
+          const weightPoints = allBioData
+            .filter(b => b.weight != null)
+            .reverse()
+            .map(b => ({ label: format(new Date(b.date), "dd/MM"), value: b.weight! }));
+          if (weightPoints.length >= 2) {
+            yPos = localCheckPageBreak(pdf, yPos, 55, pdfSettings);
+            yPos = drawLineChart(pdf, weightPoints.slice(-12), margin, yPos, contentWidth / 2, 35, "Évolution du poids (kg)", colors.secondary);
+          }
         } else {
           pdf.setFontSize(9);
           pdf.setTextColor(...colors.muted);
