@@ -332,7 +332,7 @@ export function ImprovedCalendarView({
                 ? "Calendrier des entraînements et compétitions" 
                 : "Calendrier des entraînements et matchs"}
             </CardTitle>
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap" data-no-print>
               {/* Filters */}
               <Popover>
                 <PopoverTrigger asChild>
