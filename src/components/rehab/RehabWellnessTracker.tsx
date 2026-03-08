@@ -90,15 +90,15 @@ export function RehabWellnessTracker({ playerId, categoryId }: RehabWellnessTrac
   const latestWellness = wellnessData?.[wellnessData.length - 1];
   const latestAwcr = awcrData?.[awcrData.length - 1];
 
-  // Calculate overall wellness score from available fields
+  // Calculate overall wellness score from available fields (scale 1-5, higher = better)
   const calculateWellnessScore = (w: typeof latestWellness) => {
     if (!w) return null;
-    // Invert fatigue and stress (higher is worse), keep sleep quality as is
-    const fatigueScore = 10 - (w.general_fatigue || 5);
-    const stressScore = 10 - (w.stress_level || 5);
-    const sleepScore = w.sleep_quality || 5;
-    const sorenessScore = 10 - ((w.soreness_upper_body || 0) + (w.soreness_lower_body || 0)) / 2;
-    return Math.round((fatigueScore + stressScore + sleepScore + sorenessScore) / 4 * 10) / 10;
+    // Normalize all to "high = good": sleep_quality stays, others invert (6 - value)
+    const sleepScore = w.sleep_quality || 3;
+    const fatigueScore = 6 - (w.general_fatigue || 3);
+    const stressScore = 6 - (w.stress_level || 3);
+    const sorenessScore = 6 - ((w.soreness_upper_body || 3) + (w.soreness_lower_body || 3)) / 2;
+    return Math.round((sleepScore + fatigueScore + stressScore + sorenessScore) / 4 * 10) / 10;
   };
 
   // Calculate wellness trend
