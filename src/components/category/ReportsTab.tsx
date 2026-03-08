@@ -845,7 +845,9 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
         // Get the stats to display based on preferences
         const sportType = category?.clubs?.sport || "rugby";
-        const allStatsDef = getStatsForSport(sportType);
+        const categoryDiscipline = players.find(p => (p as any).specialty || (p as any).discipline);
+        const discipline = (categoryDiscipline as any)?.specialty || (categoryDiscipline as any)?.discipline;
+        const allStatsDef = getStatsForSport(sportType, false, discipline);
         const customStatFields = (customStatsRes.data || []).map((cs: any) => ({
           key: cs.key, label: cs.label, shortLabel: cs.short_label,
           category: cs.category_type as StatField["category"],
@@ -1577,7 +1579,9 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const matchStatsData = statsRes.data || [];
 
       const sport = (category?.clubs as any)?.sport || "football";
-      const allFields = getStatsForSport(sport);
+      const categoryDiscipline = players.find(p => (p as any).specialty || (p as any).discipline);
+      const discipline = (categoryDiscipline as any)?.specialty || (categoryDiscipline as any)?.discipline;
+      const allFields = getStatsForSport(sport, false, discipline);
       const customStatFields = (customStatsRes.data || []).map((cs: any) => ({
         key: cs.key, label: cs.short_label || cs.label, category: cs.category_type,
       }));
