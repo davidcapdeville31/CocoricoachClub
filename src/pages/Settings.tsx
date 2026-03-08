@@ -87,6 +87,9 @@ export default function Settings() {
           {/* Push Notifications */}
           <PushNotificationSettings />
 
+          {/* Notification Preferences */}
+          <PersonalNotificationPreferences />
+
           {/* PWA Installation */}
           <Card>
             <CardHeader>

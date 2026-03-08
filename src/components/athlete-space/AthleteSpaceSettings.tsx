@@ -247,6 +247,9 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
         </CardContent>
       </Card>
 
+      {/* Personal Notification Preferences */}
+      <PersonalNotificationPreferences />
+
       {/* Account info */}
       <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.effectif.base}30` }}>
         <CardHeader className="pb-3">
