@@ -252,17 +252,24 @@ export function SportMatchStatsDialog({
       // Insert new stats
       if (statsData.length > 0) {
         const statsToInsert = statsData.map((s) => {
-          const allStats = [
+          // Merge standard + custom stats for sport_data
+          const standardStats = [
             ...getStatsForSport(sportType, false),
             ...getStatsForSport(sportType, true),
           ];
+          const allStatKeys = new Set(standardStats.map(st => st.key));
+          const mergedStats = [...standardStats];
+          sportStats.forEach(st => {
+            if (!allStatKeys.has(st.key)) {
+              mergedStats.push(st);
+              allStatKeys.add(st.key);
+            }
+          });
+          
           const sportData: Record<string, number> = {};
-          allStats.forEach((stat) => {
+          mergedStats.forEach((stat) => {
             const val = Number(s[stat.key]) || 0;
             if (val !== 0) sportData[stat.key] = val;
-          });
-          sportStats.forEach((stat) => {
-            sportData[stat.key] = Number(s[stat.key]) || 0;
           });
 
           return {
