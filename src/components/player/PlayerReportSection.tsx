@@ -584,6 +584,37 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
             });
             yPos += 4;
           }
+
+          // === TESTS PROGRESSION CHART ===
+          // Build chart data: last result per test type
+          const chartData: { label: string; value: number; color?: [number, number, number] }[] = [];
+          for (const catKey of orderedCategories) {
+            const testsByType: Record<string, typeof grouped[string]> = {};
+            grouped[catKey].forEach(t => {
+              if (!testsByType[t.test_type]) testsByType[t.test_type] = [];
+              testsByType[t.test_type].push(t);
+            });
+            Object.entries(testsByType).forEach(([testType, results]) => {
+              if (results.length > 1) {
+                results.sort((a, b) => new Date(a.test_date).getTime() - new Date(b.test_date).getTime());
+                const first = results[0];
+                const last = results[results.length - 1];
+                const prog = ((last.result_value - first.result_value) / first.result_value) * 100;
+                const fullLabel = getTestLabel(testType);
+                const parts = fullLabel.split(' - ');
+                const shortLabel = parts.length >= 2 ? parts[parts.length - 1] : testType;
+                chartData.push({
+                  label: shortLabel.substring(0, 10),
+                  value: Math.round(prog * 10) / 10,
+                  color: prog >= 0 ? colors.success : colors.danger,
+                });
+              }
+            });
+          }
+          if (chartData.length > 0) {
+            yPos = localCheckPageBreak(pdf, yPos, 55, pdfSettings);
+            yPos = drawBarChart(pdf, chartData.slice(0, 10), margin, yPos, contentWidth / 2, 35, "Progression (%)");
+          }
         }
       }
 
