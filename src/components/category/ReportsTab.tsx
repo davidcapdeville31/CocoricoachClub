@@ -1318,33 +1318,60 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     setGeneratingReport("squad-csv");
     try {
       const branding = await getExcelBranding(categoryId);
-      const [injuriesRes, wellnessRes, awcrRes, speedTestsRes, jumpTestsRes, matchLineupsRes] = await Promise.all([
+      const [injuriesRes, wellnessRes, awcrRes, speedTestsRes, jumpTestsRes, matchLineupsRes, bodyCompRes, genericTestsRes] = await Promise.all([
         supabase.from("injuries").select("*").eq("category_id", categoryId),
         supabase.from("wellness_tracking").select("*").eq("category_id", categoryId).order("tracking_date", { ascending: false }),
         supabase.from("awcr_tracking").select("*").eq("category_id", categoryId).order("session_date", { ascending: false }),
         supabase.from("speed_tests").select("*").eq("category_id", categoryId),
         supabase.from("jump_tests").select("*").eq("category_id", categoryId),
         supabase.from("match_lineups").select("*, matches(match_date)"),
+        supabase.from("body_composition").select("*").eq("category_id", categoryId).order("measurement_date", { ascending: false }),
+        supabase.from("generic_tests").select("*").eq("category_id", categoryId),
       ]);
 
       const categoryMatchIds = matches.map(m => m.id);
       const filteredLineups = (matchLineupsRes.data || []).filter(l => categoryMatchIds.includes(l.match_id));
 
-      const headers = ["Nom", "Position", "Blessures actives", "Fatigue", "Ratio EWMA", "Matchs joués", "Minutes jouées"];
+      const headers = [
+        "Nom", "Prénom", "Position", "Date naissance", "Poids (kg)", "Taille (cm)", "IMC",
+        "Blessures actives", "Sommeil", "Fatigue", "Stress", "Haut corps", "Bas corps", "Wellness moy.",
+        "Ratio EWMA", "Charge aiguë", "Charge chronique",
+        "Matchs joués", "Minutes jouées", "Min moy/match",
+      ];
       const rows = players.map(player => {
         const playerInjuries = (injuriesRes.data || []).filter(i => i.player_id === player.id && i.status !== 'healed').length;
         const playerWellness = (wellnessRes.data || []).find(w => w.player_id === player.id);
         const playerAwcr = (awcrRes.data || []).find(a => a.player_id === player.id);
         const playerLineups = filteredLineups.filter(l => l.player_id === player.id);
         const totalMinutes = playerLineups.reduce((sum, l) => sum + (l.minutes_played || 0), 0);
+        const latestBody = (bodyCompRes.data || []).find(b => b.player_id === player.id);
+
+        // Wellness average
+        const wVals = [playerWellness?.sleep_quality, playerWellness?.general_fatigue, playerWellness?.stress_level,
+          playerWellness?.soreness_upper_body, playerWellness?.soreness_lower_body].filter(v => v != null) as number[];
+        const wellnessAvg = wVals.length > 0 ? Math.round((wVals.reduce((a, b) => a + b, 0) / wVals.length) * 10) / 10 : null;
+
         return [
-          [player.first_name, player.name].filter(Boolean).join(" "),
+          player.name || "",
+          player.first_name || "",
           player.position || "",
+          player.birth_date ? format(new Date(player.birth_date), "dd/MM/yyyy") : "",
+          latestBody?.weight_kg || "",
+          latestBody?.height_cm || "",
+          latestBody?.bmi ? Number(latestBody.bmi.toFixed(1)) : "",
           playerInjuries,
-          playerWellness?.general_fatigue?.toString() || "-",
+          playerWellness?.sleep_quality ?? "-",
+          playerWellness?.general_fatigue ?? "-",
+          playerWellness?.stress_level ?? "-",
+          playerWellness?.soreness_upper_body ?? "-",
+          playerWellness?.soreness_lower_body ?? "-",
+          wellnessAvg ?? "-",
           playerAwcr?.awcr?.toFixed(2) || "-",
+          playerAwcr?.acute_load != null ? Number(playerAwcr.acute_load.toFixed(0)) : "-",
+          playerAwcr?.chronic_load != null ? Number(playerAwcr.chronic_load.toFixed(0)) : "-",
           playerLineups.length,
           totalMinutes,
+          playerLineups.length > 0 ? Math.round(totalMinutes / playerLineups.length) : 0,
         ];
       });
 
@@ -1359,10 +1386,19 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       rows.forEach((row, ri) => {
         const r = sheet.getRow(dataStart + 1 + ri);
         row.forEach((val, ci) => { r.getCell(ci + 1).value = val as any; });
+        // Color-code EWMA ratio
+        const ewmaCell = r.getCell(15);
+        const ewmaVal = parseFloat(String(row[14]));
+        if (!isNaN(ewmaVal)) {
+          ewmaCell.font = { bold: true, color: { argb: ewmaVal > 1.5 ? 'FFEF4444' : ewmaVal > 1.3 ? 'FFEAB308' : ewmaVal >= 0.8 ? 'FF22C55E' : 'FFEAB308' } };
+        }
+        // Color-code injuries
+        const injCell = r.getCell(8);
+        if ((row[7] as number) > 0) injCell.font = { bold: true, color: { argb: 'FFEF4444' } };
       });
       addZebraRows(sheet, dataStart + 1, dataStart + rows.length, headers.length);
       addFooter(sheet, dataStart + rows.length + 1, headers.length, branding.footerText);
-      headers.forEach((_, i) => { sheet.getColumn(i + 1).width = i === 0 ? 25 : 18; });
+      headers.forEach((_, i) => { sheet.getColumn(i + 1).width = i <= 1 ? 18 : 15; });
 
       await downloadWorkbook(workbook, `effectif_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
       toast.success("Export Excel généré");

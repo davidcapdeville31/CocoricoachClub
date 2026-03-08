@@ -1363,7 +1363,105 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
             }
             rowIdx++;
           });
+
+          // TOTALS row
+          rowIdx++;
+          const totalsRow = sheet.getRow(rowIdx);
+          totalsRow.getCell(1).value = 'TOTAL';
+          totalsRow.getCell(1).font = { bold: true, color: { argb: 'FF224378' } };
+          totalsRow.getCell(2).value = `${matchStats.length} matchs`;
+          totalsRow.getCell(2).font = { bold: true, color: { argb: 'FF64748B' } };
+          displayStats.forEach((s, i) => {
+            const vals = matchStats.map((stat: any) => {
+              const sd = (stat.sport_data && typeof stat.sport_data === 'object') ? stat.sport_data as Record<string, any> : {};
+              const val = sd[s.key] ?? stat[s.key];
+              return val != null ? Number(val) : null;
+            }).filter(v => v != null) as number[];
+            if (vals.length > 0) {
+              totalsRow.getCell(i + 3).value = vals.reduce((a, b) => a + b, 0);
+              totalsRow.getCell(i + 3).font = { bold: true };
+            }
+          });
+          for (let i = 1; i <= headers.length; i++) {
+            totalsRow.getCell(i).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
+          }
+          rowIdx++;
+
+          // AVERAGES row
+          const avgRow2 = sheet.getRow(rowIdx);
+          avgRow2.getCell(1).value = 'MOYENNE';
+          avgRow2.getCell(1).font = { bold: true, color: { argb: 'FF224378' } };
+          displayStats.forEach((s, i) => {
+            const vals = matchStats.map((stat: any) => {
+              const sd = (stat.sport_data && typeof stat.sport_data === 'object') ? stat.sport_data as Record<string, any> : {};
+              const val = sd[s.key] ?? stat[s.key];
+              return val != null ? Number(val) : null;
+            }).filter(v => v != null) as number[];
+            if (vals.length > 0) {
+              avgRow2.getCell(i + 3).value = Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) / 100;
+              avgRow2.getCell(i + 3).font = { bold: true, italic: true };
+            }
+          });
+          for (let i = 1; i <= headers.length; i++) {
+            avgRow2.getCell(i).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDBEAFE' } };
+          }
         }
+      }
+
+      // ===== FEUILLE BLESSURES =====
+      if (data.injuries.length > 0) {
+        const sheet = workbook.addWorksheet('Blessures');
+        let rowIdx = addSheetHeader(sheet, 'HISTORIQUE BLESSURES');
+
+        const headers = ['Type', 'Sévérité', 'Statut', 'Zone', 'Date blessure', 'Retour estimé', 'Durée (j)', 'Notes'];
+        sheet.columns = [
+          { width: 20 }, { width: 14 }, { width: 16 }, { width: 16 }, { width: 14 }, { width: 14 }, { width: 12 }, { width: 30 },
+        ];
+        const hRow = sheet.getRow(rowIdx);
+        headers.forEach((h, i) => { hRow.getCell(i + 1).value = h; });
+        styleHeaderRow(sheet, rowIdx, headers.length);
+        rowIdx++;
+
+        data.injuries.forEach((inj: any) => {
+          const row = sheet.getRow(rowIdx);
+          row.getCell(1).value = inj.injury_type || '-';
+          row.getCell(2).value = inj.severity || '-';
+          const statusMap: Record<string, string> = { active: 'Blessé', recovering: 'Réathlétisation', healed: 'Guéri' };
+          row.getCell(3).value = statusMap[inj.status] || inj.status || '-';
+          if (inj.status === 'active') row.getCell(3).font = { color: { argb: 'FFEF4444' }, bold: true };
+          else if (inj.status === 'recovering') row.getCell(3).font = { color: { argb: 'FFEAB308' }, bold: true };
+          else if (inj.status === 'healed') row.getCell(3).font = { color: { argb: 'FF27AE60' }, bold: true };
+          row.getCell(4).value = inj.body_part || '-';
+          row.getCell(5).value = inj.injury_date ? format(new Date(inj.injury_date), "dd/MM/yyyy") : '-';
+          row.getCell(6).value = inj.estimated_return_date ? format(new Date(inj.estimated_return_date), "dd/MM/yyyy") : '-';
+          // Calculate duration
+          if (inj.injury_date) {
+            const end = inj.status === 'healed' && inj.estimated_return_date ? new Date(inj.estimated_return_date) : new Date();
+            const days = Math.round((end.getTime() - new Date(inj.injury_date).getTime()) / (1000 * 60 * 60 * 24));
+            row.getCell(7).value = days > 0 ? days : null;
+          }
+          row.getCell(8).value = inj.notes || '';
+          if (rowIdx % 2 === 0) {
+            for (let i = 1; i <= headers.length; i++) {
+              row.getCell(i).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+            }
+          }
+          rowIdx++;
+        });
+
+        // Summary row
+        rowIdx++;
+        const summRow = sheet.getRow(rowIdx);
+        summRow.getCell(1).value = 'RÉSUMÉ';
+        summRow.getCell(1).font = { bold: true, color: { argb: 'FF224378' } };
+        const activeInj = data.injuries.filter((i: any) => i.status === 'active').length;
+        const recInj = data.injuries.filter((i: any) => i.status === 'recovering').length;
+        const healedInj = data.injuries.filter((i: any) => i.status === 'healed').length;
+        summRow.getCell(2).value = `Total: ${data.injuries.length}`;
+        summRow.getCell(3).value = `Actives: ${activeInj}`;
+        summRow.getCell(3).font = { bold: true, color: { argb: activeInj > 0 ? 'FFEF4444' : 'FF27AE60' } };
+        summRow.getCell(4).value = `Réathlt: ${recInj}`;
+        summRow.getCell(5).value = `Guéries: ${healedInj}`;
       }
 
       // ===== FEUILLE EWMA =====
