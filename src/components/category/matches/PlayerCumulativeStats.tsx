@@ -352,6 +352,16 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV" }: PlayerCu
         )}
       </div>
 
+      {/* Charts section */}
+      {stats && stats.length > 0 && (
+        <CumulativeStatsCharts
+          stats={stats}
+          matchesData={matchesDataForCharts}
+          sportStats={sportStats}
+          selectedMatchIds={activeMatchIds}
+        />
+      )}
+
       {/* Top performers cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {topScoringStatKey && scoringStats[0] && (
