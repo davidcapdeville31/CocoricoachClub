@@ -105,34 +105,12 @@ export function StatPreferencesDialog({
   // Track whether user has made changes (to distinguish init from user edits)
   const userHasEdited = useRef(false);
   const isInitialized = useRef(false);
+  const latestEnabledStats = useRef<string[]>([]);
 
-  // Initialize enabled stats from existing prefs or all stats
+  // Keep ref in sync with state
   useEffect(() => {
-    if (!open) {
-      isInitialized.current = false;
-      userHasEdited.current = false;
-      return;
-    }
-    if (isInitialized.current) return;
-    if (isLoading) return;
-
-    if (existingPrefs?.enabled_stats && existingPrefs.enabled_stats.length > 0) {
-      setEnabledStats(existingPrefs.enabled_stats);
-    } else {
-      const allStatKeys = [...allStats, ...goalkeeperStats].map(s => s.key);
-      const customStatKeys = customStats.map(s => s.key);
-      const uniqueKeys = [...new Set([...allStatKeys, ...customStatKeys])];
-      setEnabledStats(uniqueKeys);
-    }
-    isInitialized.current = true;
-  }, [open, isLoading, existingPrefs, allStats, goalkeeperStats, customStats]);
-
-  // Set default selected category
-  useEffect(() => {
-    if (statCategories.length > 0 && !selectedCategory) {
-      setSelectedCategory(statCategories[0].key);
-    }
-  }, [statCategories, selectedCategory]);
+    latestEnabledStats.current = enabledStats;
+  }, [enabledStats]);
 
   // Auto-save with debounce
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -184,6 +162,40 @@ export function StatPreferencesDialog({
       setIsSaving(false);
     }
   }, [categoryId, sportType, user?.id, queryClient]);
+
+  // Initialize enabled stats from existing prefs or all stats
+  useEffect(() => {
+    if (!open) {
+      // Flush pending save before resetting
+      if (userHasEdited.current && saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+        doSave(latestEnabledStats.current);
+      }
+      isInitialized.current = false;
+      userHasEdited.current = false;
+      return;
+    }
+    if (isInitialized.current) return;
+    if (isLoading) return;
+
+    if (existingPrefs?.enabled_stats && existingPrefs.enabled_stats.length > 0) {
+      setEnabledStats(existingPrefs.enabled_stats);
+    } else {
+      const allStatKeys = [...allStats, ...goalkeeperStats].map(s => s.key);
+      const customStatKeys = customStats.map(s => s.key);
+      const uniqueKeys = [...new Set([...allStatKeys, ...customStatKeys])];
+      setEnabledStats(uniqueKeys);
+    }
+    isInitialized.current = true;
+  }, [open, isLoading, existingPrefs, allStats, goalkeeperStats, customStats, doSave]);
+
+  // Set default selected category
+  useEffect(() => {
+    if (statCategories.length > 0 && !selectedCategory) {
+      setSelectedCategory(statCategories[0].key);
+    }
+  }, [statCategories, selectedCategory]);
 
   // Trigger auto-save when enabledStats changes (only after user edits)
   useEffect(() => {
