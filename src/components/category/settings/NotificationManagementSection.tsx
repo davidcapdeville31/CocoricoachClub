@@ -15,10 +15,10 @@ interface MemberNotifStatus {
   email: string | null;
   role: string;
   hasPushSubscription: boolean;
+  hasEmailSubscription: boolean;
 }
 
 export function NotificationManagementSection({ categoryId }: NotificationManagementSectionProps) {
-  // Fetch all category members (staff + athletes)
   const { data: membersStatus = [], isLoading } = useQuery({
     queryKey: ["notification-status", categoryId],
     queryFn: async () => {
@@ -48,13 +48,19 @@ export function NotificationManagementSection({ categoryId }: NotificationManage
         .select("id, full_name, email")
         .in("id", allUserIds);
 
-      // 5. Get push subscriptions
-      const { data: pushSubs = [] } = await supabase
-        .from("push_subscriptions")
-        .select("user_id")
-        .in("user_id", allUserIds);
+      // 5. Check OneSignal subscriptions via edge function
+      let onesignalResults: Record<string, { hasPush: boolean; hasEmail: boolean }> = {};
+      try {
+        const { data: osData } = await supabase.functions.invoke("check-onesignal-subscriptions", {
+          body: { user_ids: allUserIds },
+        });
+        if (osData?.results) {
+          onesignalResults = osData.results;
+        }
+      } catch (err) {
+        console.warn("Failed to check OneSignal subscriptions:", err);
+      }
 
-      const pushUserIds = new Set(pushSubs.map(s => s.user_id));
       const profileMap = new Map(profiles.map(p => [p.id, p]));
       const memberRoleMap = new Map(categoryMembers.map(m => [m.user_id, m.role]));
 
@@ -64,27 +70,31 @@ export function NotificationManagementSection({ categoryId }: NotificationManage
       for (const userId of staffUserIds) {
         const profile = profileMap.get(userId);
         if (!profile) continue;
+        const osStatus = onesignalResults[userId];
         results.push({
           userId,
           name: profile.full_name || "Sans nom",
           email: profile.email,
           role: memberRoleMap.get(userId) || "staff",
-          hasPushSubscription: pushUserIds.has(userId),
+          hasPushSubscription: osStatus?.hasPush ?? false,
+          hasEmailSubscription: osStatus?.hasEmail ?? !!profile.email,
         });
       }
 
       // Athletes
       for (const player of players) {
         if (!player.user_id) continue;
-        // Skip if already added as staff
         if (staffUserIds.includes(player.user_id)) continue;
         const profile = profileMap.get(player.user_id);
+        const osStatus = onesignalResults[player.user_id];
+        const playerName = `${player.first_name || ""} ${player.name || ""}`.trim();
         results.push({
           userId: player.user_id,
-          name: `${player.first_name || ""} ${player.name || ""}`.trim() || profile?.full_name || "Sans nom",
+          name: playerName || profile?.full_name || "Sans nom",
           email: player.email || profile?.email || null,
           role: "athlete",
-          hasPushSubscription: pushUserIds.has(player.user_id),
+          hasPushSubscription: osStatus?.hasPush ?? false,
+          hasEmailSubscription: osStatus?.hasEmail ?? !!(player.email || profile?.email),
         });
       }
 
@@ -137,16 +147,16 @@ export function NotificationManagementSection({ categoryId }: NotificationManage
           {member.hasPushSubscription ? (
             <CheckCircle2 className="h-4 w-4 text-green-500" />
           ) : (
-            <XCircle className="h-4 w-4 text-muted-foreground/50" />
+            <XCircle className="h-4 w-4 text-destructive/70" />
           )}
         </div>
         {/* Email */}
         <div className="flex items-center gap-1" title="Notifications Email">
           <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-          {member.email ? (
+          {member.hasEmailSubscription ? (
             <CheckCircle2 className="h-4 w-4 text-green-500" />
           ) : (
-            <XCircle className="h-4 w-4 text-muted-foreground/50" />
+            <XCircle className="h-4 w-4 text-destructive/70" />
           )}
         </div>
       </div>
@@ -170,7 +180,7 @@ export function NotificationManagementSection({ categoryId }: NotificationManage
           <span>Actif</span>
         </div>
         <div className="flex items-center gap-1">
-          <XCircle className="h-3.5 w-3.5 text-muted-foreground/50" />
+          <XCircle className="h-3.5 w-3.5 text-destructive/70" />
           <span>Inactif</span>
         </div>
       </div>
@@ -212,7 +222,7 @@ export function NotificationManagementSection({ categoryId }: NotificationManage
       )}
 
       <p className="text-xs text-muted-foreground px-1">
-        Les notifications push nécessitent que chaque utilisateur les active depuis son navigateur. Les notifications email sont actives dès qu'un email est renseigné dans le profil.
+        Les statuts Push et Email sont vérifiés directement via le service de notifications. Si un membre apparaît inactif, demandez-lui d'accepter les notifications depuis son navigateur ou d'installer l'application.
       </p>
     </div>
   );
