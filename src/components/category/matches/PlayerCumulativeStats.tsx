@@ -137,8 +137,14 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV" }: PlayerCu
 
   const toggleMatch = (matchId: string) => {
     setSelectedMatchIds(prev => {
+      // If currently "all selected" (empty array), switch to "all except this one"
+      if (prev.length === 0) {
+        return allMatches.filter(m => m.id !== matchId).map(m => m.id);
+      }
       if (prev.includes(matchId)) {
-        return prev.filter(id => id !== matchId);
+        const newSelection = prev.filter(id => id !== matchId);
+        // If nothing left selected, go back to "all"
+        return newSelection.length === 0 ? [] : newSelection;
       }
       return [...prev, matchId];
     });
