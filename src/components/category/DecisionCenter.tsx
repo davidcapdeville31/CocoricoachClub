@@ -43,6 +43,7 @@ import {
   getWellnessRiskLevel,
   type WellnessEntry 
 } from "@/lib/wellnessCalculations";
+import { calculateEWMASeries, transformToDailyLoadData } from "@/lib/trainingLoadCalculations";
 import { SessionFormDialog } from "./sessions/SessionFormDialog";
 import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesDialog";
 import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
