@@ -420,15 +420,17 @@ import { SeasonManager } from "@/components/club/SeasonManager";
  
          {/* TABS PRINCIPALES */}
          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-7">
-              <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-              <TabsTrigger value="categories">Catégories</TabsTrigger>
-              <TabsTrigger value="users">Utilisateurs</TabsTrigger>
-              <TabsTrigger value="seasons">Saisons</TabsTrigger>
-              {isAdmin && <TabsTrigger value="subscription">Abonnement</TabsTrigger>}
-              <TabsTrigger value="videos">Vidéos</TabsTrigger>
-              {isAdmin && <TabsTrigger value="settings">Paramètres</TabsTrigger>}
-            </TabsList>
+            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+              <TabsList className="inline-flex w-max md:grid md:w-full md:grid-cols-7 gap-1">
+                <TabsTrigger value="overview" className="whitespace-nowrap text-xs md:text-sm">Vue d'ensemble</TabsTrigger>
+                <TabsTrigger value="categories" className="whitespace-nowrap text-xs md:text-sm">Catégories</TabsTrigger>
+                <TabsTrigger value="users" className="whitespace-nowrap text-xs md:text-sm">Utilisateurs</TabsTrigger>
+                <TabsTrigger value="seasons" className="whitespace-nowrap text-xs md:text-sm">Saisons</TabsTrigger>
+                {isAdmin && <TabsTrigger value="subscription" className="whitespace-nowrap text-xs md:text-sm">Abonnement</TabsTrigger>}
+                <TabsTrigger value="videos" className="whitespace-nowrap text-xs md:text-sm">Vidéos</TabsTrigger>
+                {isAdmin && <TabsTrigger value="settings" className="whitespace-nowrap text-xs md:text-sm">Paramètres</TabsTrigger>}
+              </TabsList>
+            </div>
  
            {/* 🧭 3. ACCÈS AUX CATÉGORIES */}
            <TabsContent value="overview" className="space-y-6">
