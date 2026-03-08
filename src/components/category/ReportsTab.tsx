@@ -897,41 +897,62 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         const displayStats = enabledKeys.length > 0
           ? allAvailable.filter(s => enabledKeys.includes(s.key))
           : allAvailable;
-        // Show up to 6 stat columns in PDF
-        const limitedStats = displayStats.slice(0, 6);
 
-        const statHeaders = ["Joueur", ...limitedStats.map(s => s.shortLabel)];
-        const nameColWidth = 50;
-        const statColWidth = Math.max(15, Math.floor((contentWidth - nameColWidth) / limitedStats.length));
-        const statColWidths = [nameColWidth, ...limitedStats.map(() => statColWidth)];
-        yPos = drawTableHeaderPdf(pdf, statHeaders, statColWidths, yPos, margin, contentWidth);
-
-        playerStats.forEach((stat: any, index) => {
-          yPos = localCheckPageBreak(pdf, yPos, 10);
-          const sportData = (stat.sport_data && typeof stat.sport_data === 'object') ? stat.sport_data as Record<string, any> : {};
-          
-          const values = [
-            stat.players?.name || 'Inconnu',
-            ...limitedStats.map(s => {
-              const val = sportData[s.key] ?? stat[s.key] ?? stat[s.key.replace(/([A-Z])/g, '_$1').toLowerCase()];
-              return val != null ? String(val) : '-';
-            })
-          ];
-
-          const rowColors: ([number, number, number] | null)[] = [
-            null,
-            ...limitedStats.map(s => {
-              const sportDataLocal = (stat.sport_data && typeof stat.sport_data === 'object') ? stat.sport_data as Record<string, any> : {};
-              const val = sportDataLocal[s.key] ?? stat[s.key];
-              if (s.key === 'tries' && val && val > 0) return defaultColors.success;
-              if (s.key === 'yellowCards' && val && val > 0) return defaultColors.warning;
-              if (s.key === 'redCards' && val && val > 0) return defaultColors.danger;
-              return null;
-            })
-          ];
-
-          yPos = drawTableRowPdf(pdf, values, statColWidths, yPos, index % 2 === 1, margin, contentWidth, rowColors);
+        // Filter to only show stats that have at least one non-zero value across all players
+        const statsWithData = displayStats.filter(s => {
+          return playerStats.some((stat: any) => {
+            const sportData = (stat.sport_data && typeof stat.sport_data === 'object') ? stat.sport_data as Record<string, any> : {};
+            const val = sportData[s.key] ?? stat[s.key] ?? 0;
+            return val !== 0 && val !== null && val !== undefined;
+          });
         });
+
+        // If no stats have data, show first 6 anyway with zeros
+        const statsToShow = statsWithData.length > 0 ? statsWithData : displayStats.slice(0, 6);
+
+        // Paginate stats in groups of 8 columns
+        const COLS_PER_TABLE = 8;
+        for (let pageIdx = 0; pageIdx < statsToShow.length; pageIdx += COLS_PER_TABLE) {
+          const pageStats = statsToShow.slice(pageIdx, pageIdx + COLS_PER_TABLE);
+          
+          if (pageIdx > 0) {
+            yPos += 5;
+            yPos = localCheckPageBreak(pdf, yPos, 20);
+          }
+
+          const statHeaders = ["Joueur", ...pageStats.map(s => s.shortLabel)];
+          const nameColWidth = 45;
+          const statColWidth = Math.max(15, Math.floor((contentWidth - nameColWidth) / pageStats.length));
+          const statColWidths = [nameColWidth, ...pageStats.map(() => statColWidth)];
+          yPos = drawTableHeaderPdf(pdf, statHeaders, statColWidths, yPos, margin, contentWidth);
+
+          playerStats.forEach((stat: any, index) => {
+            yPos = localCheckPageBreak(pdf, yPos, 10);
+            const sportData = (stat.sport_data && typeof stat.sport_data === 'object') ? stat.sport_data as Record<string, any> : {};
+            const playerName = [stat.players?.first_name, stat.players?.name].filter(Boolean).join(" ") || 'Inconnu';
+            
+            const values = [
+              playerName,
+              ...pageStats.map(s => {
+                const val = sportData[s.key] ?? stat[s.key] ?? stat[s.key.replace(/([A-Z])/g, '_$1').toLowerCase()];
+                return val != null ? String(val) : '-';
+              })
+            ];
+
+            const rowColors: ([number, number, number] | null)[] = [
+              null,
+              ...pageStats.map(s => {
+                const val = sportData[s.key] ?? stat[s.key];
+                if (s.key === 'tries' && val && val > 0) return defaultColors.success;
+                if (s.key === 'yellowCards' && val && val > 0) return defaultColors.warning;
+                if (s.key === 'redCards' && val && val > 0) return defaultColors.danger;
+                return null;
+              })
+            ];
+
+            yPos = drawTableRowPdf(pdf, values, statColWidths, yPos, index % 2 === 1, margin, contentWidth, rowColors);
+          });
+        }
       }
 
       pdf.save(`match_${match.opponent.replace(/\s+/g, '_')}_${format(new Date(match.match_date), "yyyy-MM-dd")}.pdf`);
