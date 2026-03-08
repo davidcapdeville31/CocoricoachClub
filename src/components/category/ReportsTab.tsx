@@ -321,6 +321,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
   const generateTdjCsv = async () => {
     setGeneratingReport("tdj-csv");
     try {
+      const branding = await getExcelBranding(categoryId);
       let matchQuery = supabase.from("matches").select("id, match_date, opponent").eq("category_id", categoryId).order("match_date");
       if (tdjDateFrom) matchQuery = matchQuery.gte("match_date", tdjDateFrom);
       if (tdjDateTo) matchQuery = matchQuery.lte("match_date", tdjDateTo);
@@ -339,7 +340,6 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const csvMatchStats = statsRes.data || [];
       const injuries = injuriesRes.data || [];
 
-      // Build stats minutes map
       const csvStatsMinutesMap = new Map<string, number>();
       csvMatchStats.forEach((s: any) => {
         const minutes = s.sport_data?.minutesPlayed || s.sport_data?.playingTime || 0;
@@ -374,12 +374,33 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         return [[player.first_name, player.name].filter(Boolean).join(" "), totalMin, starter, sub, pl.length, horsGroupe, blesse];
       }).sort((a, b) => (b[1] as number) - (a[1] as number));
 
-      const csv = generateCsv(headers, rows);
-      downloadCsv(`tdj_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
-      toast.success("Export CSV généré");
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet("Suivi Temps de Jeu");
+      const extraInfo: [string, string][] = [
+        ["Matchs analysés", `${matchesData.length}`],
+      ];
+      if (tdjDateFrom || tdjDateTo) {
+        extraInfo.push(["Période", `${tdjDateFrom || "début"} — ${tdjDateTo || "aujourd'hui"}`]);
+      }
+      const dataStart = addBrandedHeader(sheet, "SUIVI TEMPS DE JEU", branding, extraInfo);
+
+      headers.forEach((h, i) => { sheet.getCell(dataStart, i + 1).value = h; });
+      styleDataHeaderRow(sheet, dataStart, headers.length, branding.headerColor);
+
+      rows.forEach((row, ri) => {
+        const r = sheet.getRow(dataStart + 1 + ri);
+        row.forEach((val, ci) => { r.getCell(ci + 1).value = val as any; });
+      });
+      addZebraRows(sheet, dataStart + 1, dataStart + rows.length, headers.length);
+      addFooter(sheet, dataStart + rows.length + 1, headers.length, branding.footerText);
+
+      headers.forEach((_, i) => { sheet.getColumn(i + 1).width = i === 0 ? 25 : 18; });
+
+      await downloadWorkbook(workbook, `tdj_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+      toast.success("Export Excel généré");
     } catch (error) {
       console.error(error);
-      toast.error("Erreur lors de l'export CSV");
+      toast.error("Erreur lors de l'export Excel");
     } finally {
       setGeneratingReport(null);
     }
