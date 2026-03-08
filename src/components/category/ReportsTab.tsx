@@ -1920,13 +1920,36 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     setGeneratingReport("attendance-csv");
     try {
       const branding = await getExcelBranding(categoryId);
-      const { data: attendanceData } = await supabase
-        .from("training_attendance")
-        .select("*")
-        .eq("category_id", categoryId);
+      
+      // Fetch attendance with sessions for detailed data
+      const [sessionsRes, attendanceRes] = await Promise.all([
+        (() => {
+          let q = supabase.from("training_sessions").select("*").eq("category_id", categoryId).order("session_date", { ascending: false });
+          if (attendanceDateFrom) q = q.gte("session_date", attendanceDateFrom);
+          if (attendanceDateTo) q = q.lte("session_date", attendanceDateTo);
+          return q;
+        })(),
+        supabase.from("training_attendance").select("*").eq("category_id", categoryId),
+      ]);
+      
+      const sessionsData = sessionsRes.data || [];
+      const sessionIds = new Set(sessionsData.map(s => s.id));
+      const allAttendance = (attendanceRes.data || []).filter(a => sessionIds.has(a.training_session_id));
+
+      const calcDuration = (s: any): number => {
+        if (s.session_start_time && s.session_end_time) {
+          const [sh, sm] = s.session_start_time.split(':').map(Number);
+          const [eh, em] = s.session_end_time.split(':').map(Number);
+          return (eh * 60 + em) - (sh * 60 + sm);
+        }
+        return 60;
+      };
+
+      const sessionMap: Record<string, any> = {};
+      sessionsData.forEach(s => { sessionMap[s.id] = s; });
 
       const playerStats = players.map((player) => {
-        const playerAttendance = (attendanceData || []).filter((a) => a.player_id === player.id);
+        const playerAttendance = allAttendance.filter((a) => a.player_id === player.id);
         const present = playerAttendance.filter((a) => a.status === "present").length;
         const late = playerAttendance.filter((a) => a.status === "late").length;
         const lateJustified = playerAttendance.filter((a) => a.status === "late" && a.late_justified).length;
@@ -1935,23 +1958,36 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         const total = playerAttendance.length;
         const rate = total > 0 ? Math.round(((present + late) / total) * 100) : 0;
 
+        let totalMinutes = 0;
+        playerAttendance.filter(a => a.status === "present" || a.status === "late").forEach(a => {
+          const session = sessionMap[a.training_session_id];
+          if (session) totalMinutes += calcDuration(session);
+        });
+
         return {
           name: [player.first_name, player.name].filter(Boolean).join(" "),
           position: player.position || "",
           present, late, lateJustified,
           lateUnjustified: late - lateJustified,
-          absent, excused, total, rate,
+          absent, excused, total, rate, totalMinutes,
         };
       }).sort((a, b) => b.rate - a.rate);
 
-      const headers = ["Joueur", "Position", "Présent", "Retard justifié", "Retard non justifié", "Excusé", "Absent", "Total", "Taux (%)"];
+      const headers = ["Joueur", "Position", "Présent", "Retard justifié", "Retard non just.", "Excusé", "Absent", "Total séances", "Taux (%)", "Min. entraîn."];
 
       const workbook = new ExcelJS.Workbook();
       const sheet = workbook.addWorksheet("Rapport de Présences");
       const avgRate = playerStats.length > 0 ? Math.round(playerStats.reduce((s, p) => s + p.rate, 0) / playerStats.length) : 0;
+      const totalSessions = sessionsData.length;
+      const totalTrainMin = playerStats.reduce((s, p) => s + p.totalMinutes, 0);
+      const dateRangeLabel = attendanceDateFrom || attendanceDateTo
+        ? `${attendanceDateFrom || "début"} — ${attendanceDateTo || "aujourd'hui"}`
+        : "Toute la saison";
       const dataStart = addBrandedHeader(sheet, "RAPPORT DE PRÉSENCES", branding, [
+        ["Séances", `${totalSessions}`],
         ["Joueurs", `${playerStats.length}`],
         ["Taux moyen", `${avgRate}%`],
+        ["Période", dateRangeLabel],
       ]);
 
       headers.forEach((h, i) => { sheet.getCell(dataStart, i + 1).value = h; });
@@ -1959,16 +1995,57 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
       playerStats.forEach((p, ri) => {
         const r = sheet.getRow(dataStart + 1 + ri);
-        const vals = [p.name, p.position, p.present, p.lateJustified, p.lateUnjustified, p.excused, p.absent, p.total, p.rate];
+        const vals = [p.name, p.position, p.present, p.lateJustified, p.lateUnjustified, p.excused, p.absent, p.total, p.rate, p.totalMinutes];
         vals.forEach((val, ci) => { r.getCell(ci + 1).value = val as any; });
-        // Color code rate
         const rateCell = r.getCell(9);
         if (p.rate >= 80) rateCell.font = { color: { argb: "FF22C55E" }, bold: true };
         else if (p.rate < 50) rateCell.font = { color: { argb: "FFEF4444" }, bold: true };
       });
       addZebraRows(sheet, dataStart + 1, dataStart + playerStats.length, headers.length);
-      addFooter(sheet, dataStart + playerStats.length + 1, headers.length, branding.footerText);
 
+      // Totals row
+      const totIdx2 = dataStart + playerStats.length + 1;
+      const tRow2 = sheet.getRow(totIdx2);
+      tRow2.getCell(1).value = 'TOTAL / MOYENNE';
+      tRow2.getCell(1).font = { bold: true };
+      tRow2.getCell(3).value = playerStats.reduce((s, p) => s + p.present, 0);
+      tRow2.getCell(7).value = playerStats.reduce((s, p) => s + p.absent, 0);
+      tRow2.getCell(9).value = avgRate;
+      tRow2.getCell(9).font = { bold: true };
+      tRow2.getCell(10).value = Math.round(totalTrainMin / Math.max(playerStats.length, 1));
+      for (let i = 1; i <= headers.length; i++) {
+        tRow2.getCell(i).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
+      }
+
+      // Sheet 2: Sessions by type breakdown
+      const sessionsByType: Record<string, { count: number; totalMin: number }> = {};
+      sessionsData.forEach(s => {
+        const t = s.training_type || 'Autre';
+        if (!sessionsByType[t]) sessionsByType[t] = { count: 0, totalMin: 0 };
+        sessionsByType[t].count++;
+        sessionsByType[t].totalMin += calcDuration(s);
+      });
+
+      if (Object.keys(sessionsByType).length > 0) {
+        const typeSheet = workbook.addWorksheet("Répartition séances");
+        const typeStart = addBrandedHeader(typeSheet, "RÉPARTITION PAR TYPE DE SÉANCE", branding, []);
+        const typeHeaders = ["Type", "Séances", "Durée totale (min)", "Durée moy. (min)", "% du total"];
+        typeHeaders.forEach((h, i) => { typeSheet.getCell(typeStart, i + 1).value = h; });
+        styleDataHeaderRow(typeSheet, typeStart, typeHeaders.length, branding.headerColor);
+        
+        Object.entries(sessionsByType).sort((a, b) => b[1].count - a[1].count).forEach(([type, data], ri) => {
+          const r = typeSheet.getRow(typeStart + 1 + ri);
+          r.getCell(1).value = type;
+          r.getCell(2).value = data.count;
+          r.getCell(3).value = data.totalMin;
+          r.getCell(4).value = data.count > 0 ? Math.round(data.totalMin / data.count) : 0;
+          r.getCell(5).value = totalSessions > 0 ? Math.round((data.count / totalSessions) * 100) : 0;
+        });
+        addZebraRows(typeSheet, typeStart + 1, typeStart + Object.keys(sessionsByType).length, typeHeaders.length);
+        typeHeaders.forEach((_, i) => { typeSheet.getColumn(i + 1).width = i === 0 ? 22 : 18; });
+      }
+
+      addFooter(sheet, totIdx2 + 1, headers.length, branding.footerText);
       headers.forEach((_, i) => { sheet.getColumn(i + 1).width = i === 0 ? 25 : 18; });
 
       await downloadWorkbook(workbook, `presences_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
