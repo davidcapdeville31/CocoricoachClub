@@ -1828,7 +1828,7 @@ export function ProgramSessionCard({
                 onClick={() => {
                   const newExercise: ProgramExercise = {
                     id: crypto.randomUUID(),
-                    exercise_name: "Nouvel exercice",
+                    exercise_name: "",
                     order_index: session.exercises.length,
                     method: "normal",
                     sets: 3,
@@ -1839,6 +1839,11 @@ export function ProgramSessionCard({
                   const newIndex = newExercises.length - 1;
                   onUpdate({ ...session, exercises: newExercises });
                   setSelectedForLinking(prev => [...prev, newIndex]);
+                  // Open library search for the new exercise
+                  setTimeout(() => {
+                    setSearchQuery("");
+                    setShowLibraryFor(newIndex);
+                  }, 100);
                 }}
               >
                 <Plus className="h-3 w-3 mr-1" />
