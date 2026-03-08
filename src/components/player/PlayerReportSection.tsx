@@ -904,7 +904,8 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
           ]);
 
           const sport = category?.clubs?.sport || "rugby";
-          const allStatsDef = getStatsForSport(sport);
+          const playerDiscipline = (player as any)?.specialty || (player as any)?.discipline;
+          const allStatsDef = getStatsForSport(sport, false, playerDiscipline);
           const customStatFields = (customStatsRes.data || []).map((cs: any) => ({
             key: cs.key, label: cs.label, shortLabel: cs.short_label,
             category: cs.category_type, type: "number" as const,
