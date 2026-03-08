@@ -1747,8 +1747,9 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
       const sessionsByIntensity: Record<string, number> = {};
       sessionsData.forEach(s => {
-        const intensity = s.intensity || 'moyenne';
-        sessionsByIntensity[intensity] = (sessionsByIntensity[intensity] || 0) + 1;
+        const intensityVal = s.intensity || s.planned_intensity || 5;
+        const intensityLabel = intensityVal >= 8 ? 'haute' : intensityVal >= 5 ? 'moyenne' : 'basse';
+        sessionsByIntensity[intensityLabel] = (sessionsByIntensity[intensityLabel] || 0) + 1;
       });
 
       if (Object.keys(sessionsByIntensity).length > 0) {
