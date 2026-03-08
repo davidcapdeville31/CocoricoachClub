@@ -307,7 +307,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         );
       });
 
-      pdf.save(`tdj_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+      pdf.save(`tdj_${(catName1 || category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
       toast.success("Rapport Temps de Jeu généré");
     } catch (error) {
       console.error(error);
