@@ -544,9 +544,9 @@ export function SportMatchStatsDialog({
           </div>
         )}
 
-        {/* Player stats grid */}
-        <ScrollArea className="flex-1 min-h-0">
-          <div className="pr-2">
+        {/* Player stats grid - scrollable area takes all remaining space */}
+        <ScrollArea className="flex-1 min-h-0 max-h-full">
+          <div className="pr-2 pb-4">
             <PlayerStatsGrid
               players={statsData}
               stats={activeCategoryStats}
