@@ -177,21 +177,44 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
      },
    });
  
-   // Fetch AWCR data
-   const { data: awcrData = [] } = useQuery({
-     queryKey: ["awcr_decision", categoryId],
+   // Fetch AWCR data for EWMA calculation (need 90 days for proper chronic load)
+   const { data: awcrDataFull = [] } = useQuery({
+     queryKey: ["awcr_decision_full", categoryId],
      queryFn: async () => {
-       const weekAgo = subDays(new Date(), 7).toISOString().split("T")[0];
+       const ninetyDaysAgo = subDays(new Date(), 90).toISOString().split("T")[0];
        const { data, error } = await supabase
          .from("awcr_tracking")
-         .select("player_id, awcr, session_date")
+         .select("player_id, training_load, rpe, duration_minutes, session_date")
          .eq("category_id", categoryId)
-         .gte("session_date", weekAgo)
-         .order("session_date", { ascending: false });
+         .gte("session_date", ninetyDaysAgo)
+         .order("session_date", { ascending: true });
        if (error) throw error;
        return data;
      },
    });
+
+   // Calculate per-player EWMA ratios
+   const playerEwmaMap = useMemo(() => {
+     const map = new Map<string, number>();
+     if (awcrDataFull.length === 0) return map;
+     
+     // Group by player
+     const byPlayer = new Map<string, typeof awcrDataFull>();
+     awcrDataFull.forEach(entry => {
+       if (!byPlayer.has(entry.player_id)) byPlayer.set(entry.player_id, []);
+       byPlayer.get(entry.player_id)!.push(entry);
+     });
+     
+     byPlayer.forEach((entries, playerId) => {
+       const dailyData = transformToDailyLoadData(entries, []);
+       const ewmaResults = calculateEWMASeries(dailyData, "sRPE");
+       if (ewmaResults.length > 0) {
+         map.set(playerId, ewmaResults[ewmaResults.length - 1].ratio);
+       }
+     });
+     
+     return map;
+   }, [awcrDataFull]);
  
   // Fetch wellness data
     const { data: wellnessData = [], refetch: refetchWellness } = useQuery({
