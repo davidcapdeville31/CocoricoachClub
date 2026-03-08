@@ -243,7 +243,7 @@ export function CompetitionRoundsDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("match_lineups")
-        .select("player_id, boat_type, crew_role, seat_position, players(id, name)")
+        .select("player_id, boat_type, crew_role, seat_position, players(id, name, first_name)")
         .eq("match_id", matchId);
       if (error) throw error;
       return data;
@@ -273,12 +273,12 @@ export function CompetitionRoundsDialog({
     
     if (lineup && lineup.length > 0) {
       const playersData = lineup.map((l) => {
-        const player = l.players as { id: string; name: string } | null;
+        const player = l.players as { id: string; name: string; first_name?: string } | null;
         const playerRounds = existingRounds?.filter(r => r.player_id === l.player_id) || [];
         
         return {
           playerId: l.player_id,
-          playerName: player?.name || "Athlète",
+          playerName: [player?.first_name, player?.name].filter(Boolean).join(" ") || "Athlète",
           boat_type: l.boat_type || undefined,
           crew_role: l.crew_role || undefined,
           seat_position: l.seat_position || undefined,

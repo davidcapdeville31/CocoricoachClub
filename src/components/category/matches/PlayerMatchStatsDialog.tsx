@@ -101,7 +101,7 @@ export function PlayerMatchStatsDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("match_lineups")
-        .select("player_id, players(id, name)")
+        .select("player_id, players(id, name, first_name)")
         .eq("match_id", matchId);
       if (error) throw error;
       return data;
@@ -126,10 +126,10 @@ export function PlayerMatchStatsDialog({
     if (lineup && lineup.length > 0) {
       const stats = lineup.map((l) => {
         const existing = existingStats?.find((s) => s.player_id === l.player_id);
-        const player = l.players as { id: string; name: string } | null;
+        const player = l.players as { id: string; name: string; first_name?: string } | null;
         return {
           playerId: l.player_id,
-          playerName: player?.name || "Joueur",
+          playerName: [player?.first_name, player?.name].filter(Boolean).join(" ") || "Joueur",
           tries: existing?.tries ?? 0,
           conversions: existing?.conversions ?? 0,
           penaltiesScored: existing?.penalties_scored ?? 0,

@@ -398,7 +398,7 @@ export function SportMatchStatsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] max-h-[92vh] flex flex-col overflow-hidden">
+      <DialogContent className="sm:max-w-[900px] max-h-[95vh] h-[95vh] flex flex-col overflow-hidden">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
@@ -544,9 +544,9 @@ export function SportMatchStatsDialog({
           </div>
         )}
 
-        {/* Player stats grid */}
-        <ScrollArea className="flex-1 min-h-0">
-          <div className="pr-2">
+        {/* Player stats grid - scrollable area takes all remaining space */}
+        <ScrollArea className="flex-1 min-h-0 max-h-full">
+          <div className="pr-2 pb-4">
             <PlayerStatsGrid
               players={statsData}
               stats={activeCategoryStats}
