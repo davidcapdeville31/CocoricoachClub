@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { TutorialVideosSection } from "@/components/category/settings/TutorialVideosSection";
 import { NotificationManagementSection } from "@/components/category/settings/NotificationManagementSection";
+import { PersonalNotificationPreferences } from "@/components/notifications/PersonalNotificationPreferences";
+import { PushNotificationSettings } from "@/components/notifications/PushNotificationSettings";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Video, Bell, ChevronDown } from "lucide-react";
+import { Video, Bell, Settings, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SettingsTabProps {
@@ -11,6 +13,7 @@ interface SettingsTabProps {
 
 export function SettingsTab({ categoryId }: SettingsTabProps) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [myNotifsOpen, setMyNotifsOpen] = useState(false);
   const [tutorialsOpen, setTutorialsOpen] = useState(false);
 
   return (
@@ -40,6 +43,36 @@ export function SettingsTab({ categoryId }: SettingsTabProps) {
         <CollapsibleContent>
           <div className="border border-t-0 rounded-b-xl p-4 bg-card shadow-sm">
             <NotificationManagementSection categoryId={categoryId} />
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* My Notification Preferences Collapsible */}
+      <Collapsible open={myNotifsOpen} onOpenChange={setMyNotifsOpen}>
+        <CollapsibleTrigger className="w-full">
+          <div className={cn(
+            "flex items-center justify-between w-full p-4 rounded-xl border bg-card shadow-sm transition-colors hover:bg-accent/50",
+            myNotifsOpen && "rounded-b-none border-b-0"
+          )}>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Settings className="h-5 w-5 text-primary" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold">Mes notifications</p>
+                <p className="text-sm text-muted-foreground">Gérer mes préférences et activer les notifications</p>
+              </div>
+            </div>
+            <ChevronDown className={cn(
+              "h-5 w-5 text-muted-foreground transition-transform duration-200",
+              myNotifsOpen && "rotate-180"
+            )} />
+          </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="border border-t-0 rounded-b-xl p-4 bg-card shadow-sm space-y-4">
+            <PushNotificationSettings />
+            <PersonalNotificationPreferences />
           </div>
         </CollapsibleContent>
       </Collapsible>
