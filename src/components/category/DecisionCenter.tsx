@@ -521,15 +521,15 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
    const getPlayersToAdapt = (): { id: string; name: string; reason: string }[] => {
      const toAdapt: { id: string; name: string; reason: string }[] = [];
      
-     players.forEach(player => {
-       const playerAwcr = awcrData.find(a => a.player_id === player.id);
-       const playerWellness = wellnessData.find(w => w.player_id === player.id);
-       
-       if (playerAwcr?.awcr && playerAwcr.awcr > 1.3) {
+      players.forEach(player => {
+        const ewmaRatio = playerEwmaMap.get(player.id);
+        const playerWellness = wellnessData.find(w => w.player_id === player.id);
+        
+        if (ewmaRatio != null && ewmaRatio > 1.3) {
           toAdapt.push({
             id: player.id,
             name: getFullName(player),
-            reason: `EWMA ${playerAwcr.awcr.toFixed(2)}`,
+            reason: `EWMA ${ewmaRatio.toFixed(2)}`,
          });
        } else if (playerWellness) {
          const score = calculateWeightedWellnessScore(playerWellness as WellnessEntry);
