@@ -375,9 +375,11 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       }).sort((a, b) => (b[1] as number) - (a[1] as number));
 
       const workbook = new ExcelJS.Workbook();
+      // Sheet 1: Summary
       const sheet = workbook.addWorksheet("Suivi Temps de Jeu");
       const extraInfo: [string, string][] = [
         ["Matchs analysés", `${matchesData.length}`],
+        ["Minutes totales", `${rows.reduce((s, r) => s + (r[1] as number), 0)}`],
       ];
       if (tdjDateFrom || tdjDateTo) {
         extraInfo.push(["Période", `${tdjDateFrom || "début"} — ${tdjDateTo || "aujourd'hui"}`]);
@@ -390,11 +392,62 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       rows.forEach((row, ri) => {
         const r = sheet.getRow(dataStart + 1 + ri);
         row.forEach((val, ci) => { r.getCell(ci + 1).value = val as any; });
+        // Color-code minutes
+        const minCell = r.getCell(2);
+        const minVal = row[1] as number;
+        if (minVal > 500) minCell.font = { color: { argb: 'FF22C55E' }, bold: true };
+        else if (minVal > 200) minCell.font = { color: { argb: 'FFEAB308' }, bold: true };
+        else if (minVal > 0) minCell.font = { color: { argb: 'FFEF4444' }, bold: true };
       });
       addZebraRows(sheet, dataStart + 1, dataStart + rows.length, headers.length);
-      addFooter(sheet, dataStart + rows.length + 1, headers.length, branding.footerText);
 
+      // Totals row
+      const totIdx = dataStart + rows.length + 1;
+      const totRow = sheet.getRow(totIdx);
+      totRow.getCell(1).value = 'TOTAL / MOYENNE';
+      totRow.getCell(1).font = { bold: true };
+      const totalMin = rows.reduce((s, r) => s + (r[1] as number), 0);
+      totRow.getCell(2).value = totalMin;
+      totRow.getCell(2).font = { bold: true };
+      const avgMin = rows.length > 0 ? Math.round(totalMin / rows.length) : 0;
+      totRow.getCell(3).value = `Moy: ${Math.round(rows.reduce((s, r) => s + (r[2] as number), 0) / Math.max(rows.length, 1))}`;
+      totRow.getCell(5).value = `Moy: ${Math.round(rows.reduce((s, r) => s + (r[4] as number), 0) / Math.max(rows.length, 1))}`;
+      for (let i = 1; i <= headers.length; i++) {
+        totRow.getCell(i).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
+      }
+
+      addFooter(sheet, totIdx + 1, headers.length, branding.footerText);
       headers.forEach((_, i) => { sheet.getColumn(i + 1).width = i === 0 ? 25 : 18; });
+
+      // Sheet 2: Per-match detail
+      const detailSheet = workbook.addWorksheet("Détail par match");
+      const detailStart = addBrandedHeader(detailSheet, "DÉTAIL PAR MATCH", branding, []);
+      const detailHeaders = ["Match", "Date", "Joueur", "Titulaire", "Minutes"];
+      detailHeaders.forEach((h, i) => { detailSheet.getCell(detailStart, i + 1).value = h; });
+      styleDataHeaderRow(detailSheet, detailStart, detailHeaders.length, branding.headerColor);
+
+      let dRowIdx = detailStart + 1;
+      matchesData.forEach(m => {
+        const matchLineups = lineups.filter(l => l.match_id === m.id);
+        matchLineups.forEach(l => {
+          const p = players.find(pl => pl.id === l.player_id);
+          const pName = p ? [p.first_name, p.name].filter(Boolean).join(" ") : "?";
+          const lineupMin = l.minutes_played || csvStatsMinutesMap.get(`${l.match_id}_${l.player_id}`) || 0;
+          const r = detailSheet.getRow(dRowIdx);
+          r.getCell(1).value = m.opponent;
+          r.getCell(2).value = format(new Date(m.match_date), "dd/MM/yyyy");
+          r.getCell(3).value = pName;
+          r.getCell(4).value = l.is_starter ? "Oui" : "Non";
+          r.getCell(5).value = lineupMin;
+          if (dRowIdx % 2 === 0) {
+            for (let i = 1; i <= detailHeaders.length; i++) {
+              r.getCell(i).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+            }
+          }
+          dRowIdx++;
+        });
+      });
+      detailHeaders.forEach((_, i) => { detailSheet.getColumn(i + 1).width = i <= 2 ? 22 : 14; });
 
       await downloadWorkbook(workbook, `tdj_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
       toast.success("Export Excel généré");
