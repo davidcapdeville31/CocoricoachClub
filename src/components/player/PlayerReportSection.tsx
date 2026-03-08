@@ -501,8 +501,8 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
         }, 0);
       }
       const activeInjuries = data.injuries.filter(i => i.status !== 'healed').length;
-      // Use EWMA ratio from latest awcr_tracking entry
-      const latestAwcr = data.awcr.length > 0 ? data.awcr[0]?.awcr : null;
+      // Use EWMA ratio from latest non-null awcr_tracking entry
+      const latestAwcr = data.awcr.find(e => e.awcr != null)?.awcr ?? null;
 
       const cardWidth = (contentWidth - 15) / 4;
       const cardHeight = 20;
