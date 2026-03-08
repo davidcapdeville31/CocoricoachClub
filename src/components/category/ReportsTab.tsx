@@ -419,7 +419,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       let yPos = drawPdfHeaderCustom(
         pdf,
         `BILAN DE SAISON${sName ? ` - ${sName}` : ` ${new Date().getFullYear()}/${new Date().getFullYear() + 1}`}`,
-        `${category?.clubs?.name} - ${category?.name}`,
+        `${cn2 || category?.clubs?.name || ''} - ${catName2 || category?.name || ''}`,
         `Généré le ${format(new Date(), "d MMMM yyyy", { locale: fr })}`,
         pdfSettings,
         logoBase64
