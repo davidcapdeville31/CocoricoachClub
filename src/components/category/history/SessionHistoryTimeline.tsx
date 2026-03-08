@@ -101,13 +101,13 @@ export function SessionHistoryTimeline({ categoryId, playerId }: SessionHistoryT
     },
   });
 
-  // Fetch AWCR data
+  // Fetch AWCR data with player names
   const { data: awcrData } = useQuery({
     queryKey: ["session-history-awcr", categoryId, startDate, playerId],
     queryFn: async () => {
       let query = supabase
         .from("awcr_tracking")
-        .select("*")
+        .select("*, players!inner(name, first_name)")
         .eq("category_id", categoryId)
         .gte("session_date", startDate);
       
