@@ -221,7 +221,7 @@ export function RehabWellnessTracker({ playerId, categoryId }: RehabWellnessTrac
               <span className="text-xs font-medium text-muted-foreground">Sommeil</span>
             </div>
             <span className={`text-2xl font-bold ${getScoreColor(latestWellness?.sleep_quality)}`}>
-              {latestWellness?.sleep_quality || "-"}/10
+              {latestWellness?.sleep_quality || "-"}/5
             </span>
           </CardContent>
         </Card>
