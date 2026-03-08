@@ -1336,7 +1336,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       });
 
       const csv = generateCsv(headers, rows);
-      downloadCsv(`saison_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
+      downloadCsv(`saison_${(category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
       toast.success("Export CSV généré");
     } catch (error) {
       console.error(error);
