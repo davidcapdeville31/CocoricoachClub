@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { TutorialVideosSection } from "@/components/category/settings/TutorialVideosSection";
 import { NotificationManagementSection } from "@/components/category/settings/NotificationManagementSection";
+import { PersonalNotificationPreferences } from "@/components/notifications/PersonalNotificationPreferences";
+import { PushNotificationSettings } from "@/components/notifications/PushNotificationSettings";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Video, Bell, ChevronDown } from "lucide-react";
+import { Video, Bell, Settings, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SettingsTabProps {
