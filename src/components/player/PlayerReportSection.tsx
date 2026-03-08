@@ -31,6 +31,7 @@ const SECTION_LABELS: Record<ReportSection, string> = {
   biometrics: "Données biométriques",
   wellness: "Wellness",
   matches: "Statistiques matchs",
+  ewma: "Charge d'entraînement (EWMA)",
 };
 
 export function PlayerReportSection({ playerId, categoryId, playerName, sportType }: PlayerReportSectionProps) {
