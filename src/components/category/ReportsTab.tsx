@@ -447,28 +447,48 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         const displayStats = enabledKeys.length > 0
           ? allAvailable.filter(s => enabledKeys.includes(s.key))
           : allAvailable;
-        const limitedStats = displayStats.slice(0, 6);
 
-        const matchStatHeaders = ["Match", "Date", ...limitedStats.map(s => s.shortLabel)];
-        const nameColW = 40;
-        const dateColW = 22;
-        const statColW = Math.max(15, Math.floor((contentWidth - nameColW - dateColW) / limitedStats.length));
-        const matchStatColWidths = [nameColW, dateColW, ...limitedStats.map(() => statColW)];
-        yPos = drawTableHeaderPdf(pdf, matchStatHeaders, matchStatColWidths, yPos, margin, contentWidth);
-
-        matchStats.forEach((stat: any, index) => {
-          yPos = localCheckPageBreak(pdf, yPos, 10);
-          const sportData = (stat.sport_data && typeof stat.sport_data === 'object') ? stat.sport_data as Record<string, any> : {};
-          const values = [
-            stat.matches?.opponent || '-',
-            stat.matches?.match_date ? format(new Date(stat.matches.match_date), "dd/MM") : '-',
-            ...limitedStats.map(s => {
-              const val = sportData[s.key] ?? stat[s.key] ?? stat[s.key.replace(/([A-Z])/g, '_$1').toLowerCase()];
-              return val != null ? String(val) : '-';
-            })
-          ];
-          yPos = drawTableRowPdf(pdf, values, matchStatColWidths, yPos, index % 2 === 1, margin, contentWidth);
+        // Filter to only show stats that have at least one non-zero value
+        const statsWithData = displayStats.filter(s => {
+          return matchStats.some((stat: any) => {
+            const sd = (stat.sport_data && typeof stat.sport_data === 'object') ? stat.sport_data as Record<string, any> : {};
+            const val = sd[s.key] ?? stat[s.key] ?? 0;
+            return val !== 0 && val !== null && val !== undefined;
+          });
         });
+        const statsToShow = statsWithData.length > 0 ? statsWithData : displayStats.slice(0, 6);
+
+        // Paginate in groups of 6 columns (need space for Match + Date cols)
+        const COLS_PER_PAGE = 6;
+        for (let pageIdx = 0; pageIdx < statsToShow.length; pageIdx += COLS_PER_PAGE) {
+          const pageStats = statsToShow.slice(pageIdx, pageIdx + COLS_PER_PAGE);
+          
+          if (pageIdx > 0) {
+            yPos += 5;
+            yPos = localCheckPageBreak(pdf, yPos, 20);
+          }
+
+          const matchStatHeaders = ["Match", "Date", ...pageStats.map(s => s.shortLabel)];
+          const nameColW = 40;
+          const dateColW = 22;
+          const statColW = Math.max(15, Math.floor((contentWidth - nameColW - dateColW) / pageStats.length));
+          const matchStatColWidths = [nameColW, dateColW, ...pageStats.map(() => statColW)];
+          yPos = drawTableHeaderPdf(pdf, matchStatHeaders, matchStatColWidths, yPos, margin, contentWidth);
+
+          matchStats.forEach((stat: any, index) => {
+            yPos = localCheckPageBreak(pdf, yPos, 10);
+            const sportData = (stat.sport_data && typeof stat.sport_data === 'object') ? stat.sport_data as Record<string, any> : {};
+            const values = [
+              stat.matches?.opponent || '-',
+              stat.matches?.match_date ? format(new Date(stat.matches.match_date), "dd/MM") : '-',
+              ...pageStats.map(s => {
+                const val = sportData[s.key] ?? stat[s.key] ?? stat[s.key.replace(/([A-Z])/g, '_$1').toLowerCase()];
+                return val != null ? String(val) : '-';
+              })
+            ];
+            yPos = drawTableRowPdf(pdf, values, matchStatColWidths, yPos, index % 2 === 1, margin, contentWidth);
+          });
+        }
         yPos += 5;
       }
 
