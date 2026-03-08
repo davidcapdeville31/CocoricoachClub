@@ -200,7 +200,7 @@ export function PlayerSelection({
             />
           </div>
 
-          <ScrollArea className="border rounded-md" style={{ maxHeight }}>
+          <ScrollArea className="border rounded-md h-[200px]">
             <div className="p-2 grid grid-cols-2 gap-1">
               {filteredPlayers.map((player) => {
                 const isInjured = injuredPlayerIds.has(player.id);
