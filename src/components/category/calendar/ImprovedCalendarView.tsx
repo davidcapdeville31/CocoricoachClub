@@ -332,7 +332,7 @@ export function ImprovedCalendarView({
                 ? "Calendrier des entraînements et compétitions" 
                 : "Calendrier des entraînements et matchs"}
             </CardTitle>
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap" data-no-print>
               {/* Filters */}
               <Popover>
                 <PopoverTrigger asChild>
@@ -432,6 +432,7 @@ export function ImprovedCalendarView({
               size="icon"
               className="h-9 w-9"
               onClick={() => handleNavigate("prev")}
+              data-no-print
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
@@ -455,6 +456,7 @@ export function ImprovedCalendarView({
               size="icon"
               className="h-9 w-9"
               onClick={() => handleNavigate("next")}
+              data-no-print
             >
               <ChevronRight className="h-5 w-5" />
             </Button>
