@@ -3,6 +3,7 @@ import html2canvas from "html2canvas";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
+import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 
 // Color palette for PDF exports
 const colors = {
@@ -689,34 +690,185 @@ export const exportSessionToPdf = async (
   // --- BLOCKS SECTION ---
   const blocks = options?.blocks;
   if (blocks && blocks.length > 0) {
-    yPos = drawSectionTitle(pdf, "Blocs de la séance", yPos, margin);
-    yPos += 2;
+    yPos = drawSectionTitle(pdf, "Blocs thématiques", yPos, margin);
+    yPos += 3;
+    
+    // Import calculation
+    const { calculateWeightedRpe: calcRpe, formatDuration: fmtDur } = await import("./weightedRpeCalculations");
     
     blocks.forEach((block: any, idx: number) => {
-      yPos = checkPageBreak(pdf, yPos, 16);
       const blockColor = trainingTypeColors[block.training_type] || accentColor;
+      const blockHeight = 22;
+      yPos = checkPageBreak(pdf, yPos, blockHeight + 4);
       
+      // White card with colored left border
+      pdf.setFillColor(252, 252, 253);
+      pdf.roundedRect(margin, yPos, contentWidth, blockHeight, 2, 2, 'F');
+      pdf.setDrawColor(230, 230, 235);
+      pdf.setLineWidth(0.3);
+      pdf.roundedRect(margin, yPos, contentWidth, blockHeight, 2, 2, 'S');
+      
+      // Colored left border (thick)
       pdf.setFillColor(blockColor[0], blockColor[1], blockColor[2]);
-      pdf.roundedRect(margin, yPos, contentWidth, 14, 2, 2, 'F');
+      pdf.roundedRect(margin, yPos, 3, blockHeight, 2, 0, 'F');
       
-      pdf.setTextColor(...colors.white);
-      pdf.setFontSize(9);
-      pdf.setFont("helvetica", "bold");
-      pdf.text(`Bloc ${idx + 1}: ${block.training_type || ""}`, margin + 5, yPos + 6);
+      // First row: Time range + Training type + RPE badge + Objective badge
+      let xCursor = margin + 8;
+      const row1Y = yPos + 7;
       
-      pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(8);
-      const blockInfos: string[] = [];
-      if (block.start_time) blockInfos.push(block.start_time.slice(0, 5));
-      if (block.duration_minutes) blockInfos.push(`${block.duration_minutes} min`);
-      if (block.intensity) blockInfos.push(`Int: ${block.intensity}/10`);
-      if (blockInfos.length > 0) {
-        pdf.text(blockInfos.join(" • "), margin + 5, yPos + 11);
+      // Time range badge
+      if (block.start_time && block.end_time) {
+        const timeText = `${(block.start_time || "").slice(0, 5)} – ${(block.end_time || "").slice(0, 5)}`;
+        const timeWidth = pdf.getTextWidth(timeText) + 6;
+        pdf.setFillColor(240, 240, 245);
+        pdf.roundedRect(xCursor - 2, row1Y - 4.5, timeWidth + 4, 6, 1.5, 1.5, 'F');
+        pdf.setFontSize(7.5);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(50, 50, 60);
+        pdf.text(timeText, xCursor + 1, row1Y);
+        xCursor += timeWidth + 6;
       }
       
-      yPos += 18;
+      // Training type label
+      const typeLabel = getTrainingTypeLabel(block.training_type);
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...colors.dark);
+      pdf.text(typeLabel, xCursor, row1Y);
+      xCursor += pdf.getTextWidth(typeLabel) + 5;
+      
+      // RPE badge
+      if (block.intensity) {
+        const rpeText = `RPE ${block.intensity}`;
+        const rpeWidth = pdf.getTextWidth(rpeText) + 4;
+        pdf.setFillColor(240, 240, 245);
+        pdf.roundedRect(xCursor, row1Y - 4.5, rpeWidth + 4, 6, 1.5, 1.5, 'F');
+        pdf.setFontSize(7.5);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(80, 80, 95);
+        pdf.text(rpeText, xCursor + 2, row1Y);
+        xCursor += rpeWidth + 6;
+      }
+      
+      // Objective badge
+      if (block.objective) {
+        const objLabels: Record<string, string> = {
+          aerobie: "Aérobie", anaerobie: "Anaérobie", vitesse_explosivite: "Vitesse/Explosivité",
+          force_contact: "Force/Contact", tactique: "Tactique", technique: "Technique"
+        };
+        const objText = objLabels[block.objective] || block.objective;
+        const objWidth = pdf.getTextWidth(objText) + 4;
+        pdf.setFillColor(240, 240, 245);
+        pdf.roundedRect(xCursor, row1Y - 4.5, objWidth + 4, 6, 1.5, 1.5, 'F');
+        pdf.setFontSize(7.5);
+        pdf.text(objText, xCursor + 2, row1Y);
+      }
+      
+      // Second row: Intensity, Volume, Contact badges
+      const row2Y = yPos + 15;
+      let xBadge = margin + 8;
+      
+      if (block.target_intensity) {
+        const intLabels: Record<string, string> = { faible: "Faible", moderee: "Modérée", elevee: "Élevée", tres_elevee: "Très élevée" };
+        const intText = `Intensité: ${intLabels[block.target_intensity] || block.target_intensity}`;
+        const intWidth = pdf.getTextWidth(intText) + 4;
+        // Green-tinted badge
+        pdf.setFillColor(220, 252, 231);
+        pdf.roundedRect(xBadge, row2Y - 4, intWidth + 4, 5.5, 1.5, 1.5, 'F');
+        pdf.setFontSize(7);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(22, 101, 52);
+        pdf.text(intText, xBadge + 2, row2Y);
+        xBadge += intWidth + 6;
+      }
+      
+      if (block.volume) {
+        const volLabels: Record<string, string> = { court: "Court", moyen: "Moyen", long: "Long" };
+        const volText = `Vol: ${volLabels[block.volume] || block.volume}`;
+        const volWidth = pdf.getTextWidth(volText) + 4;
+        pdf.setFillColor(220, 252, 231);
+        pdf.roundedRect(xBadge, row2Y - 4, volWidth + 4, 5.5, 1.5, 1.5, 'F');
+        pdf.setFontSize(7);
+        pdf.setTextColor(22, 101, 52);
+        pdf.text(volText, xBadge + 2, row2Y);
+        xBadge += volWidth + 6;
+      }
+      
+      if (block.contact_charge && block.contact_charge !== "aucun") {
+        const contactLabels: Record<string, string> = { faible: "Faible", modere: "Modéré", eleve: "Élevé" };
+        const contactText = `Contact: ${contactLabels[block.contact_charge] || block.contact_charge}`;
+        const contactWidth = pdf.getTextWidth(contactText) + 4;
+        pdf.setFillColor(220, 252, 231);
+        pdf.roundedRect(xBadge, row2Y - 4, contactWidth + 4, 5.5, 1.5, 1.5, 'F');
+        pdf.setFontSize(7);
+        pdf.setTextColor(22, 101, 52);
+        pdf.text(contactText, xBadge + 2, row2Y);
+      }
+      
+      yPos += blockHeight + 3;
     });
-    yPos += 4;
+    yPos += 2;
+    
+    // --- WEIGHTED RPE SUMMARY CARD ---
+    const weightedResult = calcRpe(blocks as any);
+    if (weightedResult.hasValidData) {
+      yPos = checkPageBreak(pdf, yPos, 30);
+      
+      const summaryHeight = 12 + weightedResult.blockDetails.length * 5;
+      pdf.setFillColor(245, 247, 252);
+      pdf.roundedRect(margin, yPos, contentWidth, summaryHeight, 3, 3, 'F');
+      pdf.setDrawColor(200, 210, 230);
+      pdf.setLineWidth(0.3);
+      pdf.roundedRect(margin, yPos, contentWidth, summaryHeight, 3, 3, 'S');
+      
+      // Title row
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...colors.dark);
+      pdf.text("📊 RPE moyen pondéré", margin + 5, yPos + 6);
+      
+      // Total duration badge on right
+      const totalDurText = fmtDur(weightedResult.totalDuration) + " au total";
+      const durWidth = pdf.getTextWidth(totalDurText) + 6;
+      pdf.setFillColor(235, 238, 245);
+      pdf.roundedRect(pageWidth - margin - durWidth - 4, yPos + 1.5, durWidth + 4, 6, 1.5, 1.5, 'F');
+      pdf.setFontSize(7.5);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(80, 80, 95);
+      pdf.text(totalDurText, pageWidth - margin - durWidth - 1, yPos + 5.5);
+      
+      // RPE value
+      const rpeVal = weightedResult.weightedRpe.toFixed(1);
+      pdf.setFontSize(18);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...colors.dark);
+      pdf.text(rpeVal, margin + 5, yPos + 16);
+      
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(...colors.muted);
+      const rpeValWidth = pdf.getTextWidth(rpeVal);
+      pdf.text("/ 10", margin + 5 + rpeValWidth + 1, yPos + 16);
+      
+      // Block details
+      let detailY = yPos + 12;
+      weightedResult.blockDetails.forEach((detail) => {
+        const detailLabel = getTrainingTypeLabel(detail.training_type);
+        const detailInfo = `${fmtDur(detail.duration)} × RPE ${detail.intensity} = ${detail.contribution}%`;
+        
+        pdf.setFontSize(7.5);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(...colors.dark);
+        pdf.text(detailLabel, margin + 30, detailY + 5);
+        
+        pdf.setTextColor(...colors.muted);
+        pdf.text(detailInfo, pageWidth - margin - pdf.getTextWidth(detailInfo) - 5, detailY + 5);
+        
+        detailY += 5;
+      });
+      
+      yPos += summaryHeight + 6;
+    }
   }
   
   // --- TESTS SECTION ---
