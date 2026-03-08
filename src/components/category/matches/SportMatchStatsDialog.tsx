@@ -82,7 +82,7 @@ export function SportMatchStatsDialog({
   const supportsGps = isRugbyType(sportType) || sportType.toLowerCase().includes("football");
 
   // Get stats from preferences - use a non-goalkeeper default for category-level filtering
-  const { stats: filteredStats, hasCustomPreferences } = useStatPreferences({
+  const { stats: filteredStats, customStats: customStatFields, hasCustomPreferences, isLoading: loadingPrefs } = useStatPreferences({
     categoryId,
     sportType,
     matchId,
