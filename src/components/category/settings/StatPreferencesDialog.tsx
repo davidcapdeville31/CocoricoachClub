@@ -105,10 +105,22 @@ export function StatPreferencesDialog({
   // Track whether user has made changes (to distinguish init from user edits)
   const userHasEdited = useRef(false);
   const isInitialized = useRef(false);
+  const latestEnabledStats = useRef<string[]>([]);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    latestEnabledStats.current = enabledStats;
+  }, [enabledStats]);
 
   // Initialize enabled stats from existing prefs or all stats
   useEffect(() => {
     if (!open) {
+      // Flush pending save before resetting
+      if (userHasEdited.current && saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+        doSave(latestEnabledStats.current);
+      }
       isInitialized.current = false;
       userHasEdited.current = false;
       return;
@@ -125,7 +137,7 @@ export function StatPreferencesDialog({
       setEnabledStats(uniqueKeys);
     }
     isInitialized.current = true;
-  }, [open, isLoading, existingPrefs, allStats, goalkeeperStats, customStats]);
+  }, [open, isLoading, existingPrefs, allStats, goalkeeperStats, customStats, doSave]);
 
   // Set default selected category
   useEffect(() => {
