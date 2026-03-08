@@ -229,7 +229,7 @@ export function MentalPerformanceSection({ categoryId }: MentalPerformanceSectio
                 <SelectContent>
                   {players.map((player) => (
                     <SelectItem key={player.id} value={player.id}>
-                      {player.name}
+                      {player.first_name ? `${player.first_name} ${player.name}` : player.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
