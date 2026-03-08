@@ -520,11 +520,31 @@ export function SessionHistoryTimeline({ categoryId, playerId }: SessionHistoryT
                                       {event.attendance.filter((a: any) => a.status === "present").length} présents
                                     </Badge>
                                   )}
-                                  {event.awcr && event.awcr.length > 0 && (
-                                    <Badge variant="outline" className="text-xs bg-orange-50">
-                                      AWCR {(event.awcr.reduce((acc: number, a: any) => acc + (a.awcr || 0), 0) / event.awcr.length).toFixed(2)}
-                                    </Badge>
-                                  )}
+                                  {event.awcr && event.awcr.length > 0 && (() => {
+                                    const validAwcr = event.awcr.filter((a: any) => a.awcr != null && a.awcr > 0);
+                                    const avgLoad = event.awcr.reduce((acc: number, a: any) => acc + (a.training_load || 0), 0) / event.awcr.length;
+                                    const avgRatio = validAwcr.length > 0
+                                      ? validAwcr.reduce((acc: number, a: any) => acc + a.awcr, 0) / validAwcr.length
+                                      : null;
+                                    return (
+                                      <>
+                                        <Badge variant="outline" className="text-xs bg-orange-50">
+                                          Charge {Math.round(avgLoad)}
+                                        </Badge>
+                                        {avgRatio !== null && (
+                                          <Badge variant="outline" className={cn(
+                                            "text-xs",
+                                            avgRatio > 1.5 ? "bg-red-50 text-red-700" :
+                                            avgRatio > 1.3 ? "bg-amber-50 text-amber-700" :
+                                            avgRatio >= 0.8 ? "bg-green-50 text-green-700" :
+                                            "bg-blue-50 text-blue-700"
+                                          )}>
+                                            Ratio {avgRatio.toFixed(2)}
+                                          </Badge>
+                                        )}
+                                      </>
+                                    );
+                                  })()}
                                   {event.gymExercises && event.gymExercises.length > 0 && (
                                     <Badge variant="outline" className="text-xs bg-blue-50">
                                       {calculateTonnage(event.gymExercises).toLocaleString()}kg
