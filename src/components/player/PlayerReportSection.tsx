@@ -571,12 +571,12 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
               avg !== '-' ? `${avg}/5` : '-',
             ], wColWidths, yPos, index % 2 === 1, margin, [
               null,
-              getWellnessColor(w.sleep_quality),
-              getWellnessColor(w.general_fatigue),
-              getWellnessColor(w.stress_level),
-              getWellnessColor(w.soreness_upper_body),
-              getWellnessColor(w.soreness_lower_body),
-              !isNaN(avgNum) ? getWellnessColor(avgNum) : null,
+              getWellnessColorPositive(w.sleep_quality),
+              getWellnessColorNegative(w.general_fatigue),
+              getWellnessColorNegative(w.stress_level),
+              getWellnessColorNegative(w.soreness_upper_body),
+              getWellnessColorNegative(w.soreness_lower_body),
+              !isNaN(avgNum) ? getWellnessColorNegative(avgNum) : null,
             ]);
           });
           yPos += 5;
