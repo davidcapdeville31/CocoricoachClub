@@ -61,7 +61,7 @@ export function useStatPreferences({
       return data as CustomStat[];
     },
     enabled: !!categoryId,
-    staleTime: 30000,
+    staleTime: 5000,
   });
 
   // Fetch match-level overrides if matchId is provided
