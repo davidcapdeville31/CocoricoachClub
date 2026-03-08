@@ -344,11 +344,12 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
         if (dateTo) q = q.lte("injury_date", dateTo);
         return q.order("injury_date", { ascending: false });
       })(),
+      // EWMA: fetch ALL data without date filter (need full history for accurate calculations)
       (() => {
         let q = supabase.from("awcr_tracking").select("*").eq("player_id", playerId);
-        if (dateFrom) q = q.gte("session_date", dateFrom);
+        // Only apply dateTo filter, not dateFrom — we need history for EWMA context
         if (dateTo) q = q.lte("session_date", dateTo);
-        return q.order("session_date", { ascending: false }).limit(90);
+        return q.order("session_date", { ascending: false });
       })(),
     ]);
 
