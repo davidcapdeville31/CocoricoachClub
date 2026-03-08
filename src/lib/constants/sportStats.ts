@@ -66,6 +66,7 @@ export const RUGBY_STATS: StatField[] = [
   { key: "yellowCards", label: "Cartons jaunes", shortLabel: "Jaunes", category: "general", type: "number" },
   { key: "redCards", label: "Cartons rouges", shortLabel: "Rouges", category: "general", type: "number" },
   { key: "manOfMatch", label: "Homme du match", shortLabel: "HDM", category: "general", type: "number", max: 1 },
+  { key: "fouls", label: "Fautes", shortLabel: "Fautes", category: "general", type: "number" },
 ];
 
 // Football stats - Enriched
@@ -80,6 +81,7 @@ export const FOOTBALL_STATS: StatField[] = [
   { key: "yellowCards", label: "Cartons jaunes", shortLabel: "Jaunes", category: "general", type: "number" },
   { key: "redCards", label: "Cartons rouges", shortLabel: "Rouges", category: "general", type: "number" },
   { key: "manOfMatch", label: "Homme du match", shortLabel: "HDM", category: "general", type: "number", max: 1 },
+  { key: "fouls", label: "Fautes", shortLabel: "Fautes", category: "general", type: "number" },
   // Individual Stats - Scoring
   { key: "goals", label: "Buts", shortLabel: "Buts", category: "scoring", type: "number" },
   { key: "penaltyGoals", label: "Buts sur penalty", shortLabel: "Pén. marqués", category: "scoring", type: "number" },
@@ -146,6 +148,7 @@ export const HANDBALL_STATS: StatField[] = [
   { key: "redCards", label: "Cartons rouges", shortLabel: "Rouges", category: "general", type: "number" },
   { key: "twoMinutes", label: "Exclusions 2 min", shortLabel: "2 min", category: "general", type: "number" },
   { key: "manOfMatch", label: "Homme du match", shortLabel: "HDM", category: "general", type: "number", max: 1 },
+  { key: "fouls", label: "Fautes", shortLabel: "Fautes", category: "general", type: "number" },
   // Individual Stats - Scoring
   { key: "goals", label: "Buts", shortLabel: "Buts", category: "scoring", type: "number" },
   { key: "shots", label: "Tirs", shortLabel: "Tirs", category: "scoring", type: "number" },
@@ -196,6 +199,7 @@ export const VOLLEYBALL_STATS: StatField[] = [
   { key: "attackJumps", label: "Sauts d'attaque", shortLabel: "S. attaque", category: "general", type: "number" },
   { key: "blockJumps", label: "Sauts de contre", shortLabel: "S. contre", category: "general", type: "number" },
   { key: "manOfMatch", label: "Joueur du match", shortLabel: "JDM", category: "general", type: "number", max: 1 },
+  { key: "fouls", label: "Fautes", shortLabel: "Fautes", category: "general", type: "number" },
   // Individual Stats - Scoring
   { key: "points", label: "Points marqués", shortLabel: "Points", category: "scoring", type: "number" },
   { key: "kills", label: "Points marqués (kill)", shortLabel: "Kills", category: "scoring", type: "number" },

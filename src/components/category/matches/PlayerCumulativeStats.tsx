@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { getStatsForSport, getStatCategories, type StatField } from "@/lib/constants/sportStats";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { CumulativeStatsCharts } from "./CumulativeStatsCharts";
 
 interface PlayerCumulativeStatsProps {
   categoryId: string;
@@ -148,6 +149,61 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV" }: PlayerCu
       return Object.values(aggregated);
     },
     enabled: activeMatchIds.length > 0,
+  });
+
+  // Fetch per-match breakdown for charts
+  const { data: matchesDataForCharts = [] } = useQuery({
+    queryKey: ["per_match_player_stats", categoryId, sportType, activeMatchIds],
+    queryFn: async () => {
+      if (activeMatchIds.length === 0) return [];
+
+      const { data: playerStats, error } = await supabase
+        .from("player_match_stats")
+        .select(`*, players(id, name, first_name)`)
+        .in("match_id", activeMatchIds);
+
+      if (error) throw error;
+      if (!playerStats) return [];
+
+      // Group by match
+      const matchMap: Record<string, {
+        matchId: string;
+        matchLabel: string;
+        matchDate: string;
+        players: Record<string, { playerName: string; sportData: Record<string, number> }>;
+      }> = {};
+
+      playerStats.forEach((stat) => {
+        const matchId = stat.match_id;
+        const matchInfo = allMatches.find(m => m.id === matchId);
+        if (!matchMap[matchId]) {
+          matchMap[matchId] = {
+            matchId,
+            matchLabel: matchInfo ? `vs ${matchInfo.opponent || '?'}` : matchId.slice(0, 6),
+            matchDate: matchInfo?.match_date || "",
+            players: {},
+          };
+        }
+        const player = stat.players as { id: string; name: string; first_name?: string } | null;
+        const playerId = stat.player_id;
+        const playerName = player ? [player.first_name, player.name].filter(Boolean).join(" ") : "Inconnu";
+        const sportData = (stat as { sport_data?: Record<string, number> }).sport_data || {};
+        
+        // Also check top-level keys
+        const merged: Record<string, number> = {};
+        sportStats.forEach(sf => {
+          if (!sf.computedFrom) {
+            merged[sf.key] = Number(sportData[sf.key] || stat[sf.key as keyof typeof stat] || 0) || 0;
+          }
+        });
+        
+        matchMap[matchId].players[playerId] = { playerName, sportData: merged };
+      });
+
+      // Sort by date ascending for evolution chart
+      return Object.values(matchMap).sort((a, b) => a.matchDate.localeCompare(b.matchDate));
+    },
+    enabled: activeMatchIds.length > 1,
   });
 
   const toggleMatch = (matchId: string) => {
@@ -295,6 +351,16 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV" }: PlayerCu
           </Badge>
         )}
       </div>
+
+      {/* Charts section */}
+      {stats && stats.length > 0 && (
+        <CumulativeStatsCharts
+          stats={stats}
+          matchesData={matchesDataForCharts}
+          sportStats={sportStats}
+          selectedMatchIds={activeMatchIds}
+        />
+      )}
 
       {/* Top performers cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
