@@ -379,10 +379,19 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
           tests.forEach((test, index) => {
             yPos = localCheckPageBreak(pdf, yPos, 10);
-            // Try to get a nice label from the library
-            const testLabel = getTestLabel(test.test_type) !== test.test_type 
-              ? getTestLabel(test.test_type).split(' - ').pop() || test.test_type 
-              : test.test_type;
+            // Show full test label without category prefix (e.g. "Clean - 1RM" not just "1RM")
+            const fullLabel = getTestLabel(test.test_type);
+            let testLabel = test.test_type;
+            if (fullLabel !== test.test_type) {
+              const parts = fullLabel.split(' - ');
+              if (parts.length >= 3) {
+                testLabel = parts.slice(1).join(' - ');
+              } else if (parts.length === 2) {
+                testLabel = parts[1];
+              } else {
+                testLabel = fullLabel;
+              }
+            }
             yPos = drawTableRowPdf(pdf, [
               testLabel,
               `${test.result_value}${test.result_unit ? ` ${test.result_unit}` : ''}`,
