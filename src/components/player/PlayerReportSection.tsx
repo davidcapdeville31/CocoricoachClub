@@ -492,13 +492,19 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
 
       // ===== KPI CARDS =====
       const matchCount = data.matchLineups.length;
-      // Sum minutes from lineups, fallback to sport_data.minutes_played from match stats
+      // Sum minutes from lineups, fallback to sport_data.minutes_played, then awcr_tracking (rpe=10 = match)
       let totalMinutes = data.matchLineups.reduce((sum, m) => sum + (m.minutes_played || 0), 0);
       if (totalMinutes === 0 && data.matchStats.length > 0) {
         totalMinutes = data.matchStats.reduce((sum, s: any) => {
           const sd = s.sport_data as Record<string, any> | null;
           return sum + (sd?.minutes_played || 0);
         }, 0);
+      }
+      // Final fallback: sum duration_minutes from awcr_tracking entries with rpe=10 (match RPE)
+      if (totalMinutes === 0 && data.awcr.length > 0) {
+        totalMinutes = data.awcr
+          .filter(a => a.rpe === 10)
+          .reduce((sum, a) => sum + (a.duration_minutes || 0), 0);
       }
       const activeInjuries = data.injuries.filter(i => i.status !== 'healed').length;
       // Use EWMA ratio from latest non-null awcr_tracking entry
@@ -950,13 +956,14 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
         if (data.awcr.length > 0) {
           // Sort chronologically
           const sortedAwcr = [...data.awcr].sort((a, b) => new Date(a.session_date).getTime() - new Date(b.session_date).getTime());
-          const latest = sortedAwcr[sortedAwcr.length - 1];
+          // Use the latest entry with computed EWMA values, not just the last chronological one
+          const latestWithEwma = [...sortedAwcr].reverse().find(e => e.acute_load != null && e.chronic_load != null) || sortedAwcr[sortedAwcr.length - 1];
           
           // EWMA KPI cards
           const ewmaKpis: { label: string; value: string; color: [number, number, number] }[] = [
-            { label: "Charge aiguë", value: latest.acute_load != null ? latest.acute_load.toFixed(0) : '-', color: colors.danger },
-            { label: "Charge chronique", value: latest.chronic_load != null ? latest.chronic_load.toFixed(0) : '-', color: colors.primary },
-            { label: "Ratio EWMA", value: latest.awcr != null ? latest.awcr.toFixed(2) : '-', color: latest.awcr != null ? (latest.awcr > 1.5 ? colors.danger : latest.awcr > 1.3 ? colors.warning : latest.awcr >= 0.8 ? colors.success : colors.warning) : colors.muted },
+            { label: "Charge aiguë", value: latestWithEwma.acute_load != null ? latestWithEwma.acute_load.toFixed(0) : '-', color: colors.danger },
+            { label: "Charge chronique", value: latestWithEwma.chronic_load != null ? latestWithEwma.chronic_load.toFixed(0) : '-', color: colors.primary },
+            { label: "Ratio EWMA", value: latestWithEwma.awcr != null ? latestWithEwma.awcr.toFixed(2) : '-', color: latestWithEwma.awcr != null ? (latestWithEwma.awcr > 1.5 ? colors.danger : latestWithEwma.awcr > 1.3 ? colors.warning : latestWithEwma.awcr >= 0.8 ? colors.success : colors.warning) : colors.muted },
             { label: "Séances (période)", value: String(sortedAwcr.length), color: colors.secondary },
           ];
 
