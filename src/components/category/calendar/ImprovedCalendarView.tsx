@@ -456,6 +456,7 @@ export function ImprovedCalendarView({
               size="icon"
               className="h-9 w-9"
               onClick={() => handleNavigate("next")}
+              data-no-print
             >
               <ChevronRight className="h-5 w-5" />
             </Button>
