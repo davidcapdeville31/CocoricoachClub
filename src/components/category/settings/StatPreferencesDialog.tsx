@@ -330,6 +330,7 @@ export function StatPreferencesDialog({
   };
 
   const handleCustomStatAdded = (statKey: string) => {
+    userHasEdited.current = true;
     setEnabledStats(prev => [...prev, statKey]);
   };
 
