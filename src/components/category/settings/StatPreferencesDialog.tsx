@@ -225,6 +225,7 @@ export function StatPreferencesDialog({
   };
 
   const selectAll = () => {
+    userHasEdited.current = true;
     const allStatKeys = [...allStats, ...goalkeeperStats].map(s => s.key);
     const customStatKeys = customStats.map(s => s.key);
     const uniqueKeys = [...new Set([...allStatKeys, ...customStatKeys])];
@@ -232,6 +233,7 @@ export function StatPreferencesDialog({
   };
 
   const selectNone = () => {
+    userHasEdited.current = true;
     setEnabledStats([]);
   };
 
