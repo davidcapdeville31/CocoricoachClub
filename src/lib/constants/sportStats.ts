@@ -595,22 +595,24 @@ export function getStatsForSport(sportType: SportType | string, isGoalkeeper: bo
 export function getAthletismeStatsForDiscipline(discipline?: string): StatField[] {
   if (!discipline) return ATHLETISME_GENERAL_STATS;
   
-  const disc = discipline.toLowerCase();
+  const disc = discipline.toLowerCase().replace(/_/g, ' ');
   
   // Sprint disciplines
-  if (disc.includes('100m') || disc.includes('200m') || disc.includes('60m') || disc.includes('sprint')) {
+  if (disc.includes('sprint') || disc.includes('100m') || disc.includes('200m') || disc.includes('60m') || disc.includes('400m')) {
+    // Check it's not 400m hurdles
+    if (disc.includes('haies') || disc.includes('hurdles')) return ATHLETISME_HAIES_STATS;
     return ATHLETISME_SPRINT_STATS;
   }
   
   // Hurdles
-  if (disc.includes('haies') || disc.includes('110m') || disc.includes('400m haies') || disc.includes('hurdles')) {
+  if (disc.includes('haies') || disc.includes('110m') || disc.includes('hurdles')) {
     return ATHLETISME_HAIES_STATS;
   }
   
   // Endurance disciplines
   if (disc.includes('800m') || disc.includes('1500m') || disc.includes('3000m') || disc.includes('5000m') || 
-      disc.includes('10000m') || disc.includes('marathon') || disc.includes('demi-fond') || disc.includes('fond') ||
-      disc.includes('marche') || disc.includes('steeple')) {
+      disc.includes('10000m') || disc.includes('marathon') || disc.includes('demi fond') || disc.includes('demi-fond') ||
+      disc.includes('fond') || disc.includes('marche') || disc.includes('steeple') || disc.includes('cross')) {
     return ATHLETISME_ENDURANCE_STATS;
   }
   
@@ -631,7 +633,7 @@ export function getAthletismeStatsForDiscipline(discipline?: string): StatField[
   }
   
   // Combined events
-  if (disc.includes('décathlon') || disc.includes('heptathlon') || disc.includes('combiné') || disc.includes('pentat')) {
+  if (disc.includes('décathlon') || disc.includes('decathlon') || disc.includes('heptathlon') || disc.includes('combiné') || disc.includes('combine') || disc.includes('pentat')) {
     return ATHLETISME_COMBINES_STATS;
   }
   

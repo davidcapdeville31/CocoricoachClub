@@ -23,10 +23,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Trash2, Trophy, Target, BarChart3, Swords, Circle, Ship, Users, Droplet, CheckCircle, Lock } from "lucide-react";
-import { getStatsForSport, getStatCategories, getAggregatedStatsForSport, type StatField } from "@/lib/constants/sportStats";
+import { getStatsForSport, getStatCategories, getAggregatedStatsForSport, getAthletismeStatsForDiscipline, type StatField } from "@/lib/constants/sportStats";
 import { useStatPreferences } from "@/hooks/use-stat-preferences";
 import { BowlingOilPatternSection } from "./BowlingOilPatternSection";
 import { BowlingScoreSheet, FrameData, BowlingStats } from "@/components/athlete-portal/BowlingScoreSheet";
+import { isAthletismeCategory } from "@/lib/constants/sportTypes";
 
 const blurOnWheel = (e: React.WheelEvent<HTMLInputElement>) => {
   // Prevent wheel/trackpad from changing number inputs instead of scrolling the dialog
@@ -65,6 +66,8 @@ interface Round {
 interface PlayerRounds {
   playerId: string;
   playerName: string;
+  discipline?: string;
+  specialty?: string;
   rounds: Round[];
   // Aviron crew info
   boat_type?: string;
@@ -141,6 +144,23 @@ export function CompetitionRoundsDialog({
   const isJudo = sportType.toLowerCase().includes("judo");
   const isBowling = sportType.toLowerCase().includes("bowling");
   const isAviron = sportType.toLowerCase().includes("aviron");
+  const isAthletics = isAthletismeCategory(sportType);
+
+  // Get discipline-specific stats for a player (athletics: each athlete may have different stats)
+  const getPlayerStats = (player: PlayerRounds): StatField[] => {
+    if (isAthletics && player.discipline) {
+      // Map discipline key to a string the stats function can understand
+      const disc = player.specialty || player.discipline;
+      const disciplineStats = getAthletismeStatsForDiscipline(disc);
+      return disciplineStats;
+    }
+    return sportStats;
+  };
+
+  const getPlayerStatCategories = (player: PlayerRounds) => {
+    const pStats = getPlayerStats(player);
+    return allStatCategories.filter(cat => pStats.some(s => s.category === cat.key));
+  };
   
   // Set default active tab based on sport type
   const getDefaultTab = () => {
@@ -243,7 +263,7 @@ export function CompetitionRoundsDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("match_lineups")
-        .select("player_id, boat_type, crew_role, seat_position, players(id, name, first_name)")
+        .select("player_id, boat_type, crew_role, seat_position, players(id, name, first_name, discipline, specialty)")
         .eq("match_id", matchId);
       if (error) throw error;
       return data;
@@ -273,12 +293,14 @@ export function CompetitionRoundsDialog({
     
     if (lineup && lineup.length > 0) {
       const playersData = lineup.map((l) => {
-        const player = l.players as { id: string; name: string; first_name?: string } | null;
+        const player = l.players as { id: string; name: string; first_name?: string; discipline?: string; specialty?: string } | null;
         const playerRounds = existingRounds?.filter(r => r.player_id === l.player_id) || [];
         
         return {
           playerId: l.player_id,
           playerName: [player?.first_name, player?.name].filter(Boolean).join(" ") || "Athlète",
+          discipline: player?.discipline || undefined,
+          specialty: player?.specialty || undefined,
           boat_type: l.boat_type || undefined,
           crew_role: l.crew_role || undefined,
           seat_position: l.seat_position || undefined,
@@ -630,6 +652,9 @@ export function CompetitionRoundsDialog({
                 >
                   <div className="flex items-center gap-2">
                     <span>{player.playerName}</span>
+                    {isAthletics && player.discipline && (
+                      <Badge variant="outline" className="text-xs">{player.specialty || player.discipline}</Badge>
+                    )}
                     {isAviron && player.boat_type && (
                       <Badge variant="outline" className="text-xs">{player.boat_type}</Badge>
                     )}
@@ -1033,10 +1058,13 @@ export function CompetitionRoundsDialog({
                           )}
 
                           {/* Stats for this round - organized by category (non-bowling, non-aviron) */}
-                          {!isAviron && !isBowling && (
+                          {!isAviron && !isBowling && (() => {
+                            const playerStats = getPlayerStats(selectedPlayer);
+                            const playerCats = getPlayerStatCategories(selectedPlayer);
+                            return (
                             <div className="space-y-3">
-                              {statCategories.map(cat => {
-                                const categoryStats = sportStats.filter(s => s.category === cat.key);
+                              {playerCats.map(cat => {
+                                const categoryStats = playerStats.filter(s => s.category === cat.key);
                                 if (categoryStats.length === 0) return null;
                                 return (
                                   <div key={cat.key}>
@@ -1060,7 +1088,8 @@ export function CompetitionRoundsDialog({
                                 );
                               })}
                             </div>
-                          )}
+                            );
+                          })()}
 
                           {/* Notes */}
                           <div>
@@ -1282,11 +1311,14 @@ export function CompetitionRoundsDialog({
                             )}
 
                             {/* Aggregated stats by category (non-Aviron, non-Bowling) */}
-                            {!isAviron && !isBowling && Object.keys(aggregated).length > 0 && (
+                            {!isAviron && !isBowling && Object.keys(aggregated).length > 0 && (() => {
+                              const pStats = getPlayerStats(selectedPlayer);
+                              const pCats = getPlayerStatCategories(selectedPlayer);
+                              return (
                               <div className="space-y-3">
                                 <h4 className="font-medium">Statistiques cumulées</h4>
-                                {statCategories.map(cat => {
-                                  const categoryStats = sportStats.filter(s => s.category === cat.key && aggregated[s.key] !== undefined);
+                                {pCats.map(cat => {
+                                  const categoryStats = pStats.filter(s => s.category === cat.key && aggregated[s.key] !== undefined);
                                   if (categoryStats.length === 0) return null;
                                   return (
                                     <div key={cat.key}>
@@ -1303,7 +1335,8 @@ export function CompetitionRoundsDialog({
                                   );
                                 })}
                               </div>
-                            )}
+                              );
+                            })()}
 
                             {/* Aviron: Courses recap */}
                             {isAviron && selectedPlayer.rounds.length > 0 && (
