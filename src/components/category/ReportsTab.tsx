@@ -485,10 +485,18 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         const wColWidths = [32, 24, 24, 24, 24, 24, 24];
         yPos = drawTableHeaderPdf(pdf, wHeaders, wColWidths, yPos, margin, contentWidth);
 
+        const getWellnessColor = (val: number | null): [number, number, number] | null => {
+          if (val == null) return null;
+          if (val >= 4) return defaultColors.success;
+          if (val >= 3) return defaultColors.warning;
+          return defaultColors.danger;
+        };
+
         wellnessData.slice(0, 10).forEach((w, index) => {
           yPos = localCheckPageBreak(pdf, yPos, 10);
           const wValues = [w.sleep_quality, w.general_fatigue, w.stress_level, w.soreness_upper_body, w.soreness_lower_body].filter(v => v != null) as number[];
           const wAvg = wValues.length > 0 ? (wValues.reduce((a, b) => a + b, 0) / wValues.length).toFixed(1) : '-';
+          const avgNum = parseFloat(wAvg);
           yPos = drawTableRowPdf(pdf, [
             format(new Date(w.tracking_date), "dd/MM/yy"),
             `${w.sleep_quality || '-'}/5`,
@@ -497,7 +505,15 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
             `${w.soreness_upper_body || '-'}/5`,
             `${w.soreness_lower_body || '-'}/5`,
             wAvg,
-          ], wColWidths, yPos, index % 2 === 1, margin, contentWidth);
+          ], wColWidths, yPos, index % 2 === 1, margin, contentWidth, [
+            null,
+            getWellnessColor(w.sleep_quality),
+            getWellnessColor(w.general_fatigue),
+            getWellnessColor(w.stress_level),
+            getWellnessColor(w.soreness_upper_body),
+            getWellnessColor(w.soreness_lower_body),
+            !isNaN(avgNum) ? getWellnessColor(avgNum) : null,
+          ]);
         });
       }
 
