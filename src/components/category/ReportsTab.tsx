@@ -700,12 +700,18 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
       const { settings: pdfSettings, logoBase64, seasonName: sn2 } = await preparePdfWithSettings(categoryId);
 
-      // Fetch match data + stat preferences
-      const [lineupsRes, statsRes, statPrefsRes, customStatsRes] = await Promise.all([
+      const sportType = category?.clubs?.sport || "rugby";
+      const isIndividualSport = supportsCompetitionRounds(sportType);
+
+      // Fetch match data + stat preferences + competition rounds for individual sports
+      const [lineupsRes, statsRes, statPrefsRes, customStatsRes, competitionRoundsRes] = await Promise.all([
         supabase.from("match_lineups").select("*, players(name, first_name, position)").eq("match_id", selectedMatch),
         supabase.from("player_match_stats").select("*, players(name, first_name)").eq("match_id", selectedMatch),
         supabase.from("category_stat_preferences").select("enabled_stats, enabled_custom_stats").eq("category_id", categoryId).maybeSingle(),
         supabase.from("custom_stats").select("*").eq("category_id", categoryId),
+        isIndividualSport
+          ? supabase.from("competition_rounds").select("*, competition_round_stats(stat_data), players!inner(name, first_name, specialty, discipline)").eq("match_id", selectedMatch).order("round_number")
+          : Promise.resolve({ data: [] }),
       ]);
 
       const pdf = new jsPDF();
