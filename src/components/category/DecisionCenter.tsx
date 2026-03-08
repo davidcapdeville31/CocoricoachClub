@@ -1090,7 +1090,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
                               {entry.status === "late" && <Clock className="h-4 w-4 text-orange-500 shrink-0" />}
                               {entry.status === "excused" && <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />}
                               <div className="min-w-0">
-                                <span className="font-medium truncate block">{entry.players?.name}</span>
+                                <span className="font-medium truncate block">{entry.players ? [entry.players.first_name, entry.players.name].filter(Boolean).join(" ") : "Inconnu"}</span>
                                 {entry.status === "late" && entry.late_minutes && (
                                   <span className="text-xs text-orange-600 dark:text-orange-400">+{entry.late_minutes} min</span>
                                 )}
