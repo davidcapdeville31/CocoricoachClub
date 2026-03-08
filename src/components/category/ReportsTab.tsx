@@ -1560,7 +1560,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
           return q;
         })(),
         (() => {
-          let q = supabase.from("training_attendance").select("*, training_sessions!inner(session_date)").eq("category_id", categoryId);
+          let q = supabase.from("training_attendance").select("*, training_sessions!inner(session_date, session_type, duration_minutes, intensity)").eq("category_id", categoryId);
           if (attendanceDateFrom) q = q.gte("training_sessions.session_date", attendanceDateFrom);
           if (attendanceDateTo) q = q.lte("training_sessions.session_date", attendanceDateTo);
           return q;
@@ -1570,9 +1570,11 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const sessionsData = sessionsRes.data || [];
       const attendanceData = attendanceRes.data || [];
       const sessionIds = new Set(sessionsData.map(s => s.id));
-
-      // Filter attendance to only sessions in the date range
       const filteredAttendance = attendanceData.filter(a => sessionIds.has(a.training_session_id));
+
+      // Build session lookup for duration/type/intensity
+      const sessionMap: Record<string, any> = {};
+      sessionsData.forEach(s => { sessionMap[s.id] = s; });
 
       const playerStats = players.map((player) => {
         const playerAttendance = filteredAttendance.filter((a) => a.player_id === player.id);
@@ -1584,11 +1586,29 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         const total = playerAttendance.length;
         const rate = total > 0 ? Math.round(((present + late) / total) * 100) : 0;
 
+        // Calculate training minutes by session type and intensity
+        let totalMinutes = 0;
+        const minutesByType: Record<string, number> = {};
+        const minutesByIntensity: Record<string, number> = {};
+
+        playerAttendance.filter(a => a.status === "present" || a.status === "late").forEach(a => {
+          const session = sessionMap[a.training_session_id];
+          if (session) {
+            const dur = session.duration_minutes || 0;
+            totalMinutes += dur;
+            const sType = session.session_type || 'Autre';
+            minutesByType[sType] = (minutesByType[sType] || 0) + dur;
+            const intensity = session.intensity || 'moyenne';
+            minutesByIntensity[intensity] = (minutesByIntensity[intensity] || 0) + dur;
+          }
+        });
+
         return {
           ...player,
           present, late, lateJustified,
           lateUnjustified: late - lateJustified,
           absent, excused, total, rate,
+          totalMinutes, minutesByType, minutesByIntensity,
         };
       }).sort((a, b) => b.rate - a.rate);
 
@@ -1617,26 +1637,28 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         : 0;
       const totalLate = playerStats.reduce((acc, p) => acc + p.late, 0);
       const totalAbsent = playerStats.reduce((acc, p) => acc + p.absent, 0);
+      const totalTrainMinutes = playerStats.reduce((acc, p) => acc + p.totalMinutes, 0);
 
-      const cardWidth = (contentWidth - 15) / 4;
+      const cardWidth = (contentWidth - 20) / 5;
       const cardHeight = 22;
 
       drawKpiCard(pdf, margin, yPos, cardWidth, cardHeight, String(totalSessions), "SÉANCES", defaultColors.primary);
       drawKpiCard(pdf, margin + cardWidth + 5, yPos, cardWidth, cardHeight, `${avgRate}%`, "TAUX MOYEN", avgRate >= 80 ? defaultColors.success : avgRate >= 60 ? defaultColors.warning : defaultColors.danger);
       drawKpiCard(pdf, margin + (cardWidth + 5) * 2, yPos, cardWidth, cardHeight, String(totalLate), "RETARDS", totalLate > 10 ? defaultColors.warning : defaultColors.success);
       drawKpiCard(pdf, margin + (cardWidth + 5) * 3, yPos, cardWidth, cardHeight, String(totalAbsent), "ABSENCES", totalAbsent > 10 ? defaultColors.danger : defaultColors.success);
+      drawKpiCard(pdf, margin + (cardWidth + 5) * 4, yPos, cardWidth, cardHeight, `${Math.round(totalTrainMinutes / Math.max(players.length, 1))}`, "MIN MOY/JOUEUR", defaultColors.primary);
 
       yPos += cardHeight + 15;
 
-      // Player attendance table
+      // Player attendance table with minutes
       pdf.setFontSize(12);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(...defaultColors.dark);
       pdf.text("PRÉSENCES PAR JOUEUR", margin, yPos);
       yPos += 8;
 
-      const attendHeaders = ["Joueur", "Présent", "Retard", "Excusé", "Absent", "Taux"];
-      const attendColWidths = [60, 25, 25, 25, 25, 25];
+      const attendHeaders = ["Joueur", "Prés.", "Retard", "Exc.", "Abs.", "Taux", "Min. total"];
+      const attendColWidths = [48, 22, 22, 22, 22, 22, 26];
       yPos = drawTableHeaderPdf(pdf, attendHeaders, attendColWidths, yPos, margin, contentWidth);
 
       playerStats.forEach((player, index) => {
@@ -1651,15 +1673,90 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
             String(player.excused),
             String(player.absent),
             `${player.rate}%`,
+            `${player.totalMinutes}`,
           ],
           attendColWidths,
           yPos,
           index % 2 === 1,
           margin,
           contentWidth,
-          [null, defaultColors.success, defaultColors.warning, null, defaultColors.danger, rateColor]
+          [null, defaultColors.success, defaultColors.warning, null, defaultColors.danger, rateColor, null]
         );
       });
+
+      // Sessions by type breakdown
+      yPos += 10;
+      yPos = localCheckPageBreak(pdf, yPos, 40);
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...defaultColors.dark);
+      pdf.text("RÉPARTITION PAR TYPE DE SÉANCE", margin, yPos);
+      yPos += 8;
+
+      const sessionsByType: Record<string, { count: number; totalMin: number }> = {};
+      sessionsData.forEach(s => {
+        const t = s.session_type || 'Autre';
+        if (!sessionsByType[t]) sessionsByType[t] = { count: 0, totalMin: 0 };
+        sessionsByType[t].count++;
+        sessionsByType[t].totalMin += s.duration_minutes || 0;
+      });
+
+      if (Object.keys(sessionsByType).length > 0) {
+        const typeHeaders = ["Type", "Séances", "Durée totale", "Durée moy."];
+        const typeColWidths = [60, 40, 40, 40];
+        yPos = drawTableHeaderPdf(pdf, typeHeaders, typeColWidths, yPos, margin, contentWidth);
+
+        Object.entries(sessionsByType).sort((a, b) => b[1].count - a[1].count).forEach(([type, data], index) => {
+          yPos = localCheckPageBreak(pdf, yPos, 10);
+          yPos = drawTableRowPdf(pdf, [
+            type,
+            String(data.count),
+            `${data.totalMin} min`,
+            `${data.count > 0 ? Math.round(data.totalMin / data.count) : 0} min`,
+          ], typeColWidths, yPos, index % 2 === 1, margin, contentWidth);
+        });
+      }
+
+      // Sessions by intensity
+      yPos += 10;
+      yPos = localCheckPageBreak(pdf, yPos, 40);
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...defaultColors.dark);
+      pdf.text("RÉPARTITION PAR INTENSITÉ", margin, yPos);
+      yPos += 8;
+
+      const sessionsByIntensity: Record<string, number> = {};
+      sessionsData.forEach(s => {
+        const intensity = s.intensity || 'moyenne';
+        sessionsByIntensity[intensity] = (sessionsByIntensity[intensity] || 0) + 1;
+      });
+
+      if (Object.keys(sessionsByIntensity).length > 0) {
+        const intensityLabels: Record<string, string> = { haute: 'Haute', moyenne: 'Moyenne', basse: 'Basse', recovery: 'Récupération' };
+        const intensityColors: Record<string, [number, number, number]> = {
+          haute: defaultColors.danger,
+          moyenne: defaultColors.warning,
+          basse: defaultColors.success,
+          recovery: defaultColors.primary,
+        };
+        
+        const intHeaders = ["Intensité", "Séances", "%"];
+        const intColWidths = [60, 60, 60];
+        yPos = drawTableHeaderPdf(pdf, intHeaders, intColWidths, yPos, margin, contentWidth);
+
+        Object.entries(sessionsByIntensity).sort((a, b) => b[1] - a[1]).forEach(([intensity, count], index) => {
+          yPos = localCheckPageBreak(pdf, yPos, 10);
+          const pct = totalSessions > 0 ? Math.round((count / totalSessions) * 100) : 0;
+          yPos = drawTableRowPdf(pdf, [
+            intensityLabels[intensity] || intensity,
+            String(count),
+            `${pct}%`,
+          ], intColWidths, yPos, index % 2 === 1, margin, contentWidth, [
+            intensityColors[intensity] || null, null, null,
+          ]);
+        });
+      }
 
       pdf.save(`presences_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
       toast.success("Rapport de présences généré");
