@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowLeft, Settings as SettingsIcon, Smartphone, RefreshCw } from "lucide-react";
 import { OfflineSyncPanel } from "@/components/OfflineSyncPanel";
 import { PushNotificationSettings } from "@/components/notifications/PushNotificationSettings";
+import { PersonalNotificationPreferences } from "@/components/notifications/PersonalNotificationPreferences";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -85,6 +86,9 @@ export default function Settings() {
         <div className="space-y-6">
           {/* Push Notifications */}
           <PushNotificationSettings />
+
+          {/* Notification Preferences */}
+          <PersonalNotificationPreferences />
 
           {/* PWA Installation */}
           <Card>
