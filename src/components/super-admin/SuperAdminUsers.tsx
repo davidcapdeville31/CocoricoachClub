@@ -214,7 +214,13 @@ export function SuperAdminUsers() {
                           Gratuit
                         </Badge>
                       )}
-                      {!u.is_super_admin && !u.is_free_user && u.is_approved && (
+                      {u.is_staff && (
+                        <Badge className="bg-blue-600">
+                          <Users className="h-3 w-3 mr-1" />
+                          Staff
+                        </Badge>
+                      )}
+                      {!u.is_super_admin && !u.is_free_user && !u.is_staff && u.is_approved && (
                         <Badge className="bg-green-600">
                           <CheckCircle2 className="h-3 w-3 mr-1" />
                           Approuvé
