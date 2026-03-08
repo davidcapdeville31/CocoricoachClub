@@ -542,12 +542,18 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
           const wColWidths = [30, 24, 24, 24, 24, 24, 26];
           yPos = drawTableHeaderPdf(pdf, wHeaders, wColWidths, yPos, margin);
 
+          const getWellnessColor = (val: number | null): [number, number, number] | null => {
+            if (val == null) return null;
+            if (val >= 4) return colors.success;
+            if (val >= 3) return colors.warning;
+            return colors.danger;
+          };
+
           data.wellness.slice(0, 15).forEach((w, index) => {
             yPos = localCheckPageBreak(pdf, yPos, 10, pdfSettings);
             const vals = [w.sleep_quality, w.general_fatigue, w.stress_level, w.soreness_upper_body, w.soreness_lower_body].filter(v => v != null) as number[];
             const avg = vals.length > 0 ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : '-';
             const avgNum = parseFloat(avg);
-            const avgColor: [number, number, number] | null = !isNaN(avgNum) ? (avgNum >= 4 ? colors.success : avgNum >= 3 ? colors.warning : colors.danger) : null;
             yPos = drawTableRowPdf(pdf, [
               format(new Date(w.tracking_date), "dd/MM/yy"),
               `${w.sleep_quality || '-'}/5`,
@@ -556,7 +562,15 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
               `${w.soreness_upper_body || '-'}/5`,
               `${w.soreness_lower_body || '-'}/5`,
               avg !== '-' ? `${avg}/5` : '-',
-            ], wColWidths, yPos, index % 2 === 1, margin, [null, null, null, null, null, null, avgColor]);
+            ], wColWidths, yPos, index % 2 === 1, margin, [
+              null,
+              getWellnessColor(w.sleep_quality),
+              getWellnessColor(w.general_fatigue),
+              getWellnessColor(w.stress_level),
+              getWellnessColor(w.soreness_upper_body),
+              getWellnessColor(w.soreness_lower_body),
+              !isNaN(avgNum) ? getWellnessColor(avgNum) : null,
+            ]);
           });
           yPos += 5;
         } else {
