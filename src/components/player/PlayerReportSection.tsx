@@ -881,6 +881,90 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
         }
       }
 
+      // ===== EWMA / CHARGE SECTION =====
+      if (selectedSections.includes("ewma")) {
+        yPos = localCheckPageBreak(pdf, yPos, 50, pdfSettings);
+        pdf.setFillColor(...colors.light);
+        pdf.rect(margin, yPos, contentWidth, 8, 'F');
+        pdf.setTextColor(...colors.primary);
+        pdf.setFontSize(11);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("CHARGE D'ENTRAÎNEMENT (EWMA)", margin + 3, yPos + 5.5);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(...colors.dark);
+        yPos += 12;
+
+        if (data.awcr.length > 0) {
+          // Sort chronologically
+          const sortedAwcr = [...data.awcr].sort((a, b) => new Date(a.session_date).getTime() - new Date(b.session_date).getTime());
+          const latest = sortedAwcr[sortedAwcr.length - 1];
+          
+          // EWMA KPI cards
+          const ewmaKpis: { label: string; value: string; color: [number, number, number] }[] = [
+            { label: "Charge aiguë", value: latest.acute_load != null ? latest.acute_load.toFixed(0) : '-', color: colors.danger },
+            { label: "Charge chronique", value: latest.chronic_load != null ? latest.chronic_load.toFixed(0) : '-', color: colors.primary },
+            { label: "Ratio EWMA", value: latest.awcr != null ? latest.awcr.toFixed(2) : '-', color: latest.awcr != null ? (latest.awcr > 1.5 ? colors.danger : latest.awcr > 1.3 ? colors.warning : latest.awcr >= 0.8 ? colors.success : colors.warning) : colors.muted },
+            { label: "Séances (période)", value: String(sortedAwcr.length), color: colors.secondary },
+          ];
+
+          const ewmaCardW = (contentWidth - 12) / 4;
+          ewmaKpis.forEach((kpi, i) => {
+            const kx = margin + i * (ewmaCardW + 4);
+            pdf.setFillColor(...kpi.color);
+            pdf.roundedRect(kx, yPos, ewmaCardW, 18, 2, 2, 'F');
+            pdf.setTextColor(...colors.white);
+            pdf.setFontSize(12);
+            pdf.setFont("helvetica", "bold");
+            const vw = pdf.getTextWidth(kpi.value);
+            pdf.text(kpi.value, kx + (ewmaCardW - vw) / 2, yPos + 8);
+            pdf.setFontSize(6);
+            pdf.setFont("helvetica", "normal");
+            const lw = pdf.getTextWidth(kpi.label);
+            pdf.text(kpi.label, kx + (ewmaCardW - lw) / 2, yPos + 14);
+          });
+          pdf.setTextColor(...colors.dark);
+          yPos += 24;
+
+          // EWMA history table (last 15 entries)
+          const ewmaHeaders = ["Date", "RPE", "Durée (min)", "Charge", "Aiguë", "Chronique", "Ratio"];
+          const ewmaColWidths = [26, 18, 26, 24, 26, 26, 24];
+          yPos = drawTableHeaderPdf(pdf, ewmaHeaders, ewmaColWidths, yPos, margin);
+
+          sortedAwcr.slice(-15).reverse().forEach((entry, index) => {
+            yPos = localCheckPageBreak(pdf, yPos, 10, pdfSettings);
+            const ratio = entry.awcr;
+            const ratioColor: [number, number, number] | null = ratio != null
+              ? (ratio > 1.5 ? colors.danger : ratio > 1.3 ? colors.warning : ratio >= 0.8 ? colors.success : colors.warning)
+              : null;
+            yPos = drawTableRowPdf(pdf, [
+              format(new Date(entry.session_date), "dd/MM/yy"),
+              String(entry.rpe),
+              String(entry.duration_minutes),
+              entry.training_load != null ? String(entry.training_load) : '-',
+              entry.acute_load != null ? entry.acute_load.toFixed(0) : '-',
+              entry.chronic_load != null ? entry.chronic_load.toFixed(0) : '-',
+              ratio != null ? ratio.toFixed(2) : '-',
+            ], ewmaColWidths, yPos, index % 2 === 1, margin, [null, null, null, null, null, null, ratioColor]);
+          });
+          yPos += 5;
+
+          // EWMA ratio line chart
+          const ewmaChartData = sortedAwcr
+            .filter(e => e.awcr != null)
+            .slice(-20)
+            .map(e => ({ label: format(new Date(e.session_date), "dd/MM"), value: e.awcr! }));
+          if (ewmaChartData.length >= 2) {
+            yPos = localCheckPageBreak(pdf, yPos, 55, pdfSettings);
+            yPos = drawLineChart(pdf, ewmaChartData, margin, yPos, contentWidth / 2, 35, "Évolution ratio EWMA", colors.primary);
+          }
+        } else {
+          pdf.setFontSize(9);
+          pdf.setTextColor(...colors.muted);
+          pdf.text("Aucune donnée de charge d'entraînement", margin, yPos);
+          yPos += 10;
+        }
+      }
+
       // Generation date
       yPos += 10;
       yPos = localCheckPageBreak(pdf, yPos, 15, pdfSettings);
