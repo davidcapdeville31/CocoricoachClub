@@ -122,10 +122,10 @@ export function RehabWellnessTracker({ playerId, categoryId }: RehabWellnessTrac
     stress: w.stress_level,
   })) || [];
 
-  const getScoreColor = (score: number | null) => {
-    if (!score) return "text-muted-foreground";
-    if (score >= 8) return "text-green-600";
-    if (score >= 5) return "text-amber-600";
+  const getScoreColor = (score: number | null | undefined) => {
+    if (score == null) return "text-muted-foreground";
+    if (score >= 4) return "text-green-600";
+    if (score >= 3) return "text-amber-600";
     return "text-red-600";
   };
 
