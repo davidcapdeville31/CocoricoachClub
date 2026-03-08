@@ -299,6 +299,7 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
       matchStatsRes,
       injuriesRes,
       awcrRes,
+      competitionRoundsRes,
     ] = await Promise.all([
       supabase.from("player_measurements").select("*").eq("player_id", playerId).order("measurement_date", { ascending: false }),
       supabase.from("body_composition").select("*").eq("player_id", playerId).order("measurement_date", { ascending: false }),
@@ -351,6 +352,15 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
         if (dateTo) q = q.lte("session_date", dateTo);
         return q.order("session_date", { ascending: false });
       })(),
+      // Competition rounds for individual sports (bowling, athletics, judo, rowing)
+      (() => {
+        let q = supabase.from("competition_rounds")
+          .select("*, competition_round_stats(stat_data), matches!inner(match_date, opponent)")
+          .eq("player_id", playerId);
+        if (dateFrom) q = q.gte("matches.match_date", dateFrom);
+        if (dateTo) q = q.lte("matches.match_date", dateTo);
+        return q.order("created_at", { ascending: false });
+      })(),
     ]);
 
     return {
@@ -364,6 +374,7 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
       matchStats: matchStatsRes.data || [],
       injuries: injuriesRes.data || [],
       awcr: awcrRes.data || [],
+      competitionRounds: competitionRoundsRes.data || [],
     };
   };
 
