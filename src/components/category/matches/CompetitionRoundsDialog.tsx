@@ -1088,7 +1088,8 @@ export function CompetitionRoundsDialog({
                                 );
                               })}
                             </div>
-                          )}
+                            );
+                          })()}
 
                           {/* Notes */}
                           <div>
