@@ -297,67 +297,57 @@ export function ProgramSessionCard({
     return getMaxExercisesForMethod(method);
   };
 
-  const startLinking = (index: number, method: string) => {
-    const maxCount = getMaxCountForMethod(method);
-    setLinkingFrom({ index, method, maxCount });
-    setSelectedForLinking([index]);
-    // Update the exercise method immediately so the select reflects the chosen method
-    const newExercises = [...session.exercises];
-    newExercises[index] = { ...newExercises[index], method };
-    onUpdate({ ...session, exercises: newExercises });
-  };
+  const createBlockForMethod = (sourceIndex: number, method: string) => {
+    const minExercises = (() => {
+      if (method === "superset" || method === "biset" || method === "bulgarian") return 2;
+      if (method === "triset") return 3;
+      if (method === "giant_set") return 4;
+      return 2;
+    })();
 
-  const toggleExerciseForLinking = (targetIndex: number) => {
-    if (!linkingFrom) return;
-    
-    const exercise = session.exercises[targetIndex];
-    if (exercise.group_id) return;
-    
-    if (selectedForLinking.includes(targetIndex)) {
-      if (targetIndex === linkingFrom.index) return;
-      setSelectedForLinking(prev => prev.filter(i => i !== targetIndex));
-    } else {
-      if (selectedForLinking.length < linkingFrom.maxCount) {
-        setSelectedForLinking(prev => [...prev, targetIndex]);
-      }
-    }
-  };
-
-  const confirmLinking = () => {
-    if (!linkingFrom || selectedForLinking.length < 2) return;
-    
-    const { method } = linkingFrom;
     const groupId = crypto.randomUUID();
-    const sortedIndices = [...selectedForLinking].sort((a, b) => a - b);
-    
-    const newExercises = session.exercises.map((ex, i) => {
-      const groupIndex = sortedIndices.indexOf(i);
-      if (groupIndex !== -1) {
-        return {
-          ...ex,
-          method,
-          group_id: groupId,
-          group_order: groupIndex + 1,
-        };
-      }
-      return ex;
-    });
-    
-    onUpdate({ ...session, exercises: newExercises });
-    setLinkingFrom(null);
-    setSelectedForLinking([]);
-  };
+    const sourceExercise = session.exercises[sourceIndex];
 
-  const cancelLinking = () => {
-    // Reset method back to normal for all selected exercises in a single update
-    if (linkingFrom) {
-      const newExercises = session.exercises.map((ex, i) =>
-        selectedForLinking.includes(i) ? { ...ex, method: "normal" } : ex
-      );
-      onUpdate({ ...session, exercises: newExercises });
+    // Build the block: keep source exercise as first, add empty exercises for the rest
+    const blockExercises: ProgramExercise[] = [
+      {
+        ...sourceExercise,
+        method,
+        group_id: groupId,
+        group_order: 1,
+      },
+    ];
+
+    for (let i = 1; i < minExercises; i++) {
+      blockExercises.push({
+        id: crypto.randomUUID(),
+        exercise_name: "",
+        order_index: 0, // will be recalculated
+        method,
+        sets: sourceExercise.sets || 3,
+        reps: sourceExercise.reps || "10",
+        rest_seconds: sourceExercise.rest_seconds || 90,
+        group_id: groupId,
+        group_order: i + 1,
+      });
     }
-    setLinkingFrom(null);
-    setSelectedForLinking([]);
+
+    // Replace the source exercise with the block exercises
+    const before = session.exercises.slice(0, sourceIndex);
+    const after = session.exercises.slice(sourceIndex + 1);
+    const newExercises = [...before, ...blockExercises, ...after].map((ex, i) => ({
+      ...ex,
+      order_index: i,
+    }));
+
+    onUpdate({ ...session, exercises: newExercises });
+
+    // Open library search for the first empty exercise in the block
+    const firstEmptyIndex = sourceIndex + 1;
+    setTimeout(() => {
+      setSearchQuery("");
+      setShowLibraryFor(firstEmptyIndex);
+    }, 150);
   };
 
   const unlinkGroup = (groupId: string) => {
