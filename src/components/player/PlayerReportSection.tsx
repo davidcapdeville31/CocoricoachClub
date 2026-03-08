@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import jsPDF from "jspdf";
 import { generateCsv, downloadCsv } from "@/lib/csv";
+import ExcelJS from "exceljs";
 import { preparePdfWithSettings, drawPdfHeader as drawPdfHeaderCustom, type PdfCustomSettings } from "@/lib/pdfExport";
 import { TEST_CATEGORIES, getTestLabel } from "@/lib/constants/testCategories";
 import { getStatsForSport } from "@/lib/constants/sportStats";
