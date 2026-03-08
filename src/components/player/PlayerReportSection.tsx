@@ -24,7 +24,7 @@ interface PlayerReportSectionProps {
   sportType?: string;
 }
 
-type ReportSection = "tests" | "biometrics" | "wellness" | "matches";
+type ReportSection = "tests" | "biometrics" | "wellness" | "matches" | "ewma";
 
 const SECTION_LABELS: Record<ReportSection, string> = {
   tests: "Tests de performance",
