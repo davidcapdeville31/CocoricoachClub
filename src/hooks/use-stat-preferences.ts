@@ -62,6 +62,8 @@ export function useStatPreferences({
       return data as CustomStat[];
     },
     enabled: !!categoryId,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   // Fetch match-level overrides if matchId is provided
