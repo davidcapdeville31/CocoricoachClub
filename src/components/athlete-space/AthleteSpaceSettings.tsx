@@ -68,19 +68,20 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
     enabled: !!playerData?.user_id,
   });
 
-  // Check if email is registered in OneSignal (via tags sync)
+  // Check if email is registered in OneSignal via edge function
   const { data: emailNotifStatus } = useQuery({
     queryKey: ["email-notif-status", playerData?.user_id || user?.id],
     queryFn: async () => {
-      // If there's a push subscription or OneSignal sync, email notifications are active
       const targetUserId = playerData?.user_id || user?.id;
       if (!targetUserId) return false;
-      const { data } = await supabase
-        .from("push_subscriptions")
-        .select("id")
-        .eq("user_id", targetUserId)
-        .limit(1);
-      return (data?.length || 0) > 0;
+      try {
+        const { data } = await supabase.functions.invoke("check-onesignal-subscriptions", {
+          body: { user_ids: [targetUserId] },
+        });
+        return data?.results?.[targetUserId]?.hasEmail ?? false;
+      } catch {
+        return false;
+      }
     },
     enabled: !!(playerData?.user_id || user?.id),
   });
