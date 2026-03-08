@@ -21,17 +21,16 @@ interface ReportsTabProps {
 }
 
 export function ReportsTab({ categoryId }: ReportsTabProps) {
-  const [selectedPlayer, setSelectedPlayer] = useState<string>("");
   const [selectedMatch, setSelectedMatch] = useState<string>("");
   const [generatingReport, setGeneratingReport] = useState<string | null>(null);
 
   // Date range states
-  const [playerDateFrom, setPlayerDateFrom] = useState("");
-  const [playerDateTo, setPlayerDateTo] = useState("");
   const [overviewDateFrom, setOverviewDateFrom] = useState("");
   const [overviewDateTo, setOverviewDateTo] = useState("");
   const [attendanceDateFrom, setAttendanceDateFrom] = useState("");
   const [attendanceDateTo, setAttendanceDateTo] = useState("");
+  const [tdjDateFrom, setTdjDateFrom] = useState("");
+  const [tdjDateTo, setTdjDateTo] = useState("");
 
   const { data: category } = useQuery({
     queryKey: ["category", categoryId],
@@ -146,403 +145,204 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     return yPos;
   };
 
-  // ========================== PLAYER REPORT ==========================
-  const generatePlayerReport = async () => {
-    if (!selectedPlayer) {
-      toast.error("Veuillez sélectionner un joueur");
-      return;
-    }
-
-    setGeneratingReport("player");
-    
+  // ========================== TDJ (Temps de Jeu) REPORT ==========================
+  const generateTdjReport = async () => {
+    setGeneratingReport("tdj");
     try {
-      const player = players.find(p => p.id === selectedPlayer);
-      if (!player) throw new Error("Joueur non trouvé");
-
-      // Prepare custom PDF settings
       const { settings: pdfSettings, logoBase64, seasonName } = await preparePdfWithSettings(categoryId);
 
-      // Build date filters
-      const dateFilters = (query: any) => {
-        let q = query;
-        if (playerDateFrom) q = q.gte("tracking_date", playerDateFrom).or(`test_date.gte.${playerDateFrom},session_date.gte.${playerDateFrom},injury_date.gte.${playerDateFrom}`);
-        return q;
-      };
+      // Fetch all matches with lineups and injuries
+      let matchQuery = supabase.from("matches").select("id, match_date, opponent, is_home").eq("category_id", categoryId).order("match_date");
+      if (tdjDateFrom) matchQuery = matchQuery.gte("match_date", tdjDateFrom);
+      if (tdjDateTo) matchQuery = matchQuery.lte("match_date", tdjDateTo);
 
-      // Fetch player data with date filtering
-      const [measurementsRes, injuriesRes, wellnessRes, speedTestsRes, jumpTestsRes, awcrRes, bodyCompRes, matchLineupsRes, genericTestsRes, matchStatsRes] = await Promise.all([
-        supabase.from("player_measurements").select("*").eq("player_id", selectedPlayer).order("measurement_date", { ascending: false }).limit(1),
+      const [matchesRes, lineupsRes, injuriesRes] = await Promise.all([
+        matchQuery,
+        supabase.from("match_lineups").select("match_id, player_id, is_starter, minutes_played").in("match_id", (await matchQuery).data?.map(m => m.id) || []),
         (() => {
-          let q = supabase.from("injuries").select("*").eq("player_id", selectedPlayer);
-          if (playerDateFrom) q = q.gte("injury_date", playerDateFrom);
-          if (playerDateTo) q = q.lte("injury_date", playerDateTo);
-          return q.order("injury_date", { ascending: false });
+          let q = supabase.from("injuries").select("player_id, injury_date, estimated_return_date, status").eq("category_id", categoryId);
+          if (tdjDateFrom) q = q.gte("injury_date", tdjDateFrom);
+          if (tdjDateTo) q = q.lte("injury_date", tdjDateTo);
+          return q;
         })(),
-        (() => {
-          let q = supabase.from("wellness_tracking").select("*").eq("player_id", selectedPlayer);
-          if (playerDateFrom) q = q.gte("tracking_date", playerDateFrom);
-          if (playerDateTo) q = q.lte("tracking_date", playerDateTo);
-          return q.order("tracking_date", { ascending: false });
-        })(),
-        (() => {
-          let q = supabase.from("speed_tests").select("*").eq("player_id", selectedPlayer);
-          if (playerDateFrom) q = q.gte("test_date", playerDateFrom);
-          if (playerDateTo) q = q.lte("test_date", playerDateTo);
-          return q.order("test_date", { ascending: false });
-        })(),
-        (() => {
-          let q = supabase.from("jump_tests").select("*").eq("player_id", selectedPlayer);
-          if (playerDateFrom) q = q.gte("test_date", playerDateFrom);
-          if (playerDateTo) q = q.lte("test_date", playerDateTo);
-          return q.order("test_date", { ascending: false });
-        })(),
-        supabase.from("awcr_tracking").select("*").eq("player_id", selectedPlayer).order("session_date", { ascending: false }).limit(1),
-        supabase.from("body_composition").select("*").eq("player_id", selectedPlayer).order("measurement_date", { ascending: false }).limit(1),
-        supabase.from("match_lineups").select("*, matches(match_date, opponent)").eq("player_id", selectedPlayer),
-        (() => {
-          let q = supabase.from("generic_tests").select("*").eq("player_id", selectedPlayer);
-          if (playerDateFrom) q = q.gte("test_date", playerDateFrom);
-          if (playerDateTo) q = q.lte("test_date", playerDateTo);
-          return q.order("test_date", { ascending: false });
-        })(),
-        supabase.from("player_match_stats").select("*, players(name), matches(match_date, opponent)").eq("player_id", selectedPlayer),
       ]);
 
-      const pdf = new jsPDF();
+      const matchesData = matchesRes.data || [];
+      const lineups = lineupsRes.data || [];
+      const injuries = injuriesRes.data || [];
+
+      // Build per-player stats
+      const playerTdj = players.map(player => {
+        const playerLineups = lineups.filter(l => l.player_id === player.id);
+        const totalMinutes = playerLineups.reduce((sum, l) => sum + (l.minutes_played || 0), 0);
+        const starterCount = playerLineups.filter(l => l.is_starter).length;
+        const subCount = playerLineups.filter(l => !l.is_starter).length;
+        const matchCount = playerLineups.length;
+        const playerInjuries = injuries.filter(i => i.player_id === player.id);
+        const injuredCount = playerInjuries.length;
+        // "Hors-groupe" = matches where player was NOT in lineup and not injured
+        const matchIds = new Set(matchesData.map(m => m.id));
+        const playerMatchIds = new Set(playerLineups.map(l => l.match_id));
+        let horsGroupeCount = 0;
+        matchesData.forEach(m => {
+          if (!playerMatchIds.has(m.id)) {
+            // Check if injured at that date
+            const wasInjured = playerInjuries.some(inj => {
+              const injDate = new Date(inj.injury_date);
+              const matchDate = new Date(m.match_date);
+              const returnDate = inj.estimated_return_date ? new Date(inj.estimated_return_date) : null;
+              return injDate <= matchDate && (!returnDate || returnDate >= matchDate);
+            });
+            if (!wasInjured) horsGroupeCount++;
+          }
+        });
+
+        // Blessé = matches missed due to injury
+        const blesseCount = matchesData.length - matchCount - horsGroupeCount;
+
+        return {
+          name: [player.first_name, player.name].filter(Boolean).join(" "),
+          totalMinutes,
+          starterCount,
+          subCount,
+          matchCount,
+          horsGroupeCount,
+          blesseCount: Math.max(0, blesseCount),
+          injuredCount,
+        };
+      }).sort((a, b) => b.totalMinutes - a.totalMinutes);
+
+      // Generate PDF
+      const pdf = new jsPDF({ orientation: "landscape" });
       const pageWidth = pdf.internal.pageSize.getWidth();
-      const margin = 15;
+      const margin = 10;
       const contentWidth = pageWidth - 2 * margin;
 
-      const dateRange = playerDateFrom || playerDateTo 
-        ? `Période: ${playerDateFrom ? format(new Date(playerDateFrom), "dd/MM/yyyy") : "début"} - ${playerDateTo ? format(new Date(playerDateTo), "dd/MM/yyyy") : "aujourd'hui"}`
+      const dateRange = tdjDateFrom || tdjDateTo
+        ? `${tdjDateFrom ? format(new Date(tdjDateFrom), "d MMM yyyy", { locale: fr }) : "Début"} → ${tdjDateTo ? format(new Date(tdjDateTo), "d MMM yyyy", { locale: fr }) : "Aujourd'hui"}`
         : "";
 
-      // Header with custom settings
       let yPos = drawPdfHeaderCustom(
         pdf,
-        `FICHE JOUEUR`,
-        `${[player.first_name, player.name].filter(Boolean).join(" ")} - ${player.position || 'Position non définie'}`,
-        `${category?.clubs?.name} - ${category?.name}${seasonName ? ` • ${seasonName}` : ''} | ${format(new Date(), "d MMMM yyyy", { locale: fr })}${dateRange ? ` | ${dateRange}` : ""}`,
+        `SUIVI TEMPS DE JEU${seasonName ? ` - ${seasonName}` : ""}`,
+        `${category?.clubs?.name} - ${category?.name}`,
+        `${matchesData.length} matchs | ${format(new Date(), "d MMMM yyyy", { locale: fr })}${dateRange ? ` | ${dateRange}` : ""}`,
         pdfSettings,
         logoBase64
       );
 
-      // KPI Cards
-      const allInjuries = injuriesRes.data || [];
-      const activeInjuries = allInjuries.filter(i => i.status !== 'healed').length;
-      const matchCount = matchLineupsRes.data?.length || 0;
-      const totalMinutes = matchLineupsRes.data?.reduce((sum, m) => sum + (m.minutes_played || 0), 0) || 0;
-      const latestAwcr = awcrRes.data?.[0]?.awcr;
+      // KPI row
+      const cardW = (contentWidth - 20) / 5;
+      const cardH = 18;
+      const totalMatchMinutes = playerTdj.reduce((s, p) => s + p.totalMinutes, 0);
+      const avgMinutes = players.length > 0 ? Math.round(totalMatchMinutes / players.length) : 0;
 
-      const cardWidth = (contentWidth - 15) / 4;
-      const cardHeight = 22;
+      drawKpiCard(pdf, margin, yPos, cardW, cardH, String(matchesData.length), "MATCHS", defaultColors.primary);
+      drawKpiCard(pdf, margin + cardW + 5, yPos, cardW, cardH, String(players.length), "JOUEURS", defaultColors.primary);
+      drawKpiCard(pdf, margin + (cardW + 5) * 2, yPos, cardW, cardH, String(totalMatchMinutes), "MIN TOTALES", defaultColors.success);
+      drawKpiCard(pdf, margin + (cardW + 5) * 3, yPos, cardW, cardH, String(avgMinutes), "MIN MOY/JOUEUR", defaultColors.warning);
+      drawKpiCard(pdf, margin + (cardW + 5) * 4, yPos, cardW, cardH, String(injuries.length), "BLESSURES", injuries.length > 5 ? defaultColors.danger : defaultColors.success);
 
-      drawKpiCard(pdf, margin, yPos, cardWidth, cardHeight, String(matchCount), "MATCHS", defaultColors.primary);
-      drawKpiCard(pdf, margin + cardWidth + 5, yPos, cardWidth, cardHeight, String(totalMinutes), "MINUTES", defaultColors.primary);
-      drawKpiCard(pdf, margin + (cardWidth + 5) * 2, yPos, cardWidth, cardHeight, String(activeInjuries), "BLESSURES", activeInjuries > 0 ? defaultColors.danger : defaultColors.success);
-      drawKpiCard(pdf, margin + (cardWidth + 5) * 3, yPos, cardWidth, cardHeight, latestAwcr ? latestAwcr.toFixed(2) : '-', "EWMA", latestAwcr ? (latestAwcr > 1.5 ? defaultColors.danger : latestAwcr < 0.8 ? defaultColors.warning : defaultColors.success) : defaultColors.muted);
+      yPos += cardH + 12;
 
-      yPos += cardHeight + 15;
-
-      // Biometrics Section
-      pdf.setFontSize(12);
+      // Table header
+      pdf.setFontSize(11);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(...defaultColors.dark);
-      pdf.text("BIOMÉTRIE", margin, yPos);
-      yPos += 8;
+      pdf.text("TOTAL DE LA SAISON", margin, yPos);
+      yPos += 7;
 
-      const measurement = measurementsRes.data?.[0];
-      const bodyComp = bodyCompRes.data?.[0];
+      const headers = ["Prénom / NOM", "Min. totales", "Titulaire", "Remplaçant", "Matchs joués", "Hors-groupe", "Blessé"];
+      const colWidths = [70, 35, 35, 35, 35, 35, 35];
+      yPos = drawTableHeaderPdf(pdf, headers, colWidths, yPos, margin, contentWidth);
 
-      if (measurement || bodyComp) {
-        pdf.setFillColor(...defaultColors.light);
-        pdf.roundedRect(margin, yPos, contentWidth, 20, 2, 2, 'F');
-        
-        pdf.setFontSize(9);
-        pdf.setFont("helvetica", "normal");
-        pdf.setTextColor(...defaultColors.dark);
-        
-        let bioText = [];
-        if (measurement?.height_cm) bioText.push(`Taille: ${measurement.height_cm} cm`);
-        if (measurement?.weight_kg) bioText.push(`Poids: ${measurement.weight_kg} kg`);
-        if (bodyComp?.body_fat_percentage) bioText.push(`Masse grasse: ${bodyComp.body_fat_percentage}%`);
-        if (bodyComp?.muscle_mass_kg) bioText.push(`Masse musculaire: ${bodyComp.muscle_mass_kg} kg`);
-        
-        pdf.text(bioText.join("  |  "), margin + 5, yPos + 12);
-        yPos += 25;
-      } else {
-        pdf.setFontSize(9);
-        pdf.setTextColor(...defaultColors.muted);
-        pdf.text("Aucune mesure enregistrée", margin, yPos);
-        yPos += 10;
-      }
-
-      // Injuries Section
-      pdf.setFontSize(12);
-      pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(...defaultColors.dark);
-      pdf.text("HISTORIQUE BLESSURES", margin, yPos);
-      yPos += 8;
-
-      if (allInjuries.length > 0) {
-        const injuryHeaders = ["Type", "Sévérité", "Statut", "Date", "Retour"];
-        const injuryColWidths = [50, 30, 30, 30, 40];
-        yPos = drawTableHeaderPdf(pdf, injuryHeaders, injuryColWidths, yPos, margin, contentWidth);
-
-        allInjuries.forEach((injury, index) => {
-          yPos = localCheckPageBreak(pdf, yPos, 10);
-          const statusLabel = injury.status === 'active' ? 'Active' : injury.status === 'recovering' ? 'Récup.' : 'Guérie';
-          const statusColor = injury.status === 'active' ? defaultColors.danger : injury.status === 'recovering' ? defaultColors.warning : defaultColors.success;
-          yPos = drawTableRowPdf(pdf, [
-            injury.injury_type,
-            injury.severity,
-            statusLabel,
-            format(new Date(injury.injury_date), "dd/MM/yy"),
-            injury.estimated_return_date ? format(new Date(injury.estimated_return_date), "dd/MM/yy") : '-'
-          ], injuryColWidths, yPos, index % 2 === 1, margin, contentWidth, [null, null, statusColor, null, null]);
-        });
-        yPos += 5;
-      } else {
-        pdf.setFontSize(9);
-        pdf.setTextColor(...defaultColors.success);
-        pdf.text("Aucune blessure enregistrée", margin, yPos);
-        yPos += 10;
-      }
-
-      // ===== TESTS SECTION - Grouped by category =====
-      // Combine all test sources into a unified list
-      const allTestResults: Array<{test_type: string; test_category: string; result_value: number; result_unit: string | null; test_date: string}> = [];
-
-      // Add speed tests
-      (speedTestsRes.data || []).forEach(t => {
-        if (t.test_type === '40m' && t.time_40m_seconds) {
-          allTestResults.push({ test_type: 'Sprint 40m', test_category: 'sprint', result_value: t.time_40m_seconds, result_unit: 's', test_date: t.test_date });
-        } else if (t.test_type === '1600m' && t.vma_kmh) {
-          allTestResults.push({ test_type: 'Test 1600m (VMA)', test_category: 'cardio', result_value: t.vma_kmh, result_unit: 'km/h', test_date: t.test_date });
+      playerTdj.forEach((p, index) => {
+        if (yPos + 7 > pdf.internal.pageSize.getHeight() - 15) {
+          pdf.addPage("landscape");
+          yPos = 20;
+          yPos = drawTableHeaderPdf(pdf, headers, colWidths, yPos, margin, contentWidth);
         }
+
+        const minuteColor = p.totalMinutes > 500 ? defaultColors.success : p.totalMinutes > 200 ? defaultColors.warning : defaultColors.danger;
+        const blesseColor = p.blesseCount > 3 ? defaultColors.danger : null;
+
+        yPos = drawTableRowPdf(
+          pdf,
+          [
+            p.name,
+            String(p.totalMinutes),
+            String(p.starterCount),
+            String(p.subCount),
+            String(p.matchCount),
+            String(p.horsGroupeCount),
+            String(p.blesseCount),
+          ],
+          colWidths,
+          yPos,
+          index % 2 === 1,
+          margin,
+          contentWidth,
+          [null, minuteColor, defaultColors.success, defaultColors.warning, null, defaultColors.muted, blesseColor]
+        );
       });
 
-      // Add jump tests
-      (jumpTestsRes.data || []).forEach(t => {
-        allTestResults.push({ test_type: t.test_type, test_category: 'saut', result_value: t.result_cm, result_unit: 'cm', test_date: t.test_date });
-      });
-
-      // Add generic tests
-      (genericTestsRes.data || []).forEach(t => {
-        allTestResults.push({ test_type: t.test_type, test_category: t.test_category, result_value: t.result_value, result_unit: t.result_unit, test_date: t.test_date });
-      });
-
-      if (allTestResults.length > 0) {
-        // Group by test_category
-        const groupedTests: Record<string, typeof allTestResults> = {};
-        allTestResults.forEach(t => {
-          const cat = t.test_category || 'autres';
-          if (!groupedTests[cat]) groupedTests[cat] = [];
-          groupedTests[cat].push(t);
-        });
-
-        // Get nice category labels from TEST_CATEGORIES
-        const getCategoryLabel = (catValue: string): string => {
-          const found = TEST_CATEGORIES.find(c => c.value === catValue);
-          if (found) return found.label;
-          // Capitalize fallback
-          return catValue.charAt(0).toUpperCase() + catValue.slice(1).replace(/_/g, ' ');
-        };
-
-        // Sort categories for consistent order
-        const orderedCategories = Object.keys(groupedTests).sort((a, b) => getCategoryLabel(a).localeCompare(getCategoryLabel(b)));
-
-        // Section header
-        yPos = localCheckPageBreak(pdf, yPos, 30);
-        pdf.setFontSize(12);
-        pdf.setFont("helvetica", "bold");
-        pdf.setTextColor(...defaultColors.dark);
-        pdf.text("TESTS DE PERFORMANCE", margin, yPos);
-        yPos += 8;
-
-        for (const catKey of orderedCategories) {
-          const tests = groupedTests[catKey];
-          yPos = localCheckPageBreak(pdf, yPos, 25);
-
-          // Sub-header for category
-          pdf.setFontSize(10);
-          pdf.setFont("helvetica", "bold");
-          pdf.setTextColor(...defaultColors.primary);
-          pdf.text(getCategoryLabel(catKey), margin + 2, yPos);
-          yPos += 6;
-
-          const testHeaders = ["Test", "Résultat", "Date"];
-          const testColWidths = [70, 55, 55];
-          yPos = drawTableHeaderPdf(pdf, testHeaders, testColWidths, yPos, margin, contentWidth);
-
-          // Sort tests by date desc within category
-          tests.sort((a, b) => new Date(b.test_date).getTime() - new Date(a.test_date).getTime());
-
-          tests.forEach((test, index) => {
-            yPos = localCheckPageBreak(pdf, yPos, 10);
-            // Show full test label without category prefix (e.g. "Clean - 1RM" not just "1RM")
-            const fullLabel = getTestLabel(test.test_type);
-            let testLabel = test.test_type;
-            if (fullLabel !== test.test_type) {
-              const parts = fullLabel.split(' - ');
-              if (parts.length >= 3) {
-                testLabel = parts.slice(1).join(' - ');
-              } else if (parts.length === 2) {
-                testLabel = parts[1];
-              } else {
-                testLabel = fullLabel;
-              }
-            }
-            yPos = drawTableRowPdf(pdf, [
-              testLabel,
-              `${test.result_value}${test.result_unit ? ` ${test.result_unit}` : ''}`,
-              format(new Date(test.test_date), "dd/MM/yy")
-            ], testColWidths, yPos, index % 2 === 1, margin, contentWidth);
-          });
-          yPos += 4;
-        }
-        yPos += 5;
-      } else {
-        yPos = localCheckPageBreak(pdf, yPos, 20);
-        pdf.setFontSize(12);
-        pdf.setFont("helvetica", "bold");
-        pdf.setTextColor(...defaultColors.dark);
-        pdf.text("TESTS DE PERFORMANCE", margin, yPos);
-        yPos += 8;
-        pdf.setFontSize(9);
-        pdf.setTextColor(...defaultColors.muted);
-        pdf.text("Aucun test enregistré", margin, yPos);
-        yPos += 10;
-      }
-
-      // Match Stats Section
-      const matchStats = matchStatsRes.data || [];
-      if (matchStats.length > 0) {
-        yPos = localCheckPageBreak(pdf, yPos, 30);
-        pdf.setFontSize(12);
-        pdf.setFont("helvetica", "bold");
-        pdf.setTextColor(...defaultColors.dark);
-        pdf.text("STATISTIQUES PAR MATCH", margin, yPos);
-        yPos += 8;
-
-        // Get the configured stat preferences + custom stats
-        const [statPrefsResp, customStatsResp] = await Promise.all([
-          supabase.from("category_stat_preferences").select("enabled_stats, enabled_custom_stats").eq("category_id", categoryId).maybeSingle(),
-          supabase.from("custom_stats").select("*").eq("category_id", categoryId),
-        ]);
-
-        const sportType = category?.clubs?.sport || "rugby";
-        const allStatsDef = getStatsForSport(sportType);
-        const customStatFields = (customStatsResp.data || []).map((cs: any) => ({
-          key: cs.key, label: cs.label, shortLabel: cs.short_label,
-          category: cs.category_type as StatField["category"],
-          type: "number" as const,
-        }));
-        const allAvailable = [...allStatsDef, ...customStatFields];
-        
-        const enabledKeys = [
-          ...(statPrefsResp.data?.enabled_stats as string[] || []),
-          ...(statPrefsResp.data?.enabled_custom_stats as string[] || []),
-        ];
-        const displayStats = enabledKeys.length > 0
-          ? allAvailable.filter(s => enabledKeys.includes(s.key))
-          : allAvailable;
-
-        // Filter to only show stats that have at least one non-zero value
-        const statsWithData = displayStats.filter(s => {
-          return matchStats.some((stat: any) => {
-            const sd = (stat.sport_data && typeof stat.sport_data === 'object') ? stat.sport_data as Record<string, any> : {};
-            const val = sd[s.key] ?? stat[s.key] ?? 0;
-            return val !== 0 && val !== null && val !== undefined;
-          });
-        });
-        const statsToShow = statsWithData.length > 0 ? statsWithData : displayStats.slice(0, 6);
-
-        // Paginate in groups of 6 columns (need space for Match + Date cols)
-        const COLS_PER_PAGE = 6;
-        for (let pageIdx = 0; pageIdx < statsToShow.length; pageIdx += COLS_PER_PAGE) {
-          const pageStats = statsToShow.slice(pageIdx, pageIdx + COLS_PER_PAGE);
-          
-          if (pageIdx > 0) {
-            yPos += 5;
-            yPos = localCheckPageBreak(pdf, yPos, 20);
-          }
-
-          const matchStatHeaders = ["Match", "Date", ...pageStats.map(s => s.shortLabel)];
-          const nameColW = 40;
-          const dateColW = 22;
-          const statColW = Math.max(15, Math.floor((contentWidth - nameColW - dateColW) / pageStats.length));
-          const matchStatColWidths = [nameColW, dateColW, ...pageStats.map(() => statColW)];
-          yPos = drawTableHeaderPdf(pdf, matchStatHeaders, matchStatColWidths, yPos, margin, contentWidth);
-
-          matchStats.forEach((stat: any, index) => {
-            yPos = localCheckPageBreak(pdf, yPos, 10);
-            const sportData = (stat.sport_data && typeof stat.sport_data === 'object') ? stat.sport_data as Record<string, any> : {};
-            const values = [
-              stat.matches?.opponent || '-',
-              stat.matches?.match_date ? format(new Date(stat.matches.match_date), "dd/MM") : '-',
-              ...pageStats.map(s => {
-                const val = sportData[s.key] ?? stat[s.key] ?? stat[s.key.replace(/([A-Z])/g, '_$1').toLowerCase()];
-                return val != null ? String(val) : '-';
-              })
-            ];
-            yPos = drawTableRowPdf(pdf, values, matchStatColWidths, yPos, index % 2 === 1, margin, contentWidth);
-          });
-        }
-        yPos += 5;
-      }
-
-      // Wellness Summary (last 10)
-      const wellnessData = wellnessRes.data || [];
-      if (wellnessData.length > 0) {
-        yPos = localCheckPageBreak(pdf, yPos, 30);
-        pdf.setFontSize(12);
-        pdf.setFont("helvetica", "bold");
-        pdf.setTextColor(...defaultColors.dark);
-        pdf.text("WELLNESS (dernières entrées)", margin, yPos);
-        yPos += 8;
-
-        const wHeaders = ["Date", "Sommeil", "Fatigue", "Stress", "Haut", "Bas", "Moy."];
-        const wColWidths = [32, 24, 24, 24, 24, 24, 24];
-        yPos = drawTableHeaderPdf(pdf, wHeaders, wColWidths, yPos, margin, contentWidth);
-
-        const getWellnessColor = (val: number | null): [number, number, number] | null => {
-          if (val == null) return null;
-          if (val >= 4) return defaultColors.success;
-          if (val >= 3) return defaultColors.warning;
-          return defaultColors.danger;
-        };
-
-        wellnessData.slice(0, 10).forEach((w, index) => {
-          yPos = localCheckPageBreak(pdf, yPos, 10);
-          const wValues = [w.sleep_quality, w.general_fatigue, w.stress_level, w.soreness_upper_body, w.soreness_lower_body].filter(v => v != null) as number[];
-          const wAvg = wValues.length > 0 ? (wValues.reduce((a, b) => a + b, 0) / wValues.length).toFixed(1) : '-';
-          const avgNum = parseFloat(wAvg);
-          yPos = drawTableRowPdf(pdf, [
-            format(new Date(w.tracking_date), "dd/MM/yy"),
-            `${w.sleep_quality || '-'}/5`,
-            `${w.general_fatigue || '-'}/5`,
-            `${w.stress_level || '-'}/5`,
-            `${w.soreness_upper_body || '-'}/5`,
-            `${w.soreness_lower_body || '-'}/5`,
-            wAvg,
-          ], wColWidths, yPos, index % 2 === 1, margin, contentWidth, [
-            null,
-            getWellnessColor(w.sleep_quality),
-            getWellnessColor(w.general_fatigue),
-            getWellnessColor(w.stress_level),
-            getWellnessColor(w.soreness_upper_body),
-            getWellnessColor(w.soreness_lower_body),
-            !isNaN(avgNum) ? getWellnessColor(avgNum) : null,
-          ]);
-        });
-      }
-
-      pdf.save(`fiche_${[player.first_name, player.name].filter(Boolean).join('_').replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
-      toast.success("Rapport généré avec succès");
+      pdf.save(`tdj_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+      toast.success("Rapport Temps de Jeu généré");
     } catch (error) {
       console.error(error);
       toast.error("Erreur lors de la génération");
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  const generateTdjCsv = async () => {
+    setGeneratingReport("tdj-csv");
+    try {
+      let matchQuery = supabase.from("matches").select("id, match_date, opponent").eq("category_id", categoryId).order("match_date");
+      if (tdjDateFrom) matchQuery = matchQuery.gte("match_date", tdjDateFrom);
+      if (tdjDateTo) matchQuery = matchQuery.lte("match_date", tdjDateTo);
+
+      const [matchesRes, lineupsRes, injuriesRes] = await Promise.all([
+        matchQuery,
+        supabase.from("match_lineups").select("match_id, player_id, is_starter, minutes_played").in("match_id", (await matchQuery).data?.map(m => m.id) || []),
+        supabase.from("injuries").select("player_id, injury_date, estimated_return_date").eq("category_id", categoryId),
+      ]);
+
+      const matchesData = matchesRes.data || [];
+      const lineups = lineupsRes.data || [];
+      const injuries = injuriesRes.data || [];
+
+      const headers = ["Joueur", "Minutes totales", "Titulaire", "Remplaçant", "Matchs joués", "Hors-groupe", "Blessé"];
+      const rows = players.map(player => {
+        const pl = lineups.filter(l => l.player_id === player.id);
+        const totalMin = pl.reduce((s, l) => s + (l.minutes_played || 0), 0);
+        const starter = pl.filter(l => l.is_starter).length;
+        const sub = pl.filter(l => !l.is_starter).length;
+        const playerInjuries = injuries.filter(i => i.player_id === player.id);
+        const playerMatchIds = new Set(pl.map(l => l.match_id));
+        let horsGroupe = 0;
+        matchesData.forEach(m => {
+          if (!playerMatchIds.has(m.id)) {
+            const wasInjured = playerInjuries.some(inj => {
+              const injDate = new Date(inj.injury_date);
+              const matchDate = new Date(m.match_date);
+              const returnDate = inj.estimated_return_date ? new Date(inj.estimated_return_date) : null;
+              return injDate <= matchDate && (!returnDate || returnDate >= matchDate);
+            });
+            if (!wasInjured) horsGroupe++;
+          }
+        });
+        const blesse = Math.max(0, matchesData.length - pl.length - horsGroupe);
+        return [[player.first_name, player.name].filter(Boolean).join(" "), totalMin, starter, sub, pl.length, horsGroupe, blesse];
+      }).sort((a, b) => (b[1] as number) - (a[1] as number));
+
+      const csv = generateCsv(headers, rows);
+      downloadCsv(`tdj_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
+      toast.success("Export CSV généré");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de l'export CSV");
     } finally {
       setGeneratingReport(null);
     }
@@ -1477,50 +1277,6 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     }
   };
 
-  const generatePlayerCsv = async () => {
-    if (!selectedPlayer) {
-      toast.error("Veuillez sélectionner un joueur");
-      return;
-    }
-    setGeneratingReport("player-csv");
-    try {
-      const player = players.find(p => p.id === selectedPlayer);
-      if (!player) throw new Error("Joueur non trouvé");
-
-      const [injuriesRes, wellnessRes, speedTestsRes, jumpTestsRes, awcrRes] = await Promise.all([
-        supabase.from("injuries").select("*").eq("player_id", selectedPlayer).order("injury_date", { ascending: false }),
-        supabase.from("wellness_tracking").select("*").eq("player_id", selectedPlayer).order("tracking_date", { ascending: false }),
-        supabase.from("speed_tests").select("*").eq("player_id", selectedPlayer).order("test_date", { ascending: false }),
-        supabase.from("jump_tests").select("*").eq("player_id", selectedPlayer).order("test_date", { ascending: false }),
-        supabase.from("awcr_tracking").select("*").eq("player_id", selectedPlayer).order("session_date", { ascending: false }),
-      ]);
-
-      const wellnessHeaders = ["Date", "Fatigue", "Sommeil (h)", "Qualité sommeil", "Stress", "Douleurs haut", "Douleurs bas", "Moyenne"];
-      const wellnessRows = (wellnessRes.data || []).map(w => {
-        const values = [w.general_fatigue, w.sleep_quality, w.stress_level, w.soreness_upper_body, w.soreness_lower_body].filter(v => v != null && v !== undefined) as number[];
-        const avg = values.length > 0 ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1) : "-";
-        return [
-          format(new Date(w.tracking_date), "dd/MM/yyyy"),
-          w.general_fatigue || "-",
-          w.sleep_duration || "-",
-          w.sleep_quality || "-",
-          w.stress_level || "-",
-          w.soreness_upper_body || "-",
-          w.soreness_lower_body || "-",
-          avg,
-        ];
-      });
-
-      const csv = generateCsv(wellnessHeaders, wellnessRows);
-      downloadCsv(`joueur_${[player.first_name, player.name].filter(Boolean).join('_').replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.csv`, csv);
-      toast.success("Export CSV généré");
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur lors de l'export CSV");
-    } finally {
-      setGeneratingReport(null);
-    }
-  };
 
   const generateSeasonCsv = async () => {
     setGeneratingReport("season-csv");
@@ -1941,38 +1697,26 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
           </CardContent>
         </Card>
 
-        {/* Player Report */}
-        <Card>
+        {/* Suivi Temps de Jeu (TDJ) */}
+        <Card className="border-primary/20 bg-primary/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Fiche Joueur
+              <Trophy className="h-5 w-5" />
+              Suivi Temps de Jeu
             </CardTitle>
             <CardDescription>
-              Stats, tests, blessures et wellness
+              Minutes, titularisations, remplacements, hors-groupe
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un joueur" />
-              </SelectTrigger>
-              <SelectContent>
-                {players.map((player) => (
-                  <SelectItem key={player.id} value={player.id}>
-                    {[player.first_name, player.name].filter(Boolean).join(" ")}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {renderDateRange(playerDateFrom, playerDateTo, setPlayerDateFrom, setPlayerDateTo)}
+            {renderDateRange(tdjDateFrom, tdjDateTo, setTdjDateFrom, setTdjDateTo)}
             <div className="flex gap-2">
               <Button 
-                onClick={generatePlayerReport} 
+                onClick={generateTdjReport} 
                 className="flex-1"
-                disabled={!selectedPlayer || generatingReport === "player" || generatingReport === "player-csv"}
+                disabled={generatingReport === "tdj" || generatingReport === "tdj-csv"}
               >
-                {generatingReport === "player" ? (
+                {generatingReport === "tdj" ? (
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                 ) : (
                   <FileText className="h-4 w-4 mr-1" />
@@ -1980,12 +1724,12 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
                 PDF
               </Button>
               <Button 
-                onClick={generatePlayerCsv}
+                onClick={generateTdjCsv}
                 variant="outline"
                 className="flex-1"
-                disabled={!selectedPlayer || generatingReport === "player" || generatingReport === "player-csv"}
+                disabled={generatingReport === "tdj" || generatingReport === "tdj-csv"}
               >
-                {generatingReport === "player-csv" ? (
+                {generatingReport === "tdj-csv" ? (
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                 ) : (
                   <FileSpreadsheet className="h-4 w-4 mr-1" />
