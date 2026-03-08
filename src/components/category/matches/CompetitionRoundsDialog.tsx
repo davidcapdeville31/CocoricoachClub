@@ -23,7 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Trash2, Trophy, Target, BarChart3, Swords, Circle, Ship, Users, Droplet, CheckCircle, Lock } from "lucide-react";
-import { getStatsForSport, getStatCategories, getAggregatedStatsForSport, getAthletismeStatsForDiscipline, type StatField } from "@/lib/constants/sportStats";
+import { getStatsForSport, getStatCategories, getAggregatedStatsForSport, getAthletismeStatsForDiscipline, ATHLETISME_PHASES, type StatField } from "@/lib/constants/sportStats";
 import { useStatPreferences } from "@/hooks/use-stat-preferences";
 import { BowlingOilPatternSection } from "./BowlingOilPatternSection";
 import { BowlingScoreSheet, FrameData, BowlingStats } from "@/components/athlete-portal/BowlingScoreSheet";
@@ -179,9 +179,9 @@ export function CompetitionRoundsDialog({
     }
   }, [open]);
   
-  const phases = isAviron ? AVIRON_PHASES : isJudo ? JUDO_PHASES : isBowling ? BOWLING_PHASES : [];
-  const roundLabel = isJudo ? "Combat" : isAviron ? "Course" : isBowling ? "Partie" : "Round";
-  const roundLabelPlural = isJudo ? "Combats" : isAviron ? "Courses" : isBowling ? "Parties" : "Rounds";
+  const phases = isAviron ? AVIRON_PHASES : isJudo ? JUDO_PHASES : isBowling ? BOWLING_PHASES : isAthletics ? ATHLETISME_PHASES : [];
+  const roundLabel = isJudo ? "Combat" : isAviron ? "Course" : isBowling ? "Partie" : isAthletics ? "Épreuve" : "Round";
+  const roundLabelPlural = isJudo ? "Combats" : isAviron ? "Courses" : isBowling ? "Parties" : isAthletics ? "Épreuves" : "Rounds";
 
   // Lock a bowling round after validation
   const lockBowlingRound = (playerId: string, roundNumber: number) => {
@@ -783,7 +783,7 @@ export function CompetitionRoundsDialog({
                     className="w-full gap-2"
                   >
                     <Plus className="h-4 w-4" />
-                    Ajouter {isAviron ? "une course" : isJudo ? "un combat" : isBowling ? "une partie" : `un ${roundLabel.toLowerCase()}`}
+                    Ajouter {isAviron ? "une course" : isJudo ? "un combat" : isBowling ? "une partie" : isAthletics ? "une épreuve" : `un ${roundLabel.toLowerCase()}`}
                   </Button>
 
                   {selectedPlayer.rounds.length === 0 ? (
@@ -945,8 +945,8 @@ export function CompetitionRoundsDialog({
                             </div>
                           )}
 
-                          {/* Basic round info for non-Aviron, non-Bowling */}
-                          {!isAviron && !isBowling && (
+                          {/* Basic round info for non-Aviron, non-Bowling, non-Athletics */}
+                          {!isAviron && !isBowling && !isAthletics && (
                             <div className="grid grid-cols-2 gap-3">
                               <div>
                                 <Label className="text-xs">Adversaire</Label>
@@ -980,6 +980,57 @@ export function CompetitionRoundsDialog({
                                     </SelectItem>
                                     <SelectItem value="draw">
                                       <span className="text-muted-foreground">Égalité</span>
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Athletics-specific round info */}
+                          {isAthletics && (
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <Label className="text-xs">Classement</Label>
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  onWheel={blurOnWheel}
+                                  value={round.ranking || ""}
+                                  onChange={(e) => updateRound(selectedPlayer.playerId, round.round_number, { ranking: parseInt(e.target.value) || undefined })}
+                                  placeholder="1"
+                                  className="h-8"
+                                  disabled={round.isLocked}
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-xs">Résultat</Label>
+                                <Select
+                                  value={round.result}
+                                  onValueChange={(value) => updateRound(selectedPlayer.playerId, round.round_number, { result: value })}
+                                  disabled={round.isLocked}
+                                >
+                                  <SelectTrigger className="h-8">
+                                    <SelectValue placeholder="Qualification ?" />
+                                  </SelectTrigger>
+                                  <SelectContent className="z-[200]">
+                                    <SelectItem value="qualified">
+                                      <span className="flex items-center gap-2">
+                                        <CheckCircle className="h-3 w-3 text-green-500" />
+                                        Qualifié(e)
+                                      </span>
+                                    </SelectItem>
+                                    <SelectItem value="eliminated">
+                                      <span className="text-destructive">Éliminé(e)</span>
+                                    </SelectItem>
+                                    <SelectItem value="dns">
+                                      <span className="text-muted-foreground">DNS</span>
+                                    </SelectItem>
+                                    <SelectItem value="dnf">
+                                      <span className="text-muted-foreground">DNF</span>
+                                    </SelectItem>
+                                    <SelectItem value="dq">
+                                      <span className="text-destructive">DQ</span>
                                     </SelectItem>
                                   </SelectContent>
                                 </Select>
@@ -1289,6 +1340,57 @@ export function CompetitionRoundsDialog({
                                   </div>
                                 </div>
                               </>
+                            ) : isAthletics ? (
+                              <div className="space-y-3">
+                                <div className="grid grid-cols-3 gap-3 text-center">
+                                  <div className="p-3 rounded-lg bg-muted">
+                                    <p className="text-2xl font-bold">{total}</p>
+                                    <p className="text-xs text-muted-foreground">{roundLabelPlural}</p>
+                                  </div>
+                                  {(() => {
+                                    const bestRanking = selectedPlayer.rounds.filter(r => r.ranking).map(r => r.ranking!);
+                                    return bestRanking.length > 0 ? (
+                                      <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900/20">
+                                        <p className="text-2xl font-bold text-green-600">{Math.min(...bestRanking)}e</p>
+                                        <p className="text-xs text-muted-foreground">Meilleur classement</p>
+                                      </div>
+                                    ) : null;
+                                  })()}
+                                  {(() => {
+                                    const qualified = selectedPlayer.rounds.filter(r => r.result === "qualified").length;
+                                    return (
+                                      <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                                        <p className="text-2xl font-bold text-blue-600">{qualified}/{total}</p>
+                                        <p className="text-xs text-muted-foreground">Qualifications</p>
+                                      </div>
+                                    );
+                                  })()}
+                                </div>
+                                {/* Rounds detail */}
+                                <div className="space-y-1">
+                                  {selectedPlayer.rounds.map(round => (
+                                    <div key={round.round_number} className="flex items-center justify-between p-2 rounded border text-sm">
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant="outline">
+                                          {phases.find(p => p.value === round.phase)?.label || `Épreuve ${round.round_number}`}
+                                        </Badge>
+                                      </div>
+                                      <div className="flex items-center gap-3">
+                                        {round.ranking && (
+                                          <Badge variant={round.ranking <= 3 ? "default" : "secondary"}>
+                                            {round.ranking === 1 ? "🥇" : round.ranking === 2 ? "🥈" : round.ranking === 3 ? "🥉" : `${round.ranking}e`}
+                                          </Badge>
+                                        )}
+                                        {round.result && (
+                                          <Badge variant={round.result === "qualified" ? "default" : "destructive"}>
+                                            {round.result === "qualified" ? "Q" : round.result === "eliminated" ? "Élim." : round.result.toUpperCase()}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
                             ) : (
                               <div className="grid grid-cols-4 gap-3 text-center">
                                 <div className="p-3 rounded-lg bg-muted">
