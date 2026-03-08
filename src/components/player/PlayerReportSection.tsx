@@ -647,10 +647,6 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
 
         // Weight tracking table
         if (data.bodyComps.length > 0 || data.measurements.length > 0) {
-          const bioHeaders = ["Date", "Poids (kg)", "Taille (cm)", "% Graisse", "Masse musc. (kg)", "IMC"];
-          const bioColWidths = [28, 27, 27, 27, 33, 28];
-          yPos = drawTableHeaderPdf(pdf, bioHeaders, bioColWidths, yPos, margin);
-
           // Merge measurements + body comp by date
           const allBioData = [
             ...data.measurements.map(m => ({
@@ -670,6 +666,44 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
               bmi: b.bmi,
             })),
           ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 12);
+
+          // Summary KPI cards for latest available bio data
+          const latestWithFat = allBioData.find(b => b.fat != null);
+          const latestWithBmi = allBioData.find(b => b.bmi != null);
+          const latestWithMuscle = allBioData.find(b => b.muscle != null);
+          const latestWithWeight = allBioData.find(b => b.weight != null);
+          const latestWithHeight = allBioData.find(b => b.height != null);
+          
+          const bioKpis: { label: string; value: string; color: [number, number, number] }[] = [];
+          if (latestWithWeight?.weight) bioKpis.push({ label: "Poids", value: `${latestWithWeight.weight} kg`, color: colors.primary });
+          if (latestWithHeight?.height) bioKpis.push({ label: "Taille", value: `${latestWithHeight.height} cm`, color: colors.primary });
+          if (latestWithFat?.fat != null) bioKpis.push({ label: "MG%", value: `${latestWithFat.fat}%`, color: colors.secondary });
+          if (latestWithBmi?.bmi != null) bioKpis.push({ label: "IMC", value: latestWithBmi.bmi.toFixed(1), color: colors.warning });
+          if (latestWithMuscle?.muscle != null) bioKpis.push({ label: "Masse musc.", value: `${latestWithMuscle.muscle} kg`, color: colors.success });
+
+          if (bioKpis.length > 0) {
+            const bioCardW = (contentWidth - (bioKpis.length - 1) * 4) / bioKpis.length;
+            bioKpis.forEach((kpi, i) => {
+              const kx = margin + i * (bioCardW + 4);
+              pdf.setFillColor(...kpi.color);
+              pdf.roundedRect(kx, yPos, bioCardW, 18, 2, 2, 'F');
+              pdf.setTextColor(...colors.white);
+              pdf.setFontSize(12);
+              pdf.setFont("helvetica", "bold");
+              const vw = pdf.getTextWidth(kpi.value);
+              pdf.text(kpi.value, kx + (bioCardW - vw) / 2, yPos + 8);
+              pdf.setFontSize(6);
+              pdf.setFont("helvetica", "normal");
+              const lw = pdf.getTextWidth(kpi.label);
+              pdf.text(kpi.label, kx + (bioCardW - lw) / 2, yPos + 14);
+            });
+            pdf.setTextColor(...colors.dark);
+            yPos += 24;
+          }
+
+          const bioHeaders = ["Date", "Poids (kg)", "Taille (cm)", "% Graisse", "Masse musc. (kg)", "IMC"];
+          const bioColWidths = [28, 27, 27, 27, 33, 28];
+          yPos = drawTableHeaderPdf(pdf, bioHeaders, bioColWidths, yPos, margin);
 
           allBioData.forEach((bio, index) => {
             yPos = localCheckPageBreak(pdf, yPos, 10, pdfSettings);
