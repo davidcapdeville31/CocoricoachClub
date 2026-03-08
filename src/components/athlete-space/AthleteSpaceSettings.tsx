@@ -12,6 +12,7 @@ import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { requestOneSignalPermission, getOneSignalPermission } from "@/lib/onesignal";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { useQuery } from "@tanstack/react-query";
+import { PersonalNotificationPreferences } from "@/components/notifications/PersonalNotificationPreferences";
 
 interface AthleteSpaceSettingsProps {
   playerId?: string;
