@@ -87,14 +87,18 @@ export function NotificationManagementSection({ categoryId }: NotificationManage
         if (staffUserIds.includes(player.user_id)) continue;
         const profile = profileMap.get(player.user_id);
         const osStatus = onesignalResults[player.user_id];
-        const playerName = `${player.first_name || ""} ${player.name || ""}`.trim();
+        // Build name: prefer player first_name + name, fallback to profile full_name
+        const playerName = [player.first_name, player.name].filter(Boolean).join(" ").trim();
+        const displayName = playerName || profile?.full_name || "Athlète sans nom";
+        const playerEmail = player.email || profile?.email || null;
         results.push({
           userId: player.user_id,
-          name: playerName || profile?.full_name || "Sans nom",
-          email: player.email || profile?.email || null,
+          name: displayName,
+          email: playerEmail,
           role: "athlete",
           hasPushSubscription: osStatus?.hasPush ?? false,
-          hasEmailSubscription: osStatus?.hasEmail ?? !!(player.email || profile?.email),
+          // Email: active if OneSignal has email subscription OR user has an email address
+          hasEmailSubscription: (osStatus?.hasEmail === true) || !!playerEmail,
         });
       }
 
