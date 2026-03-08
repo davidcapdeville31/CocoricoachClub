@@ -652,6 +652,9 @@ export function CompetitionRoundsDialog({
                 >
                   <div className="flex items-center gap-2">
                     <span>{player.playerName}</span>
+                    {isAthletics && player.discipline && (
+                      <Badge variant="outline" className="text-xs">{player.specialty || player.discipline}</Badge>
+                    )}
                     {isAviron && player.boat_type && (
                       <Badge variant="outline" className="text-xs">{player.boat_type}</Badge>
                     )}
