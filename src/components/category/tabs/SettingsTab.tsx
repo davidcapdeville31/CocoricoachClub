@@ -47,6 +47,36 @@ export function SettingsTab({ categoryId }: SettingsTabProps) {
         </CollapsibleContent>
       </Collapsible>
 
+      {/* My Notification Preferences Collapsible */}
+      <Collapsible open={myNotifsOpen} onOpenChange={setMyNotifsOpen}>
+        <CollapsibleTrigger className="w-full">
+          <div className={cn(
+            "flex items-center justify-between w-full p-4 rounded-xl border bg-card shadow-sm transition-colors hover:bg-accent/50",
+            myNotifsOpen && "rounded-b-none border-b-0"
+          )}>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Settings className="h-5 w-5 text-primary" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold">Mes notifications</p>
+                <p className="text-sm text-muted-foreground">Gérer mes préférences et activer les notifications</p>
+              </div>
+            </div>
+            <ChevronDown className={cn(
+              "h-5 w-5 text-muted-foreground transition-transform duration-200",
+              myNotifsOpen && "rotate-180"
+            )} />
+          </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="border border-t-0 rounded-b-xl p-4 bg-card shadow-sm space-y-4">
+            <PushNotificationSettings />
+            <PersonalNotificationPreferences />
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
       {/* Tutorial Videos Collapsible */}
       <Collapsible open={tutorialsOpen} onOpenChange={setTutorialsOpen}>
         <CollapsibleTrigger className="w-full">
