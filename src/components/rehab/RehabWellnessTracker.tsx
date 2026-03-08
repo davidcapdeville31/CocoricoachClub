@@ -188,7 +188,7 @@ export function RehabWellnessTracker({ playerId, categoryId }: RehabWellnessTrac
             </div>
             <div className="flex items-baseline gap-2">
               <span className={`text-2xl font-bold ${getScoreColor(wellnessScore)}`}>
-                {wellnessScore || "-"}/10
+                {wellnessScore || "-"}/5
               </span>
               {trend !== null && (
                 <Badge variant="outline" className={`text-xs ${trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
