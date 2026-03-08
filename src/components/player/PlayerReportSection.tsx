@@ -125,6 +125,128 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
     return y + 7;
   };
 
+  // ===== MINI CHART HELPERS =====
+  const drawBarChart = (
+    pdf: jsPDF, 
+    dataPoints: { label: string; value: number; color?: [number, number, number] }[],
+    x: number, y: number, width: number, height: number,
+    title: string
+  ) => {
+    if (dataPoints.length === 0) return y;
+    
+    // Title
+    pdf.setFontSize(8);
+    pdf.setFont("helvetica", "bold");
+    pdf.setTextColor(...colors.dark);
+    pdf.text(title, x, y - 2);
+    
+    const maxVal = Math.max(...dataPoints.map(d => d.value), 1);
+    const barWidth = Math.min(12, (width - 10) / dataPoints.length - 2);
+    const chartX = x + 5;
+    
+    // Background
+    pdf.setDrawColor(220, 220, 220);
+    pdf.setLineWidth(0.2);
+    pdf.line(chartX, y, chartX, y + height);
+    pdf.line(chartX, y + height, chartX + width - 10, y + height);
+    
+    // Bars
+    dataPoints.forEach((dp, i) => {
+      const barHeight = (dp.value / maxVal) * (height - 8);
+      const bx = chartX + 4 + i * (barWidth + 2);
+      const by = y + height - barHeight;
+      
+      pdf.setFillColor(...(dp.color || colors.primary));
+      pdf.rect(bx, by, barWidth, barHeight, 'F');
+      
+      // Value on top
+      pdf.setFontSize(6);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...colors.dark);
+      const valStr = dp.value % 1 === 0 ? String(dp.value) : dp.value.toFixed(1);
+      pdf.text(valStr, bx + barWidth / 2, by - 1, { align: "center" });
+      
+      // Label below
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(5);
+      pdf.setTextColor(...colors.muted);
+      const shortLabel = dp.label.length > 8 ? dp.label.substring(0, 7) + '.' : dp.label;
+      pdf.text(shortLabel, bx + barWidth / 2, y + height + 4, { align: "center" });
+    });
+    
+    pdf.setTextColor(...colors.dark);
+    pdf.setFont("helvetica", "normal");
+    return y + height + 10;
+  };
+
+  const drawLineChart = (
+    pdf: jsPDF,
+    dataPoints: { label: string; value: number }[],
+    x: number, y: number, width: number, height: number,
+    title: string,
+    lineColor: [number, number, number] = colors.secondary
+  ) => {
+    if (dataPoints.length < 2) return y;
+    
+    pdf.setFontSize(8);
+    pdf.setFont("helvetica", "bold");
+    pdf.setTextColor(...colors.dark);
+    pdf.text(title, x, y - 2);
+    
+    const values = dataPoints.map(d => d.value);
+    const minVal = Math.min(...values);
+    const maxVal = Math.max(...values);
+    const range = maxVal - minVal || 1;
+    const chartX = x + 5;
+    const chartWidth = width - 15;
+    const chartHeight = height - 8;
+    
+    // Background grid
+    pdf.setDrawColor(230, 230, 230);
+    pdf.setLineWidth(0.15);
+    for (let i = 0; i <= 3; i++) {
+      const gy = y + (chartHeight * i / 3);
+      pdf.line(chartX, gy, chartX + chartWidth, gy);
+    }
+    pdf.line(chartX, y + chartHeight, chartX + chartWidth, y + chartHeight);
+    
+    // Min/Max labels
+    pdf.setFontSize(5);
+    pdf.setTextColor(...colors.muted);
+    pdf.text(maxVal.toFixed(1), chartX - 1, y + 3, { align: "right" });
+    pdf.text(minVal.toFixed(1), chartX - 1, y + chartHeight, { align: "right" });
+    
+    // Line + dots
+    pdf.setDrawColor(...lineColor);
+    pdf.setLineWidth(0.6);
+    
+    const points: [number, number][] = dataPoints.map((dp, i) => {
+      const px = chartX + (i / (dataPoints.length - 1)) * chartWidth;
+      const py = y + chartHeight - ((dp.value - minVal) / range) * chartHeight;
+      return [px, py];
+    });
+    
+    for (let i = 0; i < points.length - 1; i++) {
+      pdf.line(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1]);
+    }
+    
+    // Dots
+    pdf.setFillColor(...lineColor);
+    points.forEach(([px, py]) => {
+      pdf.circle(px, py, 1, 'F');
+    });
+    
+    // X labels (first and last)
+    pdf.setFontSize(5);
+    pdf.setTextColor(...colors.muted);
+    pdf.text(dataPoints[0].label, chartX, y + chartHeight + 4);
+    pdf.text(dataPoints[dataPoints.length - 1].label, chartX + chartWidth, y + chartHeight + 4, { align: "right" });
+    
+    pdf.setTextColor(...colors.dark);
+    pdf.setFont("helvetica", "normal");
+    return y + height + 10;
+  };
+
   const localCheckPageBreak = (pdf: jsPDF, yPos: number, needed: number = 25, customSettings?: PdfCustomSettings | null): number => {
     if (yPos + needed > pdf.internal.pageSize.getHeight() - 15) {
       pdf.addPage();
