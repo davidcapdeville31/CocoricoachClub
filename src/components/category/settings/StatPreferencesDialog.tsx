@@ -102,16 +102,18 @@ export function StatPreferencesDialog({
     enabled: open,
   });
 
+  // Track whether user has made changes (to distinguish init from user edits)
+  const userHasEdited = useRef(false);
+  const isInitialized = useRef(false);
+
   // Initialize enabled stats from existing prefs or all stats
-  const initializedRef = useRef(false);
   useEffect(() => {
-    // Reset when dialog reopens
     if (!open) {
-      initializedRef.current = false;
-      if (hasInitialized) hasInitialized.current = false;
+      isInitialized.current = false;
+      userHasEdited.current = false;
       return;
     }
-    if (initializedRef.current) return;
+    if (isInitialized.current) return;
     if (isLoading) return;
 
     if (existingPrefs?.enabled_stats && existingPrefs.enabled_stats.length > 0) {
@@ -122,7 +124,7 @@ export function StatPreferencesDialog({
       const uniqueKeys = [...new Set([...allStatKeys, ...customStatKeys])];
       setEnabledStats(uniqueKeys);
     }
-    initializedRef.current = true;
+    isInitialized.current = true;
   }, [open, isLoading, existingPrefs, allStats, goalkeeperStats, customStats]);
 
   // Set default selected category
@@ -183,20 +185,13 @@ export function StatPreferencesDialog({
     }
   }, [categoryId, sportType, user?.id, queryClient]);
 
-  // Trigger auto-save when enabledStats changes (debounced)
-  const hasInitialized = useRef(false);
+  // Trigger auto-save when enabledStats changes (only after user edits)
   useEffect(() => {
-    if (!hasInitialized.current) {
-      // Skip the first render (initialization)
-      if (initializedRef.current) {
-        hasInitialized.current = true;
-      }
-      return;
-    }
+    if (!userHasEdited.current) return;
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => {
       doSave(enabledStats);
-    }, 800);
+    }, 600);
     return () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
@@ -221,6 +216,7 @@ export function StatPreferencesDialog({
   });
 
   const toggleStat = (statKey: string) => {
+    userHasEdited.current = true;
     setEnabledStats(prev =>
       prev.includes(statKey)
         ? prev.filter(k => k !== statKey)
@@ -229,6 +225,7 @@ export function StatPreferencesDialog({
   };
 
   const selectAll = () => {
+    userHasEdited.current = true;
     const allStatKeys = [...allStats, ...goalkeeperStats].map(s => s.key);
     const customStatKeys = customStats.map(s => s.key);
     const uniqueKeys = [...new Set([...allStatKeys, ...customStatKeys])];
@@ -236,10 +233,12 @@ export function StatPreferencesDialog({
   };
 
   const selectNone = () => {
+    userHasEdited.current = true;
     setEnabledStats([]);
   };
 
   const selectCategory = (categoryKey: string) => {
+    userHasEdited.current = true;
     const categoryStats = allStats.filter(s => s.category === categoryKey).map(s => s.key);
     const gkCategoryStats = goalkeeperStats.filter(s => s.category === categoryKey).map(s => s.key);
     const customCategoryStats = customStats.filter(s => s.category_type === categoryKey).map(s => s.key);
@@ -331,6 +330,7 @@ export function StatPreferencesDialog({
   };
 
   const handleCustomStatAdded = (statKey: string) => {
+    userHasEdited.current = true;
     setEnabledStats(prev => [...prev, statKey]);
   };
 
