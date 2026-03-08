@@ -399,12 +399,12 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
       players.forEach(player => {
         if (injuredPlayerIds.has(player.id) || uncertainPlayerIds.has(player.id)) return;
         
-        const playerAwcr = awcrData.find(a => a.player_id === player.id);
+        const ewmaRatio = playerEwmaMap.get(player.id);
         const playerWellness = wellnessData.find(w => w.player_id === player.id);
         
         let reason = "";
-        if (playerAwcr?.awcr && (playerAwcr.awcr > 1.5 || playerAwcr.awcr < 0.8)) {
-          reason = `EWMA ${playerAwcr.awcr.toFixed(2)}`;
+        if (ewmaRatio != null && (ewmaRatio > 1.5 || ewmaRatio < 0.8)) {
+          reason = `EWMA ${ewmaRatio.toFixed(2)}`;
         }
         
         if (playerWellness) {
