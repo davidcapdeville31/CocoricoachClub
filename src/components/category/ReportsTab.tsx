@@ -1257,7 +1257,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         });
       }
 
-      pdf.save(`effectif_${category?.name?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+      pdf.save(`effectif_${(catName3 || category?.name || 'rapport')?.replace(/\s+/g, '_')}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
       toast.success("Rapport d'effectif généré");
     } catch (error) {
       console.error(error);
