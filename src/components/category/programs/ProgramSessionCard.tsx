@@ -521,11 +521,6 @@ export function ProgramSessionCard({
     return getTrainingStyleConfig(method).description || "";
   };
 
-  const isLinkable = (index: number) => {
-    if (!linkingFrom) return false;
-    const exercise = session.exercises[index];
-    return !exercise.group_id;
-  };
 
   const isInDropMode = (method: string) => checkIsDropMethod(method);
   const isInClusterMode = (method: string) => checkIsClusterMethod(method);
