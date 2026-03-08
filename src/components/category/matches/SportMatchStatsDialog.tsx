@@ -156,10 +156,20 @@ export function SportMatchStatsDialog({
 
   useEffect(() => {
     if (lineup && lineup.length > 0) {
-      const allStats = [
+      // Use all standard stats + custom stats from preferences
+      const standardStats = [
         ...getStatsForSport(sportType, false),
         ...getStatsForSport(sportType, true),
       ];
+      // Merge with custom stats from preferences (dedupe by key)
+      const allStatKeys = new Set(standardStats.map(s => s.key));
+      const allStats = [...standardStats];
+      sportStats.forEach(s => {
+        if (!allStatKeys.has(s.key)) {
+          allStats.push(s);
+          allStatKeys.add(s.key);
+        }
+      });
 
       const stats = lineup.map((l) => {
         const existing = existingStats?.find((s) => s.player_id === l.player_id);
@@ -195,7 +205,7 @@ export function SportMatchStatsDialog({
       });
       setStatsData(stats);
     }
-  }, [lineup, existingStats, sportType, supportsGoalkeeper]);
+  }, [lineup, existingStats, sportType, supportsGoalkeeper, sportStats]);
 
   // Auto-compute percentages when any stat changes
   const updateStat = (playerId: string, statKey: string, value: number) => {
