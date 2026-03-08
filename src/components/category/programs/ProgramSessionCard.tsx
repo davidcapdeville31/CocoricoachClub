@@ -153,8 +153,6 @@ export function ProgramSessionCard({
   const { setNodeRef, isOver } = useDroppable({
     id: session.id,
   });
-  const [linkingFrom, setLinkingFrom] = useState<{index: number, method: string, maxCount: number} | null>(null);
-  const [selectedForLinking, setSelectedForLinking] = useState<number[]>([]);
   const [showLibraryFor, setShowLibraryFor] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
