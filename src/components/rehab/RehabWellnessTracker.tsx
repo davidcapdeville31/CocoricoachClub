@@ -90,15 +90,15 @@ export function RehabWellnessTracker({ playerId, categoryId }: RehabWellnessTrac
   const latestWellness = wellnessData?.[wellnessData.length - 1];
   const latestAwcr = awcrData?.[awcrData.length - 1];
 
-  // Calculate overall wellness score from available fields
+  // Calculate overall wellness score from available fields (scale 1-5, higher = better)
   const calculateWellnessScore = (w: typeof latestWellness) => {
     if (!w) return null;
-    // Invert fatigue and stress (higher is worse), keep sleep quality as is
-    const fatigueScore = 10 - (w.general_fatigue || 5);
-    const stressScore = 10 - (w.stress_level || 5);
-    const sleepScore = w.sleep_quality || 5;
-    const sorenessScore = 10 - ((w.soreness_upper_body || 0) + (w.soreness_lower_body || 0)) / 2;
-    return Math.round((fatigueScore + stressScore + sleepScore + sorenessScore) / 4 * 10) / 10;
+    // Normalize all to "high = good": sleep_quality stays, others invert (6 - value)
+    const sleepScore = w.sleep_quality || 3;
+    const fatigueScore = 6 - (w.general_fatigue || 3);
+    const stressScore = 6 - (w.stress_level || 3);
+    const sorenessScore = 6 - ((w.soreness_upper_body || 3) + (w.soreness_lower_body || 3)) / 2;
+    return Math.round((sleepScore + fatigueScore + stressScore + sorenessScore) / 4 * 10) / 10;
   };
 
   // Calculate wellness trend
@@ -122,10 +122,10 @@ export function RehabWellnessTracker({ playerId, categoryId }: RehabWellnessTrac
     stress: w.stress_level,
   })) || [];
 
-  const getScoreColor = (score: number | null) => {
-    if (!score) return "text-muted-foreground";
-    if (score >= 8) return "text-green-600";
-    if (score >= 5) return "text-amber-600";
+  const getScoreColor = (score: number | null | undefined) => {
+    if (score == null) return "text-muted-foreground";
+    if (score >= 4) return "text-green-600";
+    if (score >= 3) return "text-amber-600";
     return "text-red-600";
   };
 
@@ -188,7 +188,7 @@ export function RehabWellnessTracker({ playerId, categoryId }: RehabWellnessTrac
             </div>
             <div className="flex items-baseline gap-2">
               <span className={`text-2xl font-bold ${getScoreColor(wellnessScore)}`}>
-                {wellnessScore || "-"}/10
+                {wellnessScore || "-"}/5
               </span>
               {trend !== null && (
                 <Badge variant="outline" className={`text-xs ${trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -207,8 +207,8 @@ export function RehabWellnessTracker({ playerId, categoryId }: RehabWellnessTrac
               <Zap className="h-4 w-4 text-amber-500" />
               <span className="text-xs font-medium text-muted-foreground">Fatigue</span>
             </div>
-            <span className={`text-2xl font-bold ${getScoreColor(latestWellness?.general_fatigue ? 10 - latestWellness.general_fatigue : null)}`}>
-              {latestWellness?.general_fatigue || "-"}/10
+            <span className={`text-2xl font-bold ${getScoreColor(latestWellness?.general_fatigue ? 6 - latestWellness.general_fatigue : null)}`}>
+              {latestWellness?.general_fatigue || "-"}/5
             </span>
           </CardContent>
         </Card>
@@ -221,7 +221,7 @@ export function RehabWellnessTracker({ playerId, categoryId }: RehabWellnessTrac
               <span className="text-xs font-medium text-muted-foreground">Sommeil</span>
             </div>
             <span className={`text-2xl font-bold ${getScoreColor(latestWellness?.sleep_quality)}`}>
-              {latestWellness?.sleep_quality || "-"}/10
+              {latestWellness?.sleep_quality || "-"}/5
             </span>
           </CardContent>
         </Card>
@@ -233,8 +233,8 @@ export function RehabWellnessTracker({ playerId, categoryId }: RehabWellnessTrac
               <Smile className="h-4 w-4 text-green-500" />
               <span className="text-xs font-medium text-muted-foreground">Stress</span>
             </div>
-            <span className={`text-2xl font-bold ${getScoreColor(latestWellness?.stress_level ? 10 - latestWellness.stress_level : null)}`}>
-              {latestWellness?.stress_level || "-"}/10
+            <span className={`text-2xl font-bold ${getScoreColor(latestWellness?.stress_level ? 6 - latestWellness.stress_level : null)}`}>
+              {latestWellness?.stress_level || "-"}/5
             </span>
           </CardContent>
         </Card>
@@ -252,7 +252,7 @@ export function RehabWellnessTracker({ playerId, categoryId }: RehabWellnessTrac
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="date" className="text-xs" />
-                  <YAxis domain={[0, 10]} className="text-xs" />
+                  <YAxis domain={[0, 5]} className="text-xs" />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: 'hsl(var(--card))', 
