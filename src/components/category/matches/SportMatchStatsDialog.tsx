@@ -398,7 +398,7 @@ export function SportMatchStatsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] max-h-[92vh] flex flex-col overflow-hidden">
+      <DialogContent className="sm:max-w-[900px] max-h-[95vh] h-[95vh] flex flex-col overflow-hidden">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
