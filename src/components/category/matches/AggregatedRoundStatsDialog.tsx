@@ -32,13 +32,18 @@ interface AggregatedRoundStatsDialogProps {
 interface PlayerAggregatedStats {
   playerId: string;
   playerName: string;
+  discipline?: string;
+  specialty?: string;
   roundCount: number;
   wins: number;
   losses: number;
   draws: number;
   bestTime?: number;
   avgRanking?: number;
+  bestRanking?: number;
+  qualifications: number;
   stats: Record<string, number>;
+  rounds: Array<{ phase?: string; ranking?: number; result?: string; stats: Record<string, number> }>;
   // Judo specific computed stats
   judoComputed?: {
     winPercentage: number;
