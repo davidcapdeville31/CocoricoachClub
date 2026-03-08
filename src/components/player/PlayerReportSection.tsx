@@ -916,29 +916,60 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
             ? allAvailable.filter(s => enabledKeys.includes(s.key))
             : allAvailable;
 
-          // Use landscape-style multi-page if many stats, else limit to fit
-          const limitedStats = displayStats.slice(0, 8);
+          // Group stats by category for organized display
+          const statCategories: { key: string; label: string }[] = [
+            { key: "scoring", label: "POINTS / SCORE" },
+            { key: "attack", label: "ATTAQUE" },
+            { key: "defense", label: "DÉFENSE" },
+            { key: "general", label: "GÉNÉRAL" },
+            { key: "individual", label: "INDIVIDUEL" },
+          ];
 
-          const mHeaders = ["Adversaire", "Date", ...limitedStats.map(s => s.shortLabel)];
-          const nameColW = 35;
-          const dateColW = 22;
-          const statColW = Math.max(15, Math.floor((contentWidth - nameColW - dateColW) / limitedStats.length));
-          const mColWidths = [nameColW, dateColW, ...limitedStats.map(() => statColW)];
-          yPos = drawTableHeaderPdf(pdf, mHeaders, mColWidths, yPos, margin);
+          for (const statCat of statCategories) {
+            const catStats = displayStats.filter(s => s.category === statCat.key);
+            if (catStats.length === 0) continue;
 
-          matchStats.forEach((stat: any, index) => {
-            yPos = localCheckPageBreak(pdf, yPos, 10, pdfSettings);
-            const sportData = (stat.sport_data && typeof stat.sport_data === 'object') ? stat.sport_data as Record<string, any> : {};
-            yPos = drawTableRowPdf(pdf, [
-              stat.matches?.opponent || '-',
-              stat.matches?.match_date ? format(new Date(stat.matches.match_date), "dd/MM") : '-',
-              ...limitedStats.map(s => {
-                // First check sport_data JSONB, then fallback to direct columns
-                const val = sportData[s.key] ?? stat[s.key] ?? stat[s.key.replace(/([A-Z])/g, '_$1').toLowerCase()];
-                return val != null ? String(val) : '-';
-              })
-            ], mColWidths, yPos, index % 2 === 1, margin);
-          });
+            yPos = localCheckPageBreak(pdf, yPos, 25, pdfSettings);
+            
+            // Category sub-header
+            pdf.setFontSize(9);
+            pdf.setFont("helvetica", "bold");
+            pdf.setTextColor(...colors.secondary);
+            pdf.text(statCat.label, margin + 2, yPos);
+            pdf.setFont("helvetica", "normal");
+            pdf.setTextColor(...colors.dark);
+            yPos += 5;
+
+            // Split stats into chunks of 6 to fit page width
+            const chunkSize = 6;
+            for (let chunk = 0; chunk < catStats.length; chunk += chunkSize) {
+              const chunkStats = catStats.slice(chunk, chunk + chunkSize);
+              
+              const mHeaders = ["Adversaire", "Date", ...chunkStats.map(s => s.shortLabel)];
+              const nameColW = 35;
+              const dateColW = 22;
+              const statColW = Math.max(18, Math.floor((contentWidth - nameColW - dateColW) / chunkStats.length));
+              const mColWidths = [nameColW, dateColW, ...chunkStats.map(() => statColW)];
+              
+              yPos = localCheckPageBreak(pdf, yPos, 15, pdfSettings);
+              yPos = drawTableHeaderPdf(pdf, mHeaders, mColWidths, yPos, margin);
+
+              matchStats.forEach((stat: any, index) => {
+                yPos = localCheckPageBreak(pdf, yPos, 10, pdfSettings);
+                const sportData = (stat.sport_data && typeof stat.sport_data === 'object') ? stat.sport_data as Record<string, any> : {};
+                yPos = drawTableRowPdf(pdf, [
+                  stat.matches?.opponent || '-',
+                  stat.matches?.match_date ? format(new Date(stat.matches.match_date), "dd/MM") : '-',
+                  ...chunkStats.map(s => {
+                    const val = sportData[s.key] ?? stat[s.key] ?? stat[s.key.replace(/([A-Z])/g, '_$1').toLowerCase()];
+                    return val != null ? String(val) : '-';
+                  })
+                ], mColWidths, yPos, index % 2 === 1, margin);
+              });
+              yPos += 4;
+            }
+            yPos += 4;
+          }
         } else {
           pdf.setFontSize(9);
           pdf.setTextColor(...colors.muted);
