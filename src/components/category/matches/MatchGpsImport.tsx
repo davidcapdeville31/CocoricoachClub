@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Upload, AlertCircle, User, Satellite, Check, ArrowRight, Link2 } from "lucide-react";
+import { Upload, AlertCircle, User, Satellite, Check, ArrowRight, Link2, Trophy, Calendar } from "lucide-react";
 
 interface Player {
   id: string;
