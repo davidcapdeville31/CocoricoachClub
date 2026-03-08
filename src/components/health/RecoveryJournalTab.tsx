@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { SleepAnalytics } from "./SleepAnalytics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -306,6 +307,17 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
 
   return (
     <div className="space-y-6">
+      <Tabs defaultValue="sleep" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="sleep">📊 Analyse Sommeil</TabsTrigger>
+          <TabsTrigger value="journal">📝 Journal Récupération</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="sleep">
+          <SleepAnalytics categoryId={categoryId} />
+        </TabsContent>
+
+        <TabsContent value="journal">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -777,6 +789,8 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </TabsContent>
+      </Tabs>
     </div>
   );
 }
