@@ -539,8 +539,8 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
               testsByType[t.test_type].push(t);
             });
 
-            const testHeaders = ["Test", "1er résultat", "Date", "Dernier", "Date", "Progression"];
-            const testColWidths = [42, 25, 25, 25, 25, 28];
+            const testHeaders = ["Test", "1er résultat", "Date", "Dernier résultat", "Date", "Progression"];
+            const testColWidths = [38, 28, 22, 28, 22, 32];
             yPos = drawTableHeaderPdf(pdf, testHeaders, testColWidths, yPos, margin);
 
             Object.entries(testsByType).forEach(([testType, results], index) => {
