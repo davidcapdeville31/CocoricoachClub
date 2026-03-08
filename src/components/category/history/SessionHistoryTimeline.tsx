@@ -638,29 +638,97 @@ export function SessionHistoryTimeline({ categoryId, playerId }: SessionHistoryT
                                 </div>
                               )}
 
-                              {/* AWCR & Load */}
+                              {/* Charge & Ratios */}
                               {event.awcr && event.awcr.length > 0 && (
                                 <div>
                                   <h4 className="text-sm font-medium flex items-center gap-2 mb-2">
                                     <TrendingUp className="h-4 w-4" />
-                                    Charge d'entraînement
+                                    Charge d'entraînement ({event.awcr.length} joueurs)
                                   </h4>
-                                  <div className="grid grid-cols-3 gap-2">
-                                    {event.awcr.slice(0, 6).map((a: any) => (
-                                      <div key={a.id} className="p-2 bg-background rounded text-center">
-                                        <p className="text-xs text-muted-foreground truncate">
-                                          {a.player_id.slice(0, 8)}
-                                        </p>
-                                        <p className="font-bold">{a.training_load}</p>
-                                        <p className={cn(
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                    {event.awcr.map((a: any) => {
+                                      const playerName = a.players
+                                        ? `${a.players.first_name || ""} ${a.players.name || ""}`.trim()
+                                        : a.player_id.slice(0, 8);
+                                      const hasRatio = a.awcr != null && a.awcr > 0;
+                                      const ratio = a.awcr || 0;
+
+                                      return (
+                                        <div key={a.id} className="p-2 bg-background rounded border">
+                                          <p className="text-xs font-medium truncate mb-1">
+                                            {playerName}
+                                          </p>
+                                          <div className="flex items-center justify-between">
+                                            <div>
+                                              <p className="text-xs text-muted-foreground">sRPE</p>
+                                              <p className="font-bold text-sm">{a.training_load}</p>
+                                            </div>
+                                            <div>
+                                              <p className="text-xs text-muted-foreground">RPE</p>
+                                              <p className="font-bold text-sm">{a.rpe}</p>
+                                            </div>
+                                            <div className="text-right">
+                                              <p className="text-xs text-muted-foreground">Ratio</p>
+                                              {hasRatio ? (
+                                                <p className={cn(
+                                                  "font-bold text-sm",
+                                                  ratio > 1.5 ? "text-red-600" :
+                                                  ratio > 1.3 ? "text-amber-600" :
+                                                  ratio >= 0.8 ? "text-green-600" :
+                                                  "text-blue-600"
+                                                )}>
+                                                  {ratio.toFixed(2)}
+                                                </p>
+                                              ) : (
+                                                <p className="text-xs text-muted-foreground italic">N/A</p>
+                                              )}
+                                            </div>
+                                          </div>
+                                          {hasRatio && (
+                                            <div className="mt-1">
+                                              <div className="w-full bg-muted rounded-full h-1.5">
+                                                <div
+                                                  className={cn(
+                                                    "h-1.5 rounded-full transition-all",
+                                                    ratio > 1.5 ? "bg-red-500" :
+                                                    ratio > 1.3 ? "bg-amber-500" :
+                                                    ratio >= 0.8 ? "bg-green-500" :
+                                                    "bg-blue-500"
+                                                  )}
+                                                  style={{ width: `${Math.min(ratio / 2 * 100, 100)}%` }}
+                                                />
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                  {/* Summary */}
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    <Badge variant="outline" className="text-xs">
+                                      Charge moy: {Math.round(event.awcr.reduce((acc: number, a: any) => acc + (a.training_load || 0), 0) / event.awcr.length)}
+                                    </Badge>
+                                    {(() => {
+                                      const valid = event.awcr.filter((a: any) => a.awcr != null && a.awcr > 0);
+                                      if (valid.length === 0) return (
+                                        <Badge variant="outline" className="text-xs text-muted-foreground">
+                                          Ratio: données insuffisantes
+                                        </Badge>
+                                      );
+                                      const avg = valid.reduce((acc: number, a: any) => acc + a.awcr, 0) / valid.length;
+                                      return (
+                                        <Badge variant="outline" className={cn(
                                           "text-xs",
-                                          a.awcr > 1.3 ? "text-red-600" : 
-                                          a.awcr < 0.8 ? "text-amber-600" : "text-green-600"
+                                          avg > 1.5 ? "bg-red-100 text-red-700" :
+                                          avg > 1.3 ? "bg-amber-100 text-amber-700" :
+                                          avg >= 0.8 ? "bg-green-100 text-green-700" :
+                                          "bg-blue-100 text-blue-700"
                                         )}>
-                                          AWCR {a.awcr?.toFixed(2)}
-                                        </p>
-                                      </div>
-                                    ))}
+                                          Ratio moy: {avg.toFixed(2)} ({avg > 1.5 ? "Surcharge" : avg > 1.3 ? "Vigilance" : avg >= 0.8 ? "Optimal" : "Sous-charge"})
+                                        </Badge>
+                                      );
+                                    })()}
                                   </div>
                                 </div>
                               )}
