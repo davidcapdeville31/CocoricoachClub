@@ -860,8 +860,9 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
         subs.forEach((p, index) => {
           yPos = localCheckPageBreak(pdf, yPos, 10);
+          const fullName = [p.players?.first_name, p.players?.name].filter(Boolean).join(" ") || 'Inconnu';
           yPos = drawTableRowPdf(pdf, [
-            p.players?.name || 'Inconnu',
+            fullName,
             p.position || p.players?.position || '-',
             `${p.minutes_played || 0} min`
           ], subColWidths, yPos, index % 2 === 1, margin, contentWidth);
