@@ -238,6 +238,7 @@ export function StatPreferencesDialog({
   };
 
   const selectCategory = (categoryKey: string) => {
+    userHasEdited.current = true;
     const categoryStats = allStats.filter(s => s.category === categoryKey).map(s => s.key);
     const gkCategoryStats = goalkeeperStats.filter(s => s.category === categoryKey).map(s => s.key);
     const customCategoryStats = customStats.filter(s => s.category_type === categoryKey).map(s => s.key);
