@@ -167,7 +167,12 @@ export function StatPreferencesDialog({
           });
         if (error) throw error;
       }
+      // Invalidate all related queries for immediate updates across the app
       queryClient.invalidateQueries({ queryKey: ["stat-preferences", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["custom-stats", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["player_match_stats"] });
+      queryClient.invalidateQueries({ queryKey: ["cumulative_player_stats"] });
+      queryClient.invalidateQueries({ queryKey: ["aggregated_round_stats"] });
       setLastSaved(true);
       setTimeout(() => setLastSaved(false), 2000);
     } catch (error) {

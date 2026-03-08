@@ -45,6 +45,8 @@ export function useStatPreferences({
       return allEnabled.length > 0 ? allEnabled : null;
     },
     enabled: !!categoryId,
+    staleTime: 0, // Always check for fresh data
+    refetchOnWindowFocus: true,
   });
 
   // Fetch custom stats for the category
@@ -60,6 +62,8 @@ export function useStatPreferences({
       return data as CustomStat[];
     },
     enabled: !!categoryId,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   // Fetch match-level overrides if matchId is provided
