@@ -331,7 +331,11 @@ export function StatPreferencesDialog({
 
   const handleCustomStatAdded = (statKey: string) => {
     userHasEdited.current = true;
-    setEnabledStats(prev => [...prev, statKey]);
+    const newStats = [...enabledStats, statKey];
+    setEnabledStats(newStats);
+    // Immediately save (don't wait for debounce) so other components see it right away
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    doSave(newStats);
   };
 
   return (
