@@ -94,21 +94,21 @@ export function SessionVignette({
           !hasBlocks && bgColor,
           isDragging && "shadow-lg ring-2 ring-primary/50"
         )}
-        style={hasBlocks ? { backgroundColor: "hsl(var(--muted))" } : undefined}
+        style={hasBlocks ? (() => {
+          const uniqueBlocks = blocks.slice(0, 3);
+          const colors = uniqueBlocks.map(b => {
+            const colorClass = getTrainingTypeColor(b.training_type);
+            return tailwindColorToHsl(colorClass);
+          });
+          if (colors.length === 1) return { backgroundColor: colors[0] };
+          const stops = colors.map((c, i) => {
+            const start = (i / colors.length) * 100;
+            const end = ((i + 1) / colors.length) * 100;
+            return `${c} ${start}%, ${c} ${end}%`;
+          }).join(', ');
+          return { background: `linear-gradient(to right, ${stops})` };
+        })() : undefined}
       >
-        {/* Multi-block color indicator */}
-        {hasBlocks && (
-          <div className="absolute left-0 top-0 bottom-0 flex">
-            {blocks.slice(0, 4).map((block, idx) => (
-              <div
-                key={block.id}
-                className={cn("h-full w-1", getTrainingTypeColor(block.training_type))}
-                title={getTrainingTypeLabel(block.training_type)}
-              />
-            ))}
-          </div>
-        )}
-        
         {/* Drag handle - only visible and active when NOT hovered */}
         {!isHovered && !isDragging && isDraggable && !isViewer && (
           <div
@@ -121,7 +121,6 @@ export function SessionVignette({
         {/* Session content - hidden when hovered to show actions */}
         <div className={cn(
           "flex items-center gap-1.5 transition-opacity pointer-events-none",
-          hasBlocks && "pl-5 text-foreground",
           isHovered && !isDragging && "opacity-0"
         )}>
           {startTime && (
