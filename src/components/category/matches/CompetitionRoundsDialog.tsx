@@ -66,6 +66,8 @@ interface Round {
 interface PlayerRounds {
   playerId: string;
   playerName: string;
+  discipline?: string;
+  specialty?: string;
   rounds: Round[];
   // Aviron crew info
   boat_type?: string;
