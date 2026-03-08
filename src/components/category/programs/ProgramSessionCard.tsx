@@ -605,7 +605,62 @@ export function ProgramSessionCard({
             </Badge>
           )}
           
-          <span className="font-medium flex-1">{exercise.exercise_name}</span>
+          <div className="flex-1 relative">
+            <Popover
+              open={showLibraryFor === index}
+              onOpenChange={(isOpen) => {
+                setShowLibraryFor(isOpen ? index : null);
+                if (isOpen) setSearchQuery(exercise.exercise_name || "");
+              }}
+            >
+              <PopoverTrigger asChild>
+                <div className="relative">
+                  <Input
+                    placeholder="Nom de l'exercice..."
+                    value={exercise.exercise_name}
+                    onChange={(e) => {
+                      updateExercise(index, "exercise_name", e.target.value);
+                      setSearchQuery(e.target.value);
+                      setShowLibraryFor(index);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="h-8 text-sm font-medium"
+                  />
+                  {exercise.library_exercise_id && (
+                    <Library className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+                  )}
+                </div>
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className="p-1 w-[--radix-popover-trigger-width] max-h-64 overflow-y-auto z-[9999]"
+                onOpenAutoFocus={(e) => e.preventDefault()}
+              >
+                {filteredLibrary.length === 0 ? (
+                  <div className="px-2 py-2 text-xs text-muted-foreground">
+                    Aucun exercice trouvé
+                  </div>
+                ) : (
+                  filteredLibrary.slice(0, 12).map((libEx) => (
+                    <button
+                      key={libEx.id}
+                      type="button"
+                      className="w-full text-left px-2 py-2 hover:bg-muted rounded-sm text-sm flex justify-between items-center"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        selectFromLibrary(index, libEx);
+                      }}
+                    >
+                      <span className="truncate pr-2">{libEx.name}</span>
+                      <Badge variant="outline" className="text-xs shrink-0">
+                        {getCategoryLabel(libEx.category)}
+                      </Badge>
+                    </button>
+                  ))
+                )}
+              </PopoverContent>
+            </Popover>
+          </div>
 
           {exercise.is_rm_test && (
             <Badge className="bg-amber-500 text-white text-xs">
