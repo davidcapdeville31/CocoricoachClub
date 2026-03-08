@@ -338,7 +338,7 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
         if (dateTo) q = q.lte("injury_date", dateTo);
         return q.order("injury_date", { ascending: false });
       })(),
-      supabase.from("awcr_tracking").select("*").eq("player_id", playerId).order("session_date", { ascending: false }).limit(1),
+      supabase.from("awcr_tracking").select("*").eq("player_id", playerId).order("session_date", { ascending: false }).limit(90),
     ]);
 
     return {
