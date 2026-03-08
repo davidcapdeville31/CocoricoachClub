@@ -71,13 +71,14 @@ export function NotificationManagementSection({ categoryId }: NotificationManage
         const profile = profileMap.get(userId);
         if (!profile) continue;
         const osStatus = onesignalResults[userId];
+        const staffEmail = profile.email || null;
         results.push({
           userId,
-          name: profile.full_name || "Sans nom",
-          email: profile.email,
+          name: profile.full_name || "Staff sans nom",
+          email: staffEmail,
           role: memberRoleMap.get(userId) || "staff",
           hasPushSubscription: osStatus?.hasPush ?? false,
-          hasEmailSubscription: osStatus?.hasEmail ?? !!profile.email,
+          hasEmailSubscription: (osStatus?.hasEmail === true) || !!staffEmail,
         });
       }
 
