@@ -628,10 +628,9 @@ export function CompetitionRoundsDialog({
             {isAviron ? <Ship className="h-5 w-5" /> : isJudo ? <Swords className="h-5 w-5" /> : <Circle className="h-5 w-5" />}
             Gestion des {roundLabelPlural}
           </DialogTitle>
-          {/* Debug hint to quickly validate sport detection in production */}
-          {sportType && (
+          {isAthletics && selectedPlayer?.discipline && (
             <p className="text-xs text-muted-foreground">
-              Debug: sportType="{sportType}" • bowling={String(isBowling)}
+              {selectedPlayer.specialty || selectedPlayer.discipline}
             </p>
           )}
         </DialogHeader>
@@ -1105,6 +1104,13 @@ export function CompetitionRoundsDialog({
                                   }}
                                 />
                               </div>
+                            </div>
+                          )}
+
+                          {/* Warning if athletics player has no discipline set */}
+                          {isAthletics && !selectedPlayer.discipline && (
+                            <div className="p-3 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-900/20 text-sm text-amber-800 dark:text-amber-200">
+                              ⚠️ Cet athlète n'a pas de discipline définie. Les statistiques affichées sont génériques. Modifiez le profil du joueur pour assigner une discipline (Sprint, Haies, Lancers, etc.) et obtenir les statistiques spécifiques.
                             </div>
                           )}
 
