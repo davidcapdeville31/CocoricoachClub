@@ -302,7 +302,7 @@ function CategoryDetailsContent() {
                   shortLabel="Admin"
                 />
               )}
-              {canSeeMenu("academique") && (
+              {canSeeMenu("academique") && isAcademy && (
                 <ColoredTabTrigger
                   value="academy" 
                   colorKey="effectif"
