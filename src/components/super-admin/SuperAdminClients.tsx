@@ -538,13 +538,14 @@ export function SuperAdminClients() {
  
        <div className="grid grid-cols-2 gap-4">
          <div className="space-y-2">
-           <Label>Utilisateurs staff max</Label>
+           <Label>Staff max / catégorie</Label>
            <Input
              type="number"
              min={1}
              value={formData.max_staff_users}
              onChange={(e) => setFormData({ ...formData, max_staff_users: parseInt(e.target.value) || 1 })}
            />
+           <p className="text-xs text-muted-foreground">Nombre max de membres staff par catégorie</p>
          </div>
          <div className="space-y-2">
            <Label>Athlètes max / catégorie</Label>
