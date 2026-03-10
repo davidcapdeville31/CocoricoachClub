@@ -245,6 +245,19 @@ export function AddCategoryDialog({
             </p>
           )}
         </DialogHeader>
+        {isCategoryLimitReached && (
+          <div className="bg-destructive/10 border border-destructive/30 p-3 rounded-lg">
+            <p className="text-sm text-destructive font-medium">
+              Limite de catégories atteinte ({currentCategoryCount}/{maxCategories})
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">Contactez votre administrateur pour augmenter cette limite.</p>
+          </div>
+        )}
+        {maxCategories !== null && !isCategoryLimitReached && (
+          <p className="text-xs text-muted-foreground">
+            Catégories : {currentCategoryCount}/{maxCategories}
+          </p>
+        )}
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
