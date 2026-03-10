@@ -181,6 +181,11 @@ export function AddCategoryDialog({
     e.preventDefault();
     setValidationError("");
 
+    if (isCategoryLimitReached) {
+      setValidationError(`Limite de catégories atteinte (${currentCategoryCount}/${maxCategories}). Contactez votre administrateur.`);
+      return;
+    }
+
     const result = categorySchema.safeParse({ name: categoryName });
     
     if (!result.success) {
