@@ -104,13 +104,42 @@ export function useTrainingLoad({
   const metricConfig = METRICS_CONFIG[metric];
   const isEwma = metric.startsWith("ewma_");
 
-  // Calculate results based on metric type
-  const chartData: EWMAResult[] = isEwma
-    ? calculateEWMASeries(dailyData, metricConfig.dataKey)
-    : calculateAWCR(dailyData, metricConfig.dataKey);
+  // For EWMA sRPE: use DB-computed values (acute_load, chronic_load, awcr)
+  // which have full historical context from the compute_ewma_loads trigger.
+  // Only fall back to frontend recalculation for non-sRPE metrics or AWCR mode.
+  const chartData: EWMAResult[] = (() => {
+    if (isEwma && metric === "ewma_srpe" && awcrData && awcrData.length > 0) {
+      // Use DB-computed EWMA values directly
+      return buildEWMAFromDbData(awcrData, playerId);
+    }
+    return isEwma
+      ? calculateEWMASeries(dailyData, metricConfig.dataKey)
+      : calculateAWCR(dailyData, metricConfig.dataKey);
+  })();
 
-  // Calculate summary
-  const summary: LoadSummary | null = calculateLoadSummary(dailyData, metricConfig.dataKey);
+  // Calculate summary from chart data (use last entry)
+  const summary: LoadSummary | null = (() => {
+    if (isEwma && metric === "ewma_srpe" && chartData.length > 0) {
+      const latest = chartData[chartData.length - 1];
+      const oneWeekAgo = chartData.length >= 7 ? chartData[chartData.length - 7] : chartData[0];
+      const weeklyChange = oneWeekAgo.acute > 0 
+        ? ((latest.acute - oneWeekAgo.acute) / oneWeekAgo.acute) * 100 
+        : 0;
+      let trend: "increasing" | "stable" | "decreasing" = "stable";
+      if (weeklyChange > 10) trend = "increasing";
+      else if (weeklyChange < -10) trend = "decreasing";
+      return {
+        currentLoad: latest.rawValue,
+        ewmaAcute: latest.acute,
+        ewmaChronic: latest.chronic,
+        ewmaRatio: latest.ratio,
+        weeklyChange: Math.round(weeklyChange * 10) / 10,
+        riskLevel: latest.riskLevel,
+        trend,
+      };
+    }
+    return calculateLoadSummary(dailyData, metricConfig.dataKey);
+  })();
 
   return {
     chartData,
