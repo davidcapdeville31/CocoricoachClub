@@ -1166,7 +1166,7 @@ export function CompetitionRoundsDialog({
                             <Input
                               value={round.notes}
                               onChange={(e) => updateRound(selectedPlayer.playerId, round.round_number, { notes: e.target.value })}
-                              placeholder={`Notes sur ${isAviron ? 'cette course' : isJudo ? 'ce combat' : 'ce round'}`}
+                              placeholder={`Notes sur ${isAviron ? 'cette course' : isJudo ? 'ce combat' : isAthletics ? 'cette épreuve' : 'ce round'}`}
                               className="h-8"
                             />
                           </div>

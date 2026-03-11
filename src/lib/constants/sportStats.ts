@@ -648,22 +648,20 @@ export function getAthletismeStatsForDiscipline(discipline?: string): StatField[
   
   const disc = discipline.toLowerCase().replace(/_/g, ' ');
   
-  // Sprint disciplines
-  if (disc.includes('sprint') || disc.includes('100m') || disc.includes('200m') || disc.includes('60m') || disc.includes('400m')) {
-    // Check it's not 400m hurdles
-    if (disc.includes('haies') || disc.includes('hurdles')) return ATHLETISME_HAIES_STATS;
-    return ATHLETISME_SPRINT_STATS;
+  // Hurdles - CHECK FIRST before sprint (100mH, 110mH, 400mH contain "100m"/"400m" which would match sprint)
+  if (disc.includes('haies') || disc.includes('hurdles') || /\d+mh\b/i.test(disc) || disc === '110m' || disc === '60mh' || disc === '100mh' || disc === '110mh' || disc === '400mh') {
+    return ATHLETISME_HAIES_STATS;
   }
   
-  // Hurdles
-  if (disc.includes('haies') || disc.includes('110m') || disc.includes('hurdles')) {
-    return ATHLETISME_HAIES_STATS;
+  // Sprint disciplines (after hurdles check)
+  if (disc.includes('sprint') || disc.includes('60m') || disc.includes('100m') || disc.includes('200m') || disc.includes('400m')) {
+    return ATHLETISME_SPRINT_STATS;
   }
   
   // Endurance disciplines
   if (disc.includes('800m') || disc.includes('1500m') || disc.includes('3000m') || disc.includes('5000m') || 
       disc.includes('10000m') || disc.includes('marathon') || disc.includes('demi fond') || disc.includes('demi-fond') ||
-      disc.includes('fond') || disc.includes('marche') || disc.includes('steeple') || disc.includes('cross')) {
+      disc.includes('fond') || disc.includes('marche') || disc.includes('steeple') || disc.includes('cross') || disc.includes('mile')) {
     return ATHLETISME_ENDURANCE_STATS;
   }
   
