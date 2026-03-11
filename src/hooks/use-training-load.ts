@@ -11,7 +11,70 @@ import {
   transformToDailyLoadData,
   METRICS_CONFIG,
   getAvailableMetrics,
+  getRiskLevel,
 } from "@/lib/trainingLoadCalculations";
+
+/**
+ * Build EWMA chart data from DB-computed values (acute_load, chronic_load, awcr).
+ * The DB trigger compute_ewma_loads has access to full history, so these values
+ * are more accurate than frontend recalculation from a limited time window.
+ */
+function buildEWMAFromDbData(awcrData: any[], playerId?: string): EWMAResult[] {
+  // If individual player, data is already filtered; for team, aggregate per date
+  const dataByDate = new Map<string, { acute: number; chronic: number; rawValue: number; count: number }>();
+
+  const entries = playerId 
+    ? awcrData.filter(d => d.player_id === playerId)
+    : awcrData;
+
+  // Track unique players per date for team averaging
+  const playersByDate = new Map<string, Set<string>>();
+
+  entries.forEach(entry => {
+    const date = entry.session_date;
+    if (!playersByDate.has(date)) playersByDate.set(date, new Set());
+    playersByDate.get(date)!.add(entry.player_id);
+
+    const existing = dataByDate.get(date);
+    const load = entry.training_load || (entry.rpe * entry.duration_minutes) || 0;
+
+    if (existing) {
+      // For team view: sum loads and use latest EWMA values per player, then average
+      existing.rawValue += load;
+      // Use the entry with the most recent/highest acute_load as representative
+      if (entry.acute_load != null && entry.chronic_load != null) {
+        existing.acute += entry.acute_load;
+        existing.chronic += entry.chronic_load;
+      }
+      existing.count = playersByDate.get(date)!.size;
+    } else {
+      dataByDate.set(date, {
+        acute: entry.acute_load ?? 0,
+        chronic: entry.chronic_load ?? 0,
+        rawValue: load,
+        count: 1,
+      });
+    }
+  });
+
+  // Convert to EWMAResult array, averaging for team
+  return Array.from(dataByDate.entries())
+    .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+    .map(([date, data]) => {
+      const n = Math.max(data.count, 1);
+      const acute = Math.round((data.acute / n) * 100) / 100;
+      const chronic = Math.round((data.chronic / n) * 100) / 100;
+      const ratio = chronic > 0 ? Math.round((acute / chronic) * 100) / 100 : 0;
+      return {
+        date,
+        rawValue: Math.round((data.rawValue / n) * 100) / 100,
+        acute,
+        chronic,
+        ratio,
+        riskLevel: getRiskLevel(ratio),
+      };
+    });
+}
 
 interface UseTrainingLoadOptions {
   categoryId: string;
