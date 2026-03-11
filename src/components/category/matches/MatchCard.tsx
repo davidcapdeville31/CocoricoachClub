@@ -473,7 +473,8 @@ export function MatchCard({ match, categoryId, isSubMatch = false }: MatchCardPr
                     <Swords className="h-4 w-4 mr-2" />
                     {sportType.toLowerCase().includes("judo") ? `Combats (${roundsCount || 0})` : 
                      sportType.toLowerCase().includes("bowling") ? `Parties (${roundsCount || 0})` : 
-                     sportType.toLowerCase().includes("aviron") ? `Courses (${roundsCount || 0})` : `Courses (${roundsCount || 0})`}
+                     sportType.toLowerCase().includes("aviron") ? `Courses (${roundsCount || 0})` : 
+                     sportType.toLowerCase().includes("athletisme") ? `Épreuves (${roundsCount || 0})` : `Épreuves (${roundsCount || 0})`}
                   </DropdownMenuItem>
                 )}
                 {canHaveSubMatches && (
