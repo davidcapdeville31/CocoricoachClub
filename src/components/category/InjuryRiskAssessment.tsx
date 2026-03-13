@@ -157,7 +157,7 @@ export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) 
 
       return {
         playerId: player.id,
-        playerName: player.name,
+        playerName: [player.first_name, player.name].filter(Boolean).join(" "),
         awcr: awcrValue,
         awcrRisk,
         wellnessScore,
