@@ -21,6 +21,7 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { HrvInputSection, emptyHrvData, type HrvData } from "./hrv/HrvInputSection";
 
 interface AddWellnessDialogProps {
   open: boolean;
