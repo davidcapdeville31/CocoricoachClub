@@ -225,6 +225,14 @@ export function VideoAnalysisTab({ categoryId, sportType }: VideoAnalysisTabProp
           )}
         </TabsContent>
 
+        <TabsContent value="themes">
+          <VideoClipViewer
+            categoryId={categoryId}
+            sportType={sportType}
+            showAllClips
+          />
+        </TabsContent>
+
         <TabsContent value="clips">
           <VideoClipViewer
             categoryId={categoryId}
