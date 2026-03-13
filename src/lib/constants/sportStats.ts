@@ -706,9 +706,9 @@ export function getAthletismeStatsForDiscipline(discipline?: string): StatField[
     return ATHLETISME_COMBINES_STATS;
   }
   
-  // Trail / Ultra-trail → use endurance stats (distance, D+, time-based)
+  // Trail / Ultra-trail → dedicated trail stats
   if (disc.includes('trail') || disc.includes('ultra')) {
-    return ATHLETISME_ENDURANCE_STATS;
+    return ATHLETISME_TRAIL_STATS;
   }
   
   return ATHLETISME_GENERAL_STATS;
