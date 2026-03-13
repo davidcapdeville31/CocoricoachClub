@@ -381,6 +381,7 @@ export const getSportLabel = (type: string): string => {
   if (type === "XV" || type === "15") return "Rugby XV";
   if (type === "7") return "Rugby 7";
   if (type === "XIII") return "Rugby XIII";
+  if (type === "touch") return "Touch Rugby";
   if (type === "academie") return "Académie";
   if (type === "national_team") return "Équipe Nationale";
   
