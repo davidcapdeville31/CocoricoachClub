@@ -246,6 +246,7 @@ export function AddClipDialog({
   const resetForm = () => {
     setTitle("");
     setClipUrl("");
+    setClipFileUrl("");
     setActionType("");
     setActionCategory("");
     setStartMinutes("");
