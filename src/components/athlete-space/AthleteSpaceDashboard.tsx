@@ -91,7 +91,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
     const hasInjury = injuries && injuries.length > 0;
     const ratioAlert = latestEwma && (latestEwma.ratio > 1.5 || latestEwma.ratio < 0.8);
     const wellnessLow = todayWellness && (
-      (todayWellness.sleep_quality || 0) <= 2 || 
+      (todayWellness.sleep_quality || 0) >= 4 || 
       (todayWellness.general_fatigue || 0) >= 4 || 
       (todayWellness.soreness_lower_body || 0) >= 4
     );
