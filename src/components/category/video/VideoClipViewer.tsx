@@ -474,25 +474,35 @@ export function VideoClipViewer({
         {/* Stats Panel */}
         <div className="lg:col-span-1">
           {selectedClip ? (
-            <ClipStatsPanel
-              clip={{
-                ...selectedClip,
-                clip_player_associations: selectedClip.clip_player_associations?.map(a => ({
-                  player_id: a.player_id,
-                  role: a.role,
-                  players: a.players ? { ...a.players, jersey_number: null } : null
-                })),
-              }}
-              categoryId={categoryId}
-              sportType={sportType}
-            />
+            <div className="space-y-4">
+              {/* Inline Video Player */}
+              <InlineVideoPlayer
+                url={selectedClip.video_file_url || selectedClip.clip_url}
+                startTime={selectedClip.start_time_seconds}
+                endTime={selectedClip.end_time_seconds}
+                title={selectedClip.title}
+              />
+              {/* Stats Panel */}
+              <ClipStatsPanel
+                clip={{
+                  ...selectedClip,
+                  clip_player_associations: selectedClip.clip_player_associations?.map(a => ({
+                    player_id: a.player_id,
+                    role: a.role,
+                    players: a.players ? { ...a.players, jersey_number: null } : null
+                  })),
+                }}
+                categoryId={categoryId}
+                sportType={sportType}
+              />
+            </div>
           ) : (
             <Card className="h-full">
               <CardContent className="flex items-center justify-center h-full py-12">
                 <div className="text-center text-muted-foreground">
-                  <BarChart3 className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>Sélectionnez un clip pour voir</p>
-                  <p className="text-sm">les statistiques liées</p>
+                  <Play className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>Sélectionnez un clip pour</p>
+                  <p className="text-sm">le lire et voir les stats</p>
                 </div>
               </CardContent>
             </Card>
