@@ -38,31 +38,11 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV" }: PlayerCu
   const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
 
-  // For individual sports (athletics, judo, rowing), detect the dominant discipline from players
-  const { data: categoryDiscipline } = useQuery({
-    queryKey: ["category-discipline", categoryId, sportType],
-    queryFn: async () => {
-      const isIndividualSport = ["athletisme", "athlétisme", "judo", "aviron"].some(s => 
-        sportType.toLowerCase().includes(s)
-      );
-      if (!isIndividualSport) return null;
-
-      const { data } = await supabase
-        .from("players")
-        .select("discipline, specialty")
-        .eq("category_id", categoryId)
-        .limit(10);
-
-      if (!data || data.length === 0) return null;
-
-      // Use the first player's discipline/specialty as the category default
-      const first = data.find(p => p.specialty || p.discipline);
-      return first?.specialty || first?.discipline || null;
-    },
-    staleTime: 5 * 60 * 1000,
+  // Use stat preferences hook to respect user's configured stats
+  const { stats: sportStats, isLoading: loadingPrefs } = useStatPreferences({
+    categoryId,
+    sportType,
   });
-
-  const sportStats = getStatsForSport(sportType, false, categoryDiscipline || undefined);
   const statCategories = getStatCategories(sportType);
 
   // Fetch all matches that have stats data for this category
