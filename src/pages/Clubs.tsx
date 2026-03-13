@@ -44,26 +44,32 @@ export default function Clubs() {
     queryKey: ["my-clubs", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
+      // Fetch clubs the user OWNS
       const { data: ownedClubs, error: ownedError } = await supabase
         .from("clubs")
         .select("*")
         .eq("user_id", user.id);
       if (ownedError) throw ownedError;
 
+      // Fetch clubs the user is a MEMBER of (but doesn't own)
       const { data: memberClubs, error: memberError } = await supabase
         .from("club_members")
         .select("club_id, clubs(*)")
         .eq("user_id", user.id);
       if (memberError) throw memberError;
 
-      const allClubs = [...(ownedClubs || [])];
-      const ownedIds = new Set(allClubs.map(c => c.id));
+      const ownedIds = new Set((ownedClubs || []).map(c => c.id));
+      const joinedClubs: any[] = [];
       for (const mc of memberClubs || []) {
         if (mc.clubs && !ownedIds.has((mc.clubs as any).id)) {
-          allClubs.push(mc.clubs as any);
+          joinedClubs.push(mc.clubs as any);
         }
       }
-      return allClubs.sort((a, b) => a.name.localeCompare(b.name));
+
+      return {
+        owned: (ownedClubs || []).sort((a, b) => a.name.localeCompare(b.name)),
+        joined: joinedClubs.sort((a, b) => a.name.localeCompare(b.name)),
+      };
     },
     enabled: !!user?.id,
   });
@@ -104,12 +110,22 @@ export default function Clubs() {
     enabled: !!isSuperAdmin,
   });
 
-  const myClubIds = useMemo(() => new Set(clubs?.map(c => c.id) || []), [clubs]);
+  const myClubs = useMemo(() => {
+    if (!clubs) return [];
+    const c = clubs as { owned: any[]; joined: any[] };
+    if (isSuperAdmin) return c.owned;
+    return [...c.owned, ...c.joined];
+  }, [clubs, isSuperAdmin]);
+
+  const myOwnedIds = useMemo(() => {
+    if (!clubs) return new Set<string>();
+    return new Set((clubs as { owned: any[]; joined: any[] }).owned.map((c: any) => c.id));
+  }, [clubs]);
 
   const clientClubs = useMemo(() => {
     if (!isSuperAdmin || !allClubs) return [];
-    return allClubs.filter(c => !myClubIds.has(c.id));
-  }, [isSuperAdmin, allClubs, myClubIds]);
+    return allClubs.filter(c => !myOwnedIds.has(c.id));
+  }, [isSuperAdmin, allClubs, myOwnedIds]);
 
   const filteredClientClubs = useMemo(() => {
     if (!clientClubSearch.trim()) return clientClubs;
@@ -127,11 +143,11 @@ export default function Clubs() {
   useEffect(() => {
     if (athleteCheckLoading || !athleteCategories || isLoading || superAdminLoading) return;
     const hasOnlyAthleteRole = athleteCategories.length > 0 && athleteCategories.every(cm => cm.role === "athlete");
-    const hasNoClubs = !clubs || clubs.length === 0;
+    const hasNoClubs = myClubs.length === 0;
     if (hasOnlyAthleteRole && hasNoClubs && !isSuperAdmin) {
       navigate("/athlete-space", { replace: true });
     }
-  }, [athleteCategories, athleteCheckLoading, clubs, isLoading, isSuperAdmin, superAdminLoading, navigate]);
+  }, [athleteCategories, athleteCheckLoading, myClubs, isLoading, isSuperAdmin, superAdminLoading, navigate]);
 
   const deleteClub = useMutation({
     mutationFn: async (clubId: string) => {
@@ -143,9 +159,13 @@ export default function Clubs() {
     onMutate: async (clubId: string) => {
       await queryClient.cancelQueries({ queryKey: ["my-clubs"] });
       const previousClubs = queryClient.getQueryData(["my-clubs", user?.id]);
-      queryClient.setQueryData(["my-clubs", user?.id], (old: any[] | undefined) =>
-        old ? old.filter((club) => club.id !== clubId) : []
-      );
+      queryClient.setQueryData(["my-clubs", user?.id], (old: any) => {
+        if (!old) return old;
+        return {
+          owned: old.owned?.filter((club: any) => club.id !== clubId) || [],
+          joined: old.joined?.filter((club: any) => club.id !== clubId) || [],
+        };
+      });
       return { previousClubs };
     },
     onSuccess: () => {
@@ -178,7 +198,7 @@ export default function Clubs() {
   if (!user) return null;
 
   const hasOnlyAthleteRole = athleteCategories && athleteCategories.length > 0 && athleteCategories.every(cm => cm.role === "athlete");
-  const hasNoClubs = !clubs || clubs.length === 0;
+  const hasNoClubs = myClubs.length === 0;
   if (hasOnlyAthleteRole && hasNoClubs && isSuperAdmin === false) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -250,7 +270,7 @@ export default function Clubs() {
           )}
         </div>
 
-        {clubs && clubs.length === 0 ? (
+        {myClubs.length === 0 ? (
           <Card className="bg-gradient-card shadow-md">
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground mb-4">
@@ -266,7 +286,7 @@ export default function Clubs() {
           </Card>
         ) : (
           <div className="space-y-2">
-            {clubs?.map((club) => (
+            {myClubs.map((club) => (
               <ClubCard key={club.id} club={club} onDelete={(clubId) => deleteClub.mutate(clubId)} />
             ))}
           </div>
