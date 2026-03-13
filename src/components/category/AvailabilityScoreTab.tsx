@@ -98,7 +98,7 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
           
           wellnessScore = Math.min(100, (sleepScore + fatigueScore + stressScore + sorenessScore) / 4);
           
-          if (playerWellness.sleep_quality <= 2) factors.push("Sommeil insuffisant");
+          if (playerWellness.sleep_quality >= 4) factors.push("Sommeil insuffisant");
           if (playerWellness.general_fatigue >= 4) factors.push("Fatigue élevée");
           if (playerWellness.stress_level >= 4) factors.push("Stress élevé");
           if (playerWellness.soreness_upper_body >= 4 || playerWellness.soreness_lower_body >= 4) {
