@@ -35,6 +35,7 @@ import { EditMatchDialog } from "./EditMatchDialog";
 import { AddSubMatchDialog } from "./AddSubMatchDialog";
 import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesDialog";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
+import { getCompetitionStageLabel as getCompetitionStageLabelUtil } from "@/lib/constants/competitions";
 import {
   DropdownMenu,
   DropdownMenuContent,
