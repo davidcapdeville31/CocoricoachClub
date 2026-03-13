@@ -597,6 +597,12 @@ export const isCrossfitCategory = (rugbyType: string): boolean => {
   return rugbyType?.startsWith("crossfit") || rugbyType === "crossfit";
 };
 
+// Sports that support HRV and heart rate zone tracking
+export const supportsHrvTracking = (rugbyType: string): boolean => {
+  if (!rugbyType) return false;
+  return isAthletismeCategory(rugbyType) || isTriathlonCategory(rugbyType) || isCrossfitCategory(rugbyType);
+};
+
 export const isTeamSport = (type: string): boolean => {
   return ["XV", "7", "XIII", "15", "academie", "national_team", "football", "handball", "volleyball", "basketball", "football_club", "football_academie", "football_national", "handball_club", "handball_academie", "handball_national", "volleyball_club", "volleyball_academie", "volleyball_national", "basketball_club", "basketball_academie", "basketball_national", "basketball_3x3", "basketball_pro", "basketball_jeunes"].includes(type);
 };

@@ -12,13 +12,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Satellite, ClipboardList, Users, WifiOff, Zap } from "lucide-react";
+import { Plus, Satellite, ClipboardList, Users, WifiOff, Zap, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AddAwcrDialog } from "./AddAwcrDialog";
 import { QuickTeamRpeDialog } from "./QuickTeamRpeDialog";
 import { OfflineRpeEntry } from "./OfflineRpeEntry";
+import { HrvEntryDialog } from "./hrv/HrvEntryDialog";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
+import { supportsHrvTracking } from "@/lib/constants/sportTypes";
 
 interface AwcrTabProps {
   categoryId: string;
@@ -42,8 +44,25 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isTeamDialogOpen, setIsTeamDialogOpen] = useState(false);
   const [isOfflineDialogOpen, setIsOfflineDialogOpen] = useState(false);
+  const [isHrvDialogOpen, setIsHrvDialogOpen] = useState(false);
   const { isOnline } = useOnlineStatus();
   const { isViewer } = useViewerModeContext();
+
+  // Fetch category sport type
+  const { data: categoryData } = useQuery({
+    queryKey: ["category-sport-type", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("rugby_type")
+        .eq("id", categoryId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const showHrv = categoryData?.rugby_type ? supportsHrvTracking(categoryData.rugby_type) : false;
 
   // Realtime sync for AWCR/EWMA data
   useRealtimeSync({
@@ -131,6 +150,16 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
                 <Users className="h-4 w-4" />
                 Saisie équipe
               </Button>
+              {showHrv && (
+                <Button 
+                  onClick={() => setIsHrvDialogOpen(true)} 
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <Heart className="h-4 w-4 text-destructive" />
+                  HRV
+                </Button>
+              )}
               <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
                 Ajouter
@@ -251,6 +280,14 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
         onOpenChange={setIsOfflineDialogOpen}
         categoryId={categoryId}
       />
+
+      {showHrv && (
+        <HrvEntryDialog
+          open={isHrvDialogOpen}
+          onOpenChange={setIsHrvDialogOpen}
+          categoryId={categoryId}
+        />
+      )}
     </Card>
   );
 }
