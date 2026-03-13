@@ -44,26 +44,32 @@ export default function Clubs() {
     queryKey: ["my-clubs", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
+      // Fetch clubs the user OWNS
       const { data: ownedClubs, error: ownedError } = await supabase
         .from("clubs")
         .select("*")
         .eq("user_id", user.id);
       if (ownedError) throw ownedError;
 
+      // Fetch clubs the user is a MEMBER of (but doesn't own)
       const { data: memberClubs, error: memberError } = await supabase
         .from("club_members")
         .select("club_id, clubs(*)")
         .eq("user_id", user.id);
       if (memberError) throw memberError;
 
-      const allClubs = [...(ownedClubs || [])];
-      const ownedIds = new Set(allClubs.map(c => c.id));
+      const ownedIds = new Set((ownedClubs || []).map(c => c.id));
+      const joinedClubs: any[] = [];
       for (const mc of memberClubs || []) {
         if (mc.clubs && !ownedIds.has((mc.clubs as any).id)) {
-          allClubs.push(mc.clubs as any);
+          joinedClubs.push(mc.clubs as any);
         }
       }
-      return allClubs.sort((a, b) => a.name.localeCompare(b.name));
+
+      return {
+        owned: (ownedClubs || []).sort((a, b) => a.name.localeCompare(b.name)),
+        joined: joinedClubs.sort((a, b) => a.name.localeCompare(b.name)),
+      };
     },
     enabled: !!user?.id,
   });
