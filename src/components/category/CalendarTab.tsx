@@ -202,16 +202,31 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         .delete()
         .eq("id", sessionId);
       if (error) throw error;
+      return sessionId;
+    },
+    onMutate: async (sessionId) => {
+      await queryClient.cancelQueries({ queryKey: ["sessions", categoryId] });
+      const previousSessions = queryClient.getQueryData(["sessions", categoryId]);
+      queryClient.setQueryData(["sessions", categoryId], (old: any[]) => {
+        if (!old) return old;
+        return old.filter((s) => s.id !== sessionId);
+      });
+      return { previousSessions };
     },
     onSuccess: () => {
+      toast.success("Séance supprimée avec succès");
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousSessions) {
+        queryClient.setQueryData(["sessions", categoryId], context.previousSessions);
+      }
+      toast.error("Erreur lors de la suppression de la séance");
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_session_exercises"] });
-      toast.success("Séance supprimée avec succès");
-    },
-    onError: () => {
-      toast.error("Erreur lors de la suppression de la séance");
     },
   });
 
