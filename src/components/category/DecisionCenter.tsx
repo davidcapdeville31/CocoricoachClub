@@ -1357,56 +1357,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
            </CardContent>
          </Card>
  
-         {/* 3️⃣ ALERTES PRIORITAIRES */}
-         <Card>
-           <CardHeader className="pb-2">
-             <CardTitle className="text-base flex items-center gap-2">
-               <AlertTriangle className="h-5 w-5 text-destructive" />
-               Alertes prioritaires
-               {priorityAlerts.length > 0 && (
-                 <Badge variant="destructive" className="ml-auto">
-                   {priorityAlerts.length}
-                 </Badge>
-               )}
-             </CardTitle>
-           </CardHeader>
-           <CardContent>
-             {priorityAlerts.length === 0 ? (
-               <div className="text-center py-6">
-                 <CheckCircle className="h-10 w-10 text-green-500 mx-auto mb-2" />
-                 <p className="text-sm font-medium">Aucune alerte</p>
-                 <p className="text-xs text-muted-foreground">Tous les voyants sont au vert</p>
-               </div>
-             ) : (
-               <div className="space-y-2">
-                 {priorityAlerts.map(alert => (
-                   <div 
-                     key={alert.id}
-                     className={cn(
-                       "flex items-center justify-between p-2 rounded-lg transition-colors cursor-pointer hover:opacity-80",
-                       getSeverityColor(alert.severity)
-                     )}
-                     onClick={() => alert.playerId && navigate(`/players/${alert.playerId}`)}
-                   >
-                     <div className="flex items-center gap-2 flex-1 min-w-0">
-                       {getAlertIcon(alert.type)}
-                       <div className="min-w-0">
-                         <p className="font-medium text-sm truncate">{alert.playerName}</p>
-                         <p className="text-xs opacity-80 truncate">{alert.message}</p>
-                       </div>
-                     </div>
-                     {alert.action && (
-                       <Button variant="ghost" size="sm" className="h-6 px-2 text-xs shrink-0">
-                         {alert.action}
-                       </Button>
-                     )}
-                   </div>
-                 ))}
-               </div>
-             )}
-           </CardContent>
-         </Card>
-       </div>
+        </div>
  
         {/* 4️⃣ RACCOURCIS ACTION */}
         <Card>
