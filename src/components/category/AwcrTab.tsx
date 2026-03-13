@@ -280,6 +280,14 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
         onOpenChange={setIsOfflineDialogOpen}
         categoryId={categoryId}
       />
+
+      {showHrv && (
+        <HrvEntryDialog
+          open={isHrvDialogOpen}
+          onOpenChange={setIsHrvDialogOpen}
+          categoryId={categoryId}
+        />
+      )}
     </Card>
   );
 }
