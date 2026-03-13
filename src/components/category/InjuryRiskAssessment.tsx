@@ -395,9 +395,9 @@ export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) 
           <h5 className="font-medium mb-2">Comment est calculé le risque ?</h5>
           <ul className="space-y-1 text-muted-foreground">
             <li>• <strong>Score Wellness pondéré:</strong> Fatigue (22%) et douleurs bas du corps (22%) pèsent plus</li>
-            <li>• <strong>AWCR optimal:</strong> 0.8 - 1.3 (zone de sécurité)</li>
+            <li>• <strong>Ratio EWMA optimal:</strong> 0.8 - 1.3 (zone de sécurité)</li>
             <li>• <strong>Détection de tendance:</strong> Analyse sur 7 jours pour détecter les détériorations</li>
-            <li>• <strong>Risque critique:</strong> Douleur + (AWCR ou Wellness élevé) ou détérioration rapide</li>
+            <li>• <strong>Risque critique:</strong> Douleur + (EWMA ou Wellness élevé) ou détérioration rapide</li>
             <li>• <strong>Alertes intelligentes:</strong> Recommandations personnalisées selon le contexte</li>
           </ul>
         </div>
