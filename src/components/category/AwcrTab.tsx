@@ -12,13 +12,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Satellite, ClipboardList, Users, WifiOff, Zap } from "lucide-react";
+import { Plus, Satellite, ClipboardList, Users, WifiOff, Zap, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AddAwcrDialog } from "./AddAwcrDialog";
 import { QuickTeamRpeDialog } from "./QuickTeamRpeDialog";
 import { OfflineRpeEntry } from "./OfflineRpeEntry";
+import { HrvEntryDialog } from "./hrv/HrvEntryDialog";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
+import { supportsHrvTracking } from "@/lib/constants/sportTypes";
 
 interface AwcrTabProps {
   categoryId: string;
