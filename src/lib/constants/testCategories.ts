@@ -1054,6 +1054,9 @@ export function getTestCategoriesForSport(sportType: string): TestCategory[] {
     cyclisme: "cyclisme_",
     tennis: "tennis_",
     volleyball: "volleyball_",
+    padel: "padel_",
+    ski: "ski_",
+    triathlon: "triathlon_",
   };
 
   const prefix = baseSport ? sportPrefixMap[baseSport] : null;
