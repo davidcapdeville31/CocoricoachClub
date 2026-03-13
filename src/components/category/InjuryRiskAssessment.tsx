@@ -132,8 +132,8 @@ export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) 
       const riskFactors: string[] = [];
       let combinedRisk: "low" | "medium" | "high" | "critical" = "low";
 
-      if (awcrRisk === "high") riskFactors.push("AWCR hors zone optimale");
-      if (awcrRisk === "medium") riskFactors.push("AWCR à surveiller");
+      if (awcrRisk === "high") riskFactors.push("EWMA hors zone optimale");
+      if (awcrRisk === "medium") riskFactors.push("EWMA à surveiller");
       if (wellnessRisk === "high") riskFactors.push("Wellness préoccupant");
       if (wellnessRisk === "medium") riskFactors.push("Wellness à surveiller");
       if (hasSpecificPain) riskFactors.push(`Douleur: ${painLocation || "signalée"}`);
