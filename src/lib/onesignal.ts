@@ -100,7 +100,6 @@ export function getOneSignalPermission(): NotificationPermission {
  */
 export async function checkOneSignalSubscriptionStatus(userId: string): Promise<boolean> {
   try {
-    const { supabase } = await import("@/integrations/supabase/client");
     const { data } = await supabase.functions.invoke("check-onesignal-subscriptions", {
       body: { user_ids: [userId] },
     });
