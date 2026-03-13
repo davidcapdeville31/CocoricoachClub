@@ -326,6 +326,9 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
             )}
           </div>
 
+          {/* HRV Section (optional) */}
+          <HrvInputSection data={hrvData} onChange={setHrvData} />
+
           {/* Notes / Commentaires section */}
           <div className="space-y-2">
             <Label htmlFor="wellness-notes">Notes / Commentaires du coach</Label>
