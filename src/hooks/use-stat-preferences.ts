@@ -100,9 +100,11 @@ export function useStatPreferences({
   const allAvailableStats = [...allStats, ...customStatFields];
 
   // Determine which stats to show
-  // Priority: match overrides > category preferences > all stats
-  const rawKeys = matchOverrides ?? categoryPrefs ?? allAvailableStats.map(s => s.key);
-  const enabledStatKeys = Array.isArray(rawKeys) ? rawKeys : allAvailableStats.map(s => s.key);
+  // Priority: match overrides > category preferences (even if empty) > all stats
+  // categoryPrefs is null only when no row exists (never configured)
+  // categoryPrefs is [] when user explicitly disabled all stats
+  const enabledStatKeys: string[] = matchOverrides 
+    ?? (categoryPrefs !== null && categoryPrefs !== undefined ? categoryPrefs : allAvailableStats.map(s => s.key));
 
   // Filter stats based on enabled keys
   const filteredStats: StatField[] = allAvailableStats.filter(stat => 
