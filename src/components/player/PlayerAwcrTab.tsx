@@ -112,6 +112,13 @@ export function PlayerAwcrTab({ playerId, categoryId }: PlayerAwcrTabProps) {
           )}
         </CardContent>
       </Card>
+
+      <HrvEntryDialog
+        open={isHrvDialogOpen}
+        onOpenChange={setIsHrvDialogOpen}
+        categoryId={categoryId}
+        defaultPlayerId={playerId}
+      />
     </div>
   );
 }
