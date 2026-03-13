@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { getCompetitionsBySport } from "@/lib/constants/competitions";
+import { getCompetitionsBySport, getCompetitionStagesBySport } from "@/lib/constants/competitions";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 
 interface AddMatchCalendarDialogProps {
