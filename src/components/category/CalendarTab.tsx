@@ -237,13 +237,28 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         .delete()
         .eq("id", matchId);
       if (error) throw error;
+      return matchId;
+    },
+    onMutate: async (matchId) => {
+      await queryClient.cancelQueries({ queryKey: ["matches", categoryId] });
+      const previousMatches = queryClient.getQueryData(["matches", categoryId]);
+      queryClient.setQueryData(["matches", categoryId], (old: any[]) => {
+        if (!old) return old;
+        return old.filter((m) => m.id !== matchId);
+      });
+      return { previousMatches };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
       toast.success("Match supprimé avec succès");
     },
-    onError: () => {
+    onError: (error, variables, context) => {
+      if (context?.previousMatches) {
+        queryClient.setQueryData(["matches", categoryId], context.previousMatches);
+      }
       toast.error("Erreur lors de la suppression du match");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
     },
   });
 
