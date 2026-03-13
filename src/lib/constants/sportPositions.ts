@@ -210,6 +210,8 @@ export function getPositionsForSport(sportType: SportType | string): Position[] 
     case "XIII":
     case "xiii":
       return RUGBY_XIII_POSITIONS;
+    case "touch":
+      return TOUCH_RUGBY_POSITIONS;
     case "football":
       return FOOTBALL_POSITIONS;
     case "handball":
