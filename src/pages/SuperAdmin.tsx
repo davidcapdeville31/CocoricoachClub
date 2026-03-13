@@ -23,7 +23,9 @@ import { RoleMenuPermissions } from "@/components/super-admin/RoleMenuPermission
  
  export default function SuperAdmin() {
    const { user, loading: authLoading } = useAuth();
-   const navigate = useNavigate();
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const defaultTab = searchParams.get("tab") || "dashboard";
  
    // Check if current user is super admin
    const { data: isSuperAdmin, isLoading: checkingAdmin } = useQuery({
