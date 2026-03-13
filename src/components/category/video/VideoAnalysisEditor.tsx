@@ -29,8 +29,9 @@ export function VideoAnalysisEditor({
   onBack,
   onClipCreated,
 }: VideoAnalysisEditorProps) {
+  const effectiveVideoUrl = videoFileUrl || videoUrl;
   const [activeMode, setActiveMode] = useState<"clipping" | "import">(
-    videoUrl ? "clipping" : "import"
+    effectiveVideoUrl ? "clipping" : "import"
   );
 
   return (
