@@ -159,9 +159,13 @@ export default function Clubs() {
     onMutate: async (clubId: string) => {
       await queryClient.cancelQueries({ queryKey: ["my-clubs"] });
       const previousClubs = queryClient.getQueryData(["my-clubs", user?.id]);
-      queryClient.setQueryData(["my-clubs", user?.id], (old: any[] | undefined) =>
-        old ? old.filter((club) => club.id !== clubId) : []
-      );
+      queryClient.setQueryData(["my-clubs", user?.id], (old: any) => {
+        if (!old) return old;
+        return {
+          owned: old.owned?.filter((club: any) => club.id !== clubId) || [],
+          joined: old.joined?.filter((club: any) => club.id !== clubId) || [],
+        };
+      });
       return { previousClubs };
     },
     onSuccess: () => {
