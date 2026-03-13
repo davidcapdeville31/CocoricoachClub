@@ -44,7 +44,7 @@ export function AddCategoryDialog({
   clubId,
 }: AddCategoryDialogProps) {
   const [categoryName, setCategoryName] = useState("");
-  const [gender, setGender] = useState<"masculine" | "feminine">("masculine");
+  const [gender, setGender] = useState<"masculine" | "feminine" | "mixed">("masculine");
   const [sportSubType, setSportSubType] = useState<SportType>("XV");
   const [validationError, setValidationError] = useState("");
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
