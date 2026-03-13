@@ -303,7 +303,7 @@ export function EditMatchDialog({
                 <SelectValue placeholder="Sélectionner une phase (optionnel)" />
               </SelectTrigger>
               <SelectContent className="z-[200]">
-                {COMPETITION_STAGES.map((stage) => (
+                {getStagesForSport(sportType).map((stage) => (
                   <SelectItem key={stage.value} value={stage.value || "none"}>
                     {stage.label}
                   </SelectItem>
