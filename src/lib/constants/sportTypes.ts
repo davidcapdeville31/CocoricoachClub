@@ -298,6 +298,9 @@ export const SPORT_TYPES: SportTypeOption[] = [
   { value: "handball_club", label: "Handball - Club", category: "team" },
   { value: "volleyball_club", label: "Volleyball - Club", category: "team" },
   { value: "basketball_club", label: "Basketball - Club", category: "team" },
+  { value: "basketball_3x3", label: "Basketball 3x3", category: "team" },
+  { value: "basketball_pro", label: "Basketball - Pro / Semi-Pro", category: "team" },
+  { value: "basketball_jeunes", label: "Basketball - Centre de Formation / Jeunes", category: "team" },
   // Team sports - Académie
   { value: "football_academie", label: "Football - Académie", category: "team" },
   { value: "handball_academie", label: "Handball - Académie", category: "team" },
