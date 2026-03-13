@@ -562,12 +562,7 @@ export const TRAINING_TYPE_LABELS: Record<string, string> = {
   medical: "Médical",
   repos: "Repos",
   test: "Test",
-  reathlétisation: "Réathlétisation",
-  echauffement: "Échauffement",
-  recuperation: "Récupération Active",
-  reathlétisation: "Réathlétisation",
-  echauffement: "Échauffement",
-  recuperation: "Récupération Active",
+  video_analyse: "Analyse Vidéo",
   // Football specific
   football_tactique: "Travail Tactique",
   football_possession: "Conservation/Possession",
