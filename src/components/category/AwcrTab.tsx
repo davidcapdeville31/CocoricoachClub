@@ -150,6 +150,16 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
                 <Users className="h-4 w-4" />
                 Saisie équipe
               </Button>
+              {showHrv && (
+                <Button 
+                  onClick={() => setIsHrvDialogOpen(true)} 
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <Heart className="h-4 w-4 text-destructive" />
+                  HRV
+                </Button>
+              )}
               <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
                 Ajouter
