@@ -122,6 +122,8 @@ export const ATHLETISME_DISCIPLINES: PlayerAttributeOption[] = [
   { value: "athletisme_sauts_hauteur", label: "Sauts verticaux" },
   { value: "athletisme_lancers", label: "Lancers" },
   { value: "athletisme_combines", label: "Épreuves combinées" },
+  { value: "athletisme_trail", label: "Trail" },
+  { value: "athletisme_ultra_trail", label: "Ultra-Trail" },
 ];
 
 // Specialties per discipline for athletics
