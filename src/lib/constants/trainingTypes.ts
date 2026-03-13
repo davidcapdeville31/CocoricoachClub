@@ -341,16 +341,31 @@ export function hasGroupedTrainingTypes(sportType: string | undefined): boolean 
 
 // Get label for a training type
 export function getTrainingTypeLabel(value: string): string {
-  // First check exact match
+  // First check exact match in ALL_TRAINING_TYPES
   const type = ALL_TRAINING_TYPES.find(t => t.value === value);
   if (type) return type.label;
+  
+  // Then check TRAINING_TYPE_LABELS
+  if (TRAINING_TYPE_LABELS[value]) return TRAINING_TYPE_LABELS[value];
   
   // Fallback labels for legacy values
   const legacyLabels: Record<string, string> = {
     video: "Analyse Vidéo",
+    video_analyse: "Analyse Vidéo",
+    collectif_general: "Collectif Général",
+    competition_training: "Simulation Compétition",
+    technique_individuelle: "Technique Individuelle",
+    reunion: "Réunion",
+    medical: "Médical",
+    individuel: "Individuel",
     autre: "Autre",
   };
-  return legacyLabels[value] || value;
+  if (legacyLabels[value]) return legacyLabels[value];
+  
+  // Smart fallback: replace underscores, capitalize each word
+  return value
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, c => c.toUpperCase());
 }
 
 // Check if training type has exercises
