@@ -933,14 +933,8 @@ export function PlayerReportSection({ playerId, categoryId, playerName, sportTyp
             ? allAvailable.filter(s => enabledKeys.includes(s.key))
             : allAvailable;
 
-          // Group stats by category for organized display
-          const statCategories: { key: string; label: string }[] = [
-            { key: "scoring", label: "POINTS / SCORE" },
-            { key: "attack", label: "ATTAQUE" },
-            { key: "defense", label: "DÉFENSE" },
-            { key: "general", label: "GÉNÉRAL" },
-            { key: "individual", label: "INDIVIDUEL" },
-          ];
+          // Group stats by category for organized display - use sport-specific categories
+          const statCategories = getStatCategories(sport);
 
           for (const statCat of statCategories) {
             const catStats = displayStats.filter(s => s.category === statCat.key);
