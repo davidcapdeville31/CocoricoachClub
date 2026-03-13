@@ -262,8 +262,8 @@ export function AddClipDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clipUrl.trim()) {
-      toast.error("Veuillez saisir l'URL du clip");
+    if (!clipUrl.trim() && !clipFileUrl.trim()) {
+      toast.error("Veuillez uploader un fichier ou saisir l'URL du clip");
       return;
     }
     if (!actionType) {
