@@ -121,7 +121,6 @@ export async function oneSignalLogin(
 ): Promise<void> {
   // ── Always sync server-side first (most reliable — works on any domain) ──
   try {
-    const { supabase } = await import("@/integrations/supabase/client");
     const res = await supabase.functions.invoke("sync-onesignal-tags", {
       body: { user_id: userId },
     });
