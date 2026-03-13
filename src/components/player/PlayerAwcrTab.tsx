@@ -21,6 +21,7 @@ interface PlayerAwcrTabProps {
 }
 
 export function PlayerAwcrTab({ playerId, categoryId }: PlayerAwcrTabProps) {
+  const [isHrvDialogOpen, setIsHrvDialogOpen] = useState(false);
   const { data: awcrData } = useQuery({
     queryKey: ["awcr_tracking", playerId],
     queryFn: async () => {
