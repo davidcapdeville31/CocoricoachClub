@@ -460,8 +460,8 @@ export function AddPlayerDialogWithInvite({
               </div>
             )}
 
-            {/* Athletics disciplines */}
-            {isAthletics && (
+            {/* Disciplines for all sports */}
+            {hasDisciplines && (
               <div className="space-y-2">
                 <Label htmlFor="discipline">Discipline *</Label>
                 <Select 
@@ -474,8 +474,8 @@ export function AddPlayerDialogWithInvite({
                   <SelectTrigger className="w-full bg-background">
                     <SelectValue placeholder="Sélectionner une discipline" />
                   </SelectTrigger>
-                  <SelectContent className="bg-background border z-50">
-                    {ATHLETISME_DISCIPLINES.map((disc) => (
+                  <SelectContent className="bg-background border z-50 max-h-[300px]">
+                    {disciplineOptions.map((disc) => (
                       <SelectItem key={disc.value} value={disc.value}>
                         {disc.label}
                       </SelectItem>
@@ -485,14 +485,14 @@ export function AddPlayerDialogWithInvite({
               </div>
             )}
 
-            {isAthletics && discipline && availableSpecialties.length > 0 && (
+            {hasDisciplines && discipline && availableSpecialties.length > 0 && (
               <div className="space-y-2">
                 <Label htmlFor="specialty">Spécialité *</Label>
                 <Select value={specialty} onValueChange={setSpecialty}>
                   <SelectTrigger className="w-full bg-background">
                     <SelectValue placeholder="Sélectionner une spécialité" />
                   </SelectTrigger>
-                  <SelectContent className="bg-background border z-50">
+                  <SelectContent className="bg-background border z-50 max-h-[300px]">
                     {availableSpecialties.map((spec) => (
                       <SelectItem key={spec.value} value={spec.value}>
                         {spec.label}
