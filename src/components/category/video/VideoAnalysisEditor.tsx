@@ -74,12 +74,12 @@ export function VideoAnalysisEditor({
             </TabsList>
 
             <TabsContent value="clipping" className="mt-4">
-              {videoUrl ? (
+              {effectiveVideoUrl ? (
                 <VideoPlayerWithClipping
                   analysisId={analysisId}
                   categoryId={categoryId}
                   matchId={matchId}
-                  videoUrl={videoUrl}
+                  videoUrl={effectiveVideoUrl}
                   sportType={sportType}
                   onClipCreated={onClipCreated}
                 />
