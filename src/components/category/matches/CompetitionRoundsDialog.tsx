@@ -286,7 +286,7 @@ export function CompetitionRoundsDialog({
 
   // Get players in the lineup for this match
   const { data: lineup } = useQuery({
-    queryKey: ["match_lineup", matchId],
+    queryKey: ["competition_match_lineup", matchId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("match_lineups")
@@ -295,7 +295,7 @@ export function CompetitionRoundsDialog({
       if (error) throw error;
       return data;
     },
-    enabled: !!matchId,
+    enabled: open && !!matchId,
   });
 
   // Get existing rounds
@@ -487,6 +487,7 @@ export function CompetitionRoundsDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["competition_rounds", matchId] });
+      queryClient.invalidateQueries({ queryKey: ["competition_match_lineup", matchId] });
       queryClient.invalidateQueries({ queryKey: ["match_lineup", matchId] });
       queryClient.invalidateQueries({ queryKey: ["awcr_tracking"] });
       toast.success("Données et charge match enregistrées");
