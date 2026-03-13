@@ -100,7 +100,6 @@ export function getOneSignalPermission(): NotificationPermission {
  */
 export async function checkOneSignalSubscriptionStatus(userId: string): Promise<boolean> {
   try {
-    const { supabase } = await import("@/integrations/supabase/client");
     const { data } = await supabase.functions.invoke("check-onesignal-subscriptions", {
       body: { user_ids: [userId] },
     });
@@ -122,7 +121,6 @@ export async function oneSignalLogin(
 ): Promise<void> {
   // ── Always sync server-side first (most reliable — works on any domain) ──
   try {
-    const { supabase } = await import("@/integrations/supabase/client");
     const res = await supabase.functions.invoke("sync-onesignal-tags", {
       body: { user_id: userId },
     });
