@@ -23,7 +23,7 @@ export function VideoAnalysisEditor({
   analysisTitle,
   categoryId,
   matchId,
-  videoUrl,
+  videoFileUrl,
   sportType,
   onBack,
   onClipCreated,
