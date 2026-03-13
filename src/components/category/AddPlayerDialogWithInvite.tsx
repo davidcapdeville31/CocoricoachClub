@@ -232,12 +232,12 @@ export function AddPlayerDialogWithInvite({
       return;
     }
 
-    // Validate discipline for athletics
-    if (isAthletics && !discipline) {
+    // Validate discipline for sports with disciplines
+    if (hasDisciplines && !discipline) {
       setValidationError("Veuillez sélectionner une discipline");
       return;
     }
-    if (isAthletics && discipline && availableSpecialties.length > 0 && !specialty) {
+    if (hasDisciplines && discipline && availableSpecialties.length > 0 && !specialty) {
       setValidationError("Veuillez sélectionner une spécialité");
       return;
     }
