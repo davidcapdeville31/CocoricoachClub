@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -9,7 +11,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Heart } from "lucide-react";
 import { calculateEWMASeries, transformToDailyLoadData } from "@/lib/trainingLoadCalculations";
+import { HrvEntryDialog } from "@/components/category/hrv/HrvEntryDialog";
 
 interface PlayerAwcrTabProps {
   playerId: string;
@@ -17,6 +21,7 @@ interface PlayerAwcrTabProps {
 }
 
 export function PlayerAwcrTab({ playerId, categoryId }: PlayerAwcrTabProps) {
+  const [isHrvDialogOpen, setIsHrvDialogOpen] = useState(false);
   const { data: awcrData } = useQuery({
     queryKey: ["awcr_tracking", playerId],
     queryFn: async () => {
@@ -39,10 +44,23 @@ export function PlayerAwcrTab({ playerId, categoryId }: PlayerAwcrTabProps) {
     <div className="space-y-6">
       <Card className="bg-gradient-card shadow-md">
         <CardHeader>
-          <CardTitle>Historique EWMA</CardTitle>
-          <p className="text-sm text-muted-foreground mt-2">
-            Ratio EWMA = Charge Aiguë (7j) / Charge Chronique (28j) | Zone optimale: 0.85 - 1.30
-          </p>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Historique EWMA</CardTitle>
+              <p className="text-sm text-muted-foreground mt-2">
+                Ratio EWMA = Charge Aiguë (7j) / Charge Chronique (28j) | Zone optimale: 0.85 - 1.30
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsHrvDialogOpen(true)}
+              className="gap-2"
+            >
+              <Heart className="h-4 w-4 text-destructive" />
+              HRV
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {ewmaResults.length > 0 ? (
@@ -94,6 +112,13 @@ export function PlayerAwcrTab({ playerId, categoryId }: PlayerAwcrTabProps) {
           )}
         </CardContent>
       </Card>
+
+      <HrvEntryDialog
+        open={isHrvDialogOpen}
+        onOpenChange={setIsHrvDialogOpen}
+        categoryId={categoryId}
+        defaultPlayerId={playerId}
+      />
     </div>
   );
 }
