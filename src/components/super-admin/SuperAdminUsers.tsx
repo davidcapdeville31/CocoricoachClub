@@ -178,10 +178,11 @@ export function SuperAdminUsers() {
           <p className="text-muted-foreground">Chargement...</p>
         ) : (
           <Table>
-            <TableHeader>
+             <TableHeader>
               <TableRow>
                 <TableHead>Utilisateur</TableHead>
                 <TableHead>Email</TableHead>
+                <TableHead>Téléphone</TableHead>
                 <TableHead>Inscrit le</TableHead>
                 <TableHead>Clubs</TableHead>
                 <TableHead>Statut</TableHead>
