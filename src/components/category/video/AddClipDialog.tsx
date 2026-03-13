@@ -51,6 +51,7 @@ export function AddClipDialog({
 
   const [title, setTitle] = useState("");
   const [clipUrl, setClipUrl] = useState("");
+  const [clipFileUrl, setClipFileUrl] = useState("");
   const [actionType, setActionType] = useState("");
   const [actionCategory, setActionCategory] = useState("");
   const [startMinutes, setStartMinutes] = useState("");
