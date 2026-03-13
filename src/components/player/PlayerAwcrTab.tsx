@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -9,7 +11,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Heart } from "lucide-react";
 import { calculateEWMASeries, transformToDailyLoadData } from "@/lib/trainingLoadCalculations";
+import { HrvEntryDialog } from "@/components/category/hrv/HrvEntryDialog";
 
 interface PlayerAwcrTabProps {
   playerId: string;
