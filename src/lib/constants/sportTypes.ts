@@ -51,6 +51,8 @@ export type SportType =
   | "athletisme_sauts_hauteur"
   | "athletisme_lancers"
   | "athletisme_combines"
+  | "athletisme_trail"
+  | "athletisme_ultra_trail"
   | "athletisme_club"
   | "athletisme_academie"
   | "athletisme_national";
@@ -120,6 +122,8 @@ export const ATHLETISME_DISCIPLINES: PlayerAttributeOption[] = [
   { value: "athletisme_sauts_hauteur", label: "Sauts verticaux" },
   { value: "athletisme_lancers", label: "Lancers" },
   { value: "athletisme_combines", label: "Épreuves combinées" },
+  { value: "athletisme_trail", label: "Trail" },
+  { value: "athletisme_ultra_trail", label: "Ultra-Trail" },
 ];
 
 // Specialties per discipline for athletics
@@ -178,6 +182,18 @@ export const ATHLETISME_SPECIALTIES: Record<string, SpecialtyOption[]> = {
     { value: "pentathlon", label: "Pentathlon" },
     { value: "heptathlon", label: "Heptathlon" },
     { value: "decathlon", label: "Décathlon" },
+  ],
+  athletisme_trail: [
+    { value: "trail_court", label: "Trail court (< 42 km)" },
+    { value: "trail_long", label: "Trail long (42-80 km)" },
+    { value: "trail_vertical", label: "Trail vertical / Kilomètre vertical" },
+    { value: "trail_montagne", label: "Course de montagne" },
+  ],
+  athletisme_ultra_trail: [
+    { value: "ultra_80_100", label: "Ultra 80-100 km" },
+    { value: "ultra_100_plus", label: "Ultra 100+ km" },
+    { value: "ultra_24h", label: "24 heures" },
+    { value: "ultra_multi_etapes", label: "Multi-étapes / Raid" },
   ],
 };
 
@@ -338,6 +354,8 @@ export const SPORT_TYPES: SportTypeOption[] = [
   { value: "athletisme_sauts_hauteur", label: "Athlétisme - Sauts verticaux", category: "individual" },
   { value: "athletisme_lancers", label: "Athlétisme - Lancers", category: "individual" },
   { value: "athletisme_combines", label: "Athlétisme - Épreuves combinées", category: "individual" },
+  { value: "athletisme_trail", label: "Athlétisme - Trail", category: "individual" },
+  { value: "athletisme_ultra_trail", label: "Athlétisme - Ultra-Trail", category: "individual" },
   { value: "athletisme_club", label: "Athlétisme - Club", category: "individual" },
   { value: "athletisme_academie", label: "Athlétisme - Académie", category: "individual" },
   { value: "athletisme_national", label: "Athlétisme - Équipe Nationale", category: "individual" },
@@ -399,6 +417,7 @@ export const isIndividualSport = (type: string): boolean => {
     "athletisme_sprints", "athletisme_haies", "athletisme_demi_fond",
     "athletisme_fond", "athletisme_marche", "athletisme_sauts_longueur",
     "athletisme_sauts_hauteur", "athletisme_lancers", "athletisme_combines",
+    "athletisme_trail", "athletisme_ultra_trail",
     "athletisme_club", "athletisme_academie", "athletisme_national"
   ];
   return individualSports.includes(type);
