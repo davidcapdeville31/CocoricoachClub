@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
-import { Video, Plus, Film, Users, BarChart3, Scissors } from "lucide-react";
+import { Video, Plus, Film, Users, BarChart3, Scissors, Tag } from "lucide-react";
 import { AddVideoAnalysisDialog } from "./AddVideoAnalysisDialog";
 import { VideoAnalysisList } from "./VideoAnalysisList";
 import { VideoClipViewer } from "./VideoClipViewer";
@@ -163,6 +163,13 @@ export function VideoAnalysisTab({ categoryId, sportType }: VideoAnalysisTabProp
               Analyses Matchs
             </ColoredSubTabsTrigger>
             <ColoredSubTabsTrigger 
+              value="themes" 
+              colorKey="video"
+              icon={<Tag className="h-4 w-4" />}
+            >
+              Par Thème
+            </ColoredSubTabsTrigger>
+            <ColoredSubTabsTrigger 
               value="clips" 
               colorKey="video"
               icon={<Film className="h-4 w-4" />}
@@ -190,6 +197,7 @@ export function VideoAnalysisTab({ categoryId, sportType }: VideoAnalysisTabProp
                   categoryId={categoryId}
                   matchId={analysis.matches?.id}
                   videoUrl={analysis.video_url}
+                  videoFileUrl={(analysis as any).video_file_url}
                   sportType={sportType}
                   onBack={() => setEditingAnalysisId(null)}
                   onClipCreated={() => {
@@ -216,6 +224,14 @@ export function VideoAnalysisTab({ categoryId, sportType }: VideoAnalysisTabProp
               onBack={() => setSelectedAnalysisId(null)}
             />
           )}
+        </TabsContent>
+
+        <TabsContent value="themes">
+          <VideoClipViewer
+            categoryId={categoryId}
+            sportType={sportType}
+            showAllClips
+          />
         </TabsContent>
 
         <TabsContent value="clips">

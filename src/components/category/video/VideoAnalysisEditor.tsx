@@ -12,6 +12,7 @@ interface VideoAnalysisEditorProps {
   categoryId: string;
   matchId?: string | null;
   videoUrl?: string | null;
+  videoFileUrl?: string | null;
   sportType?: string;
   onBack: () => void;
   onClipCreated: () => void;
@@ -23,12 +24,14 @@ export function VideoAnalysisEditor({
   categoryId,
   matchId,
   videoUrl,
+  videoFileUrl,
   sportType,
   onBack,
   onClipCreated,
 }: VideoAnalysisEditorProps) {
+  const effectiveVideoUrl = videoFileUrl || videoUrl;
   const [activeMode, setActiveMode] = useState<"clipping" | "import">(
-    videoUrl ? "clipping" : "import"
+    effectiveVideoUrl ? "clipping" : "import"
   );
 
   return (
@@ -71,12 +74,12 @@ export function VideoAnalysisEditor({
             </TabsList>
 
             <TabsContent value="clipping" className="mt-4">
-              {videoUrl ? (
+              {effectiveVideoUrl ? (
                 <VideoPlayerWithClipping
                   analysisId={analysisId}
                   categoryId={categoryId}
                   matchId={matchId}
-                  videoUrl={videoUrl}
+                  videoUrl={effectiveVideoUrl}
                   sportType={sportType}
                   onClipCreated={onClipCreated}
                 />

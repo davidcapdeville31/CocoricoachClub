@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-  Link,
   Clock,
   Users,
   Film,
@@ -28,6 +27,7 @@ import {
   Save,
   BarChart3,
 } from "lucide-react";
+import { VideoFileUpload } from "./VideoFileUpload";
 import { getActionTypesForSport, ACTION_CATEGORIES } from "@/lib/constants/videoActionTypes";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -41,6 +41,7 @@ interface DirectClipImportProps {
 interface ClipToImport {
   id: string;
   clipUrl: string;
+  clipFileUrl: string;
   title: string;
   actionType: string;
   matchId: string | null;
@@ -64,6 +65,7 @@ export function DirectClipImport({
   // Current clip being created
   const [currentClip, setCurrentClip] = useState<Partial<ClipToImport>>({
     clipUrl: "",
+    clipFileUrl: "",
     title: "",
     actionType: "",
     matchId: null,
@@ -171,8 +173,8 @@ export function DirectClipImport({
   };
 
   const addClipToList = () => {
-    if (!currentClip.clipUrl?.trim()) {
-      toast.error("Veuillez saisir l'URL du clip");
+    if (!currentClip.clipUrl?.trim() && !currentClip.clipFileUrl?.trim()) {
+      toast.error("Veuillez uploader un fichier ou saisir l'URL du clip");
       return;
     }
     if (!currentClip.actionType) {
@@ -184,7 +186,8 @@ export function DirectClipImport({
 
     const newClip: ClipToImport = {
       id: crypto.randomUUID(),
-      clipUrl: currentClip.clipUrl || "",
+      clipUrl: currentClip.clipUrl || currentClip.clipFileUrl || "",
+      clipFileUrl: currentClip.clipFileUrl || "",
       title: currentClip.title || selectedAction?.label || "",
       actionType: currentClip.actionType || "",
       matchId: currentClip.matchId || null,
@@ -202,6 +205,7 @@ export function DirectClipImport({
     // Reset form but keep match selection
     setCurrentClip({
       clipUrl: "",
+      clipFileUrl: "",
       title: "",
       actionType: "",
       matchId: currentClip.matchId,
@@ -263,7 +267,8 @@ export function DirectClipImport({
             category_id: categoryId,
             match_id: clip.matchId,
             title: clip.title,
-            clip_url: clip.clipUrl,
+            clip_url: clip.clipUrl || clip.clipFileUrl,
+            video_file_url: clip.clipFileUrl || null,
             start_time_seconds: startTimeSeconds,
             end_time_seconds: endTimeSeconds,
             duration_seconds: endTimeSeconds ? endTimeSeconds - startTimeSeconds : null,
@@ -336,18 +341,19 @@ export function DirectClipImport({
             </Select>
           </div>
 
-          {/* Clip URL */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Link className="h-4 w-4" />
-              URL du clip *
-            </Label>
-            <Input
-              value={currentClip.clipUrl || ""}
-              onChange={(e) => setCurrentClip({ ...currentClip, clipUrl: e.target.value })}
-              placeholder="https://..."
-            />
-          </div>
+          {/* Clip Video */}
+          <VideoFileUpload
+            label="Vidéo du clip *"
+            compact
+            onFileUploaded={(url, source) => {
+              if (source === "upload") {
+                setCurrentClip({ ...currentClip, clipFileUrl: url, clipUrl: url });
+              } else {
+                setCurrentClip({ ...currentClip, clipUrl: url, clipFileUrl: "" });
+              }
+            }}
+            currentUrl={currentClip.clipUrl || currentClip.clipFileUrl || ""}
+          />
 
           {/* Action Type */}
           <div className="space-y-2">

@@ -22,7 +22,8 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Film, Clock, Users, Link, Plus, X } from "lucide-react";
+import { Film, Clock, Users, Plus, X } from "lucide-react";
+import { VideoFileUpload } from "./VideoFileUpload";
 import { getActionTypesForSport, ACTION_CATEGORIES, getActionTypeLabel } from "@/lib/constants/videoActionTypes";
 import { Badge } from "@/components/ui/badge";
 
@@ -50,6 +51,7 @@ export function AddClipDialog({
 
   const [title, setTitle] = useState("");
   const [clipUrl, setClipUrl] = useState("");
+  const [clipFileUrl, setClipFileUrl] = useState("");
   const [actionType, setActionType] = useState("");
   const [actionCategory, setActionCategory] = useState("");
   const [startMinutes, setStartMinutes] = useState("");
@@ -200,7 +202,8 @@ export function AddClipDialog({
           category_id: categoryId,
           match_id: matchId || null,
           title: title || actionLabel,
-          clip_url: clipUrl,
+          clip_url: clipUrl || clipFileUrl,
+          video_file_url: clipFileUrl || null,
           start_time_seconds: startTimeSeconds,
           end_time_seconds: endTimeSeconds,
           duration_seconds: endTimeSeconds ? endTimeSeconds - startTimeSeconds : null,
@@ -243,6 +246,7 @@ export function AddClipDialog({
   const resetForm = () => {
     setTitle("");
     setClipUrl("");
+    setClipFileUrl("");
     setActionType("");
     setActionCategory("");
     setStartMinutes("");
@@ -258,8 +262,8 @@ export function AddClipDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clipUrl.trim()) {
-      toast.error("Veuillez saisir l'URL du clip");
+    if (!clipUrl.trim() && !clipFileUrl.trim()) {
+      toast.error("Veuillez uploader un fichier ou saisir l'URL du clip");
       return;
     }
     if (!actionType) {
@@ -288,21 +292,21 @@ export function AddClipDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Clip URL */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Link className="h-4 w-4" />
-              URL du clip *
-            </Label>
-            <Input
-              value={clipUrl}
-              onChange={(e) => setClipUrl(e.target.value)}
-              placeholder="https://..."
-            />
-            <p className="text-xs text-muted-foreground">
-              Lien vers le clip pré-découpé (VEO, YouTube, Vimeo...)
-            </p>
-          </div>
+          {/* Clip Video */}
+          <VideoFileUpload
+            label="Vidéo du clip *"
+            compact
+            onFileUploaded={(url, source) => {
+              if (source === "upload") {
+                setClipFileUrl(url);
+                setClipUrl(url); // use same for clip_url
+              } else {
+                setClipUrl(url);
+                setClipFileUrl("");
+              }
+            }}
+            currentUrl={clipUrl || clipFileUrl}
+          />
 
           {/* Action Type - Grouped by category */}
           <div className="space-y-2">
