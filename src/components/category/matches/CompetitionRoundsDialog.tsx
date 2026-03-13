@@ -487,6 +487,7 @@ export function CompetitionRoundsDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["competition_rounds", matchId] });
+      queryClient.invalidateQueries({ queryKey: ["competition_match_lineup", matchId] });
       queryClient.invalidateQueries({ queryKey: ["match_lineup", matchId] });
       queryClient.invalidateQueries({ queryKey: ["awcr_tracking"] });
       toast.success("Données et charge match enregistrées");
