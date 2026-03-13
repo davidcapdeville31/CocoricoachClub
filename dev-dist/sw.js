@@ -79,7 +79,7 @@ define(['./workbox-a959eb95'], (function (workbox) { 'use strict';
    */
   workbox.precacheAndRoute([{
     "url": "index.html",
-    "revision": "0.pn9ue26l8m"
+    "revision": "0.q15fdc8vfh"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
@@ -87,10 +87,10 @@ define(['./workbox-a959eb95'], (function (workbox) { 'use strict';
   }));
   workbox.registerRoute(/^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i, new workbox.NetworkFirst({
     "cacheName": "supabase-api-cache",
-    "networkTimeoutSeconds": 10,
+    "networkTimeoutSeconds": 15,
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 100,
-      maxAgeSeconds: 86400
+      maxEntries: 500,
+      maxAgeSeconds: 172800
     }), new workbox.CacheableResponsePlugin({
       statuses: [0, 200]
     })]
@@ -98,8 +98,8 @@ define(['./workbox-a959eb95'], (function (workbox) { 'use strict';
   workbox.registerRoute(/^https:\/\/.*\.supabase\.co\/storage\/.*/i, new workbox.CacheFirst({
     "cacheName": "supabase-storage-cache",
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 200,
-      maxAgeSeconds: 604800
+      maxEntries: 500,
+      maxAgeSeconds: 1209600
     }), new workbox.CacheableResponsePlugin({
       statuses: [0, 200]
     })]
@@ -107,21 +107,21 @@ define(['./workbox-a959eb95'], (function (workbox) { 'use strict';
   workbox.registerRoute(/^https:\/\/fonts\.googleapis\.com\/.*/i, new workbox.CacheFirst({
     "cacheName": "google-fonts-cache",
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 20,
+      maxEntries: 30,
       maxAgeSeconds: 31536000
     })]
   }), 'GET');
   workbox.registerRoute(/^https:\/\/fonts\.gstatic\.com\/.*/i, new workbox.CacheFirst({
     "cacheName": "gstatic-fonts-cache",
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 20,
+      maxEntries: 30,
       maxAgeSeconds: 31536000
     })]
   }), 'GET');
   workbox.registerRoute(/\.(?:png|jpg|jpeg|svg|gif|webp)$/i, new workbox.CacheFirst({
     "cacheName": "images-cache",
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 100,
+      maxEntries: 300,
       maxAgeSeconds: 2592000
     })]
   }), 'GET');
