@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/sonner";
-import { Users, CheckCircle2, XCircle, Clock, Crown, Gift, UserX, Trash2 } from "lucide-react";
+import { Users, CheckCircle2, XCircle, Clock, Crown, Gift, UserX, Trash2, Phone } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
