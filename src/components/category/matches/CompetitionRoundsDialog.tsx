@@ -23,7 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Trash2, Trophy, Target, BarChart3, Swords, Circle, Ship, Users, Droplet, CheckCircle, Lock } from "lucide-react";
-import { getStatsForSport, getStatCategories, getAggregatedStatsForSport, getAthletismeStatsForDiscipline, ATHLETISME_PHASES, type StatField } from "@/lib/constants/sportStats";
+import { getStatsForSport, getStatCategories, getAggregatedStatsForSport, getAthletismeStatsForDiscipline, ATHLETISME_PHASES, ATHLETISME_GENERAL_STATS, type StatField } from "@/lib/constants/sportStats";
 import { useStatPreferences } from "@/hooks/use-stat-preferences";
 import { BowlingOilPatternSection } from "./BowlingOilPatternSection";
 import { BowlingScoreSheet, FrameData, BowlingStats } from "@/components/athlete-portal/BowlingScoreSheet";
@@ -149,8 +149,25 @@ export function CompetitionRoundsDialog({
   // Get discipline-specific stats for a player (athletics: each athlete may have different stats)
   const getPlayerStats = (player: PlayerRounds): StatField[] => {
     if (isAthletics) {
-      const disc = player.specialty || player.discipline;
-      return getAthletismeStatsForDiscipline(disc);
+      // Try specialty first (e.g. "100mH", "200m", "poids"), then discipline (e.g. "athletisme_haies")
+      const specStats = getAthletismeStatsForDiscipline(player.specialty);
+      if (player.specialty && specStats !== ATHLETISME_GENERAL_STATS) {
+        return specStats;
+      }
+      // Fallback to discipline field
+      const discStats = getAthletismeStatsForDiscipline(player.discipline);
+      if (player.discipline && discStats !== ATHLETISME_GENERAL_STATS) {
+        return discStats;
+      }
+      // Last resort: try discipline without prefix (athletisme_haies -> haies)
+      if (player.discipline) {
+        const stripped = player.discipline.replace(/^athletisme_/, '');
+        const strippedStats = getAthletismeStatsForDiscipline(stripped);
+        if (strippedStats !== ATHLETISME_GENERAL_STATS) {
+          return strippedStats;
+        }
+      }
+      return specStats; // Falls back to general
     }
     return sportStats;
   };
