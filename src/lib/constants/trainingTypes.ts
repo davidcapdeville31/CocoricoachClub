@@ -36,6 +36,14 @@ export const SPORT_TRAINING_CATEGORIES: TrainingTypeCategory[] = [
   { key: "judo", label: "Judo", forSports: ["judo"] },
   // Bowling
   { key: "bowling", label: "Bowling", forSports: ["bowling"] },
+  // Padel
+  { key: "padel", label: "Padel", forSports: ["padel"] },
+  // Natation
+  { key: "natation", label: "Natation", forSports: ["natation"] },
+  // Ski / Sports de Glisse
+  { key: "ski", label: "Sports de Glisse", forSports: ["ski"] },
+  // Triathlon
+  { key: "triathlon", label: "Triathlon", forSports: ["triathlon"] },
   // CrossFit / Hyrox / Musculation categories
   { key: "crossfit_wod", label: "WOD / CrossFit", forSports: ["crossfit"] },
   { key: "crossfit_hyrox", label: "Hyrox / Fonctionnel", forSports: ["crossfit"] },
