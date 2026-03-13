@@ -114,9 +114,32 @@ export function AddPlayerDialogWithInvite({
   const isAthletics = categoryData?.rugby_type ? isAthletismeCategory(categoryData.rugby_type) : false;
   const isJudo = categoryData?.rugby_type ? isJudoCategory(categoryData.rugby_type) : false;
   const isAviron = sportType.toLowerCase().includes("aviron");
+  const isNatation = categoryData?.rugby_type ? isNatationCategory(categoryData.rugby_type) : false;
+  const isSki = categoryData?.rugby_type ? isSkiCategory(categoryData.rugby_type) : false;
+  const isTriathlon = categoryData?.rugby_type ? isTriathlonCategory(categoryData.rugby_type) : false;
+  const isPadel = categoryData?.rugby_type ? isPadelCategory(categoryData.rugby_type) : false;
   const isTeamSport = !isIndividualSport(sportType);
   const positions = getPositionsForSport(sportType);
-  const availableSpecialties = discipline && isAthletics ? ATHLETISME_SPECIALTIES[discipline] || [] : [];
+  
+  // Determine which discipline list to use
+  const getDisciplineOptions = () => {
+    if (isAthletics) return ATHLETISME_DISCIPLINES;
+    if (isNatation) return NATATION_DISCIPLINES;
+    if (isSki) return SKI_DISCIPLINES;
+    if (isTriathlon) return TRIATHLON_DISCIPLINES;
+    return [];
+  };
+  const hasDisciplines = isAthletics || isNatation || isSki || isTriathlon;
+  const disciplineOptions = getDisciplineOptions();
+  
+  // Determine specialties
+  const getSpecialtyOptions = () => {
+    if (!discipline) return [];
+    if (isAthletics) return ATHLETISME_SPECIALTIES[discipline] || [];
+    if (isNatation) return NATATION_SPECIALTIES[discipline] || [];
+    return [];
+  };
+  const availableSpecialties = getSpecialtyOptions();
 
   const resetForm = () => {
     setFirstName("");
