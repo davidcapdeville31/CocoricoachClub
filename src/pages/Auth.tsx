@@ -170,7 +170,8 @@ export default function Auth() {
       const validated = signUpSchema.parse({ 
         email: signupEmail, 
         password: signupPassword, 
-        fullName 
+        fullName,
+        phone: signupPhone,
       });
 
       const { error } = await supabase.auth.signUp({
@@ -180,6 +181,7 @@ export default function Auth() {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             full_name: validated.fullName,
+            phone: validated.phone || undefined,
           },
         },
       });
