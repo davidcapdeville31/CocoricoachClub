@@ -50,6 +50,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
   const [hasSpecificPain, setHasSpecificPain] = useState(false);
   const [painLocation, setPainLocation] = useState("");
   const [notes, setNotes] = useState("");
+  const [hrvData, setHrvData] = useState<HrvData>(emptyHrvData);
 
   const { data: players } = useQuery({
     queryKey: ["players", categoryId],
