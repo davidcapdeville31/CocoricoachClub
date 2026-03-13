@@ -22,7 +22,8 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Film, Clock, Users, Link, Plus, X } from "lucide-react";
+import { Film, Clock, Users, Plus, X } from "lucide-react";
+import { VideoFileUpload } from "./VideoFileUpload";
 import { getActionTypesForSport, ACTION_CATEGORIES, getActionTypeLabel } from "@/lib/constants/videoActionTypes";
 import { Badge } from "@/components/ui/badge";
 
