@@ -2013,12 +2013,18 @@ function StatoDynamiqueBlock({
             {/* Isometric hold config */}
             <div className="border rounded-lg p-3 bg-amber-50 dark:bg-amber-950/20">
               <p className="text-xs font-medium text-amber-700 dark:text-amber-400 mb-2">⏱ Phase isométrique</p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <Label className="text-xs text-muted-foreground">Durée maintien (s)</Label>
                   <Input type="number" min="1" max="10" className="h-8 text-xs" placeholder="3-5"
                     value={exercise.tempo || ""}
                     onChange={(e) => onUpdateExercise(exerciseIndex, "tempo", e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Angle articulaire (°)</Label>
+                  <Input className="h-8 text-xs" placeholder="Ex: 90°, mi-course..."
+                    value={exercise.notes || ""}
+                    onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)} />
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">RPE cible</Label>
