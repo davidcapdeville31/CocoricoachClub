@@ -510,7 +510,8 @@ export function ImprovedCalendarView({
                       onDeleteMatch={(matchId) => onDeleteMatch?.(matchId)}
                     />
                   ))}
-                </div>
+              </div>
+              </div>
               </div>
             ) : viewMode === "week" ? (
               // Weekly View - Enhanced design
