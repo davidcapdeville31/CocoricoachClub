@@ -134,15 +134,15 @@ export function DailyCalendarView({
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
         
-        <div className="relative p-6">
+        <div className="relative p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {/* Large date number */}
-              <div className="flex flex-col items-center justify-center h-20 w-20 rounded-2xl bg-white/20 backdrop-blur-sm">
-                <span className="text-3xl font-bold text-white">
+              <div className="flex flex-col items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-white/20 backdrop-blur-sm">
+                <span className="text-2xl sm:text-3xl font-bold text-white">
                   {format(day, "d")}
                 </span>
-                <span className="text-xs font-medium text-white/80 uppercase">
+                <span className="text-[10px] sm:text-xs font-medium text-white/80 uppercase">
                   {format(day, "MMM", { locale: fr })}
                 </span>
               </div>
@@ -153,7 +153,7 @@ export function DailyCalendarView({
                     {relativeDay}
                   </span>
                 )}
-                <p className="text-2xl font-bold text-white capitalize">
+                <p className="text-xl sm:text-2xl font-bold text-white capitalize">
                   {format(day, "EEEE", { locale: fr })}
                 </p>
                 <p className="text-white/70 text-sm">

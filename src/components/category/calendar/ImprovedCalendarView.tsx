@@ -325,14 +325,17 @@ export function ImprovedCalendarView({
     <>
       <Card className="bg-gradient-card shadow-lg border-0" ref={calendarRef}>
         <CardHeader className="pb-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <CardTitle className="flex items-center gap-2">
+          <div className="flex flex-col gap-3">
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
               <CalendarIcon className="h-5 w-5 text-primary" />
-              {isIndividualSport(sportType || "") 
-                ? "Calendrier des entraînements et compétitions" 
-                : "Calendrier des entraînements et matchs"}
+              <span className="hidden sm:inline">
+                {isIndividualSport(sportType || "") 
+                  ? "Calendrier des entraînements et compétitions" 
+                  : "Calendrier des entraînements et matchs"}
+              </span>
+              <span className="sm:hidden">Calendrier</span>
             </CardTitle>
-            <div className="flex items-center gap-2 flex-wrap" data-no-print>
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap" data-no-print>
               {/* Filters */}
               <Popover>
                 <PopoverTrigger asChild>
@@ -399,7 +402,7 @@ export function ImprovedCalendarView({
 
               {/* View Mode Selector */}
               <Select value={viewMode} onValueChange={(v) => setViewMode(v as "month" | "week" | "day")}>
-                <SelectTrigger className="w-[130px] h-9">
+                <SelectTrigger className="w-[100px] sm:w-[130px] h-9 text-xs sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -470,13 +473,14 @@ export function ImprovedCalendarView({
           >
             {viewMode === "month" ? (
               // Monthly View
-              <div className="border rounded-xl overflow-hidden shadow-sm">
+              <div className="border rounded-xl overflow-x-auto shadow-sm">
+                <div className="min-w-[640px]">
                 {/* Header row */}
                 <div className="grid grid-cols-7 bg-muted/70">
                   {DAYS_OF_WEEK.map((day) => (
                     <div
                       key={day}
-                      className="p-3 text-center text-sm font-semibold text-muted-foreground border-b"
+                      className="p-1.5 sm:p-3 text-center text-xs sm:text-sm font-semibold text-muted-foreground border-b"
                     >
                       {day}
                     </div>
@@ -506,11 +510,12 @@ export function ImprovedCalendarView({
                       onDeleteMatch={(matchId) => onDeleteMatch?.(matchId)}
                     />
                   ))}
-                </div>
+              </div>
+              </div>
               </div>
             ) : viewMode === "week" ? (
               // Weekly View - Enhanced design
-              <div className="grid grid-cols-7 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
                 {calendarDays.map((day, index) => {
                   const daySessions = getSessionsForDay(day);
                   const dayMatches = getMatchesForDay(day);
