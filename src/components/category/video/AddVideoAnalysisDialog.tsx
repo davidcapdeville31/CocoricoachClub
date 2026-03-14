@@ -176,12 +176,15 @@ export function AddVideoAnalysisDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] flex flex-col overflow-hidden p-0">
-        <DialogHeader className="flex-shrink-0">
+        <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             <Video className="h-5 w-5" />
             Nouvelle Analyse Vidéo
           </DialogTitle>
         </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <ScrollArea className="flex-1 px-6">
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
           <ScrollArea className="flex-1 pr-4">
