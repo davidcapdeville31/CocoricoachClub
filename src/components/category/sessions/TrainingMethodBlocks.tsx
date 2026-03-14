@@ -1712,7 +1712,7 @@ function IsoMaxBlock({
         </div>
         {exercise.exercise_name && (
           <div className="space-y-3">
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <div>
                 <Label className="text-xs text-muted-foreground">Séries</Label>
                 <Input type="number" min="1" className="h-8 text-xs"
@@ -1724,6 +1724,14 @@ function IsoMaxBlock({
                   value={exercise.reps || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "reps", e.target.value)} />
               </div>
               <div>
+                <Label className="text-xs text-muted-foreground">Repos (s)</Label>
+                <Input type="number" min="0" className="h-8 text-xs"
+                  value={exercise.rest_seconds || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "rest_seconds", parseInt(e.target.value) || null)} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
                 <Label className="text-xs text-muted-foreground">%1RM</Label>
                 <Input type="number" min="0" max="100" className="h-8 text-xs" placeholder="85-100"
                   value={exercise.weight_percent_rm || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "weight_percent_rm", parseInt(e.target.value) || null)} />
@@ -1733,14 +1741,32 @@ function IsoMaxBlock({
                 <Input type="number" min="0" step="0.5" className="h-8 text-xs"
                   value={exercise.weight_kg || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "weight_kg", parseFloat(e.target.value) || null)} />
               </div>
-              <div>
-                <Label className="text-xs text-muted-foreground">Repos (s)</Label>
-                <Input type="number" min="0" className="h-8 text-xs"
-                  value={exercise.rest_seconds || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "rest_seconds", parseInt(e.target.value) || null)} />
+            </div>
+
+            {/* Iso Max specific: angle and position */}
+            <div className="border rounded-lg p-3 bg-zinc-50 dark:bg-zinc-900/20">
+              <p className="text-xs font-medium text-zinc-700 dark:text-zinc-400 mb-2">📐 Position isométrique</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Angle articulaire (°)</Label>
+                  <Input className="h-8 text-xs" placeholder="Ex: 90°, point de blocage..."
+                    value={exercise.tempo || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "tempo", e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">RPE cible</Label>
+                  <Input type="number" min="1" max="10" className="h-8 text-xs" placeholder="9-10"
+                    value={exercise.target_rpe || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)} />
+                </div>
+              </div>
+              <div className="mt-2">
+                <Label className="text-xs text-muted-foreground">Notes position</Label>
+                <Input className="h-8 text-xs" placeholder="Ex: Maintien au point de blocage, sticking point..."
+                  value={exercise.notes || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)} />
               </div>
             </div>
-            <div className="border rounded-lg p-3 bg-zinc-50 dark:bg-zinc-900/20">
-              <p className="text-xs font-medium text-zinc-700 dark:text-zinc-400">🔥 Charge lourde (85-100% 1RM) — maintenez la contraction maximale le plus longtemps possible</p>
+
+            <div className="border rounded-lg p-2 bg-zinc-100 dark:bg-zinc-800/30">
+              <p className="text-[11px] text-zinc-600 dark:text-zinc-400">🔥 Charge lourde (85-100% 1RM) — maintenez la contraction maximale le plus longtemps possible</p>
             </div>
           </div>
         )}
