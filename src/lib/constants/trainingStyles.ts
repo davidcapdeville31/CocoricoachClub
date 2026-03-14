@@ -238,6 +238,19 @@ export const TRAINING_STYLES: TrainingStyleConfig[] = [
       methodeAccumulation: true, methodeIntensification: true,
     }
   },
+  { 
+    value: "iso_max", 
+    label: "Iso Max", 
+    color: "bg-zinc-600",
+    borderColor: "border-zinc-600",
+    bgColor: "bg-zinc-600/10",
+    description: "Contraction isométrique maximale maintenue le plus longtemps possible contre une charge lourde (85-100% 1RM).",
+    characteristics: {
+      effortPercu: 5, hypertrophie: 3, forcePuissance: 5, enduranceMusculaire: 3,
+      vitesse: 1, stressNerveux: 5, stressMecanique: 5, experienceRequise: 4,
+      methodeAccumulation: false, methodeIntensification: true,
+    }
+  },
   // CrossFit / Cardio methods
   { 
     value: "amrap", 
