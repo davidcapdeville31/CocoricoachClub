@@ -26,6 +26,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Video, Calendar, Users } from "lucide-react";
 import { VideoFileUpload } from "./VideoFileUpload";
+import { getVideoTerminology } from "@/lib/constants/videoActionTypes";
 
 interface AddVideoAnalysisDialogProps {
   open: boolean;
