@@ -1619,17 +1619,25 @@ function IsometricYieldingBlock({
         </div>
         {exercise.exercise_name && (
           <div className="space-y-3">
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <div>
                 <Label className="text-xs text-muted-foreground">Séries</Label>
                 <Input type="number" min="1" className="h-8 text-xs"
                   value={exercise.sets || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "sets", parseInt(e.target.value) || 1)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Durée (s)</Label>
+                <Label className="text-xs text-muted-foreground">Durée maintien (s)</Label>
                 <Input type="number" min="1" className="h-8 text-xs" placeholder="20-60"
                   value={exercise.reps || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "reps", e.target.value)} />
               </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Repos (s)</Label>
+                <Input type="number" min="0" className="h-8 text-xs"
+                  value={exercise.rest_seconds || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "rest_seconds", parseInt(e.target.value) || null)} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
               <div>
                 <Label className="text-xs text-muted-foreground">%1RM</Label>
                 <Input type="number" min="0" max="100" className="h-8 text-xs" placeholder="60-80"
@@ -1640,14 +1648,32 @@ function IsometricYieldingBlock({
                 <Input type="number" min="0" step="0.5" className="h-8 text-xs"
                   value={exercise.weight_kg || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "weight_kg", parseFloat(e.target.value) || null)} />
               </div>
-              <div>
-                <Label className="text-xs text-muted-foreground">Repos (s)</Label>
-                <Input type="number" min="0" className="h-8 text-xs"
-                  value={exercise.rest_seconds || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "rest_seconds", parseInt(e.target.value) || null)} />
+            </div>
+
+            {/* Yielding specific: angle and position */}
+            <div className="border rounded-lg p-3 bg-slate-50 dark:bg-slate-900/20">
+              <p className="text-xs font-medium text-slate-700 dark:text-slate-400 mb-2">📐 Position de maintien</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Angle articulaire (°)</Label>
+                  <Input className="h-8 text-xs" placeholder="Ex: 90°, 120°, mi-course..."
+                    value={exercise.tempo || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "tempo", e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">RPE cible</Label>
+                  <Input type="number" min="1" max="10" className="h-8 text-xs" placeholder="7-9"
+                    value={exercise.target_rpe || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)} />
+                </div>
+              </div>
+              <div className="mt-2">
+                <Label className="text-xs text-muted-foreground">Notes position</Label>
+                <Input className="h-8 text-xs" placeholder="Ex: Pause en bas du squat, coudes à 90°..."
+                  value={exercise.notes || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)} />
               </div>
             </div>
-            <div className="border rounded-lg p-3 bg-slate-50 dark:bg-slate-900/20">
-              <p className="text-xs font-medium text-slate-700 dark:text-slate-400">⏱ Maintenez la position à l'angle prescrit — le temps sous tension est la variable clé</p>
+
+            <div className="border rounded-lg p-2 bg-slate-100 dark:bg-slate-800/30">
+              <p className="text-[11px] text-slate-600 dark:text-slate-400">⏱ Maintenez la charge à l'angle prescrit — le temps sous tension est la variable clé</p>
             </div>
           </div>
         )}
