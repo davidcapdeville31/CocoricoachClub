@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Calendar, BarChart3, Settings2 } from "lucide-react";
+import { Plus, Calendar, BarChart3, Settings2, Dumbbell } from "lucide-react";
 import { AddMatchCalendarDialog } from "./matches/AddMatchCalendarDialog";
 import { MatchCard } from "./matches/MatchCard";
 import { PlayerCumulativeStats } from "./matches/PlayerCumulativeStats";
@@ -13,6 +13,10 @@ import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { useViewerMatches } from "@/hooks/use-viewer-data";
 import { StatPreferencesDialog } from "./settings/StatPreferencesDialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { format } from "date-fns";
 
 interface MatchesTabProps {
   categoryId: string;
@@ -23,6 +27,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isStatPrefsOpen, setIsStatPrefsOpen] = useState(false);
   const { isViewer } = useViewerModeContext();
+  const queryClient = useQueryClient();
 
   // Check if this is an individual sport (judo, bowling)
   const isIndividual = isIndividualSport(sportType || "");
