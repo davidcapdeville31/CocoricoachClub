@@ -266,7 +266,7 @@ export function AddVideoAnalysisDialog({
                           htmlFor={`player-${player.id}`}
                           className="text-sm cursor-pointer flex items-center gap-2"
                         >
-                          {player.name}
+                          {player.first_name ? `${player.first_name} ${player.name}` : player.name}
                           {player.position && (
                             <span className="text-xs text-muted-foreground">
                               ({player.position})
