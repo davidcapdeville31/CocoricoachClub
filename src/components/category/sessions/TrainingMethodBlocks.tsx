@@ -1441,8 +1441,18 @@ function FartlekBlock({
                   onChange={(e) => onUpdateBlockConfig(groupId, "work_seconds", parseInt(e.target.value) || 30)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">RPE cible</Label>
+                <Label className="text-xs text-muted-foreground">RPE cible effort</Label>
                 <Input type="number" min="1" max="10" className="h-8 text-sm" placeholder="7" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground">Allure (km/h ou min/km)</Label>
+                <Input type="text" className="h-8 text-sm" placeholder="ex: 14 km/h ou 4:15/km" />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">FC cible (bpm)</Label>
+                <Input type="number" min="60" max="220" className="h-8 text-sm" placeholder="170" />
               </div>
             </div>
           </div>
@@ -1450,10 +1460,26 @@ function FartlekBlock({
           {/* Recovery phase */}
           <div className="border rounded-lg p-3 bg-green-50 dark:bg-green-950/20 space-y-3">
             <p className="text-sm font-medium text-green-600 dark:text-green-400">🌿 Phase de récupération</p>
-            <div>
-              <Label className="text-xs text-muted-foreground">Durée récupération (s)</Label>
-              <Input type="number" min="5" className="h-8 text-sm" value={restSeconds}
-                onChange={(e) => onUpdateBlockConfig(groupId, "rest_seconds", parseInt(e.target.value) || 30)} />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground">Durée récupération (s)</Label>
+                <Input type="number" min="5" className="h-8 text-sm" value={restSeconds}
+                  onChange={(e) => onUpdateBlockConfig(groupId, "rest_seconds", parseInt(e.target.value) || 30)} />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">RPE cible récup</Label>
+                <Input type="number" min="1" max="10" className="h-8 text-sm" placeholder="3" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground">Allure (km/h ou min/km)</Label>
+                <Input type="text" className="h-8 text-sm" placeholder="ex: 8 km/h ou 7:30/km" />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">FC cible (bpm)</Label>
+                <Input type="number" min="60" max="220" className="h-8 text-sm" placeholder="130" />
+              </div>
             </div>
           </div>
         </>
