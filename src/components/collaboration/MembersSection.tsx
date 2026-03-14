@@ -111,7 +111,7 @@ export function MembersSection({ clubId, canManage }: MembersSectionProps) {
 
       if (categories && categories.length > 0) {
         const categoryIds = categories.map((c) => c.id);
-        await (supabase as any)
+        await supabase
           .from("category_members")
           .delete()
           .eq("user_id", member.user_id)
