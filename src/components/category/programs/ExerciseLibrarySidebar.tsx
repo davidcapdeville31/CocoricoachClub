@@ -17,6 +17,7 @@ import { Dumbbell, Search, GripVertical, Plus } from "lucide-react";
 import { useDraggable } from "@dnd-kit/core";
 import { 
   CATEGORY_GROUPS, 
+  EXERCISE_SUBCATEGORIES,
   getCategoriesByGroup, 
   isCategoryForSport, 
   getCategoryColor,
