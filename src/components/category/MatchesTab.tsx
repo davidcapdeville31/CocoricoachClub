@@ -1,17 +1,21 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Calendar, BarChart3, Settings2 } from "lucide-react";
+import { Plus, Calendar, BarChart3, Settings2, Dumbbell } from "lucide-react";
 import { AddMatchCalendarDialog } from "./matches/AddMatchCalendarDialog";
 import { MatchCard } from "./matches/MatchCard";
 import { PlayerCumulativeStats } from "./matches/PlayerCumulativeStats";
-import { isFuture, isPast } from "date-fns";
+import { BowlingCumulativeStats } from "@/components/bowling/BowlingCumulativeStats";
+import { isFuture, isPast, format } from "date-fns";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { useViewerMatches } from "@/hooks/use-viewer-data";
 import { StatPreferencesDialog } from "./settings/StatPreferencesDialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface MatchesTabProps {
   categoryId: string;
@@ -22,6 +26,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isStatPrefsOpen, setIsStatPrefsOpen] = useState(false);
   const { isViewer } = useViewerModeContext();
+  const queryClient = useQueryClient();
 
   // Check if this is an individual sport (judo, bowling)
   const isIndividual = isIndividualSport(sportType || "");
@@ -34,6 +39,26 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
   const itemLabelPluralCapital = isIndividual ? "Compétitions" : "Matchs";
 
   const { data: matches, isLoading } = useViewerMatches(categoryId);
+
+  // Create bowling training match
+  const createBowlingTraining = useMutation({
+    mutationFn: async () => {
+      const today = format(new Date(), "yyyy-MM-dd");
+      const { error } = await supabase.from("matches").insert({
+        category_id: categoryId,
+        opponent: `Entraînement ${format(new Date(), "dd/MM/yyyy")}`,
+        match_date: today,
+        event_type: "training",
+        is_home: true,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
+      toast.success("Entraînement bowling créé ! Ajoutez des joueurs puis saisissez les parties.");
+    },
+    onError: () => toast.error("Erreur lors de la création"),
+  });
 
   // Filter out sub-matches (they are displayed within their parent match)
   const parentMatches = matches?.filter((m) => !m.parent_match_id) || [];
@@ -67,7 +92,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                   Gestion des {itemLabelPlural}
                 </CardTitle>
                 {!isViewer && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {!isBowling && (
                       <Button 
                         variant="outline" 
@@ -77,6 +102,17 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                       >
                         <Settings2 className="h-4 w-4" />
                         <span className="hidden sm:inline">Personnaliser stats</span>
+                      </Button>
+                    )}
+                    {isBowling && (
+                      <Button 
+                        variant="outline"
+                        onClick={() => createBowlingTraining.mutate()}
+                        disabled={createBowlingTraining.isPending}
+                        className="gap-2"
+                      >
+                        <Dumbbell className="h-4 w-4" />
+                        <span className="hidden sm:inline">Entraînement</span>
                       </Button>
                     )}
                     <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
@@ -135,7 +171,11 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
         </TabsContent>
 
         <TabsContent value="stats">
-          <PlayerCumulativeStats categoryId={categoryId} sportType={sportType} />
+          {isBowling ? (
+            <BowlingCumulativeStats categoryId={categoryId} />
+          ) : (
+            <PlayerCumulativeStats categoryId={categoryId} sportType={sportType} />
+          )}
         </TabsContent>
       </Tabs>
 
