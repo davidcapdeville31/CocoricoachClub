@@ -169,17 +169,17 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
           .select("training_session_id, exercise_name")
           .in("training_session_id", sessionIds);
 
-        const countMap = new Map<string, number>();
+        const nameMap = new Map<string, Set<string>>();
         exerciseCounts?.forEach((ex: any) => {
-          if (!countMap.has(ex.training_session_id)) {
-            countMap.set(ex.training_session_id, new Set<string>());
+          if (!nameMap.has(ex.training_session_id)) {
+            nameMap.set(ex.training_session_id, new Set<string>());
           }
-          (countMap.get(ex.training_session_id) as any).add(ex.exercise_name);
+          nameMap.get(ex.training_session_id)!.add(ex.exercise_name);
         });
 
-        const finalCountMap = new Map<string, number>();
-        countMap.forEach((val, key) => {
-          finalCountMap.set(key, (val as any).size);
+        const countMap = new Map<string, number>();
+        nameMap.forEach((names, id) => {
+          countMap.set(id, names.size);
         });
 
         return data?.map((s) => ({
