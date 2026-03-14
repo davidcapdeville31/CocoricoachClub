@@ -54,7 +54,7 @@ export function InvitationsSection({ clubId, canManage }: InvitationsSectionProp
 
   const deleteInvitation = useMutation({
     mutationFn: async (invitationId: string) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("club_invitations")
         .delete()
         .eq("id", invitationId);
