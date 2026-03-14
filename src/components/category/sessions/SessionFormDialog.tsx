@@ -1578,11 +1578,11 @@ export function SessionFormDialog({
                <Label className="text-xs text-muted-foreground">Méthode</Label>
                <TrainingMethodSelect
                  value={exercise.set_type}
-                 onValueChange={(v) => {
-                   if (LINKABLE_METHODS.includes(v) || CARDIO_BLOCK_METHODS.includes(v)) {
-                     removeExercise(index);
-                     createMethodBlock(v);
-                   } else if (DROP_METHODS.includes(v)) {
+                  onValueChange={(v) => {
+                    if (LINKABLE_METHODS.includes(v) || CARDIO_BLOCK_METHODS.includes(v)) {
+                      // Replace current exercise with a new method block in a single state update
+                      replaceExerciseWithMethodBlock(index, v);
+                    } else if (DROP_METHODS.includes(v)) {
                      initDropSets(index, v);
                    } else if (CLUSTER_METHODS.includes(v)) {
                      initClusterSets(index, v);
