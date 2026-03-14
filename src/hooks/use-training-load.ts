@@ -130,6 +130,30 @@ export function useTrainingLoad({
     },
   });
 
+  // Fetch HRV data
+  const { data: hrvData, isLoading: hrvLoading } = useQuery({
+    queryKey: ["training-load-hrv", categoryId, playerId, periodDays],
+    queryFn: async () => {
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - periodDays);
+
+      let query = supabase
+        .from("hrv_records")
+        .select("*")
+        .eq("category_id", categoryId)
+        .gte("record_date", startDate.toISOString().split("T")[0])
+        .order("record_date", { ascending: true });
+
+      if (playerId) {
+        query = query.eq("player_id", playerId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   // Fetch GPS data
   const { data: gpsData, isLoading: gpsLoading } = useQuery({
     queryKey: ["training-load-gps", categoryId, playerId, periodDays],
@@ -154,8 +178,9 @@ export function useTrainingLoad({
     },
   });
 
-  // Check if GPS data exists
+  // Check if data exists
   const hasGpsData = (gpsData?.length || 0) > 0;
+  const hasHrvData = (hrvData?.length || 0) > 0;
   const availableMetrics = getAvailableMetrics(sportType, hasGpsData);
 
   // Transform and calculate
