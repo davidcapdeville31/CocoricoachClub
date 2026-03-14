@@ -258,7 +258,7 @@ export function CreatePollDialog({ open, onOpenChange, conversationId, categoryI
                 )}
 
                 <Button
-                  onClick={() => createPoll.mutate()}
+                  onClick={() => createPoll.mutate(undefined)}
                   disabled={createPoll.isPending || !question.trim() || options.filter(o => o.trim()).length < 2}
                   className="w-full"
                 >

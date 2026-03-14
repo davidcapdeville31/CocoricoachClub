@@ -162,7 +162,7 @@ export function PollSummaryPanel({ conversationId, categoryId }: PollSummaryPane
         </div>
         <div className="space-y-1">
           <div className="flex items-center justify-center gap-1 text-yellow-600">
-            <HelpCircle className="h-3.5 w-3.5" />
+            <HelpCircle className="h-3.5 w-3.5 text-amber-500" />
             <span className="font-bold text-lg">{nonVoters.length}</span>
           </div>
           <p className="text-muted-foreground">Sans réponse</p>
