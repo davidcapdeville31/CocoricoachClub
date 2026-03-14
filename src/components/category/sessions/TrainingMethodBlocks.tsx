@@ -308,7 +308,7 @@ function ExerciseSlotCard({
             
             {/* Sets, Reps, Weight - only show if exercise has name */}
             {hasExercise && exercise && (
-              <div className={cn("grid gap-2", isVbt ? "grid-cols-6" : "grid-cols-4")}>
+              <div className={cn("grid gap-2", isVbt ? "grid-cols-6" : "grid-cols-5")}>
                 <div>
                   <Label className="text-xs text-muted-foreground">Séries</Label>
                   <Input
@@ -328,21 +328,25 @@ function ExerciseSlotCard({
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">{isVbt ? "Kg" : "%1RM"}</Label>
+                  <Label className="text-xs text-muted-foreground">%1RM</Label>
                   <Input
                     type="number"
                     min="0"
-                    max={isVbt ? undefined : 100}
-                    step={isVbt ? "0.5" : "1"}
+                    max={100}
                     className="h-8 text-xs"
-                    value={isVbt ? (exercise.weight_kg || "") : (exercise.weight_percent_rm || "")}
-                    onChange={(e) => {
-                      if (isVbt) {
-                        onUpdateExercise(exerciseIndex, "weight_kg", parseFloat(e.target.value) || null);
-                      } else {
-                        onUpdateExercise(exerciseIndex, "weight_percent_rm", parseInt(e.target.value) || null);
-                      }
-                    }}
+                    value={exercise.weight_percent_rm || ""}
+                    onChange={(e) => onUpdateExercise(exerciseIndex, "weight_percent_rm", parseInt(e.target.value) || null)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Kg</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    className="h-8 text-xs"
+                    value={exercise.weight_kg || ""}
+                    onChange={(e) => onUpdateExercise(exerciseIndex, "weight_kg", parseFloat(e.target.value) || null)}
                   />
                 </div>
                 {isVbt && (
