@@ -152,17 +152,18 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
   const teamAvgDuration = playerStats.length > 0
     ? Math.round(playerStats.reduce((s, p) => s + p.avgDuration, 0) / playerStats.length * 10) / 10
     : 0;
-  const playersWithPoorSleep = playerStats.filter(p => p.avgQuality < 3);
+  const playersWithPoorSleep = playerStats.filter(p => p.avgQuality >= 3.5); // 1=best, >=3.5 = poor
 
+  // Color functions: 1=best (green), 5=worst (red)
   const getQualityColor = (score: number) => {
-    if (score >= 4) return "text-green-600";
-    if (score >= 3) return "text-amber-600";
+    if (score <= 2) return "text-green-600";
+    if (score <= 3) return "text-amber-600";
     return "text-red-600";
   };
 
   const getQualityBg = (score: number) => {
-    if (score >= 4) return "bg-green-500/10 border-green-500/30";
-    if (score >= 3) return "bg-amber-500/10 border-amber-500/30";
+    if (score <= 2) return "bg-green-500/10 border-green-500/30";
+    if (score <= 3) return "bg-amber-500/10 border-amber-500/30";
     return "bg-red-500/10 border-red-500/30";
   };
 
