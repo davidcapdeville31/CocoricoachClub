@@ -30,6 +30,7 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
   const [selectedMetric, setSelectedMetric] = useState<MetricType>("ewma_srpe");
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | undefined>();
   const [periodDays, setPeriodDays] = useState<number>(56);
+  const [isHrvDialogOpen, setIsHrvDialogOpen] = useState(false);
 
 
   // Sync metric when model changes
