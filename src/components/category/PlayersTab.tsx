@@ -290,11 +290,17 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
               </Select>
             )}
             {!isViewer && (
-              <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2 whitespace-nowrap">
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Ajouter un athlète</span>
-                <span className="sm:hidden">Ajouter</span>
-              </Button>
+              <>
+                <Button onClick={() => setIsBulkDialogOpen(true)} variant="outline" className="gap-2 whitespace-nowrap">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  <span className="hidden sm:inline">Import Excel</span>
+                </Button>
+                <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2 whitespace-nowrap">
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden sm:inline">Ajouter un athlète</span>
+                  <span className="sm:hidden">Ajouter</span>
+                </Button>
+              </>
             )}
           </div>
         </div>
