@@ -21,15 +21,15 @@ export class ErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     this.setState({ error, errorInfo });
-    // Keep a console log for debugging in preview environments.
-    // eslint-disable-next-line no-console
-    console.error("Unhandled UI error:", error, errorInfo);
+    console.error("[ErrorBoundary] Unhandled UI error:", error.name, error.message);
+    console.error("[ErrorBoundary] Stack:", error.stack);
+    console.error("[ErrorBoundary] Component stack:", errorInfo.componentStack);
   }
 
   private copyDetails = async () => {
     const { error, errorInfo } = this.state;
     const details = [
-      "RugbyStrength Planner - erreur UI",
+      "CocoriCoach - erreur UI",
       `URL: ${window.location.href}`,
       `Date: ${new Date().toISOString()}`,
       "",
@@ -54,10 +54,23 @@ export class ErrorBoundary extends React.Component<
             <Alert>
               <AlertTitle>Écran bloqué</AlertTitle>
               <AlertDescription>
-                L’application a rencontré une erreur. Vous pouvez recharger la page ou copier les détails
+                L'application a rencontré une erreur. Vous pouvez recharger la page ou copier les détails
                 pour que je puisse identifier la cause exacte.
               </AlertDescription>
             </Alert>
+
+            {this.state.error && (
+              <div className="bg-muted p-3 rounded-lg text-xs font-mono text-muted-foreground max-h-40 overflow-y-auto">
+                <p className="font-semibold text-destructive">
+                  {this.state.error.name}: {this.state.error.message}
+                </p>
+                {this.state.errorInfo?.componentStack && (
+                  <pre className="mt-2 whitespace-pre-wrap text-[10px]">
+                    {this.state.errorInfo.componentStack.split('\n').slice(0, 8).join('\n')}
+                  </pre>
+                )}
+              </div>
+            )}
 
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => window.location.reload()}>
@@ -73,14 +86,13 @@ export class ErrorBoundary extends React.Component<
               >
                 Copier les détails
               </Button>
-              <Button variant="ghost" onClick={() => (window.location.href = "/auth")}>
-                Retour connexion
+              <Button variant="ghost" onClick={() => (window.location.href = "/")}>
+                Retour accueil
               </Button>
             </div>
 
             <div className="text-sm text-muted-foreground">
-              Astuce: si cela arrive juste après connexion, c’est souvent lié à une donnée manquante ou à un droit
-              d’accès sur une requête.
+              Astuce : copiez les détails et partagez-les pour un diagnostic rapide.
             </div>
           </CardContent>
         </Card>
