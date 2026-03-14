@@ -154,7 +154,7 @@ export function MembersSection({ clubId, canManage }: MembersSectionProps) {
         const categoryIds = categories.map((c) => c.id);
         await supabase
           .from("category_members")
-          .update({ role: newRole })
+          .update({ role: newRole as any })
           .eq("user_id", userId)
           .in("category_id", categoryIds);
       }
