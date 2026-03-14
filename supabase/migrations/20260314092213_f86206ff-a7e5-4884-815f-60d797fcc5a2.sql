@@ -1,0 +1,1 @@
+ALTER TABLE public.exercise_library DROP CONSTRAINT exercise_library_subcategory_check;
