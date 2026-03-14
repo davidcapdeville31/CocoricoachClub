@@ -295,7 +295,7 @@ export function AddVideoAnalysisDialog({
             </div>
           </ScrollArea>
 
-          <div className="flex justify-end gap-2 pt-4 border-t flex-shrink-0">
+          <div className="flex justify-end gap-2 p-6 pt-4 border-t flex-shrink-0">
             <Button
               type="button"
               variant="outline"
