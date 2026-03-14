@@ -244,7 +244,7 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
             <p className={`text-2xl font-bold ${playersWithPoorSleep.length > 0 ? "text-red-600" : "text-green-600"}`}>
               {playersWithPoorSleep.length}
             </p>
-            <p className="text-xs text-muted-foreground">joueur{playersWithPoorSleep.length > 1 ? "s" : ""} &lt; 3/5</p>
+            <p className="text-xs text-muted-foreground">joueur{playersWithPoorSleep.length > 1 ? "s" : ""} ≥ 3.5/5</p>
           </CardContent>
         </Card>
 
