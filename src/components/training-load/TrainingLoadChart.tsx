@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { 
   LineChart, 
   Line, 
@@ -19,7 +21,7 @@ import {
 } from "recharts";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Activity, Satellite } from "lucide-react";
+import { Activity, Satellite, Heart } from "lucide-react";
 import { 
   MetricType, 
   EWMAResult, 
@@ -33,6 +35,7 @@ interface TrainingLoadChartProps {
   selectedMetric: MetricType;
   onMetricChange: (metric: MetricType) => void;
   hasGpsData: boolean;
+  hasHrvData?: boolean;
   isLoading?: boolean;
   showZones?: boolean;
   height?: number;
@@ -83,6 +86,38 @@ const CustomTooltip = ({ active, payload, label }: any) => {
              data.riskLevel === "warning" ? "Vigilance" : "Danger"}
           </Badge>
         </div>
+        {/* HRV data in tooltip */}
+        {(data.hrvMs != null || data.avgHrBpm != null || data.maxHrBpm != null) && (
+          <div className="pt-1 border-t space-y-1">
+            <div className="flex items-center gap-1 text-xs font-medium text-destructive">
+              <Heart className="h-3 w-3" /> Données cardiaques
+            </div>
+            {data.hrvMs != null && (
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">HRV:</span>
+                <span className="font-semibold">{data.hrvMs} ms</span>
+              </div>
+            )}
+            {data.restingHrBpm != null && (
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">FC repos:</span>
+                <span className="font-semibold">{data.restingHrBpm} bpm</span>
+              </div>
+            )}
+            {data.avgHrBpm != null && (
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">FC moy:</span>
+                <span className="font-semibold">{data.avgHrBpm} bpm</span>
+              </div>
+            )}
+            {data.maxHrBpm != null && (
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">FC max:</span>
+                <span className="font-semibold">{data.maxHrBpm} bpm</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -94,11 +129,13 @@ export function TrainingLoadChart({
   selectedMetric,
   onMetricChange,
   hasGpsData,
+  hasHrvData = false,
   isLoading = false,
   showZones = true,
   height = 350,
 }: TrainingLoadChartProps) {
   const [viewMode, setViewMode] = useState<"ratio" | "loads">("ratio");
+  const [showHrvOverlay, setShowHrvOverlay] = useState(true);
   const metricConfig = METRICS_CONFIG[selectedMetric];
 
   // Format data for chart
@@ -106,6 +143,10 @@ export function TrainingLoadChart({
     ...d,
     dateFormatted: format(parseISO(d.date), "dd/MM", { locale: fr }),
   }));
+
+  // Check if any data point has HRV values
+  const dataHasHrv = formattedData.some(d => d.hrvMs != null || d.avgHrBpm != null);
+  const showHrv = hasHrvData && showHrvOverlay && dataHasHrv;
 
   // GPS metrics info
   const gpsMetrics = availableMetrics.filter(m => METRICS_CONFIG[m].isGps);
@@ -192,13 +233,29 @@ export function TrainingLoadChart({
           {metricConfig.description || `${metricConfig.label} - Suivi de la charge d'entraînement basé sur ${metricConfig.isGps ? 'les données GPS' : 'la perception de l\'effort (RPE)'}.`}
         </div>
 
-        {/* View mode toggle */}
-        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "ratio" | "loads")} className="mb-4">
-          <TabsList className="grid w-full max-w-xs grid-cols-2">
-            <TabsTrigger value="ratio">Ratio</TabsTrigger>
-            <TabsTrigger value="loads">Charges</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* View mode toggle + HRV toggle */}
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "ratio" | "loads")}>
+            <TabsList className="grid w-full max-w-xs grid-cols-2">
+              <TabsTrigger value="ratio">Ratio</TabsTrigger>
+              <TabsTrigger value="loads">Charges</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          {dataHasHrv && (
+            <div className="flex items-center gap-2">
+              <Checkbox 
+                id="hrv-overlay" 
+                checked={showHrvOverlay}
+                onCheckedChange={(checked) => setShowHrvOverlay(checked === true)}
+              />
+              <Label htmlFor="hrv-overlay" className="text-sm flex items-center gap-1 cursor-pointer">
+                <Heart className="h-3.5 w-3.5 text-destructive" />
+                FC / HRV
+              </Label>
+            </div>
+          )}
+        </div>
 
         {formattedData.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -214,35 +271,41 @@ export function TrainingLoadChart({
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="dateFormatted" className="text-xs" />
                   <YAxis 
+                    yAxisId="left"
                     domain={[0.5, 2]} 
                     className="text-xs"
                     tickFormatter={(v) => v.toFixed(1)}
                   />
+                  {showHrv && (
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      className="text-xs"
+                      tickFormatter={(v) => `${v}`}
+                      label={{ value: "bpm / ms", angle: 90, position: "insideRight", style: { fontSize: 10 } }}
+                    />
+                  )}
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
 
                   {/* Colored zones */}
                   {showZones && (
                     <>
-                      {/* Danger zone low */}
-                      <ReferenceArea y1={0.5} y2={0.8} fill="hsl(0, 84%, 60%)" fillOpacity={0.1} />
-                      {/* Warning zone low */}
-                      <ReferenceArea y1={0.8} y2={0.85} fill="hsl(45, 93%, 47%)" fillOpacity={0.1} />
-                      {/* Optimal zone */}
-                      <ReferenceArea y1={0.85} y2={1.3} fill="hsl(142, 76%, 36%)" fillOpacity={0.1} />
-                      {/* Warning zone high */}
-                      <ReferenceArea y1={1.3} y2={1.5} fill="hsl(45, 93%, 47%)" fillOpacity={0.1} />
-                      {/* Danger zone high */}
-                      <ReferenceArea y1={1.5} y2={2} fill="hsl(0, 84%, 60%)" fillOpacity={0.1} />
+                      <ReferenceArea yAxisId="left" y1={0.5} y2={0.8} fill="hsl(0, 84%, 60%)" fillOpacity={0.1} />
+                      <ReferenceArea yAxisId="left" y1={0.8} y2={0.85} fill="hsl(45, 93%, 47%)" fillOpacity={0.1} />
+                      <ReferenceArea yAxisId="left" y1={0.85} y2={1.3} fill="hsl(142, 76%, 36%)" fillOpacity={0.1} />
+                      <ReferenceArea yAxisId="left" y1={1.3} y2={1.5} fill="hsl(45, 93%, 47%)" fillOpacity={0.1} />
+                      <ReferenceArea yAxisId="left" y1={1.5} y2={2} fill="hsl(0, 84%, 60%)" fillOpacity={0.1} />
                     </>
                   )}
 
                   {/* Reference lines */}
-                  <ReferenceLine y={0.85} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
-                  <ReferenceLine y={1.0} stroke="hsl(var(--primary))" strokeDasharray="5 5" strokeWidth={1.5} />
-                  <ReferenceLine y={1.3} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
+                  <ReferenceLine yAxisId="left" y={0.85} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
+                  <ReferenceLine yAxisId="left" y={1.0} stroke="hsl(var(--primary))" strokeDasharray="5 5" strokeWidth={1.5} />
+                  <ReferenceLine yAxisId="left" y={1.3} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
 
                   <Line
+                    yAxisId="left"
                     type="monotone"
                     dataKey="ratio"
                     stroke="hsl(var(--primary))"
@@ -251,6 +314,33 @@ export function TrainingLoadChart({
                     activeDot={{ r: 6 }}
                     name={selectedMetric.startsWith("awcr_") ? "Ratio AWCR" : "Ratio EWMA"}
                   />
+
+                  {/* HRV overlay lines */}
+                  {showHrv && (
+                    <>
+                      <Line
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="avgHrBpm"
+                        stroke="hsl(0, 84%, 60%)"
+                        strokeWidth={1.5}
+                        strokeDasharray="4 4"
+                        dot={{ r: 2 }}
+                        connectNulls
+                        name="FC moy (bpm)"
+                      />
+                      <Line
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="hrvMs"
+                        stroke="hsl(280, 67%, 55%)"
+                        strokeWidth={1.5}
+                        dot={{ r: 2 }}
+                        connectNulls
+                        name="HRV (ms)"
+                      />
+                    </>
+                  )}
                 </ComposedChart>
               </ResponsiveContainer>
             ) : (
@@ -258,11 +348,21 @@ export function TrainingLoadChart({
                 <ComposedChart data={formattedData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="dateFormatted" className="text-xs" />
-                  <YAxis className="text-xs" />
+                  <YAxis yAxisId="left" className="text-xs" />
+                  {showHrv && (
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      className="text-xs"
+                      tickFormatter={(v) => `${v}`}
+                      label={{ value: "bpm / ms", angle: 90, position: "insideRight", style: { fontSize: 10 } }}
+                    />
+                  )}
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
 
                   <Area
+                    yAxisId="left"
                     type="monotone"
                     dataKey="chronic"
                     fill="hsl(var(--muted))"
@@ -272,6 +372,7 @@ export function TrainingLoadChart({
                     name="Chronique (28j)"
                   />
                   <Line
+                    yAxisId="left"
                     type="monotone"
                     dataKey="acute"
                     stroke="hsl(var(--primary))"
@@ -280,6 +381,7 @@ export function TrainingLoadChart({
                     name="Aiguë (7j)"
                   />
                   <Line
+                    yAxisId="left"
                     type="monotone"
                     dataKey="rawValue"
                     stroke="hsl(var(--accent))"
@@ -288,6 +390,33 @@ export function TrainingLoadChart({
                     dot={{ r: 1 }}
                     name="Charge brute"
                   />
+
+                  {/* HRV overlay lines */}
+                  {showHrv && (
+                    <>
+                      <Line
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="avgHrBpm"
+                        stroke="hsl(0, 84%, 60%)"
+                        strokeWidth={1.5}
+                        strokeDasharray="4 4"
+                        dot={{ r: 2 }}
+                        connectNulls
+                        name="FC moy (bpm)"
+                      />
+                      <Line
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="hrvMs"
+                        stroke="hsl(280, 67%, 55%)"
+                        strokeWidth={1.5}
+                        dot={{ r: 2 }}
+                        connectNulls
+                        name="HRV (ms)"
+                      />
+                    </>
+                  )}
                 </ComposedChart>
               </ResponsiveContainer>
             )}
@@ -306,6 +435,18 @@ export function TrainingLoadChart({
                 <div className="w-3 h-3 rounded bg-red-500/30" />
                 <span>Zone danger</span>
               </div>
+              {dataHasHrv && showHrvOverlay && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded" style={{ backgroundColor: "hsl(0, 84%, 60%)" }} />
+                    <span>FC moyenne</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded" style={{ backgroundColor: "hsl(280, 67%, 55%)" }} />
+                    <span>HRV</span>
+                  </div>
+                </>
+              )}
             </div>
           </>
         )}

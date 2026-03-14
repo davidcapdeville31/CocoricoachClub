@@ -67,6 +67,7 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
     summary, 
     availableMetrics, 
     hasGpsData,
+    hasHrvData,
     sportType,
     isLoading 
   } = useTrainingLoad({
@@ -245,6 +246,7 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
             selectedMetric={selectedMetric}
             onMetricChange={setSelectedMetric}
             hasGpsData={hasGpsData}
+            hasHrvData={hasHrvData}
             isLoading={isLoading}
           />
         </TabsContent>

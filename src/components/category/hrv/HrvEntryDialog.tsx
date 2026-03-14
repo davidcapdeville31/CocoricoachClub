@@ -93,6 +93,7 @@ export function HrvEntryDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["hrv_records", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["training-load-hrv", categoryId] });
       toast.success("Données HRV enregistrées !");
       resetForm();
       onOpenChange(false);
