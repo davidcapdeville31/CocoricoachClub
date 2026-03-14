@@ -666,33 +666,45 @@ export function SessionFeedbackDialog({
 
                         {test.test_type && playersToShow.length > 0 && (
                           <div className="grid grid-cols-2 gap-2">
-                            {playersToShow.map((player) => (
-                              <div
-                                key={player.id}
-                                className={cn(
-                                  "flex items-center gap-2 p-2 rounded-lg border",
-                                  test.player_results[player.id]
-                                    ? "border-emerald-300 bg-emerald-50/50"
-                                    : "border-border"
-                                )}
-                              >
-                                <Avatar className="h-5 w-5 shrink-0">
-                                  <AvatarImage src={player.avatar_url || undefined} />
-                                  <AvatarFallback className="text-[10px]">
-                                    {(player.first_name || player.name).slice(0, 2).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <span className="text-xs truncate flex-1">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  placeholder={test.result_unit || "val"}
-                                  className="h-6 w-16 text-xs"
-                                  value={test.player_results[player.id] || ""}
-                                  onChange={(e) => updatePlayerTestResult(test.id, player.id, e.target.value)}
-                                />
-                              </div>
-                            ))}
+                            {playersToShow.map((player) => {
+                              const isSaved = test.savedPlayerIds?.has(player.id) || false;
+                              const hasValue = !!test.player_results[player.id];
+                              return (
+                                <div
+                                  key={player.id}
+                                  className={cn(
+                                    "flex items-center gap-2 p-2 rounded-lg border",
+                                    isSaved
+                                      ? "border-muted bg-muted/60 opacity-60"
+                                      : hasValue
+                                        ? "border-emerald-300 bg-emerald-50/50"
+                                        : "border-border"
+                                  )}
+                                >
+                                  <Avatar className="h-5 w-5 shrink-0">
+                                    <AvatarImage src={player.avatar_url || undefined} />
+                                    <AvatarFallback className="text-[10px]">
+                                      {(player.first_name || player.name).slice(0, 2).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span className="text-xs truncate flex-1">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
+                                  {isSaved ? (
+                                    <span className="text-xs font-medium text-muted-foreground">
+                                      ✓ {test.player_results[player.id]} {test.result_unit}
+                                    </span>
+                                  ) : (
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      placeholder={test.result_unit || "val"}
+                                      className="h-6 w-16 text-xs"
+                                      value={test.player_results[player.id] || ""}
+                                      onChange={(e) => updatePlayerTestResult(test.id, player.id, e.target.value)}
+                                    />
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
