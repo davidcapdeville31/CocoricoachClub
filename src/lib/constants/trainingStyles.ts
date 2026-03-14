@@ -251,6 +251,19 @@ export const TRAINING_STYLES: TrainingStyleConfig[] = [
       methodeAccumulation: false, methodeIntensification: true,
     }
   },
+  { 
+    value: "combine_haltero", 
+    label: "Combiné Haltéro", 
+    color: "bg-amber-600",
+    borderColor: "border-amber-600",
+    bgColor: "bg-amber-600/10",
+    description: "Enchaînement de mouvements d'haltérophilie (épaulé, arraché, jeté) dans une même série sans reposer la barre.",
+    characteristics: {
+      effortPercu: 5, hypertrophie: 3, forcePuissance: 5, enduranceMusculaire: 3,
+      vitesse: 5, stressNerveux: 5, stressMecanique: 5, experienceRequise: 5,
+      methodeAccumulation: false, methodeIntensification: true,
+    }
+  },
   // CrossFit / Cardio methods
   { 
     value: "amrap", 
