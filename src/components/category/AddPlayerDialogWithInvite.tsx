@@ -559,22 +559,6 @@ export function AddPlayerDialogWithInvite({
               />
             </div>
             
-            {/* Birth Year */}
-            <div className="space-y-2">
-              <Label htmlFor="birthYear">Année de naissance</Label>
-              <Input
-                id="birthYear"
-                type="number"
-                value={birthYear}
-                onChange={(e) => {
-                  setBirthYear(e.target.value);
-                  setValidationError("");
-                }}
-                placeholder="Ex: 2010"
-                min="1950"
-                max={new Date().getFullYear()}
-              />
-            </div>
 
             {/* Send Invitation Checkbox */}
             <div className="flex items-center space-x-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
