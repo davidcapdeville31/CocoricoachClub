@@ -278,7 +278,7 @@ export function AddVideoAnalysisDialog({
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Sélectionnez les joueurs pour filtrer leurs clips associés
+                  Sélectionnez les {terminology.playersLabel.toLowerCase()} pour filtrer leurs clips associés
                 </p>
               </div>
 
