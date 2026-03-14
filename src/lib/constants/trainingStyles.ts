@@ -334,6 +334,47 @@ export const TRAINING_STYLES: TrainingStyleConfig[] = [
       methodeAccumulation: false, methodeIntensification: true,
     }
   },
+  // Cardio interval methods
+  { 
+    value: "intermittent_cardio", 
+    label: "Intermittent Cardio", 
+    color: "bg-sky-600",
+    borderColor: "border-sky-600",
+    bgColor: "bg-sky-600/10",
+    description: "Intervalles effort/récupération avec intensité et durée définies. Supporte course, vélo et natation.",
+    characteristics: {
+      effortPercu: 4, hypertrophie: 1, forcePuissance: 1, enduranceMusculaire: 5,
+      vitesse: 4, stressNerveux: 3, stressMecanique: 2, experienceRequise: 2,
+      methodeAccumulation: true, methodeIntensification: false,
+    }
+  },
+  { 
+    value: "fartlek", 
+    label: "Fartlek", 
+    color: "bg-green-600",
+    borderColor: "border-green-600",
+    bgColor: "bg-green-600/10",
+    description: "Alternance libre ou structurée d'efforts variables et de récupérations actives.",
+    characteristics: {
+      effortPercu: 4, hypertrophie: 1, forcePuissance: 1, enduranceMusculaire: 5,
+      vitesse: 3, stressNerveux: 2, stressMecanique: 2, experienceRequise: 1,
+      methodeAccumulation: true, methodeIntensification: false,
+    }
+  },
+  // Isometric/dynamic combination
+  { 
+    value: "stato_dynamique", 
+    label: "Stato-dynamique", 
+    color: "bg-amber-600",
+    borderColor: "border-amber-600",
+    bgColor: "bg-amber-600/10",
+    description: "Maintien isométrique (3-5s) suivi d'une phase concentrique explosive. Développe la force et la puissance.",
+    characteristics: {
+      effortPercu: 4, hypertrophie: 3, forcePuissance: 5, enduranceMusculaire: 2,
+      vitesse: 4, stressNerveux: 5, stressMecanique: 4, experienceRequise: 4,
+      methodeAccumulation: false, methodeIntensification: true,
+    }
+  },
 ];
 
 // Helper functions
