@@ -1108,7 +1108,7 @@ export function SessionFormDialog({
       .map((e, i) => ({ ...e, order_index: i }));
     const startIndex = remainingExercises.length;
 
-    const isPyramidOrSpecial = isDropMethod(method) || method === "five_by_five" || method === "death_by" || method === "vbt";
+    const isPyramidOrSpecial = isDropMethod(method) || method === "five_by_five" || method === "death_by" || method === "vbt" || SPECIAL_METHODS.includes(method);
     const minExercises = isPyramidOrSpecial ? 1 : getMinExercisesForMethod(method);
 
     let newExercises: Exercise[];
