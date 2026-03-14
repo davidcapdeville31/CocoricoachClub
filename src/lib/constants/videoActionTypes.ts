@@ -449,6 +449,66 @@ export function getMatchStatsKeysForSport(sportType?: string): { key: string; la
       { key: "stroke_rate", label: "Cadence" },
     ];
   }
+
+  if (sport.includes("athletisme") || sport.includes("athlétisme")) {
+    return [
+      { key: "time", label: "Temps" },
+      { key: "distance", label: "Distance" },
+      { key: "attempts", label: "Essais" },
+      { key: "personal_best", label: "Record perso" },
+    ];
+  }
+
+  if (sport.includes("judo")) {
+    return [
+      { key: "ippons", label: "Ippons" },
+      { key: "waza_aris", label: "Waza-ari" },
+      { key: "throws", label: "Projections" },
+      { key: "shidos", label: "Shidos" },
+    ];
+  }
+
+  if (sport.includes("natation")) {
+    return [
+      { key: "time", label: "Temps" },
+      { key: "splits", label: "Passages" },
+      { key: "stroke_count", label: "Coups" },
+      { key: "turns", label: "Virages" },
+    ];
+  }
+
+  if (sport.includes("ski") || sport.includes("snow")) {
+    return [
+      { key: "time", label: "Temps" },
+      { key: "gates", label: "Portes" },
+      { key: "gap", label: "Écart" },
+    ];
+  }
+
+  if (sport.includes("triathlon")) {
+    return [
+      { key: "swim_time", label: "Natation" },
+      { key: "bike_time", label: "Vélo" },
+      { key: "run_time", label: "Course" },
+      { key: "transitions", label: "Transitions" },
+    ];
+  }
+
+  if (sport.includes("bowling")) {
+    return [
+      { key: "score", label: "Score" },
+      { key: "strikes", label: "Strikes" },
+      { key: "spares", label: "Spares" },
+    ];
+  }
+
+  if (sport.includes("padel")) {
+    return [
+      { key: "points_won", label: "Points gagnés" },
+      { key: "smashes", label: "Smashes" },
+      { key: "errors", label: "Fautes" },
+    ];
+  }
   
   return [];
 }
