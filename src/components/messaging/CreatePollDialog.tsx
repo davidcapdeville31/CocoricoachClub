@@ -94,25 +94,11 @@ export function CreatePollDialog({ open, onOpenChange, conversationId, categoryI
       if (!q) throw new Error("Question requise");
       if (opts.length < 2) throw new Error("Minimum 2 options");
 
-      const { data: msg, error: msgErr } = await supabase
-        .from("messages")
-        .insert({
-          conversation_id: conversationId,
-          sender_id: user.id,
-          content: `📊 **Sondage** : ${q}`,
-          message_type: "poll",
-          is_announcement: false,
-          read_by: [user.id],
-        })
-        .select()
-        .single();
-      if (msgErr) throw msgErr;
-
+      // Create poll first (without message_id)
       const { data: poll, error: pollErr } = await supabase
         .from("polls")
         .insert({
           conversation_id: conversationId,
-          message_id: msg.id,
           created_by: user.id,
           question: q,
           poll_type: pType,
@@ -124,7 +110,24 @@ export function CreatePollDialog({ open, onOpenChange, conversationId, categoryI
         .single();
       if (pollErr) throw pollErr;
 
-      await supabase.from("messages").update({ poll_id: poll.id }).eq("id", msg.id);
+      // Create message with poll_id already set
+      const { data: msg, error: msgErr } = await supabase
+        .from("messages")
+        .insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content: `📊 Sondage : ${q}`,
+          message_type: "poll",
+          poll_id: poll.id,
+          is_announcement: false,
+          read_by: [user.id],
+        })
+        .select()
+        .single();
+      if (msgErr) throw msgErr;
+
+      // Update poll with message_id
+      await supabase.from("polls").update({ message_id: msg.id }).eq("id", poll.id);
 
       const optionRows = opts.map((label, idx) => ({
         poll_id: poll.id,
