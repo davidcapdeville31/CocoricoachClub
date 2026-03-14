@@ -36,6 +36,10 @@ interface SessionTest {
   test_type: string;
   result_unit: string;
   player_results: Record<string, string>;
+  /** Which player results are already saved in DB (read-only) */
+  savedPlayerIds?: Set<string>;
+  /** Whether the entire test row was loaded from existing data */
+  isExisting?: boolean;
 }
 
 export function SessionFeedbackDialog({
@@ -202,11 +206,14 @@ export function SessionFeedbackDialog({
             test_type: t.test_type,
             result_unit: t.result_unit || "",
             player_results: {},
+            savedPlayerIds: new Set<string>(),
+            isExisting: true,
           });
         }
         const group = testGroups.get(key)!;
         if (t.player_id && t.result_value != null) {
           group.player_results[t.player_id] = t.result_value.toString();
+          group.savedPlayerIds!.add(t.player_id);
         }
       });
       setSessionTests(Array.from(testGroups.values()));
@@ -310,6 +317,8 @@ export function SessionFeedbackDialog({
         if (!test.test_type) return;
         
         Object.entries(test.player_results).forEach(([playerId, resultValue]) => {
+          // Skip already-saved results
+          if (test.savedPlayerIds?.has(playerId)) return;
           if (!resultValue || resultValue.trim() === "") return;
           
           testRecords.push({
@@ -447,11 +456,15 @@ export function SessionFeedbackDialog({
   );
 
   const hasTestResults = sessionTests.some(t => 
-    t.test_type && Object.values(t.player_results).some(v => v && v.trim() !== "")
+    t.test_type && Object.entries(t.player_results).some(([pid, v]) => v && v.trim() !== "" && !t.savedPlayerIds?.has(pid))
   );
 
   const testResultsCount = sessionTests.reduce((acc, t) => 
-    acc + Object.values(t.player_results).filter(v => v && v.trim() !== "").length, 0
+    acc + Object.entries(t.player_results).filter(([pid, v]) => v && v.trim() !== "" && !t.savedPlayerIds?.has(pid)).length, 0
+  );
+
+  const savedTestResultsCount = sessionTests.reduce((acc, t) => 
+    acc + (t.savedPlayerIds?.size || 0), 0
   );
 
   return (
@@ -478,9 +491,14 @@ export function SessionFeedbackDialog({
             <TabsTrigger value="tests" className="flex-1 gap-2">
               <ClipboardCheck className="h-4 w-4" />
               Tests
+              {savedTestResultsCount > 0 && (
+                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs bg-muted text-muted-foreground">
+                  ✓ {savedTestResultsCount}
+                </Badge>
+              )}
               {testResultsCount > 0 && (
                 <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs bg-emerald-100 text-emerald-700">
-                  {testResultsCount}
+                  +{testResultsCount}
                 </Badge>
               )}
             </TabsTrigger>
@@ -576,7 +594,8 @@ export function SessionFeedbackDialog({
                 <div className="space-y-3">
                   {sessionTests.map((test, idx) => {
                     const currentCategory = testCategories.find(c => c.value === test.test_category);
-                    const filledCount = Object.values(test.player_results).filter(v => v && v.trim() !== "").length;
+                    const savedCount = test.savedPlayerIds?.size || 0;
+                    const newFilledCount = Object.entries(test.player_results).filter(([pid, v]) => v && v.trim() !== "" && !test.savedPlayerIds?.has(pid)).length;
 
                     return (
                       <div
@@ -588,9 +607,14 @@ export function SessionFeedbackDialog({
                             <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-xs">
                               {idx + 1}
                             </div>
-                            {test.test_type && (
-                              <Badge variant="outline" className="text-xs">
-                                {filledCount}/{playersToShow.length} résultats
+                            {test.test_type && savedCount > 0 && (
+                              <Badge variant="outline" className="text-xs bg-muted text-muted-foreground">
+                                ✓ {savedCount} enregistré(s)
+                              </Badge>
+                            )}
+                            {test.test_type && newFilledCount > 0 && (
+                              <Badge variant="outline" className="text-xs border-emerald-300 text-emerald-600">
+                                +{newFilledCount} nouveau(x)
                               </Badge>
                             )}
                           </div>
@@ -642,33 +666,45 @@ export function SessionFeedbackDialog({
 
                         {test.test_type && playersToShow.length > 0 && (
                           <div className="grid grid-cols-2 gap-2">
-                            {playersToShow.map((player) => (
-                              <div
-                                key={player.id}
-                                className={cn(
-                                  "flex items-center gap-2 p-2 rounded-lg border",
-                                  test.player_results[player.id]
-                                    ? "border-emerald-300 bg-emerald-50/50"
-                                    : "border-border"
-                                )}
-                              >
-                                <Avatar className="h-5 w-5 shrink-0">
-                                  <AvatarImage src={player.avatar_url || undefined} />
-                                  <AvatarFallback className="text-[10px]">
-                                    {(player.first_name || player.name).slice(0, 2).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <span className="text-xs truncate flex-1">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  placeholder={test.result_unit || "val"}
-                                  className="h-6 w-16 text-xs"
-                                  value={test.player_results[player.id] || ""}
-                                  onChange={(e) => updatePlayerTestResult(test.id, player.id, e.target.value)}
-                                />
-                              </div>
-                            ))}
+                            {playersToShow.map((player) => {
+                              const isSaved = test.savedPlayerIds?.has(player.id) || false;
+                              const hasValue = !!test.player_results[player.id];
+                              return (
+                                <div
+                                  key={player.id}
+                                  className={cn(
+                                    "flex items-center gap-2 p-2 rounded-lg border",
+                                    isSaved
+                                      ? "border-muted bg-muted/60 opacity-60"
+                                      : hasValue
+                                        ? "border-emerald-300 bg-emerald-50/50"
+                                        : "border-border"
+                                  )}
+                                >
+                                  <Avatar className="h-5 w-5 shrink-0">
+                                    <AvatarImage src={player.avatar_url || undefined} />
+                                    <AvatarFallback className="text-[10px]">
+                                      {(player.first_name || player.name).slice(0, 2).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span className="text-xs truncate flex-1">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
+                                  {isSaved ? (
+                                    <span className="text-xs font-medium text-muted-foreground">
+                                      ✓ {test.player_results[player.id]} {test.result_unit}
+                                    </span>
+                                  ) : (
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      placeholder={test.result_unit || "val"}
+                                      className="h-6 w-16 text-xs"
+                                      value={test.player_results[player.id] || ""}
+                                      onChange={(e) => updatePlayerTestResult(test.id, player.id, e.target.value)}
+                                    />
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
