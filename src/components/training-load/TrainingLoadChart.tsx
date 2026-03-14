@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { 
   LineChart, 
   Line, 
@@ -19,7 +21,7 @@ import {
 } from "recharts";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Activity, Satellite } from "lucide-react";
+import { Activity, Satellite, Heart } from "lucide-react";
 import { 
   MetricType, 
   EWMAResult, 
@@ -33,6 +35,7 @@ interface TrainingLoadChartProps {
   selectedMetric: MetricType;
   onMetricChange: (metric: MetricType) => void;
   hasGpsData: boolean;
+  hasHrvData?: boolean;
   isLoading?: boolean;
   showZones?: boolean;
   height?: number;
