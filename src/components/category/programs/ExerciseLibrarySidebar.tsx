@@ -17,6 +17,7 @@ import { Dumbbell, Search, GripVertical, Plus } from "lucide-react";
 import { useDraggable } from "@dnd-kit/core";
 import { 
   CATEGORY_GROUPS, 
+  EXERCISE_SUBCATEGORIES,
   getCategoriesByGroup, 
   isCategoryForSport, 
   getCategoryColor,
@@ -82,6 +83,7 @@ export function ExerciseLibrarySidebar({ sportType }: ExerciseLibrarySidebarProp
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [subcategoryFilter, setSubcategoryFilter] = useState("all");
   const [showAddDialog, setShowAddDialog] = useState(false);
 
   const { data: exercises, isLoading } = useQuery({
@@ -100,20 +102,29 @@ export function ExerciseLibrarySidebar({ sportType }: ExerciseLibrarySidebarProp
     enabled: !!user,
   });
 
+  const availableSubcategories =
+    categoryFilter === "all"
+      ? []
+      : EXERCISE_SUBCATEGORIES.filter((sub) => sub.parentCategory === categoryFilter);
+
   const filteredExercises = exercises?.filter((exercise) => {
     const matchesSearch = exercise.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
 
-    // Filter by sport - exclude exercises from other sports
     const matchesSport = isCategoryForSport(exercise.category, sportType);
-    
     if (!matchesSport) return false;
 
-    if (categoryFilter === "all") return matchesSearch;
+    const matchesCategory =
+      categoryFilter === "all" ||
+      getCategoriesByGroup(categoryFilter)
+        .map((c) => c.value)
+        .includes(exercise.category);
 
-    const categoriesInGroup = getCategoriesByGroup(categoryFilter).map((c) => c.value);
-    return matchesSearch && categoriesInGroup.includes(exercise.category);
+    const matchesSubcategory =
+      subcategoryFilter === "all" || exercise.subcategory === subcategoryFilter;
+
+    return matchesSearch && matchesCategory && matchesSubcategory;
   });
 
   return (
@@ -146,7 +157,13 @@ export function ExerciseLibrarySidebar({ sportType }: ExerciseLibrarySidebarProp
               />
             </div>
 
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <Select
+              value={categoryFilter}
+              onValueChange={(value) => {
+                setCategoryFilter(value);
+                setSubcategoryFilter("all");
+              }}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Toutes catégories" />
               </SelectTrigger>
@@ -158,6 +175,22 @@ export function ExerciseLibrarySidebar({ sportType }: ExerciseLibrarySidebarProp
                 ))}
               </SelectContent>
             </Select>
+
+            {categoryFilter !== "all" && availableSubcategories.length > 0 && (
+              <Select value={subcategoryFilter} onValueChange={setSubcategoryFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Toutes sous-catégories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes sous-catégories</SelectItem>
+                  {availableSubcategories.map((subcategory) => (
+                    <SelectItem key={subcategory.value} value={subcategory.value}>
+                      {subcategory.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </div>
 
