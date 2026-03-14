@@ -79,12 +79,12 @@ export function WeeklySessionsView({
   return (
     <Card className="bg-gradient-card shadow-md mt-4">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
             <Calendar className="h-4 w-4" />
-            Vue Hebdomadaire - Semaine {weekNumber}
+            <span className="hidden sm:inline">Vue Hebdomadaire -</span> Semaine {weekNumber}
           </CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <Button
               variant="outline"
               size="icon"
@@ -102,7 +102,7 @@ export function WeeklySessionsView({
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="text-sm font-medium min-w-[180px] text-center">
+            <span className="text-xs sm:text-sm font-medium min-w-[140px] sm:min-w-[180px] text-center">
               {format(weekStart, "d", { locale: fr })} - {format(weekEnd, "d MMMM yyyy", { locale: fr })}
             </span>
             <Button
