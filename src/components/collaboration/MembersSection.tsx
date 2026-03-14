@@ -54,7 +54,7 @@ export function MembersSection({ clubId, canManage }: MembersSectionProps) {
   const { data: members, isLoading } = useQuery({
     queryKey: ["club-members", clubId],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("club_members")
         .select("*")
         .eq("club_id", clubId)
