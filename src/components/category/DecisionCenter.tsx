@@ -403,14 +403,15 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
         const playerWellness = wellnessData.find(w => w.player_id === player.id);
         
         let reason = "";
-        if (ewmaRatio != null && (ewmaRatio > 1.5 || ewmaRatio < 0.8)) {
+        // Align with "Adapter la charge" thresholds: EWMA > 1.3 or < 0.8
+        if (ewmaRatio != null && (ewmaRatio > 1.3 || ewmaRatio < 0.8)) {
           reason = `EWMA ${ewmaRatio.toFixed(2)}`;
         }
         
         if (playerWellness) {
           const score = calculateWeightedWellnessScore(playerWellness as WellnessEntry);
-          const risk = getWellnessRiskLevel(score, playerWellness.has_specific_pain);
-          if (risk === "critical" || risk === "high") {
+          // Align with "Adapter la charge" threshold: wellness > 3
+          if (score > 3) {
             reason = reason ? `${reason} + Wellness ${score.toFixed(1)}` : `Wellness ${score.toFixed(1)}/5`;
           }
         }
