@@ -40,10 +40,16 @@ import {
   isDropMethod as checkIsDropMethod,
   isClusterMethod as checkIsClusterMethod,
   isVbtMethod as checkIsVbtMethod,
+  isCardioBlockMethod as checkIsCardioBlockMethod,
+  isSpecialMethod as checkIsSpecialMethod,
   getMaxExercisesForMethod,
+  getMinExercisesForMethod,
   LINKABLE_METHODS,
   DROP_METHODS,
   CLUSTER_METHODS,
+  CARDIO_BLOCK_METHODS,
+  SPECIAL_METHODS,
+  getGroupedTrainingStyles,
 } from "@/lib/constants/trainingStyles";
 
 interface DropSet {
