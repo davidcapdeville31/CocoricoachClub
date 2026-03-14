@@ -46,6 +46,12 @@ const setTypeLabels: Record<string, string> = {
   intermittent_cardio: "Intermittent Cardio",
   fartlek: "Fartlek",
   stato_dynamique: "Stato-dynamique",
+  iso_max: "Iso Max",
+  isometric_overcoming: "Iso Overcoming",
+  isometric_yielding: "Iso Yielding",
+  super_pletnev: "Super Pletnev",
+  combine_haltero: "Combiné Haltéro",
+  vbt: "VBT",
 };
 
 interface GroupedExerciseListProps {

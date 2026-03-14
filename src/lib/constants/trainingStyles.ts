@@ -251,6 +251,19 @@ export const TRAINING_STYLES: TrainingStyleConfig[] = [
       methodeAccumulation: false, methodeIntensification: true,
     }
   },
+  { 
+    value: "combine_haltero", 
+    label: "Combiné Haltéro", 
+    color: "bg-amber-600",
+    borderColor: "border-amber-600",
+    bgColor: "bg-amber-600/10",
+    description: "Enchaînement de mouvements d'haltérophilie (épaulé, arraché, jeté) dans une même série sans reposer la barre.",
+    characteristics: {
+      effortPercu: 5, hypertrophie: 3, forcePuissance: 5, enduranceMusculaire: 3,
+      vitesse: 5, stressNerveux: 5, stressMecanique: 5, experienceRequise: 5,
+      methodeAccumulation: false, methodeIntensification: true,
+    }
+  },
   // CrossFit / Cardio methods
   { 
     value: "amrap", 
@@ -408,7 +421,7 @@ export const DROP_METHODS = ["drop_set", "pyramid_up", "pyramid_down", "pyramid_
 export const CLUSTER_METHODS = ["cluster", "rest_pause"];
 
 // Special methods with specific UI (e.g., 5x5, VBT)
-export const SPECIAL_METHODS = ["five_by_five", "super_pletnev", "isometric_overcoming", "isometric_yielding", "vbt", "stato_dynamique", "iso_max"];
+export const SPECIAL_METHODS = ["five_by_five", "super_pletnev", "isometric_overcoming", "isometric_yielding", "vbt", "stato_dynamique", "iso_max", "combine_haltero"];
 
 // VBT method requires velocity input
 export const VBT_METHODS = ["vbt"];
@@ -540,7 +553,7 @@ export const getCardioBlockConfig = (method: string): CardioBlockConfig => {
 
 // Styles for workout builder (subset for standard gym sessions)
 export const WORKOUT_BUILDER_STYLES = TRAINING_STYLES.filter(s => 
-  ["normal", "superset", "biset", "triset", "giant_set", "drop_set", "rest_pause", "pyramid_up", "pyramid_down", "five_by_five", "cluster", "bulgarian", "isometric_overcoming", "isometric_yielding", "amrap", "for_time", "circuit", "emom", "tabata", "death_by", "vbt", "intermittent_cardio", "fartlek", "stato_dynamique", "iso_max"].includes(s.value)
+  ["normal", "superset", "biset", "triset", "giant_set", "drop_set", "rest_pause", "pyramid_up", "pyramid_down", "five_by_five", "cluster", "bulgarian", "isometric_overcoming", "isometric_yielding", "super_pletnev", "amrap", "for_time", "circuit", "emom", "tabata", "death_by", "vbt", "intermittent_cardio", "fartlek", "stato_dynamique", "iso_max", "combine_haltero"].includes(s.value)
 );
 
 // All styles for program builder
