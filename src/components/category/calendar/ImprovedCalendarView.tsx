@@ -325,14 +325,17 @@ export function ImprovedCalendarView({
     <>
       <Card className="bg-gradient-card shadow-lg border-0" ref={calendarRef}>
         <CardHeader className="pb-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <CardTitle className="flex items-center gap-2">
+          <div className="flex flex-col gap-3">
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
               <CalendarIcon className="h-5 w-5 text-primary" />
-              {isIndividualSport(sportType || "") 
-                ? "Calendrier des entraînements et compétitions" 
-                : "Calendrier des entraînements et matchs"}
+              <span className="hidden sm:inline">
+                {isIndividualSport(sportType || "") 
+                  ? "Calendrier des entraînements et compétitions" 
+                  : "Calendrier des entraînements et matchs"}
+              </span>
+              <span className="sm:hidden">Calendrier</span>
             </CardTitle>
-            <div className="flex items-center gap-2 flex-wrap" data-no-print>
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap" data-no-print>
               {/* Filters */}
               <Popover>
                 <PopoverTrigger asChild>
