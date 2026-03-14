@@ -5,7 +5,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Users, TrendingUp, BarChart3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, Users, TrendingUp, BarChart3, Heart } from "lucide-react";
+import { HrvEntryDialog } from "@/components/category/hrv/HrvEntryDialog";
 import { TrainingLoadChart } from "./TrainingLoadChart";
 import { TrainingLoadKPIs } from "./TrainingLoadKPIs";
 import { TrainingLoadAlerts } from "./TrainingLoadAlerts";
@@ -28,6 +30,7 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
   const [selectedMetric, setSelectedMetric] = useState<MetricType>("ewma_srpe");
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | undefined>();
   const [periodDays, setPeriodDays] = useState<number>(56);
+  const [isHrvDialogOpen, setIsHrvDialogOpen] = useState(false);
 
 
   // Sync metric when model changes
@@ -173,6 +176,17 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
             </SelectContent>
           </Select>
 
+          {!isViewer && (
+            <Button 
+              onClick={() => setIsHrvDialogOpen(true)} 
+              variant="outline"
+              className="gap-2"
+            >
+              <Heart className="h-4 w-4 text-destructive" />
+              <span className="hidden sm:inline">HRV</span>
+            </Button>
+          )}
+
         </div>
       </div>
 
@@ -299,6 +313,12 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
         </Card>
       )}
 
+      {/* HRV Entry Dialog */}
+      <HrvEntryDialog
+        open={isHrvDialogOpen}
+        onOpenChange={setIsHrvDialogOpen}
+        categoryId={categoryId}
+      />
     </div>
   );
 }
