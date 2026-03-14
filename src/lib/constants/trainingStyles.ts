@@ -421,7 +421,7 @@ export const DROP_METHODS = ["drop_set", "pyramid_up", "pyramid_down", "pyramid_
 export const CLUSTER_METHODS = ["cluster", "rest_pause"];
 
 // Special methods with specific UI (e.g., 5x5, VBT)
-export const SPECIAL_METHODS = ["five_by_five", "super_pletnev", "isometric_overcoming", "isometric_yielding", "vbt", "stato_dynamique", "iso_max"];
+export const SPECIAL_METHODS = ["five_by_five", "super_pletnev", "isometric_overcoming", "isometric_yielding", "vbt", "stato_dynamique", "iso_max", "combine_haltero"];
 
 // VBT method requires velocity input
 export const VBT_METHODS = ["vbt"];
