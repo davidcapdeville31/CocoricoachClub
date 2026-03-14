@@ -26,6 +26,7 @@ export function VideoAnalysisTab({ categoryId, sportType }: VideoAnalysisTabProp
   const [editingAnalysisId, setEditingAnalysisId] = useState<string | null>(null);
   const [showDirectImport, setShowDirectImport] = useState(false);
   const queryClient = useQueryClient();
+  const terminology = getVideoTerminology(sportType);
 
   const { data: videoAnalyses, isLoading, refetch } = useQuery({
     queryKey: ["video-analyses", categoryId],
