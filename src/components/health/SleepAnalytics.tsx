@@ -115,6 +115,7 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
     const avgDuration = data.durations.reduce((s, v) => s + v, 0) / data.durations.length;
 
     // Trend: compare first half vs second half
+    // Scale: 1=best, 5=worst → lower second half = improving
     const mid = Math.floor(data.qualities.length / 2);
     const firstHalf = data.qualities.slice(0, mid);
     const secondHalf = data.qualities.slice(mid);
@@ -122,13 +123,14 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
     if (firstHalf.length > 0 && secondHalf.length > 0) {
       const avgFirst = firstHalf.reduce((s, v) => s + v, 0) / firstHalf.length;
       const avgSecond = secondHalf.reduce((s, v) => s + v, 0) / secondHalf.length;
-      if (avgSecond - avgFirst > 0.4) trend = "improving";
-      else if (avgFirst - avgSecond > 0.4) trend = "declining";
+      // Lower is better: if second half is lower → improving
+      if (avgFirst - avgSecond > 0.4) trend = "improving";
+      else if (avgSecond - avgFirst > 0.4) trend = "declining";
     }
 
-    // Worst night
-    const worstQuality = Math.min(...data.qualities);
-    const bestQuality = Math.max(...data.qualities);
+    // Worst night (highest value = worst, since 1=best, 5=worst)
+    const worstQuality = Math.max(...data.qualities);
+    const bestQuality = Math.min(...data.qualities);
 
     return {
       id,
@@ -139,9 +141,9 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
       worstQuality,
       bestQuality,
       daysOfData: data.qualities.length,
-      poorNights: data.qualities.filter(q => q <= 2).length,
+      poorNights: data.qualities.filter(q => q >= 4).length, // 4 or 5 = poor sleep
     };
-  }).sort((a, b) => a.avgQuality - b.avgQuality);
+  }).sort((a, b) => b.avgQuality - a.avgQuality); // Worst (highest) first
 
   // Team averages
   const teamAvgQuality = playerStats.length > 0
