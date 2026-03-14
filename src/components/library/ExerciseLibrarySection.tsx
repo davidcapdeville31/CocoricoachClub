@@ -153,7 +153,6 @@ export function ExerciseLibrarySection() {
                           case "sled":
                             return { border: "border-l-amber-500", bg: "bg-amber-50", text: "text-amber-700" };
                           case "plyometrie":
-                            return { border: "border-l-green-500", bg: "bg-green-50", text: "text-green-700" };
                           case "plyometrie":
                             return { border: "border-l-lime-600", bg: "bg-lime-50", text: "text-lime-700" };
                           case "neuro":
