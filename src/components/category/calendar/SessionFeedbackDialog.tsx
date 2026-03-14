@@ -36,6 +36,10 @@ interface SessionTest {
   test_type: string;
   result_unit: string;
   player_results: Record<string, string>;
+  /** Which player results are already saved in DB (read-only) */
+  savedPlayerIds?: Set<string>;
+  /** Whether the entire test row was loaded from existing data */
+  isExisting?: boolean;
 }
 
 export function SessionFeedbackDialog({
