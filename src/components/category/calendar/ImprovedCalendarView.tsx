@@ -402,7 +402,7 @@ export function ImprovedCalendarView({
 
               {/* View Mode Selector */}
               <Select value={viewMode} onValueChange={(v) => setViewMode(v as "month" | "week" | "day")}>
-                <SelectTrigger className="w-[130px] h-9">
+                <SelectTrigger className="w-[100px] sm:w-[130px] h-9 text-xs sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
