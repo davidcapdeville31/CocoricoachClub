@@ -245,7 +245,7 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted",
                     message.is_announcement && "border-2 border-yellow-500",
-                    message.message_type === "poll" && "bg-transparent p-0"
+                    message.message_type === "poll" && "bg-transparent p-0 text-foreground"
                   )}
                 >
                   {message.is_announcement && message.message_type !== "poll" && (
