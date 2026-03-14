@@ -183,7 +183,7 @@ export function VideoAnalysisTab({ categoryId, sportType }: VideoAnalysisTabProp
               colorKey="video"
               icon={<Users className="h-4 w-4" />}
             >
-              Vue Joueurs
+              Vue {terminology.playersLabel}
             </ColoredSubTabsTrigger>
           </ColoredSubTabsList>
         </div>
