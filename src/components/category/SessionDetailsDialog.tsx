@@ -605,7 +605,7 @@ export function SessionDetailsDialog({
 
           {/* Exercises section for print */}
           {exerciseGroups.length > 0 && (
-            <div className="space-y-3 mt-4 print-exercises">
+            <div className="space-y-3 mt-4 print-exercises hidden print:block">
               <h3 className="font-semibold flex items-center gap-2">
                 <Dumbbell className="h-4 w-4" />
                 Exercices ({exercises?.length || 0})
