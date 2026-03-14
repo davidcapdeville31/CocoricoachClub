@@ -184,7 +184,7 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
 
         return data?.map((s) => ({
           ...s,
-          exerciseCount: finalCountMap.get(s.id) || 0,
+          exerciseCount: countMap.get(s.id) || 0,
         }));
       }
 
