@@ -451,6 +451,7 @@ export function SessionDetailsDialog({
           </Button>
         </DialogHeader>
 
+        <div className="flex-1 overflow-y-auto min-h-0">
         {/* Printable content - includes exercises */}
         <div ref={printRef} className="print-content">
           {session && (
