@@ -37,6 +37,11 @@ export interface EWMAResult {
   rawValue: number;
   date: string;
   riskLevel: "optimal" | "warning" | "danger";
+  // HRV overlay data (optional)
+  hrvMs?: number | null;
+  avgHrBpm?: number | null;
+  maxHrBpm?: number | null;
+  restingHrBpm?: number | null;
 }
 
 export interface LoadSummary {
