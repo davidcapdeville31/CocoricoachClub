@@ -13,6 +13,8 @@ export interface TrainingStyleCharacteristics {
   methodeIntensification: boolean;
 }
 
+export type TrainingMethodGroup = "classique" | "intensification" | "cardio" | "special";
+
 export interface TrainingStyleConfig {
   value: string;
   label: string;
@@ -21,6 +23,7 @@ export interface TrainingStyleConfig {
   bgColor: string;
   description: string;
   maxExercises?: number; // For linkable methods
+  group?: TrainingMethodGroup;
   characteristics?: TrainingStyleCharacteristics;
 }
 
