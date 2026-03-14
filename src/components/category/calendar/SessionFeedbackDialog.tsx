@@ -317,6 +317,8 @@ export function SessionFeedbackDialog({
         if (!test.test_type) return;
         
         Object.entries(test.player_results).forEach(([playerId, resultValue]) => {
+          // Skip already-saved results
+          if (test.savedPlayerIds?.has(playerId)) return;
           if (!resultValue || resultValue.trim() === "") return;
           
           testRecords.push({
