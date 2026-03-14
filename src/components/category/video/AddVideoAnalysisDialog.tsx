@@ -41,7 +41,9 @@ export function AddVideoAnalysisDialog({
   onOpenChange,
   categoryId,
   onSuccess,
+  sportType,
 }: AddVideoAnalysisDialogProps) {
+  const terminology = getVideoTerminology(sportType);
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
