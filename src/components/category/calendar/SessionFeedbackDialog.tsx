@@ -206,11 +206,14 @@ export function SessionFeedbackDialog({
             test_type: t.test_type,
             result_unit: t.result_unit || "",
             player_results: {},
+            savedPlayerIds: new Set<string>(),
+            isExisting: true,
           });
         }
         const group = testGroups.get(key)!;
         if (t.player_id && t.result_value != null) {
           group.player_results[t.player_id] = t.result_value.toString();
+          group.savedPlayerIds!.add(t.player_id);
         }
       });
       setSessionTests(Array.from(testGroups.values()));
