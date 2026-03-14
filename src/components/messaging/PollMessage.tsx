@@ -153,7 +153,6 @@ export function PollMessage({ pollId, isOwnMessage }: PollMessageProps) {
           </span>
         )}
       </div>
-      </div>
 
       <div className="space-y-1.5">
         {options.map((opt) => {
