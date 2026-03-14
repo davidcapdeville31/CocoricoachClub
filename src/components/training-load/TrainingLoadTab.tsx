@@ -313,6 +313,12 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
         </Card>
       )}
 
+      {/* HRV Entry Dialog */}
+      <HrvEntryDialog
+        open={isHrvDialogOpen}
+        onOpenChange={setIsHrvDialogOpen}
+        categoryId={categoryId}
+      />
     </div>
   );
 }
