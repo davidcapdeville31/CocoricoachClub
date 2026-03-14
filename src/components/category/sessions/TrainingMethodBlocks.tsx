@@ -1546,7 +1546,7 @@ function IsometricOvercomingBlock({
                   value={exercise.sets || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "sets", parseInt(e.target.value) || 1)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Durée (s)</Label>
+                <Label className="text-xs text-muted-foreground">Durée contraction (s)</Label>
                 <Input type="number" min="1" className="h-8 text-xs" placeholder="6-10"
                   value={exercise.reps || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "reps", e.target.value)} />
               </div>
@@ -1561,8 +1561,26 @@ function IsometricOvercomingBlock({
                   value={exercise.target_rpe || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)} />
               </div>
             </div>
+
+            {/* Isometric specific config */}
             <div className="border rounded-lg p-3 bg-stone-50 dark:bg-stone-900/20">
-              <p className="text-xs font-medium text-stone-700 dark:text-stone-400">💪 Effort maximal contre résistance immobile — pas de mouvement, contraction à 100%</p>
+              <p className="text-xs font-medium text-stone-700 dark:text-stone-400 mb-2">📐 Configuration isométrique</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Angle articulaire (°)</Label>
+                  <Input className="h-8 text-xs" placeholder="Ex: 90° (mi-course)"
+                    value={exercise.tempo || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "tempo", e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Position / Notes</Label>
+                  <Input className="h-8 text-xs" placeholder="Ex: Mi-course, position basse..."
+                    value={exercise.notes || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)} />
+                </div>
+              </div>
+            </div>
+
+            <div className="border rounded-lg p-2 bg-stone-100 dark:bg-stone-800/30">
+              <p className="text-[11px] text-stone-600 dark:text-stone-400">💪 Effort maximal contre résistance immobile — pas de mouvement, contraction à 100%. Pas de charge mobile.</p>
             </div>
           </div>
         )}
@@ -1601,17 +1619,25 @@ function IsometricYieldingBlock({
         </div>
         {exercise.exercise_name && (
           <div className="space-y-3">
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <div>
                 <Label className="text-xs text-muted-foreground">Séries</Label>
                 <Input type="number" min="1" className="h-8 text-xs"
                   value={exercise.sets || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "sets", parseInt(e.target.value) || 1)} />
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Durée (s)</Label>
+                <Label className="text-xs text-muted-foreground">Durée maintien (s)</Label>
                 <Input type="number" min="1" className="h-8 text-xs" placeholder="20-60"
                   value={exercise.reps || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "reps", e.target.value)} />
               </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Repos (s)</Label>
+                <Input type="number" min="0" className="h-8 text-xs"
+                  value={exercise.rest_seconds || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "rest_seconds", parseInt(e.target.value) || null)} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
               <div>
                 <Label className="text-xs text-muted-foreground">%1RM</Label>
                 <Input type="number" min="0" max="100" className="h-8 text-xs" placeholder="60-80"
@@ -1622,14 +1648,32 @@ function IsometricYieldingBlock({
                 <Input type="number" min="0" step="0.5" className="h-8 text-xs"
                   value={exercise.weight_kg || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "weight_kg", parseFloat(e.target.value) || null)} />
               </div>
-              <div>
-                <Label className="text-xs text-muted-foreground">Repos (s)</Label>
-                <Input type="number" min="0" className="h-8 text-xs"
-                  value={exercise.rest_seconds || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "rest_seconds", parseInt(e.target.value) || null)} />
+            </div>
+
+            {/* Yielding specific: angle and position */}
+            <div className="border rounded-lg p-3 bg-slate-50 dark:bg-slate-900/20">
+              <p className="text-xs font-medium text-slate-700 dark:text-slate-400 mb-2">📐 Position de maintien</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Angle articulaire (°)</Label>
+                  <Input className="h-8 text-xs" placeholder="Ex: 90°, 120°, mi-course..."
+                    value={exercise.tempo || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "tempo", e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">RPE cible</Label>
+                  <Input type="number" min="1" max="10" className="h-8 text-xs" placeholder="7-9"
+                    value={exercise.target_rpe || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)} />
+                </div>
+              </div>
+              <div className="mt-2">
+                <Label className="text-xs text-muted-foreground">Notes position</Label>
+                <Input className="h-8 text-xs" placeholder="Ex: Pause en bas du squat, coudes à 90°..."
+                  value={exercise.notes || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)} />
               </div>
             </div>
-            <div className="border rounded-lg p-3 bg-slate-50 dark:bg-slate-900/20">
-              <p className="text-xs font-medium text-slate-700 dark:text-slate-400">⏱ Maintenez la position à l'angle prescrit — le temps sous tension est la variable clé</p>
+
+            <div className="border rounded-lg p-2 bg-slate-100 dark:bg-slate-800/30">
+              <p className="text-[11px] text-slate-600 dark:text-slate-400">⏱ Maintenez la charge à l'angle prescrit — le temps sous tension est la variable clé</p>
             </div>
           </div>
         )}
@@ -1668,7 +1712,7 @@ function IsoMaxBlock({
         </div>
         {exercise.exercise_name && (
           <div className="space-y-3">
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <div>
                 <Label className="text-xs text-muted-foreground">Séries</Label>
                 <Input type="number" min="1" className="h-8 text-xs"
@@ -1680,6 +1724,14 @@ function IsoMaxBlock({
                   value={exercise.reps || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "reps", e.target.value)} />
               </div>
               <div>
+                <Label className="text-xs text-muted-foreground">Repos (s)</Label>
+                <Input type="number" min="0" className="h-8 text-xs"
+                  value={exercise.rest_seconds || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "rest_seconds", parseInt(e.target.value) || null)} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
                 <Label className="text-xs text-muted-foreground">%1RM</Label>
                 <Input type="number" min="0" max="100" className="h-8 text-xs" placeholder="85-100"
                   value={exercise.weight_percent_rm || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "weight_percent_rm", parseInt(e.target.value) || null)} />
@@ -1689,14 +1741,32 @@ function IsoMaxBlock({
                 <Input type="number" min="0" step="0.5" className="h-8 text-xs"
                   value={exercise.weight_kg || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "weight_kg", parseFloat(e.target.value) || null)} />
               </div>
-              <div>
-                <Label className="text-xs text-muted-foreground">Repos (s)</Label>
-                <Input type="number" min="0" className="h-8 text-xs"
-                  value={exercise.rest_seconds || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "rest_seconds", parseInt(e.target.value) || null)} />
+            </div>
+
+            {/* Iso Max specific: angle and position */}
+            <div className="border rounded-lg p-3 bg-zinc-50 dark:bg-zinc-900/20">
+              <p className="text-xs font-medium text-zinc-700 dark:text-zinc-400 mb-2">📐 Position isométrique</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Angle articulaire (°)</Label>
+                  <Input className="h-8 text-xs" placeholder="Ex: 90°, point de blocage..."
+                    value={exercise.tempo || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "tempo", e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">RPE cible</Label>
+                  <Input type="number" min="1" max="10" className="h-8 text-xs" placeholder="9-10"
+                    value={exercise.target_rpe || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "target_rpe", parseInt(e.target.value) || null)} />
+                </div>
+              </div>
+              <div className="mt-2">
+                <Label className="text-xs text-muted-foreground">Notes position</Label>
+                <Input className="h-8 text-xs" placeholder="Ex: Maintien au point de blocage, sticking point..."
+                  value={exercise.notes || ""} onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)} />
               </div>
             </div>
-            <div className="border rounded-lg p-3 bg-zinc-50 dark:bg-zinc-900/20">
-              <p className="text-xs font-medium text-zinc-700 dark:text-zinc-400">🔥 Charge lourde (85-100% 1RM) — maintenez la contraction maximale le plus longtemps possible</p>
+
+            <div className="border rounded-lg p-2 bg-zinc-100 dark:bg-zinc-800/30">
+              <p className="text-[11px] text-zinc-600 dark:text-zinc-400">🔥 Charge lourde (85-100% 1RM) — maintenez la contraction maximale le plus longtemps possible</p>
             </div>
           </div>
         )}
@@ -1943,12 +2013,18 @@ function StatoDynamiqueBlock({
             {/* Isometric hold config */}
             <div className="border rounded-lg p-3 bg-amber-50 dark:bg-amber-950/20">
               <p className="text-xs font-medium text-amber-700 dark:text-amber-400 mb-2">⏱ Phase isométrique</p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <Label className="text-xs text-muted-foreground">Durée maintien (s)</Label>
                   <Input type="number" min="1" max="10" className="h-8 text-xs" placeholder="3-5"
                     value={exercise.tempo || ""}
                     onChange={(e) => onUpdateExercise(exerciseIndex, "tempo", e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Angle articulaire (°)</Label>
+                  <Input className="h-8 text-xs" placeholder="Ex: 90°, mi-course..."
+                    value={exercise.notes || ""}
+                    onChange={(e) => onUpdateExercise(exerciseIndex, "notes", e.target.value)} />
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">RPE cible</Label>
