@@ -176,6 +176,17 @@ export function TrainingLoadTab({ categoryId }: TrainingLoadTabProps) {
             </SelectContent>
           </Select>
 
+          {!isViewer && (
+            <Button 
+              onClick={() => setIsHrvDialogOpen(true)} 
+              variant="outline"
+              className="gap-2"
+            >
+              <Heart className="h-4 w-4 text-destructive" />
+              <span className="hidden sm:inline">HRV</span>
+            </Button>
+          )}
+
         </div>
       </div>
 
