@@ -305,12 +305,17 @@ export function ProgramSessionCard({
   };
 
   const createBlockForMethod = (sourceIndex: number, method: string) => {
-    const minExercises = (() => {
+    const isLinkable = LINKABLE_METHODS.includes(method);
+    const isCardio = CARDIO_BLOCK_METHODS.includes(method);
+    const isSpecial = SPECIAL_METHODS.includes(method);
+    
+    // For linkable methods, determine min exercises; for others, start with 1
+    const minExercises = isLinkable ? (() => {
       if (method === "superset" || method === "biset" || method === "bulgarian") return 2;
       if (method === "triset") return 3;
       if (method === "giant_set") return 4;
       return 2;
-    })();
+    })() : 1;
 
     const groupId = crypto.randomUUID();
     const sourceExercise = session.exercises[sourceIndex];
@@ -329,7 +334,7 @@ export function ProgramSessionCard({
       blockExercises.push({
         id: crypto.randomUUID(),
         exercise_name: "",
-        order_index: 0, // will be recalculated
+        order_index: 0,
         method,
         sets: sourceExercise.sets || 3,
         reps: sourceExercise.reps || "10",
@@ -349,12 +354,14 @@ export function ProgramSessionCard({
 
     onUpdate({ ...session, exercises: newExercises });
 
-    // Open library search for the first empty exercise in the block
-    const firstEmptyIndex = sourceIndex + 1;
-    setTimeout(() => {
-      setSearchQuery("");
-      setShowLibraryFor(firstEmptyIndex);
-    }, 150);
+    // Open library search for the first empty exercise in the block (if linkable)
+    if (minExercises > 1) {
+      const firstEmptyIndex = sourceIndex + 1;
+      setTimeout(() => {
+        setSearchQuery("");
+        setShowLibraryFor(firstEmptyIndex);
+      }, 150);
+    }
   };
 
   const unlinkGroup = (groupId: string) => {
