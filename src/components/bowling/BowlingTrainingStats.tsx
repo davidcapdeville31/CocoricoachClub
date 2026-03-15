@@ -25,6 +25,7 @@ export function BowlingTrainingStats({ categoryId }: BowlingTrainingStatsProps) 
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [selectedBallId, setSelectedBallId] = useState<string>("all");
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string>("all");
 
   // Fetch training data
   const { data: trainingData, isLoading } = useQuery({
@@ -140,10 +141,15 @@ export function BowlingTrainingStats({ categoryId }: BowlingTrainingStatsProps) 
     return "Boule";
   };
 
+  const filteredPlayers = useMemo(() => {
+    if (selectedPlayerId === "all") return players;
+    return players.filter(p => p.id === selectedPlayerId);
+  }, [players, selectedPlayerId]);
+
   // Compute per-player game stats
   const playerGameStats = useMemo(() => {
     if (!trainingData) return [];
-    return players.map(player => {
+    return filteredPlayers.map(player => {
       let games = trainingData.games.filter((g: any) => g.playerId === player.id && dateFilter(g.matchDate));
       if (selectedBallId !== "all") {
         games = games.filter((g: any) => g.ballIds?.includes(selectedBallId));
@@ -156,12 +162,12 @@ export function BowlingTrainingStats({ categoryId }: BowlingTrainingStatsProps) 
       const high = Math.max(...games.map((g: any) => g.score));
       return { player, stats: { total, avgScore, avgStrike, avgSpare, high }, games };
     }).filter(p => p.stats !== null);
-  }, [trainingData, players, dateFrom, dateTo, selectedBallId]);
+  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId]);
 
   // Compute per-player spare stats
   const playerSpareStats = useMemo(() => {
     if (!trainingData) return [];
-    return players.map(player => {
+    return filteredPlayers.map(player => {
       let spares = trainingData.spareExercises.filter((ex: any) => ex.player_id === player.id && dateFilter(ex.session_date));
       if (selectedBallId !== "all") {
         spares = spares.filter((ex: any) => ex.ball_arsenal_id === selectedBallId);
@@ -179,7 +185,7 @@ export function BowlingTrainingStats({ categoryId }: BowlingTrainingStatsProps) 
       const rate = totalAttempts > 0 ? (totalSuccesses / totalAttempts) * 100 : 0;
       return { player, byType, total: { totalAttempts, totalSuccesses, rate } };
     }).filter(p => p.total !== null);
-  }, [trainingData, players, dateFrom, dateTo, selectedBallId]);
+  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId]);
 
   // Get unique balls used by all players for ball filter
   const availableBalls = useMemo(() => {
@@ -194,7 +200,27 @@ export function BowlingTrainingStats({ categoryId }: BowlingTrainingStatsProps) 
 
   return (
     <div className="space-y-4">
-      {/* Date range + Ball filter */}
+      {/* Player + Date range + Ball filter */}
+      <div className="flex flex-wrap gap-2 items-center">
+        {players.length > 0 && (
+          <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
+            <SelectTrigger className="w-[180px] h-8">
+              <SelectValue placeholder="Tous les athlètes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les athlètes</SelectItem>
+              {players.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  <span className="flex items-center gap-1.5">
+                    <Users className="h-3 w-3" />
+                    {p.name}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
       <div className="flex flex-wrap gap-2 items-center">
         <Popover>
           <PopoverTrigger asChild>
