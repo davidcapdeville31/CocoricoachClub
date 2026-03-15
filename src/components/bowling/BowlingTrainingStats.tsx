@@ -51,7 +51,7 @@ export function BowlingTrainingStats({ categoryId }: BowlingTrainingStatsProps) 
         const statData = ((round.competition_round_stats as any[])?.[0]?.stat_data as any) || {};
         // Support both field naming conventions
         const bowlingFrames = (statData.frames || statData.bowlingFrames) as FrameData[] | undefined;
-        const score = statData.totalScore ?? statData.gameScore ?? parseInt(round.result || "0") || 0;
+        const score = (statData.totalScore ?? statData.gameScore) || parseInt(round.result || "0") || 0;
 
         if (score > 0 || bowlingFrames) {
           games.push({
