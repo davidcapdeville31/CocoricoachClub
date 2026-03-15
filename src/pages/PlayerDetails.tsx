@@ -539,11 +539,6 @@ function PlayerDetailsContent() {
             <PlayerInjuriesTab playerId={playerId!} categoryId={player.category_id} playerName={fullName} />
           </TabsContent>
 
-          {isBowling && (
-            <TabsContent value="arsenal">
-              <PlayerBowlingArsenal playerId={playerId!} categoryId={player.category_id} isViewer={isViewer} />
-            </TabsContent>
-          )}
         </Tabs>
 
         {!isViewer && (
