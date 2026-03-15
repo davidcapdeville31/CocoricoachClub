@@ -448,6 +448,13 @@ function PlayerDetailsContent() {
           />
         </div>
 
+        {/* Bowling Arsenal - below biometrics */}
+        {isBowling && (
+          <div className="mb-6">
+            <PlayerBowlingArsenal playerId={playerId!} categoryId={player.category_id} isViewer={isViewer} />
+          </div>
+        )}
+
         {/* Personal Info Section (Email, Phone, Birth date) */}
         <div className="mb-6">
           <PlayerPersonalInfoSection 
@@ -477,9 +484,6 @@ function PlayerDetailsContent() {
                 <PlayerDetailTab value="academy" label="Académie" icon={GraduationCap} color="hsl(200 85% 50%)" />
               )}
               <PlayerDetailTab value="injuries" label="Blessures" icon={Bandage} color="hsl(10 80% 55%)" />
-              {isBowling && (
-                <PlayerDetailTab value="arsenal" label="Arsenal" icon={CircleDot} color="hsl(25 90% 50%)" />
-              )}
             </ColoredNavTabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -535,11 +539,6 @@ function PlayerDetailsContent() {
             <PlayerInjuriesTab playerId={playerId!} categoryId={player.category_id} playerName={fullName} />
           </TabsContent>
 
-          {isBowling && (
-            <TabsContent value="arsenal">
-              <PlayerBowlingArsenal playerId={playerId!} categoryId={player.category_id} isViewer={isViewer} />
-            </TabsContent>
-          )}
         </Tabs>
 
         {!isViewer && (
