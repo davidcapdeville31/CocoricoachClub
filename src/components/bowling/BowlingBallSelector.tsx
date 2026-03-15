@@ -75,12 +75,12 @@ export function BowlingBallSelector({
       </div>
 
       {mode === "simple" ? (
-        <Select value={selectedBallId || ""} onValueChange={(v) => onBallChange(v || null)}>
+        <Select value={selectedBallId || "none"} onValueChange={(v) => onBallChange(v === "none" ? null : v)}>
           <SelectTrigger className="h-9">
             <SelectValue placeholder="Sélectionner une boule" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Aucune</SelectItem>
+            <SelectItem value="none">Aucune</SelectItem>
             {arsenal.map((ball: any) => (
               <SelectItem key={ball.id} value={ball.id}>
                 {ball.displayName} {ball.weight ? `(${ball.weight} lbs)` : ""}
