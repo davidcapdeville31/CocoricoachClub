@@ -141,10 +141,15 @@ export function BowlingTrainingStats({ categoryId }: BowlingTrainingStatsProps) 
     return "Boule";
   };
 
+  const filteredPlayers = useMemo(() => {
+    if (selectedPlayerId === "all") return players;
+    return players.filter(p => p.id === selectedPlayerId);
+  }, [players, selectedPlayerId]);
+
   // Compute per-player game stats
   const playerGameStats = useMemo(() => {
     if (!trainingData) return [];
-    return players.map(player => {
+    return filteredPlayers.map(player => {
       let games = trainingData.games.filter((g: any) => g.playerId === player.id && dateFilter(g.matchDate));
       if (selectedBallId !== "all") {
         games = games.filter((g: any) => g.ballIds?.includes(selectedBallId));
@@ -157,12 +162,12 @@ export function BowlingTrainingStats({ categoryId }: BowlingTrainingStatsProps) 
       const high = Math.max(...games.map((g: any) => g.score));
       return { player, stats: { total, avgScore, avgStrike, avgSpare, high }, games };
     }).filter(p => p.stats !== null);
-  }, [trainingData, players, dateFrom, dateTo, selectedBallId]);
+  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId]);
 
   // Compute per-player spare stats
   const playerSpareStats = useMemo(() => {
     if (!trainingData) return [];
-    return players.map(player => {
+    return filteredPlayers.map(player => {
       let spares = trainingData.spareExercises.filter((ex: any) => ex.player_id === player.id && dateFilter(ex.session_date));
       if (selectedBallId !== "all") {
         spares = spares.filter((ex: any) => ex.ball_arsenal_id === selectedBallId);
@@ -180,7 +185,7 @@ export function BowlingTrainingStats({ categoryId }: BowlingTrainingStatsProps) 
       const rate = totalAttempts > 0 ? (totalSuccesses / totalAttempts) * 100 : 0;
       return { player, byType, total: { totalAttempts, totalSuccesses, rate } };
     }).filter(p => p.total !== null);
-  }, [trainingData, players, dateFrom, dateTo, selectedBallId]);
+  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId]);
 
   // Get unique balls used by all players for ball filter
   const availableBalls = useMemo(() => {
