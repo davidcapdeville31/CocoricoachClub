@@ -283,9 +283,9 @@ export function MatchCard({ match, categoryId, isSubMatch = false }: MatchCardPr
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
-              {match.event_type === "training" && (
-                <Badge variant="outline" className="text-xs border-blue-400 text-blue-600 dark:text-blue-400">
-                  🎳 Entraînement
+              {isTrainingMatch && (
+                <Badge variant="outline" className="text-xs border-muted-foreground/50 text-muted-foreground">
+                  🎳 Entraînement — Scores via Planification
                 </Badge>
               )}
               {isFinalized && (
