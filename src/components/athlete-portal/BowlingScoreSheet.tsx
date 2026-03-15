@@ -70,7 +70,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
   const [frames, setFrames] = useState<FrameData[]>(() => 
     initialFrames || Array.from({ length: 10 }, () => createEmptyFrame())
   );
-  const [isSaved, setIsSaved] = useState(false);
+  const [isSaved, setIsSaved] = useState(readOnly || false);
   const [ballMode, setBallMode] = useState<"simple" | "advanced">("simple");
   const [selectedBallId, setSelectedBallId] = useState<string | null>(null);
   const [frameBalls, setFrameBalls] = useState<(string | null)[]>(Array(10).fill(null));
