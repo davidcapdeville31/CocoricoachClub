@@ -254,7 +254,7 @@ export function BowlingSessionContent({ sessionId, categoryId, blockType, sessio
             <CardContent className="py-8 text-center">
               <Target className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
               <p className="text-sm text-muted-foreground">
-                Sélectionnez un joueur pour enregistrer les exercices de précision
+                Sélectionnez un joueur pour enregistrer les exercices de spare
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 Quille 5 · Quille 7 · Quille 10
