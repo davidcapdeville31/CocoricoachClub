@@ -501,7 +501,12 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
 
   const handleSave = () => {
     setIsSaved(true);
-    onSave(stats, frames);
+    const ballData = playerId ? {
+      mode: ballMode,
+      ballId: ballMode === "simple" ? selectedBallId : null,
+      frameBalls: ballMode === "advanced" ? frameBalls : undefined,
+    } : undefined;
+    onSave(stats, frames, ballData);
   };
 
   // Get cell background color based on throw value
