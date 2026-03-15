@@ -275,10 +275,11 @@ export function MatchCard({ match, categoryId, isSubMatch = false }: MatchCardPr
   matchDay.setHours(0, 0, 0, 0);
   const isPast = matchDay < today;
   const isFinalized = match.is_finalized === true;
+  const isTrainingMatch = match.event_type === "training";
 
   return (
     <>
-      <div className={`p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors ${isFinalized ? 'border-primary/50 bg-primary/5' : ''}`}>
+      <div className={`p-4 rounded-lg border transition-colors ${isTrainingMatch ? 'bg-muted/50 border-muted opacity-75' : isFinalized ? 'border-primary/50 bg-primary/5' : 'bg-card hover:bg-accent/5'}`}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
