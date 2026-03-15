@@ -484,9 +484,6 @@ function PlayerDetailsContent() {
                 <PlayerDetailTab value="academy" label="Académie" icon={GraduationCap} color="hsl(200 85% 50%)" />
               )}
               <PlayerDetailTab value="injuries" label="Blessures" icon={Bandage} color="hsl(10 80% 55%)" />
-              {isBowling && (
-                <PlayerDetailTab value="arsenal" label="Arsenal" icon={CircleDot} color="hsl(25 90% 50%)" />
-              )}
             </ColoredNavTabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
