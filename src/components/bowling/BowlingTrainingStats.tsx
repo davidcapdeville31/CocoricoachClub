@@ -49,16 +49,18 @@ export function BowlingTrainingStats({ categoryId }: BowlingTrainingStatsProps) 
         const match = matchMap[round.match_id];
         const player = round.players as any;
         const statData = ((round.competition_round_stats as any[])?.[0]?.stat_data as any) || {};
-        const bowlingFrames = statData.bowlingFrames as FrameData[] | undefined;
+        // Support both field naming conventions
+        const bowlingFrames = (statData.frames || statData.bowlingFrames) as FrameData[] | undefined;
+        const score = statData.totalScore ?? statData.gameScore ?? parseInt(round.result || "0") || 0;
 
-        if (statData.gameScore !== undefined || bowlingFrames) {
+        if (score > 0 || bowlingFrames) {
           games.push({
             roundId: round.id,
             matchId: round.match_id,
             playerId: round.player_id,
             playerName: player ? [player.first_name, player.name].filter(Boolean).join(" ") : "Athlète",
             matchDate: match?.match_date || "",
-            score: statData.gameScore || 0,
+            score,
             strikes: statData.strikes || 0,
             spares: statData.spares || 0,
             strikePercentage: statData.strikePercentage || 0,
