@@ -448,6 +448,13 @@ function PlayerDetailsContent() {
           />
         </div>
 
+        {/* Bowling Arsenal - below biometrics */}
+        {isBowling && (
+          <div className="mb-6">
+            <PlayerBowlingArsenal playerId={playerId!} categoryId={player.category_id} isViewer={isViewer} />
+          </div>
+        )}
+
         {/* Personal Info Section (Email, Phone, Birth date) */}
         <div className="mb-6">
           <PlayerPersonalInfoSection 
