@@ -1089,6 +1089,11 @@ export function SessionFormDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!date) {
+      toast.error("Veuillez sélectionner une date");
+      return;
+    }
+
     if (endTime && !startTime) {
       toast.error("Veuillez indiquer une heure de début si vous spécifiez une heure de fin");
       return;
@@ -1101,18 +1106,18 @@ export function SessionFormDialog({
 
     // Validate: athlete mode uses type, staff mode uses blocks
     if (isAthleteMode) {
-      if (date && type) {
-        saveSession.mutate();
-      } else if (!type) {
+      if (!type) {
         toast.error("Veuillez sélectionner un type de séance");
+        return;
       }
+      saveSession.mutate();
     } else {
       const hasValidBlocks = sessionBlocks.length > 0 && sessionBlocks.some(b => b.training_type);
-      if (date && hasValidBlocks) {
-        saveSession.mutate();
-      } else if (!hasValidBlocks) {
-        toast.error("Veuillez ajouter au moins un bloc thématique");
+      if (!hasValidBlocks) {
+        toast.error("Veuillez ajouter au moins un bloc thématique à la séance");
+        return;
       }
+      saveSession.mutate();
     }
   };
 
