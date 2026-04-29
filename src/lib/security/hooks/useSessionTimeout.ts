@@ -62,16 +62,11 @@ export function useSessionTimeout(timeoutMinutes: number = 30) {
       return;
     }
 
-    // Init from cross-tab activity
+    // On (re)login, always reset the activity timestamp.
+    // The previous stored value may be stale from a prior session that already
+    // expired — using it would immediately log the user back out.
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      const lastActivity = stored ? parseInt(stored, 10) : Date.now();
-      const elapsedMs = Date.now() - lastActivity;
-      const timeoutMs = timeoutMinutes * 60 * 1000;
-      if (elapsedMs >= timeoutMs) {
-        performLogout();
-        return;
-      }
+      localStorage.setItem(STORAGE_KEY, String(Date.now()));
     } catch {
       /* ignore */
     }
