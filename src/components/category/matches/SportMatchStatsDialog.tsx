@@ -604,6 +604,7 @@ export function SportMatchStatsDialog({
               players={statsData}
               stats={activeCategoryStats}
               categoryKey={activeCategory?.key}
+              sportType={sportType}
               onUpdateStat={updateStat}
               supportsGoalkeeper={supportsGoalkeeper}
               isRugby={isRugbyType(sportType)}

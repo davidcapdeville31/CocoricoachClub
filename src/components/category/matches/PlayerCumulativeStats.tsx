@@ -921,7 +921,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
           const categoryStats = sportStats.filter(s => s.category === cat.key);
           if (categoryStats.length === 0) return;
 
-          const groups = groupStatsByTheme(cat.key, categoryStats);
+          const groups = groupStatsByTheme(cat.key, categoryStats, { sportType });
 
           if (y > pageH - 50) { doc.addPage(); y = 15; }
 
@@ -1313,7 +1313,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
           const categoryStats = sportStats.filter(s => s.category === cat.key);
           if (categoryStats.length === 0) return;
 
-          const groups = groupStatsByTheme(cat.key, categoryStats);
+          const groups = groupStatsByTheme(cat.key, categoryStats, { sportType });
 
           // Category title (rendered once per category)
           if (y > pageH - 30) { doc.addPage(); y = 15; }
@@ -1826,7 +1826,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
         const categoryStats = sportStats.filter(s => s.category === cat.key);
         if (categoryStats.length === 0) return;
 
-        const groups = groupStatsByTheme(cat.key, categoryStats);
+        const groups = groupStatsByTheme(cat.key, categoryStats, { sportType });
 
         if (y > pageH - 40) { doc.addPage(); y = 15; }
         doc.setTextColor(30, 41, 59);
@@ -2444,7 +2444,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
 
                   {playerStatCategories.map(cat => {
                     const categoryStats = sportStats.filter(s => s.category === cat.key);
-                    const groups = groupStatsByTheme(cat.key, categoryStats);
+                    const groups = groupStatsByTheme(cat.key, categoryStats, { sportType });
 
                     const renderTile = (stat: typeof categoryStats[number], opts?: { large?: boolean }) => {
                       const large = opts?.large;
@@ -2678,7 +2678,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
 
             {statCategories.map(cat => {
               const categoryStats = sportStats.filter(s => s.category === cat.key);
-              const columnGroups = groupStatsByTheme(cat.key, categoryStats);
+              const columnGroups = groupStatsByTheme(cat.key, categoryStats, { sportType });
               const hasGroupLabels = columnGroups.some(g => g.label);
 
               return (

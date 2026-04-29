@@ -197,7 +197,7 @@ export function TeamCumulativeStats({ stats, matchesData, sportStats, sportType,
     /minutesplayed|playingtime|starts|manofmatch/i.test(key);
 
   // Use shared sub-group helper (same logic as PlayerCumulativeStats and stats input)
-  const groupStats = (catKey: string, statsList: StatField[]) => groupStatsByTheme(catKey, statsList);
+  const groupStats = (catKey: string, statsList: StatField[]) => groupStatsByTheme(catKey, statsList, { sportType });
 
   const renderStatTile = (
     stat: StatField,

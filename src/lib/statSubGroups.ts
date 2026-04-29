@@ -44,8 +44,51 @@ export const STAT_SUB_GROUPS: Record<
     { key: "blocks", label: "Contres & Blocages", match: (k) => /^(blocks|blockedShots|clearances)$/i.test(k) },
     { key: "discipline", label: "Discipline", match: (k) => /^(penaltiesConceded|foulsCommitted|foulsWon|errorsLeadingToGoal|ownGoals)$/i.test(k) },
     { key: "goalkeeping", label: "Gardien", match: (k) => /^(penaltiesSaved|highClaims|punches)$/i.test(k) },
+    // Basketball 3x3 — defensive sub-groups
+    { key: "rebounding_def", label: "Rebonds défensifs", match: (k) => /^(defensiveRebounds|totalRebounds)$/i.test(k) },
+    { key: "stealsDeflections", label: "Interceptions & Déviations", match: (k) => /^(deflections)$/i.test(k) },
+    { key: "shotContest", label: "Contres & Charges", match: (k) => /^(blocksAgainst|chargesTaken)$/i.test(k) },
   ],
 };
+
+// ============================================================
+// Basketball 3x3 — sub-group definitions (per category)
+// Same structure as rugby: each tab (general/scoring/attack/defense)
+// is split into colored thematic blocks for the UI and PDF exports.
+// ============================================================
+const BASKETBALL_3X3_SUB_GROUPS = {
+  general: [
+    { key: "playtime", label: "Temps de jeu", match: (k: string) => /^(matchDurationSeconds|minutesPlayed|starts)$/i.test(k) },
+    { key: "fouls", label: "Fautes", match: (k: string) => /^(personalFouls|technicalFouls|foulsDrawn)$/i.test(k) },
+    { key: "impact", label: "Impact & Récompenses", match: (k: string) => /^(plusMinus|vps|manOfMatch)$/i.test(k) },
+  ],
+  scoring: [
+    { key: "totalPoints", label: "Points", match: (k: string) => /^points$/i.test(k) },
+    { key: "onePoint", label: "Tirs à 1pt (intérieur arc)", match: (k: string) => /^(onePointersMade|onePointersAttempted|onePointPercentage)$/i.test(k) },
+    { key: "twoPoint", label: "Tirs à 2pts (derrière arc)", match: (k: string) => /^(twoPointersMade|twoPointersAttempted|twoPointPercentage)$/i.test(k) },
+    { key: "freeThrows", label: "Lancers francs", match: (k: string) => /^(freeThrowsMade|freeThrowsAttempted|freeThrowPercentage)$/i.test(k) },
+    { key: "drivesCheck", label: "Pénétrations & Check-ball", match: (k: string) => /^(drives|shotsAfterCheck)$/i.test(k) },
+  ],
+  attack: [
+    { key: "playmaking", label: "Création", match: (k: string) => /^assists$/i.test(k) },
+    { key: "offRebound", label: "Rebonds offensifs", match: (k: string) => /^(offensiveRebounds|offensiveReboundsAfterClear)$/i.test(k) },
+    { key: "ballHandling", label: "Gestion du ballon", match: (k: string) => /^turnovers$/i.test(k) },
+    { key: "checkBalls", label: "Check-balls", match: (k: string) => /^(checkBallsWon|checkBallsLost)$/i.test(k) },
+  ],
+  defense: [
+    { key: "rebounding_def", label: "Rebonds défensifs", match: (k: string) => /^(defensiveRebounds|totalRebounds)$/i.test(k) },
+    { key: "stealsBlocks", label: "Interceptions & Contres", match: (k: string) => /^(steals|blocks)$/i.test(k) },
+    { key: "deflectionsCharges", label: "Déviations & Charges", match: (k: string) => /^(deflections|chargesTaken)$/i.test(k) },
+  ],
+};
+
+// Merge basketball 3x3 sub-groups into the main registry, keyed with a prefix
+// so they don't conflict with the generic (rugby) defaults. A sport-aware
+// resolver below picks the right set based on `sportType`.
+for (const [catKey, defs] of Object.entries(BASKETBALL_3X3_SUB_GROUPS)) {
+  STAT_SUB_GROUPS[`basketball_3x3:${catKey}`] = defs;
+}
+
 
 /** Theme color palette — utility classes that handle light/dark mode */
 export const STAT_GROUP_PALETTE = [
@@ -102,13 +145,30 @@ export interface StatGroup {
   color: StatGroupColor | null;
 }
 
+/**
+ * Resolve the right sub-group definition list for a (sportType, categoryKey)
+ * pair. Falls back to the generic (rugby) sub-groups when no sport-specific
+ * variant exists, preserving previous behaviour for all other sports.
+ */
+function resolveSubGroupDefs(
+  categoryKey: string,
+  sportType?: string
+): { key: string; label: string; match: (k: string) => boolean }[] {
+  if (sportType) {
+    const sportLower = sportType.toLowerCase();
+    const sportSpecific = STAT_SUB_GROUPS[`${sportLower}:${categoryKey}`];
+    if (sportSpecific && sportSpecific.length > 0) return sportSpecific;
+  }
+  return STAT_SUB_GROUPS[categoryKey] || [];
+}
+
 /** Group a list of stats by sub-theme for the given category. */
 export function groupStatsByTheme(
   categoryKey: string,
   statsList: StatField[],
-  options?: { fallbackOthersLabel?: string }
+  options?: { fallbackOthersLabel?: string; sportType?: string }
 ): StatGroup[] {
-  const defs = STAT_SUB_GROUPS[categoryKey] || [];
+  const defs = resolveSubGroupDefs(categoryKey, options?.sportType);
   if (defs.length === 0) {
     return [{ key: "_all", label: null, items: statsList, color: null }];
   }

@@ -19,6 +19,8 @@ interface PlayerStatsGridProps {
   stats: StatField[];
   /** Active category key (e.g. "general", "scoring", "attack", "defense") used to color sub-themes */
   categoryKey?: string;
+  /** Sport type — enables sport-specific themed sub-groups (e.g. basketball_3x3) */
+  sportType?: string;
   onUpdateStat: (playerId: string, statKey: string, value: number) => void;
   supportsGoalkeeper: boolean;
   isRugby?: boolean;
@@ -32,7 +34,7 @@ const KICKING_STAT_KEYS = new Set([
   "points",
 ]);
 
-export function PlayerStatsGrid({ players, stats, categoryKey, onUpdateStat, supportsGoalkeeper, isRugby, onOpenKickingField }: PlayerStatsGridProps) {
+export function PlayerStatsGrid({ players, stats, categoryKey, sportType, onUpdateStat, supportsGoalkeeper, isRugby, onOpenKickingField }: PlayerStatsGridProps) {
   const isMobile = useIsMobile();
 
   // Sort players by position number (starters first 1-15/23, then subs)
@@ -54,7 +56,7 @@ export function PlayerStatsGrid({ players, stats, categoryKey, onUpdateStat, sup
 
   // Compute themed sub-groups for the active category
   const groups: StatGroup[] = categoryKey
-    ? groupStatsByTheme(categoryKey, stats)
+    ? groupStatsByTheme(categoryKey, stats, { sportType })
     : [{ key: "_all", label: null, items: stats, color: null }];
 
   // Build a per-stat color lookup to color cells/columns even when group has no label
