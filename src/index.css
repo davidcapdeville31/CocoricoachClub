@@ -310,7 +310,7 @@ All colors MUST be HSL.
   }
 
   /* Long unbreakable strings (URLs, IDs, emails) should wrap instead of pushing layout */
-  p, span, div, h1, h2, h3, h4, h5, h6, a, li, td, th {
+  p, li, td, th, dt, dd, blockquote {
     overflow-wrap: anywhere;
   }
 
