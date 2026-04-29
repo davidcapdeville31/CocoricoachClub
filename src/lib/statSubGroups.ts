@@ -145,13 +145,30 @@ export interface StatGroup {
   color: StatGroupColor | null;
 }
 
+/**
+ * Resolve the right sub-group definition list for a (sportType, categoryKey)
+ * pair. Falls back to the generic (rugby) sub-groups when no sport-specific
+ * variant exists, preserving previous behaviour for all other sports.
+ */
+function resolveSubGroupDefs(
+  categoryKey: string,
+  sportType?: string
+): { key: string; label: string; match: (k: string) => boolean }[] {
+  if (sportType) {
+    const sportLower = sportType.toLowerCase();
+    const sportSpecific = STAT_SUB_GROUPS[`${sportLower}:${categoryKey}`];
+    if (sportSpecific && sportSpecific.length > 0) return sportSpecific;
+  }
+  return STAT_SUB_GROUPS[categoryKey] || [];
+}
+
 /** Group a list of stats by sub-theme for the given category. */
 export function groupStatsByTheme(
   categoryKey: string,
   statsList: StatField[],
-  options?: { fallbackOthersLabel?: string }
+  options?: { fallbackOthersLabel?: string; sportType?: string }
 ): StatGroup[] {
-  const defs = STAT_SUB_GROUPS[categoryKey] || [];
+  const defs = resolveSubGroupDefs(categoryKey, options?.sportType);
   if (defs.length === 0) {
     return [{ key: "_all", label: null, items: statsList, color: null }];
   }
