@@ -219,10 +219,10 @@ export default function Clubs() {
               {/* On a dark hero, always use the dark-theme logo */}
               <BrandLogo variant="dark" className="h-12 sm:h-16 md:h-20 w-auto drop-shadow-lg shrink-0" />
               <div className="min-w-0 flex-1">
-                <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-1 sm:mb-2 break-words">
+                <h1 className="text-xl sm:text-4xl md:text-5xl font-bold text-white mb-1 sm:mb-2 leading-tight">
                   CocoriCoach Club
                 </h1>
-                <p className="text-sm sm:text-lg text-white/90">
+                <p className="text-xs sm:text-lg text-white/90">
                   Gestion des clubs et suivi des performances
                 </p>
               </div>
