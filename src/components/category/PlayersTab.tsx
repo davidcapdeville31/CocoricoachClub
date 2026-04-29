@@ -504,16 +504,9 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
             )}
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nom</TableHead>
-                {hasAttributeColumn && <TableHead>{attributeColumnLabel}</TableHead>}
-                {!isViewer && <TableHead>Inscription</TableHead>}
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <>
+            {/* Mobile : cartes empilées */}
+            <div className="md:hidden space-y-2">
               {filteredPlayers?.map((player: any) => {
                 const fullName = player.first_name 
                   ? `${player.first_name} ${player.name}` 
@@ -524,97 +517,79 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                   .join("")
                   .toUpperCase()
                   .slice(0, 2);
+                const inv = invitationsByPlayer.get(player.id);
+                const status = inv ? getInvitationStatus(inv.status, inv.expires_at) : null;
+                const link = inv ? `${window.location.origin}/accept-athlete-invitation?token=${inv.token}` : "";
 
                 return (
-                  <TableRow 
-                    key={player.id} 
-                    className="animate-fade-in cursor-pointer hover:bg-accent/50"
+                  <div
+                    key={player.id}
+                    className="rounded-2xl border bg-card p-3 shadow-sm active:scale-[0.99] transition-transform cursor-pointer"
                     onClick={() => navigate(`/players/${player.id}`)}
                   >
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={player.avatar_url || undefined} alt={fullName} />
-                          <AvatarFallback className="bg-primary/10 text-primary">
-                            {initials}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span>{fullName}</span>
-                        <PlayerInfoHover player={player} isSki={isSki} />
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Avatar className="h-11 w-11 shrink-0">
+                        <AvatarImage src={player.avatar_url || undefined} alt={fullName} />
+                        <AvatarFallback className="bg-primary/10 text-primary">{initials}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1 min-w-0">
+                          <p className="font-medium truncate">{fullName}</p>
+                          <PlayerInfoHover player={player} isSki={isSki} />
+                        </div>
+                        {hasAttributeColumn && (
+                          <div className="mt-1">{getAttributeDisplay(player)}</div>
+                        )}
                       </div>
-                    </TableCell>
-                    {hasAttributeColumn && (
-                      <TableCell>
-                        {getAttributeDisplay(player)}
-                      </TableCell>
-                    )}
-                    {!isViewer && (
-                      <TableCell onClick={(e) => e.stopPropagation()}>
-                        {(() => {
-                          if (player.user_id) {
-                            return (
-                              <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300 gap-1">
-                                <Check className="h-3 w-3" />
-                                Connecté
+                    </div>
+                    <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
+                      {!isViewer && (
+                        <div onClick={(e) => e.stopPropagation()} className="min-w-0">
+                          {player.user_id ? (
+                            <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300 gap-1">
+                              <Check className="h-3 w-3" /> Connecté
+                            </Badge>
+                          ) : inv ? (
+                            <div className="flex items-center gap-1.5">
+                              <Badge variant="outline" className={
+                                status === "expired"
+                                  ? "text-destructive border-destructive/30"
+                                  : "text-amber-600 border-amber-300 dark:text-amber-400"
+                              }>
+                                {status === "expired" ? "Expiré" : "En attente"}
                               </Badge>
-                            );
-                          }
-                          const inv = invitationsByPlayer.get(player.id);
-                          if (!inv) {
-                            return (
-                              <span className="text-xs text-muted-foreground">—</span>
-                            );
-                          }
-                          const status = getInvitationStatus(inv.status, inv.expires_at);
-                          const link = `${window.location.origin}/accept-athlete-invitation?token=${inv.token}`;
-                          return (
-                            <TooltipProvider>
-                              <div className="flex items-center gap-1.5">
-                                <Badge variant="outline" className={
-                                  status === "expired" 
-                                    ? "text-destructive border-destructive/30" 
-                                    : "text-amber-600 border-amber-300 dark:text-amber-400"
-                                }>
-                                  {status === "expired" ? "Expiré" : "En attente"}
-                                </Badge>
-                                {status === "pending" && (
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-7 w-7"
-                                        onClick={() => {
-                                          navigator.clipboard.writeText(link);
-                                          setCopiedInviteId(inv.id);
-                                          toast.success("Lien d'inscription copié !");
-                                          setTimeout(() => setCopiedInviteId(null), 2000);
-                                        }}
-                                      >
-                                        {copiedInviteId === inv.id ? (
-                                          <Check className="h-3.5 w-3.5 text-green-600" />
-                                        ) : (
-                                          <Copy className="h-3.5 w-3.5" />
-                                        )}
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Copier le lien d'inscription</TooltipContent>
-                                  </Tooltip>
-                                )}
-                              </div>
-                            </TooltipProvider>
-                          );
-                        })()}
-                      </TableCell>
-                    )}
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                              {status === "pending" && (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-7 w-7"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(link);
+                                    setCopiedInviteId(inv.id);
+                                    toast.success("Lien d'inscription copié !");
+                                    setTimeout(() => setCopiedInviteId(null), 2000);
+                                  }}
+                                >
+                                  {copiedInviteId === inv.id ? (
+                                    <Check className="h-3.5 w-3.5 text-green-600" />
+                                  ) : (
+                                    <Copy className="h-3.5 w-3.5" />
+                                  )}
+                                </Button>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">Pas d'invitation</span>
+                          )}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1.5 ml-auto" onClick={(e) => e.stopPropagation()}>
                         {!isViewer && (
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
+                            className="h-8 w-8"
+                            onClick={() => {
                               if (confirm(`Êtes-vous sûr de vouloir supprimer l'athlète ${fullName} ?`)) {
                                 deletePlayer.mutate(player.id);
                               }
@@ -626,23 +601,162 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="gap-1.5"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/players/${player.id}`);
-                          }}
+                          className="gap-1.5 h-8"
+                          onClick={() => navigate(`/players/${player.id}`)}
                         >
                           <Eye className="h-4 w-4" />
-                          <span className="hidden sm:inline">Voir le profil complet</span>
-                          <span className="sm:hidden">Profil</span>
+                          Profil
                         </Button>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                  </div>
                 );
               })}
-            </TableBody>
-          </Table>
+            </div>
+
+            {/* Desktop / tablette : table */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nom</TableHead>
+                    {hasAttributeColumn && <TableHead>{attributeColumnLabel}</TableHead>}
+                    {!isViewer && <TableHead>Inscription</TableHead>}
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredPlayers?.map((player: any) => {
+                    const fullName = player.first_name 
+                      ? `${player.first_name} ${player.name}` 
+                      : player.name;
+                    const initials = fullName
+                      .split(" ")
+                      .map((n: string) => n[0])
+                      .join("")
+                      .toUpperCase()
+                      .slice(0, 2);
+
+                    return (
+                      <TableRow 
+                        key={player.id} 
+                        className="animate-fade-in cursor-pointer hover:bg-accent/50"
+                        onClick={() => navigate(`/players/${player.id}`)}
+                      >
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={player.avatar_url || undefined} alt={fullName} />
+                              <AvatarFallback className="bg-primary/10 text-primary">
+                                {initials}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span>{fullName}</span>
+                            <PlayerInfoHover player={player} isSki={isSki} />
+                          </div>
+                        </TableCell>
+                        {hasAttributeColumn && (
+                          <TableCell>
+                            {getAttributeDisplay(player)}
+                          </TableCell>
+                        )}
+                        {!isViewer && (
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            {(() => {
+                              if (player.user_id) {
+                                return (
+                                  <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300 gap-1">
+                                    <Check className="h-3 w-3" />
+                                    Connecté
+                                  </Badge>
+                                );
+                              }
+                              const inv = invitationsByPlayer.get(player.id);
+                              if (!inv) {
+                                return (
+                                  <span className="text-xs text-muted-foreground">—</span>
+                                );
+                              }
+                              const status = getInvitationStatus(inv.status, inv.expires_at);
+                              const link = `${window.location.origin}/accept-athlete-invitation?token=${inv.token}`;
+                              return (
+                                <TooltipProvider>
+                                  <div className="flex items-center gap-1.5">
+                                    <Badge variant="outline" className={
+                                      status === "expired" 
+                                        ? "text-destructive border-destructive/30" 
+                                        : "text-amber-600 border-amber-300 dark:text-amber-400"
+                                    }>
+                                      {status === "expired" ? "Expiré" : "En attente"}
+                                    </Badge>
+                                    {status === "pending" && (
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-7 w-7"
+                                            onClick={() => {
+                                              navigator.clipboard.writeText(link);
+                                              setCopiedInviteId(inv.id);
+                                              toast.success("Lien d'inscription copié !");
+                                              setTimeout(() => setCopiedInviteId(null), 2000);
+                                            }}
+                                          >
+                                            {copiedInviteId === inv.id ? (
+                                              <Check className="h-3.5 w-3.5 text-green-600" />
+                                            ) : (
+                                              <Copy className="h-3.5 w-3.5" />
+                                            )}
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Copier le lien d'inscription</TooltipContent>
+                                      </Tooltip>
+                                    )}
+                                  </div>
+                                </TooltipProvider>
+                              );
+                            })()}
+                          </TableCell>
+                        )}
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            {!isViewer && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (confirm(`Êtes-vous sûr de vouloir supprimer l'athlète ${fullName} ?`)) {
+                                    deletePlayer.mutate(player.id);
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1.5"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/players/${player.id}`);
+                              }}
+                            >
+                              <Eye className="h-4 w-4" />
+                              <span className="hidden sm:inline">Voir le profil complet</span>
+                              <span className="sm:hidden">Profil</span>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </CardContent>
 
