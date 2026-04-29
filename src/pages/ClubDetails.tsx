@@ -73,27 +73,29 @@ function ClubDetailsContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="bg-gradient-hero py-12 px-4">
+      <div className="bg-gradient-hero py-8 sm:py-12 px-4">
         <div className="container mx-auto max-w-6xl">
-          <div className="flex justify-between items-start mb-4">
+          <div className="flex justify-between items-start gap-2 mb-4 flex-wrap">
             <Button
               variant="ghost"
-              className="text-white hover:bg-white/10"
+              size="sm"
+              className="text-white hover:bg-white/10 shrink-0"
               onClick={() => navigate("/")}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour aux clubs
+              <span className="hidden sm:inline">Retour aux clubs</span>
+              <span className="sm:hidden">Retour</span>
             </Button>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               <GlobalPlayerSearch />
               <NotificationBell />
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-white">{club?.name}</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white break-words">{club?.name}</h1>
         </div>
       </div>
 
-      <div className="container mx-auto max-w-6xl px-4 py-8">
+      <div className="container mx-auto max-w-6xl px-4 py-6 sm:py-8">
         <Tabs defaultValue="categories" className="space-y-6">
           <TabsList>
             <TabsTrigger value="categories">Catégories</TabsTrigger>
@@ -103,12 +105,13 @@ function ClubDetailsContent() {
           </TabsList>
 
           <TabsContent value="categories" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-foreground">Catégories</h2>
+            <div className="flex justify-between items-center gap-2 flex-wrap">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground">Catégories</h2>
               {!isViewer && (
-                <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+                <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="gap-2 shrink-0">
                   <Plus className="h-4 w-4" />
-                  Ajouter une catégorie
+                  <span className="hidden sm:inline">Ajouter une catégorie</span>
+                  <span className="sm:hidden">Ajouter</span>
                 </Button>
               )}
             </div>
