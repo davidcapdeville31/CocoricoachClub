@@ -211,35 +211,34 @@ export default function Clubs() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="bg-gradient-hero py-16 px-4">
+    <div className="min-h-screen bg-background overflow-x-hidden">
+      <div className="bg-gradient-hero py-8 sm:py-16 px-4">
         <div className="container mx-auto max-w-6xl">
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex items-center gap-4">
-              {/* On a dark hero, always use the dark-theme logo */}
-              <BrandLogo variant="dark" className="h-16 md:h-20 w-auto drop-shadow-lg" />
-              <div>
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
-                  CocoriCoach Club
-                </h1>
-                <p className="text-lg text-white/90">
-                  Gestion des clubs et suivi des performances
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <NotificationBell />
-              {isSuperAdmin && (
-                <>
-                  <Button variant="ghost" size="icon" onClick={() => navigate("/athlete-space")} className="text-white hover:bg-white/10" title="Espace Athlète">
-                    <User className="h-5 w-5" />
-                  </Button>
-                  <SuperAdminShieldButton variant="hero" />
-                </>
-              )}
-              <Button variant="ghost" size="icon" onClick={signOut} className="text-white hover:bg-white/10">
-                <LogOut className="h-5 w-5" />
-              </Button>
+          {/* Action icons - top right on mobile too */}
+          <div className="flex justify-end items-center gap-1 sm:gap-2 mb-3 sm:mb-4">
+            <NotificationBell />
+            {isSuperAdmin && (
+              <>
+                <Button variant="ghost" size="icon" onClick={() => navigate("/athlete-space")} className="text-white hover:bg-white/10" title="Espace Athlète">
+                  <User className="h-5 w-5" />
+                </Button>
+                <SuperAdminShieldButton variant="hero" />
+              </>
+            )}
+            <Button variant="ghost" size="icon" onClick={signOut} className="text-white hover:bg-white/10">
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
+          {/* Title block */}
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            <BrandLogo variant="dark" className="h-14 sm:h-16 md:h-20 w-auto drop-shadow-lg shrink-0" />
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-1 sm:mb-2 leading-tight">
+                CocoriCoach Club
+              </h1>
+              <p className="text-xs sm:text-lg text-white/90">
+                Gestion des clubs et suivi des performances
+              </p>
             </div>
           </div>
         </div>

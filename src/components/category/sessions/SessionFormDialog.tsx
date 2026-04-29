@@ -1089,6 +1089,11 @@ export function SessionFormDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!date) {
+      toast.error("Veuillez sélectionner une date");
+      return;
+    }
+
     if (endTime && !startTime) {
       toast.error("Veuillez indiquer une heure de début si vous spécifiez une heure de fin");
       return;
@@ -1101,18 +1106,18 @@ export function SessionFormDialog({
 
     // Validate: athlete mode uses type, staff mode uses blocks
     if (isAthleteMode) {
-      if (date && type) {
-        saveSession.mutate();
-      } else if (!type) {
+      if (!type) {
         toast.error("Veuillez sélectionner un type de séance");
+        return;
       }
+      saveSession.mutate();
     } else {
       const hasValidBlocks = sessionBlocks.length > 0 && sessionBlocks.some(b => b.training_type);
-      if (date && hasValidBlocks) {
-        saveSession.mutate();
-      } else if (!hasValidBlocks) {
-        toast.error("Veuillez ajouter au moins un bloc thématique");
+      if (!hasValidBlocks) {
+        toast.error("Veuillez ajouter au moins un bloc thématique à la séance");
+        return;
       }
+      saveSession.mutate();
     }
   };
 
@@ -2767,25 +2772,25 @@ export function SessionFormDialog({
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-            <TabsList className={cn("grid w-full shrink-0", isAthleteMode ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-4")}>
-              <TabsTrigger value="details">Détails</TabsTrigger>
-              <TabsTrigger value="exercises">
+            <TabsList className={cn("grid w-full shrink-0", isAthleteMode ? "grid-cols-3" : "grid-cols-4")}>
+              <TabsTrigger value="details" className="text-xs sm:text-sm px-1 sm:px-3">Détails</TabsTrigger>
+              <TabsTrigger value="exercises" className="text-xs sm:text-sm px-1 sm:px-3">
                 Exercices
                 {exercises.filter((e) => e.exercise_name.trim()).length > 0 && (
-                  <Badge variant="secondary" className="ml-2">
+                  <Badge variant="secondary" className="ml-1 sm:ml-2 px-1">
                     {exercises.filter((e) => e.exercise_name.trim()).length}
                   </Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="tests">
+              <TabsTrigger value="tests" className="text-xs sm:text-sm px-1 sm:px-3">
                 Tests
                 {sessionTests.filter((t) => t.test_type).length > 0 && (
-                  <Badge variant="secondary" className="ml-2 bg-emerald-100 text-emerald-700">
+                  <Badge variant="secondary" className="ml-1 sm:ml-2 px-1 bg-emerald-100 text-emerald-700">
                     {sessionTests.filter((t) => t.test_type).length}
                   </Badge>
                 )}
               </TabsTrigger>
-              {!isAthleteMode && <TabsTrigger value="players">{isIndividualSport(sportType || "") ? "Athlètes" : "Joueurs"}</TabsTrigger>}
+              {!isAthleteMode && <TabsTrigger value="players" className="text-xs sm:text-sm px-1 sm:px-3">{isIndividualSport(sportType || "") ? "Athlètes" : "Joueurs"}</TabsTrigger>}
             </TabsList>
 
             <div className="flex-1 overflow-hidden mt-4">
@@ -3351,7 +3356,7 @@ export function SessionFormDialog({
             </Button>
             <Button 
               type="submit" 
-              disabled={!date || (!type && sessionBlocks.length === 0) || saveSession.isPending}
+              disabled={saveSession.isPending}
             >
               {saveSession.isPending ? "Enregistrement..." : editSession ? "Modifier" : "Créer"}
             </Button>

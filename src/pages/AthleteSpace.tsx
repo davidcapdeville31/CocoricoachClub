@@ -429,15 +429,15 @@ export default function AthleteSpace() {
     .slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {!isSuperAdminView && <AthletePWAInstallPopup playerId={athleteInfo.player_id} />}
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="max-w-5xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             {(isSuperAdminView || allAthleteEntries.length > 1) && (
-              <Button variant="ghost" size="icon" onClick={() => {
+              <Button variant="ghost" size="icon" className="shrink-0" onClick={() => {
                 if (isSuperAdminView) {
                   navigate(-1);
                 } else {
@@ -449,31 +449,32 @@ export default function AthleteSpace() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shrink-0">
               {athleteInfo.avatar_url ? (
                 <img src={athleteInfo.avatar_url} alt={displayName} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-sm font-bold text-primary">{initials}</span>
               )}
             </div>
-            <div>
-              <h1 className="text-base font-semibold leading-tight">{displayName}</h1>
-              <div className="flex items-center gap-1.5">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-sm sm:text-base font-semibold leading-tight truncate">{displayName}</h1>
+              <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
                 {isSuperAdminView && (
-                  <Badge variant="outline" className="text-[10px] h-5 border-primary text-primary">Vue Admin</Badge>
+                  <Badge variant="outline" className="text-[10px] h-5 border-primary text-primary shrink-0">Vue Admin</Badge>
                 )}
-                <Badge variant="secondary" className="text-[10px] h-5">{athleteInfo.category_name}</Badge>
-                <span className="text-xs text-muted-foreground">{athleteInfo.club_name}</span>
+                <Badge variant="secondary" className="text-[10px] h-5 max-w-[120px] sm:max-w-none truncate">{athleteInfo.category_name}</Badge>
+                <span className="text-xs text-muted-foreground truncate hidden sm:inline">{athleteInfo.club_name}</span>
               </div>
             </div>
           </div>
           {!isSuperAdminView ? (
-            <Button variant="ghost" size="icon" onClick={() => signOut()}>
+            <Button variant="ghost" size="icon" className="shrink-0" onClick={() => signOut()}>
               <LogOut className="h-4 w-4" />
             </Button>
           ) : (
-            <Button variant="outline" size="sm" onClick={() => navigate(`/players/${athleteInfo.player_id}`)}>
-              Fiche joueur
+            <Button variant="outline" size="sm" className="shrink-0 px-2 sm:px-3" onClick={() => navigate(`/players/${athleteInfo.player_id}`)}>
+              <span className="hidden sm:inline">Fiche joueur</span>
+              <User className="h-4 w-4 sm:hidden" />
             </Button>
           )}
         </div>
