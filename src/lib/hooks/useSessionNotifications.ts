@@ -293,6 +293,66 @@ export function useSessionNotifications() {
       // ── Step 3: Send notification ─────────────────────────────────────────
       console.log(`[SessionNotification] Step 3 — Sending push via ${mode}...`);
 
+      // ── Step 3-bis: Send EMAIL notifications in parallel ─────────────────
+      // Fetch player emails (and user_ids) for the targeted participants OR
+      // for the whole category (broadcast fallback). The notify-athletes
+      // function applies per-user notification preferences.
+      try {
+        let athletesQuery = supabase
+          .from("players")
+          .select("id, first_name, name, email, user_id")
+          .not("email", "is", null);
+
+        if (hasSpecificPlayers) {
+          athletesQuery = athletesQuery.in("id", participantPlayerIds!);
+        } else {
+          athletesQuery = athletesQuery.eq("category_id", categoryId);
+        }
+
+        const { data: athleteRows } = await athletesQuery;
+        const athletes = (athleteRows ?? [])
+          .filter((p) => p.email)
+          .map((p) => ({
+            name: [p.first_name, p.name].filter(Boolean).join(" ").trim() || "Athlète",
+            email: p.email as string,
+            user_id: p.user_id ?? undefined,
+          }));
+
+        if (athletes.length > 0) {
+          console.log(`[SessionNotification] Step 3-bis — Sending email to ${athletes.length} athlete(s)`);
+          const emailEventType =
+            sessionType === "match" ? "match" : "session";
+          const { data: emailData, error: emailError } = await supabase.functions.invoke(
+            "notify-athletes",
+            {
+              body: {
+                athletes,
+                subject: title,
+                message,
+                channels: ["email"],
+                eventType: emailEventType,
+                eventDetails: {
+                  date: dateLabel,
+                  ...(sessionStartTime ? { time: sessionStartTime.substring(0, 5) } : {}),
+                  ...(location ? { location } : {}),
+                },
+              },
+            }
+          );
+          if (emailError) {
+            console.error("[SessionNotification] ❌ Email send error:", emailError);
+          } else {
+            console.log(
+              `[SessionNotification] ✉️  Emails sent: ${emailData?.emailsSent ?? 0}`
+            );
+          }
+        } else {
+          console.log("[SessionNotification] Step 3-bis — No emails to send (no athletes with email)");
+        }
+      } catch (emailErr) {
+        console.error("[SessionNotification] ❌ Failed to send emails:", emailErr);
+      }
+
       try {
         const { data, error } = await supabase.functions.invoke(
           "send-targeted-notification",
