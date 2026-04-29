@@ -2768,24 +2768,24 @@ export function SessionFormDialog({
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
             <TabsList className={cn("grid w-full shrink-0", isAthleteMode ? "grid-cols-3" : "grid-cols-4")}>
-              <TabsTrigger value="details">Détails</TabsTrigger>
-              <TabsTrigger value="exercises">
+              <TabsTrigger value="details" className="text-xs sm:text-sm px-1 sm:px-3">Détails</TabsTrigger>
+              <TabsTrigger value="exercises" className="text-xs sm:text-sm px-1 sm:px-3">
                 Exercices
                 {exercises.filter((e) => e.exercise_name.trim()).length > 0 && (
-                  <Badge variant="secondary" className="ml-2">
+                  <Badge variant="secondary" className="ml-1 sm:ml-2 px-1">
                     {exercises.filter((e) => e.exercise_name.trim()).length}
                   </Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="tests">
+              <TabsTrigger value="tests" className="text-xs sm:text-sm px-1 sm:px-3">
                 Tests
                 {sessionTests.filter((t) => t.test_type).length > 0 && (
-                  <Badge variant="secondary" className="ml-2 bg-emerald-100 text-emerald-700">
+                  <Badge variant="secondary" className="ml-1 sm:ml-2 px-1 bg-emerald-100 text-emerald-700">
                     {sessionTests.filter((t) => t.test_type).length}
                   </Badge>
                 )}
               </TabsTrigger>
-              {!isAthleteMode && <TabsTrigger value="players">{isIndividualSport(sportType || "") ? "Athlètes" : "Joueurs"}</TabsTrigger>}
+              {!isAthleteMode && <TabsTrigger value="players" className="text-xs sm:text-sm px-1 sm:px-3">{isIndividualSport(sportType || "") ? "Athlètes" : "Joueurs"}</TabsTrigger>}
             </TabsList>
 
             <div className="flex-1 overflow-hidden mt-4">
