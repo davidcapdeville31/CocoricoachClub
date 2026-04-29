@@ -11,7 +11,7 @@ import { fr } from "date-fns/locale";
 import {
   Shield, ShieldCheck, ShieldAlert, AlertTriangle, Lock, Eye, Activity,
   KeyRound, Clock, Database, FileText, UserCheck, Cookie, Ban, CheckCircle2,
-  Fingerprint, BookLock, Server, Network, AlertCircle
+  Fingerprint, BookLock, Server, Network, AlertCircle, Users, User, Briefcase, Stethoscope
 } from "lucide-react";
 import { AuditLogsTab } from "@/components/admin/AuditLogsTab";
 
