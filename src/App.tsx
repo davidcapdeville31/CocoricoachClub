@@ -16,6 +16,7 @@ import { NotificationReminderModal } from "@/components/notifications/Notificati
 import { ViewerModeBanner } from "@/components/ViewerModeBanner";
 import { FieldModeToggle } from "@/components/FieldModeToggle";
 import { ActivityTracker } from "@/components/ActivityTracker";
+import { SessionTimeoutGuard } from "@/components/security/SessionTimeoutGuard";
 import Clubs from "./pages/Clubs";
 import ClubDetails from "./pages/ClubDetails";
 import CategoryDetails from "./pages/CategoryDetails";
@@ -135,6 +136,7 @@ const App = () => (
                 <NotificationOnboarding />
                 <NotificationReminderModal />
                 <ActivityTracker />
+                <SessionTimeoutGuard />
                 <CookieConsentBanner />
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
