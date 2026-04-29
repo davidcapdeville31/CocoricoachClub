@@ -208,6 +208,9 @@ export function SecurityCenter() {
           <TabsTrigger value="sensitive" className="flex items-center gap-2">
             <Eye className="h-4 w-4" /> Accès sensibles
           </TabsTrigger>
+          <TabsTrigger value="roles" className="flex items-center gap-2">
+            <Users className="h-4 w-4" /> Par rôle
+          </TabsTrigger>
           <TabsTrigger value="audit" className="flex items-center gap-2">
             <FileText className="h-4 w-4" /> Logs d'audit
           </TabsTrigger>
