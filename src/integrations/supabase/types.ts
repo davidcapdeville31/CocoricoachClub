@@ -133,6 +133,39 @@ export type Database = {
           },
         ]
       }
+      account_deletion_requests: {
+        Row: {
+          cancelled_at: string | null
+          completed_at: string | null
+          id: string
+          reason: string | null
+          requested_at: string
+          scheduled_for: string
+          status: Database["public"]["Enums"]["deletion_status"]
+          user_id: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          completed_at?: string | null
+          id?: string
+          reason?: string | null
+          requested_at?: string
+          scheduled_for?: string
+          status?: Database["public"]["Enums"]["deletion_status"]
+          user_id: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          completed_at?: string | null
+          id?: string
+          reason?: string | null
+          requested_at?: string
+          scheduled_for?: string
+          status?: Database["public"]["Enums"]["deletion_status"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_documents: {
         Row: {
           category_id: string
@@ -2550,6 +2583,60 @@ export type Database = {
           },
         ]
       }
+      data_export_requests: {
+        Row: {
+          completed_at: string | null
+          error_message: string | null
+          expires_at: string | null
+          file_url: string | null
+          format: string
+          id: string
+          requested_at: string
+          requested_for_player_id: string | null
+          status: Database["public"]["Enums"]["export_status"]
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          error_message?: string | null
+          expires_at?: string | null
+          file_url?: string | null
+          format?: string
+          id?: string
+          requested_at?: string
+          requested_for_player_id?: string | null
+          status?: Database["public"]["Enums"]["export_status"]
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          error_message?: string | null
+          expires_at?: string | null
+          file_url?: string | null
+          format?: string
+          id?: string
+          requested_at?: string
+          requested_for_player_id?: string | null
+          status?: Database["public"]["Enums"]["export_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_export_requests_requested_for_player_id_fkey"
+            columns: ["requested_for_player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_export_requests_requested_for_player_id_fkey"
+            columns: ["requested_for_player_id"]
+            isOneToOne: false
+            referencedRelation: "players_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -4348,6 +4435,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      legal_document_versions: {
+        Row: {
+          created_at: string
+          document_type: string
+          effective_date: string
+          id: string
+          is_current: boolean
+          summary_of_changes: string | null
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          effective_date?: string
+          id?: string
+          is_current?: boolean
+          summary_of_changes?: string | null
+          version: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          effective_date?: string
+          id?: string
+          is_current?: boolean
+          summary_of_changes?: string | null
+          version?: string
+        }
+        Relationships: []
       }
       match_lineups: {
         Row: {
@@ -11232,6 +11349,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_consents: {
+        Row: {
+          consent_type: Database["public"]["Enums"]["consent_type"]
+          created_at: string
+          document_version: string | null
+          granted: boolean
+          granted_at: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          revoked_at: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          consent_type: Database["public"]["Enums"]["consent_type"]
+          created_at?: string
+          document_version?: string | null
+          granted?: boolean
+          granted_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          revoked_at?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          consent_type?: Database["public"]["Enums"]["consent_type"]
+          created_at?: string
+          document_version?: string | null
+          granted?: boolean
+          granted_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          revoked_at?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_notification_preferences: {
         Row: {
           created_at: string
@@ -12009,6 +12168,15 @@ export type Database = {
         Returns: number
       }
       expire_trial_clients: { Args: never; Returns: undefined }
+      get_current_user_consents: {
+        Args: { _user_id?: string }
+        Returns: {
+          consent_type: Database["public"]["Enums"]["consent_type"]
+          document_version: string
+          granted: boolean
+          granted_at: string
+        }[]
+      }
       get_player_categories: {
         Args: { _player_id: string }
         Returns: {
@@ -12076,6 +12244,15 @@ export type Database = {
           read_ct: number
         }[]
       }
+      record_user_consent: {
+        Args: {
+          _consent_type: Database["public"]["Enums"]["consent_type"]
+          _document_version?: string
+          _granted: boolean
+          _metadata?: Json
+        }
+        Returns: string
+      }
       renew_invitation: {
         Args: { _invitation_id: string; _table_name: string }
         Returns: Json
@@ -12117,6 +12294,17 @@ export type Database = {
         | "prepa_physique"
         | "administratif"
         | "athlete"
+      consent_type:
+        | "terms_of_service"
+        | "privacy_policy"
+        | "cookies_essential"
+        | "cookies_notifications"
+        | "cookies_preferences"
+        | "health_data_processing"
+        | "marketing_communications"
+        | "parental_consent_minor"
+      deletion_status: "pending" | "cancelled" | "completed"
+      export_status: "pending" | "processing" | "ready" | "failed" | "expired"
       injury_severity: "légère" | "modérée" | "grave"
       injury_status: "active" | "recovering" | "healed"
       period_type: "préparation" | "compétition" | "récupération" | "trêve"
@@ -12258,6 +12446,18 @@ export const Constants = {
         "administratif",
         "athlete",
       ],
+      consent_type: [
+        "terms_of_service",
+        "privacy_policy",
+        "cookies_essential",
+        "cookies_notifications",
+        "cookies_preferences",
+        "health_data_processing",
+        "marketing_communications",
+        "parental_consent_minor",
+      ],
+      deletion_status: ["pending", "cancelled", "completed"],
+      export_status: ["pending", "processing", "ready", "failed", "expired"],
       injury_severity: ["légère", "modérée", "grave"],
       injury_status: ["active", "recovering", "healed"],
       period_type: ["préparation", "compétition", "récupération", "trêve"],

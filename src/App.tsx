@@ -35,6 +35,11 @@ import AdminClub from "./pages/AdminClub";
 import AcceptAmbassadorInvitation from "./pages/AcceptAmbassadorInvitation";
 import AthleteSpace from "./pages/AthleteSpace";
 import NotFound from "./pages/NotFound";
+import MentionsLegales from "./pages/legal/MentionsLegales";
+import PolitiqueConfidentialite from "./pages/legal/PolitiqueConfidentialite";
+import CGU from "./pages/legal/CGU";
+import PolitiqueCookies from "./pages/legal/PolitiqueCookies";
+import { CookieConsentBanner } from "./components/legal/CookieConsentBanner";
 
 // Auth wrapper component that allows public access
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -130,6 +135,7 @@ const App = () => (
                 <NotificationOnboarding />
                 <NotificationReminderModal />
                 <ActivityTracker />
+                <CookieConsentBanner />
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/" element={<Clubs />} />
@@ -149,6 +155,10 @@ const App = () => (
                    <Route path="/clubs/:clubId/admin" element={<AdminClubWithAuth />} />
                   <Route path="/categories/:categoryId" element={<CategoryDetailsWithAuth />} />
                   <Route path="/players/:playerId" element={<PlayerDetailsWithAuth />} />
+                  <Route path="/mentions-legales" element={<MentionsLegales />} />
+                  <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
+                  <Route path="/cgu" element={<CGU />} />
+                  <Route path="/politique-cookies" element={<PolitiqueCookies />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </OfflineSyncProvider>
