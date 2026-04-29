@@ -442,10 +442,10 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
 
   return (
     <Card className="bg-gradient-card shadow-md">
-      <CardHeader>
+      <CardHeader className="px-4 sm:px-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <CardTitle>Liste des athlètes</CardTitle>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <CardTitle className="text-lg sm:text-xl">Liste des athlètes</CardTitle>
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             {hasAttributeColumn && availableFilters.length > 0 && (
               <Select value={disciplineFilter} onValueChange={setDisciplineFilter}>
                 <SelectTrigger className="w-full sm:w-[200px]">
@@ -467,26 +467,26 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
               </Select>
             )}
             {!isViewer && (
-              <>
-                <Button onClick={() => setIsLinkDialogOpen(true)} variant="outline" className="gap-2 whitespace-nowrap">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Button onClick={() => setIsLinkDialogOpen(true)} variant="outline" size="sm" className="gap-1.5 flex-1 sm:flex-none">
                   <Link2 className="h-4 w-4" />
                   <span className="hidden sm:inline">Rattacher</span>
                 </Button>
-                <Button onClick={() => setIsBulkDialogOpen(true)} variant="outline" className="gap-2 whitespace-nowrap">
+                <Button onClick={() => setIsBulkDialogOpen(true)} variant="outline" size="sm" className="gap-1.5 flex-1 sm:flex-none">
                   <FileSpreadsheet className="h-4 w-4" />
                   <span className="hidden sm:inline">Import Excel</span>
                 </Button>
-                <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2 whitespace-nowrap">
+                <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="gap-1.5 flex-1 sm:flex-none">
                   <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">Ajouter un athlète</span>
-                  <span className="sm:hidden">Ajouter</span>
+                  <span>Ajouter</span>
                 </Button>
-              </>
+              </div>
             )}
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3 sm:px-6">
+
         {filteredPlayers && filteredPlayers.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground mb-4">
