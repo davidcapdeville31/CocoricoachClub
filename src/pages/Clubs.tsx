@@ -211,23 +211,23 @@ export default function Clubs() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="bg-gradient-hero py-16 px-4">
+    <div className="min-h-screen bg-background overflow-x-hidden">
+      <div className="bg-gradient-hero py-10 sm:py-16 px-4">
         <div className="container mx-auto max-w-6xl">
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex items-center gap-4">
+          <div className="flex justify-between items-start gap-3 mb-4 flex-wrap">
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
               {/* On a dark hero, always use the dark-theme logo */}
-              <BrandLogo variant="dark" className="h-16 md:h-20 w-auto drop-shadow-lg" />
-              <div>
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
+              <BrandLogo variant="dark" className="h-12 sm:h-16 md:h-20 w-auto drop-shadow-lg shrink-0" />
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-1 sm:mb-2 break-words">
                   CocoriCoach Club
                 </h1>
-                <p className="text-lg text-white/90">
+                <p className="text-sm sm:text-lg text-white/90">
                   Gestion des clubs et suivi des performances
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               <NotificationBell />
               {isSuperAdmin && (
                 <>
