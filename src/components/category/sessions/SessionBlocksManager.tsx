@@ -184,11 +184,11 @@ export function SessionBlocksManager({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <Label className="text-base font-medium flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Structurer la séance en plusieurs thèmes
+      <div className="flex items-start justify-between gap-2 flex-wrap sm:flex-nowrap">
+        <div className="min-w-0 flex-1">
+          <Label className="text-sm sm:text-base font-medium flex items-center gap-2">
+            <Clock className="h-4 w-4 shrink-0" />
+            <span>Structurer la séance en thèmes</span>
           </Label>
           <p className="text-xs text-muted-foreground mt-0.5">
             Divisez votre séance en blocs horaires (ex: échauffement, technique, jeu)
