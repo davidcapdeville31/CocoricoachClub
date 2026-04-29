@@ -135,6 +135,7 @@ const App = () => (
                 <NotificationOnboarding />
                 <NotificationReminderModal />
                 <ActivityTracker />
+                <CookieConsentBanner />
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/" element={<Clubs />} />
@@ -154,6 +155,10 @@ const App = () => (
                    <Route path="/clubs/:clubId/admin" element={<AdminClubWithAuth />} />
                   <Route path="/categories/:categoryId" element={<CategoryDetailsWithAuth />} />
                   <Route path="/players/:playerId" element={<PlayerDetailsWithAuth />} />
+                  <Route path="/mentions-legales" element={<MentionsLegales />} />
+                  <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
+                  <Route path="/cgu" element={<CGU />} />
+                  <Route path="/politique-cookies" element={<PolitiqueCookies />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </OfflineSyncProvider>
