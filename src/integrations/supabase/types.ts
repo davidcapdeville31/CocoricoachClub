@@ -2724,6 +2724,64 @@ export type Database = {
         }
         Relationships: []
       }
+      encrypted_medical_fields: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          created_by: string | null
+          encrypted_value: string
+          field_name: string
+          id: string
+          player_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          encrypted_value: string
+          field_name: string
+          id?: string
+          player_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          encrypted_value?: string
+          field_name?: string
+          id?: string
+          player_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "encrypted_medical_fields_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "encrypted_medical_fields_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "encrypted_medical_fields_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipment_inventory: {
         Row: {
           available_quantity: number
@@ -9749,6 +9807,156 @@ export type Database = {
           },
         ]
       }
+      security_events: {
+        Row: {
+          club_id: string | null
+          created_at: string
+          device_fingerprint: string | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json
+          severity: string
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          club_id?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json
+          severity?: string
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          club_id?: string | null
+          created_at?: string
+          device_fingerprint?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json
+          severity?: string
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_events_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "admin_all_clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_events_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sensitive_data_access_log: {
+        Row: {
+          access_action: string
+          accessed_player_id: string | null
+          accessed_record_id: string | null
+          accessed_table: string
+          accessed_user_id: string | null
+          accessor_email: string | null
+          accessor_role: string | null
+          accessor_user_id: string
+          category_id: string | null
+          club_id: string | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          justification: string | null
+          metadata: Json
+          user_agent: string | null
+        }
+        Insert: {
+          access_action: string
+          accessed_player_id?: string | null
+          accessed_record_id?: string | null
+          accessed_table: string
+          accessed_user_id?: string | null
+          accessor_email?: string | null
+          accessor_role?: string | null
+          accessor_user_id: string
+          category_id?: string | null
+          club_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          justification?: string | null
+          metadata?: Json
+          user_agent?: string | null
+        }
+        Update: {
+          access_action?: string
+          accessed_player_id?: string | null
+          accessed_record_id?: string | null
+          accessed_table?: string
+          accessed_user_id?: string | null
+          accessor_email?: string | null
+          accessor_role?: string | null
+          accessor_user_id?: string
+          category_id?: string | null
+          club_id?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          justification?: string | null
+          metadata?: Json
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sensitive_data_access_log_accessed_player_id_fkey"
+            columns: ["accessed_player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sensitive_data_access_log_accessed_player_id_fkey"
+            columns: ["accessed_player_id"]
+            isOneToOne: false
+            referencedRelation: "players_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sensitive_data_access_log_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sensitive_data_access_log_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "admin_all_clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sensitive_data_access_log_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       session_templates: {
         Row: {
           category_id: string | null
@@ -11510,6 +11718,54 @@ export type Database = {
         }
         Relationships: []
       }
+      user_security_settings: {
+        Row: {
+          created_at: string
+          failed_login_attempts: number
+          id: string
+          last_password_change: string | null
+          locked_until: string | null
+          mfa_enabled: boolean
+          mfa_factor_id: string | null
+          mfa_verified_at: string | null
+          password_change_required: boolean
+          session_timeout_minutes: number
+          trusted_devices: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          failed_login_attempts?: number
+          id?: string
+          last_password_change?: string | null
+          locked_until?: string | null
+          mfa_enabled?: boolean
+          mfa_factor_id?: string | null
+          mfa_verified_at?: string | null
+          password_change_required?: boolean
+          session_timeout_minutes?: number
+          trusted_devices?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          failed_login_attempts?: number
+          id?: string
+          last_password_change?: string | null
+          locked_until?: string | null
+          mfa_enabled?: boolean
+          mfa_factor_id?: string | null
+          mfa_verified_at?: string | null
+          password_change_required?: boolean
+          session_timeout_minutes?: number
+          trusted_devices?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       video_analyses: {
         Row: {
           category_id: string
@@ -12159,9 +12415,28 @@ export type Database = {
         }
         Returns: string
       }
+      decrypt_medical_field: {
+        Args: {
+          _encryption_key: string
+          _field_name: string
+          _justification?: string
+          _player_id: string
+        }
+        Returns: string
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
+      }
+      encrypt_medical_field: {
+        Args: {
+          _category_id: string
+          _encryption_key: string
+          _field_name: string
+          _player_id: string
+          _value: string
+        }
+        Returns: string
       }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
@@ -12196,6 +12471,7 @@ export type Database = {
           id: string
         }[]
       }
+      get_security_stats: { Args: { _days?: number }; Returns: Json }
       has_club_role: {
         Args: {
           _club_id: string
@@ -12224,6 +12500,30 @@ export type Database = {
           _details?: Json
           _entity_id?: string
           _entity_type: string
+        }
+        Returns: string
+      }
+      log_security_event: {
+        Args: {
+          _club_id?: string
+          _device_fingerprint?: string
+          _event_type: string
+          _ip_address?: string
+          _metadata?: Json
+          _severity?: string
+          _user_agent?: string
+        }
+        Returns: string
+      }
+      log_sensitive_access: {
+        Args: {
+          _access_action: string
+          _accessed_player_id: string
+          _accessed_record_id?: string
+          _accessed_table: string
+          _category_id?: string
+          _justification?: string
+          _metadata?: Json
         }
         Returns: string
       }

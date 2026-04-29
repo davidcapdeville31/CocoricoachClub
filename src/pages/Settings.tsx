@@ -6,6 +6,7 @@ import { ArrowLeft, Settings as SettingsIcon, Smartphone, RefreshCw } from "luci
 import { OfflineSyncPanel } from "@/components/OfflineSyncPanel";
 import { PushNotificationSettings } from "@/components/notifications/PushNotificationSettings";
 import { PersonalNotificationPreferences } from "@/components/notifications/PersonalNotificationPreferences";
+import { SecuritySettingsPanel } from "@/components/security/SecuritySettingsPanel";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -89,6 +90,9 @@ export default function Settings() {
 
           {/* Notification Preferences */}
           <PersonalNotificationPreferences />
+
+          {/* Security Settings */}
+          <SecuritySettingsPanel />
 
           {/* PWA Installation */}
           <Card>
