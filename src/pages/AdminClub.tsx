@@ -272,33 +272,35 @@ import { SeasonManager } from "@/components/club/SeasonManager";
    return (
      <div className="min-h-screen bg-background">
        {/* 🏟️ 1. EN-TÊTE - IDENTITÉ DU CLUB */}
-       <div className="bg-gradient-hero py-8 px-4">
+       <div className="bg-gradient-hero py-6 sm:py-8 px-4">
          <div className="container mx-auto max-w-6xl">
            <Button
              variant="ghost"
-             className="text-white hover:bg-white/10 mb-4"
+             size="sm"
+             className="text-white hover:bg-white/10 mb-3 sm:mb-4"
              onClick={() => navigate("/")}
            >
              <ArrowLeft className="h-4 w-4 mr-2" />
              Retour
            </Button>
  
-           <div className="flex items-center gap-6">
+           <div className="flex items-start sm:items-center gap-3 sm:gap-6 flex-wrap">
              {/* Logo bouclier */}
-             <div className="w-20 h-20 rounded-xl overflow-hidden bg-white/10 flex items-center justify-center border-2 border-white/20 shadow-lg">
+             <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-white/10 flex items-center justify-center border-2 border-white/20 shadow-lg shrink-0">
                {club?.logo_url ? (
                  <img src={club.logo_url} alt={club.name} className="w-full h-full object-cover" />
                ) : (
-                 <Building2 className="h-10 w-10 text-white/70" />
+                 <Building2 className="h-8 w-8 sm:h-10 sm:w-10 text-white/70" />
                )}
              </div>
  
-             <div className="flex-1">
-               <div className="flex items-center gap-3 flex-wrap">
-                 <h1 className="text-3xl font-bold text-white">{club?.name}</h1>
+             <div className="flex-1 min-w-0">
+               <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                 <h1 className="text-xl sm:text-3xl font-bold text-white break-words">{club?.name}</h1>
                  <Badge 
                    variant={status.color === "success" ? "default" : status.color === "warning" ? "secondary" : "destructive"}
                    className={cn(
+                     "shrink-0",
                      status.color === "success" && "bg-green-500",
                      status.color === "warning" && "bg-yellow-500 text-yellow-900"
                    )}
@@ -306,17 +308,18 @@ import { SeasonManager } from "@/components/club/SeasonManager";
                    {status.label}
                  </Badge>
                </div>
-               <p className="text-white/70 mt-1">Admin Club</p>
+               <p className="text-white/70 mt-1 text-sm sm:text-base">Admin Club</p>
              </div>
  
              {isAdmin && (
                <Button
                  variant="secondary"
+                 size="sm"
                  onClick={() => setActiveTab("settings")}
-                 className="gap-2"
+                 className="gap-2 shrink-0"
                >
                  <Settings className="h-4 w-4" />
-                 Paramètres
+                 <span className="hidden sm:inline">Paramètres</span>
                </Button>
              )}
            </div>
