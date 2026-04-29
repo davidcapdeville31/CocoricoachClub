@@ -1188,7 +1188,7 @@ export function CompetitionRoundsDialog({
                         const categoryStats = isAthleticsAttemptCat
                           ? categoryStatsAll.filter((s) => !s.key.startsWith("attempt"))
                           : categoryStatsAll;
-                        const subGroups = groupStatsByTheme(cat.key, categoryStats);
+                        const subGroups = groupStatsByTheme(cat.key, categoryStats, { sportType });
                         const visibleAttemptCount = isAthleticsAttemptCat
                           ? getAttemptVisibleCount(player.entryKey, round)
                           : 0;
@@ -2236,7 +2236,7 @@ export function CompetitionRoundsDialog({
                                 const categoryStats = isAthleticsAttemptCat
                                   ? categoryStatsAll.filter(s => !s.key.startsWith("attempt"))
                                   : categoryStatsAll;
-                                const subGroups = groupStatsByTheme(cat.key, categoryStats);
+                                const subGroups = groupStatsByTheme(cat.key, categoryStats, { sportType });
                                 const visibleAttemptCount = isAthleticsAttemptCat
                                   ? getAttemptVisibleCount(selectedPlayer.entryKey, round)
                                   : 0;
