@@ -13,7 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { SuperAdminShieldButton } from "@/components/notifications/SuperAdminShieldButton";
 import { InjuryReturnAlerts } from "@/components/injuries/InjuryReturnAlerts";
-import { BrandLogo } from "@/components/BrandLogo";
+import logoCoq from "@/assets/logo-coq.png";
 
 export default function Clubs() {
   const navigate = useNavigate();
@@ -215,17 +215,12 @@ export default function Clubs() {
       <div className="bg-gradient-hero py-8 sm:py-16 px-4">
         <div className="container mx-auto max-w-6xl">
           {/* Header: title + actions on the same row */}
-          <div className="flex items-start justify-between gap-3 sm:gap-4 min-w-0">
+          <div className="flex items-center justify-between gap-3 sm:gap-4 min-w-0">
             <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-              <BrandLogo variant="dark" className="h-10 sm:h-16 md:h-20 w-auto drop-shadow-lg shrink-0" />
-              <div className="min-w-0 flex-1">
-                <h1 className="text-xl sm:text-4xl md:text-5xl font-bold text-white mb-1 sm:mb-2 leading-tight break-words">
-                  CocoriCoach Club
-                </h1>
-                <p className="text-xs sm:text-lg text-white/90 hidden sm:block">
-                  Gestion des clubs et suivi des performances
-                </p>
-              </div>
+              <img src={logoCoq} alt="CocoriCoach Club" className="h-14 sm:h-20 md:h-24 w-auto drop-shadow-lg shrink-0" />
+              <p className="text-sm sm:text-lg text-white/90 hidden sm:block">
+                Gestion des clubs et suivi des performances
+              </p>
             </div>
             <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
               <NotificationBell />
