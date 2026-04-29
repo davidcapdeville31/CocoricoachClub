@@ -19,6 +19,7 @@ import { SuperAdminVideos } from "@/components/super-admin/SuperAdminVideos";
 import { SuperAdminNotifications } from "@/components/super-admin/SuperAdminNotifications";
 import { SuperAdminSettings } from "@/components/super-admin/SuperAdminSettings";
 import { AuditLogsTab } from "@/components/admin/AuditLogsTab";
+import { SecurityCenter } from "@/components/super-admin/SecurityCenter";
 import { RoleMenuPermissions } from "@/components/super-admin/RoleMenuPermissions";
 import { SuperAdminUsage } from "@/components/super-admin/SuperAdminUsage";
 import { SuperAdminExerciseLibrary } from "@/components/super-admin/SuperAdminExerciseLibrary";
@@ -140,10 +141,10 @@ import { SuperAdminExerciseLibrary } from "@/components/super-admin/SuperAdminEx
                   <Dumbbell className="h-4 w-4" />
                   Exercices
                 </TabsTrigger>
-                <TabsTrigger value="audit" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Audit
-                </TabsTrigger>
+                 <TabsTrigger value="audit" className="flex items-center gap-2">
+                   <Shield className="h-4 w-4" />
+                   Sécurité & Audit
+                 </TabsTrigger>
              </TabsList>
  
            <TabsContent value="dashboard">
@@ -194,9 +195,9 @@ import { SuperAdminExerciseLibrary } from "@/components/super-admin/SuperAdminEx
                 <SuperAdminExerciseLibrary />
               </TabsContent>
 
-              <TabsContent value="audit">
-                <AuditLogsTab />
-              </TabsContent>
+               <TabsContent value="audit">
+                 <SecurityCenter />
+               </TabsContent>
           </Tabs>
        </div>
      </div>
