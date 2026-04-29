@@ -79,6 +79,19 @@ export default function Auth() {
       });
 
       if (error) {
+        // Log failed login attempt (security audit)
+        try {
+          await supabase.rpc("log_security_event", {
+            _event_type: "login_failed",
+            _severity: "warning",
+            _ip_address: null,
+            _user_agent: navigator.userAgent,
+            _device_fingerprint: null,
+            _club_id: null,
+            _metadata: { email: validated.email, reason: error.message } as never,
+          });
+        } catch { /* non-blocking */ }
+
         if (error.message.includes("Invalid login credentials")) {
           toast.error("Email ou mot de passe incorrect");
         } else {
@@ -86,6 +99,16 @@ export default function Auth() {
         }
         return;
       }
+
+      // Log successful login (security audit)
+      try {
+        const { logSecurityEvent, getDeviceFingerprint } = await import("@/lib/security/securityLogger");
+        await logSecurityEvent({
+          eventType: "login_success",
+          severity: "info",
+          metadata: { method: "password", fingerprint: getDeviceFingerprint() },
+        });
+      } catch { /* non-blocking */ }
 
       toast.success("Connexion réussie");
       
