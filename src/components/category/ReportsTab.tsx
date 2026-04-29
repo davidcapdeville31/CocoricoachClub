@@ -17,6 +17,8 @@ import { preparePdfWithSettings, drawPdfHeader as drawPdfHeaderCustom, drawSecti
 import { drawPdfRugbyField, drawPdfZoneStatsGrid, svgPctToPdfPos } from "@/lib/pdfRugbyField";
 import { getStatsForSport, supportsCompetitionRounds, getBaseSport, type StatField } from "@/lib/constants/sportStats";
 import { TEST_CATEGORIES, getTestLabel } from "@/lib/constants/testCategories";
+import { groupStatsByTheme } from "@/lib/statSubGroups";
+import { pdfGroupColor } from "@/lib/pdfStatGroupPalette";
 
 interface ReportsTabProps {
   categoryId: string;
@@ -980,47 +982,130 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         // Show ALL enabled stats (not just those with data) to match coach's preferences
         const statsToShow = displayStats;
 
-        // Paginate stats in groups of 8 columns
+        // Group stats by main category, then by thematic sub-blocks (rugby, basket 3x3, etc.)
+        const STAT_CATEGORY_LABELS: Record<string, string> = {
+          scoring: "Marque",
+          attack: "Attaque",
+          defense: "Défense",
+          general: "Général",
+          individual: "Individuel",
+        };
+        const categoryOrder = ["scoring", "attack", "defense", "general", "individual"];
+        const statsByCategory = new Map<string, StatField[]>();
+        statsToShow.forEach((s) => {
+          const k = (s.category || "general") as string;
+          if (!statsByCategory.has(k)) statsByCategory.set(k, []);
+          statsByCategory.get(k)!.push(s);
+        });
+
+        const orderedCategories = [
+          ...categoryOrder.filter((k) => statsByCategory.has(k)),
+          ...Array.from(statsByCategory.keys()).filter((k) => !categoryOrder.includes(k)),
+        ];
+
         const COLS_PER_TABLE = 8;
-        for (let pageIdx = 0; pageIdx < statsToShow.length; pageIdx += COLS_PER_TABLE) {
-          const pageStats = statsToShow.slice(pageIdx, pageIdx + COLS_PER_TABLE);
-          
-          if (pageIdx > 0) {
-            yPos += 5;
-            yPos = localCheckPageBreak(pdf, yPos, 20);
-          }
 
-          const statHeaders = ["Joueur", ...pageStats.map(s => s.shortLabel)];
-          const nameColWidth = 45;
-          const statColWidth = Math.max(15, Math.floor((contentWidth - nameColWidth) / pageStats.length));
-          const statColWidths = [nameColWidth, ...pageStats.map(() => statColWidth)];
-          yPos = drawTableHeaderPdf(pdf, statHeaders, statColWidths, yPos, margin, contentWidth);
+        for (const catKey of orderedCategories) {
+          const catStats = statsByCategory.get(catKey) || [];
+          if (catStats.length === 0) continue;
 
-          playerStats.forEach((stat: any, index) => {
-            yPos = localCheckPageBreak(pdf, yPos, 10);
-            const sportData = (stat.sport_data && typeof stat.sport_data === 'object') ? stat.sport_data as Record<string, any> : {};
-            const playerName = [stat.players?.first_name, stat.players?.name].filter(Boolean).join(" ") || 'Inconnu';
-            
-            const values = [
-              playerName,
-              ...pageStats.map(s => {
-                const val = sportData[s.key] ?? stat[s.key] ?? stat[s.key.replace(/([A-Z])/g, '_$1').toLowerCase()];
-                return val != null ? String(val) : '-';
-              })
-            ];
+          // Split into thematic sub-blocks (returns 1 group with label=null if no theme registered)
+          const themedGroups = groupStatsByTheme(catKey, catStats, { sportType });
 
-            const rowColors: ([number, number, number] | null)[] = [
-              null,
-              ...pageStats.map(s => {
-                const val = sportData[s.key] ?? stat[s.key];
-                if (s.key === 'tries' && val && val > 0) return defaultColors.success;
-                if (s.key === 'yellowCards' && val && val > 0) return defaultColors.warning;
-                if (s.key === 'redCards' && val && val > 0) return defaultColors.danger;
-                return null;
-              })
-            ];
+          // Category title
+          yPos += 4;
+          yPos = localCheckPageBreak(pdf, yPos, 14);
+          pdf.setFont("helvetica", "bold");
+          pdf.setFontSize(10);
+          pdf.setTextColor(...defaultColors.dark);
+          pdf.text(STAT_CATEGORY_LABELS[catKey] || catKey.toUpperCase(), margin, yPos);
+          yPos += 5;
 
-            yPos = drawTableRowPdf(pdf, values, statColWidths, yPos, index % 2 === 1, margin, contentWidth, rowColors);
+          themedGroups.forEach((group, gi) => {
+            if (group.items.length === 0) return;
+            const palette = pdfGroupColor(gi);
+
+            // Colored sub-block band (only if labelled — single-group blocks stay neutral)
+            if (group.label) {
+              yPos = localCheckPageBreak(pdf, yPos, 12);
+              pdf.setFillColor(...palette.head);
+              pdf.setDrawColor(...palette.border);
+              pdf.setLineWidth(0.3);
+              pdf.roundedRect(margin, yPos, contentWidth, 6, 1.2, 1.2, "FD");
+              pdf.setFontSize(8);
+              pdf.setFont("helvetica", "bold");
+              pdf.setTextColor(...palette.accent);
+              pdf.text(group.label.toUpperCase(), margin + 3, yPos + 4.2);
+              yPos += 8;
+            }
+
+            // Paginate group stats in chunks of 8 columns
+            for (let pageIdx = 0; pageIdx < group.items.length; pageIdx += COLS_PER_TABLE) {
+              const pageStats = group.items.slice(pageIdx, pageIdx + COLS_PER_TABLE);
+              if (pageIdx > 0) {
+                yPos += 3;
+                yPos = localCheckPageBreak(pdf, yPos, 20);
+              }
+
+              const statHeaders = ["Joueur", ...pageStats.map((s) => s.shortLabel)];
+              const nameColWidth = 45;
+              const statColWidth = Math.max(15, Math.floor((contentWidth - nameColWidth) / pageStats.length));
+              const statColWidths = [nameColWidth, ...pageStats.map(() => statColWidth)];
+
+              // Themed header row using palette colors
+              if (group.label) {
+                yPos = localCheckPageBreak(pdf, yPos, 10);
+                pdf.setFillColor(...palette.head);
+                pdf.setDrawColor(...palette.border);
+                pdf.setLineWidth(0.2);
+                pdf.rect(margin, yPos, contentWidth, 7, "FD");
+                pdf.setFont("helvetica", "bold");
+                pdf.setFontSize(7.5);
+                pdf.setTextColor(...palette.accent);
+                let x = margin + 2;
+                statHeaders.forEach((h, i) => {
+                  pdf.text(h, x + 1, yPos + 4.8);
+                  x += statColWidths[i];
+                });
+                yPos += 7;
+              } else {
+                yPos = drawTableHeaderPdf(pdf, statHeaders, statColWidths, yPos, margin, contentWidth);
+              }
+
+              playerStats.forEach((stat: any, index) => {
+                yPos = localCheckPageBreak(pdf, yPos, 10);
+                const sportData = stat.sport_data && typeof stat.sport_data === "object" ? (stat.sport_data as Record<string, any>) : {};
+                const playerName = [stat.players?.first_name, stat.players?.name].filter(Boolean).join(" ") || "Inconnu";
+
+                const values = [
+                  playerName,
+                  ...pageStats.map((s) => {
+                    const val = sportData[s.key] ?? stat[s.key] ?? stat[s.key.replace(/([A-Z])/g, "_$1").toLowerCase()];
+                    return val != null ? String(val) : "-";
+                  }),
+                ];
+
+                const rowColors: ([number, number, number] | null)[] = [
+                  null,
+                  ...pageStats.map((s) => {
+                    const val = sportData[s.key] ?? stat[s.key];
+                    if (s.key === "tries" && val && val > 0) return defaultColors.success;
+                    if (s.key === "yellowCards" && val && val > 0) return defaultColors.warning;
+                    if (s.key === "redCards" && val && val > 0) return defaultColors.danger;
+                    return null;
+                  }),
+                ];
+
+                // Tinted alternate rows when a theme is set (zebra effect with palette body color)
+                if (group.label && index % 2 === 1) {
+                  pdf.setFillColor(...palette.body);
+                  pdf.rect(margin, yPos, contentWidth, 6, "F");
+                }
+
+                yPos = drawTableRowPdf(pdf, values, statColWidths, yPos, index % 2 === 1, margin, contentWidth, rowColors);
+              });
+            }
+            yPos += 2;
           });
         }
       }
