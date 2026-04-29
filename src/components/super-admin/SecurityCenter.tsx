@@ -11,7 +11,7 @@ import { fr } from "date-fns/locale";
 import {
   Shield, ShieldCheck, ShieldAlert, AlertTriangle, Lock, Eye, Activity,
   KeyRound, Clock, Database, FileText, UserCheck, Cookie, Ban, CheckCircle2,
-  Fingerprint, BookLock, Server, Network, AlertCircle
+  Fingerprint, BookLock, Server, Network, AlertCircle, Users, User, Briefcase, Stethoscope
 } from "lucide-react";
 import { AuditLogsTab } from "@/components/admin/AuditLogsTab";
 
@@ -207,6 +207,9 @@ export function SecurityCenter() {
           </TabsTrigger>
           <TabsTrigger value="sensitive" className="flex items-center gap-2">
             <Eye className="h-4 w-4" /> Accès sensibles
+          </TabsTrigger>
+          <TabsTrigger value="roles" className="flex items-center gap-2">
+            <Users className="h-4 w-4" /> Par rôle
           </TabsTrigger>
           <TabsTrigger value="audit" className="flex items-center gap-2">
             <FileText className="h-4 w-4" /> Logs d'audit
@@ -545,6 +548,261 @@ export function SecurityCenter() {
               </ScrollArea>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* === PAR RÔLE === */}
+        <TabsContent value="roles" className="space-y-6">
+          <Card className="rounded-2xl bg-gradient-to-br from-muted/40 to-transparent">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Mesures de sécurité par rôle
+              </CardTitle>
+              <CardDescription>
+                Détail des protections appliquées selon le profil utilisateur (Staff vs Athlètes).
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* STAFF */}
+          <div>
+            <div className="flex items-center gap-3 mb-4 p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900">
+              <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-900/50">
+                <Briefcase className="h-6 w-6 text-blue-700 dark:text-blue-300" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">Staff (Admin Club, Coach, Préparateur, Médecin, Kiné, Administratif)</h3>
+                <p className="text-sm text-muted-foreground">
+                  Accès opérationnel élevé → contrôles renforcés, audit systématique.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-2">
+                  <UserCheck className="h-4 w-4" /> Authentification & Session
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <MeasureCard
+                    icon={KeyRound} title="2FA optionnel (recommandé)" status="active"
+                    description="Activable depuis Paramètres → Sécurité. Fortement recommandé pour Admin et Médecin."
+                  />
+                  <MeasureCard
+                    icon={Shield} title="HIBP au signup/changement MDP" status="active"
+                    description="Mots de passe vérifiés contre la base Have I Been Pwned."
+                  />
+                  <MeasureCard
+                    icon={Clock} title="Session 30 min d'inactivité" status="active"
+                    description="Déconnexion auto, configurable par utilisateur (5–480 min)."
+                  />
+                  <MeasureCard
+                    icon={Fingerprint} title="Empreinte device" status="active"
+                    description="Détection des connexions depuis un nouvel appareil."
+                  />
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-2">
+                  <Lock className="h-4 w-4" /> Permissions & Accès
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <MeasureCard
+                    icon={Lock} title="Matrice de permissions par rôle" status="active"
+                    description="Chaque rôle voit uniquement les menus autorisés (table role_menu_permissions)."
+                    details="Configurée par le Super Admin."
+                  />
+                  <MeasureCard
+                    icon={Database} title="Cloisonnement par catégorie" status="active"
+                    description="Un coach ne voit que les catégories qui lui sont assignées (assigned_categories)."
+                  />
+                  <MeasureCard
+                    icon={Stethoscope} title="Accès médical restreint" status="active"
+                    description="Dossiers médicaux et déchiffrement réservés à Admin / Médecin / Kiné via has_medical_access()."
+                  />
+                  <MeasureCard
+                    icon={Eye} title="Vue masquée players_safe" status="active"
+                    description="Données personnelles (téléphone, adresse) visibles uniquement par rôles autorisés."
+                  />
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-2">
+                  <FileText className="h-4 w-4" /> Audit & Traçabilité
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <MeasureCard
+                    icon={Activity} title="Toutes les actions tracées" status="active"
+                    description="Création/modif/suppression blessures, transferts, exports → audit_logs."
+                  />
+                  <MeasureCard
+                    icon={Eye} title="Log obligatoire des accès médicaux" status="active"
+                    description="Chaque consultation/déchiffrement de dossier médical est journalisé avec justification."
+                    details="Visible dans l'onglet 'Accès sensibles'."
+                  />
+                  <MeasureCard
+                    icon={BookLock} title="Déchiffrement avec justification" status="active"
+                    description="Champs ultra-sensibles (n° sécu, allergies) demandent une justification écrite."
+                  />
+                  <MeasureCard
+                    icon={AlertCircle} title="Alertes accès suspect" status="active"
+                    description="Tentatives de connexion échouées et nouveaux devices remontés au Super Admin."
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ATHLÈTES */}
+          <div>
+            <div className="flex items-center gap-3 mb-4 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900">
+              <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/50">
+                <User className="h-6 w-6 text-emerald-700 dark:text-emerald-300" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">Athlètes (Espace Athlète)</h3>
+                <p className="text-sm text-muted-foreground">
+                  Accès à leurs propres données uniquement → maximum de transparence et contrôle utilisateur.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-2">
+                  <UserCheck className="h-4 w-4" /> Authentification & Session
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <MeasureCard
+                    icon={KeyRound} title="2FA optionnel" status="active"
+                    description="Disponible dans l'espace athlète → Paramètres."
+                  />
+                  <MeasureCard
+                    icon={Shield} title="HIBP activé" status="active"
+                    description="Protection contre les mots de passe compromis."
+                  />
+                  <MeasureCard
+                    icon={Clock} title="Session 30 min d'inactivité" status="active"
+                    description="Déconnexion auto identique au staff."
+                  />
+                  <MeasureCard
+                    icon={Lock} title="Tokens d'invitation à usage unique" status="active"
+                    description="Lien d'invitation athlète signé, à usage unique, expirable."
+                  />
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-2">
+                  <Database className="h-4 w-4" /> Isolation des données
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <MeasureCard
+                    icon={Lock} title="RLS strict — données personnelles uniquement" status="active"
+                    description="Un athlète ne peut JAMAIS voir les données d'un autre athlète."
+                    details="Enforced au niveau base via auth.uid() = player.user_id."
+                  />
+                  <MeasureCard
+                    icon={Eye} title="Sessions privées par défaut" status="active"
+                    description="Les sessions auto-planifiées par l'athlète restent privées (non visibles staff)."
+                  />
+                  <MeasureCard
+                    icon={KeyRound} title="Edge Functions JWT-vérifiées" status="active"
+                    description="Toutes les actions athlète (création session, RPE, wellness) passent par des edge functions sécurisées."
+                  />
+                  <MeasureCard
+                    icon={Server} title="Multi-catégorie consenti" status="active"
+                    description="Ajout dans une nouvelle catégorie nécessite un consentement explicite de l'athlète."
+                  />
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-2">
+                  <BookLock className="h-4 w-4" /> RGPD & Droits utilisateur
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <MeasureCard
+                    icon={CheckCircle2} title="Consentement données santé" status="active"
+                    description="Consentement explicite requis (mineurs : par représentant légal). Horodaté + versioning."
+                  />
+                  <MeasureCard
+                    icon={Database} title="Export complet des données" status="active"
+                    description="Bouton 'Télécharger mes données' (JSON) dans l'espace athlète + fiche joueur staff."
+                  />
+                  <MeasureCard
+                    icon={Ban} title="Demande de suppression" status="active"
+                    description="Suppression de compte avec délai légal de 30 jours, annulable."
+                  />
+                  <MeasureCard
+                    icon={Cookie} title="Consentement cookies granulaire" status="active"
+                    description="Bandeau RGPD séparant essentiels / analytics / marketing."
+                  />
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-2">
+                  <Stethoscope className="h-4 w-4" /> Données de santé
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <MeasureCard
+                    icon={BookLock} title="Champs médicaux chiffrés" status="active"
+                    description="Allergies graves, n° sécu, antécédents → chiffrés via pgcrypto."
+                    details="Inaccessibles à l'athlète lui-même sans déchiffrement médical."
+                  />
+                  <MeasureCard
+                    icon={Eye} title="Transparence sur les accès" status="active"
+                    description="L'athlète peut consulter qui a accédé à ses données médicales (à venir dans son espace)."
+                  />
+                  <MeasureCard
+                    icon={ShieldAlert} title="Protocole commotion sécurisé" status="active"
+                    description="Validation médicale obligatoire pour le retour au jeu (Rugby/Judo/Ski/Snowboard)."
+                  />
+                  <MeasureCard
+                    icon={UserCheck} title="Auto-saisie RPE/Wellness" status="active"
+                    description="L'athlète saisit lui-même son ressenti — données non modifiables par le staff sans audit."
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SUPER ADMIN */}
+          <div>
+            <div className="flex items-center gap-3 mb-4 p-4 rounded-2xl bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900">
+              <div className="p-2 rounded-xl bg-purple-100 dark:bg-purple-900/50">
+                <Shield className="h-6 w-6 text-purple-700 dark:text-purple-300" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">Super Admin (Plateforme)</h3>
+                <p className="text-sm text-muted-foreground">
+                  Accès global → contrôles ultimes et toutes actions auditées.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <MeasureCard
+                icon={KeyRound} title="2FA fortement recommandé" status="active"
+                description="Compte sensible : activation du MFA très conseillée."
+              />
+              <MeasureCard
+                icon={Activity} title="Toutes les actions tracées" status="active"
+                description="Aucune exception : chaque action super admin est journalisée."
+              />
+              <MeasureCard
+                icon={Eye} title="Accès complet via vue dédiée" status="active"
+                description="is_super_admin() vérifié à chaque RPC sensible."
+              />
+              <MeasureCard
+                icon={ShieldAlert} title="Alertes critiques en temps réel" status="active"
+                description="Échecs de connexion répétés, accès suspects remontés."
+              />
+            </div>
+          </div>
         </TabsContent>
 
         {/* === LOGS AUDIT === */}
