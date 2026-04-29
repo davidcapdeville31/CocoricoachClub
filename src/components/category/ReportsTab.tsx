@@ -17,6 +17,8 @@ import { preparePdfWithSettings, drawPdfHeader as drawPdfHeaderCustom, drawSecti
 import { drawPdfRugbyField, drawPdfZoneStatsGrid, svgPctToPdfPos } from "@/lib/pdfRugbyField";
 import { getStatsForSport, supportsCompetitionRounds, getBaseSport, type StatField } from "@/lib/constants/sportStats";
 import { TEST_CATEGORIES, getTestLabel } from "@/lib/constants/testCategories";
+import { groupStatsByTheme } from "@/lib/statSubGroups";
+import { pdfGroupColor } from "@/lib/pdfStatGroupPalette";
 
 interface ReportsTabProps {
   categoryId: string;
