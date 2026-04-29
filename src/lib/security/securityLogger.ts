@@ -67,7 +67,7 @@ export async function logSecurityEvent(opts: LogEventOptions): Promise<void> {
       _user_agent: userAgent,
       _device_fingerprint: fingerprint,
       _club_id: opts.clubId ?? null,
-      _metadata: opts.metadata ?? {},
+      _metadata: (opts.metadata ?? {}) as never,
     });
   } catch (err) {
     // Never throw from logging — fail silently
@@ -96,7 +96,7 @@ export async function logSensitiveAccess(opts: {
       _accessed_record_id: opts.recordId ?? null,
       _category_id: opts.categoryId ?? null,
       _justification: opts.justification ?? null,
-      _metadata: opts.metadata ?? {},
+      _metadata: (opts.metadata ?? {}) as never,
     });
   } catch (err) {
     console.warn("[security] sensitive access log failed", err);
