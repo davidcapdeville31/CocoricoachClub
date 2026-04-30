@@ -553,6 +553,18 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         sportType={sportType}
         test={editingTest}
       />
+
+      <Dialog open={!!previewImage} onOpenChange={(o) => !o && setPreviewImage(null)}>
+        <DialogContent className="max-w-3xl p-2 bg-background/95 backdrop-blur">
+          {previewImage && (
+            <img
+              src={previewImage}
+              alt="Aperçu"
+              className="w-full h-auto max-h-[80vh] object-contain rounded-xl"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
