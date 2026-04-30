@@ -74,7 +74,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
 
   const percent = totalMax > 0 ? Math.round((totalPoints / totalMax) * 100) : 0;
   const level = useMemo(
-    () => getLevelForPercent(percent, (battery?.battery?.levels as BatteryLevel[]) || undefined),
+    () => getLevelForPercent(percent, (battery?.battery?.levels as unknown as BatteryLevel[]) || undefined),
     [percent, battery]
   );
 
