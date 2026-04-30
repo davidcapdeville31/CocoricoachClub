@@ -59,6 +59,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getCategoryLabel, getCategoriesForSport, isCategoryForSport, isErgCategory, isSledCategory, isRunningCategory, hasSpecialMetrics } from "@/lib/constants/exerciseCategories";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { addDays, addWeeks, addMonths, format as dfFormat, startOfDay as dfStartOfDay, isBefore as dfIsBefore } from "date-fns";
 import { getTrainingTypesForSport, trainingTypeHasExercises } from "@/lib/constants/trainingTypes";
 import { QuickAddExerciseDialog } from "@/components/library/QuickAddExerciseDialog";
 import { DndContext, DragEndEvent, DragStartEvent, DragOverlay, useDraggable, useDroppable } from "@dnd-kit/core";
@@ -103,6 +104,10 @@ interface SessionFormDialogProps {
   defaultDate?: string; // Format: "yyyy-MM-dd"
   /** When set, the dialog runs in "athlete mode": player is pre-selected & locked, session is tagged as athlete-created */
   athletePlayerId?: string;
+  /** When true, shows the "Récurrence" section (used for test reminders) */
+  enableRecurrence?: boolean;
+  /** Optional default training type to preselect (e.g. "test") */
+  defaultTrainingType?: string;
 }
 
 // Erg-specific data structure for cardio machines
@@ -265,6 +270,8 @@ export function SessionFormDialog({
   editSession,
   defaultDate,
   athletePlayerId,
+  enableRecurrence = false,
+  defaultTrainingType,
 }: SessionFormDialogProps) {
   const isAthleteMode = !!athletePlayerId;
   const { user } = useAuth();
@@ -292,6 +299,11 @@ export function SessionFormDialog({
   const [activeTab, setActiveTab] = useState("details");
   const [precisionExerciseId, setPrecisionExerciseId] = useState<string | null>(null);
   const [precisionExerciseLabel, setPrecisionExerciseLabel] = useState("");
+  // Recurrence (test reminder) state
+  const [recurrenceEnabled, setRecurrenceEnabled] = useState(false);
+  const [recurrenceInterval, setRecurrenceInterval] = useState(4);
+  const [recurrenceUnit, setRecurrenceUnit] = useState<"days" | "weeks" | "months">("weeks");
+  const [recurrenceMonths, setRecurrenceMonths] = useState(6);
   
   // Block configurations for groups
   const [blockConfigs, setBlockConfigs] = useState<Record<string, BlockConfig>>({});
@@ -509,7 +521,15 @@ export function SessionFormDialog({
     if (defaultDate) {
       setDate(defaultDate);
     }
-  }, [open, editSession, defaultDate]);
+    if (defaultTrainingType) {
+      setType(defaultTrainingType);
+    }
+    // Default recurrence ON when enabled
+    setRecurrenceEnabled(enableRecurrence);
+    setRecurrenceInterval(4);
+    setRecurrenceUnit("weeks");
+    setRecurrenceMonths(6);
+  }, [open, editSession, defaultDate, defaultTrainingType, enableRecurrence]);
 
   // Load existing exercises when available
   useEffect(() => {
@@ -862,6 +882,55 @@ export function SessionFormDialog({
           }));
 
           await supabase.from("training_attendance").insert(attendanceRecords);
+        }
+
+        // 🔁 Recurrence: replicate session at chosen interval (test reminders)
+        if (enableRecurrence && recurrenceEnabled && recurrenceInterval > 0 && date) {
+          const horizonEnd = addMonths(new Date(date), Math.max(1, recurrenceMonths));
+          const dates: string[] = [];
+          let cursor = new Date(date);
+          // Skip the first occurrence (already created above)
+          const step = (d: Date) =>
+            recurrenceUnit === "days"
+              ? addDays(d, recurrenceInterval)
+              : recurrenceUnit === "weeks"
+              ? addWeeks(d, recurrenceInterval)
+              : addMonths(d, recurrenceInterval);
+          cursor = step(cursor);
+          while (dfIsBefore(cursor, horizonEnd)) {
+            dates.push(dfFormat(cursor, "yyyy-MM-dd"));
+            cursor = step(cursor);
+          }
+
+          if (dates.length > 0) {
+            const recurrentSessions = dates.map((d) => ({
+              ...sessionData,
+              session_date: d,
+            }));
+            const { data: insertedSessions, error: recErr } = await supabase
+              .from("training_sessions")
+              .insert(recurrentSessions)
+              .select("id, session_date");
+            if (recErr) {
+              console.error("[Recurrence] insert sessions failed:", recErr);
+            } else if (insertedSessions && playersToUse.length > 0) {
+              const recurrentAttendance = insertedSessions.flatMap((s: any) =>
+                playersToUse.map((pid: string) => ({
+                  player_id: pid,
+                  category_id: categoryId,
+                  attendance_date: s.session_date,
+                  training_session_id: s.id,
+                  status: "present",
+                }))
+              );
+              if (recurrentAttendance.length > 0) {
+                const { error: aErr } = await supabase
+                  .from("training_attendance")
+                  .insert(recurrentAttendance);
+                if (aErr) console.error("[Recurrence] insert attendance failed:", aErr);
+              }
+            }
+          }
         }
       }
 
@@ -2797,6 +2866,73 @@ export function SessionFormDialog({
               <TabsContent value="details" className="h-full m-0">
                 <ScrollArea className="h-[50vh] pr-4">
                   <div className="space-y-4">
+                    {/* 🔁 Recurrence (Test Reminder) */}
+                    {enableRecurrence && !editSession && (
+                      <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Label className="text-sm font-semibold flex items-center gap-2">
+                              🔁 Récurrence (Rappel test)
+                            </Label>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Ajoute automatiquement cette séance dans le calendrier de manière récurrente.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
+                            className={cn(
+                              "px-3 py-1.5 rounded-full text-xs font-medium transition",
+                              recurrenceEnabled
+                                ? "bg-emerald-600 text-white"
+                                : "bg-muted text-muted-foreground"
+                            )}
+                          >
+                            {recurrenceEnabled ? "Activée" : "Désactivée"}
+                          </button>
+                        </div>
+
+                        {recurrenceEnabled && (
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="space-y-1">
+                              <Label className="text-xs">Toutes les</Label>
+                              <Input
+                                type="number"
+                                min={1}
+                                value={recurrenceInterval}
+                                onChange={(e) => setRecurrenceInterval(Math.max(1, parseInt(e.target.value) || 1))}
+                                className="bg-background"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Unité</Label>
+                              <Select value={recurrenceUnit} onValueChange={(v: any) => setRecurrenceUnit(v)}>
+                                <SelectTrigger className="bg-background">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="days">Jour(s)</SelectItem>
+                                  <SelectItem value="weeks">Semaine(s)</SelectItem>
+                                  <SelectItem value="months">Mois</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Pendant (mois)</Label>
+                              <Input
+                                type="number"
+                                min={1}
+                                max={24}
+                                value={recurrenceMonths}
+                                onChange={(e) => setRecurrenceMonths(Math.max(1, parseInt(e.target.value) || 1))}
+                                className="bg-background"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Athlete quick type selector */}
                     {isAthleteMode && (
                       <div className="space-y-2">

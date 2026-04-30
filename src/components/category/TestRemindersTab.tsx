@@ -27,6 +27,7 @@ import { format, addWeeks, isBefore, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { Badge } from "@/components/ui/badge";
+import { SessionFormDialog } from "@/components/category/sessions/SessionFormDialog";
 
 interface TestRemindersTabProps {
   categoryId: string;
@@ -485,199 +486,23 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
           </p>
         </div>
         {!isViewer && (
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Nouveau Rappel
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Créer un rappel de test</DialogTitle>
-                <DialogDescription>
-                  Les séances de test seront automatiquement ajoutées au calendrier
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="test-type">Type de test</Label>
-                  <Select
-                    value={newReminder.test_type}
-                    onValueChange={(value) =>
-                      setNewReminder({ ...newReminder, test_type: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
-                      <div className="px-2 py-1.5 text-xs text-muted-foreground font-semibold">— Vitesse & Endurance —</div>
-                      <SelectItem value="VMA">Test VMA (1600m)</SelectItem>
-                      <SelectItem value="Sprint">Sprint 40m</SelectItem>
-                      <SelectItem value="Sprint_10m">Sprint 10m</SelectItem>
-                      <SelectItem value="Sprint_20m">Sprint 20m</SelectItem>
-                      <SelectItem value="Sprint_30m">Sprint 30m</SelectItem>
-                      <SelectItem value="yo_yo">Yo-Yo Test</SelectItem>
-                      <SelectItem value="bronco">Bronco Test</SelectItem>
-                      <SelectItem value="beep_test">Beep Test</SelectItem>
-                      <div className="px-2 py-1.5 text-xs text-muted-foreground font-semibold">— Force —</div>
-                      <SelectItem value="Force">Tests de Force (Général)</SelectItem>
-                      <SelectItem value="Bench_Press">Développé Couché 1RM</SelectItem>
-                      <SelectItem value="Squat">Squat 1RM</SelectItem>
-                      <SelectItem value="Deadlift">Soulevé de Terre 1RM</SelectItem>
-                      <SelectItem value="Pull_Ups">Tractions Max</SelectItem>
-                      <div className="px-2 py-1.5 text-xs text-muted-foreground font-semibold">— Détente —</div>
-                      <SelectItem value="vertical_jump">Saut Vertical (CMJ)</SelectItem>
-                      <SelectItem value="squat_jump">Squat Jump</SelectItem>
-                      <SelectItem value="drop_jump">Drop Jump</SelectItem>
-                      <SelectItem value="horizontal_jump">Saut Horizontal</SelectItem>
-                      <div className="px-2 py-1.5 text-xs text-muted-foreground font-semibold">— Mobilité —</div>
-                      <SelectItem value="fms">FMS (Functional Movement Screen)</SelectItem>
-                      <SelectItem value="hip">Mobilité Hanche</SelectItem>
-                      <SelectItem value="shoulder">Mobilité Épaule</SelectItem>
-                      <SelectItem value="ankle">Mobilité Cheville</SelectItem>
-                      <SelectItem value="thomas_test">Thomas Test</SelectItem>
-                      <SelectItem value="sit_and_reach">Sit and Reach</SelectItem>
-                      <div className="px-2 py-1.5 text-xs text-muted-foreground font-semibold">— Agilité —</div>
-                      <SelectItem value="agility">T-Test Agilité</SelectItem>
-                      <SelectItem value="illinois">Illinois Agility Test</SelectItem>
-                      <SelectItem value="pro_agility">Pro Agility (5-10-5)</SelectItem>
-                      <div className="px-2 py-1.5 text-xs text-muted-foreground font-semibold">— Autre —</div>
-                      <SelectItem value="body_comp">Composition Corporelle</SelectItem>
-                      <SelectItem value="custom">Test Personnalisé</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="start-date">Date de début</Label>
-                  <Input
-                    id="start-date"
-                    type="date"
-                    value={newReminder.start_date}
-                    onChange={(e) =>
-                      setNewReminder({
-                        ...newReminder,
-                        start_date: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Fréquence</Label>
-                  <Select
-                    value={String(newReminder.frequency_weeks)}
-                    onValueChange={(value) =>
-                      setNewReminder({
-                        ...newReminder,
-                        frequency_weeks: parseInt(value),
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="2">Toutes les 2 semaines</SelectItem>
-                      <SelectItem value="3">Toutes les 3 semaines</SelectItem>
-                      <SelectItem value="4">Toutes les 4 semaines</SelectItem>
-                      <SelectItem value="6">Toutes les 6 semaines</SelectItem>
-                      <SelectItem value="8">Toutes les 8 semaines</SelectItem>
-                      <SelectItem value="12">Toutes les 12 semaines</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="start-time">Heure de début</Label>
-                    <Input
-                      id="start-time"
-                      type="time"
-                      value={newReminder.session_start_time}
-                      onChange={(e) => setNewReminder({ ...newReminder, session_start_time: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="end-time">Heure de fin</Label>
-                    <Input
-                      id="end-time"
-                      type="time"
-                      value={newReminder.session_end_time}
-                      onChange={(e) => setNewReminder({ ...newReminder, session_end_time: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="location">Lieu</Label>
-                  <Input
-                    id="location"
-                    placeholder="Ex: Stade municipal, Salle de musculation..."
-                    value={newReminder.location}
-                    onChange={(e) => setNewReminder({ ...newReminder, location: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="duration">Durée (minutes)</Label>
-                  <Input
-                    id="duration"
-                    type="number"
-                    min={5}
-                    value={newReminder.duration_minutes}
-                    onChange={(e) => setNewReminder({ ...newReminder, duration_minutes: parseInt(e.target.value) || 60 })}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between rounded-md border p-3 bg-muted/40">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="auto-assign" className="cursor-pointer">Assigner automatiquement les athlètes</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Tous les joueurs non blessés seront ajoutés à chaque séance.
-                    </p>
-                  </div>
-                  <Switch
-                    id="auto-assign"
-                    checked={newReminder.auto_assign_athletes}
-                    onCheckedChange={(checked) => setNewReminder({ ...newReminder, auto_assign_athletes: checked })}
-                  />
-                </div>
-
-                {/* Preview upcoming dates */}
-                {previewDates.length > 0 && (
-                  <div className="rounded-md border p-3 space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                      <CalendarCheck className="h-3.5 w-3.5" />
-                      Prochaines séances planifiées :
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {previewDates.map(d => (
-                        <Badge key={d} variant="secondary" className="text-xs">
-                          {format(new Date(d), "dd MMM yyyy", { locale: fr })}
-                        </Badge>
-                      ))}
-                      {generateSessionDates(newReminder.start_date, newReminder.frequency_weeks).length > 4 && (
-                        <Badge variant="outline" className="text-xs text-muted-foreground">
-                          +{generateSessionDates(newReminder.start_date, newReminder.frequency_weeks).length - 4} autres
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <Button
-                  onClick={() => createReminder.mutate()}
-                  disabled={createReminder.isPending}
-                  className="w-full"
-                >
-                  {createReminder.isPending ? "Création..." : "Créer le rappel"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <>
+            <Button onClick={() => setIsDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nouveau Rappel
+            </Button>
+            <SessionFormDialog
+              open={isDialogOpen}
+              onOpenChange={setIsDialogOpen}
+              categoryId={categoryId}
+              defaultDate={format(new Date(), "yyyy-MM-dd")}
+              defaultTrainingType="test"
+              enableRecurrence
+            />
+          </>
         )}
       </div>
+
 
       {isLoading ? (
         <div className="text-center text-muted-foreground">Chargement...</div>
