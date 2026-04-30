@@ -189,22 +189,11 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
               : "Tous les Tests de Performance"
           }
         </CardTitle>
-        {!isViewer && (
+        {!isViewer && filterTestType !== "all" && selectedCategory && (
           <div className="flex gap-2">
-            <Button size="sm" onClick={() => setIsDialogOpen(true)}>
-              <ClipboardList className="h-4 w-4 mr-1" /> Saisir des résultats
+            <Button size="sm" variant="outline" onClick={() => setIsScheduleDialogOpen(true)}>
+              <CalendarPlus className="h-4 w-4 mr-1" /> Planifier
             </Button>
-            <Button size="sm" variant="outline" onClick={() => setIsCreateCategoryDialogOpen(true)}>
-              <FolderPlus className="h-4 w-4 mr-1" /> Créer une catégorie
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setIsCreateTestDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-1" /> Créer un test
-            </Button>
-            {filterTestType !== "all" && selectedCategory && (
-              <Button size="sm" variant="outline" onClick={() => setIsScheduleDialogOpen(true)}>
-                <CalendarPlus className="h-4 w-4 mr-1" /> Planifier
-              </Button>
-            )}
           </div>
         )}
       </CardHeader>
@@ -255,13 +244,14 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         </div>
 
         {!tests || tests.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground mb-4">Aucun test enregistré</p>
-            {!isViewer && (
-              <Button onClick={() => setIsDialogOpen(true)} variant="outline" size="sm" className="gap-2">
-                <ClipboardList className="h-4 w-4" />
-                Saisir le premier test
+          <div className="text-center py-12">
+            {!isViewer ? (
+              <Button onClick={() => setIsDialogOpen(true)} size="lg" className="gap-2 px-8 py-6 text-base">
+                <ClipboardList className="h-5 w-5" />
+                Saisir des résultats
               </Button>
+            ) : (
+              <p className="text-muted-foreground">Aucun test enregistré</p>
             )}
           </div>
         ) : (
