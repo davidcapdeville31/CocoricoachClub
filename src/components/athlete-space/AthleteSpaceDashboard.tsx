@@ -220,19 +220,19 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
       <AthleteSpaceRpe playerId={playerId} categoryId={categoryId} hideHistory />
 
       {/* Status + EWMA */}
-      <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.performance.base}40`, backgroundColor: `${NAV_COLORS.performance.base}08` }}>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Statut du jour</p>
-              <Badge className={`text-base px-4 py-1.5 ${dayStatus.color}`}>
-                <dayStatus.icon className="h-4 w-4 mr-1.5" />
+      <Card className="shadow-sm border" style={{ borderColor: `${NAV_COLORS.performance.base}40`, backgroundColor: `${NAV_COLORS.performance.base}08` }}>
+        <CardContent className="py-2.5 px-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-[11px] text-muted-foreground whitespace-nowrap">Statut</span>
+              <Badge className={`text-xs px-2 py-0.5 ${dayStatus.color}`}>
+                <dayStatus.icon className="h-3 w-3 mr-1" />
                 {dayStatus.label}
               </Badge>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Ratio EWMA</p>
-              <p className={`text-3xl font-bold ${
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] text-muted-foreground whitespace-nowrap">EWMA</span>
+              <span className={`text-base font-bold ${
                 latestEwma
                   ? latestEwma.ratio >= 0.85 && latestEwma.ratio <= 1.3
                     ? "text-status-optimal"
@@ -242,11 +242,12 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
                   : "text-muted-foreground"
               }`}>
                 {latestEwma ? latestEwma.ratio.toFixed(2) : "—"}
-              </p>
+              </span>
             </div>
           </div>
         </CardContent>
       </Card>
+
 
       {/* Next match */}
       {nextMatch && (
