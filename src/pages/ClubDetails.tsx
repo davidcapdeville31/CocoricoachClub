@@ -73,25 +73,24 @@ function ClubDetailsContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="bg-gradient-hero py-8 sm:py-12 px-4">
+      <div className="bg-white py-6 sm:py-8 px-4 border-b border-border">
         <div className="container mx-auto max-w-6xl">
           <div className="flex justify-between items-start gap-2 mb-4 flex-wrap">
             <Button
               variant="ghost"
               size="sm"
-              className="text-white hover:bg-white/10 shrink-0"
+              className="text-[#ED2939] hover:bg-[#ED2939]/10 shrink-0"
               onClick={() => navigate("/")}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Retour aux clubs</span>
               <span className="sm:hidden">Retour</span>
             </Button>
-            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-              <GlobalPlayerSearch />
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0 [&_button]:text-[#ED2939] [&_button:hover]:bg-[#ED2939]/10">
               <NotificationBell />
             </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white break-words">{club?.name}</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#ED2939] break-words">{club?.name}</h1>
         </div>
       </div>
 
