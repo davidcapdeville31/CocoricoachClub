@@ -10,6 +10,8 @@ import { fr } from "date-fns/locale";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { AthleteSpaceRpe } from "./AthleteSpaceRpe";
 import { AthleteSpaceWellness } from "./AthleteSpaceWellness";
+import { getTestLabel } from "@/lib/constants/testCategories";
+import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 
 interface Props {
   playerId: string;
