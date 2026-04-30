@@ -328,23 +328,47 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
         </Card>
       </div>
 
-      {/* Charge chart */}
-      {chartData.length > 0 && (
-        <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.effectif.base}40`, backgroundColor: `${NAV_COLORS.effectif.base}08` }}>
+      {/* Séances à venir (14 jours) */}
+      {upcomingSessions && upcomingSessions.length > 0 && (
+        <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.planification.base}40`, backgroundColor: `${NAV_COLORS.planification.base}08` }}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base" style={{ color: NAV_COLORS.effectif.base }}>Évolution de ta charge</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2" style={{ color: NAV_COLORS.planification.base }}>
+              <CalendarIcon className="h-4 w-4" />
+              Séances à venir
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="date" className="text-[10px]" />
-                <YAxis className="text-[10px]" />
-                <Tooltip contentStyle={{ backgroundColor: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px" }} />
-                <Line type="monotone" dataKey="acute" stroke={NAV_COLORS.performance.base} name="Aiguë (7j)" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="chronic" stroke={NAV_COLORS.sante.base} name="Chronique (28j)" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="space-y-2">
+              {upcomingSessions.map((s: any) => (
+                <div
+                  key={s.id}
+                  className="flex items-center gap-3 rounded-xl border bg-background/60 px-3 py-2"
+                >
+                  <div className="flex flex-col items-center justify-center rounded-lg px-2 py-1 min-w-[48px]" style={{ backgroundColor: `${NAV_COLORS.planification.base}15` }}>
+                    <span className="text-[10px] uppercase font-semibold leading-none" style={{ color: NAV_COLORS.planification.base }}>
+                      {format(new Date(s.session_date), "MMM", { locale: fr })}
+                    </span>
+                    <span className="text-base font-bold leading-tight" style={{ color: NAV_COLORS.planification.base }}>
+                      {format(new Date(s.session_date), "d", { locale: fr })}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">
+                      {s.theme || getTrainingTypeLabel(s.training_type)}
+                    </p>
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-0.5">
+                      {s.session_start_time && <span>{s.session_start_time.slice(0, 5)}</span>}
+                      {s.location && (
+                        <span className="flex items-center gap-1 truncate">
+                          <MapPin className="h-3 w-3" />
+                          {s.location}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
