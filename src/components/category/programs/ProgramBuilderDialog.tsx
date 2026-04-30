@@ -769,7 +769,56 @@ export function ProgramBuilderDialog({
                           <AlertTriangle className="h-5 w-5" />
                           <span className="font-semibold">Programme de réathlétisation</span>
                         </div>
-                        
+
+                        {/* Injury library dropdown (pre-registered + custom) */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label>Blessure ciblée (bibliothèque)</Label>
+                            <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setShowInjuryLibrary(true)}>
+                              <Plus className="h-3 w-3 mr-1" />
+                              Gérer les blessures
+                            </Button>
+                          </div>
+                          <Select value={injuryLibraryId} onValueChange={(v) => {
+                            setInjuryLibraryId(v);
+                            const inj = injuryLibrary?.find((i: any) => i.id === v);
+                            if (inj && !name) {
+                              setName(`Réhab — ${inj.name}`);
+                            }
+                          }}>
+                            <SelectTrigger><SelectValue placeholder="Choisir une blessure..." /></SelectTrigger>
+                            <SelectContent className="z-[9999] max-h-80">
+                              {injuryLibrary && injuryLibrary.length > 0 ? (
+                                Object.entries(
+                                  injuryLibrary.reduce((acc: Record<string, any[]>, i: any) => {
+                                    (acc[i.injury_category] ||= []).push(i);
+                                    return acc;
+                                  }, {})
+                                ).map(([cat, list]) => (
+                                  <div key={cat}>
+                                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase">{cat}</div>
+                                    {(list as any[]).map((i) => (
+                                      <SelectItem key={i.id} value={i.id}>
+                                        <div className="flex items-center gap-2">
+                                          <span>{i.name}</span>
+                                          {i.is_system_default && <Badge variant="secondary" className="text-[10px] h-4">Sys</Badge>}
+                                          {(i.typical_duration_days_min || i.typical_duration_days_max) && (
+                                            <Badge variant="outline" className="text-[10px] h-4">
+                                              {i.typical_duration_days_min}–{i.typical_duration_days_max} j
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                  </div>
+                                ))
+                              ) : (
+                                <SelectItem value="__none__" disabled>Aucune blessure dans la bibliothèque</SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {/* Select from active injuries */}
                           <div className="space-y-2">
