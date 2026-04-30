@@ -67,6 +67,26 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
     },
   });
 
+  // Fetch custom tests defined in this category (so they show even without results yet)
+  const { data: customTestsList } = useQuery({
+    queryKey: ["custom_tests_list", categoryId, defaultCategory],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_test_categories")
+        .select("custom_tests(id, name, test_category, unit, description, objectives)")
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      const tests = (data || [])
+        .map((row: any) => row.custom_tests)
+        .filter(Boolean);
+      if (defaultCategory && defaultCategory !== "all" && defaultCategory !== "rehab") {
+        return tests.filter((t: any) => t.test_category === defaultCategory);
+      }
+      if (isRehabMode) return tests.filter((t: any) => t.test_category?.startsWith("rehab_"));
+      return tests.filter((t: any) => !t.test_category?.startsWith("rehab_"));
+    },
+  });
+
   // Build categories depending on mode
   const filteredTestCategories = useMemo(() => {
     // Separate rehab and non-rehab categories
