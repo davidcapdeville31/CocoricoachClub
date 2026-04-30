@@ -863,7 +863,57 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
                 </SelectContent>
               </Select>
             </div>
-            <Button
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Heure de début</Label>
+                <Input
+                  type="time"
+                  value={editValues.session_start_time}
+                  onChange={(e) => setEditValues({ ...editValues, session_start_time: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Heure de fin</Label>
+                <Input
+                  type="time"
+                  value={editValues.session_end_time}
+                  onChange={(e) => setEditValues({ ...editValues, session_end_time: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Lieu</Label>
+              <Input
+                placeholder="Ex: Stade municipal..."
+                value={editValues.location}
+                onChange={(e) => setEditValues({ ...editValues, location: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Durée (minutes)</Label>
+              <Input
+                type="number"
+                min={5}
+                value={editValues.duration_minutes}
+                onChange={(e) => setEditValues({ ...editValues, duration_minutes: parseInt(e.target.value) || 60 })}
+              />
+            </div>
+
+            <div className="flex items-center justify-between rounded-md border p-3 bg-muted/40">
+              <div className="space-y-0.5">
+                <Label className="cursor-pointer">Assigner automatiquement les athlètes</Label>
+                <p className="text-xs text-muted-foreground">
+                  Tous les joueurs non blessés seront ajoutés à chaque séance.
+                </p>
+              </div>
+              <Switch
+                checked={editValues.auto_assign_athletes}
+                onCheckedChange={(checked) => setEditValues({ ...editValues, auto_assign_athletes: checked })}
+              />
+            </div>
               onClick={() => updateReminder.mutate()}
               disabled={updateReminder.isPending}
               className="w-full"
