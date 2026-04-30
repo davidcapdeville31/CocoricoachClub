@@ -43,6 +43,8 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [isCreateTestDialogOpen, setIsCreateTestDialogOpen] = useState(false);
   const [isCreateCategoryDialogOpen, setIsCreateCategoryDialogOpen] = useState(false);
+  const [editingTest, setEditingTest] = useState<EditableTest | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const isRehabMode = defaultCategory === "rehab";
   const isSingleCategoryMode = !!defaultCategory && defaultCategory !== "rehab" && defaultCategory !== "all";
   const [filterCategory, setFilterCategory] = useState<string>(
