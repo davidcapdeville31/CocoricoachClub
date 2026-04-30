@@ -588,6 +588,62 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
                   </Select>
                 </div>
 
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="start-time">Heure de début</Label>
+                    <Input
+                      id="start-time"
+                      type="time"
+                      value={newReminder.session_start_time}
+                      onChange={(e) => setNewReminder({ ...newReminder, session_start_time: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="end-time">Heure de fin</Label>
+                    <Input
+                      id="end-time"
+                      type="time"
+                      value={newReminder.session_end_time}
+                      onChange={(e) => setNewReminder({ ...newReminder, session_end_time: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="location">Lieu</Label>
+                  <Input
+                    id="location"
+                    placeholder="Ex: Stade municipal, Salle de musculation..."
+                    value={newReminder.location}
+                    onChange={(e) => setNewReminder({ ...newReminder, location: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="duration">Durée (minutes)</Label>
+                  <Input
+                    id="duration"
+                    type="number"
+                    min={5}
+                    value={newReminder.duration_minutes}
+                    onChange={(e) => setNewReminder({ ...newReminder, duration_minutes: parseInt(e.target.value) || 60 })}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between rounded-md border p-3 bg-muted/40">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="auto-assign" className="cursor-pointer">Assigner automatiquement les athlètes</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Tous les joueurs non blessés seront ajoutés à chaque séance.
+                    </p>
+                  </div>
+                  <Switch
+                    id="auto-assign"
+                    checked={newReminder.auto_assign_athletes}
+                    onCheckedChange={(checked) => setNewReminder({ ...newReminder, auto_assign_athletes: checked })}
+                  />
+                </div>
+
                 {/* Preview upcoming dates */}
                 {previewDates.length > 0 && (
                   <div className="rounded-md border p-3 space-y-2">
