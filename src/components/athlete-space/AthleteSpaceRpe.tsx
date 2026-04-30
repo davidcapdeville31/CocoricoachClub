@@ -18,6 +18,7 @@ import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { getTestLabel } from "@/lib/constants/testCategories";
 import { getDisplayNotes, parsePrecisionExerciseFromNotes } from "@/lib/utils/sessionNotes";
 import { SPARE_EXERCISE_TYPES } from "@/lib/constants/bowlingBallBrands";
+import { cn } from "@/lib/utils";
 import { GroupedExerciseList } from "@/components/category/GroupedExerciseList";
 import { PrecisionExerciseSelector } from "@/components/precision/PrecisionExerciseSelector";
 import { AthletePrecisionFieldInput } from "./AthletePrecisionFieldInput";
@@ -974,90 +975,76 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           </CardContent>
         </Card>
       ) : (
-        <Card className="bg-gradient-card">
-          <CardContent className="py-8 text-center">
-            <CheckCircle2 className="h-10 w-10 text-status-optimal mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">
-              {todaySessions.length === 0
-                ? "Aucune séance prévue aujourd'hui"
-                : "Tous les RPE du jour sont enregistrés 👏"}
-            </p>
-          </CardContent>
-        </Card>
-      )}
+        <div className={cn(
+          "grid gap-4",
+          Object.keys(upcomingByDate).length > 0 ? "md:grid-cols-2" : "grid-cols-1"
+        )}>
+          <Card className="bg-gradient-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Activity className="h-4 w-4 text-muted-foreground" />
+                Séance d'aujourd'hui
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="py-6 text-center">
+              <CheckCircle2 className="h-10 w-10 text-status-optimal mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">
+                {todaySessions.length === 0
+                  ? "Aucune séance prévue aujourd'hui"
+                  : "Tous les RPE du jour sont enregistrés 👏"}
+              </p>
+            </CardContent>
+          </Card>
 
-      {/* Completed today */}
-      {doneSessions.length > 0 && (
-        <Card className="bg-gradient-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Déjà remplis</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-               {doneSessions.map(s => (
-                 <div key={s.id} className="p-2 rounded bg-status-optimal/10">
-                   <div className="flex items-center justify-between">
-                     <div className="flex flex-col gap-0.5">
-                       <span className="text-sm font-medium">{getSessionTrainingLabel(s)}</span>
-                        {renderTestInfo(s)}
-                     </div>
-                     <CheckCircle2 className="h-4 w-4 text-status-optimal" />
-                   </div>
-                   {renderExerciseToggle(s.id)}
-                 </div>
-               ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Upcoming sessions (read-only) */}
-      {Object.keys(upcomingByDate).length > 0 && (
-        <Card className="bg-gradient-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              Prochaines séances
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {Object.entries(upcomingByDate).map(([date, dateSessions]) => (
-              <div key={date}>
-                <p className="text-xs font-semibold text-muted-foreground mb-2">
-                  📅 {format(parseISO(date), "EEEE d MMMM", { locale: fr })}
-                </p>
-                <div className="space-y-2">
-                  {dateSessions.map(session => (
-                    <div
-                      key={session.id}
-                      className="p-3 rounded-lg border border-border bg-muted/20 opacity-80"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-sm">{getSessionTrainingLabel(session)}</p>
-                          {renderTestInfo(session)}
-                          {renderSessionNotes(session.notes)}
-                          {session.session_start_time && (
-                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                              <Clock className="h-3 w-3" />
-                              {session.session_start_time?.slice(0, 5)}
-                              {session.session_end_time && ` - ${session.session_end_time.slice(0, 5)}`}
-                            </p>
-                          )}
+          {/* Upcoming sessions (read-only) */}
+          {Object.keys(upcomingByDate).length > 0 && (
+            <Card className="bg-gradient-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  Séances à venir
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {Object.entries(upcomingByDate).map(([date, dateSessions]) => (
+                  <div key={date}>
+                    <p className="text-xs font-semibold text-muted-foreground mb-2">
+                      📅 {format(parseISO(date), "EEEE d MMMM", { locale: fr })}
+                    </p>
+                    <div className="space-y-2">
+                      {dateSessions.map(session => (
+                        <div
+                          key={session.id}
+                          className="p-3 rounded-lg border border-border bg-muted/20 opacity-80"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-sm">{getSessionTrainingLabel(session)}</p>
+                              {renderTestInfo(session)}
+                              {renderSessionNotes(session.notes)}
+                              {session.session_start_time && (
+                                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                                  <Clock className="h-3 w-3" />
+                                  {session.session_start_time?.slice(0, 5)}
+                                  {session.session_end_time && ` - ${session.session_end_time.slice(0, 5)}`}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                              <Lock className="h-3 w-3" />
+                              <span className="text-xs">Jour J</span>
+                            </div>
+                          </div>
+                          {renderExerciseToggle(session.id)}
                         </div>
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <Lock className="h-3 w-3" />
-                          <span className="text-xs">Jour J</span>
-                        </div>
-                      </div>
-                      {renderExerciseToggle(session.id)}
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
 
       {/* RPE History Charts */}
