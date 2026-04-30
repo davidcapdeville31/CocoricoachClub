@@ -105,7 +105,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_test_categories")
-        .select("custom_tests(id, name, test_category, unit, unit_kind, is_time, description, objectives, scoring_scale, max_points)")
+        .select("custom_tests(id, name, test_category, unit, unit_kind, is_time, description, objectives, scoring_scale, max_points, image_url)")
         .eq("category_id", categoryId);
       if (error) throw error;
       const tests = (data || [])
@@ -361,6 +361,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                       description: customDef.description,
                       objectives: customDef.objectives,
                       scoring_scale: (customDef as any).scoring_scale ?? null,
+                      image_url: (customDef as any).image_url ?? null,
                       source: "custom",
                     });
                   } else {
@@ -403,6 +404,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                       description: t.description,
                       objectives: t.objectives,
                       scoring_scale: t.scoring_scale ?? null,
+                      image_url: t.image_url ?? null,
                       source: "custom",
                     });
                     setIsEditDialogOpen(true);
@@ -410,6 +412,13 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                   className="group inline-flex items-center gap-1.5 rounded-full bg-background border px-2.5 py-1 text-xs hover:border-primary hover:bg-accent transition-colors"
                   title={isViewer ? (t.description || "") : "Cliquer pour modifier ce test"}
                 >
+                  {t.image_url && (
+                    <img
+                      src={t.image_url}
+                      alt=""
+                      className="h-5 w-5 rounded-full object-cover -ml-0.5"
+                    />
+                  )}
                   <span className="font-medium">{t.name}</span>
                   {t.unit && <span className="text-muted-foreground">({t.unit})</span>}
                   {!isViewer && <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />}

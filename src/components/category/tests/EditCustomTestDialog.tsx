@@ -17,7 +17,7 @@ import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { formatCategoryLabel } from "./customTestCatalog";
 import { TEST_UNIT_OPTIONS, getUnitByKind, type ScoringScale } from "@/lib/constants/testUnits";
 import { ScoringScaleEditor } from "./ScoringScaleEditor";
-import { Trash2 } from "lucide-react";
+import { Trash2, Upload, X, ImageIcon, Loader2 } from "lucide-react";
 
 export interface EditableTest {
   id?: string;                 // custom_tests.id (undefined si seed catalogue)
@@ -29,6 +29,7 @@ export interface EditableTest {
   description?: string | null;
   objectives?: string | null;
   scoring_scale?: ScoringScale | null;
+  image_url?: string | null;
   source: "custom" | "seed";   // seed = test pré-existant du catalogue
   seedTestType?: string;       // test_type d'origine si seed (pour réf)
 }
@@ -51,6 +52,8 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
   const [objectives, setObjectives] = useState("");
   const [enableScoring, setEnableScoring] = useState(false);
   const [scoringScale, setScoringScale] = useState<ScoringScale | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Initialise le formulaire quand un test est sélectionné
   useEffect(() => {
@@ -72,7 +75,37 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
     setObjectives(test.objectives || "");
     setEnableScoring(!!test.scoring_scale);
     setScoringScale(test.scoring_scale || null);
+    setImageUrl(test.image_url || null);
   }, [open, test]);
+
+  const handleImageUpload = async (file: File) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Veuillez sélectionner une image");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image trop volumineuse (max 5 Mo)");
+      return;
+    }
+    setIsUploadingImage(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${categoryId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("test-images").upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("test-images").getPublicUrl(path);
+      setImageUrl(pub.publicUrl);
+      toast.success("Image ajoutée");
+    } catch (e: any) {
+      toast.error("Erreur upload: " + (e?.message || "inconnue"));
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const baseTestCategories = useMemo(() => {
     return getTestCategoriesForSport(sportType || "").filter(c => !c.value.startsWith("rehab_"));
@@ -168,6 +201,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
         objectives: objectives.trim() || null,
         scoring_scale: enableScoring ? (scoringScale as any) : null,
         max_points: maxPoints,
+        image_url: imageUrl,
       };
 
       if (test.source === "custom" && test.id) {
@@ -286,6 +320,53 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
             {unitKind === "custom" && (
               <Input value={customUnit} onChange={e => setCustomUnit(e.target.value)}
                 placeholder="Ex: niveau, étoiles..." className="mt-2" />
+            )}
+          </div>
+
+          {/* Image du test */}
+          <div className="space-y-1.5">
+            <Label>Image du test (optionnel)</Label>
+            {imageUrl ? (
+              <div className="relative inline-block rounded-2xl overflow-hidden border bg-muted/40">
+                <img src={imageUrl} alt="Aperçu du test" className="max-h-48 object-contain" />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2 h-7 w-7 rounded-full"
+                  onClick={() => setImageUrl(null)}
+                  aria-label="Retirer l'image"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            ) : (
+              <label className="flex items-center justify-center gap-2 h-28 rounded-2xl border-2 border-dashed bg-muted/40 cursor-pointer hover:bg-muted/60 transition-colors">
+                {isUploadingImage ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm text-muted-foreground">Téléversement...</span>
+                  </>
+                ) : (
+                  <>
+                    <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      Cliquer pour ajouter une image (PNG, JPG, max 5 Mo)
+                    </span>
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={isUploadingImage}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleImageUpload(f);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
             )}
           </div>
 
