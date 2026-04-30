@@ -914,6 +914,8 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
                 onCheckedChange={(checked) => setEditValues({ ...editValues, auto_assign_athletes: checked })}
               />
             </div>
+
+            <Button
               onClick={() => updateReminder.mutate()}
               disabled={updateReminder.isPending}
               className="w-full"
