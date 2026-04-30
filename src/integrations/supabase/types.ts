@@ -2467,9 +2467,12 @@ export type Database = {
           description: string | null
           id: string
           is_time: boolean | null
+          max_points: number | null
           name: string
+          scoring_scale: Json | null
           test_category: string
           unit: string | null
+          unit_kind: string | null
           updated_at: string | null
         }
         Insert: {
@@ -2479,9 +2482,12 @@ export type Database = {
           description?: string | null
           id?: string
           is_time?: boolean | null
+          max_points?: number | null
           name: string
+          scoring_scale?: Json | null
           test_category: string
           unit?: string | null
+          unit_kind?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -2491,9 +2497,12 @@ export type Database = {
           description?: string | null
           id?: string
           is_time?: boolean | null
+          max_points?: number | null
           name?: string
+          scoring_scale?: Json | null
           test_category?: string
           unit?: string | null
+          unit_kind?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -10902,6 +10911,124 @@ export type Database = {
             columns: ["training_session_id"]
             isOneToOne: false
             referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_batteries: {
+        Row: {
+          category_id: string | null
+          club_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          levels: Json | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          club_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          levels?: Json | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          club_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          levels?: Json | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_batteries_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_batteries_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "admin_all_clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_batteries_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_battery_items: {
+        Row: {
+          battery_id: string
+          created_at: string
+          custom_test_id: string | null
+          id: string
+          max_points: number | null
+          position: number
+          scoring_scale: Json | null
+          test_category: string | null
+          test_name: string | null
+          test_type: string | null
+          unit: string | null
+          unit_kind: string | null
+        }
+        Insert: {
+          battery_id: string
+          created_at?: string
+          custom_test_id?: string | null
+          id?: string
+          max_points?: number | null
+          position?: number
+          scoring_scale?: Json | null
+          test_category?: string | null
+          test_name?: string | null
+          test_type?: string | null
+          unit?: string | null
+          unit_kind?: string | null
+        }
+        Update: {
+          battery_id?: string
+          created_at?: string
+          custom_test_id?: string | null
+          id?: string
+          max_points?: number | null
+          position?: number
+          scoring_scale?: Json | null
+          test_category?: string | null
+          test_name?: string | null
+          test_type?: string | null
+          unit?: string | null
+          unit_kind?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_battery_items_battery_id_fkey"
+            columns: ["battery_id"]
+            isOneToOne: false
+            referencedRelation: "test_batteries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_battery_items_custom_test_id_fkey"
+            columns: ["custom_test_id"]
+            isOneToOne: false
+            referencedRelation: "custom_tests"
             referencedColumns: ["id"]
           },
         ]
