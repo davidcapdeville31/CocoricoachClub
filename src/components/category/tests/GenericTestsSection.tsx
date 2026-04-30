@@ -63,19 +63,25 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
     } catch {}
     return new Set();
   });
+  // Sync favorites from localStorage when the manager updates them
   useEffect(() => {
-    try {
-      localStorage.setItem(favStorageKey, JSON.stringify(Array.from(favoriteCategories)));
-    } catch {}
-  }, [favoriteCategories, favStorageKey]);
-  const toggleFavoriteCategory = (value: string) => {
-    setFavoriteCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(value)) next.delete(value);
-      else next.add(value);
-      return next;
-    });
-  };
+    const reload = () => {
+      try {
+        const raw = localStorage.getItem(favStorageKey);
+        setFavoriteCategories(raw ? new Set(JSON.parse(raw) as string[]) : new Set());
+      } catch {}
+    };
+    const handleCustom = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (!detail || detail.key === favStorageKey) reload();
+    };
+    window.addEventListener("tests-fav-categories-changed", handleCustom);
+    window.addEventListener("storage", reload);
+    return () => {
+      window.removeEventListener("tests-fav-categories-changed", handleCustom);
+      window.removeEventListener("storage", reload);
+    };
+  }, [favStorageKey]);
 
   // Get filtered test categories based on sport type and mode
   const allSportCategories = getTestCategoriesForSport(sportType || "");
@@ -301,30 +307,11 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                   return ordered.map((category) => {
                     const isFav = favoriteCategories.has(category.value);
                     return (
-                      <SelectItem key={category.value} value={category.value} className="pr-2">
-                        <div className="flex items-center justify-between gap-3 w-full">
-                          <span>{category.label}</span>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              toggleFavoriteCategory(category.value);
-                            }}
-                            onPointerDown={(e) => e.stopPropagation()}
-                            className="p-1 rounded hover:bg-muted transition-colors"
-                            aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
-                          >
-                            <Star
-                              className={
-                                "h-4 w-4 " +
-                                (isFav
-                                  ? "fill-yellow-400 text-yellow-400"
-                                  : "text-muted-foreground")
-                              }
-                            />
-                          </button>
-                        </div>
+                      <SelectItem key={category.value} value={category.value}>
+                        <span className="flex items-center gap-2">
+                          {isFav && <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />}
+                          {category.label}
+                        </span>
                       </SelectItem>
                     );
                   });
