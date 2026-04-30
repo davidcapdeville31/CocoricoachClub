@@ -92,7 +92,7 @@ const WELLNESS_FIELDS = [
   },
 ] as const;
 
-export function AthleteSpaceWellness({ playerId, categoryId }: Props) {
+export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Props) {
   const queryClient = useQueryClient();
   const today = new Date().toISOString().split("T")[0];
   const [expanded, setExpanded] = useState(false);
