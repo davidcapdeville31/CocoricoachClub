@@ -878,6 +878,9 @@ import { SeasonManager } from "@/components/club/SeasonManager";
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
+
+                {/* Install app guide */}
+                <PWAInstallGuide />
               </TabsContent>
             )}
           </Tabs>
