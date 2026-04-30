@@ -203,7 +203,10 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
     onSuccess: (_, { isActive }) => {
       queryClient.invalidateQueries({ queryKey: ["test-reminders", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["test-reminder-session-counts", categoryId] });
-      queryClient.invalidateQueries({ queryKey: ["training-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["training_sessions_annual", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["today-training-sessions", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       toast({
         title: isActive ? "Rappel activé" : "Rappel désactivé",
         description: isActive
