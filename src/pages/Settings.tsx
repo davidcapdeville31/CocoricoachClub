@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Settings as SettingsIcon, Smartphone, RefreshCw } from "lucide-react";
 import { OfflineSyncPanel } from "@/components/OfflineSyncPanel";
+import { PWAInstallGuide } from "@/components/PWAInstallGuide";
 import { PushNotificationSettings } from "@/components/notifications/PushNotificationSettings";
 import { PersonalNotificationPreferences } from "@/components/notifications/PersonalNotificationPreferences";
 import { SecuritySettingsPanel } from "@/components/security/SecuritySettingsPanel";
@@ -157,6 +158,9 @@ export default function Settings() {
               )}
             </CardContent>
           </Card>
+
+          {/* PWA Install Guide (always visible) */}
+          <PWAInstallGuide />
 
           {/* Offline Sync */}
           <OfflineSyncPanel />

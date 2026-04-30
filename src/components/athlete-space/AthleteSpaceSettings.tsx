@@ -13,6 +13,7 @@ import { requestOneSignalPermission, getOneSignalPermission } from "@/lib/onesig
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { useQuery } from "@tanstack/react-query";
 import { PersonalNotificationPreferences } from "@/components/notifications/PersonalNotificationPreferences";
+import { PWAInstallGuide } from "@/components/PWAInstallGuide";
 
 interface AthleteSpaceSettingsProps {
   playerId?: string;
@@ -331,6 +332,9 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* PWA Install Guide (always visible) */}
+      <PWAInstallGuide />
     </div>
   );
 }
