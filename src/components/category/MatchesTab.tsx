@@ -34,6 +34,31 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
   // Check if this is an individual sport (judo, bowling)
   const isIndividual = isIndividualSport(sportType || "");
   const isBowling = (sportType || "").toLowerCase().includes("bowling");
+  const isTennis = (sportType || "").toLowerCase().includes("tennis");
+  const showTrainingButton = isBowling || isTennis;
+
+  const createTrainingMatch = useMutation({
+    mutationFn: async () => {
+      const today = format(new Date(), "yyyy-MM-dd");
+      const label = isTennis ? "Match d'entraînement" : "Entraînement";
+      const { error } = await supabase.from("matches").insert({
+        category_id: categoryId,
+        opponent: `${label} ${format(new Date(), "dd/MM/yyyy")}`,
+        match_date: today,
+        event_type: "training",
+        is_home: true,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
+      const msg = isTennis
+        ? "Match d'entraînement créé ! Ajoutez la composition puis saisissez les stats."
+        : "Entraînement bowling créé ! Ajoutez des joueurs puis saisissez les parties.";
+      toast.success(msg);
+    },
+    onError: () => toast.error("Erreur lors de la création"),
+  });
   
   // Labels adaptés selon le sport
   const itemLabel = isIndividual ? "compétition" : "match";
