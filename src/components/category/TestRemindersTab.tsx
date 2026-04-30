@@ -486,7 +486,23 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
           </p>
         </div>
         {!isViewer && (
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <>
+            <Button onClick={() => setIsDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nouveau Rappel
+            </Button>
+            <SessionFormDialog
+              open={isDialogOpen}
+              onOpenChange={setIsDialogOpen}
+              categoryId={categoryId}
+              defaultDate={format(new Date(), "yyyy-MM-dd")}
+              defaultTrainingType="test"
+              enableRecurrence
+            />
+          </>
+        )}
+      </div>
+
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
