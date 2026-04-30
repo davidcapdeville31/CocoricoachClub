@@ -2866,6 +2866,73 @@ export function SessionFormDialog({
               <TabsContent value="details" className="h-full m-0">
                 <ScrollArea className="h-[50vh] pr-4">
                   <div className="space-y-4">
+                    {/* 🔁 Recurrence (Test Reminder) */}
+                    {enableRecurrence && !editSession && (
+                      <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Label className="text-sm font-semibold flex items-center gap-2">
+                              🔁 Récurrence (Rappel test)
+                            </Label>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Ajoute automatiquement cette séance dans le calendrier de manière récurrente.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
+                            className={cn(
+                              "px-3 py-1.5 rounded-full text-xs font-medium transition",
+                              recurrenceEnabled
+                                ? "bg-emerald-600 text-white"
+                                : "bg-muted text-muted-foreground"
+                            )}
+                          >
+                            {recurrenceEnabled ? "Activée" : "Désactivée"}
+                          </button>
+                        </div>
+
+                        {recurrenceEnabled && (
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="space-y-1">
+                              <Label className="text-xs">Toutes les</Label>
+                              <Input
+                                type="number"
+                                min={1}
+                                value={recurrenceInterval}
+                                onChange={(e) => setRecurrenceInterval(Math.max(1, parseInt(e.target.value) || 1))}
+                                className="bg-background"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Unité</Label>
+                              <Select value={recurrenceUnit} onValueChange={(v: any) => setRecurrenceUnit(v)}>
+                                <SelectTrigger className="bg-background">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="days">Jour(s)</SelectItem>
+                                  <SelectItem value="weeks">Semaine(s)</SelectItem>
+                                  <SelectItem value="months">Mois</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Pendant (mois)</Label>
+                              <Input
+                                type="number"
+                                min={1}
+                                max={24}
+                                value={recurrenceMonths}
+                                onChange={(e) => setRecurrenceMonths(Math.max(1, parseInt(e.target.value) || 1))}
+                                className="bg-background"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Athlete quick type selector */}
                     {isAthleteMode && (
                       <div className="space-y-2">
