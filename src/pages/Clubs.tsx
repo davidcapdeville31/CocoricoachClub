@@ -216,9 +216,9 @@ export default function Clubs() {
         <div className="container mx-auto max-w-6xl">
           {/* Header: title + actions on the same row */}
           <div className="flex items-center justify-between gap-3 sm:gap-4 min-w-0">
-            <div className="flex items-center gap-3 sm:gap-6 min-w-0 flex-1">
-              <img src={logoCoq} alt="CocoriCoach Club" className="h-16 sm:h-24 md:h-28 w-auto shrink-0" />
-              <p className="text-sm sm:text-lg text-muted-foreground hidden md:block">
+            <div className="flex flex-col min-w-0 flex-1">
+              <img src={logoCoq} alt="CocoriCoach Club" className="h-24 sm:h-36 md:h-44 w-auto shrink-0" />
+              <p className="text-[11px] sm:text-xs text-muted-foreground mt-1 ml-1">
                 Gestion des clubs et suivi des performances
               </p>
             </div>
@@ -237,9 +237,6 @@ export default function Clubs() {
               </Button>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-3 md:hidden">
-            Gestion des clubs et suivi des performances
-          </p>
         </div>
       </div>
 
