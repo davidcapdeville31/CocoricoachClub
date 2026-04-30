@@ -34,6 +34,27 @@ export function ScoringScaleEditor({ value, onChange, unit = "", className }: Sc
 
   const maxPoints = useMemo(() => ranges.reduce((m, r) => Math.max(m, r.points), 0), [ranges]);
 
+  // Compute gradient color (red → orange → yellow → green) based on rank
+  // rank 0 = worst (red), rank n-1 = best (dark green)
+  const getGradientColor = (rank: number, total: number): string => {
+    if (total <= 1) return "hsl(140, 70%, 40%)";
+    const t = rank / (total - 1); // 0 → 1
+    // Interpolate hue: 0 (red) → 40 (orange) → 80 (yellow-green) → 140 (green)
+    const hue = t * 140;
+    const saturation = 75;
+    const lightness = 45 - t * 5; // slightly darker as we go to green
+    return `hsl(${Math.round(hue)}, ${saturation}%, ${Math.round(lightness)}%)`;
+  };
+
+  // Sort ranges by points to determine ranking (worst → best)
+  // If lowerIsBetter, the lowest points still = worst (points = quality score)
+  const rankedIds = useMemo(() => {
+    const sorted = [...ranges].sort((a, b) => a.points - b.points);
+    const map = new Map<string, number>();
+    sorted.forEach((r, idx) => map.set(r.id, idx));
+    return map;
+  }, [ranges]);
+
   const update = (next: ScoringRange[], newLowerIsBetter = lowerIsBetter) => {
     onChange({ ranges: next, lowerIsBetter: newLowerIsBetter });
   };
