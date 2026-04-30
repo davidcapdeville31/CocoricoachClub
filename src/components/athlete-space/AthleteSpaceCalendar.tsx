@@ -423,7 +423,11 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   <Activity className="h-4 w-4 text-muted-foreground" />
                                   <div>
                                     <div className="flex items-center gap-2 flex-wrap">
-                                      <p className="font-medium text-sm">{getTrainingTypeLabel(session.training_type)}</p>
+                                      <p className="font-medium text-sm">
+                                        {session.training_type === "test" && (session as any).test_reminder_id && testTypeByReminderId[(session as any).test_reminder_id]
+                                          ? `Test : ${testTypeByReminderId[(session as any).test_reminder_id]}`
+                                          : getTrainingTypeLabel(session.training_type)}
+                                      </p>
                                       {blocks.length > 0 && blocks.some(b => b.training_type !== session.training_type) && (
                                         <div className="flex gap-1 flex-wrap">
                                           {blocks.filter(b => b.training_type !== session.training_type).map((b, i) => (
