@@ -23,6 +23,8 @@ export function CategoryVisibilityManager({
   items,
   visibleValues,
   onChange,
+  favoriteValues,
+  onFavoritesChange,
 }: CategoryVisibilityManagerProps) {
   const [open, setOpen] = useState(false);
 
@@ -33,10 +35,19 @@ export function CategoryVisibilityManager({
     onChange(next);
   };
 
+  const toggleFavorite = (value: string) => {
+    if (!favoriteValues || !onFavoritesChange) return;
+    const next = new Set(favoriteValues);
+    if (next.has(value)) next.delete(value);
+    else next.add(value);
+    onFavoritesChange(next);
+  };
+
   const showAll = () => onChange(new Set(items.map((i) => i.value)));
   const hideAll = () => onChange(new Set());
 
   const visibleCount = items.filter((i) => visibleValues.has(i.value)).length;
+  const favEnabled = !!favoriteValues && !!onFavoritesChange;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -51,7 +62,7 @@ export function CategoryVisibilityManager({
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-72 p-0 rounded-2xl backdrop-blur-xl bg-background/95 border-border/60 shadow-xl"
+        className="w-80 p-0 rounded-2xl backdrop-blur-xl bg-background/95 border-border/60 shadow-xl"
       >
         <div className="p-3 flex items-center justify-between gap-2">
           <p className="text-sm font-medium">Catégories visibles</p>
@@ -64,22 +75,48 @@ export function CategoryVisibilityManager({
             </Button>
           </div>
         </div>
+        {favEnabled && (
+          <p className="px-3 pb-2 text-[11px] text-muted-foreground">
+            Cliquez sur l'étoile pour mettre une catégorie en favori (affichée en premier dans le filtre).
+          </p>
+        )}
         <Separator />
         <ScrollArea className="h-[60vh] max-h-[400px]">
           <div className="p-2 space-y-1">
             {items.map((item) => {
               const checked = visibleValues.has(item.value);
+              const isFav = favoriteValues?.has(item.value) ?? false;
               return (
-                <label
+                <div
                   key={item.value}
-                  className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-muted/60 cursor-pointer transition-colors"
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-muted/60 transition-colors"
                 >
-                  <Checkbox
-                    checked={checked}
-                    onCheckedChange={() => toggle(item.value)}
-                  />
-                  <span className="text-sm">{item.label}</span>
-                </label>
+                  <label className="flex items-center gap-2.5 flex-1 cursor-pointer">
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={() => toggle(item.value)}
+                    />
+                    <span className="text-sm">{item.label}</span>
+                  </label>
+                  {favEnabled && (
+                    <button
+                      type="button"
+                      onClick={() => toggleFavorite(item.value)}
+                      className="p-1 rounded hover:bg-muted transition-colors"
+                      aria-label={isFav ? "Retirer des favoris" : "Mettre en favori"}
+                      title={isFav ? "Retirer des favoris" : "Mettre en favori"}
+                    >
+                      <Star
+                        className={
+                          "h-4 w-4 " +
+                          (isFav
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-muted-foreground")
+                        }
+                      />
+                    </button>
+                  )}
+                </div>
               );
             })}
             {items.length === 0 && (
