@@ -492,7 +492,7 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
                 Nouveau Rappel
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Créer un rappel de test</DialogTitle>
                 <DialogDescription>
@@ -785,7 +785,7 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
 
       {/* Edit dialog */}
       <Dialog open={!!editingReminder} onOpenChange={(o) => !o && setEditingReminder(null)}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Modifier le rappel de test</DialogTitle>
             <DialogDescription>
