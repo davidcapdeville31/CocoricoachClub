@@ -123,22 +123,84 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
     },
   });
 
+  // Helper: get all non-injured player IDs in this category
+  async function getNonInjuredPlayerIds(): Promise<string[]> {
+    const { data: players, error: pErr } = await supabase
+      .from("players")
+      .select("id")
+      .eq("category_id", categoryId);
+    if (pErr) throw pErr;
+
+    const { data: injuries, error: iErr } = await supabase
+      .from("injuries")
+      .select("player_id")
+      .eq("category_id", categoryId)
+      .eq("status", "active");
+    if (iErr) throw iErr;
+
+    const injuredSet = new Set((injuries || []).map((i: any) => i.player_id));
+    return (players || []).map((p: any) => p.id).filter((id: string) => !injuredSet.has(id));
+  }
+
   // Helper: create sessions for a reminder
-  async function createSessionsForReminder(reminderId: string, testType: string, startDate: string, frequencyWeeks: number) {
+  async function createSessionsForReminder(
+    reminderId: string,
+    testType: string,
+    startDate: string,
+    frequencyWeeks: number,
+    options: {
+      session_start_time?: string | null;
+      session_end_time?: string | null;
+      location?: string | null;
+      duration_minutes?: number | null;
+      auto_assign_athletes?: boolean;
+    } = {}
+  ) {
     const dates = generateSessionDates(startDate, frequencyWeeks);
     if (dates.length === 0) return;
 
     const label = getTestTypeLabel(testType);
+    const locationLine = options.location ? `\n📍 Lieu: ${options.location}` : "";
     const sessions = dates.map(date => ({
       category_id: categoryId,
       session_date: date,
+      session_start_time: options.session_start_time || null,
+      session_end_time: options.session_end_time || null,
       training_type: "test",
-      notes: `📋 Test auto-planifié: ${label}`,
+      notes: `📋 ${label}${locationLine}`,
       test_reminder_id: reminderId,
     }));
 
-    const { error } = await supabase.from("training_sessions").insert(sessions);
+    const { data: inserted, error } = await supabase
+      .from("training_sessions")
+      .insert(sessions)
+      .select("id");
     if (error) throw error;
+
+    // Auto-assign all non-injured athletes as "present"
+    if (options.auto_assign_athletes && inserted && inserted.length > 0) {
+      const playerIds = await getNonInjuredPlayerIds();
+      if (playerIds.length === 0) return;
+
+      const attendances = inserted.flatMap((s: any) =>
+        dates.map((date, idx) => ({ session: s, date: dates[idx] })) // not used; rebuilt below
+      );
+      // Rebuild correctly: pair each session id with its date
+      const rows = inserted.flatMap((s: any, idx: number) =>
+        playerIds.map((pid) => ({
+          training_session_id: s.id,
+          category_id: categoryId,
+          player_id: pid,
+          attendance_date: dates[idx],
+          status: "present",
+        }))
+      );
+
+      if (rows.length > 0) {
+        const { error: aErr } = await supabase.from("training_attendance").insert(rows);
+        if (aErr) console.error("Attendance auto-assign failed:", aErr);
+      }
+    }
   }
 
   // Helper: delete future sessions for a reminder
@@ -160,6 +222,11 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
         test_type: newReminder.test_type,
         frequency_weeks: newReminder.frequency_weeks,
         start_date: newReminder.start_date,
+        session_start_time: newReminder.session_start_time || null,
+        session_end_time: newReminder.session_end_time || null,
+        location: newReminder.location || null,
+        duration_minutes: newReminder.duration_minutes,
+        auto_assign_athletes: newReminder.auto_assign_athletes,
         is_active: true,
       }).select("id").single();
 
