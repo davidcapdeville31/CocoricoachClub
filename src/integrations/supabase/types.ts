@@ -2469,6 +2469,7 @@ export type Database = {
           is_time: boolean | null
           max_points: number | null
           name: string
+          objectives: string | null
           scoring_scale: Json | null
           test_category: string
           unit: string | null
@@ -2484,6 +2485,7 @@ export type Database = {
           is_time?: boolean | null
           max_points?: number | null
           name: string
+          objectives?: string | null
           scoring_scale?: Json | null
           test_category: string
           unit?: string | null
@@ -2499,6 +2501,7 @@ export type Database = {
           is_time?: boolean | null
           max_points?: number | null
           name?: string
+          objectives?: string | null
           scoring_scale?: Json | null
           test_category?: string
           unit?: string | null
@@ -11073,6 +11076,58 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_theme_categories: {
+        Row: {
+          category_id: string
+          club_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string
+          value: string
+        }
+        Insert: {
+          category_id: string
+          club_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label: string
+          value: string
+        }
+        Update: {
+          category_id?: string
+          club_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_theme_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_theme_categories_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "admin_all_clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_theme_categories_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
             referencedColumns: ["id"]
           },
         ]
