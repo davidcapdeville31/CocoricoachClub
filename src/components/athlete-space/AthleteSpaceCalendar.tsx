@@ -24,6 +24,8 @@ import { fr } from "date-fns/locale";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { cn } from "@/lib/utils";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import { getTestLabel } from "@/lib/constants/testCategories";
+import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { GroupedExerciseList } from "@/components/category/GroupedExerciseList";
 import { SessionFormDialog } from "@/components/category/sessions/SessionFormDialog";
 import { resolveSessionExerciseRows } from "@/lib/utils/sessionExercises";
