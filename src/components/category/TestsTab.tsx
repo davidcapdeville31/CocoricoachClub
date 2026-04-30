@@ -73,12 +73,36 @@ function TestCategoryTrigger({ value, label, colorIndex }: { value: string; labe
 }
 
 export function TestsTab({ categoryId, sportType }: TestsTabProps) {
+  const { data: customCategoryValues } = useQuery({
+    queryKey: ["custom-test-categories", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_test_categories")
+        .select("custom_tests(test_category)")
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return Array.from(
+        new Set(
+          (data || [])
+            .map((row: any) => row.custom_tests?.test_category)
+            .filter((v): v is string => Boolean(v))
+        )
+      );
+    },
+  });
+
   const testCategories = useMemo(() => {
     const all = getTestCategoriesForSport(sportType || "");
     const nonRehab = all.filter(c => !c.value.startsWith("rehab_"));
     const hasRehab = all.some(c => c.value.startsWith("rehab_"));
-    return { nonRehab, hasRehab };
-  }, [sportType]);
+
+    const existingValues = new Set(nonRehab.map(c => c.value));
+    const extra = (customCategoryValues || [])
+      .filter(v => !existingValues.has(v) && !v.startsWith("rehab_"))
+      .map(v => ({ value: v, label: formatCategoryLabel(v), tests: [] as any[] }));
+
+    return { nonRehab: [...nonRehab, ...extra], hasRehab };
+  }, [sportType, customCategoryValues]);
 
   const benchmarkColorIndex = testCategories.nonRehab.length + (testCategories.hasRehab ? 2 : 1);
 
