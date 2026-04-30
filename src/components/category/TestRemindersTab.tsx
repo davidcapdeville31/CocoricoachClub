@@ -237,7 +237,14 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
         data.id,
         newReminder.test_type,
         newReminder.start_date,
-        newReminder.frequency_weeks
+        newReminder.frequency_weeks,
+        {
+          session_start_time: newReminder.session_start_time,
+          session_end_time: newReminder.session_end_time,
+          location: newReminder.location,
+          duration_minutes: newReminder.duration_minutes,
+          auto_assign_athletes: newReminder.auto_assign_athletes,
+        }
       );
     },
     onSuccess: () => {
@@ -248,7 +255,7 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
       queryClient.invalidateQueries({ queryKey: ["today-training-sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       setIsDialogOpen(false);
-      setNewReminder({ test_type: "VMA", frequency_weeks: 4, start_date: format(new Date(), "yyyy-MM-dd") });
+      setNewReminder({ ...DEFAULT_FORM });
       toast({
         title: "Rappel créé",
         description: "Le rappel et les séances de test ont été créés automatiquement dans le calendrier",
@@ -275,7 +282,13 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
 
       if (isActive && reminder.start_date) {
         // Reactivating: regenerate future sessions
-        await createSessionsForReminder(id, reminder.test_type, reminder.start_date, reminder.frequency_weeks);
+        await createSessionsForReminder(id, reminder.test_type, reminder.start_date, reminder.frequency_weeks, {
+          session_start_time: reminder.session_start_time,
+          session_end_time: reminder.session_end_time,
+          location: reminder.location,
+          duration_minutes: reminder.duration_minutes,
+          auto_assign_athletes: reminder.auto_assign_athletes,
+        });
       } else {
         // Deactivating: remove future sessions
         await deleteFutureSessionsForReminder(id);
@@ -344,6 +357,11 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
           test_type: editValues.test_type,
           frequency_weeks: editValues.frequency_weeks,
           start_date: editValues.start_date,
+          session_start_time: editValues.session_start_time || null,
+          session_end_time: editValues.session_end_time || null,
+          location: editValues.location || null,
+          duration_minutes: editValues.duration_minutes,
+          auto_assign_athletes: editValues.auto_assign_athletes,
         })
         .eq("id", editingReminder.id);
       if (error) throw error;
@@ -354,7 +372,14 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
           editingReminder.id,
           editValues.test_type,
           editValues.start_date,
-          editValues.frequency_weeks
+          editValues.frequency_weeks,
+          {
+            session_start_time: editValues.session_start_time,
+            session_end_time: editValues.session_end_time,
+            location: editValues.location,
+            duration_minutes: editValues.duration_minutes,
+            auto_assign_athletes: editValues.auto_assign_athletes,
+          }
         );
       }
     },
@@ -379,7 +404,13 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
     mutationFn: async (reminder: TestReminder) => {
       if (!reminder.start_date) throw new Error("Date de début manquante");
       await deleteFutureSessionsForReminder(reminder.id);
-      await createSessionsForReminder(reminder.id, reminder.test_type, reminder.start_date, reminder.frequency_weeks);
+      await createSessionsForReminder(reminder.id, reminder.test_type, reminder.start_date, reminder.frequency_weeks, {
+        session_start_time: reminder.session_start_time,
+        session_end_time: reminder.session_end_time,
+        location: reminder.location,
+        duration_minutes: reminder.duration_minutes,
+        auto_assign_athletes: reminder.auto_assign_athletes,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["test-reminders", categoryId] });
@@ -399,6 +430,11 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
       test_type: reminder.test_type,
       frequency_weeks: reminder.frequency_weeks,
       start_date: reminder.start_date || format(new Date(), "yyyy-MM-dd"),
+      session_start_time: reminder.session_start_time || "10:00",
+      session_end_time: reminder.session_end_time || "11:00",
+      location: reminder.location || "",
+      duration_minutes: reminder.duration_minutes ?? 60,
+      auto_assign_athletes: reminder.auto_assign_athletes ?? true,
     });
   };
 
