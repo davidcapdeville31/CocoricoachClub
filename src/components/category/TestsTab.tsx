@@ -219,6 +219,8 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
             items={visibilityItems}
             visibleValues={visibleValues}
             onChange={setVisibleValues}
+            favoriteValues={favoriteValues}
+            onFavoritesChange={setFavoriteValues}
           />
         </div>
       </CardHeader>
