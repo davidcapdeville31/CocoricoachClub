@@ -59,6 +59,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getCategoryLabel, getCategoriesForSport, isCategoryForSport, isErgCategory, isSledCategory, isRunningCategory, hasSpecialMetrics } from "@/lib/constants/exerciseCategories";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { addDays, addWeeks, addMonths, format as dfFormat, startOfDay as dfStartOfDay, isBefore as dfIsBefore } from "date-fns";
 import { getTrainingTypesForSport, trainingTypeHasExercises } from "@/lib/constants/trainingTypes";
 import { QuickAddExerciseDialog } from "@/components/library/QuickAddExerciseDialog";
 import { DndContext, DragEndEvent, DragStartEvent, DragOverlay, useDraggable, useDroppable } from "@dnd-kit/core";
