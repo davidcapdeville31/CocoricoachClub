@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Plus, Trash2, Filter, ClipboardList, CalendarPlus, FolderPlus, Pencil, Star } from "lucide-react";
 import { CreateCustomTestDialog } from "./CreateCustomTestDialog";
 import { CreateThemeCategoryDialog } from "./CreateThemeCategoryDialog";
@@ -45,6 +46,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
   const [isCreateCategoryDialogOpen, setIsCreateCategoryDialogOpen] = useState(false);
   const [editingTest, setEditingTest] = useState<EditableTest | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const isRehabMode = defaultCategory === "rehab";
   const isSingleCategoryMode = !!defaultCategory && defaultCategory !== "rehab" && defaultCategory !== "all";
   const [filterCategory, setFilterCategory] = useState<string>(
@@ -409,14 +411,18 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                     });
                     setIsEditDialogOpen(true);
                   }}
-                  className="group inline-flex items-center gap-1.5 rounded-full bg-background border px-2.5 py-1 text-xs hover:border-primary hover:bg-accent transition-colors"
+                  className={`group inline-flex items-center gap-2 rounded-2xl bg-background border hover:border-primary hover:bg-accent transition-colors text-sm ${t.image_url ? "p-1.5 pr-3" : "px-2.5 py-1 text-xs"}`}
                   title={isViewer ? (t.description || "") : "Cliquer pour modifier ce test"}
                 >
                   {t.image_url && (
                     <img
                       src={t.image_url}
                       alt=""
-                      className="h-5 w-5 rounded-full object-cover -ml-0.5"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreviewImage(t.image_url);
+                      }}
+                      className="h-16 w-16 rounded-xl object-cover border hover:opacity-90 hover:scale-105 transition-transform cursor-zoom-in"
                     />
                   )}
                   <span className="font-medium">{t.name}</span>
@@ -547,6 +553,18 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         sportType={sportType}
         test={editingTest}
       />
+
+      <Dialog open={!!previewImage} onOpenChange={(o) => !o && setPreviewImage(null)}>
+        <DialogContent className="max-w-3xl p-2 bg-background/95 backdrop-blur">
+          {previewImage && (
+            <img
+              src={previewImage}
+              alt="Aperçu"
+              className="w-full h-auto max-h-[80vh] object-contain rounded-xl"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
