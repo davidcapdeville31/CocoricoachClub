@@ -86,7 +86,7 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
       <CardContent>
         <Tabs defaultValue="all" className="space-y-4">
           <ScrollArea className="w-full">
-            <ColoredNavTabsList className="flex w-max gap-1.5 p-2">
+            <ColoredNavTabsList className="flex flex-wrap w-full gap-1 p-1.5">
               <TestCategoryTrigger value="all" label="Tous" colorIndex={0} />
               {testCategories.nonRehab.map((cat, i) => (
                 <TestCategoryTrigger
