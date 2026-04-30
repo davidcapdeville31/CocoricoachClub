@@ -17,7 +17,7 @@ import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { formatCategoryLabel } from "./customTestCatalog";
 import { TEST_UNIT_OPTIONS, getUnitByKind, type ScoringScale } from "@/lib/constants/testUnits";
 import { ScoringScaleEditor } from "./ScoringScaleEditor";
-import { Trash2 } from "lucide-react";
+import { Trash2, Upload, X, ImageIcon, Loader2 } from "lucide-react";
 
 export interface EditableTest {
   id?: string;                 // custom_tests.id (undefined si seed catalogue)
