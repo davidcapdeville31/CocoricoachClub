@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Calendar, BarChart3, Settings2, Camera, CalendarClock, History } from "lucide-react";
+import { Plus, Calendar, BarChart3, Settings2, Camera, CalendarClock, History, Dumbbell } from "lucide-react";
 import { AddMatchCalendarDialog } from "./matches/AddMatchCalendarDialog";
 import { MatchCard } from "./matches/MatchCard";
 import { PlayerCumulativeStats } from "./matches/PlayerCumulativeStats";
@@ -16,7 +16,9 @@ import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { useViewerMatches } from "@/hooks/use-viewer-data";
 import { StatPreferencesDialog } from "./settings/StatPreferencesDialog";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface MatchesTabProps {
   categoryId: string;
@@ -32,6 +34,31 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
   // Check if this is an individual sport (judo, bowling)
   const isIndividual = isIndividualSport(sportType || "");
   const isBowling = (sportType || "").toLowerCase().includes("bowling");
+  const isTennis = (sportType || "").toLowerCase().includes("tennis");
+  const showTrainingButton = isBowling || isTennis;
+
+  const createTrainingMatch = useMutation({
+    mutationFn: async () => {
+      const today = format(new Date(), "yyyy-MM-dd");
+      const label = isTennis ? "Match d'entraînement" : "Entraînement";
+      const { error } = await supabase.from("matches").insert({
+        category_id: categoryId,
+        opponent: `${label} ${format(new Date(), "dd/MM/yyyy")}`,
+        match_date: today,
+        event_type: "training",
+        is_home: true,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
+      const msg = isTennis
+        ? "Match d'entraînement créé ! Ajoutez la composition puis saisissez les stats."
+        : "Entraînement bowling créé ! Ajoutez des joueurs puis saisissez les parties.";
+      toast.success(msg);
+    },
+    onError: () => toast.error("Erreur lors de la création"),
+  });
   
   // Labels adaptés selon le sport
   const itemLabel = isIndividual ? "compétition" : "match";
@@ -108,6 +135,17 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                       >
                         <Settings2 className="h-4 w-4" />
                         <span className="hidden sm:inline">Personnaliser stats</span>
+                      </Button>
+                    )}
+                    {showTrainingButton && (
+                      <Button
+                        variant="outline"
+                        onClick={() => createTrainingMatch.mutate()}
+                        disabled={createTrainingMatch.isPending}
+                        className="gap-2"
+                      >
+                        <Dumbbell className="h-4 w-4" />
+                        {isTennis ? "Match entraînement" : "Entraînement bowling"}
                       </Button>
                     )}
                     <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
