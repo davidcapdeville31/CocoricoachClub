@@ -19,6 +19,7 @@ import { PAIN_ZONES } from "@/lib/constants/pain-locations";
 interface Props {
   playerId: string;
   categoryId: string;
+  hideHistory?: boolean;
 }
 
 const SLEEP_HOURS = [4, 5, 6, 7, 8, 9, 10, 11, 12];
