@@ -27,6 +27,7 @@ export function InjuryLibraryDialog({ categoryId, open, onOpenChange }: InjuryLi
   const [description, setDescription] = useState("");
   const [dmin, setDmin] = useState<number | "">("");
   const [dmax, setDmax] = useState<number | "">("");
+  const [filterCat, setFilterCat] = useState<string>("all");
 
   const { data: items, refetch } = useQuery({
     queryKey: ["injury-library", categoryId],
@@ -104,7 +105,10 @@ export function InjuryLibraryDialog({ categoryId, open, onOpenChange }: InjuryLi
     onError: (e: any) => toast.error(e.message || "Erreur"),
   });
 
-  const grouped = (items || []).reduce((acc: Record<string, any[]>, it: any) => {
+  const filteredItems = (items || []).filter((it: any) =>
+    filterCat === "all" ? true : it.injury_category === filterCat
+  );
+  const grouped = filteredItems.reduce((acc: Record<string, any[]>, it: any) => {
     (acc[it.injury_category] ||= []).push(it);
     return acc;
   }, {});
@@ -160,6 +164,32 @@ export function InjuryLibraryDialog({ categoryId, open, onOpenChange }: InjuryLi
               {editingId ? "Enregistrer modifications" : "Ajouter blessure"}
             </Button>
           </div>
+        </div>
+
+        <div className="px-6 pt-3 pb-2 flex items-center gap-2 flex-wrap border-b">
+          <Label className="text-xs text-muted-foreground">Filtrer par catégorie :</Label>
+          <Button
+            variant={filterCat === "all" ? "default" : "outline"}
+            size="sm"
+            className="h-7 text-xs"
+            onClick={() => setFilterCat("all")}
+          >
+            Toutes ({items?.length || 0})
+          </Button>
+          {INJURY_CATEGORIES.map((c) => {
+            const count = (items || []).filter((it: any) => it.injury_category === c.value).length;
+            return (
+              <Button
+                key={c.value}
+                variant={filterCat === c.value ? "default" : "outline"}
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => setFilterCat(c.value)}
+              >
+                {c.label} ({count})
+              </Button>
+            );
+          })}
         </div>
 
         <ScrollArea className="flex-1 px-6 py-3">
