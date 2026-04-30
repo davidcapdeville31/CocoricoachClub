@@ -330,14 +330,11 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les tests</SelectItem>
-                <SelectGroup>
-                  <SelectLabel>{selectedCategory.label}</SelectLabel>
-                  {selectedCategory.tests.map((test) => (
-                    <SelectItem key={test.value} value={test.value}>
-                      {test.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
+                {selectedCategory.tests.map((test) => (
+                  <SelectItem key={test.value} value={test.value}>
+                    {test.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           )}
