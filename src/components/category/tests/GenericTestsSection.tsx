@@ -20,9 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Filter, ClipboardList, CalendarPlus, FolderPlus } from "lucide-react";
+import { Plus, Trash2, Filter, ClipboardList, CalendarPlus, FolderPlus, Pencil } from "lucide-react";
 import { CreateCustomTestDialog } from "./CreateCustomTestDialog";
 import { CreateThemeCategoryDialog } from "./CreateThemeCategoryDialog";
+import { EditCustomTestDialog, type EditableTest } from "./EditCustomTestDialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -42,6 +43,8 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [isCreateTestDialogOpen, setIsCreateTestDialogOpen] = useState(false);
   const [isCreateCategoryDialogOpen, setIsCreateCategoryDialogOpen] = useState(false);
+  const [editingTest, setEditingTest] = useState<EditableTest | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const isRehabMode = defaultCategory === "rehab";
   const isSingleCategoryMode = !!defaultCategory && defaultCategory !== "rehab" && defaultCategory !== "all";
   const [filterCategory, setFilterCategory] = useState<string>(
@@ -73,7 +76,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_test_categories")
-        .select("custom_tests(id, name, test_category, unit, description, objectives)")
+        .select("custom_tests(id, name, test_category, unit, unit_kind, is_time, description, objectives, scoring_scale, max_points)")
         .eq("category_id", categoryId);
       if (error) throw error;
       const tests = (data || [])
@@ -143,8 +146,43 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
       });
     }
 
+    // Inject custom_tests definitions (so they appear in the filter dropdown
+    // even before any result has been recorded)
+    if (customTestsList?.length) {
+      customTestsList.forEach((ct: any) => {
+        const catValue = ct.test_category;
+        if (!catValue) return;
+        const isRehabCat = catValue.startsWith("rehab_");
+        if (isRehabMode !== isRehabCat) return;
+
+        // Use the custom test id as the test "value" so it's unique
+        const testValue = `custom:${ct.id}`;
+        const testLabel = ct.name;
+        const testUnit = ct.unit || "";
+
+        if (!existingCategoryValues.has(catValue)) {
+          categories.push({
+            value: catValue,
+            label: formatCategoryLabel(catValue),
+            tests: [{ value: testValue, label: testLabel, unit: testUnit }],
+          });
+          existingCategoryValues.add(catValue);
+          existingTestsByCategory.set(catValue, new Set([testValue]));
+        } else {
+          const existingTests = existingTestsByCategory.get(catValue);
+          if (existingTests && !existingTests.has(testValue)) {
+            const category = categories.find(c => c.value === catValue);
+            if (category) {
+              category.tests.push({ value: testValue, label: testLabel, unit: testUnit });
+              existingTests.add(testValue);
+            }
+          }
+        }
+      });
+    }
+
     return categories;
-  }, [allSportCategories, allTestsForDiscovery, isRehabMode]);
+  }, [allSportCategories, allTestsForDiscovery, customTestsList, isRehabMode]);
 
   const { data: tests, isLoading } = useQuery({
     queryKey: ["generic_tests", categoryId, filterCategory, filterTestType, isRehabMode],
@@ -164,7 +202,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
       if (filterCategory !== "all") {
         query = query.eq("test_category", filterCategory);
       }
-      if (filterTestType !== "all") {
+      if (filterTestType !== "all" && !filterTestType.startsWith("custom:")) {
         query = query.eq("test_type", filterTestType);
       }
 
@@ -261,6 +299,47 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
               </SelectContent>
             </Select>
           )}
+
+          {/* Edit/customize the currently selected test */}
+          {!isViewer && filterCategory !== "all" && filterTestType !== "all" && selectedCategory && (() => {
+            const selectedTest = selectedCategory.tests.find(t => t.value === filterTestType);
+            if (!selectedTest) return null;
+            const isCustom = filterTestType.startsWith("custom:");
+            const customId = isCustom ? filterTestType.replace("custom:", "") : undefined;
+            const customDef = isCustom ? customTestsList?.find((t: any) => t.id === customId) : null;
+            return (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  if (isCustom && customDef) {
+                    setEditingTest({
+                      id: customDef.id,
+                      name: customDef.name,
+                      test_category: customDef.test_category,
+                      unit: customDef.unit,
+                      description: customDef.description,
+                      objectives: customDef.objectives,
+                      scoring_scale: (customDef as any).scoring_scale ?? null,
+                      source: "custom",
+                    });
+                  } else {
+                    setEditingTest({
+                      name: selectedTest.label,
+                      test_category: filterCategory,
+                      unit: selectedTest.unit || null,
+                      source: "seed",
+                      seedTestType: filterTestType,
+                    });
+                  }
+                  setIsEditDialogOpen(true);
+                }}
+              >
+                <Pencil className="h-4 w-4 mr-1" />
+                {isCustom ? "Modifier le test" : "Personnaliser"}
+              </Button>
+            );
+          })()}
         </div>
 
         {/* Tests disponibles dans cette catégorie (custom_tests définis) */}
@@ -271,14 +350,30 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
             </div>
             <div className="flex flex-wrap gap-2">
               {customTestsList.map((t: any) => (
-                <span
+                <button
                   key={t.id}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-background border px-2.5 py-1 text-xs"
-                  title={t.description || ""}
+                  type="button"
+                  onClick={() => {
+                    if (isViewer) return;
+                    setEditingTest({
+                      id: t.id,
+                      name: t.name,
+                      test_category: t.test_category,
+                      unit: t.unit,
+                      description: t.description,
+                      objectives: t.objectives,
+                      scoring_scale: t.scoring_scale ?? null,
+                      source: "custom",
+                    });
+                    setIsEditDialogOpen(true);
+                  }}
+                  className="group inline-flex items-center gap-1.5 rounded-full bg-background border px-2.5 py-1 text-xs hover:border-primary hover:bg-accent transition-colors"
+                  title={isViewer ? (t.description || "") : "Cliquer pour modifier ce test"}
                 >
                   <span className="font-medium">{t.name}</span>
                   {t.unit && <span className="text-muted-foreground">({t.unit})</span>}
-                </span>
+                  {!isViewer && <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />}
+                </button>
               ))}
             </div>
           </div>
@@ -391,6 +486,17 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         open={isCreateCategoryDialogOpen}
         onOpenChange={setIsCreateCategoryDialogOpen}
         categoryId={categoryId}
+      />
+
+      <EditCustomTestDialog
+        open={isEditDialogOpen}
+        onOpenChange={(o) => {
+          setIsEditDialogOpen(o);
+          if (!o) setEditingTest(null);
+        }}
+        categoryId={categoryId}
+        sportType={sportType}
+        test={editingTest}
       />
     </Card>
   );
