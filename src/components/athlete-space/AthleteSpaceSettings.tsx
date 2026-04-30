@@ -332,6 +332,9 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* PWA Install Guide (always visible) */}
+      <PWAInstallGuide />
     </div>
   );
 }
