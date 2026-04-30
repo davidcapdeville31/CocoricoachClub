@@ -546,6 +546,9 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
 
       {/* Recovery & Sleep Dashboard */}
       <RecoveryDashboard categoryId={categoryId} />
+
+      {/* Sleep Analytics (moved from Récupération) */}
+      <SleepAnalytics categoryId={categoryId} />
     </div>
   );
 }
