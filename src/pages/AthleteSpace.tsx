@@ -550,19 +550,7 @@ export default function AthleteSpace() {
                 <BarChart3 className="h-3.5 w-3.5" />
                 Performance
               </TabsTrigger>
-              <TabsTrigger 
-                value="health"
-                 className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
-                 style={{
-                   color: NAV_COLORS.sante.base,
-                   backgroundColor: `${NAV_COLORS.sante.base}15`,
-                   borderBottom: `3px solid ${NAV_COLORS.sante.base}`,
-                   ["--tab-color" as string]: NAV_COLORS.sante.base,
-                 }}
-               >
-                 <Shield className="h-3.5 w-3.5" />
-                  Santé
-               </TabsTrigger>
+              {/* Onglet Santé fusionné en sous-menu de Wellness */}
                {isBowling && (
                  <TabsTrigger 
                    value="arsenal"
@@ -690,10 +678,32 @@ export default function AthleteSpace() {
           </TabsContent>
 
           <TabsContent value="wellness">
-            <AthleteSpaceWellness
-              playerId={athleteInfo.player_id}
-              categoryId={athleteInfo.category_id}
-            />
+            <Tabs defaultValue="wellness-entry" className="space-y-4">
+              <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-muted/40 rounded-xl p-1">
+                <TabsTrigger value="wellness-entry" className="flex-1 gap-1.5 rounded-lg">
+                  <Heart className="h-3.5 w-3.5" />
+                  Wellness
+                </TabsTrigger>
+                <TabsTrigger value="health-sub" className="flex-1 gap-1.5 rounded-lg">
+                  <Shield className="h-3.5 w-3.5" />
+                  Santé
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="wellness-entry">
+                <AthleteSpaceWellness
+                  playerId={athleteInfo.player_id}
+                  categoryId={athleteInfo.category_id}
+                />
+              </TabsContent>
+
+              <TabsContent value="health-sub">
+                <AthleteSpaceHealth
+                  playerId={athleteInfo.player_id}
+                  categoryId={athleteInfo.category_id}
+                />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="calendar">
@@ -709,13 +719,6 @@ export default function AthleteSpace() {
               playerId={athleteInfo.player_id}
               categoryId={athleteInfo.category_id}
               sportType={athleteInfo.sport_type}
-            />
-          </TabsContent>
-
-          <TabsContent value="health">
-            <AthleteSpaceHealth
-              playerId={athleteInfo.player_id}
-              categoryId={athleteInfo.category_id}
             />
           </TabsContent>
 
