@@ -63,7 +63,7 @@ export function CategoryVisibilityManager({
           </div>
         </div>
         <Separator />
-        <ScrollArea className="max-h-80">
+        <ScrollArea className="h-[60vh] max-h-[400px]">
           <div className="p-2 space-y-1">
             {items.map((item) => {
               const checked = visibleValues.has(item.value);
