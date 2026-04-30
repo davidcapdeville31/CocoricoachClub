@@ -257,6 +257,18 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
           </TabsContent>
         </Tabs>
       </CardContent>
+
+      <CreateThemeCategoryDialog
+        open={isCreateCategoryOpen}
+        onOpenChange={setIsCreateCategoryOpen}
+        categoryId={categoryId}
+      />
+      <CreateCustomTestDialog
+        open={isCreateTestOpen}
+        onOpenChange={setIsCreateTestOpen}
+        categoryId={categoryId}
+        sportType={sportType}
+      />
     </Card>
   );
 }
