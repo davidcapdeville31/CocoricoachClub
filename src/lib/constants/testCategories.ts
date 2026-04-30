@@ -53,7 +53,7 @@ export function getGroupedTestCategories(categories: TestCategory[]): { standalo
 export const TEST_CATEGORIES: TestCategory[] = [
   {
     value: "cardio",
-    label: "Cardio / Endurance",
+    label: "Cardio",
     tests: [
       { value: "cooper", label: "Test de Cooper", unit: "m" },
       { value: "demi_cooper", label: "Demi-Cooper (6 min)", unit: "m" },
@@ -106,7 +106,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "crossfit",
-    label: "CrossFit / Gymnastique",
+    label: "CrossFit",
     tests: [
       // Pull-ups
       { value: "max_kipping_pullup", label: "Max Kipping Pull-up (unbroken)", unit: "reps" },
@@ -127,7 +127,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "corporel",
-    label: "Tests corporels / Anthropométrie",
+    label: "Anthropométrie",
     tests: [
       { value: "weight", label: "Poids", unit: "kg" },
       { value: "bmi", label: "IMC", unit: "" },
@@ -141,7 +141,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "course",
-    label: "Course / Sprint",
+    label: "Course",
     tests: [
       { value: "sprint_10m", label: "10m", unit: "s", isTime: true },
       { value: "sprint_20m", label: "20m", unit: "s", isTime: true },
@@ -158,7 +158,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "pliometrie",
-    label: "Pliométrie / Détente",
+    label: "Pliométrie",
     tests: [
       { value: "broad_jump", label: "Broad Jump", unit: "cm" },
       { value: "triple_broad_jump", label: "Triple Broad Jump", unit: "cm" },
@@ -203,7 +203,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
     value: "neuro_reaction",
     label: "Temps de réaction",
     group: "neuro_cognitif",
-    groupLabel: "Neuro / Cognitif",
+    groupLabel: "Neuro",
     tests: [
       { value: "neuro_simple_reaction", label: "Temps de réaction simple (visuel)", unit: "ms", isTime: true },
       { value: "neuro_choice_reaction", label: "Temps de réaction choix (2 options)", unit: "ms", isTime: true },
@@ -217,9 +217,9 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "neuro_visual",
-    label: "Vision / Tracking",
+    label: "Vision",
     group: "neuro_cognitif",
-    groupLabel: "Neuro / Cognitif",
+    groupLabel: "Neuro",
     tests: [
       { value: "neuro_visual_acuity", label: "Acuité visuelle dynamique", unit: "score" },
       { value: "neuro_smooth_pursuit", label: "Smooth Pursuit (poursuite lente)", unit: "score" },
@@ -232,9 +232,9 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "neuro_cognitive",
-    label: "Cognitif / Décisionnel",
+    label: "Cognitif",
     group: "neuro_cognitif",
-    groupLabel: "Neuro / Cognitif",
+    groupLabel: "Neuro",
     tests: [
       { value: "neuro_stroop_test", label: "Test de Stroop (interférence)", unit: "s", isTime: true },
       { value: "neuro_stroop_accuracy", label: "Test de Stroop - Précision", unit: "%" },
@@ -248,9 +248,9 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "neuro_coordination",
-    label: "Coordination / Moteur",
+    label: "Coordination",
     group: "neuro_cognitif",
-    groupLabel: "Neuro / Cognitif",
+    groupLabel: "Neuro",
     tests: [
       { value: "neuro_bilateral_coord", label: "Coordination bilatérale", unit: "score" },
       { value: "neuro_dual_task_cost", label: "Coût double tâche (moteur+cognitif)", unit: "%" },
@@ -262,9 +262,9 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "neuro_concentration",
-    label: "Concentration / Attention",
+    label: "Concentration",
     group: "neuro_cognitif",
-    groupLabel: "Neuro / Cognitif",
+    groupLabel: "Neuro",
     tests: [
       { value: "neuro_sustained_attention", label: "Attention soutenue (CPT)", unit: "score" },
       { value: "neuro_selective_attention", label: "Attention sélective", unit: "score" },
@@ -276,7 +276,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "bowling_force",
-    label: "Force / Stabilité",
+    label: "Force",
     group: "bowling",
     groupLabel: "Bowling",
     tests: [
@@ -290,7 +290,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "bowling_balance",
-    label: "Équilibre / Coordination",
+    label: "Équilibre",
     group: "bowling",
     groupLabel: "Bowling",
     tests: [
@@ -327,7 +327,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "bowling_mental",
-    label: "Mental / Comportemental",
+    label: "Mental",
     group: "bowling",
     groupLabel: "Bowling",
     tests: [
@@ -383,7 +383,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "aviron_technique",
-    label: "Technique / Eau",
+    label: "Technique",
     group: "aviron",
     groupLabel: "Aviron",
     tests: [
@@ -396,7 +396,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "aviron_flexibility",
-    label: "Souplesse / Mobilité",
+    label: "Souplesse",
     group: "aviron",
     groupLabel: "Aviron",
     tests: [
@@ -409,7 +409,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "basketball_agility",
-    label: "Agilité / Vitesse",
+    label: "Agilité",
     group: "basketball",
     groupLabel: "Basketball",
     tests: [
@@ -602,7 +602,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   // Mobilité / Souplesse (tous sports)
   {
     value: "mobilite",
-    label: "Mobilité / Souplesse",
+    label: "Mobilité",
     tests: [
       { value: "sit_and_reach", label: "Sit and Reach", unit: "cm" },
       { value: "hip_flexion_d", label: "Flexion hanche - Droit", unit: "°" },
@@ -626,7 +626,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   // Agilité (tous sports)
   {
     value: "agilite",
-    label: "Agilité / Changement de direction",
+    label: "Agilité",
     tests: [
       { value: "illinois_test", label: "Illinois Agility Test", unit: "s", isTime: true },
       { value: "t_test", label: "T-Test", unit: "s", isTime: true },
@@ -641,7 +641,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   // Gainage / Core (tous sports)
   {
     value: "gainage",
-    label: "Gainage / Core",
+    label: "Gainage",
     tests: [
       { value: "planche_ventrale", label: "Planche ventrale", unit: "s", isTime: true },
       { value: "planche_laterale_d", label: "Planche latérale - Droit", unit: "s", isTime: true },
@@ -768,7 +768,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   // Cyclisme specific tests
   {
     value: "cyclisme_puissance",
-    label: "Puissance / Endurance",
+    label: "Puissance",
     group: "cyclisme",
     groupLabel: "Cyclisme",
     tests: [
@@ -787,7 +787,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "cyclisme_sprint",
-    label: "Sprint / Piste",
+    label: "Sprint",
     group: "cyclisme",
     groupLabel: "Cyclisme",
     tests: [
@@ -863,7 +863,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   // Réathlétisation / Kiné - Force musculaire bilatérale
   {
     value: "rehab_ischio_quadri",
-    label: "Ischio-jambiers / Quadriceps",
+    label: "Ischio-Quadriceps",
     group: "reathletisation",
     groupLabel: "Réathlétisation",
     tests: [
@@ -892,7 +892,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "rehab_adducteurs_abducteurs",
-    label: "Adducteurs / Abducteurs",
+    label: "Adducteurs",
     group: "reathletisation",
     groupLabel: "Réathlétisation",
     tests: [
@@ -934,7 +934,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "rehab_cheville_pied",
-    label: "Cheville / Pied",
+    label: "Cheville",
     group: "reathletisation",
     groupLabel: "Réathlétisation",
     tests: [
@@ -952,7 +952,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "rehab_hanche",
-    label: "Hanche / Fessiers",
+    label: "Hanche",
     group: "reathletisation",
     groupLabel: "Réathlétisation",
     tests: [
@@ -990,7 +990,7 @@ export const TEST_CATEGORIES: TestCategory[] = [
   },
   {
     value: "rehab_tronc",
-    label: "Tronc / Rachis",
+    label: "Tronc",
     group: "reathletisation",
     groupLabel: "Réathlétisation",
     tests: [

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { BenchmarkManager } from "./benchmarks/BenchmarkManager";
 import { BenchmarkComparison } from "./benchmarks/BenchmarkComparison";
 import { TestBatteriesManager } from "./tests/TestBatteriesManager";
 import { formatCategoryLabel } from "./tests/customTestCatalog";
+import { CategoryVisibilityManager } from "./tests/CategoryVisibilityManager";
 
 interface TestsTabProps {
   categoryId: string;
@@ -128,19 +129,63 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
     return { nonRehab: [...nonRehab, ...extras], hasRehab };
   }, [sportType, customCategoryValues, themeCategories]);
 
-  const benchmarkColorIndex = testCategories.nonRehab.length + (testCategories.hasRehab ? 2 : 1);
+  // Visibility persisted in localStorage per category
+  const storageKey = `tests-visible-categories:${categoryId}`;
+  const [visibleValues, setVisibleValues] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) return new Set(JSON.parse(raw) as string[]);
+    } catch {}
+    return new Set(); // empty = "first time" -> default to all visible (computed below)
+  });
+  const [initialized, setInitialized] = useState(false);
+
+  // Initialize defaults on first load: show all by default
+  useEffect(() => {
+    if (initialized) return;
+    const stored = localStorage.getItem(storageKey);
+    if (stored === null) {
+      const all = new Set<string>(testCategories.nonRehab.map(c => c.value));
+      if (testCategories.hasRehab) all.add("rehab");
+      setVisibleValues(all);
+    }
+    setInitialized(true);
+  }, [initialized, storageKey, testCategories]);
+
+  useEffect(() => {
+    if (!initialized) return;
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(Array.from(visibleValues)));
+    } catch {}
+  }, [visibleValues, storageKey, initialized]);
+
+  const visibilityItems = useMemo(() => {
+    const items = testCategories.nonRehab.map(c => ({ value: c.value, label: c.label }));
+    if (testCategories.hasRehab) items.push({ value: "rehab", label: "Réathlétisation" });
+    return items;
+  }, [testCategories]);
+
+  const filteredNonRehab = testCategories.nonRehab.filter(c => visibleValues.has(c.value));
+  const showRehab = testCategories.hasRehab && visibleValues.has("rehab");
+
+  const benchmarkColorIndex = filteredNonRehab.length + (showRehab ? 2 : 1);
 
   return (
     <Card className="bg-gradient-card shadow-md">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between gap-3 flex-wrap">
         <CardTitle>Tests de Performance</CardTitle>
+        <CategoryVisibilityManager
+          items={visibilityItems}
+          visibleValues={visibleValues}
+          onChange={setVisibleValues}
+        />
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="all" className="space-y-4">
           <ScrollArea className="w-full">
             <ColoredNavTabsList className="flex flex-wrap w-full gap-1 p-1.5">
               <TestCategoryTrigger value="all" label="Tous" colorIndex={0} />
-              {testCategories.nonRehab.map((cat, i) => (
+              {filteredNonRehab.map((cat, i) => (
                 <TestCategoryTrigger
                   key={cat.value}
                   value={cat.value}
@@ -148,11 +193,11 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
                   colorIndex={i + 1}
                 />
               ))}
-              {testCategories.hasRehab && (
+              {showRehab && (
                 <TestCategoryTrigger
                   value="rehab"
                   label="Réathlétisation"
-                  colorIndex={testCategories.nonRehab.length + 1}
+                  colorIndex={filteredNonRehab.length + 1}
                 />
               )}
               <TestCategoryTrigger
