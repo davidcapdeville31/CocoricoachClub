@@ -68,6 +68,12 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingReminder, setEditingReminder] = useState<TestReminder | null>(null);
+  const [editValues, setEditValues] = useState({
+    test_type: "VMA",
+    frequency_weeks: 4,
+    start_date: format(new Date(), "yyyy-MM-dd"),
+  });
   const [newReminder, setNewReminder] = useState({
     test_type: "VMA",
     frequency_weeks: 4,
