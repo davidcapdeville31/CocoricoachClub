@@ -12,6 +12,7 @@ import { AthleteSpaceRpe } from "./AthleteSpaceRpe";
 import { AthleteSpaceWellness } from "./AthleteSpaceWellness";
 import { getTestLabel } from "@/lib/constants/testCategories";
 import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
+import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 
 interface Props {
   playerId: string;
