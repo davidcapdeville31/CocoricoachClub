@@ -169,6 +169,8 @@ export function ProgramBuilderDialog({
   const [activeExercise, setActiveExercise] = useState<any>(null);
   const [selectedInjuryId, setSelectedInjuryId] = useState<string>("");
   const [selectedInjuryType, setSelectedInjuryType] = useState<string>("");
+  const [injuryLibraryId, setInjuryLibraryId] = useState<string>("");
+  const [showInjuryLibrary, setShowInjuryLibrary] = useState(false);
   const [rehabPhasesConfig, setRehabPhasesConfig] = useState([
     { key: "phase_1", name: "Phase 1 - Protection / Mobilité", enabled: true, sessions: 3, sessionNames: ["Contrôle douleur", "Mobilité passive", "Contractions isométriques"] },
     { key: "phase_2", name: "Phase 2 - Renforcement progressif", enabled: true, sessions: 3, sessionNames: ["Renforcement concentrique", "Renforcement excentrique", "Proprioception"] },
