@@ -110,11 +110,31 @@ export function BowlingBlockManager({
 }: BowlingBlockManagerProps) {
   // Track which locked rounds are expanded (default collapsed for compact view)
   const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set());
+  const lockedRoundNumbers = rounds
+    .filter((round) => round.isLocked)
+    .map((round) => round.round_number);
+  const areAllLockedRoundsExpanded =
+    lockedRoundNumbers.length > 0 && lockedRoundNumbers.every((roundNumber) => expandedRounds.has(roundNumber));
+
   const toggleRoundExpanded = (roundNumber: number) => {
     setExpandedRounds(prev => {
       const next = new Set(prev);
       if (next.has(roundNumber)) next.delete(roundNumber);
       else next.add(roundNumber);
+      return next;
+    });
+  };
+
+  const toggleAllLockedRounds = () => {
+    setExpandedRounds((prev) => {
+      if (areAllLockedRoundsExpanded) {
+        const next = new Set(prev);
+        lockedRoundNumbers.forEach((roundNumber) => next.delete(roundNumber));
+        return next;
+      }
+
+      const next = new Set(prev);
+      lockedRoundNumbers.forEach((roundNumber) => next.add(roundNumber));
       return next;
     });
   };
@@ -227,7 +247,15 @@ export function BowlingBlockManager({
   const orphanRounds = rounds.filter(r => !r.blockId);
 
   return (
-    <div className="space-y-4 pb-4">
+    <div className="space-y-4 pb-6">
+      {lockedRoundNumbers.length > 0 && (
+        <div className="sticky top-0 z-10 flex justify-end bg-background/95 pb-2 backdrop-blur-sm">
+          <Button type="button" variant="outline" size="sm" onClick={toggleAllLockedRounds}>
+            {areAllLockedRoundsExpanded ? "Réduire toutes les parties" : "Dérouler toutes les parties"}
+          </Button>
+        </div>
+      )}
+
       {/* Orphan rounds (legacy data without blocks) */}
       {orphanRounds.length > 0 && (
         <Card className="border-dashed border-muted-foreground/30">
