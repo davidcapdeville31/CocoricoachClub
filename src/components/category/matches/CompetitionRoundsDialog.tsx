@@ -1442,7 +1442,7 @@ export function CompetitionRoundsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] max-h-[95vh] flex flex-col overflow-hidden relative">
+      <DialogContent className="sm:max-w-[900px] h-[95vh] max-h-[95vh] grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden relative">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             {isAviron ? <Ship className="h-5 w-5" /> : isJudo ? <Swords className="h-5 w-5" /> : <Circle className="h-5 w-5" />}
@@ -1709,20 +1709,21 @@ export function CompetitionRoundsDialog({
 
             {/* Oil Pattern Tab (Bowling only) */}
             {isBowling && (
-              <TabsContent value="oil" className="mt-0 overflow-hidden">
-                <ScrollArea className="h-[calc(95vh-200px)]">
-                  <div className="pr-4 pb-4">
+              <TabsContent value="oil" className="mt-0 min-h-0 overflow-hidden data-[state=active]:flex data-[state=active]:flex-col">
+                <div className="flex-1 min-h-0 overflow-y-auto pr-2">
+                  <div className="pr-2 pb-6">
                     <BowlingOilPatternSection
                       matchId={matchId}
                       categoryId={categoryId}
                     />
                   </div>
-                </ScrollArea>
+                </div>
               </TabsContent>
             )}
 
             <TabsContent value="rounds" className="flex-1 min-h-0 mt-0 overflow-hidden data-[state=active]:flex data-[state=active]:flex-col">
-              <ScrollArea className="flex-1 min-h-0 h-full max-h-[calc(95vh-220px)] pr-4">
+              <div className="flex-1 min-h-0 overflow-y-auto pr-2">
+                <div className="pb-6 pr-2">
                 {/* Bowling: use block manager */}
                 {isBowling ? (
                   <BowlingBlockManager
@@ -2346,11 +2347,13 @@ export function CompetitionRoundsDialog({
                   )}
                 </div>
                 )}
-              </ScrollArea>
+                </div>
+              </div>
             </TabsContent>
 
-            <TabsContent value="summary" className="flex-1 min-h-0 mt-0 overflow-hidden">
-              <ScrollArea className="h-[calc(95vh-200px)]">
+            <TabsContent value="summary" className="flex-1 min-h-0 mt-0 overflow-hidden data-[state=active]:flex data-[state=active]:flex-col">
+              <div className="flex-1 min-h-0 overflow-y-auto pr-2">
+                <div className="pb-6 pr-2">
               {isBowling ? (
                 <BowlingCompetitionSummary
                   rounds={selectedPlayer.rounds}
@@ -2534,7 +2537,8 @@ export function CompetitionRoundsDialog({
                 </CardContent>
               </Card>
               )}
-              </ScrollArea>
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         )}
