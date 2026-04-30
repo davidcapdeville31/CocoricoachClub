@@ -404,15 +404,26 @@ export function BowlingBlockManager({
                           )}
                           <CardHeader className="pb-1 pt-3">
                             <div className="flex items-center justify-between">
-                              <CardTitle className="text-sm flex items-center gap-2">
-                                <Circle className="h-3 w-3 text-primary" />
-                                Partie {gameIdx + 1}
-                                {round.stats["gameScore"] > 0 && (
-                                  <Badge variant="outline" className="text-xs font-mono">
-                                    {round.stats["gameScore"]}
-                                  </Badge>
+                              <button
+                                type="button"
+                                className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity"
+                                onClick={() => round.isLocked && toggleRoundExpanded(round.round_number)}
+                              >
+                                {round.isLocked && (
+                                  expandedRounds.has(round.round_number)
+                                    ? <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                                    : <ChevronRight className="h-3 w-3 text-muted-foreground" />
                                 )}
-                              </CardTitle>
+                                <CardTitle className="text-sm flex items-center gap-2">
+                                  <Circle className="h-3 w-3 text-primary" />
+                                  Partie {gameIdx + 1}
+                                  {round.stats["gameScore"] > 0 && (
+                                    <Badge variant="outline" className="text-xs font-mono">
+                                      {round.stats["gameScore"]}
+                                    </Badge>
+                                  )}
+                                </CardTitle>
+                              </button>
                               <div className="flex items-center gap-1">
                                 {/* Move to another block */}
                                 {blocks.length > 1 && (
