@@ -67,6 +67,26 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
     },
   });
 
+  // Fetch custom tests defined in this category (so they show even without results yet)
+  const { data: customTestsList } = useQuery({
+    queryKey: ["custom_tests_list", categoryId, defaultCategory],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_test_categories")
+        .select("custom_tests(id, name, test_category, unit, description, objectives)")
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      const tests = (data || [])
+        .map((row: any) => row.custom_tests)
+        .filter(Boolean);
+      if (defaultCategory && defaultCategory !== "all" && defaultCategory !== "rehab") {
+        return tests.filter((t: any) => t.test_category === defaultCategory);
+      }
+      if (isRehabMode) return tests.filter((t: any) => t.test_category?.startsWith("rehab_"));
+      return tests.filter((t: any) => !t.test_category?.startsWith("rehab_"));
+    },
+  });
+
   // Build categories depending on mode
   const filteredTestCategories = useMemo(() => {
     // Separate rehab and non-rehab categories
@@ -242,6 +262,27 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
             </Select>
           )}
         </div>
+
+        {/* Tests disponibles dans cette catégorie (custom_tests définis) */}
+        {customTestsList && customTestsList.length > 0 && (
+          <div className="mb-4 rounded-2xl border bg-muted/30 p-3">
+            <div className="text-xs font-medium text-muted-foreground mb-2">
+              Tests disponibles dans cette catégorie ({customTestsList.length})
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {customTestsList.map((t: any) => (
+                <span
+                  key={t.id}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-background border px-2.5 py-1 text-xs"
+                  title={t.description || ""}
+                >
+                  <span className="font-medium">{t.name}</span>
+                  {t.unit && <span className="text-muted-foreground">({t.unit})</span>}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {!tests || tests.length === 0 ? (
           <div className="text-center py-12">
