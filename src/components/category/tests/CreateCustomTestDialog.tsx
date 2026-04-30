@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
+import { formatCategoryLabel, normalizeCustomTestType } from "./customTestCatalog";
 
 interface CreateCustomTestDialogProps {
   open: boolean;
@@ -24,14 +25,49 @@ interface CreateCustomTestDialogProps {
 export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportType }: CreateCustomTestDialogProps) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
+  const [categoryMode, setCategoryMode] = useState<"existing" | "new">("existing");
   const [testCategory, setTestCategory] = useState("");
+  const [newCategoryName, setNewCategoryName] = useState("");
   const [unit, setUnit] = useState("");
   const [isTime, setIsTime] = useState(false);
   const [description, setDescription] = useState("");
 
-  const testCategories = useMemo(() => {
+  const baseTestCategories = useMemo(() => {
     return getTestCategoriesForSport(sportType || "").filter(c => !c.value.startsWith("rehab_"));
   }, [sportType]);
+
+  const { data: existingCustomCategories } = useQuery({
+    queryKey: ["custom-test-categories", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_test_categories")
+        .select("custom_tests(test_category)")
+        .eq("category_id", categoryId);
+
+      if (error) throw error;
+
+      return Array.from(
+        new Set(
+          (data || [])
+            .map((row: any) => row.custom_tests?.test_category)
+            .filter((value): value is string => Boolean(value))
+        )
+      );
+    },
+    enabled: open,
+  });
+
+  const testCategories = useMemo(() => {
+    const categoryMap = new Map(baseTestCategories.map((category) => [category.value, category.label]));
+
+    (existingCustomCategories || []).forEach((categoryValue) => {
+      if (!categoryMap.has(categoryValue)) {
+        categoryMap.set(categoryValue, formatCategoryLabel(categoryValue));
+      }
+    });
+
+    return Array.from(categoryMap.entries()).map(([value, label]) => ({ value, label }));
+  }, [baseTestCategories, existingCustomCategories]);
 
   // Get club_id from category
   const { data: categoryData } = useQuery({
@@ -50,6 +86,19 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
   const createTest = useMutation({
     mutationFn: async () => {
       if (!categoryData?.club_id) throw new Error("Club introuvable");
+      const trimmedName = name.trim();
+      const trimmedDescription = description.trim();
+      const finalCategory = categoryMode === "new" ? normalizeCustomTestType(newCategoryName) : testCategory;
+
+      if (!trimmedName) throw new Error("Le nom du test est requis");
+      if (!finalCategory) throw new Error("La catégorie du test est requise");
+
+      if (categoryMode === "new") {
+        const existingCategoryValues = new Set(testCategories.map((category) => category.value));
+        if (existingCategoryValues.has(finalCategory)) {
+          throw new Error("Cette catégorie existe déjà. Sélectionnez-la dans la liste.");
+        }
+      }
       
       const { data: user } = await supabase.auth.getUser();
       
@@ -58,11 +107,11 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
         .from("custom_tests")
         .insert({
           club_id: categoryData.club_id,
-          name,
-          test_category: testCategory,
+          name: trimmedName,
+          test_category: finalCategory,
           unit: unit || null,
           is_time: isTime,
-          description: description || null,
+          description: trimmedDescription || null,
           created_by: user?.user?.id || null,
         })
         .select("id")
@@ -82,6 +131,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
     },
     onSuccess: () => {
       toast.success("Test personnalisé créé avec succès");
+      queryClient.invalidateQueries({ queryKey: ["custom-test-categories", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["generic_tests_discovery", categoryId] });
       resetForm();
       onOpenChange(false);
@@ -93,10 +143,33 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
 
   const resetForm = () => {
     setName("");
+    setCategoryMode("existing");
     setTestCategory("");
+    setNewCategoryName("");
     setUnit("");
     setIsTime(false);
     setDescription("");
+  };
+
+  const handleSubmit = () => {
+    if (createTest.isPending) return;
+
+    if (!name.trim()) {
+      toast.error("Le nom du test est requis");
+      return;
+    }
+
+    if (categoryMode === "existing" && !testCategory) {
+      toast.error("Choisissez une catégorie de test");
+      return;
+    }
+
+    if (categoryMode === "new" && !newCategoryName.trim()) {
+      toast.error("Saisissez le nom de la nouvelle catégorie");
+      return;
+    }
+
+    createTest.mutate();
   };
 
   return (
@@ -110,20 +183,53 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label>Catégorie</Label>
-            <Select value={testCategory} onValueChange={setTestCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choisir une catégorie..." />
-              </SelectTrigger>
-              <SelectContent>
-                {testCategories.map(cat => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={categoryMode === "existing" ? "default" : "outline"}
+                onClick={() => {
+                  setCategoryMode("existing");
+                  setNewCategoryName("");
+                }}
+              >
+                Catégorie existante
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={categoryMode === "new" ? "default" : "outline"}
+                onClick={() => {
+                  setCategoryMode("new");
+                  setTestCategory("");
+                }}
+              >
+                Nouvelle catégorie
+              </Button>
+            </div>
+
+            {categoryMode === "existing" ? (
+              <Select value={testCategory} onValueChange={setTestCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir une catégorie..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {testCategories.map(cat => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                value={newCategoryName}
+                onChange={e => setNewCategoryName(e.target.value)}
+                placeholder="Ex: Coordination spécifique bowling"
+              />
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -164,10 +270,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
-          <Button
-            onClick={() => createTest.mutate()}
-            disabled={!name || !testCategory || createTest.isPending}
-          >
+          <Button onClick={handleSubmit}>
             {createTest.isPending ? "Création..." : "Créer"}
           </Button>
         </DialogFooter>
