@@ -260,9 +260,8 @@ export default function Auth() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex justify-center mb-2">
-            <BrandLogo className="h-20 w-auto" />
+            <BrandLogo className="h-40 sm:h-48 w-auto" />
           </div>
-          <CardTitle className="text-2xl text-center">CocoriCoach Club</CardTitle>
           <CardDescription className="text-center">
             Connectez-vous pour gérer vos clubs et athlètes
           </CardDescription>
