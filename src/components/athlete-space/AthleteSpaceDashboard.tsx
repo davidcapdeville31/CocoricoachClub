@@ -271,7 +271,19 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
         <Card className="shadow-sm border-2" style={{ borderColor: `${NAV_COLORS.planification.base}40`, backgroundColor: `${NAV_COLORS.planification.base}08` }}>
           <CardContent className="pt-4 pb-3 px-4">
             <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">Prochain test</p>
-            <p className="text-sm font-semibold" style={{ color: NAV_COLORS.planification.base }}>—</p>
+            {nextTest ? (
+              <>
+                <p className="text-sm font-semibold leading-tight" style={{ color: NAV_COLORS.planification.base }}>
+                  {nextTest.testLabel || "Test"}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  {format(new Date(nextTest.session_date), "d MMM", { locale: fr })}
+                  {nextTest.session_start_time ? ` • ${nextTest.session_start_time.slice(0, 5)}` : ""}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm font-semibold" style={{ color: NAV_COLORS.planification.base }}>—</p>
+            )}
           </CardContent>
         </Card>
       </div>
