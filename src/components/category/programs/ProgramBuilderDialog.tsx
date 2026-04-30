@@ -542,7 +542,9 @@ export function ProgramBuilderDialog({
             body_zone: bodyZone || null,
             theme: theme || null,
             reathletisation_phase: subTheme || null,
-          })
+            program_kind: rehabMode ? "rehab" : "training",
+            injury_library_id: rehabMode ? (injuryLibraryId || null) : null,
+          } as any)
           .eq("id", programId);
 
         if (error) throw error;
@@ -561,7 +563,9 @@ export function ProgramBuilderDialog({
             body_zone: bodyZone || null,
             theme: theme || null,
             reathletisation_phase: subTheme || null,
-          })
+            program_kind: rehabMode ? "rehab" : "training",
+            injury_library_id: rehabMode ? (injuryLibraryId || null) : null,
+          } as any)
           .select()
           .single();
 
