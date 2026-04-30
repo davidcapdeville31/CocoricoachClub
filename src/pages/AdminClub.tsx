@@ -36,6 +36,7 @@
  import { InviteMemberDialog } from "@/components/collaboration/InviteMemberDialog";
 import { TutorialVideosSection } from "@/components/category/settings/TutorialVideosSection";
 import { ClubPdfSettingsSection } from "@/components/club/ClubPdfSettingsSection";
+import { PWAInstallGuide } from "@/components/PWAInstallGuide";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { FileText, ChevronDown } from "lucide-react";
  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -878,6 +879,9 @@ import { SeasonManager } from "@/components/club/SeasonManager";
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
+
+                {/* Install app guide */}
+                <PWAInstallGuide />
               </TabsContent>
             )}
           </Tabs>
