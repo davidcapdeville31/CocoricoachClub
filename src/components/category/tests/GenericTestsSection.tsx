@@ -263,6 +263,27 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
           )}
         </div>
 
+        {/* Tests disponibles dans cette catégorie (custom_tests définis) */}
+        {customTestsList && customTestsList.length > 0 && (
+          <div className="mb-4 rounded-2xl border bg-muted/30 p-3">
+            <div className="text-xs font-medium text-muted-foreground mb-2">
+              Tests disponibles dans cette catégorie ({customTestsList.length})
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {customTestsList.map((t: any) => (
+                <span
+                  key={t.id}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-background border px-2.5 py-1 text-xs"
+                  title={t.description || ""}
+                >
+                  <span className="font-medium">{t.name}</span>
+                  {t.unit && <span className="text-muted-foreground">({t.unit})</span>}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         {!tests || tests.length === 0 ? (
           <div className="text-center py-12">
             {!isViewer ? (
