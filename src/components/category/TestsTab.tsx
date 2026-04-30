@@ -146,6 +146,10 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
             <BenchmarkManager categoryId={categoryId} sportType={sportType} />
             <BenchmarkComparison categoryId={categoryId} sportType={sportType} />
           </TabsContent>
+
+          <TabsContent value="batteries" className="space-y-6">
+            <TestBatteriesManager categoryId={categoryId} />
+          </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
