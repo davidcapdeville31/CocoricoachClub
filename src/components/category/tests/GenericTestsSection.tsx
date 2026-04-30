@@ -63,19 +63,25 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
     } catch {}
     return new Set();
   });
+  // Sync favorites from localStorage when the manager updates them
   useEffect(() => {
-    try {
-      localStorage.setItem(favStorageKey, JSON.stringify(Array.from(favoriteCategories)));
-    } catch {}
-  }, [favoriteCategories, favStorageKey]);
-  const toggleFavoriteCategory = (value: string) => {
-    setFavoriteCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(value)) next.delete(value);
-      else next.add(value);
-      return next;
-    });
-  };
+    const reload = () => {
+      try {
+        const raw = localStorage.getItem(favStorageKey);
+        setFavoriteCategories(raw ? new Set(JSON.parse(raw) as string[]) : new Set());
+      } catch {}
+    };
+    const handleCustom = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (!detail || detail.key === favStorageKey) reload();
+    };
+    window.addEventListener("tests-fav-categories-changed", handleCustom);
+    window.addEventListener("storage", reload);
+    return () => {
+      window.removeEventListener("tests-fav-categories-changed", handleCustom);
+      window.removeEventListener("storage", reload);
+    };
+  }, [favStorageKey]);
 
   // Get filtered test categories based on sport type and mode
   const allSportCategories = getTestCategoriesForSport(sportType || "");
