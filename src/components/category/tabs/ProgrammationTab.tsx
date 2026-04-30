@@ -71,20 +71,6 @@ export function ProgrammationTab({ categoryId }: ProgrammationTabProps) {
         </ColoredSubTabsList>
       </div>
 
-      {/* Training match button for bowling/tennis */}
-      {showTrainingButton && !isViewer && (
-        <div className="flex justify-end">
-          <Button 
-            variant="outline"
-            onClick={() => createTrainingMatch.mutate()}
-            disabled={createTrainingMatch.isPending}
-            className="gap-2"
-          >
-            <Dumbbell className="h-4 w-4" />
-            {isTennis ? "Match entraînement" : "Entraînement bowling"}
-          </Button>
-        </div>
-      )}
 
       <TabsContent value="sessions">
         <SessionsTab categoryId={categoryId} />
