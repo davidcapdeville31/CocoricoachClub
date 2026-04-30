@@ -404,6 +404,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                       description: t.description,
                       objectives: t.objectives,
                       scoring_scale: t.scoring_scale ?? null,
+                      image_url: t.image_url ?? null,
                       source: "custom",
                     });
                     setIsEditDialogOpen(true);
