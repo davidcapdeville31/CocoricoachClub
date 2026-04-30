@@ -124,6 +124,26 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
     },
   });
 
+  const { data: upcomingSessions } = useQuery({
+    queryKey: ["athlete-space-upcoming-sessions", categoryId, playerId],
+    queryFn: async () => {
+      const today = new Date().toISOString().split("T")[0];
+      const in14 = format(addWeeks(new Date(), 2), "yyyy-MM-dd");
+      const { data, error } = await supabase
+        .from("training_sessions")
+        .select("id, session_date, session_start_time, training_type, theme, location")
+        .eq("category_id", categoryId)
+        .gt("session_date", today)
+        .lte("session_date", in14)
+        .order("session_date", { ascending: true })
+        .order("session_start_time", { ascending: true })
+        .limit(5);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!categoryId,
+  });
+
   const ewmaResults = awcrData && awcrData.length > 0
     ? calculateEWMASeries(transformToDailyLoadData(awcrData, []), "sRPE")
     : [];
