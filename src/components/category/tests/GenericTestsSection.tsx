@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Filter, ClipboardList, CalendarPlus, FolderPlus, Pencil } from "lucide-react";
+import { Plus, Trash2, Filter, ClipboardList, CalendarPlus, FolderPlus, Pencil, Star } from "lucide-react";
 import { CreateCustomTestDialog } from "./CreateCustomTestDialog";
 import { CreateThemeCategoryDialog } from "./CreateThemeCategoryDialog";
 import { EditCustomTestDialog, type EditableTest } from "./EditCustomTestDialog";
@@ -53,6 +53,29 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
   const [filterTestType, setFilterTestType] = useState<string>("all");
   const queryClient = useQueryClient();
   const { isViewer } = useViewerModeContext();
+
+  // Favorite categories persisted in localStorage per category
+  const favStorageKey = `tests-fav-categories:${categoryId}`;
+  const [favoriteCategories, setFavoriteCategories] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(favStorageKey);
+      if (raw) return new Set(JSON.parse(raw) as string[]);
+    } catch {}
+    return new Set();
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(favStorageKey, JSON.stringify(Array.from(favoriteCategories)));
+    } catch {}
+  }, [favoriteCategories, favStorageKey]);
+  const toggleFavoriteCategory = (value: string) => {
+    setFavoriteCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(value)) next.delete(value);
+      else next.add(value);
+      return next;
+    });
+  };
 
   // Get filtered test categories based on sport type and mode
   const allSportCategories = getTestCategoriesForSport(sportType || "");
@@ -266,16 +289,46 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
           {/* Category dropdown - hidden in single category mode */}
           {!isSingleCategoryMode && (
             <Select value={filterCategory} onValueChange={handleCategoryFilterChange}>
-              <SelectTrigger className="w-[220px]">
+              <SelectTrigger className="w-[260px]">
                 <SelectValue placeholder="Toutes catégories" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes catégories</SelectItem>
-                {filteredTestCategories.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
-                  </SelectItem>
-                ))}
+                {(() => {
+                  const favs = filteredTestCategories.filter(c => favoriteCategories.has(c.value));
+                  const others = filteredTestCategories.filter(c => !favoriteCategories.has(c.value));
+                  const ordered = [...favs, ...others];
+                  return ordered.map((category) => {
+                    const isFav = favoriteCategories.has(category.value);
+                    return (
+                      <SelectItem key={category.value} value={category.value} className="pr-2">
+                        <div className="flex items-center justify-between gap-3 w-full">
+                          <span>{category.label}</span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              toggleFavoriteCategory(category.value);
+                            }}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            className="p-1 rounded hover:bg-muted transition-colors"
+                            aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+                          >
+                            <Star
+                              className={
+                                "h-4 w-4 " +
+                                (isFav
+                                  ? "fill-yellow-400 text-yellow-400"
+                                  : "text-muted-foreground")
+                              }
+                            />
+                          </button>
+                        </div>
+                      </SelectItem>
+                    );
+                  });
+                })()}
               </SelectContent>
             </Select>
           )}
