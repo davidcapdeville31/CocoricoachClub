@@ -98,12 +98,7 @@ export function HealthTab({ categoryId }: HealthTabProps) {
           </TabsContent>
         )}
 
-        {!isViewer && (
-          <TabsContent value="recovery">
-            <RecoveryJournalTab categoryId={categoryId} />
-          </TabsContent>
-        )}
-      </Tabs>
-    </div>
+
+
   );
 }
