@@ -1,7 +1,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FlaskConical, Weight, BarChart3 } from "lucide-react";
+import { FlaskConical, Weight, BarChart3, Target } from "lucide-react";
 import { AthleteSpaceTests } from "./AthleteSpaceTests";
 import { AthleteSpaceProgression } from "./AthleteSpaceProgression";
+import { AthleteSpaceObjectives } from "./AthleteSpaceObjectives";
 import { TonnageDashboard } from "@/components/tonnage/TonnageDashboard";
 
 interface Props {
@@ -17,23 +18,25 @@ export function AthleteSpacePerformance({ playerId, categoryId, sportType }: Pro
         <TabsList className="flex flex-wrap h-auto gap-1 w-full">
           <TabsTrigger value="tests" className="text-xs sm:text-sm gap-1 flex-1">
             <FlaskConical className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Tests</span>
-            <span className="sm:hidden">Tests</span>
+            <span>Tests & Progression</span>
           </TabsTrigger>
           <TabsTrigger value="tonnage" className="text-xs sm:text-sm gap-1 flex-1">
             <Weight className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Tonnage</span>
-            <span className="sm:hidden">Tonnage</span>
+            <span>Tonnage</span>
           </TabsTrigger>
-          <TabsTrigger value="progression" className="text-xs sm:text-sm gap-1 flex-1">
-            <BarChart3 className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Progression</span>
-            <span className="sm:hidden">Progr.</span>
+          <TabsTrigger value="objectives" className="text-xs sm:text-sm gap-1 flex-1">
+            <Target className="h-3.5 w-3.5" />
+            <span>Objectifs</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="tests" className="mt-4">
+        <TabsContent value="tests" className="mt-4 space-y-6">
           <AthleteSpaceTests
+            playerId={playerId}
+            categoryId={categoryId}
+            sportType={sportType}
+          />
+          <AthleteSpaceProgression
             playerId={playerId}
             categoryId={categoryId}
             sportType={sportType}
@@ -47,11 +50,10 @@ export function AthleteSpacePerformance({ playerId, categoryId, sportType }: Pro
           />
         </TabsContent>
 
-        <TabsContent value="progression" className="mt-4">
-          <AthleteSpaceProgression
+        <TabsContent value="objectives" className="mt-4">
+          <AthleteSpaceObjectives
             playerId={playerId}
             categoryId={categoryId}
-            sportType={sportType}
           />
         </TabsContent>
       </Tabs>
