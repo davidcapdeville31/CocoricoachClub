@@ -354,6 +354,7 @@ export function ProgramBuilderDialog({
       setBodyZone(existingProgram.body_zone || "");
       setTheme(existingProgram.theme || "");
       setSubTheme(existingProgram.reathletisation_phase || "");
+      setInjuryLibraryId((existingProgram as any).injury_library_id || "");
 
       const loadedWeeks: ProgramWeek[] = existingProgram.weeks?.map((w: any) => ({
         id: w.id,
