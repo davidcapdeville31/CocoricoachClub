@@ -244,13 +244,14 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         </div>
 
         {!tests || tests.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground mb-4">Aucun test enregistré</p>
-            {!isViewer && (
-              <Button onClick={() => setIsDialogOpen(true)} variant="outline" size="sm" className="gap-2">
-                <ClipboardList className="h-4 w-4" />
-                Saisir le premier test
+          <div className="text-center py-12">
+            {!isViewer ? (
+              <Button onClick={() => setIsDialogOpen(true)} size="lg" className="gap-2 px-8 py-6 text-base">
+                <ClipboardList className="h-5 w-5" />
+                Saisir des résultats
               </Button>
+            ) : (
+              <p className="text-muted-foreground">Aucun test enregistré</p>
             )}
           </div>
         ) : (
