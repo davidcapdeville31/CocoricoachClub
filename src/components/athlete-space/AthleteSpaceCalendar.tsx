@@ -48,13 +48,38 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
     queryFn: async () => {
       const { data, error } = await supabase
         .from("training_sessions")
-        .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id")
+        .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, test_reminder_id")
         .eq("category_id", categoryId)
         .order("session_date", { ascending: false });
       if (error) throw error;
       return data || [];
     },
   });
+
+  const testReminderIds = useMemo(
+    () => Array.from(new Set(sessions.map((s: any) => s.test_reminder_id).filter(Boolean))) as string[],
+    [sessions],
+  );
+
+  const { data: testReminders = [] } = useQuery({
+    queryKey: ["athlete-calendar-test-reminders", testReminderIds],
+    queryFn: async () => {
+      if (testReminderIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("test_reminders")
+        .select("id, test_type")
+        .in("id", testReminderIds);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: testReminderIds.length > 0,
+  });
+
+  const testTypeByReminderId = useMemo(() => {
+    const map: Record<string, string> = {};
+    testReminders.forEach((r: any) => { map[r.id] = r.test_type; });
+    return map;
+  }, [testReminders]);
 
   const { data: matches = [] } = useQuery({
     queryKey: ["athlete-calendar-matches", categoryId],
@@ -398,7 +423,11 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   <Activity className="h-4 w-4 text-muted-foreground" />
                                   <div>
                                     <div className="flex items-center gap-2 flex-wrap">
-                                      <p className="font-medium text-sm">{getTrainingTypeLabel(session.training_type)}</p>
+                                      <p className="font-medium text-sm">
+                                        {session.training_type === "test" && (session as any).test_reminder_id && testTypeByReminderId[(session as any).test_reminder_id]
+                                          ? `Test : ${testTypeByReminderId[(session as any).test_reminder_id]}`
+                                          : getTrainingTypeLabel(session.training_type)}
+                                      </p>
                                       {blocks.length > 0 && blocks.some(b => b.training_type !== session.training_type) && (
                                         <div className="flex gap-1 flex-wrap">
                                           {blocks.filter(b => b.training_type !== session.training_type).map((b, i) => (
