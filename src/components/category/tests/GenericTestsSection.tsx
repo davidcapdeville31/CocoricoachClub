@@ -412,6 +412,13 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                   className="group inline-flex items-center gap-1.5 rounded-full bg-background border px-2.5 py-1 text-xs hover:border-primary hover:bg-accent transition-colors"
                   title={isViewer ? (t.description || "") : "Cliquer pour modifier ce test"}
                 >
+                  {t.image_url && (
+                    <img
+                      src={t.image_url}
+                      alt=""
+                      className="h-5 w-5 rounded-full object-cover -ml-0.5"
+                    />
+                  )}
                   <span className="font-medium">{t.name}</span>
                   {t.unit && <span className="text-muted-foreground">({t.unit})</span>}
                   {!isViewer && <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />}
