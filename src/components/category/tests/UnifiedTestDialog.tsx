@@ -18,6 +18,7 @@ import { PlayerSelection } from "./PlayerSelection";
 import { getTestCategoriesForSport, TestOption } from "@/lib/constants/testCategories";
 import { HierarchicalTestSelector, resolveTestCategory, resolveGroupAndZone } from "./HierarchicalTestSelector";
 import { Gauge, Zap, Timer } from "lucide-react";
+import { mergeCustomTestsIntoCategories, normalizeCustomTestType } from "./customTestCatalog";
 
 interface UnifiedTestDialogProps {
   open: boolean;
@@ -131,12 +132,32 @@ export function UnifiedTestDialog({
     ? (players || []) 
     : (players || []).filter(p => selectedPlayers.includes(p.id));
 
-  const filteredTestCategories = getTestCategoriesForSport(sportType || "");
+  const { data: customTests } = useQuery({
+    queryKey: ["custom-tests-catalog", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_test_categories")
+        .select("custom_tests(name, test_category, unit, is_time)")
+        .eq("category_id", categoryId);
+
+      if (error) throw error;
+
+      return (data || [])
+        .map((row: any) => row.custom_tests)
+        .filter(Boolean);
+    },
+    enabled: open,
+  });
+
+  const filteredTestCategories = useMemo(
+    () => mergeCustomTestsIntoCategories(getTestCategoriesForSport(sportType || ""), customTests || []),
+    [sportType, customTests]
+  );
   
   const currentCategoryObj = filteredTestCategories.find(c => c.value === resolvedCategory);
   
   const currentTest: TestOption | null = isCustom 
-    ? (customTestName && customTestUnit ? { value: `custom_${customTestName.toLowerCase().replace(/\s+/g, '_')}`, label: customTestName, unit: customTestUnit, isTime: ["s", "min.s"].includes(customTestUnit) } as TestOption : null)
+    ? (customTestName && customTestUnit ? { value: `custom_${normalizeCustomTestType(customTestName)}`, label: customTestName, unit: customTestUnit, isTime: ["s", "min.s"].includes(customTestUnit) } as TestOption : null)
     : currentCategoryObj?.tests.find(t => t.value === selectedTest) || null;
 
   // Compute GPS values for sprint tests
@@ -159,7 +180,7 @@ export function UnifiedTestDialog({
       const testLabel = isCustom ? customTestName : currentTest?.label || "";
       const categoryLabel = isCustom ? "Personnalisé" : currentCategoryObj?.label || "";
       const testCategory = isCustom ? "custom" : resolvedCategory;
-      const testType = isCustom ? `custom_${customTestName.toLowerCase().replace(/\s+/g, '_')}` : selectedTest;
+      const testType = isCustom ? `custom_${normalizeCustomTestType(customTestName)}` : selectedTest;
 
       const { data: sessionData, error: sessionError } = await supabase
         .from("training_sessions")
@@ -224,6 +245,7 @@ export function UnifiedTestDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["generic_tests", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["custom-tests-catalog", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["generic-tests-evolution", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["generic-tests-multi-comparison", categoryId] });
