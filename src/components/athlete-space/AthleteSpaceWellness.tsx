@@ -264,15 +264,15 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                       <Badge variant="secondary" className="ml-auto text-[10px] font-bold px-1.5 py-0">{currentValue}h</Badge>
                     )}
                   </Label>
-                  <div className="grid grid-cols-9 gap-1">
+                  <div className="grid grid-cols-9 gap-0.5 sm:gap-1">
                     {SLEEP_HOURS.map(hour => (
                       <button
                         key={hour}
                         type="button"
                         onClick={() => setValues(prev => ({ ...prev, [field.key]: hour }))}
                         className={cn(
-                          "h-9 rounded-lg text-xs font-semibold transition-all duration-150",
-                          "border-2 active:scale-95",
+                          "h-7 sm:h-8 rounded-md text-[11px] sm:text-xs font-semibold transition-all duration-150",
+                          "border active:scale-95",
                           currentValue === hour
                             ? "text-white shadow-sm"
                             : "bg-background border-border text-foreground"
