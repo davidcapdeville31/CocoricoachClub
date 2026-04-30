@@ -269,6 +269,8 @@ export function SessionFormDialog({
   editSession,
   defaultDate,
   athletePlayerId,
+  enableRecurrence = false,
+  defaultTrainingType,
 }: SessionFormDialogProps) {
   const isAthleteMode = !!athletePlayerId;
   const { user } = useAuth();
