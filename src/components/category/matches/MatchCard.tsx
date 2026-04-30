@@ -596,10 +596,10 @@ export function MatchCard({ match, categoryId, isSubMatch = false }: MatchCardPr
             )}
             {hasRoundBasedStats ? (
               <>
-                {isTrainingMatch ? (
+                {isTrainingMatch && !sportType.toLowerCase().includes("bowling") ? (
                   <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start opacity-50 cursor-not-allowed" disabled>
                     <Lock className="h-3.5 w-3.5" />
-                    {sportType.toLowerCase().includes("bowling") ? `Parties (${roundsCount || 0})` : `Épreuves (${roundsCount || 0})`}
+                    {`Épreuves (${roundsCount || 0})`}
                   </Button>
                 ) : (
                   <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onClick={() => setIsRoundsOpen(true)}>
