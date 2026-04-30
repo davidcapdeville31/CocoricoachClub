@@ -62,6 +62,35 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
     },
   });
 
+  const { data: nextTest } = useQuery({
+    queryKey: ["athlete-space-next-test", categoryId],
+    queryFn: async () => {
+      const today = new Date().toISOString().split("T")[0];
+      const { data, error } = await supabase
+        .from("training_sessions")
+        .select("id, session_date, session_start_time, notes, test_reminder_id")
+        .eq("category_id", categoryId)
+        .eq("training_type", "test")
+        .gte("session_date", today)
+        .order("session_date", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      let testLabel: string | null = null;
+      if (data.test_reminder_id) {
+        const { data: reminder } = await supabase
+          .from("test_reminders")
+          .select("test_type")
+          .eq("id", data.test_reminder_id)
+          .maybeSingle();
+        testLabel = reminder?.test_type ?? null;
+      }
+      return { ...data, testLabel };
+    },
+    enabled: !!categoryId,
+  });
+
   const { data: nextMatch } = useQuery({
     queryKey: ["athlete-space-next-match", categoryId],
     queryFn: async () => {
@@ -242,7 +271,19 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
         <Card className="shadow-sm border-2" style={{ borderColor: `${NAV_COLORS.planification.base}40`, backgroundColor: `${NAV_COLORS.planification.base}08` }}>
           <CardContent className="pt-4 pb-3 px-4">
             <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">Prochain test</p>
-            <p className="text-sm font-semibold" style={{ color: NAV_COLORS.planification.base }}>—</p>
+            {nextTest ? (
+              <>
+                <p className="text-sm font-semibold leading-tight" style={{ color: NAV_COLORS.planification.base }}>
+                  {nextTest.testLabel || "Test"}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  {format(new Date(nextTest.session_date), "d MMM", { locale: fr })}
+                  {nextTest.session_start_time ? ` • ${nextTest.session_start_time.slice(0, 5)}` : ""}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm font-semibold" style={{ color: NAV_COLORS.planification.base }}>—</p>
+            )}
           </CardContent>
         </Card>
       </div>
