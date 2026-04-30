@@ -97,8 +97,7 @@ export function HealthTab({ categoryId }: HealthTabProps) {
             <ConcussionProtocolTab categoryId={categoryId} />
           </TabsContent>
         )}
-
-
-
+      </Tabs>
+    </div>
   );
 }
