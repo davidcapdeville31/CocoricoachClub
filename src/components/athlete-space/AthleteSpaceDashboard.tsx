@@ -86,7 +86,19 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
           .select("test_type")
           .eq("id", data.test_reminder_id)
           .maybeSingle();
-        testLabel = reminder?.test_type ?? null;
+        if (reminder?.test_type) {
+          testLabel = getTestLabel(reminder.test_type) || reminder.test_type;
+        }
+      }
+      if (!testLabel) {
+        const tests = parseTestsFromNotes((data as any).notes);
+        if (tests.length > 0) {
+          testLabel = tests.map(t => getTestLabel(t.test_type) || t.test_type).join(", ");
+        }
+      }
+      if (!testLabel) {
+        const legacy = ((data as any).notes || "").match(/Test auto-planifi[ée]\s*:\s*([^\n<]+)/i);
+        if (legacy) testLabel = legacy[1].trim();
       }
       return { ...data, testLabel };
     },
