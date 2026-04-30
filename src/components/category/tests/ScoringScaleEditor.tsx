@@ -37,12 +37,20 @@ export function ScoringScaleEditor({ value, onChange, unit = "", className }: Sc
   // Compute gradient color (red → orange → yellow → green) based on rank
   // rank 0 = worst (red), rank n-1 = best (dark green)
   const getGradientColor = (rank: number, total: number): string => {
-    if (total <= 1) return "hsl(140, 70%, 40%)";
+    if (total <= 1) return "hsl(140, 80%, 30%)";
     const t = rank / (total - 1); // 0 → 1
-    // Interpolate hue: 0 (red) → 40 (orange) → 80 (yellow-green) → 140 (green)
-    const hue = t * 140;
-    const saturation = 75;
-    const lightness = 45 - t * 5; // slightly darker as we go to green
+    // Hue: 0 (rouge pétant) → 40 (orange) → 60 (jaune) → 90 (vert clair) → 145 (vert foncé)
+    let hue: number;
+    if (t < 0.5) {
+      // 0 → 0.5  : rouge → jaune
+      hue = t * 2 * 60;
+    } else {
+      // 0.5 → 1  : jaune → vert foncé
+      hue = 60 + (t - 0.5) * 2 * 85;
+    }
+    // Saturation forte partout, lightness qui baisse fortement côté vert pour bien différencier
+    const saturation = 85;
+    const lightness = 52 - t * 25; // de 52% (rouge vif) à 27% (vert foncé)
     return `hsl(${Math.round(hue)}, ${saturation}%, ${Math.round(lightness)}%)`;
   };
 
