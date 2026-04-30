@@ -100,16 +100,25 @@ export function ScoringScaleEditor({ value, onChange, unit = "", className }: Sc
       </div>
 
       <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-1">
+        <div className="col-span-1"></div>
         <div className="col-span-3">Min ({unit || "valeur"})</div>
         <div className="col-span-3">Max ({unit || "valeur"})</div>
         <div className="col-span-2">Points</div>
-        <div className="col-span-3">Label (optionnel)</div>
+        <div className="col-span-2">Label (optionnel)</div>
         <div className="col-span-1"></div>
       </div>
 
       <div className="space-y-2">
-        {ranges.map((r) => (
+        {ranges.map((r) => {
+          const rank = rankedIds.get(r.id) ?? 0;
+          const color = getGradientColor(rank, ranges.length);
+          return (
           <div key={r.id} className="grid grid-cols-12 gap-2 items-center">
+            <div
+              className="col-span-1 h-9 rounded-md border shadow-sm transition-colors"
+              style={{ backgroundColor: color }}
+              title={`Niveau ${rank + 1} / ${ranges.length}`}
+            />
             <Input
               type="number"
               step="0.01"
@@ -135,7 +144,7 @@ export function ScoringScaleEditor({ value, onChange, unit = "", className }: Sc
             />
             <Input
               placeholder="Ex: PÔLE U14"
-              className="col-span-3 h-9"
+              className="col-span-2 h-9"
               value={r.label ?? ""}
               onChange={e => updateRange(r.id, { label: e.target.value })}
             />
@@ -150,7 +159,8 @@ export function ScoringScaleEditor({ value, onChange, unit = "", className }: Sc
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="flex items-center justify-between pt-1">
