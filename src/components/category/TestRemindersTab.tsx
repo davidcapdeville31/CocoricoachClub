@@ -259,6 +259,74 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
     },
   });
 
+  // Update reminder + regenerate future sessions
+  const updateReminder = useMutation({
+    mutationFn: async () => {
+      if (!editingReminder) throw new Error("Aucun rappel sélectionné");
+      const { error } = await supabase
+        .from("test_reminders")
+        .update({
+          test_type: editValues.test_type,
+          frequency_weeks: editValues.frequency_weeks,
+          start_date: editValues.start_date,
+        })
+        .eq("id", editingReminder.id);
+      if (error) throw error;
+
+      await deleteFutureSessionsForReminder(editingReminder.id);
+      if (editingReminder.is_active) {
+        await createSessionsForReminder(
+          editingReminder.id,
+          editValues.test_type,
+          editValues.start_date,
+          editValues.frequency_weeks
+        );
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["test-reminders", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["test-reminder-session-counts", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["training_sessions_annual", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["today-training-sessions", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
+      setEditingReminder(null);
+      toast({ title: "Rappel modifié", description: "Les séances futures ont été régénérées" });
+    },
+    onError: (error) => {
+      toast({ title: "Erreur", description: "Impossible de modifier le rappel", variant: "destructive" });
+      console.error(error);
+    },
+  });
+
+  // Regenerate sessions (backfill old reminders)
+  const regenerateSessions = useMutation({
+    mutationFn: async (reminder: TestReminder) => {
+      if (!reminder.start_date) throw new Error("Date de début manquante");
+      await deleteFutureSessionsForReminder(reminder.id);
+      await createSessionsForReminder(reminder.id, reminder.test_type, reminder.start_date, reminder.frequency_weeks);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["test-reminders", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["test-reminder-session-counts", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["training_sessions_annual", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["today-training-sessions", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
+      toast({ title: "Séances régénérées", description: "Les séances ont été ajoutées au calendrier" });
+    },
+    onError: () => toast({ title: "Erreur", description: "Régénération impossible", variant: "destructive" }),
+  });
+
+  const openEditDialog = (reminder: TestReminder) => {
+    setEditingReminder(reminder);
+    setEditValues({
+      test_type: reminder.test_type,
+      frequency_weeks: reminder.frequency_weeks,
+      start_date: reminder.start_date || format(new Date(), "yyyy-MM-dd"),
+    });
+  };
+
   const getTestTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
       VMA: "Test VMA (1600m)",
