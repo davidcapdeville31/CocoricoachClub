@@ -162,7 +162,10 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["test-reminders", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["test-reminder-session-counts", categoryId] });
-      queryClient.invalidateQueries({ queryKey: ["training-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["training_sessions_annual", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["today-training-sessions", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       setIsDialogOpen(false);
       setNewReminder({ test_type: "VMA", frequency_weeks: 4, start_date: format(new Date(), "yyyy-MM-dd") });
       toast({
