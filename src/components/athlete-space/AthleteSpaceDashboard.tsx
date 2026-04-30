@@ -308,12 +308,6 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
         </Card>
       </div>
 
-      {/* Wellness du jour */}
-      <AthleteSpaceWellness playerId={playerId} categoryId={categoryId} />
-
-      {/* RPE du jour */}
-      <AthleteSpaceRpe playerId={playerId} categoryId={categoryId} />
-
       {/* Charge chart */}
       {chartData.length > 0 && (
         <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.effectif.base}40`, backgroundColor: `${NAV_COLORS.effectif.base}08` }}>
