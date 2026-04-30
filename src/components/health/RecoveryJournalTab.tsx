@@ -778,8 +778,6 @@ export function RecoveryJournalTab({ categoryId }: RecoveryJournalTabProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      </TabsContent>
-      </Tabs>
     </div>
   );
 }
