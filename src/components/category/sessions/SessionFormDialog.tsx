@@ -883,6 +883,55 @@ export function SessionFormDialog({
 
           await supabase.from("training_attendance").insert(attendanceRecords);
         }
+
+        // 🔁 Recurrence: replicate session at chosen interval (test reminders)
+        if (enableRecurrence && recurrenceEnabled && recurrenceInterval > 0 && date) {
+          const horizonEnd = addMonths(new Date(date), Math.max(1, recurrenceMonths));
+          const dates: string[] = [];
+          let cursor = new Date(date);
+          // Skip the first occurrence (already created above)
+          const step = (d: Date) =>
+            recurrenceUnit === "days"
+              ? addDays(d, recurrenceInterval)
+              : recurrenceUnit === "weeks"
+              ? addWeeks(d, recurrenceInterval)
+              : addMonths(d, recurrenceInterval);
+          cursor = step(cursor);
+          while (dfIsBefore(cursor, horizonEnd)) {
+            dates.push(dfFormat(cursor, "yyyy-MM-dd"));
+            cursor = step(cursor);
+          }
+
+          if (dates.length > 0) {
+            const recurrentSessions = dates.map((d) => ({
+              ...sessionData,
+              session_date: d,
+            }));
+            const { data: insertedSessions, error: recErr } = await supabase
+              .from("training_sessions")
+              .insert(recurrentSessions)
+              .select("id, session_date");
+            if (recErr) {
+              console.error("[Recurrence] insert sessions failed:", recErr);
+            } else if (insertedSessions && playersToUse.length > 0) {
+              const recurrentAttendance = insertedSessions.flatMap((s: any) =>
+                playersToUse.map((pid: string) => ({
+                  player_id: pid,
+                  category_id: categoryId,
+                  attendance_date: s.session_date,
+                  training_session_id: s.id,
+                  status: "present",
+                }))
+              );
+              if (recurrentAttendance.length > 0) {
+                const { error: aErr } = await supabase
+                  .from("training_attendance")
+                  .insert(recurrentAttendance);
+                if (aErr) console.error("[Recurrence] insert attendance failed:", aErr);
+              }
+            }
+          }
+        }
       }
 
       // Sync event_participants for custom event types
