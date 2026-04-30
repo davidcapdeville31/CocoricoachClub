@@ -34,6 +34,27 @@ export function ScoringScaleEditor({ value, onChange, unit = "", className }: Sc
 
   const maxPoints = useMemo(() => ranges.reduce((m, r) => Math.max(m, r.points), 0), [ranges]);
 
+  // Compute gradient color (red → orange → yellow → green) based on rank
+  // rank 0 = worst (red), rank n-1 = best (dark green)
+  const getGradientColor = (rank: number, total: number): string => {
+    if (total <= 1) return "hsl(140, 70%, 40%)";
+    const t = rank / (total - 1); // 0 → 1
+    // Interpolate hue: 0 (red) → 40 (orange) → 80 (yellow-green) → 140 (green)
+    const hue = t * 140;
+    const saturation = 75;
+    const lightness = 45 - t * 5; // slightly darker as we go to green
+    return `hsl(${Math.round(hue)}, ${saturation}%, ${Math.round(lightness)}%)`;
+  };
+
+  // Sort ranges by points to determine ranking (worst → best)
+  // If lowerIsBetter, the lowest points still = worst (points = quality score)
+  const rankedIds = useMemo(() => {
+    const sorted = [...ranges].sort((a, b) => a.points - b.points);
+    const map = new Map<string, number>();
+    sorted.forEach((r, idx) => map.set(r.id, idx));
+    return map;
+  }, [ranges]);
+
   const update = (next: ScoringRange[], newLowerIsBetter = lowerIsBetter) => {
     onChange({ ranges: next, lowerIsBetter: newLowerIsBetter });
   };
@@ -79,16 +100,25 @@ export function ScoringScaleEditor({ value, onChange, unit = "", className }: Sc
       </div>
 
       <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-1">
+        <div className="col-span-1"></div>
         <div className="col-span-3">Min ({unit || "valeur"})</div>
         <div className="col-span-3">Max ({unit || "valeur"})</div>
         <div className="col-span-2">Points</div>
-        <div className="col-span-3">Label (optionnel)</div>
+        <div className="col-span-2">Label (optionnel)</div>
         <div className="col-span-1"></div>
       </div>
 
       <div className="space-y-2">
-        {ranges.map((r) => (
+        {ranges.map((r) => {
+          const rank = rankedIds.get(r.id) ?? 0;
+          const color = getGradientColor(rank, ranges.length);
+          return (
           <div key={r.id} className="grid grid-cols-12 gap-2 items-center">
+            <div
+              className="col-span-1 h-9 rounded-md border shadow-sm transition-colors"
+              style={{ backgroundColor: color }}
+              title={`Niveau ${rank + 1} / ${ranges.length}`}
+            />
             <Input
               type="number"
               step="0.01"
@@ -114,7 +144,7 @@ export function ScoringScaleEditor({ value, onChange, unit = "", className }: Sc
             />
             <Input
               placeholder="Ex: PÔLE U14"
-              className="col-span-3 h-9"
+              className="col-span-2 h-9"
               value={r.label ?? ""}
               onChange={e => updateRange(r.id, { label: e.target.value })}
             />
@@ -129,7 +159,8 @@ export function ScoringScaleEditor({ value, onChange, unit = "", className }: Sc
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="flex items-center justify-between pt-1">
