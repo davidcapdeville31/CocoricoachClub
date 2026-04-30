@@ -74,7 +74,25 @@ export function AthleteSpaceDocuments({ playerId, categoryId }: AthleteSpaceDocu
         .from("admin-documents")
         .createSignedUrl(fileUrl, 60 * 60);
       if (error) throw error;
-      window.open(data.signedUrl, "_blank");
+
+      const ext = fileUrl.split(".").pop()?.toLowerCase() || "";
+      const safeTitle = (title || "document").replace(/[\\/:*?"<>|]+/g, "_").trim();
+      const filename = ext && !safeTitle.toLowerCase().endsWith(`.${ext}`)
+        ? `${safeTitle}.${ext}`
+        : safeTitle;
+
+      const response = await fetch(data.signedUrl);
+      if (!response.ok) throw new Error("Download failed");
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
     } catch {
       toast.error("Erreur lors du téléchargement");
     }
