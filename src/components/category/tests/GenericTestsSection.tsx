@@ -289,16 +289,46 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
           {/* Category dropdown - hidden in single category mode */}
           {!isSingleCategoryMode && (
             <Select value={filterCategory} onValueChange={handleCategoryFilterChange}>
-              <SelectTrigger className="w-[220px]">
+              <SelectTrigger className="w-[260px]">
                 <SelectValue placeholder="Toutes catégories" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes catégories</SelectItem>
-                {filteredTestCategories.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
-                  </SelectItem>
-                ))}
+                {(() => {
+                  const favs = filteredTestCategories.filter(c => favoriteCategories.has(c.value));
+                  const others = filteredTestCategories.filter(c => !favoriteCategories.has(c.value));
+                  const ordered = [...favs, ...others];
+                  return ordered.map((category) => {
+                    const isFav = favoriteCategories.has(category.value);
+                    return (
+                      <SelectItem key={category.value} value={category.value} className="pr-2">
+                        <div className="flex items-center justify-between gap-3 w-full">
+                          <span>{category.label}</span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              toggleFavoriteCategory(category.value);
+                            }}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            className="p-1 rounded hover:bg-muted transition-colors"
+                            aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+                          >
+                            <Star
+                              className={
+                                "h-4 w-4 " +
+                                (isFav
+                                  ? "fill-yellow-400 text-yellow-400"
+                                  : "text-muted-foreground")
+                              }
+                            />
+                          </button>
+                        </div>
+                      </SelectItem>
+                    );
+                  });
+                })()}
               </SelectContent>
             </Select>
           )}
