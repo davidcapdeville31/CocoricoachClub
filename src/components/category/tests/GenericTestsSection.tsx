@@ -355,6 +355,12 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         categoryId={categoryId}
         sportType={sportType}
       />
+
+      <CreateThemeCategoryDialog
+        open={isCreateCategoryDialogOpen}
+        onOpenChange={setIsCreateCategoryDialogOpen}
+        categoryId={categoryId}
+      />
     </Card>
   );
 }
