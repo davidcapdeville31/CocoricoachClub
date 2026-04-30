@@ -146,8 +146,43 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
       });
     }
 
+    // Inject custom_tests definitions (so they appear in the filter dropdown
+    // even before any result has been recorded)
+    if (customTestsList?.length) {
+      customTestsList.forEach((ct: any) => {
+        const catValue = ct.test_category;
+        if (!catValue) return;
+        const isRehabCat = catValue.startsWith("rehab_");
+        if (isRehabMode !== isRehabCat) return;
+
+        // Use the custom test id as the test "value" so it's unique
+        const testValue = `custom:${ct.id}`;
+        const testLabel = ct.name;
+        const testUnit = ct.unit || "";
+
+        if (!existingCategoryValues.has(catValue)) {
+          categories.push({
+            value: catValue,
+            label: formatCategoryLabel(catValue),
+            tests: [{ value: testValue, label: testLabel, unit: testUnit }],
+          });
+          existingCategoryValues.add(catValue);
+          existingTestsByCategory.set(catValue, new Set([testValue]));
+        } else {
+          const existingTests = existingTestsByCategory.get(catValue);
+          if (existingTests && !existingTests.has(testValue)) {
+            const category = categories.find(c => c.value === catValue);
+            if (category) {
+              category.tests.push({ value: testValue, label: testLabel, unit: testUnit });
+              existingTests.add(testValue);
+            }
+          }
+        }
+      });
+    }
+
     return categories;
-  }, [allSportCategories, allTestsForDiscovery, isRehabMode]);
+  }, [allSportCategories, allTestsForDiscovery, customTestsList, isRehabMode]);
 
   const { data: tests, isLoading } = useQuery({
     queryKey: ["generic_tests", categoryId, filterCategory, filterTestType, isRehabMode],
