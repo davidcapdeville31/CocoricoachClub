@@ -323,6 +323,53 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
             )}
           </div>
 
+          {/* Image du test */}
+          <div className="space-y-1.5">
+            <Label>Image du test (optionnel)</Label>
+            {imageUrl ? (
+              <div className="relative inline-block rounded-2xl overflow-hidden border bg-muted/40">
+                <img src={imageUrl} alt="Aperçu du test" className="max-h-48 object-contain" />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2 h-7 w-7 rounded-full"
+                  onClick={() => setImageUrl(null)}
+                  aria-label="Retirer l'image"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            ) : (
+              <label className="flex items-center justify-center gap-2 h-28 rounded-2xl border-2 border-dashed bg-muted/40 cursor-pointer hover:bg-muted/60 transition-colors">
+                {isUploadingImage ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm text-muted-foreground">Téléversement...</span>
+                  </>
+                ) : (
+                  <>
+                    <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      Cliquer pour ajouter une image (PNG, JPG, max 5 Mo)
+                    </span>
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={isUploadingImage}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleImageUpload(f);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            )}
+          </div>
+
           <div className="space-y-1.5">
             <Label>Description (optionnel)</Label>
             <Textarea value={description} onChange={e => setDescription(e.target.value)}
