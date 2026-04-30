@@ -103,6 +103,10 @@ interface SessionFormDialogProps {
   defaultDate?: string; // Format: "yyyy-MM-dd"
   /** When set, the dialog runs in "athlete mode": player is pre-selected & locked, session is tagged as athlete-created */
   athletePlayerId?: string;
+  /** When true, shows the "Récurrence" section (used for test reminders) */
+  enableRecurrence?: boolean;
+  /** Optional default training type to preselect (e.g. "test") */
+  defaultTrainingType?: string;
 }
 
 // Erg-specific data structure for cardio machines
