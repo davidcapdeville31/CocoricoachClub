@@ -34,6 +34,7 @@ import {
 interface Props {
   playerId: string;
   categoryId: string;
+  hideHistory?: boolean;
 }
 
 type SessionRow = {
