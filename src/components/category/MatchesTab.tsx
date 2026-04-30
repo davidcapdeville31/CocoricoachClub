@@ -41,20 +41,42 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
     mutationFn: async () => {
       const today = format(new Date(), "yyyy-MM-dd");
       const label = isTennis ? "Match d'entraînement" : "Entraînement";
-      const { error } = await supabase.from("matches").insert({
-        category_id: categoryId,
-        opponent: `${label} ${format(new Date(), "dd/MM/yyyy")}`,
-        match_date: today,
-        event_type: "training",
-        is_home: true,
-      });
+      const { data: inserted, error } = await supabase
+        .from("matches")
+        .insert({
+          category_id: categoryId,
+          opponent: `${label} ${format(new Date(), "dd/MM/yyyy")}`,
+          match_date: today,
+          event_type: "training",
+          is_home: true,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+
+      // For bowling training: auto-add all category players to the lineup
+      // so they appear immediately in "Gestion des Parties"
+      if (isBowling && inserted?.id) {
+        const { data: players } = await supabase
+          .from("players")
+          .select("id")
+          .eq("category_id", categoryId);
+
+        if (players && players.length > 0) {
+          await supabase.from("match_lineups").insert(
+            players.map((p) => ({
+              match_id: inserted.id,
+              player_id: p.id,
+            }))
+          );
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
       const msg = isTennis
         ? "Match d'entraînement créé ! Ajoutez la composition puis saisissez les stats."
-        : "Entraînement bowling créé ! Ajoutez des joueurs puis saisissez les parties.";
+        : "Entraînement bowling créé avec tous les joueurs ! Cliquez sur Parties pour saisir les scores.";
       toast.success(msg);
     },
     onError: () => toast.error("Erreur lors de la création"),
