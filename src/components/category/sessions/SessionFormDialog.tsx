@@ -298,6 +298,11 @@ export function SessionFormDialog({
   const [activeTab, setActiveTab] = useState("details");
   const [precisionExerciseId, setPrecisionExerciseId] = useState<string | null>(null);
   const [precisionExerciseLabel, setPrecisionExerciseLabel] = useState("");
+  // Recurrence (test reminder) state
+  const [recurrenceEnabled, setRecurrenceEnabled] = useState(false);
+  const [recurrenceInterval, setRecurrenceInterval] = useState(4);
+  const [recurrenceUnit, setRecurrenceUnit] = useState<"days" | "weeks" | "months">("weeks");
+  const [recurrenceMonths, setRecurrenceMonths] = useState(6);
   
   // Block configurations for groups
   const [blockConfigs, setBlockConfigs] = useState<Record<string, BlockConfig>>({});
