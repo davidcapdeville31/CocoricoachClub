@@ -216,7 +216,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
           </div>
         </CardContent>
       </Card>
-      <AthleteSpaceWellnessHistory playerId={playerId} categoryId={categoryId} />
+      {!hideHistory && <AthleteSpaceWellnessHistory playerId={playerId} categoryId={categoryId} />}
       </>
     );
   }
