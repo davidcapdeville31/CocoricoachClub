@@ -173,15 +173,31 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
 
   const batteriesColorIndex = filteredNonRehab.length + (showRehab ? 2 : 1);
 
+  const { isViewer } = useViewerModeContext();
+  const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
+  const [isCreateTestOpen, setIsCreateTestOpen] = useState(false);
+
   return (
     <Card className="bg-gradient-card shadow-md">
       <CardHeader className="flex flex-row items-center justify-between gap-3 flex-wrap">
         <CardTitle>Tests de Performance</CardTitle>
-        <CategoryVisibilityManager
-          items={visibilityItems}
-          visibleValues={visibleValues}
-          onChange={setVisibleValues}
-        />
+        <div className="flex items-center gap-2 flex-wrap">
+          {!isViewer && (
+            <>
+              <Button size="sm" variant="outline" onClick={() => setIsCreateCategoryOpen(true)}>
+                <FolderPlus className="h-4 w-4 mr-1" /> Créer une catégorie
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setIsCreateTestOpen(true)}>
+                <Plus className="h-4 w-4 mr-1" /> Créer un test
+              </Button>
+            </>
+          )}
+          <CategoryVisibilityManager
+            items={visibilityItems}
+            visibleValues={visibleValues}
+            onChange={setVisibleValues}
+          />
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="all" className="space-y-4">
