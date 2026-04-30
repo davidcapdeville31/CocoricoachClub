@@ -24,6 +24,8 @@ import { fr } from "date-fns/locale";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { cn } from "@/lib/utils";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import { getTestLabel } from "@/lib/constants/testCategories";
+import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { GroupedExerciseList } from "@/components/category/GroupedExerciseList";
 import { SessionFormDialog } from "@/components/category/sessions/SessionFormDialog";
 import { resolveSessionExerciseRows } from "@/lib/utils/sessionExercises";
@@ -424,9 +426,25 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   <div>
                                     <div className="flex items-center gap-2 flex-wrap">
                                       <p className="font-medium text-sm">
-                                        {session.training_type === "test" && (session as any).test_reminder_id && testTypeByReminderId[(session as any).test_reminder_id]
-                                          ? `Test : ${testTypeByReminderId[(session as any).test_reminder_id]}`
-                                          : getTrainingTypeLabel(session.training_type)}
+                                        {(() => {
+                                          if (session.training_type !== "test") {
+                                            return getTrainingTypeLabel(session.training_type);
+                                          }
+                                          const reminderId = (session as any).test_reminder_id;
+                                          if (reminderId && testTypeByReminderId[reminderId]) {
+                                            return `Test : ${testTypeByReminderId[reminderId]}`;
+                                          }
+                                          // Fallback: parse <!--TESTS:[...]--> metadata from notes
+                                          const tests = parseTestsFromNotes((session as any).notes);
+                                          if (tests.length > 0) {
+                                            const labels = tests.map(t => getTestLabel(t.test_type) || t.test_type).join(", ");
+                                            return `Test : ${labels}`;
+                                          }
+                                          // Fallback 2: legacy "Test auto-planifié: <label>" in notes
+                                          const legacy = ((session as any).notes || "").match(/Test auto-planifi[ée]\s*:\s*([^\n<]+)/i);
+                                          if (legacy) return `Test : ${legacy[1].trim()}`;
+                                          return getTrainingTypeLabel(session.training_type);
+                                        })()}
                                       </p>
                                       {blocks.length > 0 && blocks.some(b => b.training_type !== session.training_type) && (
                                         <div className="flex gap-1 flex-wrap">
