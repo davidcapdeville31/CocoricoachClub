@@ -38,14 +38,14 @@ function TestCategoryTrigger({ value, label, colorIndex }: { value: string; labe
     <TabsPrimitive.Trigger
       value={value}
       className={cn(
-        "group relative inline-flex items-center px-4 py-2 rounded-lg font-medium text-sm",
+        "group relative inline-flex items-center px-2.5 py-1 rounded-md font-medium text-xs",
         "transition-all duration-200 ease-out whitespace-nowrap",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         "hover:opacity-80",
-        "data-[state=active]:shadow-md data-[state=active]:scale-105",
+        "data-[state=active]:shadow-sm data-[state=active]:scale-105",
       )}
       style={{
-        borderWidth: "2px",
+        borderWidth: "1.5px",
         borderColor: color,
         borderStyle: "solid",
       }}
@@ -86,7 +86,7 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
       <CardContent>
         <Tabs defaultValue="all" className="space-y-4">
           <ScrollArea className="w-full">
-            <ColoredNavTabsList className="flex w-max gap-1.5 p-2">
+            <ColoredNavTabsList className="flex flex-wrap w-full gap-1 p-1.5">
               <TestCategoryTrigger value="all" label="Tous" colorIndex={0} />
               {testCategories.nonRehab.map((cat, i) => (
                 <TestCategoryTrigger
