@@ -361,6 +361,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                       description: customDef.description,
                       objectives: customDef.objectives,
                       scoring_scale: (customDef as any).scoring_scale ?? null,
+                      image_url: (customDef as any).image_url ?? null,
                       source: "custom",
                     });
                   } else {
