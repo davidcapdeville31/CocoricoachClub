@@ -88,9 +88,11 @@ export function TestBatteriesManager({
             Regroupez plusieurs tests barémés en une journée d'évaluation avec score global.
           </p>
         </div>
-        <Button onClick={openCreate} className="gap-1.5">
-          <Plus className="h-4 w-4" /> Nouvelle batterie
-        </Button>
+        {!hideCreateButton && (
+          <Button onClick={openCreate} className="gap-1.5">
+            <Plus className="h-4 w-4" /> Nouvelle batterie
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
         {(batteries?.length ?? 0) === 0 ? (
