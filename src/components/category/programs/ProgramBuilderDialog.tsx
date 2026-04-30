@@ -1113,6 +1113,13 @@ export function ProgramBuilderDialog({
           </DragOverlay>
         </DndContext>
       </DialogContent>
+      {showInjuryLibrary && (
+        <InjuryLibraryDialog
+          categoryId={categoryId}
+          open={showInjuryLibrary}
+          onOpenChange={setShowInjuryLibrary}
+        />
+      )}
     </Dialog>
   );
 }
