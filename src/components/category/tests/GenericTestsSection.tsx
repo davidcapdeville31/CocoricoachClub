@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Filter, ClipboardList, CalendarPlus, FolderPlus, Pencil } from "lucide-react";
+import { Plus, Trash2, Filter, ClipboardList, CalendarPlus, FolderPlus, Pencil, Star } from "lucide-react";
 import { CreateCustomTestDialog } from "./CreateCustomTestDialog";
 import { CreateThemeCategoryDialog } from "./CreateThemeCategoryDialog";
 import { EditCustomTestDialog, type EditableTest } from "./EditCustomTestDialog";
