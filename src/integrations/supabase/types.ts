@@ -11091,34 +11091,49 @@ export type Database = {
       }
       test_reminders: {
         Row: {
+          auto_assign_athletes: boolean
           category_id: string
           created_at: string | null
+          duration_minutes: number | null
           frequency_weeks: number
           id: string
           is_active: boolean
           last_notification_date: string | null
+          location: string | null
+          session_end_time: string | null
+          session_start_time: string | null
           start_date: string | null
           test_type: string
           updated_at: string | null
         }
         Insert: {
+          auto_assign_athletes?: boolean
           category_id: string
           created_at?: string | null
+          duration_minutes?: number | null
           frequency_weeks?: number
           id?: string
           is_active?: boolean
           last_notification_date?: string | null
+          location?: string | null
+          session_end_time?: string | null
+          session_start_time?: string | null
           start_date?: string | null
           test_type: string
           updated_at?: string | null
         }
         Update: {
+          auto_assign_athletes?: boolean
           category_id?: string
           created_at?: string | null
+          duration_minutes?: number | null
           frequency_weeks?: number
           id?: string
           is_active?: boolean
           last_notification_date?: string | null
+          location?: string | null
+          session_end_time?: string | null
+          session_start_time?: string | null
           start_date?: string | null
           test_type?: string
           updated_at?: string | null

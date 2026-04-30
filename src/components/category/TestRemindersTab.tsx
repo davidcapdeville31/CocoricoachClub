@@ -40,6 +40,11 @@ interface TestReminder {
   is_active: boolean;
   last_notification_date: string | null;
   start_date: string | null;
+  session_start_time: string | null;
+  session_end_time: string | null;
+  location: string | null;
+  duration_minutes: number | null;
+  auto_assign_athletes: boolean;
   created_at: string;
   updated_at?: string;
 }
@@ -64,21 +69,24 @@ function generateSessionDates(startDate: string, frequencyWeeks: number): string
   return dates;
 }
 
+const DEFAULT_FORM = {
+  test_type: "VMA",
+  frequency_weeks: 4,
+  start_date: format(new Date(), "yyyy-MM-dd"),
+  session_start_time: "10:00",
+  session_end_time: "11:00",
+  location: "",
+  duration_minutes: 60,
+  auto_assign_athletes: true,
+};
+
 export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingReminder, setEditingReminder] = useState<TestReminder | null>(null);
-  const [editValues, setEditValues] = useState({
-    test_type: "VMA",
-    frequency_weeks: 4,
-    start_date: format(new Date(), "yyyy-MM-dd"),
-  });
-  const [newReminder, setNewReminder] = useState({
-    test_type: "VMA",
-    frequency_weeks: 4,
-    start_date: format(new Date(), "yyyy-MM-dd"),
-  });
+  const [editValues, setEditValues] = useState({ ...DEFAULT_FORM });
+  const [newReminder, setNewReminder] = useState({ ...DEFAULT_FORM });
   const { isViewer } = useViewerModeContext();
 
   // Fetch reminders
@@ -115,22 +123,84 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
     },
   });
 
+  // Helper: get all non-injured player IDs in this category
+  async function getNonInjuredPlayerIds(): Promise<string[]> {
+    const { data: players, error: pErr } = await supabase
+      .from("players")
+      .select("id")
+      .eq("category_id", categoryId);
+    if (pErr) throw pErr;
+
+    const { data: injuries, error: iErr } = await supabase
+      .from("injuries")
+      .select("player_id")
+      .eq("category_id", categoryId)
+      .eq("status", "active");
+    if (iErr) throw iErr;
+
+    const injuredSet = new Set((injuries || []).map((i: any) => i.player_id));
+    return (players || []).map((p: any) => p.id).filter((id: string) => !injuredSet.has(id));
+  }
+
   // Helper: create sessions for a reminder
-  async function createSessionsForReminder(reminderId: string, testType: string, startDate: string, frequencyWeeks: number) {
+  async function createSessionsForReminder(
+    reminderId: string,
+    testType: string,
+    startDate: string,
+    frequencyWeeks: number,
+    options: {
+      session_start_time?: string | null;
+      session_end_time?: string | null;
+      location?: string | null;
+      duration_minutes?: number | null;
+      auto_assign_athletes?: boolean;
+    } = {}
+  ) {
     const dates = generateSessionDates(startDate, frequencyWeeks);
     if (dates.length === 0) return;
 
     const label = getTestTypeLabel(testType);
+    const locationLine = options.location ? `\n📍 Lieu: ${options.location}` : "";
     const sessions = dates.map(date => ({
       category_id: categoryId,
       session_date: date,
+      session_start_time: options.session_start_time || null,
+      session_end_time: options.session_end_time || null,
       training_type: "test",
-      notes: `📋 Test auto-planifié: ${label}`,
+      notes: `📋 ${label}${locationLine}`,
       test_reminder_id: reminderId,
     }));
 
-    const { error } = await supabase.from("training_sessions").insert(sessions);
+    const { data: inserted, error } = await supabase
+      .from("training_sessions")
+      .insert(sessions)
+      .select("id");
     if (error) throw error;
+
+    // Auto-assign all non-injured athletes as "present"
+    if (options.auto_assign_athletes && inserted && inserted.length > 0) {
+      const playerIds = await getNonInjuredPlayerIds();
+      if (playerIds.length === 0) return;
+
+      const attendances = inserted.flatMap((s: any) =>
+        dates.map((date, idx) => ({ session: s, date: dates[idx] })) // not used; rebuilt below
+      );
+      // Rebuild correctly: pair each session id with its date
+      const rows = inserted.flatMap((s: any, idx: number) =>
+        playerIds.map((pid) => ({
+          training_session_id: s.id,
+          category_id: categoryId,
+          player_id: pid,
+          attendance_date: dates[idx],
+          status: "present",
+        }))
+      );
+
+      if (rows.length > 0) {
+        const { error: aErr } = await supabase.from("training_attendance").insert(rows);
+        if (aErr) console.error("Attendance auto-assign failed:", aErr);
+      }
+    }
   }
 
   // Helper: delete future sessions for a reminder
@@ -152,6 +222,11 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
         test_type: newReminder.test_type,
         frequency_weeks: newReminder.frequency_weeks,
         start_date: newReminder.start_date,
+        session_start_time: newReminder.session_start_time || null,
+        session_end_time: newReminder.session_end_time || null,
+        location: newReminder.location || null,
+        duration_minutes: newReminder.duration_minutes,
+        auto_assign_athletes: newReminder.auto_assign_athletes,
         is_active: true,
       }).select("id").single();
 
@@ -162,7 +237,14 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
         data.id,
         newReminder.test_type,
         newReminder.start_date,
-        newReminder.frequency_weeks
+        newReminder.frequency_weeks,
+        {
+          session_start_time: newReminder.session_start_time,
+          session_end_time: newReminder.session_end_time,
+          location: newReminder.location,
+          duration_minutes: newReminder.duration_minutes,
+          auto_assign_athletes: newReminder.auto_assign_athletes,
+        }
       );
     },
     onSuccess: () => {
@@ -173,7 +255,7 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
       queryClient.invalidateQueries({ queryKey: ["today-training-sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       setIsDialogOpen(false);
-      setNewReminder({ test_type: "VMA", frequency_weeks: 4, start_date: format(new Date(), "yyyy-MM-dd") });
+      setNewReminder({ ...DEFAULT_FORM });
       toast({
         title: "Rappel créé",
         description: "Le rappel et les séances de test ont été créés automatiquement dans le calendrier",
@@ -200,7 +282,13 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
 
       if (isActive && reminder.start_date) {
         // Reactivating: regenerate future sessions
-        await createSessionsForReminder(id, reminder.test_type, reminder.start_date, reminder.frequency_weeks);
+        await createSessionsForReminder(id, reminder.test_type, reminder.start_date, reminder.frequency_weeks, {
+          session_start_time: reminder.session_start_time,
+          session_end_time: reminder.session_end_time,
+          location: reminder.location,
+          duration_minutes: reminder.duration_minutes,
+          auto_assign_athletes: reminder.auto_assign_athletes,
+        });
       } else {
         // Deactivating: remove future sessions
         await deleteFutureSessionsForReminder(id);
@@ -269,6 +357,11 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
           test_type: editValues.test_type,
           frequency_weeks: editValues.frequency_weeks,
           start_date: editValues.start_date,
+          session_start_time: editValues.session_start_time || null,
+          session_end_time: editValues.session_end_time || null,
+          location: editValues.location || null,
+          duration_minutes: editValues.duration_minutes,
+          auto_assign_athletes: editValues.auto_assign_athletes,
         })
         .eq("id", editingReminder.id);
       if (error) throw error;
@@ -279,7 +372,14 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
           editingReminder.id,
           editValues.test_type,
           editValues.start_date,
-          editValues.frequency_weeks
+          editValues.frequency_weeks,
+          {
+            session_start_time: editValues.session_start_time,
+            session_end_time: editValues.session_end_time,
+            location: editValues.location,
+            duration_minutes: editValues.duration_minutes,
+            auto_assign_athletes: editValues.auto_assign_athletes,
+          }
         );
       }
     },
@@ -304,7 +404,13 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
     mutationFn: async (reminder: TestReminder) => {
       if (!reminder.start_date) throw new Error("Date de début manquante");
       await deleteFutureSessionsForReminder(reminder.id);
-      await createSessionsForReminder(reminder.id, reminder.test_type, reminder.start_date, reminder.frequency_weeks);
+      await createSessionsForReminder(reminder.id, reminder.test_type, reminder.start_date, reminder.frequency_weeks, {
+        session_start_time: reminder.session_start_time,
+        session_end_time: reminder.session_end_time,
+        location: reminder.location,
+        duration_minutes: reminder.duration_minutes,
+        auto_assign_athletes: reminder.auto_assign_athletes,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["test-reminders", categoryId] });
@@ -324,6 +430,11 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
       test_type: reminder.test_type,
       frequency_weeks: reminder.frequency_weeks,
       start_date: reminder.start_date || format(new Date(), "yyyy-MM-dd"),
+      session_start_time: reminder.session_start_time || "10:00",
+      session_end_time: reminder.session_end_time || "11:00",
+      location: reminder.location || "",
+      duration_minutes: reminder.duration_minutes ?? 60,
+      auto_assign_athletes: reminder.auto_assign_athletes ?? true,
     });
   };
 
@@ -381,7 +492,7 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
                 Nouveau Rappel
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Créer un rappel de test</DialogTitle>
                 <DialogDescription>
@@ -477,6 +588,62 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
                   </Select>
                 </div>
 
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="start-time">Heure de début</Label>
+                    <Input
+                      id="start-time"
+                      type="time"
+                      value={newReminder.session_start_time}
+                      onChange={(e) => setNewReminder({ ...newReminder, session_start_time: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="end-time">Heure de fin</Label>
+                    <Input
+                      id="end-time"
+                      type="time"
+                      value={newReminder.session_end_time}
+                      onChange={(e) => setNewReminder({ ...newReminder, session_end_time: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="location">Lieu</Label>
+                  <Input
+                    id="location"
+                    placeholder="Ex: Stade municipal, Salle de musculation..."
+                    value={newReminder.location}
+                    onChange={(e) => setNewReminder({ ...newReminder, location: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="duration">Durée (minutes)</Label>
+                  <Input
+                    id="duration"
+                    type="number"
+                    min={5}
+                    value={newReminder.duration_minutes}
+                    onChange={(e) => setNewReminder({ ...newReminder, duration_minutes: parseInt(e.target.value) || 60 })}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between rounded-md border p-3 bg-muted/40">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="auto-assign" className="cursor-pointer">Assigner automatiquement les athlètes</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Tous les joueurs non blessés seront ajoutés à chaque séance.
+                    </p>
+                  </div>
+                  <Switch
+                    id="auto-assign"
+                    checked={newReminder.auto_assign_athletes}
+                    onCheckedChange={(checked) => setNewReminder({ ...newReminder, auto_assign_athletes: checked })}
+                  />
+                </div>
+
                 {/* Preview upcoming dates */}
                 {previewDates.length > 0 && (
                   <div className="rounded-md border p-3 space-y-2">
@@ -531,6 +698,12 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
                         Début: {reminder.start_date 
                           ? format(new Date(reminder.start_date), "dd MMMM yyyy", { locale: fr })
                           : "Non défini"} • Tous les {reminder.frequency_weeks} semaines
+                        {(reminder.session_start_time || reminder.session_end_time) && (
+                          <> • {reminder.session_start_time?.slice(0,5) || "—"}
+                          {reminder.session_end_time ? ` → ${reminder.session_end_time.slice(0,5)}` : ""}</>
+                        )}
+                        {reminder.location && <> • 📍 {reminder.location}</>}
+                        {reminder.auto_assign_athletes && <> • 👥 Auto-assignation</>}
                       </CardDescription>
                     </div>
                     {!isViewer ? (
@@ -618,7 +791,7 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
 
       {/* Edit dialog */}
       <Dialog open={!!editingReminder} onOpenChange={(o) => !o && setEditingReminder(null)}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Modifier le rappel de test</DialogTitle>
             <DialogDescription>
@@ -696,6 +869,58 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Heure de début</Label>
+                <Input
+                  type="time"
+                  value={editValues.session_start_time}
+                  onChange={(e) => setEditValues({ ...editValues, session_start_time: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Heure de fin</Label>
+                <Input
+                  type="time"
+                  value={editValues.session_end_time}
+                  onChange={(e) => setEditValues({ ...editValues, session_end_time: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Lieu</Label>
+              <Input
+                placeholder="Ex: Stade municipal..."
+                value={editValues.location}
+                onChange={(e) => setEditValues({ ...editValues, location: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Durée (minutes)</Label>
+              <Input
+                type="number"
+                min={5}
+                value={editValues.duration_minutes}
+                onChange={(e) => setEditValues({ ...editValues, duration_minutes: parseInt(e.target.value) || 60 })}
+              />
+            </div>
+
+            <div className="flex items-center justify-between rounded-md border p-3 bg-muted/40">
+              <div className="space-y-0.5">
+                <Label className="cursor-pointer">Assigner automatiquement les athlètes</Label>
+                <p className="text-xs text-muted-foreground">
+                  Tous les joueurs non blessés seront ajoutés à chaque séance.
+                </p>
+              </div>
+              <Switch
+                checked={editValues.auto_assign_athletes}
+                onCheckedChange={(checked) => setEditValues({ ...editValues, auto_assign_athletes: checked })}
+              />
+            </div>
+
             <Button
               onClick={() => updateReminder.mutate()}
               disabled={updateReminder.isPending}
