@@ -1061,7 +1061,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       )}
 
       {/* RPE History Charts */}
-      <AthleteSpaceRpeHistory playerId={playerId} categoryId={categoryId} />
+      {!hideHistory && <AthleteSpaceRpeHistory playerId={playerId} categoryId={categoryId} />}
     </div>
   );
 }
