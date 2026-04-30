@@ -350,14 +350,30 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
             </div>
             <div className="flex flex-wrap gap-2">
               {customTestsList.map((t: any) => (
-                <span
+                <button
                   key={t.id}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-background border px-2.5 py-1 text-xs"
-                  title={t.description || ""}
+                  type="button"
+                  onClick={() => {
+                    if (isViewer) return;
+                    setEditingTest({
+                      id: t.id,
+                      name: t.name,
+                      test_category: t.test_category,
+                      unit: t.unit,
+                      description: t.description,
+                      objectives: t.objectives,
+                      scoring_scale: t.scoring_scale ?? null,
+                      source: "custom",
+                    });
+                    setIsEditDialogOpen(true);
+                  }}
+                  className="group inline-flex items-center gap-1.5 rounded-full bg-background border px-2.5 py-1 text-xs hover:border-primary hover:bg-accent transition-colors"
+                  title={isViewer ? (t.description || "") : "Cliquer pour modifier ce test"}
                 >
                   <span className="font-medium">{t.name}</span>
                   {t.unit && <span className="text-muted-foreground">({t.unit})</span>}
-                </span>
+                  {!isViewer && <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />}
+                </button>
               ))}
             </div>
           </div>
