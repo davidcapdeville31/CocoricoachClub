@@ -689,6 +689,19 @@ export function ImprovedCalendarView({
                         {/* Sessions */}
                         {daySessions.map((session) => {
                           const bgColor = TRAINING_TYPE_COLORS[session.training_type] || "bg-primary";
+                          const displayNotes = session.notes ? getDisplayNotes(session.notes) : "";
+                          // For test sessions, extract test name from notes (e.g. "📋 Test VMA (1600m)")
+                          const isTest = session.training_type === "test";
+                          const testName = isTest
+                            ? (displayNotes.split("\n").find((l) => l.trim().startsWith("📋"))?.replace(/^📋\s*/, "").trim() || "")
+                            : "";
+                          const titleLabel = isTest && testName
+                            ? testName
+                            : (trainingTypeLabels[session.training_type] || session.training_type);
+                          // Hide the test name line from the secondary notes preview to avoid duplication
+                          const secondaryNotes = isTest
+                            ? displayNotes.split("\n").filter((l) => !l.trim().startsWith("📋")).join(" • ").trim()
+                            : displayNotes;
                           return (
                             <div
                               key={session.id}
@@ -703,6 +716,7 @@ export function ImprovedCalendarView({
                               )}
                             >
                               <div className="flex items-center gap-2 text-xs opacity-90">
+                                {isTest && <span className="font-semibold">🧪 Test</span>}
                                 {session.session_start_time && (
                                   <span>{formatTime(session.session_start_time)}</span>
                                 )}
@@ -714,10 +728,10 @@ export function ImprovedCalendarView({
                                 {session.created_by_player_id && playerNamesMap[session.created_by_player_id]
                                   ? `${playerNamesMap[session.created_by_player_id]} · `
                                   : ""}
-                                {trainingTypeLabels[session.training_type] || session.training_type}
+                                {titleLabel}
                               </p>
-                              {session.notes && getDisplayNotes(session.notes) && (
-                                <p className="text-[10px] opacity-80 mt-0.5 line-clamp-1">{getDisplayNotes(session.notes)}</p>
+                              {secondaryNotes && (
+                                <p className="text-[10px] opacity-80 mt-0.5 line-clamp-1">{secondaryNotes}</p>
                               )}
                             </div>
                           );
