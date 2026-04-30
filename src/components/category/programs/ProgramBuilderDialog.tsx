@@ -404,6 +404,10 @@ export function ProgramBuilderDialog({
         setName(`Programme réathléthisation - ${rehabPhaseName || "Phase"}`);
         setTheme("reathletisation");
       }
+      // When opened via Rehab tab, force theme = reathletisation
+      if (rehabMode) {
+        setTheme("reathletisation");
+      }
       setBlocks([createEmptyBlock(1)]);
     }
   }, [existingProgram, programId]);
