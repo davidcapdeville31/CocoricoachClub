@@ -1442,7 +1442,7 @@ export function CompetitionRoundsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] flex flex-col overflow-hidden relative">
+      <DialogContent className="sm:max-w-[900px] max-h-[95vh] flex flex-col overflow-hidden relative">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             {isAviron ? <Ship className="h-5 w-5" /> : isJudo ? <Swords className="h-5 w-5" /> : <Circle className="h-5 w-5" />}
@@ -1722,7 +1722,7 @@ export function CompetitionRoundsDialog({
             )}
 
             <TabsContent value="rounds" className="flex-1 min-h-0 mt-0 overflow-hidden data-[state=active]:flex data-[state=active]:flex-col">
-              <ScrollArea className="flex-1 min-h-0 h-full pr-4">
+              <ScrollArea className="flex-1 min-h-0 h-full max-h-[calc(95vh-220px)] pr-4">
                 {/* Bowling: use block manager */}
                 {isBowling ? (
                   <BowlingBlockManager
@@ -2539,7 +2539,7 @@ export function CompetitionRoundsDialog({
           </Tabs>
         )}
 
-        <div className="flex flex-wrap justify-end gap-2 pt-4 border-t flex-shrink-0 bg-background">
+        <div className="flex flex-wrap justify-end gap-2 pt-4 border-t flex-shrink-0 bg-background/95 backdrop-blur-sm">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
