@@ -9,6 +9,7 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
 import { BenchmarkManager } from "./benchmarks/BenchmarkManager";
 import { BenchmarkComparison } from "./benchmarks/BenchmarkComparison";
+import { TestBatteriesManager } from "./tests/TestBatteriesManager";
 
 interface TestsTabProps {
   categoryId: string;
@@ -108,6 +109,11 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
                 label="📊 Benchmarks"
                 colorIndex={benchmarkColorIndex}
               />
+              <TestCategoryTrigger
+                value="batteries"
+                label="🎯 Batteries"
+                colorIndex={benchmarkColorIndex + 1}
+              />
             </ColoredNavTabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -139,6 +145,10 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
           <TabsContent value="benchmarks" className="space-y-6">
             <BenchmarkManager categoryId={categoryId} sportType={sportType} />
             <BenchmarkComparison categoryId={categoryId} sportType={sportType} />
+          </TabsContent>
+
+          <TabsContent value="batteries" className="space-y-6">
+            <TestBatteriesManager categoryId={categoryId} />
           </TabsContent>
         </Tabs>
       </CardContent>
