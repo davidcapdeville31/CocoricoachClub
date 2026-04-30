@@ -698,6 +698,12 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
                         Début: {reminder.start_date 
                           ? format(new Date(reminder.start_date), "dd MMMM yyyy", { locale: fr })
                           : "Non défini"} • Tous les {reminder.frequency_weeks} semaines
+                        {(reminder.session_start_time || reminder.session_end_time) && (
+                          <> • {reminder.session_start_time?.slice(0,5) || "—"}
+                          {reminder.session_end_time ? ` → ${reminder.session_end_time.slice(0,5)}` : ""}</>
+                        )}
+                        {reminder.location && <> • 📍 {reminder.location}</>}
+                        {reminder.auto_assign_athletes && <> • 👥 Auto-assignation</>}
                       </CardDescription>
                     </div>
                     {!isViewer ? (
