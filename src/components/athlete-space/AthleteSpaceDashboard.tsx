@@ -214,10 +214,10 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
   return (
     <div className="space-y-6">
       {/* Wellness du jour — hissé en haut pour saisie rapide sur mobile */}
-      <AthleteSpaceWellness playerId={playerId} categoryId={categoryId} />
+      <AthleteSpaceWellness playerId={playerId} categoryId={categoryId} hideHistory />
 
       {/* RPE du jour — hissé en haut pour saisie rapide sur mobile */}
-      <AthleteSpaceRpe playerId={playerId} categoryId={categoryId} />
+      <AthleteSpaceRpe playerId={playerId} categoryId={categoryId} hideHistory />
 
       {/* Status + EWMA */}
       <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.performance.base}40`, backgroundColor: `${NAV_COLORS.performance.base}08` }}>

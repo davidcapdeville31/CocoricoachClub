@@ -19,6 +19,7 @@ import { PAIN_ZONES } from "@/lib/constants/pain-locations";
 interface Props {
   playerId: string;
   categoryId: string;
+  hideHistory?: boolean;
 }
 
 const SLEEP_HOURS = [4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -91,7 +92,7 @@ const WELLNESS_FIELDS = [
   },
 ] as const;
 
-export function AthleteSpaceWellness({ playerId, categoryId }: Props) {
+export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Props) {
   const queryClient = useQueryClient();
   const today = new Date().toISOString().split("T")[0];
   const [expanded, setExpanded] = useState(false);
@@ -215,7 +216,7 @@ export function AthleteSpaceWellness({ playerId, categoryId }: Props) {
           </div>
         </CardContent>
       </Card>
-      <AthleteSpaceWellnessHistory playerId={playerId} categoryId={categoryId} />
+      {!hideHistory && <AthleteSpaceWellnessHistory playerId={playerId} categoryId={categoryId} />}
       </>
     );
   }
@@ -438,7 +439,7 @@ export function AthleteSpaceWellness({ playerId, categoryId }: Props) {
     </Card>
 
     {/* Wellness History Charts */}
-    <AthleteSpaceWellnessHistory playerId={playerId} categoryId={categoryId} />
+    {!hideHistory && <AthleteSpaceWellnessHistory playerId={playerId} categoryId={categoryId} />}
     </>
   );
 }

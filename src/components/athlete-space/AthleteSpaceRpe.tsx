@@ -34,6 +34,7 @@ import {
 interface Props {
   playerId: string;
   categoryId: string;
+  hideHistory?: boolean;
 }
 
 type SessionRow = {
@@ -60,7 +61,7 @@ const BOWLING_EXERCISE_LABELS: Record<string, string> = {
   poche: "Poche",
 };
 
-export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
+export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   const queryClient = useQueryClient();
   const today = new Date().toISOString().split("T")[0];
   const endDate = addDays(new Date(), 14).toISOString().split("T")[0];
@@ -1060,7 +1061,7 @@ export function AthleteSpaceRpe({ playerId, categoryId }: Props) {
       )}
 
       {/* RPE History Charts */}
-      <AthleteSpaceRpeHistory playerId={playerId} categoryId={categoryId} />
+      {!hideHistory && <AthleteSpaceRpeHistory playerId={playerId} categoryId={categoryId} />}
     </div>
   );
 }
