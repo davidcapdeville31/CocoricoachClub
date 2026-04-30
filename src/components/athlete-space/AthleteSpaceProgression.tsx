@@ -314,16 +314,41 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3">
-              {Object.entries(filteredLatestGeneric).map(([key, test]) => (
-                <div key={key} className="p-3 rounded-lg bg-muted/30 text-center">
-                  <p className="text-[10px] text-muted-foreground/70 uppercase tracking-wide">{test.categoryLabel}</p>
-                  <p className="text-xs text-muted-foreground mb-1">{test.label}</p>
-                  <p className="text-lg font-bold">{test.value} <span className="text-xs font-normal text-muted-foreground">{test.unit}</span></p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {format(new Date(test.date), "dd MMM yyyy", { locale: fr })}
-                  </p>
-                </div>
-              ))}
+              {Object.entries(filteredLatestGeneric).map(([key, test]) => {
+                const series = filteredGenericByType[key] || [];
+                let progression: { pct: number; positive: boolean } | null = null;
+                if (series.length >= 2) {
+                  const latest = series[series.length - 1].value;
+                  const previous = series[series.length - 2].value;
+                  if (previous !== 0) {
+                    const isTimeTest = test.unit === "s" || test.unit === "min";
+                    const rawPct = ((latest - previous) / Math.abs(previous)) * 100;
+                    // For time tests, a decrease is positive progression
+                    const positive = isTimeTest ? rawPct < 0 : rawPct > 0;
+                    progression = { pct: Math.abs(rawPct), positive };
+                  }
+                }
+                return (
+                  <div key={key} className="p-3 rounded-lg bg-muted/30 text-center relative">
+                    {progression && (
+                      <Badge
+                        variant="secondary"
+                        className={`absolute top-1 right-1 text-[9px] px-1.5 py-0 ${
+                          progression.positive ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
+                        }`}
+                      >
+                        {progression.positive ? "▲" : "▼"} {progression.pct.toFixed(1)}%
+                      </Badge>
+                    )}
+                    <p className="text-[10px] text-muted-foreground/70 uppercase tracking-wide">{test.categoryLabel}</p>
+                    <p className="text-xs text-muted-foreground mb-1">{test.label}</p>
+                    <p className="text-lg font-bold">{test.value} <span className="text-xs font-normal text-muted-foreground">{test.unit}</span></p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {format(new Date(test.date), "dd MMM yyyy", { locale: fr })}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

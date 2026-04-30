@@ -296,23 +296,29 @@ export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {genericTests.slice().reverse().slice(0, 30).map((test: any) => {
-                  const cat = testCategories.find(c => c.value === test.test_category);
-                  const testDef = cat?.tests.find(t => t.value === test.test_type);
-                  return (
-                    <TableRow key={test.id}>
-                      <TableCell className="whitespace-nowrap text-xs">
-                        {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
-                      </TableCell>
-                      <TableCell className="text-xs">{cat?.label || test.test_category?.replace(/_/g, " ")}</TableCell>
-                      <TableCell className="text-xs">{testDef?.label || test.test_type?.replace(/_/g, " ")}</TableCell>
-                      <TableCell className="text-xs font-semibold text-primary">
-                        {test.result_value} {test.result_unit || ""}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-                {speedTests.slice().reverse().slice(0, 10).map((test: any) => (
+                {(selectedCategory === "all" || (selectedCategory !== "__speed__" && selectedCategory !== "__strength__")) &&
+                  genericTests
+                    .filter((t: any) => selectedCategory === "all" || t.test_category === selectedCategory)
+                    .slice()
+                    .reverse()
+                    .slice(0, 30)
+                    .map((test: any) => {
+                      const cat = testCategories.find(c => c.value === test.test_category);
+                      const testDef = cat?.tests.find(t => t.value === test.test_type);
+                      return (
+                        <TableRow key={test.id}>
+                          <TableCell className="whitespace-nowrap text-xs">
+                            {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
+                          </TableCell>
+                          <TableCell className="text-xs">{cat?.label || test.test_category?.replace(/_/g, " ")}</TableCell>
+                          <TableCell className="text-xs">{testDef?.label || test.test_type?.replace(/_/g, " ")}</TableCell>
+                          <TableCell className="text-xs font-semibold text-primary">
+                            {test.result_value} {test.result_unit || ""}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                {showSpeed && speedTests.slice().reverse().slice(0, 10).map((test: any) => (
                   <TableRow key={test.id}>
                     <TableCell className="whitespace-nowrap text-xs">
                       {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
@@ -324,7 +330,7 @@ export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
                     </TableCell>
                   </TableRow>
                 ))}
-                {strengthTests.slice().reverse().slice(0, 10).map((test: any) => (
+                {showStrength && strengthTests.slice().reverse().slice(0, 10).map((test: any) => (
                   <TableRow key={test.id}>
                     <TableCell className="whitespace-nowrap text-xs">
                       {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
