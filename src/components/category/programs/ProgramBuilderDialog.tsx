@@ -236,6 +236,22 @@ export function ProgramBuilderDialog({
     enabled: !!categoryId && open && theme === "reathletisation",
   });
 
+  // Fetch injury library (system defaults + category-specific) — for rehab program selector
+  const { data: injuryLibrary } = useQuery({
+    queryKey: ["injury-library", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("injury_library")
+        .select("id, name, injury_category, description, typical_duration_days_min, typical_duration_days_max, is_system_default")
+        .or(`is_system_default.eq.true,category_id.eq.${categoryId}`)
+        .order("injury_category")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!categoryId && open && (rehabMode || theme === "reathletisation"),
+  });
+
   // Build THEMES with dynamic terrain options based on sport
   const THEMES = useMemo(() => {
     const sportType = category?.rugby_type;
