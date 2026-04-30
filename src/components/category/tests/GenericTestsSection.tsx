@@ -301,30 +301,11 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                   return ordered.map((category) => {
                     const isFav = favoriteCategories.has(category.value);
                     return (
-                      <SelectItem key={category.value} value={category.value} className="pr-2">
-                        <div className="flex items-center justify-between gap-3 w-full">
-                          <span>{category.label}</span>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              toggleFavoriteCategory(category.value);
-                            }}
-                            onPointerDown={(e) => e.stopPropagation()}
-                            className="p-1 rounded hover:bg-muted transition-colors"
-                            aria-label={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
-                          >
-                            <Star
-                              className={
-                                "h-4 w-4 " +
-                                (isFav
-                                  ? "fill-yellow-400 text-yellow-400"
-                                  : "text-muted-foreground")
-                              }
-                            />
-                          </button>
-                        </div>
+                      <SelectItem key={category.value} value={category.value}>
+                        <span className="flex items-center gap-2">
+                          {isFav && <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />}
+                          {category.label}
+                        </span>
                       </SelectItem>
                     );
                   });
