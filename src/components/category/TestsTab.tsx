@@ -109,6 +109,11 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
                 label="📊 Benchmarks"
                 colorIndex={benchmarkColorIndex}
               />
+              <TestCategoryTrigger
+                value="batteries"
+                label="🎯 Batteries"
+                colorIndex={benchmarkColorIndex + 1}
+              />
             </ColoredNavTabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
