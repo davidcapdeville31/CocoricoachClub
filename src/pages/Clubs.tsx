@@ -217,7 +217,7 @@ export default function Clubs() {
           {/* Header: title + actions on the same row */}
           <div className="flex items-center justify-between gap-3 sm:gap-4 min-w-0">
             <div className="flex flex-col min-w-0 flex-1">
-              <img src={logoCoq} alt="CocoriCoach Club" className="h-24 sm:h-36 md:h-44 w-auto shrink-0" />
+              <img src={logoCoq} alt="CocoriCoach Club" className="h-40 sm:h-56 md:h-64 lg:h-72 w-auto shrink-0 -my-4" />
               <p className="text-[11px] sm:text-xs text-muted-foreground mt-1 ml-1">
                 Gestion des clubs et suivi des performances
               </p>
