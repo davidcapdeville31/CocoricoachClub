@@ -166,7 +166,7 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
   const filteredNonRehab = testCategories.nonRehab.filter(c => visibleValues.has(c.value));
   const showRehab = testCategories.hasRehab && visibleValues.has("rehab");
 
-  const benchmarkColorIndex = filteredNonRehab.length + (showRehab ? 2 : 1);
+  const batteriesColorIndex = filteredNonRehab.length + (showRehab ? 2 : 1);
 
   return (
     <Card className="bg-gradient-card shadow-md">
@@ -199,14 +199,9 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
                 />
               )}
               <TestCategoryTrigger
-                value="benchmarks"
-                label="📊 Benchmarks"
-                colorIndex={benchmarkColorIndex}
-              />
-              <TestCategoryTrigger
                 value="batteries"
                 label="🎯 Batteries"
-                colorIndex={benchmarkColorIndex + 1}
+                colorIndex={batteriesColorIndex}
               />
             </ColoredNavTabsList>
             <ScrollBar orientation="horizontal" />
@@ -235,11 +230,6 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
               />
             </TabsContent>
           )}
-
-          <TabsContent value="benchmarks" className="space-y-6">
-            <BenchmarkManager categoryId={categoryId} sportType={sportType} />
-            <BenchmarkComparison categoryId={categoryId} sportType={sportType} />
-          </TabsContent>
 
           <TabsContent value="batteries" className="space-y-6">
             <TestBatteriesManager categoryId={categoryId} />
