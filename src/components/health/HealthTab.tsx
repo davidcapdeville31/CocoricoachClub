@@ -77,18 +77,8 @@ export function HealthTab({ categoryId }: HealthTabProps) {
               </ColoredSubTabsTrigger>
             )}
             
-            {/* Récupération - Masqué en mode viewer */}
-            {!isViewer && (
-              <ColoredSubTabsTrigger 
-                value="recovery" 
-                colorKey="sante"
-                icon={<Snowflake className="h-4 w-4" />}
-              >
-                Récupération
-              </ColoredSubTabsTrigger>
-            )}
             
-            
+
           </ColoredSubTabsList>
         </div>
 
