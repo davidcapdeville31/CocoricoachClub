@@ -19,11 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Activity, TrendingUp } from "lucide-react";
+import { Plus, Activity, TrendingUp, HeartPulse, Dumbbell } from "lucide-react";
 import { AddInjuryDialog } from "./AddInjuryDialog";
 import { toast } from "sonner";
 import { INJURY_STATUS, INJURY_STATUS_LABELS } from "@/lib/constants/injury";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
+import { ActiveProtocolsDashboard } from "@/components/rehab/ActiveProtocolsDashboard";
 
 interface InjuriesTabProps {
   categoryId: string;
@@ -117,9 +120,21 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <Tabs defaultValue="injuries" className="space-y-6">
+      <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
+        <ColoredSubTabsList colorKey="sante" className="inline-flex w-max">
+          <ColoredSubTabsTrigger value="injuries" colorKey="sante" icon={<HeartPulse className="h-4 w-4" />}>
+            Blessures
+          </ColoredSubTabsTrigger>
+          <ColoredSubTabsTrigger value="rehab" colorKey="sante" icon={<Dumbbell className="h-4 w-4" />}>
+            Réhabilitation
+          </ColoredSubTabsTrigger>
+        </ColoredSubTabsList>
+      </div>
+
+      <TabsContent value="injuries" className="space-y-6">
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-gradient-card shadow-md">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Blessures Actives</CardTitle>
@@ -262,6 +277,11 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
         onOpenChange={setIsDialogOpen}
         categoryId={categoryId}
       />
-    </div>
+      </TabsContent>
+
+      <TabsContent value="rehab">
+        <ActiveProtocolsDashboard categoryId={categoryId} />
+      </TabsContent>
+    </Tabs>
   );
 }

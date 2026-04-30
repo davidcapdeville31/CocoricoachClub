@@ -90,16 +90,6 @@ export function HealthTab({ categoryId }: HealthTabProps) {
               </ColoredSubTabsTrigger>
             )}
             
-            {/* Réhabilitation - Masqué en mode viewer */}
-            {!isViewer && (
-              <ColoredSubTabsTrigger 
-                value="rehab" 
-                colorKey="sante"
-                icon={<Dumbbell className="h-4 w-4" />}
-              >
-                Réhabilitation
-              </ColoredSubTabsTrigger>
-            )}
             
           </ColoredSubTabsList>
         </div>
@@ -123,12 +113,6 @@ export function HealthTab({ categoryId }: HealthTabProps) {
         {!isViewer && (
           <TabsContent value="recovery">
             <RecoveryJournalTab categoryId={categoryId} />
-          </TabsContent>
-        )}
-
-        {!isViewer && (
-          <TabsContent value="rehab">
-            <ActiveProtocolsDashboard categoryId={categoryId} />
           </TabsContent>
         )}
       </Tabs>
