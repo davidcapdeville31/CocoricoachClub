@@ -13,7 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { SuperAdminShieldButton } from "@/components/notifications/SuperAdminShieldButton";
 import { InjuryReturnAlerts } from "@/components/injuries/InjuryReturnAlerts";
-import logoCoq from "@/assets/logo-coq.png";
+import logoCoq from "@/assets/logo-cocoricoach-full.png";
 
 export default function Clubs() {
   const navigate = useNavigate();
@@ -212,13 +212,13 @@ export default function Clubs() {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      <div className="bg-gradient-hero py-8 sm:py-16 px-4">
+      <div className="bg-white py-6 sm:py-10 px-4 border-b border-border">
         <div className="container mx-auto max-w-6xl">
           {/* Header: title + actions on the same row */}
           <div className="flex items-center justify-between gap-3 sm:gap-4 min-w-0">
             <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-              <img src={logoCoq} alt="CocoriCoach Club" className="h-14 sm:h-20 md:h-24 w-auto drop-shadow-lg shrink-0" />
-              <p className="text-sm sm:text-lg text-white/90 hidden sm:block">
+              <img src={logoCoq} alt="CocoriCoach Club" className="h-20 sm:h-28 md:h-32 w-auto shrink-0" />
+              <p className="text-sm sm:text-lg text-muted-foreground hidden sm:block">
                 Gestion des clubs et suivi des performances
               </p>
             </div>
@@ -226,18 +226,18 @@ export default function Clubs() {
               <NotificationBell />
               {isSuperAdmin && (
                 <>
-                  <Button variant="ghost" size="icon" onClick={() => navigate("/athlete-space")} className="text-white hover:bg-white/10 h-9 w-9 sm:h-10 sm:w-10" title="Espace Athlète">
+                  <Button variant="ghost" size="icon" onClick={() => navigate("/athlete-space")} className="text-primary hover:bg-primary/10 h-9 w-9 sm:h-10 sm:w-10" title="Espace Athlète">
                     <User className="h-5 w-5" />
                   </Button>
                   <SuperAdminShieldButton variant="hero" />
                 </>
               )}
-              <Button variant="ghost" size="icon" onClick={signOut} className="text-white hover:bg-white/10 h-9 w-9 sm:h-10 sm:w-10">
+              <Button variant="ghost" size="icon" onClick={signOut} className="text-primary hover:bg-primary/10 h-9 w-9 sm:h-10 sm:w-10">
                 <LogOut className="h-5 w-5" />
               </Button>
             </div>
           </div>
-          <p className="text-xs text-white/90 mt-3 sm:hidden">
+          <p className="text-xs text-muted-foreground mt-3 sm:hidden">
             Gestion des clubs et suivi des performances
           </p>
         </div>
