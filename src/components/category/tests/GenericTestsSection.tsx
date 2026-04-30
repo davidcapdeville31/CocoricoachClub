@@ -487,6 +487,17 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         onOpenChange={setIsCreateCategoryDialogOpen}
         categoryId={categoryId}
       />
+
+      <EditCustomTestDialog
+        open={isEditDialogOpen}
+        onOpenChange={(o) => {
+          setIsEditDialogOpen(o);
+          if (!o) setEditingTest(null);
+        }}
+        categoryId={categoryId}
+        sportType={sportType}
+        test={editingTest}
+      />
     </Card>
   );
 }
