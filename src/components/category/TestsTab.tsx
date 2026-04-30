@@ -171,8 +171,6 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
   const filteredNonRehab = testCategories.nonRehab.filter(c => visibleValues.has(c.value));
   const showRehab = testCategories.hasRehab && visibleValues.has("rehab");
 
-  const batteriesColorIndex = filteredNonRehab.length + (showRehab ? 2 : 1);
-
   const { isViewer } = useViewerModeContext();
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
   const [isCreateTestOpen, setIsCreateTestOpen] = useState(false);
