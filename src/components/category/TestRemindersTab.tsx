@@ -534,7 +534,7 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
                       </CardDescription>
                     </div>
                     {!isViewer ? (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <Switch
                           checked={reminder.is_active}
                           onCheckedChange={(checked) =>
@@ -548,6 +548,24 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
                         <Button
                           variant="ghost"
                           size="icon"
+                          title="Régénérer les séances"
+                          onClick={() => regenerateSessions.mutate(reminder)}
+                          disabled={regenerateSessions.isPending}
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Modifier"
+                          onClick={() => openEditDialog(reminder)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Supprimer"
                           onClick={() => deleteReminder.mutate(reminder.id)}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
