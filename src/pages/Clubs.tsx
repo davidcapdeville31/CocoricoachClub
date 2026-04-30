@@ -222,17 +222,17 @@ export default function Clubs() {
                 Gestion des clubs et suivi des performances
               </p>
             </div>
-            <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
+            <div className="flex items-center gap-0.5 sm:gap-2 shrink-0 [&_button]:text-[#ED2939] [&_button:hover]:bg-[#ED2939]/10">
               <NotificationBell variant="default" />
               {isSuperAdmin && (
                 <>
-                  <Button variant="ghost" size="icon" onClick={() => navigate("/athlete-space")} className="h-9 w-9 sm:h-10 sm:w-10 hover:bg-[#ED2939]/10" style={{ color: "#ED2939" }} title="Espace Athlète">
+                  <Button variant="ghost" size="icon" onClick={() => navigate("/athlete-space")} className="h-9 w-9 sm:h-10 sm:w-10" title="Espace Athlète">
                     <User className="h-5 w-5" />
                   </Button>
                   <SuperAdminShieldButton variant="default" />
                 </>
               )}
-              <Button variant="ghost" size="icon" onClick={signOut} className="h-9 w-9 sm:h-10 sm:w-10 hover:bg-[#ED2939]/10" style={{ color: "#ED2939" }}>
+              <Button variant="ghost" size="icon" onClick={signOut} className="h-9 w-9 sm:h-10 sm:w-10">
                 <LogOut className="h-5 w-5" />
               </Button>
             </div>
