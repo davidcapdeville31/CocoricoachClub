@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Plus, Bell, Trash2, Calendar, CalendarCheck } from "lucide-react";
+import { Plus, Bell, Trash2, Calendar, CalendarCheck, Pencil, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
