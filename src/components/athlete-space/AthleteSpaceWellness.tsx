@@ -250,7 +250,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       </button>
 
       {expanded && (
-        <CardContent className="space-y-3 pt-0 pb-4 px-3 sm:px-6">
+        <CardContent className="space-y-2 pt-0 pb-4 px-2 sm:px-6">
           {WELLNESS_FIELDS.map(field => {
             const currentValue = (values as any)[field.key];
 
