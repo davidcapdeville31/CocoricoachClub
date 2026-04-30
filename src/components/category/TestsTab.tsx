@@ -253,10 +253,16 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
             </TabsContent>
           )}
 
-          <TabsContent value="batteries" className="space-y-6">
-            <TestBatteriesManager categoryId={categoryId} />
-          </TabsContent>
         </Tabs>
+
+        <div className="mt-8">
+          <TestBatteriesManager
+            categoryId={categoryId}
+            externalCreateOpen={isCreateBatteryOpen}
+            onExternalCreateOpenChange={setIsCreateBatteryOpen}
+            hideCreateButton
+          />
+        </div>
       </CardContent>
 
       <CreateThemeCategoryDialog
