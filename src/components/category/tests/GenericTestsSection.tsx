@@ -54,6 +54,29 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
   const queryClient = useQueryClient();
   const { isViewer } = useViewerModeContext();
 
+  // Favorite categories persisted in localStorage per category
+  const favStorageKey = `tests-fav-categories:${categoryId}`;
+  const [favoriteCategories, setFavoriteCategories] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(favStorageKey);
+      if (raw) return new Set(JSON.parse(raw) as string[]);
+    } catch {}
+    return new Set();
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(favStorageKey, JSON.stringify(Array.from(favoriteCategories)));
+    } catch {}
+  }, [favoriteCategories, favStorageKey]);
+  const toggleFavoriteCategory = (value: string) => {
+    setFavoriteCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(value)) next.delete(value);
+      else next.add(value);
+      return next;
+    });
+  };
+
   // Get filtered test categories based on sport type and mode
   const allSportCategories = getTestCategoriesForSport(sportType || "");
 
