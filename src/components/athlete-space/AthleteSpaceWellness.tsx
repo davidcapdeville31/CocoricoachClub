@@ -300,7 +300,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                     </span>
                   )}
                 </Label>
-                <div className="grid grid-cols-5 gap-1">
+                <div className="grid grid-cols-5 gap-0.5 sm:gap-1">
                   {fieldOptions.map(opt => (
                     <button
                       key={opt.value}
@@ -308,8 +308,8 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                       title={opt.label}
                       onClick={() => setValues(prev => ({ ...prev, [field.key]: opt.value }))}
                       className={cn(
-                        "h-10 rounded-lg text-sm font-bold transition-all duration-150",
-                        "border-2 active:scale-95",
+                        "h-8 sm:h-9 rounded-md text-xs sm:text-sm font-bold transition-all duration-150",
+                        "border active:scale-95",
                         currentValue === opt.value
                           ? "text-white shadow-sm"
                           : "bg-background border-border text-foreground"
