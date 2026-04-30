@@ -12,6 +12,11 @@ import { cn } from "@/lib/utils";
 import { TestBatteriesManager } from "./tests/TestBatteriesManager";
 import { formatCategoryLabel } from "./tests/customTestCatalog";
 import { CategoryVisibilityManager } from "./tests/CategoryVisibilityManager";
+import { Button } from "@/components/ui/button";
+import { FolderPlus, Plus } from "lucide-react";
+import { CreateCustomTestDialog } from "./tests/CreateCustomTestDialog";
+import { CreateThemeCategoryDialog } from "./tests/CreateThemeCategoryDialog";
+import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 
 interface TestsTabProps {
   categoryId: string;
