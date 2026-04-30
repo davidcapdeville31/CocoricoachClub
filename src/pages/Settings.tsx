@@ -159,6 +159,9 @@ export default function Settings() {
             </CardContent>
           </Card>
 
+          {/* PWA Install Guide (always visible) */}
+          <PWAInstallGuide />
+
           {/* Offline Sync */}
           <OfflineSyncPanel />
         </div>
