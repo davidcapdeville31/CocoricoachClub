@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { Plus, AlertTriangle, Calendar, X } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -97,14 +98,16 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="tracking" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="tracking">Suivi Wellness</TabsTrigger>
-          <TabsTrigger value="pain-stats">Statistiques Douleurs</TabsTrigger>
-          <TabsTrigger value="risk">Risque Blessure (EWMA + AWCR + Wellness)</TabsTrigger>
-          {isFeminine && (
-            <TabsTrigger value="menstrual">Cycle Menstruel</TabsTrigger>
-          )}
-        </TabsList>
+        <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
+          <ColoredSubTabsList colorKey="sante" className="inline-flex w-max">
+            <ColoredSubTabsTrigger value="tracking" colorKey="sante">Suivi Wellness</ColoredSubTabsTrigger>
+            <ColoredSubTabsTrigger value="pain-stats" colorKey="sante">Statistiques Douleurs</ColoredSubTabsTrigger>
+            <ColoredSubTabsTrigger value="risk" colorKey="sante">Risque Blessure (EWMA + AWCR + Wellness)</ColoredSubTabsTrigger>
+            {isFeminine && (
+              <ColoredSubTabsTrigger value="menstrual" colorKey="sante">Cycle Menstruel</ColoredSubTabsTrigger>
+            )}
+          </ColoredSubTabsList>
+        </div>
 
         <TabsContent value="tracking">
           <Card>
