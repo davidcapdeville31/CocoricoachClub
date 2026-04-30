@@ -13,7 +13,7 @@ import { TestBatteriesManager } from "./tests/TestBatteriesManager";
 import { formatCategoryLabel } from "./tests/customTestCatalog";
 import { CategoryVisibilityManager } from "./tests/CategoryVisibilityManager";
 import { Button } from "@/components/ui/button";
-import { FolderPlus, Plus } from "lucide-react";
+import { FolderPlus, Plus, ClipboardList } from "lucide-react";
 import { CreateCustomTestDialog } from "./tests/CreateCustomTestDialog";
 import { CreateThemeCategoryDialog } from "./tests/CreateThemeCategoryDialog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
@@ -171,11 +171,10 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
   const filteredNonRehab = testCategories.nonRehab.filter(c => visibleValues.has(c.value));
   const showRehab = testCategories.hasRehab && visibleValues.has("rehab");
 
-  const batteriesColorIndex = filteredNonRehab.length + (showRehab ? 2 : 1);
-
   const { isViewer } = useViewerModeContext();
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
   const [isCreateTestOpen, setIsCreateTestOpen] = useState(false);
+  const [isCreateBatteryOpen, setIsCreateBatteryOpen] = useState(false);
 
   return (
     <Card className="bg-gradient-card shadow-md">
@@ -189,6 +188,13 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
               </Button>
               <Button size="sm" variant="outline" onClick={() => setIsCreateTestOpen(true)}>
                 <Plus className="h-4 w-4 mr-1" /> Créer un test
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setIsCreateBatteryOpen(true)}
+                className="bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white hover:opacity-90 border-0"
+              >
+                <ClipboardList className="h-4 w-4 mr-1" /> Créer une batterie de tests
               </Button>
             </>
           )}
@@ -219,11 +225,6 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
                   colorIndex={filteredNonRehab.length + 1}
                 />
               )}
-              <TestCategoryTrigger
-                value="batteries"
-                label="🎯 Batteries"
-                colorIndex={batteriesColorIndex}
-              />
             </ColoredNavTabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -252,10 +253,16 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
             </TabsContent>
           )}
 
-          <TabsContent value="batteries" className="space-y-6">
-            <TestBatteriesManager categoryId={categoryId} />
-          </TabsContent>
         </Tabs>
+
+        <div className="mt-8">
+          <TestBatteriesManager
+            categoryId={categoryId}
+            externalCreateOpen={isCreateBatteryOpen}
+            onExternalCreateOpenChange={setIsCreateBatteryOpen}
+            hideCreateButton
+          />
+        </div>
       </CardContent>
 
       <CreateThemeCategoryDialog
