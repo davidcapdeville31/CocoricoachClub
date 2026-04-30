@@ -212,12 +212,12 @@ export default function Clubs() {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      <div className="bg-white py-6 sm:py-10 px-4 border-b border-border">
+      <div className="bg-white py-0 px-4 border-b border-border">
         <div className="container mx-auto max-w-6xl">
           {/* Header: title + actions on the same row */}
           <div className="flex items-center justify-between gap-3 sm:gap-4 min-w-0">
             <div className="flex items-center min-w-0 flex-1">
-              <img src={logoCoq} alt="CocoriCoach Club" className="h-32 sm:h-44 md:h-56 lg:h-64 w-auto shrink-0" />
+              <img src={logoCoq} alt="CocoriCoach Club" className="h-32 sm:h-44 md:h-56 lg:h-64 w-auto shrink-0 -my-6 sm:-my-8" />
             </div>
             <div className="flex items-center gap-0.5 sm:gap-2 shrink-0 [&_button]:text-[#ED2939] [&_button:hover]:bg-[#ED2939]/10">
               <NotificationBell variant="default" />
@@ -237,7 +237,7 @@ export default function Clubs() {
         </div>
       </div>
 
-      <div className="container mx-auto max-w-6xl px-4 py-8">
+      <div className="container mx-auto max-w-6xl px-4 py-4 sm:py-6">
         <InjuryReturnAlerts />
 
         {!isApproved && !isSuperAdmin && (
