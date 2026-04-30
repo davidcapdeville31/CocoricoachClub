@@ -162,6 +162,23 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
     } catch {}
   }, [visibleValues, storageKey, initialized]);
 
+  // Favorites persisted with the same key used by GenericTestsSection so they stay in sync
+  const favStorageKey = `tests-fav-categories:${categoryId}`;
+  const [favoriteValues, setFavoriteValues] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(favStorageKey);
+      if (raw) return new Set(JSON.parse(raw) as string[]);
+    } catch {}
+    return new Set();
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(favStorageKey, JSON.stringify(Array.from(favoriteValues)));
+    } catch {}
+    // Notify other components in the same tab (storage event only fires across tabs)
+    window.dispatchEvent(new CustomEvent("tests-fav-categories-changed", { detail: { key: favStorageKey } }));
+  }, [favoriteValues, favStorageKey]);
+
   const visibilityItems = useMemo(() => {
     const items = testCategories.nonRehab.map(c => ({ value: c.value, label: c.label }));
     if (testCategories.hasRehab) items.push({ value: "rehab", label: "Réathlétisation" });
