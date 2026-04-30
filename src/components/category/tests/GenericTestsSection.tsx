@@ -202,7 +202,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
       if (filterCategory !== "all") {
         query = query.eq("test_category", filterCategory);
       }
-      if (filterTestType !== "all") {
+      if (filterTestType !== "all" && !filterTestType.startsWith("custom:")) {
         query = query.eq("test_type", filterTestType);
       }
 
