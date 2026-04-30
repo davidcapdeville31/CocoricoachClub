@@ -520,7 +520,15 @@ export function SessionFormDialog({
     if (defaultDate) {
       setDate(defaultDate);
     }
-  }, [open, editSession, defaultDate]);
+    if (defaultTrainingType) {
+      setType(defaultTrainingType);
+    }
+    // Default recurrence ON when enabled
+    setRecurrenceEnabled(enableRecurrence);
+    setRecurrenceInterval(4);
+    setRecurrenceUnit("weeks");
+    setRecurrenceMonths(6);
+  }, [open, editSession, defaultDate, defaultTrainingType, enableRecurrence]);
 
   // Load existing exercises when available
   useEffect(() => {
