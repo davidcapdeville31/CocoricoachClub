@@ -374,22 +374,6 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
         </Card>
       )}
 
-      {/* Feedback */}
-      <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.gps.base}40`, backgroundColor: `${NAV_COLORS.gps.base}08` }}>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2" style={{ color: NAV_COLORS.gps.base }}>
-            <TrendingUp className="h-4 w-4" />
-            Feedback personnalisé
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {feedback.map((msg, i) => (
-              <p key={i} className="text-sm leading-relaxed">{msg}</p>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
