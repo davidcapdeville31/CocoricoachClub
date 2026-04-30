@@ -108,6 +108,16 @@ export function BowlingBlockManager({
   onLock,
   onUnlock,
 }: BowlingBlockManagerProps) {
+  // Track which locked rounds are expanded (default collapsed for compact view)
+  const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set());
+  const toggleRoundExpanded = (roundNumber: number) => {
+    setExpandedRounds(prev => {
+      const next = new Set(prev);
+      if (next.has(roundNumber)) next.delete(roundNumber);
+      else next.add(roundNumber);
+      return next;
+    });
+  };
   // Load oil patterns for the match
   const { data: oilPatterns } = useQuery({
     queryKey: ["bowling_oil_patterns", matchId],
