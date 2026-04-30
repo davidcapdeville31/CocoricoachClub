@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AvailabilityScoreTab } from "./AvailabilityScoreTab";
 import { InjuryRiskPrediction } from "@/components/analytics/InjuryRiskPrediction";
-import { AIPredictiveDashboard } from "@/components/analytics/AIPredictiveDashboard";
-import { Activity, AlertTriangle, Brain } from "lucide-react";
+import { Activity, AlertTriangle } from "lucide-react";
 
 interface PhysicalPreparationTabProps {
   categoryId: string;
@@ -31,10 +30,6 @@ export function PhysicalPreparationTab({ categoryId }: PhysicalPreparationTabPro
                 <AlertTriangle className="h-3.5 w-3.5 mr-1" />
                 Risques & Alertes
               </TabsTrigger>
-              <TabsTrigger value="ia-predictif" className="text-xs sm:text-sm">
-                <Brain className="h-3.5 w-3.5 mr-1" />
-                IA Prédictif
-              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="disponibilite">
@@ -45,9 +40,6 @@ export function PhysicalPreparationTab({ categoryId }: PhysicalPreparationTabPro
               <InjuryRiskPrediction categoryId={categoryId} />
             </TabsContent>
 
-            <TabsContent value="ia-predictif">
-              <AIPredictiveDashboard categoryId={categoryId} />
-            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
