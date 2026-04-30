@@ -27,6 +27,7 @@ import { format, addWeeks, isBefore, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { Badge } from "@/components/ui/badge";
+import { SessionFormDialog } from "@/components/category/sessions/SessionFormDialog";
 
 interface TestRemindersTabProps {
   categoryId: string;
