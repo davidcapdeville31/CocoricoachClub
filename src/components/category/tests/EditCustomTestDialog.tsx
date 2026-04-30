@@ -201,6 +201,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
         objectives: objectives.trim() || null,
         scoring_scale: enableScoring ? (scoringScale as any) : null,
         max_points: maxPoints,
+        image_url: imageUrl,
       };
 
       if (test.source === "custom" && test.id) {
