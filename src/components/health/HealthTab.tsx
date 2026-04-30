@@ -4,13 +4,11 @@ import { ConcussionProtocolTab } from "@/components/category/ConcussionProtocolT
 import { MedicalRecordsTab } from "./MedicalRecordsTab";
 import { RecoveryJournalTab } from "./RecoveryJournalTab";
 import { CoachDashboard } from "./CoachDashboard";
-import { ActiveProtocolsDashboard } from "@/components/rehab/ActiveProtocolsDashboard";
 import {
   Activity,
   Brain,
   Snowflake,
   LayoutDashboard,
-  Dumbbell,
 } from "lucide-react";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { useQuery } from "@tanstack/react-query";
