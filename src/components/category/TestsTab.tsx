@@ -9,8 +9,6 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ColoredNavTabsList } from "@/components/ui/colored-nav-tabs";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
-import { BenchmarkManager } from "./benchmarks/BenchmarkManager";
-import { BenchmarkComparison } from "./benchmarks/BenchmarkComparison";
 import { TestBatteriesManager } from "./tests/TestBatteriesManager";
 import { formatCategoryLabel } from "./tests/customTestCatalog";
 import { CategoryVisibilityManager } from "./tests/CategoryVisibilityManager";
