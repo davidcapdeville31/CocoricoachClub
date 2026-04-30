@@ -678,10 +678,32 @@ export default function AthleteSpace() {
           </TabsContent>
 
           <TabsContent value="wellness">
-            <AthleteSpaceWellness
-              playerId={athleteInfo.player_id}
-              categoryId={athleteInfo.category_id}
-            />
+            <Tabs defaultValue="wellness-entry" className="space-y-4">
+              <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-muted/40 rounded-xl p-1">
+                <TabsTrigger value="wellness-entry" className="flex-1 gap-1.5 rounded-lg">
+                  <Heart className="h-3.5 w-3.5" />
+                  Wellness
+                </TabsTrigger>
+                <TabsTrigger value="health-sub" className="flex-1 gap-1.5 rounded-lg">
+                  <Shield className="h-3.5 w-3.5" />
+                  Santé
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="wellness-entry">
+                <AthleteSpaceWellness
+                  playerId={athleteInfo.player_id}
+                  categoryId={athleteInfo.category_id}
+                />
+              </TabsContent>
+
+              <TabsContent value="health-sub">
+                <AthleteSpaceHealth
+                  playerId={athleteInfo.player_id}
+                  categoryId={athleteInfo.category_id}
+                />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="calendar">
@@ -697,13 +719,6 @@ export default function AthleteSpace() {
               playerId={athleteInfo.player_id}
               categoryId={athleteInfo.category_id}
               sportType={athleteInfo.sport_type}
-            />
-          </TabsContent>
-
-          <TabsContent value="health">
-            <AthleteSpaceHealth
-              playerId={athleteInfo.player_id}
-              categoryId={athleteInfo.category_id}
             />
           </TabsContent>
 
