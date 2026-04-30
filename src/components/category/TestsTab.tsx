@@ -9,6 +9,7 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
 import { BenchmarkManager } from "./benchmarks/BenchmarkManager";
 import { BenchmarkComparison } from "./benchmarks/BenchmarkComparison";
+import { TestBatteriesManager } from "./tests/TestBatteriesManager";
 
 interface TestsTabProps {
   categoryId: string;
