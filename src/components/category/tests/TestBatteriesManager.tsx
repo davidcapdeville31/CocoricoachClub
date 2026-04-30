@@ -15,11 +15,24 @@ import { toast } from "sonner";
 
 interface TestBatteriesManagerProps {
   categoryId: string;
+  externalCreateOpen?: boolean;
+  onExternalCreateOpenChange?: (open: boolean) => void;
+  hideCreateButton?: boolean;
 }
 
-export function TestBatteriesManager({ categoryId }: TestBatteriesManagerProps) {
+export function TestBatteriesManager({
+  categoryId,
+  externalCreateOpen,
+  onExternalCreateOpenChange,
+  hideCreateButton,
+}: TestBatteriesManagerProps) {
   const qc = useQueryClient();
-  const [createOpen, setCreateOpen] = useState(false);
+  const [internalCreateOpen, setInternalCreateOpen] = useState(false);
+  const createOpen = externalCreateOpen ?? internalCreateOpen;
+  const setCreateOpen = (v: boolean) => {
+    if (onExternalCreateOpenChange) onExternalCreateOpenChange(v);
+    else setInternalCreateOpen(v);
+  };
   const [editId, setEditId] = useState<string | null>(null);
   const [runId, setRunId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
