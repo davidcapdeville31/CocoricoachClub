@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { GenericTestsSection } from "./tests/GenericTestsSection";
@@ -10,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { BenchmarkManager } from "./benchmarks/BenchmarkManager";
 import { BenchmarkComparison } from "./benchmarks/BenchmarkComparison";
 import { TestBatteriesManager } from "./tests/TestBatteriesManager";
+import { formatCategoryLabel } from "./tests/customTestCatalog";
 
 interface TestsTabProps {
   categoryId: string;
