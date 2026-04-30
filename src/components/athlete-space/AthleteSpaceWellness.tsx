@@ -250,7 +250,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       </button>
 
       {expanded && (
-        <CardContent className="space-y-3 pt-0 pb-4 px-3 sm:px-6">
+        <CardContent className="space-y-2 pt-0 pb-4 px-2 sm:px-6">
           {WELLNESS_FIELDS.map(field => {
             const currentValue = (values as any)[field.key];
 
@@ -264,15 +264,15 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                       <Badge variant="secondary" className="ml-auto text-[10px] font-bold px-1.5 py-0">{currentValue}h</Badge>
                     )}
                   </Label>
-                  <div className="grid grid-cols-9 gap-1">
+                  <div className="grid grid-cols-9 gap-0.5 sm:gap-1">
                     {SLEEP_HOURS.map(hour => (
                       <button
                         key={hour}
                         type="button"
                         onClick={() => setValues(prev => ({ ...prev, [field.key]: hour }))}
                         className={cn(
-                          "h-9 rounded-lg text-xs font-semibold transition-all duration-150",
-                          "border-2 active:scale-95",
+                          "h-7 sm:h-8 rounded-md text-[11px] sm:text-xs font-semibold transition-all duration-150",
+                          "border active:scale-95",
                           currentValue === hour
                             ? "text-white shadow-sm"
                             : "bg-background border-border text-foreground"
@@ -300,7 +300,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                     </span>
                   )}
                 </Label>
-                <div className="grid grid-cols-5 gap-1">
+                <div className="grid grid-cols-5 gap-0.5 sm:gap-1">
                   {fieldOptions.map(opt => (
                     <button
                       key={opt.value}
@@ -308,8 +308,8 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                       title={opt.label}
                       onClick={() => setValues(prev => ({ ...prev, [field.key]: opt.value }))}
                       className={cn(
-                        "h-10 rounded-lg text-sm font-bold transition-all duration-150",
-                        "border-2 active:scale-95",
+                        "h-8 sm:h-9 rounded-md text-xs sm:text-sm font-bold transition-all duration-150",
+                        "border active:scale-95",
                         currentValue === opt.value
                           ? "text-white shadow-sm"
                           : "bg-background border-border text-foreground"
