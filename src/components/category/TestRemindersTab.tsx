@@ -615,6 +615,97 @@ export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
           </CardContent>
         </Card>
       )}
+
+      {/* Edit dialog */}
+      <Dialog open={!!editingReminder} onOpenChange={(o) => !o && setEditingReminder(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier le rappel de test</DialogTitle>
+            <DialogDescription>
+              Les séances futures associées seront régénérées automatiquement.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Type de test</Label>
+              <Select
+                value={editValues.test_type}
+                onValueChange={(value) => setEditValues({ ...editValues, test_type: value })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground font-semibold">— Vitesse & Endurance —</div>
+                  <SelectItem value="VMA">Test VMA (1600m)</SelectItem>
+                  <SelectItem value="Sprint">Sprint 40m</SelectItem>
+                  <SelectItem value="Sprint_10m">Sprint 10m</SelectItem>
+                  <SelectItem value="Sprint_20m">Sprint 20m</SelectItem>
+                  <SelectItem value="Sprint_30m">Sprint 30m</SelectItem>
+                  <SelectItem value="yo_yo">Yo-Yo Test</SelectItem>
+                  <SelectItem value="bronco">Bronco Test</SelectItem>
+                  <SelectItem value="beep_test">Beep Test</SelectItem>
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground font-semibold">— Force —</div>
+                  <SelectItem value="Force">Tests de Force (Général)</SelectItem>
+                  <SelectItem value="Bench_Press">Développé Couché 1RM</SelectItem>
+                  <SelectItem value="Squat">Squat 1RM</SelectItem>
+                  <SelectItem value="Deadlift">Soulevé de Terre 1RM</SelectItem>
+                  <SelectItem value="Pull_Ups">Tractions Max</SelectItem>
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground font-semibold">— Détente —</div>
+                  <SelectItem value="vertical_jump">Saut Vertical (CMJ)</SelectItem>
+                  <SelectItem value="squat_jump">Squat Jump</SelectItem>
+                  <SelectItem value="drop_jump">Drop Jump</SelectItem>
+                  <SelectItem value="horizontal_jump">Saut Horizontal</SelectItem>
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground font-semibold">— Mobilité —</div>
+                  <SelectItem value="fms">FMS</SelectItem>
+                  <SelectItem value="hip">Mobilité Hanche</SelectItem>
+                  <SelectItem value="shoulder">Mobilité Épaule</SelectItem>
+                  <SelectItem value="ankle">Mobilité Cheville</SelectItem>
+                  <SelectItem value="thomas_test">Thomas Test</SelectItem>
+                  <SelectItem value="sit_and_reach">Sit and Reach</SelectItem>
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground font-semibold">— Agilité —</div>
+                  <SelectItem value="agility">T-Test Agilité</SelectItem>
+                  <SelectItem value="illinois">Illinois Agility Test</SelectItem>
+                  <SelectItem value="pro_agility">Pro Agility (5-10-5)</SelectItem>
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground font-semibold">— Autre —</div>
+                  <SelectItem value="body_comp">Composition Corporelle</SelectItem>
+                  <SelectItem value="custom">Test Personnalisé</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Date de début</Label>
+              <Input
+                type="date"
+                value={editValues.start_date}
+                onChange={(e) => setEditValues({ ...editValues, start_date: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Fréquence</Label>
+              <Select
+                value={String(editValues.frequency_weeks)}
+                onValueChange={(value) => setEditValues({ ...editValues, frequency_weeks: parseInt(value) })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2">Toutes les 2 semaines</SelectItem>
+                  <SelectItem value="3">Toutes les 3 semaines</SelectItem>
+                  <SelectItem value="4">Toutes les 4 semaines</SelectItem>
+                  <SelectItem value="6">Toutes les 6 semaines</SelectItem>
+                  <SelectItem value="8">Toutes les 8 semaines</SelectItem>
+                  <SelectItem value="12">Toutes les 12 semaines</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              onClick={() => updateReminder.mutate()}
+              disabled={updateReminder.isPending}
+              className="w-full"
+            >
+              {updateReminder.isPending ? "Enregistrement..." : "Enregistrer les modifications"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
