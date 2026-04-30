@@ -189,6 +189,13 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
               <Button size="sm" variant="outline" onClick={() => setIsCreateTestOpen(true)}>
                 <Plus className="h-4 w-4 mr-1" /> Créer un test
               </Button>
+              <Button
+                size="sm"
+                onClick={() => setIsCreateBatteryOpen(true)}
+                className="bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white hover:opacity-90 border-0"
+              >
+                <ClipboardList className="h-4 w-4 mr-1" /> Créer une batterie de tests
+              </Button>
             </>
           )}
           <CategoryVisibilityManager
