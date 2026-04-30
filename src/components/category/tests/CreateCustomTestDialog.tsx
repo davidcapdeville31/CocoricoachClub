@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -7,13 +7,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel,
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
-import { formatCategoryLabel, normalizeCustomTestType } from "./customTestCatalog";
+import { formatCategoryLabel } from "./customTestCatalog";
 import { TEST_UNIT_OPTIONS, getUnitByKind, type ScoringScale } from "@/lib/constants/testUnits";
 import { ScoringScaleEditor } from "./ScoringScaleEditor";
 
@@ -27,12 +28,11 @@ interface CreateCustomTestDialogProps {
 export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportType }: CreateCustomTestDialogProps) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
-  const [categoryMode, setCategoryMode] = useState<"existing" | "new">("existing");
   const [testCategory, setTestCategory] = useState("");
-  const [newCategoryName, setNewCategoryName] = useState("");
   const [unitKind, setUnitKind] = useState<string>("");
   const [customUnit, setCustomUnit] = useState("");
   const [description, setDescription] = useState("");
+  const [objectives, setObjectives] = useState("");
   const [enableScoring, setEnableScoring] = useState(false);
   const [scoringScale, setScoringScale] = useState<ScoringScale | null>(null);
 
@@ -40,6 +40,21 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
     return getTestCategoriesForSport(sportType || "").filter(c => !c.value.startsWith("rehab_"));
   }, [sportType]);
 
+  // Catégories créées via "Créer une catégorie" (thématiques vides ou non)
+  const { data: themeCategories } = useQuery({
+    queryKey: ["test-theme-categories", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("test_theme_categories" as any)
+        .select("value, label")
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return (data || []) as unknown as Array<{ value: string; label: string }>;
+    },
+    enabled: open,
+  });
+
+  // Catégories déjà utilisées par un test custom
   const { data: existingCustomCategories } = useQuery({
     queryKey: ["custom-test-categories", categoryId],
     queryFn: async () => {
@@ -47,9 +62,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
         .from("custom_test_categories")
         .select("custom_tests(test_category)")
         .eq("category_id", categoryId);
-
       if (error) throw error;
-
       return Array.from(
         new Set(
           (data || [])
@@ -62,16 +75,18 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
   });
 
   const testCategories = useMemo(() => {
-    const categoryMap = new Map(baseTestCategories.map((category) => [category.value, category.label]));
+    const categoryMap = new Map(baseTestCategories.map((c) => [c.value, c.label]));
 
-    (existingCustomCategories || []).forEach((categoryValue) => {
-      if (!categoryMap.has(categoryValue)) {
-        categoryMap.set(categoryValue, formatCategoryLabel(categoryValue));
-      }
+    (themeCategories || []).forEach((tc) => {
+      if (!categoryMap.has(tc.value)) categoryMap.set(tc.value, tc.label);
+    });
+
+    (existingCustomCategories || []).forEach((value) => {
+      if (!categoryMap.has(value)) categoryMap.set(value, formatCategoryLabel(value));
     });
 
     return Array.from(categoryMap.entries()).map(([value, label]) => ({ value, label }));
-  }, [baseTestCategories, existingCustomCategories]);
+  }, [baseTestCategories, themeCategories, existingCustomCategories]);
 
   const groupedUnits = useMemo(() => {
     const groups = new Map<string, typeof TEST_UNIT_OPTIONS>();
@@ -100,20 +115,10 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
     mutationFn: async () => {
       if (!categoryData?.club_id) throw new Error("Club introuvable");
       const trimmedName = name.trim();
-      const trimmedDescription = description.trim();
-      const finalCategory = categoryMode === "new" ? normalizeCustomTestType(newCategoryName) : testCategory;
-
       if (!trimmedName) throw new Error("Le nom du test est requis");
-      if (!finalCategory) throw new Error("La catégorie du test est requise");
+      if (!testCategory) throw new Error("Choisissez une catégorie");
       if (!unitKind) throw new Error("Choisissez une unité de mesure");
       if (unitKind === "custom" && !customUnit.trim()) throw new Error("Saisissez l'unité personnalisée");
-
-      if (categoryMode === "new") {
-        const existingCategoryValues = new Set(testCategories.map((category) => category.value));
-        if (existingCategoryValues.has(finalCategory)) {
-          throw new Error("Cette catégorie existe déjà. Sélectionnez-la dans la liste.");
-        }
-      }
 
       const maxPoints = enableScoring && scoringScale
         ? scoringScale.ranges.reduce((m, r) => Math.max(m, r.points), 0)
@@ -126,11 +131,12 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
         .insert({
           club_id: categoryData.club_id,
           name: trimmedName,
-          test_category: finalCategory,
+          test_category: testCategory,
           unit: effectiveUnit || null,
           unit_kind: unitKind,
           is_time: isTime,
-          description: trimmedDescription || null,
+          description: description.trim() || null,
+          objectives: objectives.trim() || null,
           scoring_scale: enableScoring ? (scoringScale as any) : null,
           max_points: maxPoints,
           created_by: user?.user?.id || null,
@@ -147,7 +153,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
       if (linkError) throw linkError;
     },
     onSuccess: () => {
-      toast.success("Test personnalisé créé avec succès");
+      toast.success("Test créé avec succès");
       queryClient.invalidateQueries({ queryKey: ["custom-test-categories", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["custom-tests", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["generic_tests_discovery", categoryId] });
@@ -161,21 +167,19 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
 
   const resetForm = () => {
     setName("");
-    setCategoryMode("existing");
     setTestCategory("");
-    setNewCategoryName("");
     setUnitKind("");
     setCustomUnit("");
     setDescription("");
+    setObjectives("");
     setEnableScoring(false);
     setScoringScale(null);
   };
 
   const handleSubmit = () => {
     if (createTest.isPending) return;
+    if (!testCategory) return toast.error("Choisissez une catégorie");
     if (!name.trim()) return toast.error("Le nom du test est requis");
-    if (categoryMode === "existing" && !testCategory) return toast.error("Choisissez une catégorie de test");
-    if (categoryMode === "new" && !newCategoryName.trim()) return toast.error("Saisissez le nom de la nouvelle catégorie");
     if (!unitKind) return toast.error("Choisissez une unité de mesure");
     if (unitKind === "custom" && !customUnit.trim()) return toast.error("Saisissez l'unité personnalisée");
     createTest.mutate();
@@ -185,49 +189,38 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Créer un test personnalisé</DialogTitle>
+          <DialogTitle>Créer un test</DialogTitle>
           <DialogDescription>
-            Configurez l'unité de mesure et un barème de notation optionnel.
+            Ajoutez un test dans une catégorie existante. Pour créer une nouvelle catégorie, utilisez le bouton "Créer une catégorie".
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Catégorie</Label>
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" size="sm" variant={categoryMode === "existing" ? "default" : "outline"}
-                onClick={() => { setCategoryMode("existing"); setNewCategoryName(""); }}>
-                Catégorie existante
-              </Button>
-              <Button type="button" size="sm" variant={categoryMode === "new" ? "default" : "outline"}
-                onClick={() => { setCategoryMode("new"); setTestCategory(""); }}>
-                Nouvelle catégorie
-              </Button>
-            </div>
-
-            {categoryMode === "existing" ? (
-              <Select value={testCategory} onValueChange={setTestCategory}>
-                <SelectTrigger><SelectValue placeholder="Choisir une catégorie..." /></SelectTrigger>
-                <SelectContent>
-                  {testCategories.map(cat => (
-                    <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <Input value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)}
-                placeholder="Ex: Coordination spécifique bowling" />
+          <div className="space-y-1.5">
+            <Label>Catégorie <span className="text-destructive">*</span></Label>
+            <Select value={testCategory} onValueChange={setTestCategory}>
+              <SelectTrigger><SelectValue placeholder="Choisir une catégorie..." /></SelectTrigger>
+              <SelectContent>
+                {testCategories.map(cat => (
+                  <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {testCategories.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Aucune catégorie disponible. Créez d'abord une catégorie.
+              </p>
             )}
           </div>
 
           <div className="space-y-1.5">
-            <Label>Nom du test</Label>
+            <Label>Nom du test <span className="text-destructive">*</span></Label>
             <Input value={name} onChange={e => setName(e.target.value)}
               placeholder="Ex: Équilibre unipodal yeux fermés" />
           </div>
 
           <div className="space-y-1.5">
-            <Label>Unité de mesure</Label>
+            <Label>Unité de mesure <span className="text-destructive">*</span></Label>
             <Select value={unitKind} onValueChange={setUnitKind}>
               <SelectTrigger><SelectValue placeholder="Choisir une unité..." /></SelectTrigger>
               <SelectContent>
@@ -249,8 +242,14 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
 
           <div className="space-y-1.5">
             <Label>Description (optionnel)</Label>
-            <Input value={description} onChange={e => setDescription(e.target.value)}
-              placeholder="Description du test..." />
+            <Textarea value={description} onChange={e => setDescription(e.target.value)}
+              placeholder="Comment se déroule le test, protocole..." rows={2} />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Objectifs (optionnel)</Label>
+            <Textarea value={objectives} onChange={e => setObjectives(e.target.value)}
+              placeholder="Ce que ce test cherche à évaluer ou améliorer..." rows={2} />
           </div>
 
           <div className="flex items-center justify-between rounded-2xl border bg-muted/40 p-4">
@@ -275,7 +274,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
           <Button onClick={handleSubmit}>
-            {createTest.isPending ? "Création..." : "Créer"}
+            {createTest.isPending ? "Création..." : "Créer le test"}
           </Button>
         </DialogFooter>
       </DialogContent>

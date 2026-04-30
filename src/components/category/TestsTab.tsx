@@ -91,18 +91,42 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
     },
   });
 
+  const { data: themeCategories } = useQuery({
+    queryKey: ["test-theme-categories", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("test_theme_categories" as any)
+        .select("value, label")
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return (data || []) as unknown as Array<{ value: string; label: string }>;
+    },
+  });
+
   const testCategories = useMemo(() => {
     const all = getTestCategoriesForSport(sportType || "");
     const nonRehab = all.filter(c => !c.value.startsWith("rehab_"));
     const hasRehab = all.some(c => c.value.startsWith("rehab_"));
 
     const existingValues = new Set(nonRehab.map(c => c.value));
-    const extra = (customCategoryValues || [])
-      .filter(v => !existingValues.has(v) && !v.startsWith("rehab_"))
-      .map(v => ({ value: v, label: formatCategoryLabel(v), tests: [] as any[] }));
+    const extras: Array<{ value: string; label: string; tests: any[] }> = [];
 
-    return { nonRehab: [...nonRehab, ...extra], hasRehab };
-  }, [sportType, customCategoryValues]);
+    (themeCategories || []).forEach((tc) => {
+      if (!existingValues.has(tc.value) && !tc.value.startsWith("rehab_")) {
+        extras.push({ value: tc.value, label: tc.label, tests: [] });
+        existingValues.add(tc.value);
+      }
+    });
+
+    (customCategoryValues || []).forEach((v) => {
+      if (!existingValues.has(v) && !v.startsWith("rehab_")) {
+        extras.push({ value: v, label: formatCategoryLabel(v), tests: [] });
+        existingValues.add(v);
+      }
+    });
+
+    return { nonRehab: [...nonRehab, ...extras], hasRehab };
+  }, [sportType, customCategoryValues, themeCategories]);
 
   const benchmarkColorIndex = testCategories.nonRehab.length + (testCategories.hasRehab ? 2 : 1);
 

@@ -20,8 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Filter, ClipboardList, CalendarPlus } from "lucide-react";
+import { Plus, Trash2, Filter, ClipboardList, CalendarPlus, FolderPlus } from "lucide-react";
 import { CreateCustomTestDialog } from "./CreateCustomTestDialog";
+import { CreateThemeCategoryDialog } from "./CreateThemeCategoryDialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -40,6 +41,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [isCreateTestDialogOpen, setIsCreateTestDialogOpen] = useState(false);
+  const [isCreateCategoryDialogOpen, setIsCreateCategoryDialogOpen] = useState(false);
   const isRehabMode = defaultCategory === "rehab";
   const isSingleCategoryMode = !!defaultCategory && defaultCategory !== "rehab" && defaultCategory !== "all";
   const [filterCategory, setFilterCategory] = useState<string>(
@@ -191,6 +193,9 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
           <div className="flex gap-2">
             <Button size="sm" onClick={() => setIsDialogOpen(true)}>
               <ClipboardList className="h-4 w-4 mr-1" /> Saisir des résultats
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setIsCreateCategoryDialogOpen(true)}>
+              <FolderPlus className="h-4 w-4 mr-1" /> Créer une catégorie
             </Button>
             <Button size="sm" variant="outline" onClick={() => setIsCreateTestDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-1" /> Créer un test
@@ -349,6 +354,12 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         onOpenChange={setIsCreateTestDialogOpen}
         categoryId={categoryId}
         sportType={sportType}
+      />
+
+      <CreateThemeCategoryDialog
+        open={isCreateCategoryDialogOpen}
+        onOpenChange={setIsCreateCategoryDialogOpen}
+        categoryId={categoryId}
       />
     </Card>
   );
