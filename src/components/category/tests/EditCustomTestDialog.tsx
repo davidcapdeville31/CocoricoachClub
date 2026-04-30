@@ -52,6 +52,8 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
   const [objectives, setObjectives] = useState("");
   const [enableScoring, setEnableScoring] = useState(false);
   const [scoringScale, setScoringScale] = useState<ScoringScale | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Initialise le formulaire quand un test est sélectionné
   useEffect(() => {
@@ -73,7 +75,37 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
     setObjectives(test.objectives || "");
     setEnableScoring(!!test.scoring_scale);
     setScoringScale(test.scoring_scale || null);
+    setImageUrl(test.image_url || null);
   }, [open, test]);
+
+  const handleImageUpload = async (file: File) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Veuillez sélectionner une image");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image trop volumineuse (max 5 Mo)");
+      return;
+    }
+    setIsUploadingImage(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${categoryId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("test-images").upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("test-images").getPublicUrl(path);
+      setImageUrl(pub.publicUrl);
+      toast.success("Image ajoutée");
+    } catch (e: any) {
+      toast.error("Erreur upload: " + (e?.message || "inconnue"));
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const baseTestCategories = useMemo(() => {
     return getTestCategoriesForSport(sportType || "").filter(c => !c.value.startsWith("rehab_"));
