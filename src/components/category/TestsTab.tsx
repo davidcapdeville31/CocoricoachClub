@@ -225,11 +225,6 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
                   colorIndex={filteredNonRehab.length + 1}
                 />
               )}
-              <TestCategoryTrigger
-                value="batteries"
-                label="🎯 Batteries"
-                colorIndex={batteriesColorIndex}
-              />
             </ColoredNavTabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
