@@ -83,7 +83,11 @@ export function CategoryVisibilityManager({
         <Separator />
         <ScrollArea className="h-[60vh] max-h-[400px]">
           <div className="p-2 space-y-1">
-            {items.map((item) => {
+            {(() => {
+              const favs = items.filter((i) => favoriteValues?.has(i.value));
+              const others = items.filter((i) => !favoriteValues?.has(i.value));
+              return [...favs, ...others];
+            })().map((item) => {
               const checked = visibleValues.has(item.value);
               const isFav = favoriteValues?.has(item.value) ?? false;
               return (
