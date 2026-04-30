@@ -19,6 +19,7 @@ import {
   HeartPulse,
 } from "lucide-react";
 import { RecoveryDashboard } from "./RecoveryDashboard";
+import { SleepAnalytics } from "./SleepAnalytics";
 import { format, differenceInDays, addDays, isSameMonth, parseISO, isValid } from "date-fns";
 
 const safeFormat = (date: Date | string | null | undefined, fmt: string, options?: any): string => {
