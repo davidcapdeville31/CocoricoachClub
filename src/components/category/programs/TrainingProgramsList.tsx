@@ -42,6 +42,7 @@ export function TrainingProgramsList({ categoryId }: TrainingProgramsListProps) 
           )
         `)
         .eq("category_id", categoryId)
+        .or("program_kind.eq.training,program_kind.is.null")
         .order("created_at", { ascending: false });
 
       if (error) throw error;

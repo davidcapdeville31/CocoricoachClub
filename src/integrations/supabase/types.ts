@@ -4303,6 +4303,56 @@ export type Database = {
           },
         ]
       }
+      injury_library: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          injury_category: string
+          is_system_default: boolean
+          name: string
+          typical_duration_days_max: number | null
+          typical_duration_days_min: number | null
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          injury_category: string
+          is_system_default?: boolean
+          name: string
+          typical_duration_days_max?: number | null
+          typical_duration_days_min?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          injury_category?: string
+          is_system_default?: boolean
+          name?: string
+          typical_duration_days_max?: number | null
+          typical_duration_days_min?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "injury_library_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       injury_protocols: {
         Row: {
           category_id: string | null
@@ -11470,9 +11520,11 @@ export type Database = {
           created_by: string | null
           description: string | null
           id: string
+          injury_library_id: string | null
           is_active: boolean | null
           level: string | null
           name: string
+          program_kind: string
           reathletisation_phase: string | null
           theme: string | null
           updated_at: string
@@ -11484,9 +11536,11 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          injury_library_id?: string | null
           is_active?: boolean | null
           level?: string | null
           name: string
+          program_kind?: string
           reathletisation_phase?: string | null
           theme?: string | null
           updated_at?: string
@@ -11498,9 +11552,11 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          injury_library_id?: string | null
           is_active?: boolean | null
           level?: string | null
           name?: string
+          program_kind?: string
           reathletisation_phase?: string | null
           theme?: string | null
           updated_at?: string
@@ -11511,6 +11567,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_programs_injury_library_fk"
+            columns: ["injury_library_id"]
+            isOneToOne: false
+            referencedRelation: "injury_library"
             referencedColumns: ["id"]
           },
         ]

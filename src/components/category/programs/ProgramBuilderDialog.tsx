@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { getTrainingTypesForSport } from "@/lib/constants/trainingTypes";
 // Protocols are now fetched from the database (injury_protocols table)
 import { Card, CardContent } from "@/components/ui/card";
+import { InjuryLibraryDialog } from "./InjuryLibraryDialog";
 
 interface ProgramBuilderDialogProps {
   categoryId: string;
@@ -169,6 +170,8 @@ export function ProgramBuilderDialog({
   const [activeExercise, setActiveExercise] = useState<any>(null);
   const [selectedInjuryId, setSelectedInjuryId] = useState<string>("");
   const [selectedInjuryType, setSelectedInjuryType] = useState<string>("");
+  const [injuryLibraryId, setInjuryLibraryId] = useState<string>("");
+  const [showInjuryLibrary, setShowInjuryLibrary] = useState(false);
   const [rehabPhasesConfig, setRehabPhasesConfig] = useState([
     { key: "phase_1", name: "Phase 1 - Protection / Mobilité", enabled: true, sessions: 3, sessionNames: ["Contrôle douleur", "Mobilité passive", "Contractions isométriques"] },
     { key: "phase_2", name: "Phase 2 - Renforcement progressif", enabled: true, sessions: 3, sessionNames: ["Renforcement concentrique", "Renforcement excentrique", "Proprioception"] },
@@ -231,6 +234,22 @@ export function ProgramBuilderDialog({
       return data;
     },
     enabled: !!categoryId && open && theme === "reathletisation",
+  });
+
+  // Fetch injury library (system defaults + category-specific) — for rehab program selector
+  const { data: injuryLibrary } = useQuery({
+    queryKey: ["injury-library", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("injury_library")
+        .select("id, name, injury_category, description, typical_duration_days_min, typical_duration_days_max, is_system_default")
+        .or(`is_system_default.eq.true,category_id.eq.${categoryId}`)
+        .order("injury_category")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!categoryId && open && (rehabMode || theme === "reathletisation"),
   });
 
   // Build THEMES with dynamic terrain options based on sport
@@ -335,6 +354,7 @@ export function ProgramBuilderDialog({
       setBodyZone(existingProgram.body_zone || "");
       setTheme(existingProgram.theme || "");
       setSubTheme(existingProgram.reathletisation_phase || "");
+      setInjuryLibraryId((existingProgram as any).injury_library_id || "");
 
       const loadedWeeks: ProgramWeek[] = existingProgram.weeks?.map((w: any) => ({
         id: w.id,
@@ -382,6 +402,10 @@ export function ProgramBuilderDialog({
       // Set defaults for rehab mode
       if (rehabMode && !name) {
         setName(`Programme réathléthisation - ${rehabPhaseName || "Phase"}`);
+        setTheme("reathletisation");
+      }
+      // When opened via Rehab tab, force theme = reathletisation
+      if (rehabMode) {
         setTheme("reathletisation");
       }
       setBlocks([createEmptyBlock(1)]);
@@ -518,7 +542,9 @@ export function ProgramBuilderDialog({
             body_zone: bodyZone || null,
             theme: theme || null,
             reathletisation_phase: subTheme || null,
-          })
+            program_kind: rehabMode ? "rehab" : "training",
+            injury_library_id: rehabMode ? (injuryLibraryId || null) : null,
+          } as any)
           .eq("id", programId);
 
         if (error) throw error;
@@ -537,7 +563,9 @@ export function ProgramBuilderDialog({
             body_zone: bodyZone || null,
             theme: theme || null,
             reathletisation_phase: subTheme || null,
-          })
+            program_kind: rehabMode ? "rehab" : "training",
+            injury_library_id: rehabMode ? (injuryLibraryId || null) : null,
+          } as any)
           .select()
           .single();
 
@@ -741,7 +769,56 @@ export function ProgramBuilderDialog({
                           <AlertTriangle className="h-5 w-5" />
                           <span className="font-semibold">Programme de réathlétisation</span>
                         </div>
-                        
+
+                        {/* Injury library dropdown (pre-registered + custom) */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label>Blessure ciblée (bibliothèque)</Label>
+                            <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setShowInjuryLibrary(true)}>
+                              <Plus className="h-3 w-3 mr-1" />
+                              Gérer les blessures
+                            </Button>
+                          </div>
+                          <Select value={injuryLibraryId} onValueChange={(v) => {
+                            setInjuryLibraryId(v);
+                            const inj = injuryLibrary?.find((i: any) => i.id === v);
+                            if (inj && !name) {
+                              setName(`Réhab — ${inj.name}`);
+                            }
+                          }}>
+                            <SelectTrigger><SelectValue placeholder="Choisir une blessure..." /></SelectTrigger>
+                            <SelectContent className="z-[9999] max-h-80">
+                              {injuryLibrary && injuryLibrary.length > 0 ? (
+                                Object.entries(
+                                  injuryLibrary.reduce((acc: Record<string, any[]>, i: any) => {
+                                    (acc[i.injury_category] ||= []).push(i);
+                                    return acc;
+                                  }, {})
+                                ).map(([cat, list]) => (
+                                  <div key={cat}>
+                                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase">{cat}</div>
+                                    {(list as any[]).map((i) => (
+                                      <SelectItem key={i.id} value={i.id}>
+                                        <div className="flex items-center gap-2">
+                                          <span>{i.name}</span>
+                                          {i.is_system_default && <Badge variant="secondary" className="text-[10px] h-4">Sys</Badge>}
+                                          {(i.typical_duration_days_min || i.typical_duration_days_max) && (
+                                            <Badge variant="outline" className="text-[10px] h-4">
+                                              {i.typical_duration_days_min}–{i.typical_duration_days_max} j
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                  </div>
+                                ))
+                              ) : (
+                                <SelectItem value="__none__" disabled>Aucune blessure dans la bibliothèque</SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {/* Select from active injuries */}
                           <div className="space-y-2">
@@ -1036,6 +1113,13 @@ export function ProgramBuilderDialog({
           </DragOverlay>
         </DndContext>
       </DialogContent>
+      {showInjuryLibrary && (
+        <InjuryLibraryDialog
+          categoryId={categoryId}
+          open={showInjuryLibrary}
+          onOpenChange={setShowInjuryLibrary}
+        />
+      )}
     </Dialog>
   );
 }

@@ -6,7 +6,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, Copy, Trash2, Plus, Layers } from "lucide-react";
+import { ChevronDown, Copy, Trash2, Plus, Layers, Pencil, Check } from "lucide-react";
 import { ProgramWeekSection } from "./ProgramWeekSection";
 
 interface ProgramExercise {
@@ -164,26 +164,55 @@ export function ProgramBlockSection({
                 className={`h-4 w-4 transition-transform ${isOpen ? "" : "-rotate-90"}`}
               />
               {isEditingName ? (
-                <Input
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  onBlur={handleNameSave}
-                  onKeyDown={(e) => e.key === "Enter" && handleNameSave()}
-                  className="h-7 w-48 text-sm font-semibold"
-                  autoFocus
-                  onClick={(e) => e.stopPropagation()}
-                />
+                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                  <Input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    onBlur={handleNameSave}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleNameSave();
+                      if (e.key === "Escape") setIsEditingName(false);
+                    }}
+                    className="h-7 w-56 text-sm font-semibold"
+                    autoFocus
+                    placeholder="Ex: Bloc 1 : Réathlétisation"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={handleNameSave}
+                    title="Valider"
+                  >
+                    <Check className="h-4 w-4 text-emerald-600" />
+                  </Button>
+                </div>
               ) : (
-                <span
-                  className={`font-semibold cursor-text ${color.label}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsEditingName(true);
-                    setEditName(block.name);
-                  }}
-                >
-                  {block.name}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={`font-semibold cursor-text ${color.label}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsEditingName(true);
+                      setEditName(block.name);
+                    }}
+                  >
+                    {block.name}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 opacity-70 hover:opacity-100"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsEditingName(true);
+                      setEditName(block.name);
+                    }}
+                    title="Renommer le bloc"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               )}
               <span className="text-sm text-muted-foreground">
                 {block.weeks.length} sem. · {totalSessions} séance{totalSessions > 1 ? "s" : ""}

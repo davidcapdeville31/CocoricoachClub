@@ -1,8 +1,8 @@
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { FolderOpen, Dumbbell, ShieldCheck } from "lucide-react";
+import { FolderOpen, ShieldCheck, HeartPulse } from "lucide-react";
 import { TrainingProgramsList } from "./TrainingProgramsList";
-import { ProtocolManager } from "@/components/injuries/ProtocolManager";
 import { ProphylaxisTab } from "./ProphylaxisTab";
+import { RehabProgramsList } from "./RehabProgramsList";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 
 interface ProgramsTabProps {
@@ -31,12 +31,12 @@ export function ProgramsTab({ categoryId }: ProgramsTabProps) {
             <span className="sm:hidden">Prophylaxie</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger
-            value="protocols"
+            value="rehab"
             colorKey="programmation"
-            icon={<Dumbbell className="h-4 w-4" />}
+            icon={<HeartPulse className="h-4 w-4" />}
           >
-            <span className="hidden sm:inline">Protocoles de réhabilitation</span>
-            <span className="sm:hidden">Protocoles</span>
+            <span className="hidden sm:inline">Programme de réhabilitation</span>
+            <span className="sm:hidden">Réhabilitation</span>
           </ColoredSubTabsTrigger>
         </ColoredSubTabsList>
       </div>
@@ -49,8 +49,8 @@ export function ProgramsTab({ categoryId }: ProgramsTabProps) {
         <ProphylaxisTab categoryId={categoryId} />
       </TabsContent>
 
-      <TabsContent value="protocols">
-        <ProtocolManager categoryId={categoryId} />
+      <TabsContent value="rehab">
+        <RehabProgramsList categoryId={categoryId} />
       </TabsContent>
     </Tabs>
   );
