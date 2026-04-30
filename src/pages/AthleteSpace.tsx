@@ -551,19 +551,6 @@ export default function AthleteSpace() {
                 Performance
               </TabsTrigger>
               <TabsTrigger 
-                value="objectives"
-                 className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
-                 style={{
-                   color: NAV_COLORS.planification.base,
-                  backgroundColor: `${NAV_COLORS.planification.base}15`,
-                  borderBottom: `3px solid ${NAV_COLORS.planification.base}`,
-                  ["--tab-color" as string]: NAV_COLORS.planification.base,
-                }}
-              >
-                <Target className="h-3.5 w-3.5" />
-                Objectifs
-              </TabsTrigger>
-              <TabsTrigger 
                 value="health"
                  className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
                  style={{
