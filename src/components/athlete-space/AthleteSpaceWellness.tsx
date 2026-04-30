@@ -249,36 +249,36 @@ export function AthleteSpaceWellness({ playerId, categoryId }: Props) {
       </button>
 
       {expanded && (
-        <CardContent className="space-y-5 pt-0">
+        <CardContent className="space-y-3 pt-0 pb-4 px-3 sm:px-6">
           {WELLNESS_FIELDS.map(field => {
             const currentValue = (values as any)[field.key];
 
             if ('isNumber' in field && field.isNumber) {
               return (
                 <div key={field.key}>
-                  <Label className="text-sm flex items-center gap-1.5 mb-3">
-                    <span className="text-base">{field.emoji}</span>
+                  <Label className="text-xs flex items-center gap-1.5 mb-1.5">
+                    <span className="text-sm">{field.emoji}</span>
                     {field.label}
                     {currentValue > 0 && (
-                      <Badge variant="secondary" className="ml-auto text-xs font-bold">{currentValue}h</Badge>
+                      <Badge variant="secondary" className="ml-auto text-[10px] font-bold px-1.5 py-0">{currentValue}h</Badge>
                     )}
                   </Label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-9 gap-1">
                     {SLEEP_HOURS.map(hour => (
                       <button
                         key={hour}
                         type="button"
                         onClick={() => setValues(prev => ({ ...prev, [field.key]: hour }))}
                         className={cn(
-                          "h-10 w-12 rounded-xl text-sm font-semibold transition-all duration-200",
-                          "border-2 hover:scale-105 active:scale-95",
+                          "h-9 rounded-lg text-xs font-semibold transition-all duration-150",
+                          "border-2 active:scale-95",
                           currentValue === hour
-                            ? "text-white shadow-md scale-105"
-                            : "bg-background border-border text-foreground hover:border-primary/50"
+                            ? "text-white shadow-sm"
+                            : "bg-background border-border text-foreground"
                         )}
                         style={currentValue === hour ? { backgroundColor: NAV_COLORS.sante.base, borderColor: NAV_COLORS.sante.base } : {}}
                       >
-                        {hour}h
+                        {hour}
                       </button>
                     ))}
                   </div>
@@ -290,29 +290,32 @@ export function AthleteSpaceWellness({ playerId, categoryId }: Props) {
 
             return (
               <div key={field.key}>
-                <Label className="text-sm flex items-center gap-1.5 mb-3">
-                  <span className="text-base">{field.emoji}</span>
-                  {field.label}
+                <Label className="text-xs flex items-center gap-1.5 mb-1.5">
+                  <span className="text-sm">{field.emoji}</span>
+                  <span className="flex-1 truncate">{field.label}</span>
                   {currentValue > 0 && (
-                    <Badge variant="secondary" className="ml-auto text-xs font-bold">{currentValue}/5</Badge>
+                    <span className="text-[10px] text-muted-foreground truncate max-w-[60%] text-right">
+                      {fieldOptions.find(o => o.value === currentValue)?.label}
+                    </span>
                   )}
                 </Label>
-                <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-5 gap-1">
                   {fieldOptions.map(opt => (
                     <button
                       key={opt.value}
                       type="button"
+                      title={opt.label}
                       onClick={() => setValues(prev => ({ ...prev, [field.key]: opt.value }))}
                       className={cn(
-                        "w-full text-left px-4 py-2.5 rounded-xl transition-all duration-200",
-                        "border-2 hover:scale-[1.01] active:scale-[0.99]",
+                        "h-10 rounded-lg text-sm font-bold transition-all duration-150",
+                        "border-2 active:scale-95",
                         currentValue === opt.value
-                          ? "shadow-md text-white font-semibold"
-                          : "bg-background border-border text-foreground hover:border-primary/50"
+                          ? "text-white shadow-sm"
+                          : "bg-background border-border text-foreground"
                       )}
                       style={currentValue === opt.value ? { backgroundColor: NAV_COLORS.sante.base, borderColor: NAV_COLORS.sante.base } : {}}
                     >
-                      <span className="text-sm">{opt.label}</span>
+                      {opt.value}
                     </button>
                   ))}
                 </div>
@@ -320,20 +323,20 @@ export function AthleteSpaceWellness({ playerId, categoryId }: Props) {
             );
           })}
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 pt-1">
             <Checkbox checked={hasSpecificPain} onCheckedChange={(v) => {
               setHasSpecificPain(!!v);
               if (!v) { setPainZone(""); setPainLocation(""); }
             }} />
-            <Label className="text-sm">J'ai une douleur spécifique</Label>
+            <Label className="text-xs">J'ai une douleur spécifique</Label>
           </div>
 
           {hasSpecificPain && (
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div>
-                <Label className="text-sm mb-1.5 block">Zone du corps</Label>
+                <Label className="text-xs mb-1 block">Zone du corps</Label>
                 <Select value={painZone} onValueChange={(v) => { setPainZone(v); setPainLocation(""); }}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9 text-sm">
                     <SelectValue placeholder="Sélectionner une zone" />
                   </SelectTrigger>
                   <SelectContent>
@@ -346,9 +349,9 @@ export function AthleteSpaceWellness({ playerId, categoryId }: Props) {
 
               {painZone && (
                 <div>
-                  <Label className="text-sm mb-1.5 block">Préciser la localisation</Label>
+                  <Label className="text-xs mb-1 block">Localisation</Label>
                   <Select value={painLocation} onValueChange={setPainLocation}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9 text-sm">
                       <SelectValue placeholder="Sélectionner la localisation" />
                     </SelectTrigger>
                     <SelectContent>
@@ -363,33 +366,33 @@ export function AthleteSpaceWellness({ playerId, categoryId }: Props) {
           )}
 
           <div>
-            <Label className="text-sm">Notes</Label>
+            <Label className="text-xs">Notes (optionnel)</Label>
             <Textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder="Remarques, sensations..."
-              className="mt-1"
+              className="mt-1 text-sm"
               rows={2}
             />
           </div>
 
           {/* HRV morning data (optional) */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Checkbox checked={showHrv} onCheckedChange={(v) => {
                 setShowHrv(!!v);
                 if (!v) { setHrvMs(""); setRestingHr(""); }
               }} />
-              <Label className="text-sm flex items-center gap-1.5">
-                <Activity className="h-3.5 w-3.5" style={{ color: NAV_COLORS.sante.base }} />
-                Ajouter mes données HRV (matin repos)
+              <Label className="text-xs flex items-center gap-1.5">
+                <Activity className="h-3 w-3" style={{ color: NAV_COLORS.sante.base }} />
+                Ajouter mes données HRV (matin)
               </Label>
             </div>
 
             {showHrv && (
-              <div className="grid grid-cols-2 gap-3 pl-6">
-                <div className="space-y-1.5">
-                  <Label className="text-xs">HRV (ms)</Label>
+              <div className="grid grid-cols-2 gap-2 pl-6">
+                <div className="space-y-1">
+                  <Label className="text-[10px]">HRV (ms)</Label>
                   <Input
                     type="number"
                     min="0"
@@ -397,11 +400,11 @@ export function AthleteSpaceWellness({ playerId, categoryId }: Props) {
                     placeholder="Ex: 65"
                     value={hrvMs}
                     onChange={(e) => setHrvMs(e.target.value)}
-                    className="h-9"
+                    className="h-8 text-sm"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">FC repos (bpm)</Label>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">FC repos (bpm)</Label>
                   <Input
                     type="number"
                     min="30"
@@ -409,20 +412,22 @@ export function AthleteSpaceWellness({ playerId, categoryId }: Props) {
                     placeholder="Ex: 55"
                     value={restingHr}
                     onChange={(e) => setRestingHr(e.target.value)}
-                    className="h-9"
+                    className="h-8 text-sm"
                   />
                 </div>
-                <p className="col-span-2 text-[10px] text-muted-foreground">
-                  Ces données seront visibles dans Santé → HRV
-                </p>
               </div>
             )}
           </div>
 
           <Button
-            onClick={() => submitWellness.mutate()}
-            disabled={submitWellness.isPending || !allFieldsFilled}
-            className="w-full"
+            onClick={() => {
+              if (!allFieldsFilled) {
+                toast.error("Merci de remplir tous les indicateurs (1 à 5)");
+                return;
+              }
+              submitWellness.mutate();
+            }}
+            className="w-full h-11"
             style={{ backgroundColor: NAV_COLORS.sante.base }}
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
