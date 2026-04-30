@@ -13,7 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { SuperAdminShieldButton } from "@/components/notifications/SuperAdminShieldButton";
 import { InjuryReturnAlerts } from "@/components/injuries/InjuryReturnAlerts";
-import logoCoq from "@/assets/logo-coq.png";
+import logoCoq from "@/assets/logo-coq-transparent.png";
 
 export default function Clubs() {
   const navigate = useNavigate();
