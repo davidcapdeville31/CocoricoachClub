@@ -108,6 +108,16 @@ export function BowlingBlockManager({
   onLock,
   onUnlock,
 }: BowlingBlockManagerProps) {
+  // Track which locked rounds are expanded (default collapsed for compact view)
+  const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set());
+  const toggleRoundExpanded = (roundNumber: number) => {
+    setExpandedRounds(prev => {
+      const next = new Set(prev);
+      if (next.has(roundNumber)) next.delete(roundNumber);
+      else next.add(roundNumber);
+      return next;
+    });
+  };
   // Load oil patterns for the match
   const { data: oilPatterns } = useQuery({
     queryKey: ["bowling_oil_patterns", matchId],
@@ -394,15 +404,26 @@ export function BowlingBlockManager({
                           )}
                           <CardHeader className="pb-1 pt-3">
                             <div className="flex items-center justify-between">
-                              <CardTitle className="text-sm flex items-center gap-2">
-                                <Circle className="h-3 w-3 text-primary" />
-                                Partie {gameIdx + 1}
-                                {round.stats["gameScore"] > 0 && (
-                                  <Badge variant="outline" className="text-xs font-mono">
-                                    {round.stats["gameScore"]}
-                                  </Badge>
+                              <button
+                                type="button"
+                                className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity"
+                                onClick={() => round.isLocked && toggleRoundExpanded(round.round_number)}
+                              >
+                                {round.isLocked && (
+                                  expandedRounds.has(round.round_number)
+                                    ? <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                                    : <ChevronRight className="h-3 w-3 text-muted-foreground" />
                                 )}
-                              </CardTitle>
+                                <CardTitle className="text-sm flex items-center gap-2">
+                                  <Circle className="h-3 w-3 text-primary" />
+                                  Partie {gameIdx + 1}
+                                  {round.stats["gameScore"] > 0 && (
+                                    <Badge variant="outline" className="text-xs font-mono">
+                                      {round.stats["gameScore"]}
+                                    </Badge>
+                                  )}
+                                </CardTitle>
+                              </button>
                               <div className="flex items-center gap-1">
                                 {/* Move to another block */}
                                 {blocks.length > 1 && (
@@ -429,50 +450,54 @@ export function BowlingBlockManager({
                               </div>
                             </div>
                           </CardHeader>
-                          {/* Oil pattern selector */}
-                          {oilPatterns && oilPatterns.length > 0 && (
-                            <div className="px-3 pb-2">
-                              <div className="flex items-center gap-2">
-                                <Label className="text-xs font-medium whitespace-nowrap">Huilage :</Label>
-                                <Select
-                                  value={round.oilPatternId || ""}
-                                  onValueChange={(v) => {
-                                    onRoundsChange(rounds.map(r =>
-                                      r.round_number === round.round_number ? { ...r, oilPatternId: v } : r
-                                    ));
+                          {(!round.isLocked || expandedRounds.has(round.round_number)) && (
+                            <>
+                              {/* Oil pattern selector */}
+                              {oilPatterns && oilPatterns.length > 0 && (
+                                <div className="px-3 pb-2">
+                                  <div className="flex items-center gap-2">
+                                    <Label className="text-xs font-medium whitespace-nowrap">Huilage :</Label>
+                                    <Select
+                                      value={round.oilPatternId || ""}
+                                      onValueChange={(v) => {
+                                        onRoundsChange(rounds.map(r =>
+                                          r.round_number === round.round_number ? { ...r, oilPatternId: v } : r
+                                        ));
+                                      }}
+                                      disabled={round.isLocked}
+                                    >
+                                      <SelectTrigger className="h-7 text-xs flex-1">
+                                        <SelectValue placeholder="Sélectionner un huilage..." />
+                                      </SelectTrigger>
+                                      <SelectContent className="z-[200]">
+                                        {oilPatterns.map((op) => (
+                                          <SelectItem key={op.id} value={op.id}>
+                                            {op.name}{op.gender ? ` (${op.gender === "male" ? "G" : "F"})` : ""}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+                              )}
+                              <CardContent className="pt-0">
+                                <BowlingScoreSheet
+                                  trackPockets={block.trackPockets !== false}
+                                  key={`bowling-${round.round_number}-${round.isLocked}`}
+                                  initialFrames={round.bowlingFrames}
+                                  playerId={playerId}
+                                  categoryId={categoryId}
+                                  readOnly={round.isLocked}
+                                  onSave={(stats, frames, ballData) => {
+                                    onScoreSave(round.round_number, stats, frames, ballData);
                                   }}
-                                  disabled={round.isLocked}
-                                >
-                                  <SelectTrigger className="h-7 text-xs flex-1">
-                                    <SelectValue placeholder="Sélectionner un huilage..." />
-                                  </SelectTrigger>
-                                  <SelectContent className="z-[200]">
-                                    {oilPatterns.map((op) => (
-                                      <SelectItem key={op.id} value={op.id}>
-                                        {op.name}{op.gender ? ` (${op.gender === "male" ? "G" : "F"})` : ""}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
+                                  onCancel={() => {
+                                    if (!round.isLocked) removeGame(round.round_number);
+                                  }}
+                                />
+                              </CardContent>
+                            </>
                           )}
-                          <CardContent className="pt-0">
-                            <BowlingScoreSheet
-                              trackPockets={block.trackPockets !== false}
-                              key={`bowling-${round.round_number}-${round.isLocked}`}
-                              initialFrames={round.bowlingFrames}
-                              playerId={playerId}
-                              categoryId={categoryId}
-                              readOnly={round.isLocked}
-                              onSave={(stats, frames, ballData) => {
-                                onScoreSave(round.round_number, stats, frames, ballData);
-                              }}
-                              onCancel={() => {
-                                if (!round.isLocked) removeGame(round.round_number);
-                              }}
-                            />
-                          </CardContent>
                         </Card>
                       ))}
                     </div>
