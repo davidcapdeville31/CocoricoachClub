@@ -712,13 +712,6 @@ export default function AthleteSpace() {
             />
           </TabsContent>
 
-          <TabsContent value="objectives">
-            <AthleteSpaceObjectives
-              playerId={athleteInfo.player_id}
-              categoryId={athleteInfo.category_id}
-            />
-          </TabsContent>
-
           <TabsContent value="health">
             <AthleteSpaceHealth
               playerId={athleteInfo.player_id}
