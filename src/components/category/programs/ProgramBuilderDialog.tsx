@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { getTrainingTypesForSport } from "@/lib/constants/trainingTypes";
 // Protocols are now fetched from the database (injury_protocols table)
 import { Card, CardContent } from "@/components/ui/card";
+import { InjuryLibraryDialog } from "./InjuryLibraryDialog";
 
 interface ProgramBuilderDialogProps {
   categoryId: string;
