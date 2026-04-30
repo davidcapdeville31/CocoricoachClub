@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings2, Eye, EyeOff } from "lucide-react";
+import { Settings2, Eye, EyeOff, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,6 +15,8 @@ interface CategoryVisibilityManagerProps {
   items: CategoryVisibilityItem[];
   visibleValues: Set<string>;
   onChange: (next: Set<string>) => void;
+  favoriteValues?: Set<string>;
+  onFavoritesChange?: (next: Set<string>) => void;
 }
 
 export function CategoryVisibilityManager({
