@@ -13,20 +13,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
-
-const formatCategoryLabel = (value: string) =>
-  value
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-
-const normalizeCategoryValue = (value: string) =>
-  value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
+import { formatCategoryLabel, normalizeCustomTestType } from "./customTestCatalog";
 
 interface CreateCustomTestDialogProps {
   open: boolean;
@@ -101,7 +88,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
       if (!categoryData?.club_id) throw new Error("Club introuvable");
       const trimmedName = name.trim();
       const trimmedDescription = description.trim();
-      const finalCategory = categoryMode === "new" ? normalizeCategoryValue(newCategoryName) : testCategory;
+      const finalCategory = categoryMode === "new" ? normalizeCustomTestType(newCategoryName) : testCategory;
 
       if (!trimmedName) throw new Error("Le nom du test est requis");
       if (!finalCategory) throw new Error("La catégorie du test est requise");
