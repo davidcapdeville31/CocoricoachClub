@@ -40,6 +40,11 @@ interface TestReminder {
   is_active: boolean;
   last_notification_date: string | null;
   start_date: string | null;
+  session_start_time: string | null;
+  session_end_time: string | null;
+  location: string | null;
+  duration_minutes: number | null;
+  auto_assign_athletes: boolean;
   created_at: string;
   updated_at?: string;
 }
@@ -64,21 +69,24 @@ function generateSessionDates(startDate: string, frequencyWeeks: number): string
   return dates;
 }
 
+const DEFAULT_FORM = {
+  test_type: "VMA",
+  frequency_weeks: 4,
+  start_date: format(new Date(), "yyyy-MM-dd"),
+  session_start_time: "10:00",
+  session_end_time: "11:00",
+  location: "",
+  duration_minutes: 60,
+  auto_assign_athletes: true,
+};
+
 export function TestRemindersTab({ categoryId }: TestRemindersTabProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingReminder, setEditingReminder] = useState<TestReminder | null>(null);
-  const [editValues, setEditValues] = useState({
-    test_type: "VMA",
-    frequency_weeks: 4,
-    start_date: format(new Date(), "yyyy-MM-dd"),
-  });
-  const [newReminder, setNewReminder] = useState({
-    test_type: "VMA",
-    frequency_weeks: 4,
-    start_date: format(new Date(), "yyyy-MM-dd"),
-  });
+  const [editValues, setEditValues] = useState({ ...DEFAULT_FORM });
+  const [newReminder, setNewReminder] = useState({ ...DEFAULT_FORM });
   const { isViewer } = useViewerModeContext();
 
   // Fetch reminders
