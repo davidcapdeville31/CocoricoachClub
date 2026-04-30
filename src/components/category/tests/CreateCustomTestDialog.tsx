@@ -49,7 +49,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
         .select("value, label")
         .eq("category_id", categoryId);
       if (error) throw error;
-      return (data || []) as Array<{ value: string; label: string }>;
+      return (data || []) as unknown as Array<{ value: string; label: string }>;
     },
     enabled: open,
   });
