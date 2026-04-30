@@ -4,13 +4,11 @@ import { ConcussionProtocolTab } from "@/components/category/ConcussionProtocolT
 import { MedicalRecordsTab } from "./MedicalRecordsTab";
 import { RecoveryJournalTab } from "./RecoveryJournalTab";
 import { CoachDashboard } from "./CoachDashboard";
-import { ActiveProtocolsDashboard } from "@/components/rehab/ActiveProtocolsDashboard";
 import {
   Activity,
   Brain,
   Snowflake,
   LayoutDashboard,
-  Dumbbell,
 } from "lucide-react";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { useQuery } from "@tanstack/react-query";
@@ -90,16 +88,6 @@ export function HealthTab({ categoryId }: HealthTabProps) {
               </ColoredSubTabsTrigger>
             )}
             
-            {/* Réhabilitation - Masqué en mode viewer */}
-            {!isViewer && (
-              <ColoredSubTabsTrigger 
-                value="rehab" 
-                colorKey="sante"
-                icon={<Dumbbell className="h-4 w-4" />}
-              >
-                Réhabilitation
-              </ColoredSubTabsTrigger>
-            )}
             
           </ColoredSubTabsList>
         </div>
@@ -123,12 +111,6 @@ export function HealthTab({ categoryId }: HealthTabProps) {
         {!isViewer && (
           <TabsContent value="recovery">
             <RecoveryJournalTab categoryId={categoryId} />
-          </TabsContent>
-        )}
-
-        {!isViewer && (
-          <TabsContent value="rehab">
-            <ActiveProtocolsDashboard categoryId={categoryId} />
           </TabsContent>
         )}
       </Tabs>
