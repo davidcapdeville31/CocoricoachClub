@@ -24,6 +24,7 @@ import {
   ATHLETISME_DISCIPLINES,
   ATHLETISME_SPECIALTIES,
   isAthletismeCategory,
+  isTeamSport,
 } from "@/lib/constants/sportTypes";
 import { getPositionsForSport } from "@/lib/constants/sportPositions";
 import { getAgeCategoriesForSport, getAgeCategoryLabel } from "@/lib/constants/ageCategories";
