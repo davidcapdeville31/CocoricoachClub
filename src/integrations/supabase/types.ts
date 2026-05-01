@@ -3157,9 +3157,11 @@ export type Database = {
       }
       exercise_library: {
         Row: {
+          category: string | null
           coach_id: string | null
           created_at: string | null
           description: string | null
+          difficulty: string | null
           difficulty_level: string | null
           equipment: string[] | null
           execution_criteria: Json | null
@@ -3169,20 +3171,28 @@ export type Database = {
           id: string
           image_url: string | null
           is_default: boolean | null
+          is_system: boolean | null
           is_variation: boolean | null
           joint_movements: string[] | null
+          muscle_groups: string[] | null
           muscles: string[] | null
+          name: string | null
           positioning_criteria: Json | null
           safety_prevention: Json | null
           station_name: string
+          subcategory: string | null
           tips: string | null
           updated_at: string | null
+          user_id: string | null
           video_url: string | null
+          youtube_url: string | null
         }
         Insert: {
+          category?: string | null
           coach_id?: string | null
           created_at?: string | null
           description?: string | null
+          difficulty?: string | null
           difficulty_level?: string | null
           equipment?: string[] | null
           execution_criteria?: Json | null
@@ -3192,20 +3202,28 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_default?: boolean | null
+          is_system?: boolean | null
           is_variation?: boolean | null
           joint_movements?: string[] | null
+          muscle_groups?: string[] | null
           muscles?: string[] | null
+          name?: string | null
           positioning_criteria?: Json | null
           safety_prevention?: Json | null
           station_name: string
+          subcategory?: string | null
           tips?: string | null
           updated_at?: string | null
+          user_id?: string | null
           video_url?: string | null
+          youtube_url?: string | null
         }
         Update: {
+          category?: string | null
           coach_id?: string | null
           created_at?: string | null
           description?: string | null
+          difficulty?: string | null
           difficulty_level?: string | null
           equipment?: string[] | null
           execution_criteria?: Json | null
@@ -3215,15 +3233,21 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_default?: boolean | null
+          is_system?: boolean | null
           is_variation?: boolean | null
           joint_movements?: string[] | null
+          muscle_groups?: string[] | null
           muscles?: string[] | null
+          name?: string | null
           positioning_criteria?: Json | null
           safety_prevention?: Json | null
           station_name?: string
+          subcategory?: string | null
           tips?: string | null
           updated_at?: string | null
+          user_id?: string | null
           video_url?: string | null
+          youtube_url?: string | null
         }
         Relationships: []
       }
