@@ -33,15 +33,18 @@ const HYROX_STATIONS = [
   "Wall Balls",
 ];
 
-// Onglets de filtrage (alignés sur les stations réellement présentes en base)
+// Onglets de filtrage (HYROX regroupe les 8 stations HYROX réelles)
 const EXERCISE_CATEGORIES = [
   "HYROX",
+  "CrossFit",
+  "Musculation",
   "Haltérophilie",
   "Cardio/Endurance",
   "Vitesse/Plyométrie",
   "Gainage/Core",
   "Poids de corps/Calisthenics",
   "Athlétisme/Running drills",
+  "Mobilité/Stretching",
   "Prévention/Renforcement",
   "Respiration",
   "Réathlétisation",
