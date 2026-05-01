@@ -104,6 +104,7 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
                 .update({ birth_date: fisData.birthDate })
                 .eq("id", playerId);
               queryClient.invalidateQueries({ queryKey: ["player-personal-info", playerId] });
+              queryClient.invalidateQueries({ queryKey: ["player-core-identity", playerId] });
             }
 
             toast.success(`${count} résultats FIS importés avec succès`, { id: "fis-import" });
