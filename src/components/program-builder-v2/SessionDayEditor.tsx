@@ -17,6 +17,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   TrainingBlockWrapper,
   AddTrainingBlockButton,
@@ -29,7 +30,9 @@ import {
   type ConfigMethod,
   type LinkedMethod,
 } from "./TrainingMethodButtons";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Trash2 } from "lucide-react";
+import { ExercisePicker, type PickedExercise } from "./ExercisePicker";
+import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
 
 export interface SessionDayEditorProps {
   blocks: TrainingBlock[];
