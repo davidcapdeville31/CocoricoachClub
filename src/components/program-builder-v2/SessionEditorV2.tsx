@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SessionEditorSheet } from "./SessionEditorSheet";
 import { SessionDayEditor } from "./SessionDayEditor";
-import type { V2BlockWithExercises } from "./hooks/useSaveProgramV2";
+import { V2ExerciseBankSidebar } from "./V2ExerciseBankSidebar";
+import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
+import type { PickedExercise } from "./ExercisePicker";
 
 interface SessionEditorV2Props {
   open: boolean;
@@ -18,11 +20,9 @@ interface SessionEditorV2Props {
 const todayIso = () => format(new Date(), "yyyy-MM-dd");
 
 /**
- * V2 session editor — single-session creation with the new block + method UX
- * (warm-up / strength / crossfit blocks, intensification methods like Superset,
- * Cluster, AMRAP, …). Mirrors the program builder V2 experience but persists
- * directly into `training_sessions` + `gym_session_exercises` for one team-wide
- * session (one row per athlete × exercise).
+ * V2 session editor — single-session creation with the new block + method UX.
+ * Mirrors the program builder V2 experience but persists directly into
+ * `training_sessions` + `gym_session_exercises` for one team-wide session.
  */
 export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Props) {
   const queryClient = useQueryClient();
@@ -33,6 +33,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
   const [sessionDate, setSessionDate] = useState<string>(todayIso());
   const [blocks, setBlocks] = useState<V2BlockWithExercises[]>([]);
   const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
+  const activeBlockIdRef = useRef<string | null>(null);
 
   // Reset state every time the editor is reopened
   useEffect(() => {
@@ -42,8 +43,53 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
       setSessionDate(todayIso());
       setBlocks([]);
       setSavedSnapshot(null);
+      activeBlockIdRef.current = null;
     }
   }, [open]);
+
+  // Keep activeBlock synced when blocks change externally
+  useEffect(() => {
+    if (!blocks.length) {
+      activeBlockIdRef.current = null;
+      return;
+    }
+    if (!activeBlockIdRef.current || !blocks.find((b) => b.id === activeBlockIdRef.current)) {
+      activeBlockIdRef.current = blocks[blocks.length - 1].id;
+    }
+  }, [blocks]);
+
+  const handlePickFromBank = (picked: PickedExercise) => {
+    const targetId = activeBlockIdRef.current ?? blocks[blocks.length - 1]?.id;
+    if (!targetId) {
+      toast.error("Ajoute d'abord un bloc de travail à gauche.");
+      return;
+    }
+    const newExercise: V2BlockExercise = {
+      id: `ex-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      exerciseId: picked.id,
+      exerciseName: picked.name,
+      sets: 3,
+      reps: "10",
+      restSeconds: 90,
+      method: "normal",
+    };
+    setBlocks((prev) =>
+      prev.map((b) =>
+        b.id === targetId
+          ? { ...b, exercises: [...(b.exercises ?? []), newExercise], isOpen: true }
+          : b,
+      ),
+    );
+    activeBlockIdRef.current = targetId;
+    toast.success(`« ${picked.name} » ajouté`);
+  };
+
+  const handleBlocksChange = (next: V2BlockWithExercises[]) => {
+    if (next.length > blocks.length) {
+      activeBlockIdRef.current = next[next.length - 1].id;
+    }
+    setBlocks(next);
+  };
 
   const currentSnapshot = JSON.stringify({ dayName, dayOfWeek, sessionDate, blocks });
   const isSavedUpToDate = savedSnapshot !== null && savedSnapshot === currentSnapshot;
@@ -164,13 +210,11 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
             </p>
           </div>
 
-          <SessionDayEditor blocks={blocks} onChange={setBlocks} />
+          <SessionDayEditor blocks={blocks} onChange={handleBlocksChange} />
         </div>
       )}
       renderExerciseLibrary={() => (
-        <div className="p-4 text-xs text-muted-foreground">
-          Sélectionne les exercices directement dans chaque bloc à gauche.
-        </div>
+        <V2ExerciseBankSidebar onPick={handlePickFromBank} />
       )}
     />
   );
