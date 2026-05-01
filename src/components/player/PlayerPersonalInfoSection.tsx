@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -137,6 +137,21 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
     setIsEditing(true);
   };
 
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.playerId && detail.playerId !== playerId) return;
+      handleStartEdit();
+      setTimeout(() => {
+        cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
+    };
+    window.addEventListener("player:edit-personal-info", handler);
+    return () => window.removeEventListener("player:edit-personal-info", handler);
+  }, [playerInfo, playerId]);
+
   const handleSave = () => {
     updateMutation.mutate(formData);
   };
@@ -158,7 +173,7 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
   }
 
   return (
-    <Card className="bg-gradient-card shadow-md">
+    <Card ref={cardRef} className="bg-gradient-card shadow-md">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2 text-lg">
           <User className="h-5 w-5" />

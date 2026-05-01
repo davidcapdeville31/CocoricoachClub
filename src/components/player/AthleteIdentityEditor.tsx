@@ -189,16 +189,30 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
       });
     }
 
-    // 4) Latéralité — universelle
-    list.push({
-      dimension: "laterality",
-      label: "Latéralité",
-      description: "Main / pied dominant.",
-      options: LATERALITY_OPTIONS,
-    });
+    // 4) Latéralité — universelle, valeur unique : on cache le bloc d'ajout si déjà renseignée
+    const hasLaterality = attributes.some((a) => a.dimension === "laterality");
+    if (!hasLaterality) {
+      list.push({
+        dimension: "laterality",
+        label: "Latéralité",
+        description: "Main / pied dominant.",
+        options: LATERALITY_OPTIONS,
+      });
+    }
 
     return list;
-  }, [sportType, isAthletics]);
+  }, [sportType, isAthletics, attributes]);
+
+  const lateralityAttr = attributes.find((a) => a.dimension === "laterality");
+  const lateralityLabel = lateralityAttr
+    ? LATERALITY_OPTIONS.find((o) => o.value === lateralityAttr.value)?.label ?? lateralityAttr.value
+    : null;
+
+  const requestEditPersonalInfo = () => {
+    window.dispatchEvent(
+      new CustomEvent("player:edit-personal-info", { detail: { playerId } }),
+    );
+  };
 
   if (isLoading) {
     return (
@@ -218,7 +232,7 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
         </p>
       </div>
 
-      {/* Identité de base — lecture seule, éditable depuis la fiche joueur */}
+      {/* Identité de base — éditable depuis la fiche joueur */}
       <div className="rounded-xl border bg-background/60 p-3">
         <div className="flex items-center gap-2 mb-2">
           <User className="h-4 w-4 text-muted-foreground" />
@@ -226,21 +240,31 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
             Identité de base
           </span>
           <span className="text-[10px] text-muted-foreground/70 ml-auto">
-            (modifiable depuis la fiche joueur)
+            (cliquez pour modifier)
           </span>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Badge variant="secondary" className="gap-1">
-            <span>{gInfo.emoji}</span>
-            <span>{gInfo.label}</span>
-          </Badge>
-          <Badge variant="secondary" className="gap-1">
-            <Cake className="h-3 w-3" />
-            {age != null ? `${age} ans` : "Âge non renseigné"}
-          </Badge>
+          <button type="button" onClick={requestEditPersonalInfo} className="focus:outline-none focus:ring-2 focus:ring-ring rounded-md">
+            <Badge variant="secondary" className="gap-1 cursor-pointer hover:bg-secondary/80 transition-colors">
+              <span>{gInfo.emoji}</span>
+              <span>{gInfo.label}</span>
+            </Badge>
+          </button>
+          <button type="button" onClick={requestEditPersonalInfo} className="focus:outline-none focus:ring-2 focus:ring-ring rounded-md">
+            <Badge variant="secondary" className="gap-1 cursor-pointer hover:bg-secondary/80 transition-colors">
+              <Cake className="h-3 w-3" />
+              {age != null ? `${age} ans` : "Âge non renseigné"}
+            </Badge>
+          </button>
           {ageCat && (
             <Badge variant="outline" className="gap-1">
               Catégorie d'âge : {ageCat}
+            </Badge>
+          )}
+          {lateralityLabel && (
+            <Badge variant="secondary" className="gap-1">
+              <Star className="h-3 w-3" />
+              {lateralityLabel}
             </Badge>
           )}
         </div>
