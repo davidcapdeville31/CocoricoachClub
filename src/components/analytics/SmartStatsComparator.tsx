@@ -371,7 +371,71 @@ export function SmartStatsComparator({
       </CardHeader>
 
       <CardContent>
-        {!metric ? (
+        {/* Chips toggle pour activer/désactiver chaque métrique — TOUJOURS visibles */}
+        {metrics.length > 0 && (
+          <div className="mb-4 flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] font-semibold uppercase text-muted-foreground tracking-wide mr-1">
+              Statistiques
+            </span>
+            {metrics.map((m) => {
+              const active = metricKeys.includes(m.key);
+              const color = metricColor(m.key);
+              return (
+                <button
+                  key={m.key}
+                  type="button"
+                  onClick={() => toggleMetric(m.key)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] transition-all ${
+                    active
+                      ? "border-transparent text-foreground shadow-sm"
+                      : "border-border bg-muted/30 text-muted-foreground hover:bg-muted/60"
+                  }`}
+                  style={
+                    active
+                      ? { background: `color-mix(in oklab, ${color} 18%, transparent)` }
+                      : undefined
+                  }
+                >
+                  <span
+                    className="h-2.5 w-2.5 rounded-full shrink-0"
+                    style={{ background: color, opacity: active ? 1 : 0.4 }}
+                  />
+                  <span className="whitespace-nowrap">{m.label}</span>
+                </button>
+              );
+            })}
+            <div className="ml-auto flex gap-1">
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-6 px-2 text-[10px]"
+                onClick={() => setMetricKeys(metrics.map((m) => m.key))}
+              >
+                Tout
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-6 px-2 text-[10px]"
+                onClick={() => setMetricKeys([])}
+              >
+                Aucune
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {metrics.length === 0 ? (
+          <div className="text-center py-8 text-sm text-muted-foreground">
+            Aucune statistique disponible.
+          </div>
+        ) : metricKeys.length === 0 ? (
+          <div className="text-center py-8 text-sm text-muted-foreground">
+            Sélectionne au moins une statistique ci-dessus pour afficher le graphique.
+          </div>
+        ) : !metric ? (
           <div className="text-center py-8 text-sm text-muted-foreground">
             Aucune statistique disponible.
           </div>
@@ -382,7 +446,7 @@ export function SmartStatsComparator({
                 ? "Aucune identité athlète renseignée. Remplis les fiches pour activer la comparaison par groupe."
                 : "Pas assez de données pour cette dimension."
               : playersWithValue.length === 0
-                ? "Aucun athlète n'a de valeur pour cette statistique dans ce scope."
+                ? "Aucun athlète n'a de valeur pour les statistiques sélectionnées dans ce scope."
                 : "Sélectionne au moins un athlète."}
           </div>
         ) : (
@@ -445,59 +509,6 @@ export function SmartStatsComparator({
             )}
 
             <div>
-              {/* Chips toggle pour activer/désactiver chaque métrique */}
-              <div className="mb-3 flex flex-wrap items-center gap-1.5">
-                <span className="text-[10px] font-semibold uppercase text-muted-foreground tracking-wide mr-1">
-                  Statistiques
-                </span>
-                {metrics.map((m) => {
-                  const active = metricKeys.includes(m.key);
-                  const color = metricColor(m.key);
-                  return (
-                    <button
-                      key={m.key}
-                      type="button"
-                      onClick={() => toggleMetric(m.key)}
-                      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] transition-all ${
-                        active
-                          ? "border-transparent text-foreground shadow-sm"
-                          : "border-border bg-muted/30 text-muted-foreground hover:bg-muted/60"
-                      }`}
-                      style={
-                        active
-                          ? { background: `color-mix(in oklab, ${color} 18%, transparent)` }
-                          : undefined
-                      }
-                    >
-                      <span
-                        className="h-2.5 w-2.5 rounded-full shrink-0"
-                        style={{ background: color, opacity: active ? 1 : 0.4 }}
-                      />
-                      <span className="whitespace-nowrap">{m.label}</span>
-                    </button>
-                  );
-                })}
-                <div className="ml-auto flex gap-1">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 px-2 text-[10px]"
-                    onClick={() => setMetricKeys(metrics.map((m) => m.key))}
-                  >
-                    Tout
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 px-2 text-[10px]"
-                    onClick={() => setMetricKeys([])}
-                  >
-                    Aucune
-                  </Button>
-                </div>
-              </div>
               <div className="h-[340px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
