@@ -117,14 +117,6 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
       });
     }
 
-    // 4) Profil de performance — toujours disponible
-    list.push({
-      dimension: "performance_profile",
-      label: "Profils de performance",
-      description: "Qualités physiques dominantes (déclaratif ou issu des tests).",
-      options: PERFORMANCE_PROFILES,
-    });
-
     return list;
   }, [sportType, isAthletics]);
 
