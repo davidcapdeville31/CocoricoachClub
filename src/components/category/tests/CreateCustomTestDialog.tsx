@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
-import { Star } from "lucide-react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { Star, ImagePlus, Loader2, X } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -39,6 +39,36 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
   const [enableScoring, setEnableScoring] = useState(false);
   const [scoringScale, setScoringScale] = useState<ScoringScale | null>(null);
   const [formulaConfig, setFormulaConfig] = useState<FormulaConfig | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Le fichier doit être une image");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image trop volumineuse (max 5 Mo)");
+      return;
+    }
+    setUploadingImage(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `custom-tests/${categoryId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("test-images")
+        .upload(path, file, { cacheControl: "3600", upsert: false });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("test-images").getPublicUrl(path);
+      setImageUrl(pub.publicUrl);
+      toast.success("Image ajoutée");
+    } catch (err: any) {
+      toast.error("Erreur upload : " + (err.message ?? "inconnue"));
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const baseTestCategories = useMemo(() => {
     return getTestCategoriesForSport(sportType || "").filter(c => !c.value.startsWith("rehab_"));
@@ -192,6 +222,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
           scoring_scale: enableScoring ? (scoringScale as any) : null,
           max_points: maxPoints,
           formula_config: formulaConfig?.enabled ? (formulaConfig as any) : null,
+          image_url: imageUrl,
           created_by: user?.user?.id || null,
         } as any)
         .select("id")
@@ -232,6 +263,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
     setEnableScoring(false);
     setScoringScale(null);
     setFormulaConfig(null);
+    setImageUrl(null);
   };
 
   const handleSubmit = () => {
@@ -254,6 +286,74 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Image illustrative — proposée dès le début */}
+          <div className="space-y-1.5">
+            <Label>Image illustrative (optionnel)</Label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleImageUpload(f);
+                e.target.value = "";
+              }}
+            />
+            {imageUrl ? (
+              <div className="relative rounded-2xl overflow-hidden border bg-muted/40 group">
+                <img
+                  src={imageUrl}
+                  alt="Aperçu du test"
+                  className="w-full h-44 object-cover"
+                />
+                <div className="absolute top-2 right-2 flex gap-1.5">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    className="h-8 px-3 text-xs backdrop-blur-md bg-background/80"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingImage}
+                  >
+                    Remplacer
+                  </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="secondary"
+                    className="h-8 w-8 backdrop-blur-md bg-background/80"
+                    onClick={() => setImageUrl(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingImage}
+                className="w-full rounded-2xl border-2 border-dashed border-border bg-muted/40 px-4 py-6 flex flex-col items-center justify-center gap-2 hover:bg-muted/60 transition-colors"
+              >
+                {uploadingImage ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">Upload en cours…</span>
+                  </>
+                ) : (
+                  <>
+                    <ImagePlus className="h-6 w-6 text-muted-foreground" />
+                    <span className="text-sm font-medium">Ajouter une image</span>
+                    <span className="text-[11px] text-muted-foreground">
+                      JPG, PNG ou WebP — 5 Mo max
+                    </span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+
           <div className="space-y-1.5">
             <Label>Catégorie <span className="text-destructive">*</span></Label>
             <Select value={testCategory} onValueChange={setTestCategory}>
