@@ -24,66 +24,71 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
   const matchLabel = "Compétitions";
   const MatchIcon = isIndividual ? Award : Swords;
 
+  // Si "Compétitions" est seul (pas d'autres sous-onglets), on masque la barre d'onglets : c'est inutile
+  const hasOtherSubtabs = isSkiSport || isRugby7 || isNationalTeam || isAthletics;
+
   return (
     <Tabs defaultValue="matches" className="space-y-4">
-      <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
-        <ColoredSubTabsList colorKey="competition" className="inline-flex w-max">
-          <ColoredSubTabsTrigger 
-            value="matches" 
-            colorKey="competition"
-            icon={isSkiSport ? <Mountain className="h-4 w-4" /> : <MatchIcon className="h-4 w-4" />}
-            tooltip={isSkiSport 
-              ? "Compétitions FIS : création, résultats, calcul automatique des points"
-              : "Liste des matchs et compétitions : création, résultats, statistiques et gestion des rencontres"
-            }
-          >
-            {matchLabel}
-          </ColoredSubTabsTrigger>
-          {isSkiSport && (
+      {hasOtherSubtabs && (
+        <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
+          <ColoredSubTabsList colorKey="competition" className="inline-flex w-max">
             <ColoredSubTabsTrigger 
-              value="fis-ranking" 
+              value="matches" 
               colorKey="competition"
-              icon={<BarChart3 className="h-4 w-4" />}
-              tooltip="Classement FIS par athlète : points, objectifs, simulation et projections"
+              icon={isSkiSport ? <Mountain className="h-4 w-4" /> : <MatchIcon className="h-4 w-4" />}
+              tooltip={isSkiSport 
+                ? "Compétitions FIS : création, résultats, calcul automatique des points"
+                : "Liste des matchs et compétitions : création, résultats, statistiques et gestion des rencontres"
+              }
             >
-              <span className="hidden sm:inline">Classement FIS</span>
-              <span className="sm:hidden">Classmt</span>
+              {matchLabel}
             </ColoredSubTabsTrigger>
-          )}
-          {isRugby7 && (
-            <ColoredSubTabsTrigger 
-              value="tournaments" 
-              colorKey="competition"
-              icon={<Trophy className="h-4 w-4" />}
-              tooltip="Gestion des tournois : phases de poules, classements et résultats consolidés"
-            >
-              Tournois
-            </ColoredSubTabsTrigger>
-          )}
-          {isNationalTeam && (
-            <ColoredSubTabsTrigger 
-              value="national-team" 
-              colorKey="competition"
-              icon={<Flag className="h-4 w-4" />}
-              tooltip="Suivi des sélections en équipe nationale : convocations, performances et historique"
-            >
-              <span className="hidden sm:inline">Équipe Nationale</span>
-              <span className="sm:hidden">National</span>
-            </ColoredSubTabsTrigger>
-          )}
-          {isAthletics && (
-            <ColoredSubTabsTrigger
-              value="records"
-              colorKey="competition"
-              icon={<Medal className="h-4 w-4" />}
-              tooltip="Records personnels des athlètes et minimas fédéraux par discipline"
-            >
-              <span className="hidden sm:inline">Minimas / Records</span>
-              <span className="sm:hidden">Records</span>
-            </ColoredSubTabsTrigger>
-          )}
-        </ColoredSubTabsList>
-      </div>
+            {isSkiSport && (
+              <ColoredSubTabsTrigger 
+                value="fis-ranking" 
+                colorKey="competition"
+                icon={<BarChart3 className="h-4 w-4" />}
+                tooltip="Classement FIS par athlète : points, objectifs, simulation et projections"
+              >
+                <span className="hidden sm:inline">Classement FIS</span>
+                <span className="sm:hidden">Classmt</span>
+              </ColoredSubTabsTrigger>
+            )}
+            {isRugby7 && (
+              <ColoredSubTabsTrigger 
+                value="tournaments" 
+                colorKey="competition"
+                icon={<Trophy className="h-4 w-4" />}
+                tooltip="Gestion des tournois : phases de poules, classements et résultats consolidés"
+              >
+                Tournois
+              </ColoredSubTabsTrigger>
+            )}
+            {isNationalTeam && (
+              <ColoredSubTabsTrigger 
+                value="national-team" 
+                colorKey="competition"
+                icon={<Flag className="h-4 w-4" />}
+                tooltip="Suivi des sélections en équipe nationale : convocations, performances et historique"
+              >
+                <span className="hidden sm:inline">Équipe Nationale</span>
+                <span className="sm:hidden">National</span>
+              </ColoredSubTabsTrigger>
+            )}
+            {isAthletics && (
+              <ColoredSubTabsTrigger
+                value="records"
+                colorKey="competition"
+                icon={<Medal className="h-4 w-4" />}
+                tooltip="Records personnels des athlètes et minimas fédéraux par discipline"
+              >
+                <span className="hidden sm:inline">Minimas / Records</span>
+                <span className="sm:hidden">Records</span>
+              </ColoredSubTabsTrigger>
+            )}
+          </ColoredSubTabsList>
+        </div>
+      )}
 
       <TabsContent value="matches">
         {isSkiSport ? (
