@@ -39,6 +39,8 @@ import { type UnifiedOrderItem } from "./ProgramGridView";
 import { DAYS_OF_WEEK } from "./lib/trainingProgramsData";
 import { SessionDayEditor } from "./SessionDayEditor";
 import type { TrainingBlock } from "./TrainingBlockSection";
+import { useSaveProgramV2, type V2BlockWithExercises } from "./hooks/useSaveProgramV2";
+import { Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 // -- Local types ---------------------------------------------------------------
@@ -62,7 +64,7 @@ export interface V2ProgramDay {
   dayOfWeek: string;
   name: string;
   exercises: V2ProgramExercise[];
-  blocks: any[]; // detailed in A7.2
+  blocks: V2BlockWithExercises[];
   unifiedOrder: UnifiedOrderItem[];
 }
 
@@ -181,7 +183,7 @@ export function CreateTrainingProgramV2({
   }, []);
 
   const setDayBlocks = useCallback(
-    (weekNumber: number, dayId: string, blocks: TrainingBlock[]) => {
+    (weekNumber: number, dayId: string, blocks: V2BlockWithExercises[]) => {
       setDraft((prev) => ({
         ...prev,
         weeks: prev.weeks.map((w) =>
@@ -439,7 +441,7 @@ export function CreateTrainingProgramV2({
             </CardHeader>
             <CardContent>
               <SessionDayEditor
-                blocks={currentDay.blocks as TrainingBlock[]}
+                blocks={currentDay.blocks}
                 onChange={(blocks) => setDayBlocks(activeWeek, currentDay.id, blocks)}
               />
             </CardContent>
