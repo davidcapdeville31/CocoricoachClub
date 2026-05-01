@@ -55,6 +55,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
   const [objectives, setObjectives] = useState("");
   const [enableScoring, setEnableScoring] = useState(false);
   const [scoringScale, setScoringScale] = useState<ScoringScale | null>(null);
+  const [formulaConfig, setFormulaConfig] = useState<FormulaConfig | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
