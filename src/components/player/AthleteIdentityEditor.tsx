@@ -439,6 +439,73 @@ function DimensionBlock({
     return opt?.label ?? val;
   };
 
+  // === Mode mono-valeur (sport collectif → un seul poste, pas d'étoile/poids) ===
+  if (singleValue) {
+    const current = items[0];
+    const singleLabel = config.label.replace(/s$/, "");
+    return (
+      <div className="space-y-2 rounded-xl border bg-background/60 p-3">
+        <div className="flex items-baseline justify-between gap-2">
+          <Label className="text-sm font-medium">{singleLabel}</Label>
+          <span className="text-[11px] text-muted-foreground">
+            Un seul {singleLabel.toLowerCase()} par athlète.
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Select
+            value={current?.value ?? ""}
+            onValueChange={(v) => {
+              if (!v) return;
+              if (current) {
+                // Remplacer la valeur existante
+                if (v === current.value) return;
+                onAdd({
+                  dimension: config.dimension,
+                  value: v,
+                  is_primary: true,
+                  weight: null,
+                  metadata: {},
+                });
+                onDelete(current.id);
+              } else {
+                onAdd({
+                  dimension: config.dimension,
+                  value: v,
+                  is_primary: true,
+                  weight: null,
+                  metadata: {},
+                });
+              }
+            }}
+            disabled={pending}
+          >
+            <SelectTrigger className="w-full bg-background">
+              <SelectValue placeholder={`Choisir un ${singleLabel.toLowerCase()}…`} />
+            </SelectTrigger>
+            <SelectContent className="bg-background border z-[200] max-h-[300px]">
+              {config.options.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {current && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(current.id)}
+              disabled={pending}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-2 rounded-xl border bg-background/60 p-3">
       <div className="flex items-baseline justify-between gap-2">
