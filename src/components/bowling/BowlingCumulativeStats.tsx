@@ -348,7 +348,7 @@ export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: 
       {/* Player selector + Export button */}
       <div className="flex flex-wrap items-center gap-2 justify-between">
         <div className="flex flex-wrap gap-2">
-          {!fixedPlayerId && players.length > 1 && players.map(p => (
+          {!fixedPlayerId && players.length > 1 && activeTab !== "compare" && players.map(p => (
             <Button
               key={p.id}
               variant={activePlayerId === p.id ? "default" : "outline"}
