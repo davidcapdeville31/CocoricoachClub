@@ -517,6 +517,11 @@ function PlayerDetailsContent() {
 
           <TabsContent value="tests">
             <div className="space-y-4">
+              <PlayerBiometrics
+                playerId={playerId!}
+                categoryId={player.category_id}
+                birthYear={player.birth_year}
+              />
               <SuggestedBenchmarksCard playerId={playerId!} categoryId={player.category_id} />
               <RecommendedExercisesCard playerId={playerId!} />
               <PlayerTestsTab playerId={playerId!} categoryId={player.category_id} sportType={sportType} />
