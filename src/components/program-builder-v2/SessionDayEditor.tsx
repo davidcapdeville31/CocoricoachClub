@@ -49,11 +49,12 @@ export function SessionDayEditor({ blocks, onChange }: SessionDayEditorProps) {
 
   const addBlock = useCallback(
     (type: TrainingBlockType, customBlock?: CustomBlockType) => {
-      const newBlock: TrainingBlock = {
+      const newBlock: V2BlockWithExercises = {
         id: makeBlockId(),
         type,
         name: customBlock?.label ?? defaultLabelFor(type),
         isOpen: true,
+        exercises: [],
         ...(customBlock
           ? { customColor: customBlock.color, customEmoji: customBlock.emoji }
           : {}),
@@ -64,7 +65,7 @@ export function SessionDayEditor({ blocks, onChange }: SessionDayEditorProps) {
   );
 
   const updateBlock = useCallback(
-    (id: string, patch: Partial<TrainingBlock>) => {
+    (id: string, patch: Partial<V2BlockWithExercises>) => {
       onChange(blocks.map((b) => (b.id === id ? { ...b, ...patch } : b)));
     },
     [blocks, onChange],
@@ -82,17 +83,58 @@ export function SessionDayEditor({ blocks, onChange }: SessionDayEditorProps) {
     [blocks, onChange],
   );
 
+  const addExerciseToBlock = useCallback(
+    (blockId: string, picked: PickedExercise) => {
+      const exercise: V2BlockExercise = {
+        id: `ex-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        exerciseId: picked.id,
+        exerciseName: picked.name,
+        sets: 3,
+        reps: "10",
+        restSeconds: 90,
+        method: pendingMethod[blockId] ?? "normal",
+      };
+      onChange(
+        blocks.map((b) =>
+          b.id === blockId
+            ? { ...b, exercises: [...(b.exercises ?? []), exercise] }
+            : b,
+        ),
+      );
+      // consume pendingMethod so next exercise defaults to normal
+      setPendingMethod((p) => {
+        const next = { ...p };
+        delete next[blockId];
+        return next;
+      });
+    },
+    [blocks, onChange, pendingMethod],
+  );
+
+  const removeExerciseFromBlock = useCallback(
+    (blockId: string, exerciseId: string) => {
+      onChange(
+        blocks.map((b) =>
+          b.id === blockId
+            ? { ...b, exercises: (b.exercises ?? []).filter((e) => e.id !== exerciseId) }
+            : b,
+        ),
+      );
+    },
+    [blocks, onChange],
+  );
+
   const handleStartLinked = useCallback(
     (blockId: string, method: LinkedMethod) => {
       setPendingMethod((p) => ({ ...p, [blockId]: method }));
-      toast.info(`Méthode liée « ${method} » sélectionnée — édition disponible en A7.3.`);
+      toast.info(`Méthode liée « ${method} » — l'ajout d'exercice utilisera ce mode.`);
     },
     [],
   );
   const handleStartConfig = useCallback(
     (blockId: string, method: ConfigMethod) => {
       setPendingMethod((p) => ({ ...p, [blockId]: method }));
-      toast.info(`Méthode « ${method} » sélectionnée — config disponible en A7.3.`);
+      toast.info(`Méthode « ${method} » — l'ajout d'exercice utilisera ce mode.`);
     },
     [],
   );
