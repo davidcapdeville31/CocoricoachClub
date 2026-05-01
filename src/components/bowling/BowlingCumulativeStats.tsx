@@ -534,6 +534,7 @@ export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: 
           </div>
         )}
       </div>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
