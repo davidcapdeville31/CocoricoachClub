@@ -122,14 +122,20 @@ export function AddExerciseDialog() {
 
       const { error } = await supabase.from("exercise_library").insert({
         user_id: user.id,
+        coach_id: user.id,
         name,
+        exercise_name: name,
         category,
+        station_name: category,
         subcategory: subcategory || null,
         youtube_url: youtubeUrl || null,
+        video_url: youtubeUrl || null,
         description: description || null,
         difficulty,
+        difficulty_level: difficulty,
         image_url: imageUrl || null,
         is_system: false,
+        is_default: false,
       });
       if (error) throw error;
 

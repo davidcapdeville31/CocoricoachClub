@@ -2125,6 +2125,62 @@ export type Database = {
           },
         ]
       }
+      coach_exercise_overrides: {
+        Row: {
+          base_exercise_id: string
+          coach_id: string
+          created_at: string
+          id: string
+          override_description: string | null
+          override_execution_criteria: Json | null
+          override_general_description: string | null
+          override_image_url: string | null
+          override_positioning_criteria: Json | null
+          override_safety_prevention: Json | null
+          override_tips: string | null
+          override_video_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          base_exercise_id: string
+          coach_id: string
+          created_at?: string
+          id?: string
+          override_description?: string | null
+          override_execution_criteria?: Json | null
+          override_general_description?: string | null
+          override_image_url?: string | null
+          override_positioning_criteria?: Json | null
+          override_safety_prevention?: Json | null
+          override_tips?: string | null
+          override_video_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          base_exercise_id?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+          override_description?: string | null
+          override_execution_criteria?: Json | null
+          override_general_description?: string | null
+          override_image_url?: string | null
+          override_positioning_criteria?: Json | null
+          override_safety_prevention?: Json | null
+          override_tips?: string | null
+          override_video_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_exercise_overrides_base_exercise_id_fkey"
+            columns: ["base_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       competition_round_stats: {
         Row: {
           created_at: string
@@ -3101,76 +3157,94 @@ export type Database = {
       }
       exercise_library: {
         Row: {
-          category: string
-          created_at: string
+          category: string | null
+          coach_id: string | null
+          created_at: string | null
           description: string | null
           difficulty: string | null
+          difficulty_level: string | null
           equipment: string[] | null
           execution_criteria: Json | null
+          exercise_name: string
           exercise_type: string | null
           general_description: string | null
           id: string
           image_url: string | null
+          is_default: boolean | null
           is_system: boolean | null
+          is_variation: boolean | null
           joint_movements: string[] | null
           muscle_groups: string[] | null
-          name: string
+          muscles: string[] | null
+          name: string | null
           positioning_criteria: Json | null
           safety_prevention: Json | null
-          station_name: string | null
+          station_name: string
           subcategory: string | null
           tips: string | null
-          updated_at: string
+          updated_at: string | null
           user_id: string | null
           video_url: string | null
           youtube_url: string | null
         }
         Insert: {
-          category: string
-          created_at?: string
+          category?: string | null
+          coach_id?: string | null
+          created_at?: string | null
           description?: string | null
           difficulty?: string | null
+          difficulty_level?: string | null
           equipment?: string[] | null
           execution_criteria?: Json | null
+          exercise_name: string
           exercise_type?: string | null
           general_description?: string | null
           id?: string
           image_url?: string | null
+          is_default?: boolean | null
           is_system?: boolean | null
+          is_variation?: boolean | null
           joint_movements?: string[] | null
           muscle_groups?: string[] | null
-          name: string
+          muscles?: string[] | null
+          name?: string | null
           positioning_criteria?: Json | null
           safety_prevention?: Json | null
-          station_name?: string | null
+          station_name: string
           subcategory?: string | null
           tips?: string | null
-          updated_at?: string
+          updated_at?: string | null
           user_id?: string | null
           video_url?: string | null
           youtube_url?: string | null
         }
         Update: {
-          category?: string
-          created_at?: string
+          category?: string | null
+          coach_id?: string | null
+          created_at?: string | null
           description?: string | null
           difficulty?: string | null
+          difficulty_level?: string | null
           equipment?: string[] | null
           execution_criteria?: Json | null
+          exercise_name?: string
           exercise_type?: string | null
           general_description?: string | null
           id?: string
           image_url?: string | null
+          is_default?: boolean | null
           is_system?: boolean | null
+          is_variation?: boolean | null
           joint_movements?: string[] | null
           muscle_groups?: string[] | null
-          name?: string
+          muscles?: string[] | null
+          name?: string | null
           positioning_criteria?: Json | null
           safety_prevention?: Json | null
-          station_name?: string | null
+          station_name?: string
           subcategory?: string | null
           tips?: string | null
-          updated_at?: string
+          updated_at?: string | null
           user_id?: string | null
           video_url?: string | null
           youtube_url?: string | null
@@ -4382,13 +4456,6 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "gym_session_exercises_library_exercise_id_fkey"
-            columns: ["library_exercise_id"]
-            isOneToOne: false
-            referencedRelation: "exercise_library"
             referencedColumns: ["id"]
           },
           {
@@ -8029,13 +8096,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "player_rehab_exercises_exercise_library_id_fkey"
-            columns: ["exercise_library_id"]
-            isOneToOne: false
-            referencedRelation: "exercise_library"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "player_rehab_exercises_phase_id_fkey"
             columns: ["phase_id"]
             isOneToOne: false
@@ -9180,13 +9240,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "program_exercises_library_exercise_id_fkey"
-            columns: ["library_exercise_id"]
-            isOneToOne: false
-            referencedRelation: "exercise_library"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "program_exercises_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -9382,13 +9435,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "prophylaxis_exercises_library_exercise_id_fkey"
-            columns: ["library_exercise_id"]
-            isOneToOne: false
-            referencedRelation: "exercise_library"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "prophylaxis_exercises_program_id_fkey"
             columns: ["program_id"]
             isOneToOne: false
@@ -9559,13 +9605,6 @@ export type Database = {
           sets?: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "protocol_phase_exercises_exercise_library_id_fkey"
-            columns: ["exercise_library_id"]
-            isOneToOne: false
-            referencedRelation: "exercise_library"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "protocol_phase_exercises_phase_id_fkey"
             columns: ["phase_id"]
@@ -11663,13 +11702,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "template_exercises_exercise_id_fkey"
-            columns: ["exercise_id"]
-            isOneToOne: false
-            referencedRelation: "exercise_library"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "template_exercises_template_id_fkey"
             columns: ["template_id"]
             isOneToOne: false
@@ -13550,6 +13582,34 @@ export type Database = {
           document_version: string
           granted: boolean
           granted_at: string
+        }[]
+      }
+      get_merged_exercises_for_coach: {
+        Args: { p_coach_id: string }
+        Returns: {
+          coach_id: string
+          created_at: string
+          description: string
+          difficulty_level: string
+          equipment: string[]
+          execution_criteria: Json
+          exercise_name: string
+          exercise_type: string
+          general_description: string
+          id: string
+          image_url: string
+          is_custom: boolean
+          is_default: boolean
+          is_overridden: boolean
+          joint_movements: string[]
+          muscles: string[]
+          override_id: string
+          positioning_criteria: Json
+          safety_prevention: Json
+          station_name: string
+          tips: string
+          updated_at: string
+          video_url: string
         }[]
       }
       get_player_attributes_by_dimension: {
