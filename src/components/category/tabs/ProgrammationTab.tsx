@@ -4,7 +4,7 @@ import { TestsTab } from "@/components/category/TestsTab";
 import { SessionsTab } from "@/components/category/sessions/SessionsTab";
 import { ProgramsTab } from "@/components/category/programs/ProgramsTab";
 import { TestRemindersTab } from "@/components/category/TestRemindersTab";
-import { ExerciseLibrarySection } from "@/components/library/ExerciseLibrarySection";
+import ExerciseLibraryRemix from "@/components/library/ExerciseLibraryRemix";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
@@ -99,7 +99,7 @@ export function ProgrammationTab({ categoryId }: ProgrammationTabProps) {
       </TabsContent>
 
       <TabsContent value="exercise-library">
-        <ExerciseLibrarySection />
+        <ExerciseLibraryRemix />
       </TabsContent>
     </Tabs>
   );
