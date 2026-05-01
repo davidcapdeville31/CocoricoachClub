@@ -21,6 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCategoryAttributes } from "@/hooks/useCategoryAttributes";
+import { AthleteIdentityBadges } from "@/components/player/AthleteIdentityBadges";
 
 interface Player {
   id: string;
@@ -89,19 +91,30 @@ export function AdvancedPlayerSelection({
   const positionGroups = getPositionGroupsForSport(sportType);
   const hasPositionGroups = positionGroups.length > 0;
 
+  // Identité Athlète : agrège toutes les positions (principale + secondaires)
+  // pour qu'un pilier 2e ligne soit visible dans les 2 groupes.
+  const { getPlayerValues } = useCategoryAttributes(categoryId);
+
+  const playerMatchesGroup = (p: Player, group: PositionGroup): boolean => {
+    if (playerBelongsToGroup(p.position, group)) return true;
+    const allPositions = getPlayerValues(p.id, "position");
+    return allPositions.some((pos) => playerBelongsToGroup(pos, group));
+  };
+
   // Group players by position group
   const playersByGroup = useMemo(() => {
     if (!hasPositionGroups) return {};
-    
+
     const grouped: Record<string, Player[]> = {};
     positionGroups.forEach(group => {
-      grouped[group.id] = players.filter(p => playerBelongsToGroup(p.position, group));
+      grouped[group.id] = players.filter(p => playerMatchesGroup(p, group));
     });
-    grouped["unassigned"] = players.filter(p => 
-      !positionGroups.some(group => playerBelongsToGroup(p.position, group))
+    grouped["unassigned"] = players.filter(p =>
+      !positionGroups.some(group => playerMatchesGroup(p, group))
     );
     return grouped;
-  }, [players, positionGroups, hasPositionGroups]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [players, positionGroups, hasPositionGroups, getPlayerValues]);
 
   const healthyPlayers = useMemo(
     () => players.filter((p) => !injuredPlayerIds.has(p.id)),
@@ -124,16 +137,17 @@ export function AdvancedPlayerSelection({
       );
     }
     
-    // Apply position group filter
+    // Apply position group filter (étendu à l'identité athlète)
     if (positionFilter !== "all" && hasPositionGroups) {
       const group = positionGroups.find(g => g.id === positionFilter);
       if (group) {
-        filtered = filtered.filter(p => playerBelongsToGroup(p.position, group));
+        filtered = filtered.filter(p => playerMatchesGroup(p, group));
       }
     }
-    
+
     return filtered;
-  }, [players, searchQuery, positionFilter, positionGroups, hasPositionGroups]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [players, searchQuery, positionFilter, positionGroups, hasPositionGroups, getPlayerValues]);
 
   const togglePlayer = (playerId: string) => {
     if (selectedPlayers.includes(playerId)) {
@@ -374,6 +388,7 @@ export function AdvancedPlayerSelection({
                             {playerGroup.label}
                           </Badge>
                         )}
+                        <AthleteIdentityBadges playerId={player.id} primaryOnly={false} />
                       </div>
                     </div>
                     {isInjured && (
