@@ -272,7 +272,7 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
           <CardContent className="py-8 text-center text-muted-foreground">
             <Dumbbell className="h-12 w-12 mx-auto mb-3 opacity-50" />
             <p>Aucune séance créée</p>
-            <p className="text-sm mt-1">Cliquez sur "Nouvel éditeur (V2)" pour commencer</p>
+            <p className="text-sm mt-1">Cliquez sur "Ajouter une séance" pour commencer</p>
           </CardContent>
         </Card>
       ) : (
