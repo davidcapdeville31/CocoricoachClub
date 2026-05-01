@@ -21,21 +21,31 @@ import { ExerciseDescriptionForm, type ExerciseDescriptionFormData } from "./Exe
 import { useMergedExercises, type MergedExercise } from "@/hooks/useMergedExercises";
 import { ExerciseSourceBadge } from "./ExerciseSourceBadge";
 
+// Stations HYROX regroupées sous un seul onglet
+const HYROX_STATIONS = [
+  "Ski Erg",
+  "Sled Push",
+  "Sled Pull",
+  "Burpee Broad Jump",
+  "Row",
+  "Farmers Carry",
+  "Sandbag Lunges",
+  "Wall Balls",
+];
+
+// Onglets de filtrage (alignés sur les stations réellement présentes en base)
 const EXERCISE_CATEGORIES = [
   "HYROX",
-  "CrossFit",
-  "Musculation",
   "Haltérophilie",
   "Cardio/Endurance",
   "Vitesse/Plyométrie",
   "Gainage/Core",
   "Poids de corps/Calisthenics",
   "Athlétisme/Running drills",
-  "Mobilité/Stretching",
   "Prévention/Renforcement",
   "Respiration",
   "Réathlétisation",
-  "Tests & Évaluations"
+  "Tests & Évaluations",
 ];
 
 // Muscles list (sorted alphabetically)
@@ -499,9 +509,13 @@ const ExerciseLibrary = () => {
       }
     }
     
-    // Category filter
-    if (selectedStation !== "all" && exercise.station_name !== selectedStation) {
-      return false;
+    // Category filter (HYROX = groupe de 8 stations)
+    if (selectedStation !== "all") {
+      if (selectedStation === "HYROX") {
+        if (!HYROX_STATIONS.includes(exercise.station_name)) return false;
+      } else if (exercise.station_name !== selectedStation) {
+        return false;
+      }
     }
     
     // Favorites filter
