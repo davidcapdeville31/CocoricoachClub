@@ -76,7 +76,7 @@ const LATERALITY_OPTIONS_BOWLING: { value: string; label: string }[] = [
 ];
 
 function getLateralityOptions(sportType: string) {
-  return sportType === "bowling" ? LATERALITY_OPTIONS_BOWLING : LATERALITY_OPTIONS;
+  return sportType?.startsWith("bowling") ? LATERALITY_OPTIONS_BOWLING : LATERALITY_OPTIONS;
 }
 
 const STYLES_BY_SPORT: Record<string, { value: string; label: string }[]> = {
