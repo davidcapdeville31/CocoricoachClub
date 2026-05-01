@@ -55,6 +55,7 @@ export function UnifiedTestDialog({
   const [selectedTest, setSelectedTest] = useState("");
   const [playerResults, setPlayerResults] = useState<Record<string, string>>({});
   const [playerSecondaryResults, setPlayerSecondaryResults] = useState<Record<string, string>>({});
+  const [playerComposedInputs, setPlayerComposedInputs] = useState<Record<string, Record<string, string>>>({});
   const [notes, setNotes] = useState("");
   const [customTestName, setCustomTestName] = useState("");
   const [customTestUnit, setCustomTestUnit] = useState("");
