@@ -23,7 +23,8 @@ import { toast } from "sonner";
 import { playerSchema } from "@/lib/validations";
 import { ATHLETISME_DISCIPLINES, ATHLETISME_SPECIALTIES, JUDO_WEIGHT_CATEGORIES, AVIRON_ROLES, NATATION_DISCIPLINES, NATATION_SPECIALTIES, SKI_DISCIPLINES, SURF_DISCIPLINES, TRIATHLON_DISCIPLINES, PADEL_POSITIONS, isAthletismeCategory, isJudoCategory, isNatationCategory, isSkiCategory, isSurfCategory, isTriathlonCategory, isPadelCategory, isIndividualSport, getSkiDisciplinesForCategory } from "@/lib/constants/sportTypes";
 import { getPositionsForSport } from "@/lib/constants/sportPositions";
-import { Loader2, Send, UserPlus, Copy, Check, AlertTriangle, Plus, X, Download } from "lucide-react";
+import { Loader2, Send, UserPlus, Copy, Check, AlertTriangle, Plus, X, Download, Camera } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { scrapeFisResults, importFisResultsForPlayer } from "@/lib/fis/scrapeFisResults";
 import { useAuth } from "@/contexts/AuthContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -72,6 +73,8 @@ export function AddPlayerDialogWithInvite({
   const [parent2, setParent2] = useState({ name: "", relation: "", phone: "", email: "" });
   // Coaches (illimité)
   const [coaches, setCoaches] = useState<{ full_name: string; role: string; phone: string; email: string }[]>([]);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   // Fetch category with club info
@@ -216,6 +219,8 @@ export function AddPlayerDialogWithInvite({
     setParent1({ name: "", relation: "", phone: "", email: "" });
     setParent2({ name: "", relation: "", phone: "", email: "" });
     setCoaches([]);
+    setAvatarFile(null);
+    setAvatarPreview(null);
   };
 
   const copyLink = async (link: string) => {
