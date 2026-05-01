@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 
 interface AthleteSpaceDocumentsProps {
   playerId: string;
@@ -161,12 +162,21 @@ export function AthleteSpaceDocuments({ playerId, categoryId }: AthleteSpaceDocu
   return (
     <div className="space-y-4">
       <Tabs defaultValue="personal" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="personal" className="gap-1.5">
+        <TabsList
+          className="grid w-full grid-cols-2 bg-muted/40 rounded-xl p-1"
+          style={{ ["--tab-accent" as any]: NAV_COLORS.admin.base }}
+        >
+          <TabsTrigger
+            value="personal"
+            className="gap-1.5 rounded-lg font-semibold transition-all data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+          >
             <User className="h-3.5 w-3.5" />
             Mes documents ({personalDocuments?.length || 0})
           </TabsTrigger>
-          <TabsTrigger value="team" className="gap-1.5">
+          <TabsTrigger
+            value="team"
+            className="gap-1.5 rounded-lg font-semibold transition-all data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+          >
             <Users className="h-3.5 w-3.5" />
             Documents d'équipe ({teamDocuments?.length || 0})
           </TabsTrigger>
