@@ -340,6 +340,17 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
                     </div>
                   </div>
                 )}
+                {playerInfo?.gender && (
+                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                    <UserCircle2 className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Genre</p>
+                      <p className="text-sm">
+                        {playerInfo.gender === "male" ? "Masculin" : playerInfo.gender === "female" ? "Féminin" : "Autre"}
+                      </p>
+                    </div>
+                  </div>
+                )}
                 {isSki && playerInfo?.fis_code && (
                   <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                     <Mountain className="h-4 w-4 text-muted-foreground" />
