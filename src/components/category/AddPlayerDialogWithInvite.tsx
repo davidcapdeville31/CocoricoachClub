@@ -365,6 +365,43 @@ export function AddPlayerDialogWithInvite({
         fis_objective_date: fisObjectiveDate || undefined,
       });
 
+      // Save parents contacts on player record (if any provided)
+      const hasParent1 = parent1.name.trim() || parent1.phone.trim() || parent1.email.trim();
+      const hasParent2 = parent2.name.trim() || parent2.phone.trim() || parent2.email.trim();
+      if (hasParent1 || hasParent2) {
+        await supabase
+          .from("players")
+          .update({
+            parent_contact_1_name: parent1.name.trim() || null,
+            parent_contact_1_relation: parent1.relation.trim() || null,
+            parent_contact_1_phone: parent1.phone.trim() || null,
+            parent_contact_1_email: parent1.email.trim() || null,
+            parent_contact_2_name: parent2.name.trim() || null,
+            parent_contact_2_relation: parent2.relation.trim() || null,
+            parent_contact_2_phone: parent2.phone.trim() || null,
+            parent_contact_2_email: parent2.email.trim() || null,
+          } as any)
+          .eq("id", player.id);
+      }
+
+      // Save coaches (player_coaches table)
+      const validCoaches = coaches.filter(
+        (c) => c.full_name.trim() || c.phone.trim() || c.email.trim(),
+      );
+      if (validCoaches.length > 0) {
+        await supabase.from("player_coaches").insert(
+          validCoaches.map((c) => ({
+            player_id: player.id,
+            category_id: categoryId,
+            full_name: c.full_name.trim() || "Entraîneur",
+            role: c.role.trim() || null,
+            phone: c.phone.trim() || null,
+            email: c.email.trim() || null,
+            created_by: user?.id || null,
+          })),
+        );
+      }
+
       // Create FIS objectives if provided
       if (isSki && yearlyObjectives.length > 0) {
         const objectivesToInsert = yearlyObjectives
