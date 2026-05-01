@@ -12,6 +12,7 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
 import { PlayerTestsTab } from "@/components/player/PlayerTestsTab";
 import { SuggestedBenchmarksCard } from "@/components/player/SuggestedBenchmarksCard";
+import { RecommendedExercisesCard } from "@/components/player/RecommendedExercisesCard";
 import { PlayerCalendarTab } from "@/components/player/PlayerCalendarTab";
 import { PlayerAwcrTab } from "@/components/player/PlayerAwcrTab";
 import { PlayerTrainingLoadCard } from "@/components/player/PlayerTrainingLoadCard";
@@ -524,6 +525,7 @@ function PlayerDetailsContent() {
           <TabsContent value="tests">
             <div className="space-y-4">
               <SuggestedBenchmarksCard playerId={playerId!} categoryId={player.category_id} />
+              <RecommendedExercisesCard playerId={playerId!} />
               <PlayerTestsTab playerId={playerId!} categoryId={player.category_id} sportType={sportType} />
             </div>
           </TabsContent>
