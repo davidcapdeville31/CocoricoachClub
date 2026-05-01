@@ -19,7 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getTrainingStyleConfig } from "./lib/trainingStyles";
 import { DAYS_OF_WEEK } from "./lib/trainingProgramsData";
-import { getBlockTypeConfig, type TrainingBlockData } from "./TrainingBlockSection";
+import { getBlockTypeConfig, type TrainingBlock as TrainingBlockData } from "./TrainingBlockSection";
 
 // Local types (originally re-exported from CreateTrainingProgram)
 export interface UnifiedOrderItem {
