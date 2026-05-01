@@ -263,7 +263,7 @@ function PlayerDetailsContent() {
         <div className="flex justify-between items-center mb-6">
           <Button
             variant="ghost"
-            onClick={() => navigate(`/categories/${player.categories?.id}`)}
+            onClick={() => navigate(`/categories/${player.categories?.id}?tab=effectif`)}
             className="gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
