@@ -230,7 +230,10 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         query = query.or("test_category.not.ilike.rehab_%,test_category.is.null");
       }
 
-      if (filterCategory !== "all") {
+      if (filterCategory === "__custom__") {
+        // Show only results coming from coach's custom tests
+        query = query.ilike("test_type", "custom:%");
+      } else if (filterCategory !== "all") {
         query = query.eq("test_category", filterCategory);
       }
       if (filterTestType !== "all" && !filterTestType.startsWith("custom:")) {
