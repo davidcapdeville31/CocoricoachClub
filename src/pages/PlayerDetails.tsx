@@ -29,6 +29,7 @@ import { TransferPlayerDialog } from "@/components/player/TransferPlayerDialog";
 import { PlayerTransferHistory } from "@/components/player/PlayerTransferHistory";
 import { AthleteAccessSection } from "@/components/player/AthleteAccessSection";
 import { PlayerAdditionalInfoSection } from "@/components/player/PlayerAdditionalInfoSection";
+import { PlayerCoachesSection } from "@/components/player/PlayerCoachesSection";
 import { PlayerPersonalInfoSection } from "@/components/player/PlayerPersonalInfoSection";
 import { AthleticsDisciplinesEditor } from "@/components/player/AthleticsDisciplinesEditor";
 import { PlayerReferenceCard } from "@/components/player/PlayerReferenceCard";
