@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -106,9 +106,41 @@ export function SmartStatsComparator({
 
   const [mode, setMode] = useState<Mode>("players");
   const [primaryOnly] = useState(true);
-  const [metricKeys, setMetricKeys] = useState<string[]>(
-    metrics.map((m) => m.key),
-  );
+
+  // Clé de persistance basée sur la catégorie + l'ensemble des métriques disponibles
+  const storageKey = useMemo(() => {
+    const sig = metrics.map((m) => m.key).sort().join(",");
+    let hash = 0;
+    for (let i = 0; i < sig.length; i++) {
+      hash = (hash * 31 + sig.charCodeAt(i)) | 0;
+    }
+    return `smartStatsComparator:metricKeys:${categoryId}:${hash}`;
+  }, [categoryId, metrics]);
+
+  const [metricKeys, setMetricKeys] = useState<string[]>(() => {
+    if (typeof window === "undefined") return metrics.map((m) => m.key);
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          const valid = parsed.filter((k: unknown): k is string =>
+            typeof k === "string" && metrics.some((m) => m.key === k),
+          );
+          return valid;
+        }
+      }
+    } catch {}
+    return metrics.map((m) => m.key);
+  });
+
+  // Sauvegarde à chaque changement
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(metricKeys));
+    } catch {}
+  }, [storageKey, metricKeys]);
   const [scopeKey, setScopeKey] = useState<string>(scopes[0]?.key ?? "");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[] | null>(null);
   const [selectedDim, setSelectedDim] = useState<string | null>(null);
