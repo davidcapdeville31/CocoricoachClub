@@ -213,6 +213,9 @@ export function AddPlayerDialogWithInvite({
     setYearlyObjectives([]);
     setImportFisHistory(true);
     setFisImportStatus(null);
+    setParent1({ name: "", relation: "", phone: "", email: "" });
+    setParent2({ name: "", relation: "", phone: "", email: "" });
+    setCoaches([]);
   };
 
   const copyLink = async (link: string) => {
