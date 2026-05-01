@@ -116,7 +116,33 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
     enabled: benchmarks.some(b => b.use_body_weight_ratio),
   });
 
-  // Latest weight per player
+  // Identité athlète : récupère TOUS les attributs (positions multiples, etc.)
+  // pour les joueurs de la catégorie afin d'enrichir les filtres benchmarks.
+  const playerIds = useMemo(() => (players || []).map((p: any) => p.id), [players]);
+  const { data: attributes = [] } = useQuery({
+    queryKey: ["athlete_attributes_by_category", categoryId, playerIds.length],
+    enabled: playerIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("athlete_attributes")
+        .select("player_id, dimension, value, is_primary, weight")
+        .in("player_id", playerIds);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Index : player_id -> dimension -> Set des valeurs
+  const playerDimensionValues = useMemo(() => {
+    const map = new Map<string, Map<string, Set<string>>>();
+    for (const a of attributes as any[]) {
+      if (!map.has(a.player_id)) map.set(a.player_id, new Map());
+      const dimMap = map.get(a.player_id)!;
+      if (!dimMap.has(a.dimension)) dimMap.set(a.dimension, new Set());
+      dimMap.get(a.dimension)!.add(a.value);
+    }
+    return map;
+  }, [attributes]);
   const playerWeights = useMemo(() => {
     const map = new Map<string, number>();
     for (const bc of bodyComps) {
@@ -212,9 +238,21 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
   }, [benchmarks, genericTests, speedTests, strengthTests]);
 
   // Filter players based on benchmark filter
+  // Désormais : on regarde l'identité athlète (positions multiples)
+  // en plus du champ legacy `position` pour matcher tout poste joué.
   const getFilteredPlayers = (bm: Benchmark) => {
     if (bm.filter_type === "all" || !bm.filter_value) return players;
-    return players.filter(p => (p as any).position === bm.filter_value);
+    return players.filter((p: any) => {
+      // 1) Champ legacy
+      if (p.position === bm.filter_value) return true;
+      // 2) Identité athlète : positions secondaires
+      const dims = playerDimensionValues.get(p.id);
+      if (!dims) return false;
+      // Le filter_type peut être 'position' ; sinon on tente la dimension homonyme
+      const dim = bm.filter_type === "position" ? "position" : bm.filter_type;
+      const values = dims.get(dim);
+      return !!values && values.has(bm.filter_value);
+    });
   };
 
   if (benchmarks.length === 0) {

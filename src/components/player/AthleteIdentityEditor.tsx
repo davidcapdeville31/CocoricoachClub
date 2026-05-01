@@ -1,0 +1,347 @@
+import { useMemo, useState } from "react";
+import {
+  useAthleteAttributes,
+  useAddAthleteAttribute,
+  useUpdateAthleteAttribute,
+  useDeleteAthleteAttribute,
+  type AthleteDimension,
+} from "@/hooks/useAthleteAttributes";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Plus, X, Star, Loader2 } from "lucide-react";
+import {
+  ATHLETISME_DISCIPLINES,
+  ATHLETISME_SPECIALTIES,
+  isAthletismeCategory,
+} from "@/lib/constants/sportTypes";
+import { getPositionsForSport } from "@/lib/constants/sportPositions";
+
+type DimensionConfig = {
+  dimension: AthleteDimension;
+  label: string;
+  description: string;
+  options: { value: string; label: string }[];
+  allowFreeText?: boolean;
+};
+
+interface Props {
+  playerId: string;
+  sportType: string;
+}
+
+const PERFORMANCE_PROFILES: { value: string; label: string }[] = [
+  { value: "explosif", label: "Explosif" },
+  { value: "puissant", label: "Puissant" },
+  { value: "endurant", label: "Endurant" },
+  { value: "vitesse", label: "Vitesse" },
+  { value: "technique", label: "Technique" },
+  { value: "polyvalent", label: "Polyvalent" },
+];
+
+const STYLES_BY_SPORT: Record<string, { value: string; label: string }[]> = {
+  bowling: [
+    { value: "1_main", label: "1 main" },
+    { value: "2_mains", label: "2 mains" },
+    { value: "stroker", label: "Stroker" },
+    { value: "cranker", label: "Cranker" },
+    { value: "tweener", label: "Tweener" },
+  ],
+  tennis: [
+    { value: "droitier", label: "Droitier" },
+    { value: "gaucher", label: "Gaucher" },
+    { value: "revers_1main", label: "Revers 1 main" },
+    { value: "revers_2mains", label: "Revers 2 mains" },
+  ],
+  padel: [
+    { value: "droitier", label: "Droitier" },
+    { value: "gaucher", label: "Gaucher" },
+    { value: "cote_droit", label: "Côté droit" },
+    { value: "cote_gauche", label: "Côté gauche" },
+  ],
+};
+
+/**
+ * Éditeur unifié de l'identité athlète.
+ * Pilote toutes les dimensions multi-valeurs : positions, disciplines,
+ * styles techniques, profils de performance — avec primaire + pondération.
+ */
+export function AthleteIdentityEditor({ playerId, sportType }: Props) {
+  const { data: attributes = [], isLoading } = useAthleteAttributes(playerId);
+  const addMut = useAddAthleteAttribute(playerId);
+  const updateMut = useUpdateAthleteAttribute(playerId);
+  const deleteMut = useDeleteAthleteAttribute(playerId);
+
+  const isAthletics = isAthletismeCategory(sportType);
+
+  const dimensions: DimensionConfig[] = useMemo(() => {
+    const list: DimensionConfig[] = [];
+
+    // 1) Positions (sports collectifs)
+    const positions = getPositionsForSport(sportType as any);
+    if (positions.length > 0 && !isAthletics) {
+      list.push({
+        dimension: "position",
+        label: "Postes",
+        description: "Postes occupés (cochez le principal, ajoutez des secondaires).",
+        options: positions.map((p) => ({ value: p.name, label: `${p.id}. ${p.name}` })),
+      });
+    }
+
+    // 2) Disciplines (athlétisme et assimilés)
+    if (isAthletics) {
+      list.push({
+        dimension: "discipline",
+        label: "Disciplines",
+        description: "L'athlète peut s'aligner sur plusieurs disciplines.",
+        options: ATHLETISME_DISCIPLINES.map((d) => ({ value: d.value, label: d.label })),
+      });
+    }
+
+    // 3) Styles techniques
+    const styleOptions = STYLES_BY_SPORT[sportType];
+    if (styleOptions) {
+      list.push({
+        dimension: "style",
+        label: "Styles techniques",
+        description: "Caractéristiques techniques principales.",
+        options: styleOptions,
+      });
+    }
+
+    // 4) Profil de performance — toujours disponible
+    list.push({
+      dimension: "performance_profile",
+      label: "Profils de performance",
+      description: "Qualités physiques dominantes (déclaratif ou issu des tests).",
+      options: PERFORMANCE_PROFILES,
+    });
+
+    return list;
+  }, [sportType, isAthletics]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground p-4">
+        <Loader2 className="h-4 w-4 animate-spin" /> Chargement de l'identité…
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 rounded-2xl border bg-muted/40 p-4 backdrop-blur-sm">
+      <div>
+        <Label className="text-base font-semibold">Identité athlète</Label>
+        <p className="text-xs text-muted-foreground">
+          Définit comment l'application adapte tests, barèmes et analyses à cet athlète.
+          ⭐ = valeur principale.
+        </p>
+      </div>
+
+      {dimensions.map((dim) => {
+        const items = attributes.filter((a) => a.dimension === dim.dimension);
+        return (
+          <DimensionBlock
+            key={dim.dimension}
+            config={dim}
+            items={items}
+            sportType={sportType}
+            onAdd={(payload) => addMut.mutate(payload)}
+            onTogglePrimary={(id) => updateMut.mutate({ id, patch: { is_primary: true } })}
+            onUpdateWeight={(id, weight) =>
+              updateMut.mutate({ id, patch: { weight } })
+            }
+            onUpdateMetadata={(id, metadata) =>
+              updateMut.mutate({ id, patch: { metadata } })
+            }
+            onDelete={(id) => deleteMut.mutate(id)}
+            pending={addMut.isPending || updateMut.isPending || deleteMut.isPending}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+interface DimensionBlockProps {
+  config: DimensionConfig;
+  items: ReturnType<typeof useAthleteAttributes>["data"] extends Array<infer T> | undefined
+    ? T[]
+    : never;
+  sportType: string;
+  onAdd: (payload: {
+    dimension: AthleteDimension;
+    value: string;
+    is_primary?: boolean;
+    weight?: number | null;
+    metadata?: any;
+  }) => void;
+  onTogglePrimary: (id: string) => void;
+  onUpdateWeight: (id: string, weight: number | null) => void;
+  onUpdateMetadata: (id: string, metadata: any) => void;
+  onDelete: (id: string) => void;
+  pending: boolean;
+}
+
+function DimensionBlock({
+  config,
+  items,
+  sportType,
+  onAdd,
+  onTogglePrimary,
+  onUpdateWeight,
+  onUpdateMetadata,
+  onDelete,
+  pending,
+}: DimensionBlockProps) {
+  const [draft, setDraft] = useState("");
+  const [draftSpecialty, setDraftSpecialty] = useState("");
+
+  const isAthleticsDiscipline = config.dimension === "discipline";
+  const draftSpecialties = isAthleticsDiscipline && draft
+    ? ATHLETISME_SPECIALTIES[draft] || []
+    : [];
+
+  const usedValues = new Set(
+    items.map((i) => `${i.value}|${(i.metadata as any)?.specialty ?? ""}`),
+  );
+
+  const handleAdd = () => {
+    if (!draft) return;
+    const compoundKey = `${draft}|${draftSpecialty}`;
+    if (usedValues.has(compoundKey)) return;
+    onAdd({
+      dimension: config.dimension,
+      value: draft,
+      is_primary: items.length === 0, // 1ère valeur = principale par défaut
+      weight: null,
+      metadata: draftSpecialty ? { specialty: draftSpecialty } : {},
+    });
+    setDraft("");
+    setDraftSpecialty("");
+  };
+
+  const labelFor = (val: string): string => {
+    const opt = config.options.find((o) => o.value === val);
+    return opt?.label ?? val;
+  };
+
+  return (
+    <div className="space-y-2 rounded-xl border bg-background/60 p-3">
+      <div className="flex items-baseline justify-between gap-2">
+        <Label className="text-sm font-medium">{config.label}</Label>
+        <span className="text-[11px] text-muted-foreground">{config.description}</span>
+      </div>
+
+      {items.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {items.map((it) => {
+            const meta = (it.metadata as any) || {};
+            const specialtyLabel = meta.specialty
+              ? (ATHLETISME_SPECIALTIES[it.value] || []).find(
+                  (s) => s.value === meta.specialty,
+                )?.label || meta.specialty
+              : null;
+            return (
+              <div
+                key={it.id}
+                className={`group flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs ${
+                  it.is_primary
+                    ? "bg-primary text-primary-foreground border-transparent"
+                    : "bg-muted text-foreground"
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => !it.is_primary && onTogglePrimary(it.id)}
+                  title={it.is_primary ? "Principal" : "Définir comme principal"}
+                  className="opacity-90 hover:opacity-100"
+                >
+                  <Star
+                    className={`h-3 w-3 ${it.is_primary ? "fill-current" : ""}`}
+                  />
+                </button>
+                <span className="font-medium">
+                  {labelFor(it.value)}
+                  {specialtyLabel ? ` · ${specialtyLabel}` : ""}
+                </span>
+                {!it.is_primary && (
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={it.weight ?? ""}
+                    placeholder="%"
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      onUpdateWeight(it.id, v === "" ? null : Number(v));
+                    }}
+                    className="h-5 w-12 px-1 text-[10px] text-foreground bg-background"
+                  />
+                )}
+                <button
+                  type="button"
+                  onClick={() => onDelete(it.id)}
+                  disabled={pending}
+                  className="ml-0.5 rounded-sm hover:bg-foreground/10 p-0.5"
+                  aria-label="Retirer"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="flex flex-col sm:flex-row gap-2">
+        <Select value={draft} onValueChange={(v) => { setDraft(v); setDraftSpecialty(""); }}>
+          <SelectTrigger className="w-full bg-background">
+            <SelectValue placeholder={`Ajouter ${config.label.toLowerCase()}…`} />
+          </SelectTrigger>
+          <SelectContent className="bg-background border z-[200] max-h-[300px]">
+            {config.options.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {draftSpecialties.length > 0 && (
+          <Select value={draftSpecialty} onValueChange={setDraftSpecialty}>
+            <SelectTrigger className="w-full bg-background">
+              <SelectValue placeholder="Spécialité" />
+            </SelectTrigger>
+            <SelectContent className="bg-background border z-[200] max-h-[300px]">
+              {draftSpecialties.map((s) => (
+                <SelectItem key={s.value} value={s.value}>
+                  {s.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={handleAdd}
+          disabled={pending || !draft || (draftSpecialties.length > 0 && !draftSpecialty)}
+          aria-label="Ajouter"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
