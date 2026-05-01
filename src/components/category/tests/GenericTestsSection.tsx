@@ -305,6 +305,12 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes catégories</SelectItem>
+                <SelectItem value="__custom__">
+                  <span className="flex items-center gap-2">
+                    <Star className="h-3.5 w-3.5 fill-primary text-primary" />
+                    Mes tests personnalisés
+                  </span>
+                </SelectItem>
                 {(() => {
                   const favs = filteredTestCategories.filter(c => favoriteCategories.has(c.value));
                   const others = filteredTestCategories.filter(c => !favoriteCategories.has(c.value));
