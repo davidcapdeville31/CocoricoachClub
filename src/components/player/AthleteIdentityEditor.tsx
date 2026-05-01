@@ -347,12 +347,15 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
 
       {dimensions.map((dim) => {
         const items = attributes.filter((a) => a.dimension === dim.dimension);
+        const singleValue =
+          dim.dimension === "position" && isTeamSport(sportType);
         return (
           <DimensionBlock
             key={dim.dimension}
             config={dim}
             items={items}
             sportType={sportType}
+            singleValue={singleValue}
             onAdd={(payload) => addMut.mutate(payload)}
             onTogglePrimary={(id) => updateMut.mutate({ id, patch: { is_primary: true } })}
             onUpdateWeight={(id, weight) =>
