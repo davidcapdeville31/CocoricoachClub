@@ -7,9 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SessionEditorSheet } from "./SessionEditorSheet";
 import { SessionDayEditor } from "./SessionDayEditor";
-import { V2ExerciseBankSidebar } from "./V2ExerciseBankSidebar";
+import { V2ExerciseBankSidebar, type PickedExerciseRich } from "./V2ExerciseBankSidebar";
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
-import type { PickedExercise } from "./ExercisePicker";
 
 interface SessionEditorV2Props {
   open: boolean;
