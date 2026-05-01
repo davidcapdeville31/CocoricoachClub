@@ -222,6 +222,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
           scoring_scale: enableScoring ? (scoringScale as any) : null,
           max_points: maxPoints,
           formula_config: formulaConfig?.enabled ? (formulaConfig as any) : null,
+          image_url: imageUrl,
           created_by: user?.user?.id || null,
         } as any)
         .select("id")
