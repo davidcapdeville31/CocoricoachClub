@@ -153,7 +153,6 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
   const isAthletics = isAthletismeCategory(sportType);
 
   const age = computeAge(playerCore?.birth_date ?? null, playerCore?.birth_year ?? null);
-  const ageCat = getAgeCategory(age);
   const gInfo = genderInfo(playerCore?.gender ?? null);
 
   const dimensions: DimensionConfig[] = useMemo(() => {
