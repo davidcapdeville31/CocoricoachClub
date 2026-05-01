@@ -12,8 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useComparisonGroups } from "@/hooks/useComparisonGroups";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { BarChart3, Filter, UserCheck, Star, Users, Sparkles, ChevronDown } from "lucide-react";
+import { BarChart3, Filter, UserCheck, Star, Users, Sparkles } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -104,7 +103,7 @@ export function SmartStatsComparator({
   const [mode, setMode] = useState<Mode>("players");
   const [primaryOnly, setPrimaryOnly] = useState(false);
   const [metricKeys, setMetricKeys] = useState<string[]>(
-    metrics[0] ? [metrics[0].key] : [],
+    metrics.map((m) => m.key),
   );
   const [scopeKey, setScopeKey] = useState<string>(scopes[0]?.key ?? "");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[] | null>(null);
@@ -298,89 +297,7 @@ export function SmartStatsComparator({
         </div>
 
         {/* Barre de filtres */}
-        <div className="grid gap-2 md:grid-cols-[1fr_1fr_auto] mt-3">
-          {/* Sélection métriques (multi) */}
-          <div>
-            <label className="text-[10px] font-semibold uppercase text-muted-foreground tracking-wide">
-              Statistiques ({metricKeys.length}/{metrics.length})
-            </label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-9 mt-0.5 w-full justify-between bg-muted/40 font-normal"
-                >
-                  <span className="truncate text-left">
-                    {metricKeys.length === 0
-                      ? "Choisir des stats"
-                      : metricKeys.length === 1
-                        ? metrics.find((m) => m.key === metricKeys[0])?.label
-                        : `${metricKeys.length} statistiques sélectionnées`}
-                  </span>
-                  <ChevronDown className="h-3.5 w-3.5 opacity-60" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[320px] p-0" align="start">
-                <div className="flex items-center justify-between px-3 py-2 border-b">
-                  <span className="text-[11px] font-semibold text-muted-foreground">
-                    {metricKeys.length}/{metrics.length}
-                  </span>
-                  <div className="flex gap-1">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 px-2 text-[10px]"
-                      onClick={() => setMetricKeys(metrics.map((m) => m.key))}
-                    >
-                      Tout
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 px-2 text-[10px]"
-                      onClick={() => setMetricKeys([])}
-                    >
-                      Aucune
-                    </Button>
-                  </div>
-                </div>
-                <ScrollArea className="max-h-[60vh] h-[360px]">
-                  <div className="p-1">
-                    {Array.from(metricsByGroup.entries()).map(([group, list]) => (
-                      <div key={group} className="mb-1">
-                        <div className="px-2 pt-2 pb-1 text-[10px] font-bold uppercase text-muted-foreground tracking-wide">
-                          {group}
-                        </div>
-                        {list.map((m) => {
-                          const checked = metricKeys.includes(m.key);
-                          return (
-                            <label
-                              key={m.key}
-                              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-muted/50 cursor-pointer"
-                            >
-                              <Checkbox
-                                checked={checked}
-                                onCheckedChange={() => toggleMetric(m.key)}
-                              />
-                              <span
-                                className="h-2.5 w-2.5 rounded-full shrink-0"
-                                style={{ background: metricColor(m.key) }}
-                              />
-                              <span className="truncate">{m.label}</span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </PopoverContent>
-            </Popover>
-          </div>
-
+        <div className="grid gap-2 md:grid-cols-[1fr_auto] mt-3">
           {/* Sélection scope */}
           <div>
             <label className="text-[10px] font-semibold uppercase text-muted-foreground tracking-wide">
@@ -528,6 +445,59 @@ export function SmartStatsComparator({
             )}
 
             <div>
+              {/* Chips toggle pour activer/désactiver chaque métrique */}
+              <div className="mb-3 flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] font-semibold uppercase text-muted-foreground tracking-wide mr-1">
+                  Statistiques
+                </span>
+                {metrics.map((m) => {
+                  const active = metricKeys.includes(m.key);
+                  const color = metricColor(m.key);
+                  return (
+                    <button
+                      key={m.key}
+                      type="button"
+                      onClick={() => toggleMetric(m.key)}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] transition-all ${
+                        active
+                          ? "border-transparent text-foreground shadow-sm"
+                          : "border-border bg-muted/30 text-muted-foreground hover:bg-muted/60"
+                      }`}
+                      style={
+                        active
+                          ? { background: `color-mix(in oklab, ${color} 18%, transparent)` }
+                          : undefined
+                      }
+                    >
+                      <span
+                        className="h-2.5 w-2.5 rounded-full shrink-0"
+                        style={{ background: color, opacity: active ? 1 : 0.4 }}
+                      />
+                      <span className="whitespace-nowrap">{m.label}</span>
+                    </button>
+                  );
+                })}
+                <div className="ml-auto flex gap-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 px-2 text-[10px]"
+                    onClick={() => setMetricKeys(metrics.map((m) => m.key))}
+                  >
+                    Tout
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 px-2 text-[10px]"
+                    onClick={() => setMetricKeys([])}
+                  >
+                    Aucune
+                  </Button>
+                </div>
+              </div>
               <div className="h-[340px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
