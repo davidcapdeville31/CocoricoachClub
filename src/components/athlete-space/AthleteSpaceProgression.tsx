@@ -354,73 +354,147 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
         </Card>
       )}
 
-      {showSpeed && speedChartData.length > 1 && (
-        <Card className="bg-gradient-card shadow-md">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Évolution vitesse (40m)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={180}>
-              <LineChart data={speedChartData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="date" className="text-[10px]" />
-                <YAxis className="text-[10px]" reversed />
-                <Tooltip contentStyle={{ backgroundColor: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", fontSize: "12px" }} />
-                <Line type="monotone" dataKey="temps" stroke="hsl(var(--accent))" strokeWidth={2} name="Temps (s)" />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
+      {/* Comparatif test précédent → dernier test (format mobile-friendly) */}
+      {(() => {
+        type Row = {
+          key: string;
+          categoryLabel: string;
+          label: string;
+          unit: string;
+          prevDate: string;
+          prevValue: number;
+          lastDate: string;
+          lastValue: number;
+          isTimeTest: boolean;
+        };
+        const rows: Row[] = [];
 
-      {showStrength && Object.entries(strengthByExercise).map(([exercise, data]) => (
-        data.length > 1 && (
-          <Card key={exercise} className="bg-gradient-card shadow-md">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">{exercise}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={160}>
-                <LineChart data={data}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="date" className="text-[10px]" />
-                  <YAxis className="text-[10px]" />
-                  <Tooltip contentStyle={{ backgroundColor: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", fontSize: "12px" }} />
-                  <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} name="Charge (kg)" />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )
-      ))}
+        // Speed (40m)
+        if (showSpeed) {
+          const series = speedTests.filter(t => t.time_40m_seconds);
+          if (series.length >= 2) {
+            const prev = series[series.length - 2];
+            const last = series[series.length - 1];
+            rows.push({
+              key: "speed_40m",
+              categoryLabel: "Vitesse",
+              label: "40m",
+              unit: "s",
+              prevDate: prev.test_date,
+              prevValue: prev.time_40m_seconds!,
+              lastDate: last.test_date,
+              lastValue: last.time_40m_seconds!,
+              isTimeTest: true,
+            });
+          }
+        }
 
-      {/* Generic tests evolution charts */}
-      {Object.entries(filteredGenericByType).map(([key, data], i) => (
-        data.length > 1 && (
-          <Card key={key} className="bg-gradient-card shadow-md">
+        // Strength
+        if (showStrength) {
+          const byEx: Record<string, typeof strengthTests> = {};
+          strengthTests.forEach(t => {
+            if (!byEx[t.test_name]) byEx[t.test_name] = [];
+            byEx[t.test_name].push(t);
+          });
+          Object.entries(byEx).forEach(([exercise, list]) => {
+            if (list.length >= 2) {
+              const prev = list[list.length - 2];
+              const last = list[list.length - 1];
+              rows.push({
+                key: `str_${exercise}`,
+                categoryLabel: "Musculation",
+                label: exercise,
+                unit: "kg",
+                prevDate: prev.test_date,
+                prevValue: prev.weight_kg,
+                lastDate: last.test_date,
+                lastValue: last.weight_kg,
+                isTimeTest: false,
+              });
+            }
+          });
+        }
+
+        // Generic tests
+        Object.entries(filteredGenericByType).forEach(([key, data]) => {
+          if (data.length < 2) return;
+          const raw = genericTests
+            .filter(t => `${t.test_category}__${t.test_type}` === key)
+            .sort((a, b) => new Date(a.test_date).getTime() - new Date(b.test_date).getTime());
+          if (raw.length < 2) return;
+          const prev = raw[raw.length - 2];
+          const last = raw[raw.length - 1];
+          const isTimeTest = (last.result_unit || "") === "s" || (last.result_unit || "") === "min";
+          rows.push({
+            key,
+            categoryLabel: data[0].categoryLabel,
+            label: data[0].label,
+            unit: last.result_unit || "",
+            prevDate: prev.test_date,
+            prevValue: prev.result_value,
+            lastDate: last.test_date,
+            lastValue: last.result_value,
+            isTimeTest,
+          });
+        });
+
+        if (rows.length === 0) return null;
+
+        return (
+          <Card className="bg-gradient-card shadow-md">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
-                <span className="text-muted-foreground">{data[0].categoryLabel} :</span> {data[0].label}
-                <Badge variant="secondary" className="text-[10px]">{data[0].unit}</Badge>
+                <TrendingUp className="h-4 w-4 text-accent" />
+                Comparatif tests
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={160}>
-                <LineChart data={data}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="date" className="text-[10px]" />
-                  <YAxis className="text-[10px]" />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", fontSize: "12px" }}
-                    formatter={(v: number) => [`${v} ${data[0].unit}`, data[0].label]}
-                  />
-                  <Line type="monotone" dataKey="value" stroke={CHART_COLORS[i % CHART_COLORS.length]} strokeWidth={2} name={data[0].label} />
-                </LineChart>
-              </ResponsiveContainer>
+            <CardContent className="space-y-2">
+              {rows.map(row => {
+                const diff = row.lastValue - row.prevValue;
+                const rawPct = row.prevValue !== 0 ? (diff / Math.abs(row.prevValue)) * 100 : 0;
+                const positive = row.isTimeTest ? rawPct < 0 : rawPct > 0;
+                const pct = Math.abs(rawPct);
+                return (
+                  <div key={row.key} className="rounded-xl bg-muted/40 p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-muted-foreground/70 uppercase tracking-wide truncate">{row.categoryLabel}</p>
+                        <p className="text-sm font-semibold truncate">{row.label}</p>
+                      </div>
+                      <Badge
+                        variant="secondary"
+                        className={`text-[11px] px-2 py-0.5 shrink-0 ${
+                          positive ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
+                        }`}
+                      >
+                        {positive ? "▲" : "▼"} {pct.toFixed(1)}%
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="rounded-lg bg-background/60 p-2 text-center">
+                        <p className="text-[10px] text-muted-foreground">
+                          {format(new Date(row.prevDate), "dd MMM yyyy", { locale: fr })}
+                        </p>
+                        <p className="text-base font-bold">
+                          {row.prevValue} <span className="text-[10px] font-normal text-muted-foreground">{row.unit}</span>
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-background/60 p-2 text-center ring-1 ring-primary/30">
+                        <p className="text-[10px] text-muted-foreground">
+                          {format(new Date(row.lastDate), "dd MMM yyyy", { locale: fr })}
+                        </p>
+                        <p className="text-base font-bold">
+                          {row.lastValue} <span className="text-[10px] font-normal text-muted-foreground">{row.unit}</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </CardContent>
           </Card>
-        )
-      ))}
+        );
+      })()}
 
     </div>
   );
