@@ -24,6 +24,7 @@ import {
   ATHLETISME_DISCIPLINES,
   ATHLETISME_SPECIALTIES,
   isAthletismeCategory,
+  isTeamSport,
 } from "@/lib/constants/sportTypes";
 import { getPositionsForSport } from "@/lib/constants/sportPositions";
 import { getAgeCategoriesForSport, getAgeCategoryLabel } from "@/lib/constants/ageCategories";
@@ -161,10 +162,13 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
     // 1) Positions (sports collectifs)
     const positions = getPositionsForSport(sportType as any);
     if (positions.length > 0 && !isAthletics) {
+      const teamSport = isTeamSport(sportType);
       list.push({
         dimension: "position",
-        label: "Postes",
-        description: "Postes occupés (cochez le principal, ajoutez des secondaires).",
+        label: teamSport ? "Poste" : "Postes",
+        description: teamSport
+          ? "Un seul poste par athlète."
+          : "Postes occupés (cochez le principal, ajoutez des secondaires).",
         options: positions.map((p) => ({ value: p.name, label: `${p.id}. ${p.name}` })),
       });
     }
@@ -346,12 +350,15 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
 
       {dimensions.map((dim) => {
         const items = attributes.filter((a) => a.dimension === dim.dimension);
+        const singleValue =
+          dim.dimension === "position" && isTeamSport(sportType);
         return (
           <DimensionBlock
             key={dim.dimension}
             config={dim}
             items={items}
             sportType={sportType}
+            singleValue={singleValue}
             onAdd={(payload) => addMut.mutate(payload)}
             onTogglePrimary={(id) => updateMut.mutate({ id, patch: { is_primary: true } })}
             onUpdateWeight={(id, weight) =>
@@ -375,6 +382,8 @@ interface DimensionBlockProps {
     ? T[]
     : never;
   sportType: string;
+  /** Si true : une seule valeur autorisée pour la dimension (sport collectif → poste unique). */
+  singleValue?: boolean;
   onAdd: (payload: {
     dimension: AthleteDimension;
     value: string;
@@ -393,6 +402,7 @@ function DimensionBlock({
   config,
   items,
   sportType,
+  singleValue = false,
   onAdd,
   onTogglePrimary,
   onUpdateWeight,
@@ -431,6 +441,73 @@ function DimensionBlock({
     const opt = config.options.find((o) => o.value === val);
     return opt?.label ?? val;
   };
+
+  // === Mode mono-valeur (sport collectif → un seul poste, pas d'étoile/poids) ===
+  if (singleValue) {
+    const current = items[0];
+    const singleLabel = config.label.replace(/s$/, "");
+    return (
+      <div className="space-y-2 rounded-xl border bg-background/60 p-3">
+        <div className="flex items-baseline justify-between gap-2">
+          <Label className="text-sm font-medium">{singleLabel}</Label>
+          <span className="text-[11px] text-muted-foreground">
+            Un seul {singleLabel.toLowerCase()} par athlète.
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Select
+            value={current?.value ?? ""}
+            onValueChange={(v) => {
+              if (!v) return;
+              if (current) {
+                // Remplacer la valeur existante
+                if (v === current.value) return;
+                onAdd({
+                  dimension: config.dimension,
+                  value: v,
+                  is_primary: true,
+                  weight: null,
+                  metadata: {},
+                });
+                onDelete(current.id);
+              } else {
+                onAdd({
+                  dimension: config.dimension,
+                  value: v,
+                  is_primary: true,
+                  weight: null,
+                  metadata: {},
+                });
+              }
+            }}
+            disabled={pending}
+          >
+            <SelectTrigger className="w-full bg-background">
+              <SelectValue placeholder={`Choisir un ${singleLabel.toLowerCase()}…`} />
+            </SelectTrigger>
+            <SelectContent className="bg-background border z-[200] max-h-[300px]">
+              {config.options.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {current && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(current.id)}
+              disabled={pending}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2 rounded-xl border bg-background/60 p-3">
