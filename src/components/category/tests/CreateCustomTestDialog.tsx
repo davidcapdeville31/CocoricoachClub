@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
-import { Star } from "lucide-react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { Star, ImagePlus, Loader2, X } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
