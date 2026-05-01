@@ -139,7 +139,7 @@ export function UnifiedTestDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_test_categories")
-        .select("custom_tests(name, test_category, unit, is_time)")
+        .select("custom_tests(name, test_category, unit, is_time, formula_config)")
         .eq("category_id", categoryId);
 
       if (error) throw error;
