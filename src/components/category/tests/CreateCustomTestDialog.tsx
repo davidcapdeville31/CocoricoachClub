@@ -178,6 +178,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
     setObjectives("");
     setEnableScoring(false);
     setScoringScale(null);
+    setFormulaConfig(null);
   };
 
   const handleSubmit = () => {
