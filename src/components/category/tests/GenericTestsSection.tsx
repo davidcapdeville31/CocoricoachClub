@@ -384,13 +384,18 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         </div>
 
         {/* Tests disponibles dans cette catégorie (custom_tests définis) */}
-        {customTestsList && customTestsList.length > 0 && (
+        {(() => {
+          const visibleCustomTests = (customTestsList || []).filter((t: any) =>
+            filterCategory === "all" ? true : t.test_category === filterCategory
+          );
+          if (!visibleCustomTests.length) return null;
+          return (
           <div className="mb-4 rounded-2xl border bg-muted/30 p-3">
             <div className="text-xs font-medium text-muted-foreground mb-2">
-              Tests disponibles dans cette catégorie ({customTestsList.length})
+              Tests disponibles dans cette catégorie ({visibleCustomTests.length})
             </div>
             <div className="flex flex-wrap gap-2">
-              {customTestsList.map((t: any) => (
+              {visibleCustomTests.map((t: any) => (
                 <button
                   key={t.id}
                   type="button"
@@ -431,7 +436,8 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
               ))}
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {!tests || tests.length === 0 ? (
           <div className="text-center py-12">
