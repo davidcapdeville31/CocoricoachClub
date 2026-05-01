@@ -274,6 +274,12 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
               unit={effectiveUnit}
             />
           )}
+
+          <FormulaConfigEditor
+            value={formulaConfig}
+            onChange={setFormulaConfig}
+            resultUnit={effectiveUnit}
+          />
         </div>
 
         <DialogFooter>
