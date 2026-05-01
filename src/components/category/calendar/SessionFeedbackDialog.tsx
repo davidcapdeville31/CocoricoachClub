@@ -835,6 +835,7 @@ export function SessionFeedbackDialog({
                                       className="h-9 w-28 text-sm font-medium"
                                       value={test.player_results[player.id] || ""}
                                       onChange={(e) => updatePlayerTestResult(test.id, player.id, e.target.value)}
+                                      onBlur={(e) => autosaveTestResult(test.id, player.id, e.target.value)}
                                     />
                                   )}
                                 </div>
