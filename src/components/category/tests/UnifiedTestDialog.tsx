@@ -19,6 +19,8 @@ import { getTestCategoriesForSport, TestOption } from "@/lib/constants/testCateg
 import { HierarchicalTestSelector, resolveTestCategory, resolveGroupAndZone } from "./HierarchicalTestSelector";
 import { Gauge, Zap, Timer } from "lucide-react";
 import { mergeCustomTestsIntoCategories, normalizeCustomTestType } from "./customTestCatalog";
+import { ComposedTestInputs } from "./ComposedTestInputs";
+import { isValidFormulaConfig, type FormulaConfig } from "@/lib/tests/formulaEngine";
 
 interface UnifiedTestDialogProps {
   open: boolean;
