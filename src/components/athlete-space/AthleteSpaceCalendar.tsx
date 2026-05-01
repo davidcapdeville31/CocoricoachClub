@@ -36,9 +36,12 @@ interface Props {
   sportType?: string;
 }
 
-const ATHLETE_SESSION_COLOR = "#8B5CF6";
-const PROPHYLAXIS_COLOR = "#10b981";
-const REHAB_COLOR = "#f59e0b";
+const ATHLETE_SESSION_COLOR = "#8B5CF6"; // Mes séances (violet)
+const PROPHYLAXIS_COLOR = "#10b981"; // Prophylaxie (vert)
+const REHAB_COLOR = "#f59e0b"; // Réhab (orange)
+const TRAINING_COLOR = "#3b82f6"; // Entraînement (bleu)
+const TEST_COLOR = "#06b6d4"; // Test (cyan)
+const MATCH_COLOR = "#ef4444"; // Match/Compétition (rouge)
 
 export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
