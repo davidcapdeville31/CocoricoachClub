@@ -180,6 +180,23 @@ export function CreateTrainingProgramV2({
     });
   }, []);
 
+  const setDayBlocks = useCallback(
+    (weekNumber: number, dayId: string, blocks: TrainingBlock[]) => {
+      setDraft((prev) => ({
+        ...prev,
+        weeks: prev.weeks.map((w) =>
+          w.weekNumber !== weekNumber
+            ? w
+            : {
+                ...w,
+                days: w.days.map((d) => (d.id === dayId ? { ...d, blocks } : d)),
+              },
+        ),
+      }));
+    },
+    [],
+  );
+
   // -- Navigation --------------------------------------------------------------
 
   const goToEditor = useCallback(() => {
