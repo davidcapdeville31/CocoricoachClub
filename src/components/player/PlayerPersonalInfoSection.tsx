@@ -25,6 +25,7 @@ interface PlayerPersonalInfo {
   birth_date: string | null;
   club_origin: string | null;
   fis_code: string | null;
+  gender: string | null;
 }
 
 export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = false, sportType = "XV" }: PlayerPersonalInfoSectionProps) {
