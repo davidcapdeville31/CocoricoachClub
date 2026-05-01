@@ -518,7 +518,23 @@ function DimensionBlock({
         </Select>
 
         {draftSpecialties.length > 0 && (
-          <Select value={draftSpecialty} onValueChange={setDraftSpecialty}>
+          <Select
+            value={draftSpecialty}
+            onValueChange={(v) => {
+              setDraftSpecialty(v);
+              const compoundKey = `${draft}|${v}`;
+              if (usedValues.has(compoundKey)) return;
+              onAdd({
+                dimension: config.dimension,
+                value: draft,
+                is_primary: items.length === 0,
+                weight: null,
+                metadata: { specialty: v },
+              });
+              setDraft("");
+              setDraftSpecialty("");
+            }}
+          >
             <SelectTrigger className="w-full bg-background">
               <SelectValue placeholder="Spécialité" />
             </SelectTrigger>
