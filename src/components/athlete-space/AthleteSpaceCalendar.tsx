@@ -332,16 +332,18 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                 selected={selectedDate}
                 onSelect={setSelectedDate}
                 modifiers={{
-                  session: sessionDates,
+                  training: trainingDates,
+                  test: testDates,
                   match: matchDates,
                   athleteSession: athleteSessionDates,
                   prophylaxis: prophylaxisDates,
                   rehab: rehabDates,
                 }}
                 modifiersStyles={{
-                  session: { fontWeight: "bold", textDecoration: "underline" },
-                  match: { backgroundColor: "hsl(346, 77%, 50%, 0.2)", borderRadius: "4px", fontWeight: "bold" },
-                  athleteSession: { backgroundColor: `${ATHLETE_SESSION_COLOR}30`, borderRadius: "4px", border: `2px solid ${ATHLETE_SESSION_COLOR}` },
+                  training: { backgroundColor: `${TRAINING_COLOR}25`, borderRadius: "6px", fontWeight: 600, color: TRAINING_COLOR },
+                  test: { backgroundColor: `${TEST_COLOR}25`, borderRadius: "6px", fontWeight: 700, color: TEST_COLOR, border: `1px dashed ${TEST_COLOR}` },
+                  match: { backgroundColor: `${MATCH_COLOR}25`, borderRadius: "6px", fontWeight: 700, color: MATCH_COLOR },
+                  athleteSession: { borderRadius: "6px", border: `2px solid ${ATHLETE_SESSION_COLOR}`, color: ATHLETE_SESSION_COLOR, fontWeight: 600 },
                   prophylaxis: { boxShadow: `inset 0 -3px 0 0 ${PROPHYLAXIS_COLOR}` },
                   rehab: { boxShadow: `inset 3px 0 0 0 ${REHAB_COLOR}` },
                 }}
@@ -352,26 +354,30 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
             {/* Day details */}
             <div className="space-y-3">
               {/* Legend */}
-              <div className="flex flex-wrap gap-3 text-xs">
-                <div className="flex items-center gap-1">
-                  <Activity className="w-3 h-3 text-muted-foreground" />
+              <div className="flex flex-wrap gap-2 text-xs p-2 rounded-lg bg-muted/40">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded" style={{ backgroundColor: `${TRAINING_COLOR}40`, border: `1px solid ${TRAINING_COLOR}` }} />
                   <span>Entraînement</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Swords className="w-3 h-3 text-rose-500" />
-                  <span>Match</span>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded" style={{ backgroundColor: `${TEST_COLOR}40`, border: `1px dashed ${TEST_COLOR}` }} />
+                  <span>Test</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-sm border-2" style={{ borderColor: ATHLETE_SESSION_COLOR, backgroundColor: `${ATHLETE_SESSION_COLOR}30` }} />
+                  <div className="w-3 h-3 rounded" style={{ backgroundColor: `${MATCH_COLOR}40`, border: `1px solid ${MATCH_COLOR}` }} />
+                  <span>Match / Compétition</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded" style={{ border: `2px solid ${ATHLETE_SESSION_COLOR}` }} />
                   <span>Mes séances</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-1 rounded-full" style={{ backgroundColor: PROPHYLAXIS_COLOR }} />
-                  <span>Prophylaxie</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-1 h-3 rounded-full" style={{ backgroundColor: REHAB_COLOR }} />
                   <span>Réhab</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-1 rounded-full" style={{ backgroundColor: PROPHYLAXIS_COLOR }} />
+                  <span>Prophylaxie</span>
                 </div>
               </div>
 
