@@ -560,9 +560,6 @@ export function SmartStatsComparator({
                             onCheckedChange={() => togglePlayer(p.id)}
                           />
                           <span className="truncate">{label}</span>
-                          <span className="ml-auto text-muted-foreground tabular-nums">
-                            {fmt(valueMap.get(p.id) ?? 0, metric)}
-                          </span>
                         </label>
                       );
                     })}
