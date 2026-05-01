@@ -242,13 +242,29 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border bg-muted/40 p-4 backdrop-blur-sm">
-      <div>
-        <Label className="text-base font-semibold">Identité athlète</Label>
-        <p className="text-xs text-muted-foreground">
-          Définit comment l'application adapte tests, barèmes et analyses à cet athlète.
-          ⭐ = valeur principale.
+    <div className="space-y-4 rounded-2xl border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-background p-4 shadow-lg shadow-primary/10 ring-1 ring-primary/20 backdrop-blur-sm relative overflow-hidden">
+      <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+      <div className="relative">
+        <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary text-primary-foreground shadow-md">
+            <Star className="h-4 w-4 fill-current" />
+          </div>
+          <Label className="text-base font-bold tracking-tight">Identité athlète</Label>
+          <Badge variant="default" className="ml-1 text-[10px] uppercase tracking-wider">Essentiel</Badge>
+        </div>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          ⭐ = valeur principale. Adapte tests, barèmes et analyses à cet athlète.
         </p>
+        <div className="mt-2 rounded-lg border border-primary/30 bg-primary/5 p-2.5">
+          <p className="text-[11px] leading-relaxed text-foreground/90">
+            <span className="font-semibold text-primary">⚠️ PRIMORDIAL —</span> Sans cette identité,
+            l'application ne peut pas personnaliser les <strong>barèmes de tests</strong>,
+            les <strong>recommandations d'entraînement</strong>, les <strong>alertes de charge</strong>,
+            ni les <strong>comparaisons par poste/discipline</strong>. Une identité bien renseignée
+            est la <strong>condition #1</strong> pour obtenir des analyses fiables et un suivi
+            réellement individualisé.
+          </p>
+        </div>
       </div>
 
       {/* Identité de base — éditable depuis la fiche joueur */}
