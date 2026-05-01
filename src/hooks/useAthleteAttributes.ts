@@ -121,13 +121,13 @@ export function useSportConfig(sportKey?: string | null) {
     enabled: !!sportKey,
     staleTime: 5 * 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("sports_config")
         .select("*")
         .eq("sport_key", sportKey!)
         .maybeSingle();
       if (error) throw error;
-      return data;
+      return data as any;
     },
   });
 }
