@@ -55,6 +55,18 @@ type LinkedDraft = {
   methodRestSeconds?: number;
 };
 
+type BlockRenderItem =
+  | {
+      type: "group";
+      groupId: string;
+      method: LinkedMethodType;
+      exercises: V2BlockExercise[];
+    }
+  | {
+      type: "single";
+      exercise: V2BlockExercise;
+    };
+
 function makeBlockId() {
   return `block-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
@@ -303,6 +315,71 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
     });
   }, []);
 
+  const handlePersistedGroupParamsUpdate = useCallback(
+    (blockId: string, groupId: string, slotIndex: number, params: SlottedExerciseParams) => {
+      onChange(
+        blocks.map((block) => {
+          if (block.id !== blockId) return block;
+          let groupCursor = 0;
+          return {
+            ...block,
+            exercises: (block.exercises ?? []).map((exercise) => {
+              if (exercise.groupId !== groupId) return exercise;
+              const isTarget = groupCursor++ === slotIndex;
+              if (!isTarget) return exercise;
+              return {
+                ...exercise,
+                sets: Number(params.sets) || exercise.sets,
+                reps: params.reps ?? exercise.reps,
+                percentage: params.percentage,
+                tempo: params.tempo,
+                restSeconds: params.rest ?? exercise.restSeconds,
+              };
+            }),
+          };
+        }),
+      );
+    },
+    [blocks, onChange],
+  );
+
+  const handlePersistedGroupRestChange = useCallback(
+    (blockId: string, groupId: string, seconds: number | undefined) => {
+      onChange(
+        blocks.map((block) =>
+          block.id === blockId
+            ? {
+                ...block,
+                exercises: (block.exercises ?? []).map((exercise) =>
+                  exercise.groupId === groupId
+                    ? { ...exercise, restSeconds: seconds }
+                    : exercise,
+                ),
+              }
+            : block,
+        ),
+      );
+    },
+    [blocks, onChange],
+  );
+
+  const handlePersistedGroupRemove = useCallback(
+    (blockId: string, groupId: string, slotIndex: number) => {
+      onChange(
+        blocks.map((block) => {
+          if (block.id !== blockId) return block;
+          let groupCursor = 0;
+          const nextExercises = (block.exercises ?? []).filter((exercise) => {
+            if (exercise.groupId !== groupId) return true;
+            return groupCursor++ !== slotIndex;
+          });
+          return { ...block, exercises: nextExercises };
+        }),
+      );
+    },
+    [blocks, onChange],
+  );
+
   const totalBlocks = blocks.length;
 
   return (
@@ -380,35 +457,70 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
 
               {/* Exercises list */}
               <div className="space-y-1.5">
-                {(block.exercises ?? []).map((ex) => (
-                  <div
-                    key={ex.id}
-                    className="flex items-center justify-between gap-2 rounded-xl bg-muted/40 border border-border/60 px-3 py-2"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {ex.exerciseName}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {ex.sets} × {ex.reps}
-                        {ex.method && ex.method !== "normal" && (
-                          <>
-                            {" · "}
-                            <span className="text-primary">{ex.method}</span>
-                          </>
-                        )}
-                      </p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 rounded-2xl text-muted-foreground hover:text-destructive"
-                      onClick={() => removeExerciseFromBlock(block.id, ex.id)}
+                {groupBlockExercises(block.exercises ?? []).map((item) =>
+                  item.type === "group" ? (
+                    <LinkedMethodSlots
+                      key={item.groupId}
+                      method={item.method}
+                      defaultEditing={false}
+                      slottedExercises={item.exercises.map((ex, idx) => ({
+                        id: ex.id,
+                        exerciseId: ex.exerciseId ?? ex.id,
+                        exerciseName: ex.exerciseName,
+                        stationName: ex.exerciseName,
+                        slotIndex: idx,
+                        params: {
+                          sets: ex.sets,
+                          reps: ex.reps,
+                          percentage: ex.percentage,
+                          tempo: ex.tempo,
+                          rest: ex.restSeconds,
+                        },
+                      }))}
+                      onRemoveFromSlot={(idx) =>
+                        handlePersistedGroupRemove(block.id, item.groupId, idx)
+                      }
+                      onUpdateParams={(idx, params) =>
+                        handlePersistedGroupParamsUpdate(block.id, item.groupId, idx, params)
+                      }
+                      onConfirm={() => undefined}
+                      onCancel={() => undefined}
+                      dayId={`${block.id}-${item.groupId}`}
+                      methodRestSeconds={item.exercises[0]?.restSeconds}
+                      onMethodRestChange={(seconds) =>
+                        handlePersistedGroupRestChange(block.id, item.groupId, seconds)
+                      }
+                    />
+                  ) : (
+                    <div
+                      key={item.exercise.id}
+                      className="flex items-center justify-between gap-2 rounded-xl bg-muted/40 border border-border/60 px-3 py-2"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                ))}
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {item.exercise.exerciseName}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {item.exercise.sets} × {item.exercise.reps}
+                          {item.exercise.method && item.exercise.method !== "normal" && (
+                            <>
+                              {" · "}
+                              <span className="text-primary">{item.exercise.method}</span>
+                            </>
+                          )}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 rounded-2xl text-muted-foreground hover:text-destructive"
+                        onClick={() => removeExerciseFromBlock(block.id, item.exercise.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ),
+                )}
                 {!linkedDraft && (
                   <ExercisePicker
                     onPick={(picked) => addExerciseToBlock(block.id, picked)}
@@ -443,4 +555,35 @@ function defaultLabelFor(type: TrainingBlockType): string {
     custom: "Personnalisé",
   };
   return map[type] ?? "Bloc";
+}
+
+function groupBlockExercises(exercises: V2BlockExercise[]): BlockRenderItem[] {
+  const groups = new Map<string, V2BlockExercise[]>();
+  const seen = new Set<string>();
+  const items: BlockRenderItem[] = [];
+
+  exercises.forEach((exercise) => {
+    if (exercise.groupId && exercise.method && LINKED_METHODS.includes(exercise.method as LinkedMethodType)) {
+      if (!groups.has(exercise.groupId)) groups.set(exercise.groupId, []);
+      groups.get(exercise.groupId)!.push(exercise);
+      if (!seen.has(exercise.groupId)) {
+        seen.add(exercise.groupId);
+        items.push({
+          type: "group",
+          groupId: exercise.groupId,
+          method: exercise.method as LinkedMethodType,
+          exercises: groups.get(exercise.groupId)!,
+        });
+      }
+      return;
+    }
+
+    items.push({ type: "single", exercise });
+  });
+
+  return items.map((item) =>
+    item.type === "group"
+      ? { ...item, exercises: groups.get(item.groupId) ?? item.exercises }
+      : item,
+  );
 }
