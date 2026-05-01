@@ -340,10 +340,10 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                   rehab: rehabDates,
                 }}
                 modifiersStyles={{
-                  training: { backgroundColor: `${TRAINING_COLOR}25`, borderRadius: "6px", fontWeight: 600, color: TRAINING_COLOR },
-                  test: { backgroundColor: `${TEST_COLOR}25`, borderRadius: "6px", fontWeight: 700, color: TEST_COLOR, border: `1px dashed ${TEST_COLOR}` },
-                  match: { backgroundColor: `${MATCH_COLOR}25`, borderRadius: "6px", fontWeight: 700, color: MATCH_COLOR },
-                  athleteSession: { borderRadius: "6px", border: `2px solid ${ATHLETE_SESSION_COLOR}`, color: ATHLETE_SESSION_COLOR, fontWeight: 600 },
+                  training: { backgroundColor: `${TRAINING_COLOR}25`, borderRadius: "6px", fontWeight: 600, color: TRAINING_COLOR, outline: `2px solid ${TRAINING_COLOR}`, outlineOffset: "-2px" },
+                  test: { backgroundColor: `${TEST_COLOR}25`, borderRadius: "6px", fontWeight: 700, color: TEST_COLOR, outline: `2px dashed ${TEST_COLOR}`, outlineOffset: "-2px" },
+                  match: { backgroundColor: `${MATCH_COLOR}25`, borderRadius: "6px", fontWeight: 700, color: MATCH_COLOR, outline: `2px solid ${MATCH_COLOR}`, outlineOffset: "-2px" },
+                  athleteSession: { borderRadius: "6px", outline: `2px solid ${ATHLETE_SESSION_COLOR}`, outlineOffset: "-2px", color: ATHLETE_SESSION_COLOR, fontWeight: 600 },
                   prophylaxis: { boxShadow: `inset 0 -3px 0 0 ${PROPHYLAXIS_COLOR}` },
                   rehab: { boxShadow: `inset 3px 0 0 0 ${REHAB_COLOR}` },
                 }}
