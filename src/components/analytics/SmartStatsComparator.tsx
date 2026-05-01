@@ -189,36 +189,53 @@ export function SmartStatsComparator({
   };
 
   // ========== Données graphique ==========
+  // Pour chaque joueur (ou groupe identité) on construit un objet { name, [metricKey]: value, ... }
   const playersData = useMemo(() => {
-    return playersWithValue
-      .filter((p) => effectiveSelection.includes(p.id))
-      .map((p) => ({
-        name: [p.first_name, p.name].filter(Boolean).join(" ") || p.name,
-        value: Number(valueMap.get(p.id) ?? 0),
-      }))
-      .sort((a, b) =>
-        (metric?.direction ?? "higher") === "lower"
-          ? a.value - b.value
-          : b.value - a.value,
-      );
-  }, [playersWithValue, effectiveSelection, valueMap, metric]);
+    const filtered = playersWithValue.filter((p) => effectiveSelection.includes(p.id));
+    return filtered
+      .map((p) => {
+        const row: Record<string, any> = {
+          name: [p.first_name, p.name].filter(Boolean).join(" ") || p.name,
+        };
+        for (const m of selectedMetrics) {
+          const v = valuesByMetric.get(m.key)?.get(p.id);
+          row[m.key] = v ?? 0;
+        }
+        return row;
+      })
+      .sort((a, b) => {
+        if (!metric) return 0;
+        const av = Number(a[metric.key] ?? 0);
+        const bv = Number(b[metric.key] ?? 0);
+        return (metric.direction ?? "higher") === "lower" ? av - bv : bv - av;
+      });
+  }, [playersWithValue, effectiveSelection, valuesByMetric, selectedMetrics, metric]);
 
   const dims = availableDimensions;
   const activeDim = selectedDim ?? dims[0] ?? null;
   const identityData = useMemo(() => {
-    if (!activeDim) return [];
-    return aggregateByDimension(activeDim, valueMap, { primaryOnly })
-      .map((r) => ({
-        name: r.group.value,
-        value: r.avg ?? 0,
-        count: r.count,
-      }))
-      .sort((a, b) =>
-        (metric?.direction ?? "higher") === "lower"
-          ? a.value - b.value
-          : b.value - a.value,
-      );
-  }, [activeDim, valueMap, primaryOnly, aggregateByDimension, metric]);
+    if (!activeDim || selectedMetrics.length === 0) return [] as any[];
+    // On agrège chaque métrique séparément puis on fusionne par groupe
+    const groupMap = new Map<string, Record<string, any>>();
+    for (const m of selectedMetrics) {
+      const vmap = valuesByMetric.get(m.key) ?? new Map<string, number>();
+      const rows = aggregateByDimension(activeDim, vmap, { primaryOnly });
+      for (const r of rows) {
+        const key = r.group.value;
+        if (!groupMap.has(key)) groupMap.set(key, { name: key, count: r.count });
+        groupMap.get(key)![m.key] = r.avg ?? 0;
+      }
+    }
+    const arr = Array.from(groupMap.values());
+    if (metric) {
+      arr.sort((a, b) => {
+        const av = Number(a[metric.key] ?? 0);
+        const bv = Number(b[metric.key] ?? 0);
+        return (metric.direction ?? "higher") === "lower" ? av - bv : bv - av;
+      });
+    }
+    return arr;
+  }, [activeDim, valuesByMetric, selectedMetrics, primaryOnly, aggregateByDimension, metric]);
 
   const data = mode === "identity" ? identityData : playersData;
 
