@@ -79,10 +79,20 @@ const LATERALITY_OPTIONS: { value: string; label: string }[] = [
   { value: "ambidextre", label: "Ambidextre" },
 ];
 
+const LATERALITY_OPTIONS_BOWLING: { value: string; label: string }[] = [
+  { value: "droitier_1main", label: "Droitier 1 main" },
+  { value: "droitier_2mains", label: "Droitier 2 mains" },
+  { value: "gaucher_1main", label: "Gaucher 1 main" },
+  { value: "gaucher_2mains", label: "Gaucher 2 mains" },
+  { value: "ambidextre", label: "Ambidextre" },
+];
+
+function getLateralityOptions(sportType: string) {
+  return sportType === "bowling" ? LATERALITY_OPTIONS_BOWLING : LATERALITY_OPTIONS;
+}
+
 const STYLES_BY_SPORT: Record<string, { value: string; label: string }[]> = {
   bowling: [
-    { value: "1_main", label: "1 main" },
-    { value: "2_mains", label: "2 mains" },
     { value: "stroker", label: "Stroker" },
     { value: "cranker", label: "Cranker" },
     { value: "tweener", label: "Tweener" },
@@ -200,7 +210,7 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
         dimension: "laterality",
         label: "Latéralité",
         description: "Main / pied dominant.",
-        options: LATERALITY_OPTIONS,
+        options: getLateralityOptions(sportType),
       });
     }
 
@@ -208,8 +218,9 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
   }, [sportType, isAthletics, attributes]);
 
   const lateralityAttr = attributes.find((a) => a.dimension === "laterality");
+  const lateralityOpts = getLateralityOptions(sportType);
   const lateralityLabel = lateralityAttr
-    ? LATERALITY_OPTIONS.find((o) => o.value === lateralityAttr.value)?.label ?? lateralityAttr.value
+    ? lateralityOpts.find((o) => o.value === lateralityAttr.value)?.label ?? lateralityAttr.value
     : null;
 
   const requestEditPersonalInfo = () => {
@@ -279,7 +290,7 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
                 <SelectValue>{lateralityLabel}</SelectValue>
               </SelectTrigger>
               <SelectContent className="bg-background border z-[200]">
-                {LATERALITY_OPTIONS.map((opt) => (
+                {lateralityOpts.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
                     {opt.label}
                   </SelectItem>
