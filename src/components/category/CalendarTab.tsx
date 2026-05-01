@@ -416,17 +416,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         editSession={editingSession}
       />
 
-      {selectedSession?.type === "test" && (
-        <QuickTestEntryDialog
-          open={true}
-          onOpenChange={(open) => !open && setSelectedSession(null)}
-          categoryId={categoryId}
-          sessionDate={selectedSession.date}
-          sessionId={selectedSession.id}
-        />
-      )}
-
-      {selectedSession?.type === "training" && (
+      {selectedSession && (
         <SessionDetailsDialog
           open={true}
           onOpenChange={(open) => !open && setSelectedSession(null)}
