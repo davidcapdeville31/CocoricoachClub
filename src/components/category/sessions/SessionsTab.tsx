@@ -256,10 +256,10 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
               onClick={() => setV2EditorOpen(true)}
               size="sm"
               className="gap-1"
-              title="Nouvel éditeur — méthodes d'intensification avancées"
+              title="Ajouter une séance — méthodes d'intensification avancées"
             >
               <Sparkles className="h-4 w-4" />
-              Nouvel éditeur (V2)
+              Ajouter une séance
             </Button>
           </div>
         )}
