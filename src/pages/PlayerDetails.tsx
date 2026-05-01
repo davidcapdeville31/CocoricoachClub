@@ -464,14 +464,7 @@ function PlayerDetailsContent() {
           </div>
         )}
 
-        {/* Biometrics Section */}
-        <div className="mb-3">
-          <PlayerBiometrics 
-            playerId={playerId!} 
-            categoryId={player.category_id}
-            birthYear={player.birth_year}
-          />
-        </div>
+        {/* Données biométriques déplacées dans l'onglet "Tests" pour centralisation */}
 
         {/* Palmarès / Médailles */}
         <div className="mb-3">
