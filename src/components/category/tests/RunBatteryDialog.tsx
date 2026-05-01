@@ -47,7 +47,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     queryFn: async () => {
       const { data } = await supabase
         .from("players_safe")
-        .select("id, name, first_name, position")
+        .select("id, name, first_name, position, gender")
         .eq("category_id", categoryId)
         .order("name");
       return data || [];
