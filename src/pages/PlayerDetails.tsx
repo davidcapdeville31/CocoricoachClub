@@ -524,6 +524,7 @@ function PlayerDetailsContent() {
           <TabsContent value="tests">
             <div className="space-y-4">
               <SuggestedBenchmarksCard playerId={playerId!} categoryId={player.category_id} />
+              <RecommendedExercisesCard playerId={playerId!} />
               <PlayerTestsTab playerId={playerId!} categoryId={player.category_id} sportType={sportType} />
             </div>
           </TabsContent>
