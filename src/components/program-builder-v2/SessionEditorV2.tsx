@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SessionEditorSheet } from "./SessionEditorSheet";
-import { SessionDayEditor } from "./SessionDayEditor";
+import { SessionDayEditor, type SessionDayEditorHandle } from "./SessionDayEditor";
 import { V2ExerciseBankSidebar, type PickedExerciseRich } from "./V2ExerciseBankSidebar";
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
 
