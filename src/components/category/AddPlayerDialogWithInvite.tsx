@@ -248,6 +248,7 @@ export function AddPlayerDialogWithInvite({
       phone?: string; 
       birth_year?: number; 
       birth_date?: string; 
+      gender?: string;
       discipline?: string; 
       specialty?: string; 
       disciplines?: string[];
