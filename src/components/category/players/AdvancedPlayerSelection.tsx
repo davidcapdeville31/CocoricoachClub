@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCategoryAttributes } from "@/hooks/useCategoryAttributes";
+import { AthleteIdentityBadges } from "@/components/player/AthleteIdentityBadges";
 
 interface Player {
   id: string;
@@ -387,6 +388,7 @@ export function AdvancedPlayerSelection({
                             {playerGroup.label}
                           </Badge>
                         )}
+                        <AthleteIdentityBadges playerId={player.id} primaryOnly={false} />
                       </div>
                     </div>
                     {isInjured && (
