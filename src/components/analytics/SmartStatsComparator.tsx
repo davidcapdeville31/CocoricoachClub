@@ -578,13 +578,34 @@ export function SmartStatsComparator({
                     <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                     <XAxis
                       dataKey="name"
-                      tick={{ fontSize: 11 }}
-                      angle={-25}
-                      textAnchor="end"
-                      height={56}
+                      tick={{ fontSize: 12, fontWeight: 500 }}
+                      angle={0}
+                      textAnchor="middle"
+                      height={36}
                       interval={0}
                     />
-                    <YAxis tick={{ fontSize: 11 }} />
+                    <YAxis
+                      tick={{ fontSize: 11 }}
+                      domain={(() => {
+                        // Domaine Y resserré autour des valeurs pour amplifier
+                        // visuellement les écarts entre les barres.
+                        const vals: number[] = [];
+                        for (const row of data as any[]) {
+                          for (const m of selectedMetrics) {
+                            const v = Number(row[m.key]);
+                            if (Number.isFinite(v)) vals.push(v);
+                          }
+                        }
+                        if (vals.length === 0) return [0, "auto"] as any;
+                        const min = Math.min(...vals);
+                        const max = Math.max(...vals);
+                        if (max === min) return [Math.max(0, min - 1), max + 1] as any;
+                        const pad = (max - min) * 0.25;
+                        const lower = Math.max(0, Math.floor(min - pad));
+                        const upper = Math.ceil(max + pad);
+                        return [lower, upper] as any;
+                      })()}
+                    />
                     <Tooltip
                       cursor={false}
                       contentStyle={{
