@@ -3155,6 +3155,35 @@ export type Database = {
           },
         ]
       }
+      exercise_favorites: {
+        Row: {
+          coach_id: string
+          created_at: string
+          exercise_id: string
+          id: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          exercise_id: string
+          id?: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          exercise_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_favorites_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_library: {
         Row: {
           category: string | null
