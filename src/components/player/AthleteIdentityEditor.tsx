@@ -485,7 +485,26 @@ function DimensionBlock({
       )}
 
       <div className="flex flex-col sm:flex-row gap-2">
-        <Select value={draft} onValueChange={(v) => { setDraft(v); setDraftSpecialty(""); }}>
+        <Select
+          value={draft}
+          onValueChange={(v) => {
+            setDraft(v);
+            setDraftSpecialty("");
+            const needsSpecialty = isAthleticsDiscipline && (ATHLETISME_SPECIALTIES[v] || []).length > 0;
+            if (!needsSpecialty) {
+              const compoundKey = `${v}|`;
+              if (usedValues.has(compoundKey)) return;
+              onAdd({
+                dimension: config.dimension,
+                value: v,
+                is_primary: items.length === 0,
+                weight: null,
+                metadata: {},
+              });
+              setDraft("");
+            }
+          }}
+        >
           <SelectTrigger className="w-full bg-background">
             <SelectValue placeholder={`Ajouter ${config.label.toLowerCase()}…`} />
           </SelectTrigger>
@@ -499,7 +518,23 @@ function DimensionBlock({
         </Select>
 
         {draftSpecialties.length > 0 && (
-          <Select value={draftSpecialty} onValueChange={setDraftSpecialty}>
+          <Select
+            value={draftSpecialty}
+            onValueChange={(v) => {
+              setDraftSpecialty(v);
+              const compoundKey = `${draft}|${v}`;
+              if (usedValues.has(compoundKey)) return;
+              onAdd({
+                dimension: config.dimension,
+                value: draft,
+                is_primary: items.length === 0,
+                weight: null,
+                metadata: { specialty: v },
+              });
+              setDraft("");
+              setDraftSpecialty("");
+            }}
+          >
             <SelectTrigger className="w-full bg-background">
               <SelectValue placeholder="Spécialité" />
             </SelectTrigger>
@@ -513,16 +548,6 @@ function DimensionBlock({
           </Select>
         )}
 
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          onClick={handleAdd}
-          disabled={pending || !draft || (draftSpecialties.length > 0 && !draftSpecialty)}
-          aria-label="Ajouter"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
       </div>
     </div>
   );
