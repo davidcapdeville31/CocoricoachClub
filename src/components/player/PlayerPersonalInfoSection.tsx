@@ -137,6 +137,21 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
     setIsEditing(true);
   };
 
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.playerId && detail.playerId !== playerId) return;
+      handleStartEdit();
+      setTimeout(() => {
+        cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
+    };
+    window.addEventListener("player:edit-personal-info", handler);
+    return () => window.removeEventListener("player:edit-personal-info", handler);
+  }, [playerInfo, playerId]);
+
   const handleSave = () => {
     updateMutation.mutate(formData);
   };
