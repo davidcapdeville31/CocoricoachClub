@@ -545,16 +545,17 @@ export const WorkoutExerciseBuilder = ({
         return;
       }
 
+      // V2 adapter: cocoricoach-club exercise_library uses { name, category, image_url, youtube_url, user_id, is_system }
       const { data, error } = await supabase
         .from("exercise_library")
         .insert({
-          exercise_name: newExerciseName.trim(),
-          station_name: newExerciseCategory,
+          name: newExerciseName.trim(),
+          category: newExerciseCategory,
           description: newExerciseDescription.trim() || null,
           image_url: newExerciseImageUrl.trim() || null,
-          video_url: newExerciseVideoUrl.trim() || null,
-          coach_id: user.id,
-          is_default: false,
+          youtube_url: newExerciseVideoUrl.trim() || null,
+          user_id: user.id,
+          is_system: false,
         })
         .select()
         .single();
@@ -565,17 +566,23 @@ export const WorkoutExerciseBuilder = ({
       
       // Add the newly created exercise directly to the workout
       if (data) {
-        const createdExercise = data as Exercise;
+        const createdExercise = data as unknown as {
+          id: string;
+          name: string;
+          category: string | null;
+          youtube_url: string | null;
+          image_url: string | null;
+        };
         const newWorkoutExercise: WorkoutExerciseData = {
           id: `${createdExercise.id}-${Date.now()}`,
           exerciseId: createdExercise.id,
-          exerciseName: createdExercise.exercise_name,
-          stationName: createdExercise.station_name,
+          exerciseName: createdExercise.name,
+          stationName: createdExercise.category ?? "",
           sets: 3,
           reps: 10,
           weightKg: 0,
           restSeconds: 60,
-          videoUrl: createdExercise.video_url || "",
+          videoUrl: createdExercise.youtube_url || "",
           imageUrl: createdExercise.image_url || "",
           trainingStyle: "normal",
         };

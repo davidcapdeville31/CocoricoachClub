@@ -346,62 +346,37 @@ export const ExerciseFilters = ({
   );
 };
 
-// Hook to manage favorites
+// Hook to manage favorites — V2 stub: persisted only in localStorage for now.
+// TODO(step-5): connect to a real `exercise_favorites` table when the V2 editor is wired in.
 export const useExerciseFavorites = (userId: string | null) => {
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const storageKey = userId ? `pbv2:exerciseFavorites:${userId}` : null;
+  const [favorites, setFavorites] = useState<Set<string>>(() => {
+    if (typeof window === "undefined" || !storageKey) return new Set();
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
 
   useEffect(() => {
-    if (userId) {
-      fetchFavorites(userId);
-    }
-  }, [userId]);
-
-  const fetchFavorites = async (coachId: string) => {
+    if (typeof window === "undefined" || !storageKey) return;
     try {
-      const { data, error } = await supabase
-        .from('exercise_favorites')
-        .select('exercise_id')
-        .eq('coach_id', coachId);
-
-      if (error) throw error;
-      setFavorites(new Set(data?.map(f => f.exercise_id) || []));
-    } catch (error) {
-      console.error('Error fetching favorites:', error);
+      window.localStorage.setItem(storageKey, JSON.stringify(Array.from(favorites)));
+    } catch {
+      /* ignore */
     }
-  };
+  }, [favorites, storageKey]);
 
   const toggleFavorite = async (exerciseId: string) => {
     if (!userId) return;
-
-    const isFavorite = favorites.has(exerciseId);
-    
-    try {
-      if (isFavorite) {
-        const { error } = await supabase
-          .from('exercise_favorites')
-          .delete()
-          .eq('coach_id', userId)
-          .eq('exercise_id', exerciseId);
-        
-        if (error) throw error;
-        
-        setFavorites(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(exerciseId);
-          return newSet;
-        });
-      } else {
-        const { error } = await supabase
-          .from('exercise_favorites')
-          .insert({ coach_id: userId, exercise_id: exerciseId });
-        
-        if (error) throw error;
-        
-        setFavorites(prev => new Set([...prev, exerciseId]));
-      }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-    }
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      if (next.has(exerciseId)) next.delete(exerciseId);
+      else next.add(exerciseId);
+      return next;
+    });
   };
 
   return { favorites, toggleFavorite };
