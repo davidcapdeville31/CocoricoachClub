@@ -301,10 +301,13 @@ export function ScoringScaleEditor({
         <Alert className="bg-primary/5 border-primary/20">
           <Info className="h-4 w-4" />
           <AlertDescription className="text-xs">
-            Les barèmes spécifiques s'appliquent automatiquement selon le profil de l'athlète
-            (genre, poste). <strong>Pensez à renseigner ces informations</strong> dans
-            l'onglet <strong>Effectif → Fiche du joueur</strong>. Si aucun barème spécifique
-            ne correspond, le barème <em>par défaut</em> est utilisé.
+            Les barèmes spécifiques s'appliquent automatiquement selon le profil de l'athlète :
+            le <strong>genre</strong> est défini sur la <strong>catégorie / équipe</strong>,
+            et le <strong>poste</strong> sur chaque joueur.
+            <strong> Pensez à renseigner ces informations</strong> dans
+            l'onglet <strong>Effectif → Fiche du joueur</strong> et dans les paramètres de
+            la catégorie. Si aucun barème spécifique ne correspond, le barème
+            <em> par défaut</em> est utilisé.
           </AlertDescription>
         </Alert>
       )}
