@@ -230,7 +230,10 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         query = query.or("test_category.not.ilike.rehab_%,test_category.is.null");
       }
 
-      if (filterCategory !== "all") {
+      if (filterCategory === "__custom__") {
+        // Show only results coming from coach's custom tests
+        query = query.ilike("test_type", "custom:%");
+      } else if (filterCategory !== "all") {
         query = query.eq("test_category", filterCategory);
       }
       if (filterTestType !== "all" && !filterTestType.startsWith("custom:")) {
@@ -302,6 +305,12 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes catégories</SelectItem>
+                <SelectItem value="__custom__">
+                  <span className="flex items-center gap-2">
+                    <Star className="h-3.5 w-3.5 fill-primary text-primary" />
+                    Mes tests personnalisés
+                  </span>
+                </SelectItem>
                 {(() => {
                   const favs = filteredTestCategories.filter(c => favoriteCategories.has(c.value));
                   const others = filteredTestCategories.filter(c => !favoriteCategories.has(c.value));
@@ -385,9 +394,11 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
 
         {/* Tests disponibles dans cette catégorie (custom_tests définis) */}
         {(() => {
-          const visibleCustomTests = (customTestsList || []).filter((t: any) =>
-            filterCategory === "all" ? true : t.test_category === filterCategory
-          );
+          const visibleCustomTests = (customTestsList || []).filter((t: any) => {
+            if (filterCategory === "all") return true;
+            if (filterCategory === "__custom__") return true;
+            return t.test_category === filterCategory;
+          });
           if (!visibleCustomTests.length) return null;
           return (
           <div className="mb-4 rounded-2xl border bg-muted/30 p-3">
