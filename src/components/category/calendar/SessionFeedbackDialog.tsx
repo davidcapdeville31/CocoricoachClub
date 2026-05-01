@@ -610,7 +610,7 @@ export function SessionFeedbackDialog({
                           {(player.first_name || player.name).slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <Label className="w-28 font-medium truncate">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</Label>
+                      <Label className="flex-1 min-w-0 font-medium text-sm break-words">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</Label>
                       {existing ? (
                         <span className="text-sm text-muted-foreground">
                           ✓ RPE {existing.rpe} - {existing.duration_minutes}min
