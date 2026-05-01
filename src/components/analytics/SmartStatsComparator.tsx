@@ -105,7 +105,7 @@ export function SmartStatsComparator({
   const { availableDimensions, aggregateByDimension } = useComparisonGroups(categoryId);
 
   const [mode, setMode] = useState<Mode>("players");
-  const [primaryOnly, setPrimaryOnly] = useState(true);
+  const [primaryOnly] = useState(true);
   const [metricKeys, setMetricKeys] = useState<string[]>(
     metrics.map((m) => m.key),
   );
