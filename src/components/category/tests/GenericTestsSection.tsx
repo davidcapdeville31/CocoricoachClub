@@ -394,9 +394,11 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
 
         {/* Tests disponibles dans cette catégorie (custom_tests définis) */}
         {(() => {
-          const visibleCustomTests = (customTestsList || []).filter((t: any) =>
-            filterCategory === "all" ? true : t.test_category === filterCategory
-          );
+          const visibleCustomTests = (customTestsList || []).filter((t: any) => {
+            if (filterCategory === "all") return true;
+            if (filterCategory === "__custom__") return true;
+            return t.test_category === filterCategory;
+          });
           if (!visibleCustomTests.length) return null;
           return (
           <div className="mb-4 rounded-2xl border bg-muted/30 p-3">
