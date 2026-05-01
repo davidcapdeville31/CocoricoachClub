@@ -1132,6 +1132,7 @@ export function ProgramBuilderDialog({
             ) : null}
           </DragOverlay>
         </DndContext>
+        )}
       </DialogContent>
       {showInjuryLibrary && (
         <InjuryLibraryDialog
