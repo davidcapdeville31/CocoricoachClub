@@ -67,6 +67,11 @@ export function AddPlayerDialogWithInvite({
   const [yearlyObjectives, setYearlyObjectives] = useState<{ label: string; target: string }[]>([]);
   const [importFisHistory, setImportFisHistory] = useState(true);
   const [fisImportStatus, setFisImportStatus] = useState<string | null>(null);
+  // Parents
+  const [parent1, setParent1] = useState({ name: "", relation: "", phone: "", email: "" });
+  const [parent2, setParent2] = useState({ name: "", relation: "", phone: "", email: "" });
+  // Coaches (illimité)
+  const [coaches, setCoaches] = useState<{ full_name: string; role: string; phone: string; email: string }[]>([]);
   const queryClient = useQueryClient();
 
   // Fetch category with club info
