@@ -160,6 +160,23 @@ export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: 
     return allGames.filter(g => g.playerId === activePlayerId);
   }, [allGames, activePlayerId]);
 
+  // Moyenne par athlète (toute la catégorie) — utilisée pour la comparaison entre athlètes
+  const teamAverageByPlayer = useMemo(() => {
+    const map = new Map<string, number>();
+    if (!allGames || allGames.length === 0) return map;
+    const sums = new Map<string, { total: number; count: number }>();
+    for (const g of allGames) {
+      const cur = sums.get(g.playerId) ?? { total: 0, count: 0 };
+      cur.total += g.score;
+      cur.count += 1;
+      sums.set(g.playerId, cur);
+    }
+    for (const [pid, { total, count }] of sums.entries()) {
+      if (count > 0) map.set(pid, Math.round((total / count) * 10) / 10);
+    }
+    return map;
+  }, [allGames]);
+
   const cumulativeStats = useMemo(() => {
     if (playerGames.length === 0) return null;
     const totalGames = playerGames.length;
