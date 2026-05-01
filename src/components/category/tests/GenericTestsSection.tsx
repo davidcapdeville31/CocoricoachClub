@@ -404,6 +404,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                       description: t.description,
                       objectives: t.objectives,
                       scoring_scale: t.scoring_scale ?? null,
+                      formula_config: t.formula_config ?? null,
                       image_url: t.image_url ?? null,
                       source: "custom",
                     });
