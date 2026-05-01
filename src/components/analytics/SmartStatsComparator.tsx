@@ -634,13 +634,15 @@ export function SmartStatsComparator({
                         <LabelList
                           dataKey={m.key}
                           position="top"
+                          angle={labelAngle}
+                          offset={labelOffset}
                           formatter={(val: any) =>
                             val === 0 || val === null || val === undefined
                               ? ""
                               : fmt(Number(val), m)
                           }
                           style={{
-                            fontSize: 10,
+                            fontSize: labelFontSize,
                             fontWeight: 600,
                             fill: "hsl(var(--foreground))",
                           }}
