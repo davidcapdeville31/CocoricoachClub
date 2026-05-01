@@ -347,6 +347,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
             value={formulaConfig}
             onChange={setFormulaConfig}
             resultUnit={effectiveUnit}
+            scoringScale={enableScoring ? scoringScale : null}
           />
         </div>
 

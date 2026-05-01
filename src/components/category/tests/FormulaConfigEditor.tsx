@@ -2,6 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel,
+} from "@/components/ui/select";
 import { Plus, Trash2, Calculator } from "lucide-react";
 import {
   FormulaConfig,
@@ -9,15 +12,22 @@ import {
   evaluateFormula,
   makeDefaultFormulaConfig,
 } from "@/lib/tests/formulaEngine";
+import {
+  TEST_UNIT_OPTIONS,
+  computePoints,
+  findMatchingRange,
+  type ScoringScale,
+} from "@/lib/constants/testUnits";
 import { useMemo, useState } from "react";
 
 interface Props {
   value: FormulaConfig | null;
   onChange: (cfg: FormulaConfig | null) => void;
   resultUnit?: string;
+  scoringScale?: ScoringScale | null;
 }
 
-export function FormulaConfigEditor({ value, onChange, resultUnit }: Props) {
+export function FormulaConfigEditor({ value, onChange, resultUnit, scoringScale }: Props) {
   const cfg = value ?? { ...makeDefaultFormulaConfig(), enabled: false };
   const enabled = !!cfg.enabled;
 
@@ -52,6 +62,17 @@ export function FormulaConfigEditor({ value, onChange, resultUnit }: Props) {
     update({ inputs: next });
   };
 
+  // Group units for Select
+  const groupedUnits = useMemo(() => {
+    const groups = new Map<string, typeof TEST_UNIT_OPTIONS>();
+    TEST_UNIT_OPTIONS.forEach(opt => {
+      const arr = groups.get(opt.group) ?? [];
+      arr.push(opt);
+      groups.set(opt.group, arr);
+    });
+    return Array.from(groups.entries());
+  }, []);
+
   const previewResult = useMemo(() => {
     if (!enabled) return null;
     const parsed: Record<string, number> = {};
@@ -63,6 +84,14 @@ export function FormulaConfigEditor({ value, onChange, resultUnit }: Props) {
     }
     return evaluateFormula(cfg.formula, parsed, cfg.result_decimals ?? 2);
   }, [enabled, cfg, previewValues]);
+
+  // Compute score from scoring scale based on the calculated result
+  const previewScore = useMemo(() => {
+    if (previewResult === null || !scoringScale?.ranges?.length) return null;
+    const points = computePoints(previewResult, scoringScale);
+    const range = findMatchingRange(previewResult, scoringScale);
+    return { points, label: range?.label || "" };
+  }, [previewResult, scoringScale]);
 
   return (
     <div className="rounded-2xl border bg-muted/40 p-4 space-y-3">
@@ -91,12 +120,26 @@ export function FormulaConfigEditor({ value, onChange, resultUnit }: Props) {
                   placeholder="Libellé (ex: Distance mur/malléole)"
                   className="flex-1"
                 />
-                <Input
+                <Select
                   value={inp.unit || ""}
-                  onChange={(e) => updateInput(idx, { unit: e.target.value })}
-                  placeholder="Unité"
-                  className="w-24"
-                />
+                  onValueChange={(v) => updateInput(idx, { unit: v })}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Unité" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {groupedUnits.map(([group, opts]) => (
+                      <SelectGroup key={group}>
+                        <SelectLabel>{group}</SelectLabel>
+                        {opts.map(opt => (
+                          <SelectItem key={opt.value} value={opt.unit || opt.value}>
+                            {opt.unit ? `${opt.unit} — ${opt.label}` : opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Button
                   type="button"
                   variant="ghost"
@@ -151,6 +194,11 @@ export function FormulaConfigEditor({ value, onChange, resultUnit }: Props) {
                 onChange={(e) => update({ result_unit: e.target.value })}
                 placeholder={resultUnit || "ex: ratio"}
               />
+              {resultUnit && (
+                <p className="text-[11px] text-muted-foreground">
+                  💡 Le barème de notation utilise l'unité <strong>{cfg.result_unit || resultUnit}</strong> (= unité du résultat calculé).
+                </p>
+              )}
             </div>
           </div>
 
@@ -168,15 +216,27 @@ export function FormulaConfigEditor({ value, onChange, resultUnit }: Props) {
                     className="w-20 h-8 text-sm"
                     placeholder={inp.unit || ""}
                   />
+                  {inp.unit && <span className="text-xs text-muted-foreground">{inp.unit}</span>}
                 </div>
               ))}
             </div>
-            <p className="text-sm">
-              <span className="text-muted-foreground">Résultat = </span>
-              <span className="font-bold text-primary">
-                {previewResult !== null ? `${previewResult} ${cfg.result_unit || resultUnit || ""}`.trim() : "—"}
-              </span>
-            </p>
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <div>
+                <span className="text-muted-foreground">Résultat = </span>
+                <span className="font-bold text-primary">
+                  {previewResult !== null ? `${previewResult} ${cfg.result_unit || resultUnit || ""}`.trim() : "—"}
+                </span>
+              </div>
+              {previewScore !== null && (
+                <div className="px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/30">
+                  <span className="text-muted-foreground text-xs">Note : </span>
+                  <span className="font-bold text-primary">{previewScore.points} pts</span>
+                  {previewScore.label && (
+                    <span className="text-xs text-muted-foreground ml-1">({previewScore.label})</span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
