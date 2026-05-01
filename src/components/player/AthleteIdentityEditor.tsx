@@ -257,15 +257,36 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
             </Badge>
           </button>
           {ageCat && (
-            <Badge variant="outline" className="gap-1">
-              Catégorie d'âge : {ageCat}
-            </Badge>
+            <button type="button" onClick={requestEditPersonalInfo} className="focus:outline-none focus:ring-2 focus:ring-ring rounded-md">
+              <Badge variant="outline" className="gap-1 cursor-pointer hover:bg-muted transition-colors">
+                Catégorie d'âge : {ageCat}
+              </Badge>
+            </button>
           )}
-          {lateralityLabel && (
-            <Badge variant="secondary" className="gap-1">
-              <Star className="h-3 w-3" />
-              {lateralityLabel}
-            </Badge>
+          {lateralityAttr && (
+            <Select
+              value={lateralityAttr.value}
+              onValueChange={(v) => updateMut.mutate({ id: lateralityAttr.id, patch: { value: v } })}
+            >
+              <SelectTrigger className="h-7 w-auto gap-1 px-2 py-0 text-xs bg-secondary border-transparent hover:bg-secondary/80 rounded-md">
+                <Star className="h-3 w-3" />
+                <SelectValue>{lateralityLabel}</SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-background border z-[200]">
+                {LATERALITY_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => deleteMut.mutate(lateralityAttr.id)}
+                  className="w-full text-left text-xs text-destructive px-2 py-1.5 hover:bg-muted border-t mt-1"
+                >
+                  Retirer
+                </button>
+              </SelectContent>
+            </Select>
           )}
         </div>
       </div>
