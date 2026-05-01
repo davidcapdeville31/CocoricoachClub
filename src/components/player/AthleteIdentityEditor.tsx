@@ -290,7 +290,7 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
                 <SelectValue>{lateralityLabel}</SelectValue>
               </SelectTrigger>
               <SelectContent className="bg-background border z-[200]">
-                {LATERALITY_OPTIONS.map((opt) => (
+                {lateralityOpts.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
                     {opt.label}
                   </SelectItem>
