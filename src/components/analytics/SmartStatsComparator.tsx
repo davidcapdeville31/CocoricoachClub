@@ -216,7 +216,18 @@ export function SmartStatsComparator({
   }, [playersWithValue, effectiveSelection, valuesByMetric, selectedMetrics, metric]);
 
   const dims = availableDimensions;
-  const activeDim = selectedDim ?? dims[0] ?? null;
+  // Dimensions à masquer globalement (peu pertinentes ou redondantes)
+  const GLOBAL_HIDDEN_DIMS = new Set<string>([
+    "birth_year",
+    "sport",
+    "sport_principal",
+    "sport_gender",
+    "positions_all",
+    "position_all",
+    ...hiddenDimensions,
+  ]);
+  const visibleDimsAll = dims.filter((d) => !GLOBAL_HIDDEN_DIMS.has(d));
+  const activeDim = selectedDim ?? visibleDimsAll[0] ?? dims[0] ?? null;
   // Traduction FR des valeurs de dimension (genre, latéralité, catégorie d'âge, etc.)
   const VALUE_LABELS: Record<string, string> = {
     male: "Homme",
