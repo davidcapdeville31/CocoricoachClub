@@ -5,10 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from "recharts";
-import { FlaskConical, TrendingUp, Filter } from "lucide-react";
+import { FlaskConical, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
