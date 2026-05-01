@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   useAthleteAttributes,
   useAddAthleteAttribute,
@@ -17,13 +19,46 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, Star, Loader2 } from "lucide-react";
+import { Plus, X, Star, Loader2, User, Cake, Venus, Mars } from "lucide-react";
 import {
   ATHLETISME_DISCIPLINES,
   ATHLETISME_SPECIALTIES,
   isAthletismeCategory,
 } from "@/lib/constants/sportTypes";
 import { getPositionsForSport } from "@/lib/constants/sportPositions";
+
+function computeAge(birthDate: string | null, birthYear: number | null): number | null {
+  if (birthDate) {
+    const d = new Date(birthDate);
+    if (!isNaN(d.getTime())) {
+      const diff = Date.now() - d.getTime();
+      return Math.floor(diff / (365.25 * 24 * 3600 * 1000));
+    }
+  }
+  if (birthYear) return new Date().getFullYear() - birthYear;
+  return null;
+}
+
+function getAgeCategory(age: number | null): string | null {
+  if (age == null) return null;
+  if (age < 12) return "U12";
+  if (age < 14) return "U14";
+  if (age < 16) return "U16";
+  if (age < 18) return "U18";
+  if (age < 20) return "U20";
+  if (age < 23) return "Espoirs (U23)";
+  if (age < 35) return "Senior";
+  if (age < 45) return "Master 1";
+  return "Master 2+";
+}
+
+function genderInfo(g: string | null): { label: string; Icon: typeof Venus } {
+  if (!g) return { label: "Non renseigné", Icon: User };
+  const v = g.toLowerCase();
+  if (v.startsWith("f") || v === "female" || v === "feminin" || v === "féminin") return { label: "Féminin", Icon: Venus };
+  if (v.startsWith("m") || v === "male" || v === "masculin") return { label: "Masculin", Icon: Mars };
+  return { label: g, Icon: User };
+}
 
 type DimensionConfig = {
   dimension: AthleteDimension;
