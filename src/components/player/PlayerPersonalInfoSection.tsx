@@ -47,7 +47,7 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select(`email, phone, birth_date, club_origin, fis_code, name`)
+        .select(`email, phone, birth_date, club_origin, fis_code, gender, name`)
         .eq("id", playerId)
         .single();
       if (error) throw error;
