@@ -39,6 +39,36 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
   const [enableScoring, setEnableScoring] = useState(false);
   const [scoringScale, setScoringScale] = useState<ScoringScale | null>(null);
   const [formulaConfig, setFormulaConfig] = useState<FormulaConfig | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Le fichier doit être une image");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image trop volumineuse (max 5 Mo)");
+      return;
+    }
+    setUploadingImage(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `custom-tests/${categoryId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("test-images")
+        .upload(path, file, { cacheControl: "3600", upsert: false });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("test-images").getPublicUrl(path);
+      setImageUrl(pub.publicUrl);
+      toast.success("Image ajoutée");
+    } catch (err: any) {
+      toast.error("Erreur upload : " + (err.message ?? "inconnue"));
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const baseTestCategories = useMemo(() => {
     return getTestCategoriesForSport(sportType || "").filter(c => !c.value.startsWith("rehab_"));
