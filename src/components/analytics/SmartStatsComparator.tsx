@@ -528,6 +528,7 @@ export function SmartStatsComparator({
                     />
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip
+                      cursor={false}
                       contentStyle={{
                         borderRadius: 12,
                         backdropFilter: "blur(8px)",
