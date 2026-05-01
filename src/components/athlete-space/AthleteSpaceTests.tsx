@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { FlaskConical, Filter } from "lucide-react";
@@ -15,15 +14,6 @@ interface Props {
   categoryId: string;
   sportType?: string;
 }
-
-const CHART_COLORS = [
-  "hsl(220, 80%, 55%)",
-  "hsl(350, 75%, 55%)",
-  "hsl(35, 90%, 55%)",
-  "hsl(160, 65%, 45%)",
-  "hsl(280, 70%, 55%)",
-  "hsl(200, 85%, 50%)",
-];
 
 export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
   const testCategories = useMemo(() => getTestCategoriesForSport(sportType || ""), [sportType]);
