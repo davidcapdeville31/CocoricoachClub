@@ -32,15 +32,13 @@ export const AGE_CATEGORIES_BY_SPORT: Record<string, AgeCategoryOption[]> = {
 
   // Bowling — FFBSQ
   bowling: [
-    { value: "minibowl", label: "Minibowl (-9 ans)" },
-    { value: "benjamins", label: "Benjamin(e)s (10-12)" },
-    { value: "minimes", label: "Minimes (13-14)" },
-    { value: "cadets", label: "Cadet(te)s (15-16)" },
-    { value: "juniors", label: "Junior(e)s (17-18)" },
-    { value: "espoirs", label: "Espoirs (19-22)" },
-    { value: "senior", label: "Senior" },
-    { value: "veteran", label: "Vétéran (50+)" },
-    { value: "super_veteran", label: "Super Vétéran (65+)" },
+    { value: "u12", label: "U12 (10-12)" },
+    { value: "u14", label: "U14 (11-13)" },
+    { value: "u19", label: "U19 (14-18)" },
+    { value: "u23", label: "U23 (19-22)" },
+    { value: "seniors", label: "Seniors (18-50)" },
+    { value: "veterans_a", label: "Vétérans A (51-65)" },
+    { value: "veterans_b", label: "Vétérans B (66+)" },
   ],
 
   // Ski / Snowboard — FFS / FIS
@@ -147,9 +145,10 @@ const GENERIC_U_CATEGORIES: AgeCategoryOption[] = [
 export function getAgeCategoriesForSport(sportType: string): AgeCategoryOption[] {
   if (AGE_CATEGORIES_BY_SPORT[sportType]) return AGE_CATEGORIES_BY_SPORT[sportType];
 
-  // Préfixes dynamiques (ski_*, athletisme_*)
+  // Préfixes dynamiques (ski_*, athletisme_*, bowling_*)
   if (sportType?.startsWith("ski_") || sportType === "snowboard") return skiCategories();
   if (sportType?.startsWith("athletisme")) return athletismeCategories();
+  if (sportType?.startsWith("bowling")) return AGE_CATEGORIES_BY_SPORT.bowling;
 
   return GENERIC_U_CATEGORIES;
 }
