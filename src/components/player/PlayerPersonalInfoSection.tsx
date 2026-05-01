@@ -69,6 +69,7 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
           birth_date: data.birth_date,
           club_origin: data.club_origin,
           fis_code: data.fis_code,
+          gender: data.gender,
         })
         .eq("id", playerId);
       if (error) throw error;
