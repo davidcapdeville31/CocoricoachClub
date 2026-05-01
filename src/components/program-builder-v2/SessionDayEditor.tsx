@@ -189,7 +189,7 @@ export function SessionDayEditor({ blocks, onChange }: SessionDayEditorProps) {
             key={block.id}
             block={block}
             blockDropId={`drop-${block.id}`}
-            exerciseCount={0}
+            exerciseCount={(block.exercises ?? []).length}
             onToggle={() => updateBlock(block.id, { isOpen: !block.isOpen })}
             onRename={(name) => updateBlock(block.id, { name })}
             onRemove={() => removeBlock(block.id)}
@@ -201,7 +201,6 @@ export function SessionDayEditor({ blocks, onChange }: SessionDayEditorProps) {
               })
             }
           >
-            {/* Method buttons */}
             <TrainingMethodButtons
               isBuilding={false}
               blockType={block.type === "custom" ? "musculation" : block.type}
@@ -209,19 +208,51 @@ export function SessionDayEditor({ blocks, onChange }: SessionDayEditorProps) {
               onStartConfigMethod={(m) => handleStartConfig(block.id, m)}
             />
 
-            {/* Pending method placeholder */}
             {pendingMethod[block.id] && (
-              <div className="rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary">
-                Méthode sélectionnée : <strong>{pendingMethod[block.id]}</strong>
-                <span className="ml-2 text-muted-foreground">
-                  (configuration détaillée — A7.3)
+              <div className="rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary flex items-center justify-between gap-2">
+                <span>
+                  Mode actif : <strong>{pendingMethod[block.id]}</strong>{" "}
+                  <span className="text-muted-foreground">
+                    (appliqué au prochain exercice ajouté)
+                  </span>
                 </span>
               </div>
             )}
 
-            {/* Exercise list placeholder */}
-            <div className="rounded-xl border border-dashed border-border/60 bg-background/50 px-3 py-3 text-xs text-muted-foreground">
-              Exercices — sélecteur disponible en A7.3.
+            {/* Exercises list */}
+            <div className="space-y-1.5">
+              {(block.exercises ?? []).map((ex) => (
+                <div
+                  key={ex.id}
+                  className="flex items-center justify-between gap-2 rounded-xl bg-muted/40 border border-border/60 px-3 py-2"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {ex.exerciseName}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {ex.sets} × {ex.reps}
+                      {ex.method && ex.method !== "normal" && (
+                        <>
+                          {" · "}
+                          <span className="text-primary">{ex.method}</span>
+                        </>
+                      )}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 rounded-2xl text-muted-foreground hover:text-destructive"
+                    onClick={() => removeExerciseFromBlock(block.id, ex.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ))}
+              <ExercisePicker
+                onPick={(picked) => addExerciseToBlock(block.id, picked)}
+              />
             </div>
           </TrainingBlockWrapper>
         ))}
