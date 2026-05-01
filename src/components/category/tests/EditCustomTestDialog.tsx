@@ -403,6 +403,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
               value={scoringScale}
               onChange={setScoringScale}
               unit={effectiveUnit}
+              sportType={sportType}
             />
           )}
 
