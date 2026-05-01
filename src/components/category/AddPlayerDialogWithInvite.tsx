@@ -582,6 +582,48 @@ export function AddPlayerDialogWithInvite({
                 Athlètes : {currentPlayerCount}/{maxAthletes} dans cette catégorie
               </p>
             )}
+            {/* Photo (optionnelle) */}
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16">
+                <AvatarImage src={avatarPreview || undefined} />
+                <AvatarFallback className="bg-muted">
+                  <Camera className="h-5 w-5 text-muted-foreground" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 space-y-1">
+                <Label htmlFor="newPlayerAvatar" className="text-sm">Photo (optionnel)</Label>
+                <Input
+                  id="newPlayerAvatar"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (!file.type.startsWith("image/")) {
+                      toast.error("Veuillez sélectionner une image");
+                      return;
+                    }
+                    if (file.size > 2 * 1024 * 1024) {
+                      toast.error("L'image ne doit pas dépasser 2MB");
+                      return;
+                    }
+                    setAvatarFile(file);
+                    setAvatarPreview(URL.createObjectURL(file));
+                  }}
+                  className="text-xs file:text-xs"
+                />
+                {avatarPreview && (
+                  <button
+                    type="button"
+                    onClick={() => { setAvatarFile(null); setAvatarPreview(null); }}
+                    className="text-xs text-muted-foreground hover:text-foreground underline"
+                  >
+                    Retirer la photo
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* First Name */}
             <div className="space-y-2">
               <Label htmlFor="firstName">Prénom</Label>
