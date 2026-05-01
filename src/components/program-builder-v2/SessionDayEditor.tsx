@@ -74,6 +74,19 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
   // Mode actif pour méthode "config" (drop_set, emom, etc.) — toast informatif en attendant le wiring complet
   const [pendingConfig, setPendingConfig] = useState<Record<string, ConfigMethod>>({});
 
+  // Expose une API impérative pour insérer un exercice depuis la bibliothèque externe
+  useImperativeHandle(
+    ref,
+    () => ({
+      hasActiveLinkedDraft: (blockId: string) => !!linkedDrafts[blockId],
+      insertExternalExercise: (blockId, picked) => {
+        addExerciseToBlock(blockId, { id: picked.id, name: picked.name } as PickedExercise);
+        return true;
+      },
+    }),
+    [linkedDrafts],
+  );
+
   const addBlock = useCallback(
     (type: TrainingBlockType, customBlock?: CustomBlockType) => {
       const newBlock: V2BlockWithExercises = {
