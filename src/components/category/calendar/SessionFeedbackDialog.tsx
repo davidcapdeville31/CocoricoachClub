@@ -778,7 +778,7 @@ export function SessionFeedbackDialog({
                                       type="number"
                                       step="0.01"
                                       placeholder={test.result_unit || "val"}
-                                      className="h-6 w-16 text-xs"
+                                      className="h-9 w-28 text-sm font-medium"
                                       value={test.player_results[player.id] || ""}
                                       onChange={(e) => updatePlayerTestResult(test.id, player.id, e.target.value)}
                                     />
