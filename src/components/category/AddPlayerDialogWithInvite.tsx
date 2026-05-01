@@ -23,7 +23,8 @@ import { toast } from "sonner";
 import { playerSchema } from "@/lib/validations";
 import { ATHLETISME_DISCIPLINES, ATHLETISME_SPECIALTIES, JUDO_WEIGHT_CATEGORIES, AVIRON_ROLES, NATATION_DISCIPLINES, NATATION_SPECIALTIES, SKI_DISCIPLINES, SURF_DISCIPLINES, TRIATHLON_DISCIPLINES, PADEL_POSITIONS, isAthletismeCategory, isJudoCategory, isNatationCategory, isSkiCategory, isSurfCategory, isTriathlonCategory, isPadelCategory, isIndividualSport, getSkiDisciplinesForCategory } from "@/lib/constants/sportTypes";
 import { getPositionsForSport } from "@/lib/constants/sportPositions";
-import { Loader2, Send, UserPlus, Copy, Check, AlertTriangle, Plus, X, Download } from "lucide-react";
+import { Loader2, Send, UserPlus, Copy, Check, AlertTriangle, Plus, X, Download, Camera } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { scrapeFisResults, importFisResultsForPlayer } from "@/lib/fis/scrapeFisResults";
 import { useAuth } from "@/contexts/AuthContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -72,6 +73,8 @@ export function AddPlayerDialogWithInvite({
   const [parent2, setParent2] = useState({ name: "", relation: "", phone: "", email: "" });
   // Coaches (illimité)
   const [coaches, setCoaches] = useState<{ full_name: string; role: string; phone: string; email: string }[]>([]);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   // Fetch category with club info
@@ -216,6 +219,8 @@ export function AddPlayerDialogWithInvite({
     setParent1({ name: "", relation: "", phone: "", email: "" });
     setParent2({ name: "", relation: "", phone: "", email: "" });
     setCoaches([]);
+    setAvatarFile(null);
+    setAvatarPreview(null);
   };
 
   const copyLink = async (link: string) => {
@@ -364,6 +369,28 @@ export function AddPlayerDialogWithInvite({
         fis_objective: fisObjective.trim() || undefined,
         fis_objective_date: fisObjectiveDate || undefined,
       });
+
+      // Upload avatar if provided
+      if (avatarFile) {
+        try {
+          const fileExt = avatarFile.name.split(".").pop();
+          const fileName = `${player.id}/avatar.${fileExt}`;
+          const { error: upErr } = await supabase.storage
+            .from("player-avatars")
+            .upload(fileName, avatarFile, { upsert: true });
+          if (!upErr) {
+            const { data: { publicUrl } } = supabase.storage
+              .from("player-avatars")
+              .getPublicUrl(fileName);
+            await supabase
+              .from("players")
+              .update({ avatar_url: publicUrl } as any)
+              .eq("id", player.id);
+          }
+        } catch (err) {
+          console.error("Avatar upload error:", err);
+        }
+      }
 
       // Save parents contacts on player record (if any provided)
       const hasParent1 = parent1.name.trim() || parent1.phone.trim() || parent1.email.trim();
@@ -555,6 +582,48 @@ export function AddPlayerDialogWithInvite({
                 Athlètes : {currentPlayerCount}/{maxAthletes} dans cette catégorie
               </p>
             )}
+            {/* Photo (optionnelle) */}
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16">
+                <AvatarImage src={avatarPreview || undefined} />
+                <AvatarFallback className="bg-muted">
+                  <Camera className="h-5 w-5 text-muted-foreground" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 space-y-1">
+                <Label htmlFor="newPlayerAvatar" className="text-sm">Photo (optionnel)</Label>
+                <Input
+                  id="newPlayerAvatar"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (!file.type.startsWith("image/")) {
+                      toast.error("Veuillez sélectionner une image");
+                      return;
+                    }
+                    if (file.size > 2 * 1024 * 1024) {
+                      toast.error("L'image ne doit pas dépasser 2MB");
+                      return;
+                    }
+                    setAvatarFile(file);
+                    setAvatarPreview(URL.createObjectURL(file));
+                  }}
+                  className="text-xs file:text-xs"
+                />
+                {avatarPreview && (
+                  <button
+                    type="button"
+                    onClick={() => { setAvatarFile(null); setAvatarPreview(null); }}
+                    className="text-xs text-muted-foreground hover:text-foreground underline"
+                  >
+                    Retirer la photo
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* First Name */}
             <div className="space-y-2">
               <Label htmlFor="firstName">Prénom</Label>
