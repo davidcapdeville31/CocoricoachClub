@@ -80,6 +80,7 @@ function ColoredStatRow({ label, value, statType, percentage }: { label: string;
 
 export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: BowlingCumulativeStatsProps) {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("overview");
 
   const { data: allGames, isLoading } = useQuery({
     queryKey: ["bowling_cumulative_stats", categoryId],
