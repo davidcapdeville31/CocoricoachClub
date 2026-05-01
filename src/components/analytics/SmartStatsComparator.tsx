@@ -558,12 +558,22 @@ export function SmartStatsComparator({
               </div>
             )}
 
+            {(() => {
+              // Densité : nb d'athlètes × nb de métriques sélectionnées
+              const density = data.length * Math.max(1, selectedMetrics.length);
+              const isDense = density > 18;
+              const isVeryDense = density > 30;
+              const chartHeight = isVeryDense ? 440 : isDense ? 380 : 340;
+              const labelAngle = isDense ? -90 : 0;
+              const labelOffset = isDense ? 8 : 4;
+              const labelFontSize = isVeryDense ? 9 : 10;
+              return (
             <div>
-              <div className="h-[340px] w-full">
+              <div className="w-full" style={{ height: chartHeight }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={data}
-                    margin={{ top: 16, right: 12, left: 0, bottom: 36 }}
+                    margin={{ top: isDense ? 32 : 16, right: 12, left: 0, bottom: 36 }}
                     barCategoryGap="20%"
                     barGap={2}
                   >
@@ -624,13 +634,15 @@ export function SmartStatsComparator({
                         <LabelList
                           dataKey={m.key}
                           position="top"
+                          angle={labelAngle}
+                          offset={labelOffset}
                           formatter={(val: any) =>
                             val === 0 || val === null || val === undefined
                               ? ""
                               : fmt(Number(val), m)
                           }
                           style={{
-                            fontSize: 10,
+                            fontSize: labelFontSize,
                             fontWeight: 600,
                             fill: "hsl(var(--foreground))",
                           }}
@@ -682,6 +694,8 @@ export function SmartStatsComparator({
                 </div>
               )}
             </div>
+              );
+            })()}
           </div>
         )}
       </CardContent>
