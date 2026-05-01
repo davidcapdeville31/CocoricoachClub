@@ -216,7 +216,18 @@ export function SmartStatsComparator({
   }, [playersWithValue, effectiveSelection, valuesByMetric, selectedMetrics, metric]);
 
   const dims = availableDimensions;
-  const activeDim = selectedDim ?? dims[0] ?? null;
+  // Dimensions à masquer globalement (peu pertinentes ou redondantes)
+  const GLOBAL_HIDDEN_DIMS = new Set<string>([
+    "birth_year",
+    "sport",
+    "sport_principal",
+    "sport_gender",
+    "positions_all",
+    "position_all",
+    ...hiddenDimensions,
+  ]);
+  const visibleDimsAll = dims.filter((d) => !GLOBAL_HIDDEN_DIMS.has(d));
+  const activeDim = selectedDim ?? visibleDimsAll[0] ?? dims[0] ?? null;
   // Traduction FR des valeurs de dimension (genre, latéralité, catégorie d'âge, etc.)
   const VALUE_LABELS: Record<string, string> = {
     male: "Homme",
@@ -398,12 +409,14 @@ export function SmartStatsComparator({
           const labelFor = (d: string) =>
             DIM_LABELS[d] ??
             d.replace(/_/g, " ").replace(/^./, (s) => s.toUpperCase());
+          // Si activeDim est masqué (ou non défini), on retombe sur la 1ʳᵉ dimension visible
+          const currentDim = activeDim && visibleDims.includes(activeDim) ? activeDim : visibleDims[0];
           return (
             <div className="mt-2">
               <label className="text-[10px] font-semibold uppercase text-muted-foreground tracking-wide">
                 Dimension
               </label>
-              <Select value={activeDim ?? undefined} onValueChange={setSelectedDim}>
+              <Select value={currentDim} onValueChange={setSelectedDim}>
                 <SelectTrigger className="h-9 bg-muted/40 mt-0.5 w-full md:w-[280px]">
                   <SelectValue placeholder="Dimension" />
                 </SelectTrigger>
