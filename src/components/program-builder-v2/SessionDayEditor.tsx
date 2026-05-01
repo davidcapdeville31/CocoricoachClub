@@ -153,19 +153,8 @@ export function SessionDayEditor({ blocks, onChange }: SessionDayEditorProps) {
 
   return (
     <div className="space-y-3">
-      {/* Header summary */}
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium">Blocs de la séance</span>
-          {summary && (
-            <Badge variant="secondary" className="rounded-2xl text-xs">
-              {summary}
-            </Badge>
-          )}
-        </div>
-        <AddTrainingBlockButton onAddBlock={addBlock} variant="default" />
-      </div>
+      {/* Top add button — primary entry point (matches reference editor) */}
+      <AddTrainingBlockButton onAddBlock={addBlock} variant="prominent" />
 
       {/* Empty state */}
       {totalBlocks === 0 && (
@@ -176,9 +165,6 @@ export function SessionDayEditor({ blocks, onChange }: SessionDayEditorProps) {
           <p className="text-xs text-muted-foreground/70 mt-1">
             Ajoute un bloc (échauffement, musculation, cardio…) pour commencer.
           </p>
-          <div className="mt-4 inline-flex">
-            <AddTrainingBlockButton onAddBlock={addBlock} variant="prominent" />
-          </div>
         </div>
       )}
 
