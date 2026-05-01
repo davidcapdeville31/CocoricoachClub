@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SessionEditorSheet } from "./SessionEditorSheet";
-import { SessionDayEditor } from "./SessionDayEditor";
+import { SessionDayEditor, type SessionDayEditorHandle } from "./SessionDayEditor";
 import { V2ExerciseBankSidebar, type PickedExerciseRich } from "./V2ExerciseBankSidebar";
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
 
@@ -33,6 +33,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
   const [blocks, setBlocks] = useState<V2BlockWithExercises[]>([]);
   const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
   const activeBlockIdRef = useRef<string | null>(null);
+  const dayEditorRef = useRef<SessionDayEditorHandle | null>(null);
 
   // Reset state every time the editor is reopened
   useEffect(() => {
@@ -63,6 +64,22 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
       toast.error("Ajoute d'abord un bloc de travail à gauche.");
       return;
     }
+    // Délègue à SessionDayEditor : si une méthode liée (Biset/Superset/...) est en
+    // cours d'édition sur ce bloc, l'exercice ira dans le prochain slot vide.
+    // Sinon il sera ajouté comme exercice normal au bloc.
+    const handle = dayEditorRef.current;
+    if (handle) {
+      const isLinked = handle.hasActiveLinkedDraft(targetId);
+      handle.insertExternalExercise(targetId, { id: picked.id, name: picked.exercise_name });
+      activeBlockIdRef.current = targetId;
+      toast.success(
+        isLinked
+          ? `« ${picked.exercise_name} » ajouté au slot`
+          : `« ${picked.exercise_name} » ajouté`,
+      );
+      return;
+    }
+    // Fallback (should not happen) : insertion directe en exercice normal
     const newExercise: V2BlockExercise = {
       id: `ex-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       exerciseId: picked.id,
@@ -209,7 +226,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
             </p>
           </div>
 
-          <SessionDayEditor blocks={blocks} onChange={handleBlocksChange} />
+          <SessionDayEditor ref={dayEditorRef} blocks={blocks} onChange={handleBlocksChange} />
         </div>
       )}
       renderExerciseLibrary={() => (
