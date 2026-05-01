@@ -382,10 +382,24 @@ export function CreateTrainingProgramV2({
               <h2 className="font-semibold truncate">{draft.name || "Sans titre"}</h2>
             </div>
           </div>
-          <Badge variant="outline" className="rounded-2xl shrink-0">
-            <Calendar className="h-3 w-3 mr-1" />
-            {draft.weeks.length} sem · {draft.daysPerWeek} j/sem
-          </Badge>
+          <div className="flex items-center gap-2 shrink-0">
+            <Badge variant="outline" className="rounded-2xl">
+              <Calendar className="h-3 w-3 mr-1" />
+              {draft.weeks.length} sem · {draft.daysPerWeek} j/sem
+            </Badge>
+            <Button
+              size="sm"
+              onClick={handleSave}
+              className="rounded-2xl shadow-md"
+            >
+              {saveProgram.isPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+              ) : (
+                <Save className="h-3.5 w-3.5 mr-1" />
+              )}
+              Enregistrer
+            </Button>
+          </div>
         </div>
 
         {/* Week tabs */}
