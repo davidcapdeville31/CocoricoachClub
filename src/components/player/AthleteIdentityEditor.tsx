@@ -189,16 +189,30 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
       });
     }
 
-    // 4) Latéralité — universelle
-    list.push({
-      dimension: "laterality",
-      label: "Latéralité",
-      description: "Main / pied dominant.",
-      options: LATERALITY_OPTIONS,
-    });
+    // 4) Latéralité — universelle, valeur unique : on cache le bloc d'ajout si déjà renseignée
+    const hasLaterality = attributes.some((a) => a.dimension === "laterality");
+    if (!hasLaterality) {
+      list.push({
+        dimension: "laterality",
+        label: "Latéralité",
+        description: "Main / pied dominant.",
+        options: LATERALITY_OPTIONS,
+      });
+    }
 
     return list;
-  }, [sportType, isAthletics]);
+  }, [sportType, isAthletics, attributes]);
+
+  const lateralityAttr = attributes.find((a) => a.dimension === "laterality");
+  const lateralityLabel = lateralityAttr
+    ? LATERALITY_OPTIONS.find((o) => o.value === lateralityAttr.value)?.label ?? lateralityAttr.value
+    : null;
+
+  const requestEditPersonalInfo = () => {
+    window.dispatchEvent(
+      new CustomEvent("player:edit-personal-info", { detail: { playerId } }),
+    );
+  };
 
   if (isLoading) {
     return (
