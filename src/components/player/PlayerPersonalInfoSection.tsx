@@ -84,6 +84,7 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
     onSuccess: async (result) => {
       queryClient.invalidateQueries({ queryKey: ["player-personal-info", playerId] });
       queryClient.invalidateQueries({ queryKey: ["player", playerId] });
+      queryClient.invalidateQueries({ queryKey: ["player-core-identity", playerId] });
       toast.success("Fiche personnelle mise à jour");
       setIsEditing(false);
 
