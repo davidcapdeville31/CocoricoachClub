@@ -31,12 +31,13 @@ export function AthleteSpacePerformance({ playerId, categoryId, sportType }: Pro
         </TabsList>
 
         <TabsContent value="tests" className="mt-4 space-y-6">
-          <AthleteSpaceTests
+          {/* Ordre demandé : Derniers résultats → Comparatif tests → Historique complet */}
+          <AthleteSpaceProgression
             playerId={playerId}
             categoryId={categoryId}
             sportType={sportType}
           />
-          <AthleteSpaceProgression
+          <AthleteSpaceTests
             playerId={playerId}
             categoryId={categoryId}
             sportType={sportType}

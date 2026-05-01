@@ -2,13 +2,9 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from "recharts";
-import { FlaskConical, TrendingUp, Filter } from "lucide-react";
+import { FlaskConical, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
@@ -19,16 +15,7 @@ interface Props {
   sportType?: string;
 }
 
-const CHART_COLORS = [
-  "hsl(220, 80%, 55%)",
-  "hsl(350, 75%, 55%)",
-  "hsl(35, 90%, 55%)",
-  "hsl(160, 65%, 45%)",
-  "hsl(280, 70%, 55%)",
-  "hsl(200, 85%, 50%)",
-];
-
-export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
+export function AthleteSpaceTests({ playerId, sportType }: Props) {
   const testCategories = useMemo(() => getTestCategoriesForSport(sportType || ""), [sportType]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
@@ -71,31 +58,6 @@ export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
     },
   });
 
-  // Group generic tests by test_type
-  const genericByType = useMemo(() => {
-    const map: Record<string, { date: string; fullDate: string; value: number; unit: string; label: string; categoryLabel: string; categoryValue: string; notes: string | null }[]> = {};
-    genericTests.forEach((t: any) => {
-      const key = `${t.test_category}__${t.test_type}`;
-      if (!map[key]) map[key] = [];
-      const cat = testCategories.find(c => c.value === t.test_category);
-      const testDef = cat?.tests.find(tt => tt.value === t.test_type);
-      const label = testDef?.label || t.test_type?.replace(/_/g, " ") || "Test";
-      const categoryLabel = cat?.label || t.test_category?.replace(/_/g, " ") || "";
-      map[key].push({
-        date: format(new Date(t.test_date), "dd/MM", { locale: fr }),
-        fullDate: format(new Date(t.test_date), "dd MMM yyyy", { locale: fr }),
-        value: t.result_value,
-        unit: t.result_unit || "",
-        label,
-        categoryLabel,
-        categoryValue: t.test_category,
-        notes: t.notes,
-      });
-    });
-    return map;
-  }, [genericTests, testCategories]);
-
-  // Categories with data
   const categoriesWithData = useMemo(() => {
     const catSet = new Set<string>();
     if (speedTests.length > 0) catSet.add("__speed__");
@@ -117,13 +79,6 @@ export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
   const showSpeed = selectedCategory === "all" || selectedCategory === "__speed__";
   const showStrength = selectedCategory === "all" || selectedCategory === "__strength__";
 
-  const filteredGeneric = useMemo(() => {
-    if (selectedCategory === "all") return genericByType;
-    return Object.fromEntries(
-      Object.entries(genericByType).filter(([, data]) => data[0]?.categoryValue === selectedCategory)
-    );
-  }, [selectedCategory, genericByType]);
-
   if (isLoading) return null;
 
   const noData = genericTests.length === 0 && speedTests.length === 0 && strengthTests.length === 0;
@@ -138,34 +93,14 @@ export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
     );
   }
 
-  // Speed chart
-  const speedChartData = speedTests
-    .filter((t: any) => t.time_40m_seconds)
-    .map((t: any) => ({
-      date: format(new Date(t.test_date), "dd/MM", { locale: fr }),
-      fullDate: format(new Date(t.test_date), "dd MMM yyyy", { locale: fr }),
-      temps: t.time_40m_seconds,
-    }));
-
-  // Strength by exercise
-  const strengthByExercise: Record<string, { date: string; fullDate: string; value: number }[]> = {};
-  strengthTests.forEach((t: any) => {
-    if (!strengthByExercise[t.test_name]) strengthByExercise[t.test_name] = [];
-    strengthByExercise[t.test_name].push({
-      date: format(new Date(t.test_date), "dd/MM", { locale: fr }),
-      fullDate: format(new Date(t.test_date), "dd MMM yyyy", { locale: fr }),
-      value: t.weight_kg,
-    });
-  });
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Filters */}
       {availableFilters.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-muted-foreground">Filtrer</span>
+            <span className="text-sm font-medium text-muted-foreground">Filtrer l'historique</span>
           </div>
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex gap-2 pb-2">
@@ -193,88 +128,6 @@ export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
           </ScrollArea>
         </div>
       )}
-
-      {/* Speed chart */}
-      {showSpeed && speedChartData.length > 1 && (
-        <Card className="bg-gradient-card shadow-md">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-accent" />
-              Évolution vitesse (40m)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={180}>
-              <LineChart data={speedChartData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="date" className="text-[10px]" />
-                <YAxis className="text-[10px]" reversed />
-                <Tooltip
-                  contentStyle={{ backgroundColor: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", fontSize: "12px", borderRadius: "8px" }}
-                  formatter={(v: number) => [`${v}s`, "Temps"]}
-                  labelFormatter={(_, p: any[]) => p?.[0]?.payload?.fullDate || ""}
-                />
-                <Line type="monotone" dataKey="temps" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ r: 3 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Strength charts */}
-      {showStrength && Object.entries(strengthByExercise).map(([exercise, data]) => (
-        data.length > 1 && (
-          <Card key={exercise} className="bg-gradient-card shadow-md">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">{exercise}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={160}>
-                <LineChart data={data}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="date" className="text-[10px]" />
-                  <YAxis className="text-[10px]" />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", fontSize: "12px", borderRadius: "8px" }}
-                    formatter={(v: number) => [`${v}kg`, exercise]}
-                    labelFormatter={(_, p: any[]) => p?.[0]?.payload?.fullDate || ""}
-                  />
-                  <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )
-      ))}
-
-      {/* Generic test charts */}
-      {Object.entries(filteredGeneric).map(([key, data], i) => (
-        data.length > 1 && (
-          <Card key={key} className="bg-gradient-card shadow-md">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <span className="text-muted-foreground">{data[0].categoryLabel} :</span> {data[0].label}
-                <Badge variant="secondary" className="text-[10px]">{data[0].unit}</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={160}>
-                <LineChart data={data}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="date" className="text-[10px]" />
-                  <YAxis className="text-[10px]" />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", fontSize: "12px", borderRadius: "8px" }}
-                    formatter={(v: number) => [`${v} ${data[0].unit}`, data[0].label]}
-                    labelFormatter={(_, p: any[]) => p?.[0]?.payload?.fullDate || ""}
-                  />
-                  <Line type="monotone" dataKey="value" stroke={CHART_COLORS[i % CHART_COLORS.length]} strokeWidth={2} dot={{ r: 3 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )
-      ))}
 
       {/* Full test history table */}
       <Card className="bg-gradient-card shadow-md">

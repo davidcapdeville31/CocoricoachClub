@@ -284,24 +284,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
         </div>
       )}
 
-      <Card className="bg-gradient-card shadow-md">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-accent" />
-            Ta progression
-            {selectedCategory !== "all" && (
-              <Badge variant="secondary" className="text-[10px]">
-                {availableFilters.find(f => f.value === selectedCategory)?.label}
-              </Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {getProgressionFeedback().map((msg, i) => (
-            <p key={i} className="text-sm leading-relaxed mb-1">{msg}</p>
-          ))}
-        </CardContent>
-      </Card>
+      {/* Card "Ta progression" supprimée à la demande utilisateur */}
 
       {/* Latest generic test results summary */}
       {Object.keys(filteredLatestGeneric).length > 0 && (
