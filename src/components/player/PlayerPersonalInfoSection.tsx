@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { isSkiCategory } from "@/lib/constants/sportTypes";
 import { scrapeFisResults, importFisResultsForPlayer } from "@/lib/fis/scrapeFisResults";
+import { PlayerAvatarUpload } from "./PlayerAvatarUpload";
 
 interface PlayerPersonalInfoSectionProps {
   playerId: string;
@@ -47,11 +48,11 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select(`email, phone, birth_date, club_origin, fis_code, gender, name`)
+        .select(`email, phone, birth_date, club_origin, fis_code, gender, name, avatar_url`)
         .eq("id", playerId)
         .single();
       if (error) throw error;
-      return data as PlayerPersonalInfo & { name: string };
+      return data as PlayerPersonalInfo & { name: string; avatar_url: string | null };
     },
   });
 
@@ -191,6 +192,13 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
       </CardHeader>
 
       <CardContent>
+        <div className="mb-4 pb-4 border-b">
+          <PlayerAvatarUpload
+            playerId={playerId}
+            playerName={playerInfo?.name || ""}
+            currentAvatarUrl={playerInfo?.avatar_url}
+          />
+        </div>
         {isEditing ? (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

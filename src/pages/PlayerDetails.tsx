@@ -15,7 +15,7 @@ import { PlayerCalendarTab } from "@/components/player/PlayerCalendarTab";
 import { PlayerAwcrTab } from "@/components/player/PlayerAwcrTab";
 import { PlayerTrainingLoadCard } from "@/components/player/PlayerTrainingLoadCard";
 import { PlayerReportSection } from "@/components/player/PlayerReportSection";
-import { PlayerProfile } from "@/components/player/PlayerProfile";
+// PlayerProfile retiré : la création de profilage se fait via Tests
 import { PlayerInjuriesTab } from "@/components/player/PlayerInjuriesTab";
 import { PlayerBiometrics } from "@/components/player/PlayerBiometrics";
 import { PlayerMatchesTab } from "@/components/player/PlayerMatchesTab";
@@ -468,16 +468,8 @@ function PlayerDetailsContent() {
           </div>
         )}
 
-        {/* Player Profile and Biometrics Section - Compact */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
-          <PlayerProfile 
-            playerId={playerId!} 
-            categoryId={player.category_id}
-            playerName={fullName}
-            avatarUrl={player.avatar_url}
-            sportType={(player.categories as { rugby_type?: string })?.rugby_type}
-            discipline={player.discipline}
-          />
+        {/* Biometrics Section */}
+        <div className="mb-3">
           <PlayerBiometrics 
             playerId={playerId!} 
             categoryId={player.category_id}
