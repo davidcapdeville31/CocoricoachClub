@@ -41,13 +41,7 @@ interface Props {
 }
 
 const BOWLING_METRICS: MetricDef[] = [
-  // Score
-  { key: "avgScore", label: "Moyenne au score", group: "Score", decimals: 1 },
-  { key: "highGame", label: "Meilleure partie", group: "Score", decimals: 0 },
-  { key: "lowGame", label: "Pire partie", group: "Score", decimals: 0, direction: "lower" },
-  { key: "totalGames", label: "Nombre de parties", group: "Score", decimals: 0 },
-
-  // Pourcentages
+  // Pourcentages (Précision)
   { key: "avgStrikeRate", label: "% Strikes", unit: "%", group: "Précision (%)" },
   { key: "avgSpareRate", label: "% Spares", unit: "%", group: "Précision (%)" },
   { key: "avgPocketRate", label: "% Poches", unit: "%", group: "Précision (%)" },
@@ -56,6 +50,11 @@ const BOWLING_METRICS: MetricDef[] = [
   { key: "firstBallGte8Percentage", label: "% Boules ≥8", unit: "%", group: "Précision (%)" },
   { key: "openFramePercentage", label: "% Frames non fermées", unit: "%", group: "Précision (%)", direction: "lower" },
 
+  // Score
+  { key: "avgScore", label: "Moyenne au score", group: "Score", decimals: 1 },
+  { key: "highGame", label: "Meilleure partie", group: "Score", decimals: 0 },
+  { key: "lowGame", label: "Pire partie", group: "Score", decimals: 0, direction: "lower" },
+  { key: "totalGames", label: "Nombre de parties", group: "Score", decimals: 0 },
 ];
 
 function computeStats(games: BowlingGameData[]) {
