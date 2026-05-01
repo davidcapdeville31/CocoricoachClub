@@ -95,6 +95,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
         flat.map(({ block, ex }, idx) => {
           const blockTag = `<!-- v2-block:${block.type}:${block.name} -->`;
           const userNote = ex.notes ? `\n${ex.notes}` : "";
+          const repsNum = ex.reps ? Number(String(ex.reps).replace(/[^0-9]/g, "")) : null;
           return {
             training_session_id: session.id,
             player_id: player.id,
@@ -102,7 +103,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
             library_exercise_id: ex.exerciseId || null,
             exercise_name: ex.exerciseName,
             sets: ex.sets ?? 1,
-            reps: ex.reps ?? null,
+            reps: repsNum && !Number.isNaN(repsNum) ? repsNum : null,
             rest_seconds: ex.restSeconds ?? null,
             tempo: ex.tempo ?? null,
             percentage_1rm: ex.percentage ?? null,
