@@ -2465,6 +2465,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           description: string | null
+          formula_config: Json | null
           id: string
           image_url: string | null
           is_time: boolean | null
@@ -2482,6 +2483,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          formula_config?: Json | null
           id?: string
           image_url?: string | null
           is_time?: boolean | null
@@ -2499,6 +2501,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          formula_config?: Json | null
           id?: string
           image_url?: string | null
           is_time?: boolean | null
@@ -3644,6 +3647,7 @@ export type Database = {
           category_id: string
           created_at: string
           id: string
+          inputs_values: Json | null
           notes: string | null
           player_id: string
           result_unit: string | null
@@ -3658,6 +3662,7 @@ export type Database = {
           category_id: string
           created_at?: string
           id?: string
+          inputs_values?: Json | null
           notes?: string | null
           player_id: string
           result_unit?: string | null
@@ -3672,6 +3677,7 @@ export type Database = {
           category_id?: string
           created_at?: string
           id?: string
+          inputs_values?: Json | null
           notes?: string | null
           player_id?: string
           result_unit?: string | null
