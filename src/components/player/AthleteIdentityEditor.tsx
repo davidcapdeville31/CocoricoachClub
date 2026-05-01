@@ -38,15 +38,6 @@ interface Props {
   sportType: string;
 }
 
-const PERFORMANCE_PROFILES: { value: string; label: string }[] = [
-  { value: "explosif", label: "Explosif" },
-  { value: "puissant", label: "Puissant" },
-  { value: "endurant", label: "Endurant" },
-  { value: "vitesse", label: "Vitesse" },
-  { value: "technique", label: "Technique" },
-  { value: "polyvalent", label: "Polyvalent" },
-];
-
 const STYLES_BY_SPORT: Record<string, { value: string; label: string }[]> = {
   bowling: [
     { value: "1_main", label: "1 main" },
