@@ -12,8 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useComparisonGroups } from "@/hooks/useComparisonGroups";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { BarChart3, Filter, UserCheck, Star, Users, Sparkles, ChevronDown } from "lucide-react";
+import { BarChart3, Filter, UserCheck, Star, Users, Sparkles } from "lucide-react";
 import {
   Bar,
   BarChart,
