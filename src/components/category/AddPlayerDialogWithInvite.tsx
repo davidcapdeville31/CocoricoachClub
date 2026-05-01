@@ -268,6 +268,7 @@ export function AddPlayerDialogWithInvite({
           phone: data.phone || null,
           birth_year: data.birth_year,
           birth_date: data.birth_date || null,
+          gender: data.gender || null,
           discipline: data.discipline || null,
           specialty: data.specialty || null,
           disciplines: data.disciplines && data.disciplines.length > 0 ? data.disciplines : null,
