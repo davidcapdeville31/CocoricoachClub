@@ -213,7 +213,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
         </div>
       )}
       renderExerciseLibrary={() => (
-        <V2ExerciseBankSidebar onClickInsert={handlePickFromBank} />)
+        <V2ExerciseBankSidebar onClickInsert={handlePickFromBank} />
       )}
     />
   );
