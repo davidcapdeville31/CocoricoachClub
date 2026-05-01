@@ -40,6 +40,7 @@ import { getPositionsForSport } from "@/lib/constants/sportPositions";
 import { getInvitationStatus } from "@/hooks/useResendInvitation";
 
 import { AVIRON_ROLES } from "@/lib/constants/sportTypes";
+import { AthleteIdentityBadges } from "@/components/player/AthleteIdentityBadges";
 
 function getAvironRoleLabel(role: string | null): string {
   if (!role) return "";
