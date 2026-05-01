@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
-import { BarChart3, Trophy, Target, TrendingUp, Calendar, FileDown, FileSpreadsheet, Users, User, Droplets } from "lucide-react";
+import { BarChart3, Trophy, Target, TrendingUp, Calendar, FileDown, FileSpreadsheet, Users, User, Droplets, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import ExcelJS from "exceljs";
@@ -20,6 +20,7 @@ import { resolveBallCatalogImages } from "@/lib/bowling/bowlingBallImageResolver
 import type { FrameData } from "@/components/athlete-portal/BowlingScoreSheet";
 import { BowlingOilPatternStats } from "./BowlingOilPatternStats";
 import { IdentityComparisonPanel } from "@/components/analytics/IdentityComparisonPanel";
+import { BowlingStatsComparator } from "./BowlingStatsComparator";
 
 interface BowlingCumulativeStatsProps {
   categoryId: string;
@@ -548,6 +549,10 @@ export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: 
             <ColoredSubTabsTrigger value="history" colorKey="competition" icon={<Calendar className="h-4 w-4" />}>
               Historique
             </ColoredSubTabsTrigger>
+            <ColoredSubTabsTrigger value="compare" colorKey="competition" icon={<Sparkles className="h-4 w-4" />}>
+              <span className="hidden sm:inline">Comparer les stats</span>
+              <span className="sm:hidden">Comparer</span>
+            </ColoredSubTabsTrigger>
           </ColoredSubTabsList>
         </div>
 
@@ -744,6 +749,10 @@ export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: 
 
         <TabsContent value="history">
           <BowlingGameHistory games={playerGames} categoryId={categoryId} />
+        </TabsContent>
+
+        <TabsContent value="compare">
+          <BowlingStatsComparator categoryId={categoryId} allGames={allGames ?? []} />
         </TabsContent>
       </Tabs>
     </div>
