@@ -80,6 +80,7 @@ function ColoredStatRow({ label, value, statType, percentage }: { label: string;
 
 export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: BowlingCumulativeStatsProps) {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("overview");
 
   const { data: allGames, isLoading } = useQuery({
     queryKey: ["bowling_cumulative_stats", categoryId],
@@ -347,7 +348,7 @@ export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: 
       {/* Player selector + Export button */}
       <div className="flex flex-wrap items-center gap-2 justify-between">
         <div className="flex flex-wrap gap-2">
-          {!fixedPlayerId && players.length > 1 && players.map(p => (
+          {!fixedPlayerId && players.length > 1 && activeTab !== "compare" && players.map(p => (
             <Button
               key={p.id}
               variant={activePlayerId === p.id ? "default" : "outline"}
@@ -533,7 +534,7 @@ export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: 
         )}
       </div>
 
-      <Tabs defaultValue="overview" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
           <ColoredSubTabsList colorKey="competition" className="inline-flex w-max">
             <ColoredSubTabsTrigger value="overview" colorKey="competition" icon={<BarChart3 className="h-4 w-4" />}>
