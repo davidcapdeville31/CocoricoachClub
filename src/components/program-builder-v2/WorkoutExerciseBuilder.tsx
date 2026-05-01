@@ -588,9 +588,18 @@ export const WorkoutExerciseBuilder = ({
         };
         onExercisesChange([...selectedExercises, newWorkoutExercise]);
         
-        // Notify parent to refresh exercises list
+        // Notify parent to refresh exercises list — adapt cocoricoach-club row to expected Exercise shape
         if (onExerciseCreated) {
-          onExerciseCreated(createdExercise);
+          onExerciseCreated({
+            id: createdExercise.id,
+            exercise_name: createdExercise.name,
+            station_name: createdExercise.category ?? "",
+            description: null,
+            image_url: createdExercise.image_url,
+            video_url: createdExercise.youtube_url,
+            coach_id: null,
+            is_default: false,
+          } as unknown as Exercise);
         }
       }
       
