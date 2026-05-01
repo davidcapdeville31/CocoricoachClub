@@ -722,6 +722,16 @@ export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: 
               )}
             </div>
           )}
+
+          {!fixedPlayerId && teamAverageByPlayer.size > 1 && (
+            <div className="mt-4">
+              <IdentityComparisonPanel
+                categoryId={categoryId}
+                values={teamAverageByPlayer}
+                metricLabel="Moyenne au bowling — toutes parties confondues"
+              />
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="oil-stats">
