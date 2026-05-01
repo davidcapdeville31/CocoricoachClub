@@ -9189,6 +9189,7 @@ export type Database = {
         Row: {
           bodyweight_data: Json | null
           cluster_sets: Json | null
+          coach_precision: string | null
           created_at: string
           drop_sets: Json | null
           erg_data: Json | null
@@ -9200,6 +9201,7 @@ export type Database = {
           is_rm_test: boolean | null
           library_exercise_id: string | null
           method: string | null
+          method_config: Json | null
           notes: string | null
           order_index: number
           percentage_1rm: number | null
@@ -9216,6 +9218,7 @@ export type Database = {
         Insert: {
           bodyweight_data?: Json | null
           cluster_sets?: Json | null
+          coach_precision?: string | null
           created_at?: string
           drop_sets?: Json | null
           erg_data?: Json | null
@@ -9227,6 +9230,7 @@ export type Database = {
           is_rm_test?: boolean | null
           library_exercise_id?: string | null
           method?: string | null
+          method_config?: Json | null
           notes?: string | null
           order_index?: number
           percentage_1rm?: number | null
@@ -9243,6 +9247,7 @@ export type Database = {
         Update: {
           bodyweight_data?: Json | null
           cluster_sets?: Json | null
+          coach_precision?: string | null
           created_at?: string
           drop_sets?: Json | null
           erg_data?: Json | null
@@ -9254,6 +9259,7 @@ export type Database = {
           is_rm_test?: boolean | null
           library_exercise_id?: string | null
           method?: string | null
+          method_config?: Json | null
           notes?: string | null
           order_index?: number
           percentage_1rm?: number | null
