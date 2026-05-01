@@ -255,9 +255,28 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
             <Select value={testCategory} onValueChange={setTestCategory}>
               <SelectTrigger><SelectValue placeholder="Choisir une catégorie..." /></SelectTrigger>
               <SelectContent>
-                {testCategories.map(cat => (
-                  <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                ))}
+                {testCategories.map(cat => {
+                  const isFav = favoriteCategories.has(cat.value);
+                  return (
+                    <div key={cat.value} className="relative flex items-center">
+                      <SelectItem value={cat.value} className="flex-1 pr-10">
+                        <span className="flex items-center gap-2">
+                          {isFav && <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />}
+                          {cat.label}
+                        </span>
+                      </SelectItem>
+                      <button
+                        type="button"
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(cat.value); }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted z-10"
+                        title={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+                      >
+                        <Star className={`h-3.5 w-3.5 ${isFav ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`} />
+                      </button>
+                    </div>
+                  );
+                })}
               </SelectContent>
             </Select>
             {testCategories.length === 0 && (
