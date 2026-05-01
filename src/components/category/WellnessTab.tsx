@@ -33,7 +33,8 @@ const getScoreBadgeClass = (score: number) => {
 
 export function WellnessTab({ categoryId }: WellnessTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [filterDate, setFilterDate] = useState<Date | undefined>(subDays(new Date(), 1));
+  const [filterFrom, setFilterFrom] = useState<Date | undefined>(subDays(new Date(), 7));
+  const [filterTo, setFilterTo] = useState<Date | undefined>(new Date());
   const { isViewer } = useViewerModeContext();
 
   useRealtimeSync({
@@ -90,10 +91,14 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
     return avg.toFixed(1);
   };
 
-  // Filter wellness data by selected date
-  const filteredWellnessData = filterDate
-    ? wellnessData?.filter(entry => entry.tracking_date === format(filterDate, "yyyy-MM-dd"))
-    : wellnessData;
+  // Filter wellness data by date range
+  const fromStr = filterFrom ? format(filterFrom, "yyyy-MM-dd") : null;
+  const toStr = filterTo ? format(filterTo, "yyyy-MM-dd") : null;
+  const filteredWellnessData = wellnessData?.filter(entry => {
+    if (fromStr && entry.tracking_date < fromStr) return false;
+    if (toStr && entry.tracking_date > toStr) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -119,36 +124,63 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
                     Suivi du bien-être et des douleurs musculaires des joueurs
                   </CardDescription>
                 </div>
-                <div className="flex items-center gap-2">
-                  {/* Date filter */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Date range: from */}
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         className={cn(
                           "justify-start text-left font-normal",
-                          !filterDate && "text-muted-foreground"
+                          !filterFrom && "text-muted-foreground"
                         )}
                       >
                         <Calendar className="mr-2 h-4 w-4" />
-                        {filterDate ? format(filterDate, "dd MMM yyyy", { locale: fr }) : "Filtrer par date"}
+                        {filterFrom ? format(filterFrom, "dd MMM yyyy", { locale: fr }) : "Date de début"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="end">
                       <CalendarComponent
                         mode="single"
-                        selected={filterDate}
-                        onSelect={setFilterDate}
+                        selected={filterFrom}
+                        onSelect={setFilterFrom}
                         locale={fr}
                         initialFocus
+                        className="p-3 pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
-                  {filterDate && (
+                  <span className="text-sm text-muted-foreground">à</span>
+                  {/* Date range: to */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "justify-start text-left font-normal",
+                          !filterTo && "text-muted-foreground"
+                        )}
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {filterTo ? format(filterTo, "dd MMM yyyy", { locale: fr }) : "Date de fin"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <CalendarComponent
+                        mode="single"
+                        selected={filterTo}
+                        onSelect={setFilterTo}
+                        locale={fr}
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {(filterFrom || filterTo) && (
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setFilterDate(undefined)}
+                      onClick={() => { setFilterFrom(undefined); setFilterTo(undefined); }}
                       title="Effacer le filtre"
                     >
                       <X className="h-4 w-4" />
@@ -166,8 +198,8 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
             <CardContent>
         {!filteredWellnessData || filteredWellnessData.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <p>{filterDate ? `Aucune donnée wellness pour le ${format(filterDate, "dd MMMM yyyy", { locale: fr })}.` : "Aucune donnée wellness enregistrée."}</p>
-            {!isViewer && !filterDate && (
+            <p>{(filterFrom || filterTo) ? "Aucune donnée wellness pour la période sélectionnée." : "Aucune donnée wellness enregistrée."}</p>
+            {!isViewer && !filterFrom && !filterTo && (
               <Button 
                 variant="outline" 
                 className="mt-4"
