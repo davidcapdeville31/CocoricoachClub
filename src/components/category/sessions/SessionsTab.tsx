@@ -252,16 +252,11 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
         <h2 className="text-lg font-semibold">Séances d'entraînement</h2>
         {!isViewer && (
           <div className="flex items-center gap-2">
-            <Button onClick={() => setFormOpen(true)} size="sm">
-              <Plus className="h-4 w-4 mr-1" />
-              Nouvelle séance
-            </Button>
             <Button
               onClick={() => setV2EditorOpen(true)}
               size="sm"
-              variant="outline"
-              className="gap-1 border-primary/40 text-primary hover:bg-primary/10"
-              title="Nouvel éditeur (aperçu) — méthodes d'intensification avancées"
+              className="gap-1"
+              title="Nouvel éditeur — méthodes d'intensification avancées"
             >
               <Sparkles className="h-4 w-4" />
               Nouvel éditeur (V2)
