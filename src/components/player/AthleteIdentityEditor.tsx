@@ -257,11 +257,13 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
             </Badge>
           </button>
           {ageCat && (
-            <button type="button" onClick={requestEditPersonalInfo} className="focus:outline-none focus:ring-2 focus:ring-ring rounded-md">
-              <Badge variant="outline" className="gap-1 cursor-pointer hover:bg-muted transition-colors">
-                Catégorie d'âge : {ageCat}
-              </Badge>
-            </button>
+            <Badge
+              variant="outline"
+              className="gap-1 cursor-help"
+              title="Catégorie calculée automatiquement à partir de la date de naissance"
+            >
+              Catégorie d'âge : {ageCat}
+            </Badge>
           )}
           {lateralityAttr && (
             <Select
