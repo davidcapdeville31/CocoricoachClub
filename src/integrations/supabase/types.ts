@@ -13555,6 +13555,10 @@ export type Database = {
       }
       is_approved_user: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_team_sport_category: {
+        Args: { _category_id: string }
+        Returns: boolean
+      }
       log_audit_event: {
         Args: {
           _action: string
