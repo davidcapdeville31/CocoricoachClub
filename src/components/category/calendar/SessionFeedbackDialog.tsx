@@ -43,6 +43,8 @@ interface SessionTest {
   savedPlayerIds?: Set<string>;
   /** Whether the entire test row was loaded from existing data */
   isExisting?: boolean;
+  /** Test was pre-selected at session creation (lock category/type) */
+  isPreselected?: boolean;
 }
 
 export function SessionFeedbackDialog({
