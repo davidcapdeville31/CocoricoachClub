@@ -360,6 +360,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                       description: customDef.description,
                       objectives: customDef.objectives,
                       scoring_scale: (customDef as any).scoring_scale ?? null,
+                      formula_config: (customDef as any).formula_config ?? null,
                       image_url: (customDef as any).image_url ?? null,
                       source: "custom",
                     });
