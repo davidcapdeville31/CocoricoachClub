@@ -210,7 +210,7 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
         dimension: "laterality",
         label: "Latéralité",
         description: "Main / pied dominant.",
-        options: LATERALITY_OPTIONS,
+        options: getLateralityOptions(sportType),
       });
     }
 
@@ -218,8 +218,9 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
   }, [sportType, isAthletics, attributes]);
 
   const lateralityAttr = attributes.find((a) => a.dimension === "laterality");
+  const lateralityOpts = getLateralityOptions(sportType);
   const lateralityLabel = lateralityAttr
-    ? LATERALITY_OPTIONS.find((o) => o.value === lateralityAttr.value)?.label ?? lateralityAttr.value
+    ? lateralityOpts.find((o) => o.value === lateralityAttr.value)?.label ?? lateralityAttr.value
     : null;
 
   const requestEditPersonalInfo = () => {
