@@ -198,8 +198,8 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
             <CardContent>
         {!filteredWellnessData || filteredWellnessData.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <p>{filterDate ? `Aucune donnée wellness pour le ${format(filterDate, "dd MMMM yyyy", { locale: fr })}.` : "Aucune donnée wellness enregistrée."}</p>
-            {!isViewer && !filterDate && (
+            <p>{(filterFrom || filterTo) ? "Aucune donnée wellness pour la période sélectionnée." : "Aucune donnée wellness enregistrée."}</p>
+            {!isViewer && !filterFrom && !filterTo && (
               <Button 
                 variant="outline" 
                 className="mt-4"
