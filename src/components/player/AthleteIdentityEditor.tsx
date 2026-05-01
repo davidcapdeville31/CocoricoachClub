@@ -379,6 +379,8 @@ interface DimensionBlockProps {
     ? T[]
     : never;
   sportType: string;
+  /** Si true : une seule valeur autorisée pour la dimension (sport collectif → poste unique). */
+  singleValue?: boolean;
   onAdd: (payload: {
     dimension: AthleteDimension;
     value: string;
@@ -397,6 +399,7 @@ function DimensionBlock({
   config,
   items,
   sportType,
+  singleValue = false,
   onAdd,
   onTogglePrimary,
   onUpdateWeight,
