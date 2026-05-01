@@ -4,6 +4,7 @@ import { AthleteSpaceTests } from "./AthleteSpaceTests";
 import { AthleteSpaceProgression } from "./AthleteSpaceProgression";
 import { AthleteSpaceObjectives } from "./AthleteSpaceObjectives";
 import { TonnageDashboard } from "@/components/tonnage/TonnageDashboard";
+import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 
 interface Props {
   playerId: string;
@@ -12,19 +13,28 @@ interface Props {
 }
 
 export function AthleteSpacePerformance({ playerId, categoryId, sportType }: Props) {
+  const accent = NAV_COLORS.performance.base;
+  const triggerStyle = {
+    ["--tab-accent" as any]: accent,
+  } as React.CSSProperties;
+  const triggerClass =
+    "text-xs sm:text-sm gap-1 flex-1 rounded-lg transition-colors " +
+    "data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white " +
+    "data-[state=active]:shadow-md";
+
   return (
     <div className="space-y-4">
       <Tabs defaultValue="tests" className="w-full">
-        <TabsList className="flex flex-wrap h-auto gap-1 w-full">
-          <TabsTrigger value="tests" className="text-xs sm:text-sm gap-1 flex-1">
+        <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-muted/40 rounded-xl p-1">
+          <TabsTrigger value="tests" style={triggerStyle} className={triggerClass}>
             <FlaskConical className="h-3.5 w-3.5" />
             <span>Tests & Progression</span>
           </TabsTrigger>
-          <TabsTrigger value="tonnage" className="text-xs sm:text-sm gap-1 flex-1">
+          <TabsTrigger value="tonnage" style={triggerStyle} className={triggerClass}>
             <Weight className="h-3.5 w-3.5" />
             <span>Tonnage</span>
           </TabsTrigger>
-          <TabsTrigger value="objectives" className="text-xs sm:text-sm gap-1 flex-1">
+          <TabsTrigger value="objectives" style={triggerStyle} className={triggerClass}>
             <Target className="h-3.5 w-3.5" />
             <span>Objectifs</span>
           </TabsTrigger>
