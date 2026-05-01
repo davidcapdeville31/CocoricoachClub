@@ -112,7 +112,22 @@ export function useSaveProgramV2() {
       if (sErr) throw sErr;
 
       // 4) program_exercises (flatten blocks → exercises with block context in notes)
-      const exerciseRows: Array<Record<string, unknown>> = [];
+      type ExerciseInsert = {
+        session_id: string;
+        library_exercise_id: string | null;
+        exercise_name: string;
+        order_index: number;
+        method: string;
+        sets: number;
+        reps: string;
+        percentage_1rm: number | null;
+        tempo: string | null;
+        rest_seconds: number;
+        notes: string;
+        cluster_sets?: any;
+        drop_sets?: any;
+      };
+      const exerciseRows: ExerciseInsert[] = [];
       sessionRowsToInsert.forEach((sRow, sIdx) => {
         const session = sessions[sIdx];
         if (!session) return;
@@ -123,7 +138,7 @@ export function useSaveProgramV2() {
             const baseNotes = ex.notes ?? "";
             const notes = `${blockHeader}\n${baseNotes}`.trim();
 
-            const row: Record<string, unknown> = {
+            const row: ExerciseInsert = {
               session_id: session.id,
               library_exercise_id: ex.exerciseId ?? null,
               exercise_name: ex.exerciseName,
@@ -137,7 +152,6 @@ export function useSaveProgramV2() {
               notes,
             };
 
-            // Route method-specific config to native jsonb columns
             if (ex.config) {
               if (ex.method === "cluster") row.cluster_sets = ex.config;
               if (ex.method === "drop_set") row.drop_sets = ex.config;
