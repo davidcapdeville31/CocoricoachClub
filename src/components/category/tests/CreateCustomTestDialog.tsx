@@ -78,6 +78,47 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
     enabled: open,
   });
 
+  // Favorites synced with GenericTestsSection (same localStorage key)
+  const favStorageKey = `tests-fav-categories:${categoryId}`;
+  const [favoriteCategories, setFavoriteCategories] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(favStorageKey);
+      if (raw) return new Set(JSON.parse(raw) as string[]);
+    } catch {}
+    return new Set();
+  });
+  useEffect(() => {
+    const reload = () => {
+      try {
+        const raw = localStorage.getItem(favStorageKey);
+        setFavoriteCategories(raw ? new Set(JSON.parse(raw) as string[]) : new Set());
+      } catch {}
+    };
+    const handleCustom = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (!detail || detail.key === favStorageKey) reload();
+    };
+    window.addEventListener("tests-fav-categories-changed", handleCustom);
+    window.addEventListener("storage", reload);
+    return () => {
+      window.removeEventListener("tests-fav-categories-changed", handleCustom);
+      window.removeEventListener("storage", reload);
+    };
+  }, [favStorageKey]);
+
+  const toggleFavorite = (value: string) => {
+    setFavoriteCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(value)) next.delete(value);
+      else next.add(value);
+      try {
+        localStorage.setItem(favStorageKey, JSON.stringify(Array.from(next)));
+        window.dispatchEvent(new CustomEvent("tests-fav-categories-changed", { detail: { key: favStorageKey } }));
+      } catch {}
+      return next;
+    });
+  };
+
   const testCategories = useMemo(() => {
     const categoryMap = new Map(baseTestCategories.map((c) => [c.value, c.label]));
 
@@ -89,8 +130,15 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
       if (!categoryMap.has(value)) categoryMap.set(value, formatCategoryLabel(value));
     });
 
-    return Array.from(categoryMap.entries()).map(([value, label]) => ({ value, label }));
-  }, [baseTestCategories, themeCategories, existingCustomCategories]);
+    const all = Array.from(categoryMap.entries()).map(([value, label]) => ({ value, label }));
+    // Sort favorites first, then alphabetical
+    return all.sort((a, b) => {
+      const af = favoriteCategories.has(a.value) ? 0 : 1;
+      const bf = favoriteCategories.has(b.value) ? 0 : 1;
+      if (af !== bf) return af - bf;
+      return a.label.localeCompare(b.label);
+    });
+  }, [baseTestCategories, themeCategories, existingCustomCategories, favoriteCategories]);
 
   const groupedUnits = useMemo(() => {
     const groups = new Map<string, typeof TEST_UNIT_OPTIONS>();
