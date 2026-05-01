@@ -46,11 +46,11 @@ import {
   parsePace,
   calculateIntermittentVolume,
   formatIntermittentSummary,
-} from "@/lib/intermittentCardioTypes";
+} from "@/lib/program-builder-v2/intermittentCardioTypes";
 import { TimeInput } from "@/components/ui/time-input";
-import { useMethodEditing } from "@/hooks/useMethodEditing";
+import { useMethodEditing } from "@/hooks/program-builder-v2/useMethodEditing";
 import { MethodActionButtons } from "./shared/MethodActionButtons";
-import { generateMethodNote } from "@/lib/athleteNoteGenerator";
+import { generateMethodNote } from "@/lib/program-builder-v2/athleteNoteGenerator";
 import { AthleteNoteDisplay } from "./AthleteNoteDisplay";
 
 interface IntermittentCardioConfigSlotsProps {

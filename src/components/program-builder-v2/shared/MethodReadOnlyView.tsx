@@ -18,7 +18,7 @@
 import React, { ReactNode } from "react";
 import { Label } from "@/components/ui/label";
 import { TrainingVariablesManager } from "../TrainingVariablesManager";
-import type { ExerciseType } from "@/lib/exerciseTypes";
+import type { ExerciseType } from "@/lib/program-builder-v2/exerciseTypes";
 
 interface MethodReadOnlyViewProps {
   /** Type d'exercice */

@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Layers, Timer, Target, Trash2, ChevronDown, ChevronUp, Dumbbell, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { ClusterConfig, formatClusterSummary, formatClusterForAthlete, calculateClusterVolume } from "@/lib/clusterTypes";
+import { ClusterConfig, formatClusterSummary, formatClusterForAthlete, calculateClusterVolume } from "@/lib/program-builder-v2/clusterTypes";
 import { ExerciseVisual } from "./ExerciseVisual";
 
 interface ClusterCardProps {

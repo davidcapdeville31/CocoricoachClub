@@ -24,7 +24,7 @@ import {
   calculateIntermittentVolume,
   formatIntermittentSummary,
   INTENSITY_OPTIONS_BY_SUPPORT,
-} from "@/lib/intermittentCardioTypes";
+} from "@/lib/program-builder-v2/intermittentCardioTypes";
 
 interface IntermittentCardioCardProps {
   config: IntermittentCardioConfig;

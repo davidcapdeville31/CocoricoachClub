@@ -14,11 +14,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { VariableSetsTable } from "./VariableSetsTable";
-import { SetData, createInitialSets, formatTempo, STRENGTH_SET_COLUMNS } from "@/lib/variableSetsTypes";
-import { createSyncedParamsUpdate } from "@/lib/variableSetsSync";
+import { SetData, createInitialSets, formatTempo, STRENGTH_SET_COLUMNS } from "@/lib/program-builder-v2/variableSetsTypes";
+import { createSyncedParamsUpdate } from "@/lib/program-builder-v2/variableSetsSync";
 import { TimeInput } from "@/components/ui/time-input";
 import { MethodActionButtons } from "./shared/MethodActionButtons";
-import { generateMethodNote } from "@/lib/athleteNoteGenerator";
+import { generateMethodNote } from "@/lib/program-builder-v2/athleteNoteGenerator";
 import { AthleteNoteDisplay } from "./AthleteNoteDisplay";
 
 // Map visible variable keys to table column keys

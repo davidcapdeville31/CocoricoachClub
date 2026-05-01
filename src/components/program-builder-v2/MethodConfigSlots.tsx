@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/popover";
 import type { RestPauseConfig } from "./RestPauseTypes";
 import { RestPauseCreationUI } from "./RestPauseCreationUI";
-import { generateMethodNote } from "@/lib/athleteNoteGenerator";
+import { generateMethodNote } from "@/lib/program-builder-v2/athleteNoteGenerator";
 import { AthleteNoteDisplay } from "./AthleteNoteDisplay";
 
 // Available dynamic variables for methods

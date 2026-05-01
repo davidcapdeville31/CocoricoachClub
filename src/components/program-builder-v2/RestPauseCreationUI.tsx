@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/popover";
 import type { RestPauseConfig, RestPauseSeries, RestPauseMiniSet, REST_PAUSE_VARIABLES } from "./RestPauseTypes";
 import { REST_PAUSE_VARIABLES as VARIABLES } from "./RestPauseTypes";
-import { generateMethodNote } from "@/lib/athleteNoteGenerator";
+import { generateMethodNote } from "@/lib/program-builder-v2/athleteNoteGenerator";
 import { AthleteNoteDisplay } from "./AthleteNoteDisplay";
 
 interface RestPauseCreationUIProps {

@@ -40,7 +40,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { WORKOUT_BUILDER_STYLES, getTrainingStyleConfig } from "@/lib/trainingStyles";
+import { WORKOUT_BUILDER_STYLES, getTrainingStyleConfig } from "@/lib/program-builder-v2/trainingStyles";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TrainingStyleCharacteristicsDisplay } from "./TrainingStyleCharacteristicsDisplay";
 import { 
@@ -51,7 +51,7 @@ import {
   useExerciseFavorites
 } from "./ExerciseFilters";
  import { WeightliftingPositionSelector, WeightliftingPositionBadge } from "./WeightliftingPositionSelector";
- import { isWeightliftingExercise } from "@/lib/weightliftingConfig";
+ import { isWeightliftingExercise } from "@/lib/program-builder-v2/weightliftingConfig";
 
 interface Exercise {
   id: string;

@@ -22,7 +22,7 @@ import {
   ATHLETE_LEVELS,
   formatStatoDynamiqueSummary,
   calculateStatoDynamiqueVolume,
-} from "@/lib/statoDynamiqueTypes";
+} from "@/lib/program-builder-v2/statoDynamiqueTypes";
 
 interface StatoDynamiqueCardProps {
   config: StatoDynamiqueConfig;

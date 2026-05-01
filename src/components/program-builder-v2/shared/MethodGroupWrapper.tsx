@@ -4,7 +4,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link2, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getTrainingStyleConfig, TRAINING_STYLES } from "@/lib/trainingStyles";
+import { getTrainingStyleConfig, TRAINING_STYLES } from "@/lib/program-builder-v2/trainingStyles";
 import { ChainArrow } from "../ChainArrow";
 import { getTooltipColors, MethodTooltipContent } from "../TrainingMethodButtons";
 

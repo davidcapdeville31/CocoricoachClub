@@ -19,7 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { TrainingVariablesManager } from "../TrainingVariablesManager";
 import { WeightliftingPositionSelector } from "../WeightliftingPositionSelector";
-import type { ExerciseType } from "@/lib/exerciseTypes";
+import type { ExerciseType } from "@/lib/program-builder-v2/exerciseTypes";
 
 /**
  * Props communes pour le rendu des variables d'entraînement en mode création.

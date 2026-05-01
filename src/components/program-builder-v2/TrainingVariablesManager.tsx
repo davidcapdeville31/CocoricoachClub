@@ -35,10 +35,10 @@ import {
   getVariablesForType, 
   getDefaultVisibleVariables,
   VariableConfig 
-} from "@/lib/exerciseTypes";
+} from "@/lib/program-builder-v2/exerciseTypes";
 import { VariableSetsTable } from "./VariableSetsTable";
-import { SetData, createInitialSets, STRENGTH_SET_COLUMNS, formatTempo, SetsTableColumn } from "@/lib/variableSetsTypes";
-import { getSetFieldFromParam, syncFieldToSets, syncSetsCount } from "@/lib/variableSetsSync";
+import { SetData, createInitialSets, STRENGTH_SET_COLUMNS, formatTempo, SetsTableColumn } from "@/lib/program-builder-v2/variableSetsTypes";
+import { getSetFieldFromParam, syncFieldToSets, syncSetsCount } from "@/lib/program-builder-v2/variableSetsSync";
 
 // Map visible variable keys to table column keys
 const VARIABLE_TO_COLUMN_MAP: Record<string, string> = {

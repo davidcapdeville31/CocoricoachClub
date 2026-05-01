@@ -10,12 +10,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { X, Check, Timer, Zap, RotateCcw, Dumbbell, Clock, Target, Plus, Trash2, Percent, Weight, Gauge, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VariableSetsTable } from "./VariableSetsTable";
-import { createInitialSets, SetData, STRENGTH_SET_COLUMNS } from "@/lib/variableSetsTypes";
-import { syncFieldToSets, syncSetsCount } from "@/lib/variableSetsSync";
+import { createInitialSets, SetData, STRENGTH_SET_COLUMNS } from "@/lib/program-builder-v2/variableSetsTypes";
+import { syncFieldToSets, syncSetsCount } from "@/lib/program-builder-v2/variableSetsSync";
 import { TimeInput, formatSecondsToTime } from "@/components/ui/time-input";
-import { useMethodEditing } from "@/hooks/useMethodEditing";
+import { useMethodEditing } from "@/hooks/program-builder-v2/useMethodEditing";
 import { MethodActionButtons } from "./shared/MethodActionButtons";
-import { generateMethodNote } from "@/lib/athleteNoteGenerator";
+import { generateMethodNote } from "@/lib/program-builder-v2/athleteNoteGenerator";
 import { AthleteNoteDisplay } from "./AthleteNoteDisplay";
 
 // Stato-Dynamique uses specific columns: reps, weight_kg, rpe, rest_seconds
@@ -41,7 +41,7 @@ import {
   formatStatoDynamiqueSummary,
   calculateStatoDynamiqueVolume,
   validateStatoDynamiqueConfig,
-} from "@/lib/statoDynamiqueTypes";
+} from "@/lib/program-builder-v2/statoDynamiqueTypes";
 
 interface StatoDynamiqueConfigSlotsProps {
   onValidate: (config: StatoDynamiqueConfig) => void;

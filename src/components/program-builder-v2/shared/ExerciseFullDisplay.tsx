@@ -31,7 +31,7 @@ import {
   Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getTrainingStyleConfig } from "@/lib/trainingStyles";
+import { getTrainingStyleConfig } from "@/lib/program-builder-v2/trainingStyles";
 import { MethodDetailRenderer } from "./MethodDetailRenderer";
 
 // ── Helpers (exported for reuse) ──

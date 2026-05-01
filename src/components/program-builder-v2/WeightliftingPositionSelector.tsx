@@ -10,7 +10,7 @@
    getPositionsForExercise,
    isWeightliftingExercise,
    type StartingPosition
- } from "@/lib/weightliftingConfig";
+ } from "@/lib/program-builder-v2/weightliftingConfig";
  
  interface WeightliftingPositionSelectorProps {
    exerciseName: string;

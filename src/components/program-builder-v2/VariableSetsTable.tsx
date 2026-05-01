@@ -21,7 +21,7 @@ import {
   createDefaultSet,
   hasVariableValues,
   formatTempo,
-} from "@/lib/variableSetsTypes";
+} from "@/lib/program-builder-v2/variableSetsTypes";
 import { TimeInput } from "@/components/ui/time-input";
 
 interface VariableSetsTableProps {

@@ -7,11 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { X, Check, Timer, Dumbbell, Clock, Target, Percent, Weight, Gauge, Info, Layers, Plus, Trash2, Pencil, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SetClusterStep } from "@/lib/variableSetsTypes";
+import { SetClusterStep } from "@/lib/program-builder-v2/variableSetsTypes";
 import { TimeInput, formatSecondsToTime } from "@/components/ui/time-input";
-import { useMethodEditing } from "@/hooks/useMethodEditing";
+import { useMethodEditing } from "@/hooks/program-builder-v2/useMethodEditing";
 import { MethodActionButtons } from "./shared/MethodActionButtons";
-import { generateMethodNote } from "@/lib/athleteNoteGenerator";
+import { generateMethodNote } from "@/lib/program-builder-v2/athleteNoteGenerator";
 import { AthleteNoteDisplay } from "./AthleteNoteDisplay";
 import {
   Collapsible,
@@ -26,7 +26,7 @@ import {
   formatClusterSummary,
   calculateClusterVolume,
   validateClusterConfig,
-} from "@/lib/clusterTypes";
+} from "@/lib/program-builder-v2/clusterTypes";
 
 /** Per-series cluster data: each series stores its own cluster steps + intensity variables */
 interface ClusterSeriesData {

@@ -30,8 +30,8 @@ import {
   Repeat,
   AlertTriangle,
 } from "lucide-react";
-import { getTrainingStyleConfig } from "@/lib/trainingStyles";
-import { generateMethodNote } from "@/lib/athleteNoteGenerator";
+import { getTrainingStyleConfig } from "@/lib/program-builder-v2/trainingStyles";
+import { generateMethodNote } from "@/lib/program-builder-v2/athleteNoteGenerator";
 
 // ── Helpers ──
 

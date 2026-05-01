@@ -24,7 +24,7 @@ import {
   formatDuration,
   formatFartlekSummary,
   calculateFartlekVolume,
-} from "@/lib/fartlekTypes";
+} from "@/lib/program-builder-v2/fartlekTypes";
 
 interface FartlekCardProps {
   config: FartlekConfig;

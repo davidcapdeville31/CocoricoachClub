@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link as LinkIcon, Dumbbell, Zap, Activity, Timer, Mountain, Flame, Heart, Target, Clock, Repeat, Skull, RotateCcw, Lightbulb, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PROGRAM_BUILDER_STYLES, getTrainingStyleConfig } from "@/lib/trainingStyles";
+import { PROGRAM_BUILDER_STYLES, getTrainingStyleConfig } from "@/lib/program-builder-v2/trainingStyles";
 
 export type ConfigMethod = "drop_set" | "rest_pause" | "pyramid_up" | "pyramid_down" | "pyramid_full" | "five_by_five" | "isometric_overcoming" | "isometric_yielding" | "amrap" | "for_time" | "death_by" | "circuit" | "tabata" | "emom" | "intermittent_cardio" | "fartlek" | "stato_dynamique" | "cluster";
 export type LinkedMethod = "superset" | "biset" | "triset" | "giant_set" | "bulgarian" | "combine_haltero";

@@ -1,4 +1,4 @@
-import { TrainingStyleCharacteristics } from "@/lib/trainingStyles";
+import { TrainingStyleCharacteristics } from "@/lib/program-builder-v2/trainingStyles";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Circle } from "lucide-react";
 

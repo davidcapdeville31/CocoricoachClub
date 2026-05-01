@@ -57,8 +57,8 @@
  */
 
 // Hook principal pour la gestion de l'édition
-export { useMethodEditing } from '@/hooks/useMethodEditing';
-export type { default as UseMethodEditingType } from '@/hooks/useMethodEditing';
+export { useMethodEditing } from '@/hooks/program-builder-v2/useMethodEditing';
+export type { default as UseMethodEditingType } from '@/hooks/program-builder-v2/useMethodEditing';
 
 // Composants de structure
 export { MethodConfigWrapper, METHOD_COLORS } from './MethodConfigWrapper';
