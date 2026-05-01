@@ -119,13 +119,7 @@ export function useRecommendedExercises(playerId?: string | null, opts?: { limit
       const isPrimary = a.is_primary;
       const weightMul = isPrimary ? 1 : 0.6;
 
-      if (a.dimension === "performance_profile") {
-        const map = PROFILE_TO_CATEGORIES[a.value.toLowerCase()];
-        if (map) {
-          for (const c of map.primary) addScore(c, 10 * weightMul, `profil:${a.value}${isPrimary ? " ⭐" : ""}`);
-          for (const c of map.bonus) addScore(c, 4 * weightMul, `profil:${a.value}`);
-        }
-      }
+
 
       if (a.dimension === "discipline") {
         const cats = DISCIPLINE_TO_CATEGORIES[a.value.toLowerCase()];

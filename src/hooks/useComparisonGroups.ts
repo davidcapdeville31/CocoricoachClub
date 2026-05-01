@@ -7,7 +7,7 @@ export type ComparisonDimension =
   | "position"
   | "discipline"
   | "technical_style"
-  | "performance_profile"
+  
   | "genre"
   | "age_category";
 

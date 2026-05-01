@@ -38,15 +38,6 @@ interface Props {
   sportType: string;
 }
 
-const PERFORMANCE_PROFILES: { value: string; label: string }[] = [
-  { value: "explosif", label: "Explosif" },
-  { value: "puissant", label: "Puissant" },
-  { value: "endurant", label: "Endurant" },
-  { value: "vitesse", label: "Vitesse" },
-  { value: "technique", label: "Technique" },
-  { value: "polyvalent", label: "Polyvalent" },
-];
-
 const STYLES_BY_SPORT: Record<string, { value: string; label: string }[]> = {
   bowling: [
     { value: "1_main", label: "1 main" },
@@ -116,14 +107,6 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
         options: styleOptions,
       });
     }
-
-    // 4) Profil de performance — toujours disponible
-    list.push({
-      dimension: "performance_profile",
-      label: "Profils de performance",
-      description: "Qualités physiques dominantes (déclaratif ou issu des tests).",
-      options: PERFORMANCE_PROFILES,
-    });
 
     return list;
   }, [sportType, isAthletics]);
