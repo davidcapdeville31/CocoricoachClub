@@ -85,6 +85,8 @@ interface SmartStatsComparatorProps {
   description?: string;
   /** Dimensions d'identité à masquer en plus des dimensions par défaut */
   hiddenDimensions?: string[];
+  /** Métriques cochées par défaut (si non défini, toutes les métriques) */
+  defaultMetricKeys?: string[];
 }
 
 type Mode = "identity" | "players";
@@ -101,6 +103,7 @@ export function SmartStatsComparator({
   title = "Comparateur intelligent",
   description = "Compare n'importe quelle statistique entre athlètes",
   hiddenDimensions = [],
+  defaultMetricKeys,
 }: SmartStatsComparatorProps) {
   const { availableDimensions, aggregateByDimension } = useComparisonGroups(categoryId);
 
@@ -117,8 +120,15 @@ export function SmartStatsComparator({
     return `smartStatsComparator:metricKeys:${categoryId}:${hash}`;
   }, [categoryId, metrics]);
 
+  const computeDefaults = () => {
+    if (defaultMetricKeys && defaultMetricKeys.length > 0) {
+      return defaultMetricKeys.filter((k) => metrics.some((m) => m.key === k));
+    }
+    return metrics.map((m) => m.key);
+  };
+
   const [metricKeys, setMetricKeys] = useState<string[]>(() => {
-    if (typeof window === "undefined") return metrics.map((m) => m.key);
+    if (typeof window === "undefined") return computeDefaults();
     try {
       const raw = window.localStorage.getItem(storageKey);
       if (raw) {
@@ -131,7 +141,7 @@ export function SmartStatsComparator({
         }
       }
     } catch {}
-    return metrics.map((m) => m.key);
+    return computeDefaults();
   });
 
   // Sauvegarde à chaque changement
