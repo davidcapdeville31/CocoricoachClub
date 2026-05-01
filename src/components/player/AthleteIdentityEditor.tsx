@@ -134,7 +134,25 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
   const updateMut = useUpdateAthleteAttribute(playerId);
   const deleteMut = useDeleteAthleteAttribute(playerId);
 
+  const { data: playerCore } = useQuery({
+    queryKey: ["player-core-identity", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("gender, birth_date, birth_year, nationality:club_origin")
+        .eq("id", playerId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!playerId,
+  });
+
   const isAthletics = isAthletismeCategory(sportType);
+
+  const age = computeAge(playerCore?.birth_date ?? null, playerCore?.birth_year ?? null);
+  const ageCat = getAgeCategory(age);
+  const gInfo = genderInfo(playerCore?.gender ?? null);
 
   const dimensions: DimensionConfig[] = useMemo(() => {
     const list: DimensionConfig[] = [];
@@ -198,6 +216,34 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
           Définit comment l'application adapte tests, barèmes et analyses à cet athlète.
           ⭐ = valeur principale.
         </p>
+      </div>
+
+      {/* Identité de base — lecture seule, éditable depuis la fiche joueur */}
+      <div className="rounded-xl border bg-background/60 p-3">
+        <div className="flex items-center gap-2 mb-2">
+          <User className="h-4 w-4 text-muted-foreground" />
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Identité de base
+          </span>
+          <span className="text-[10px] text-muted-foreground/70 ml-auto">
+            (modifiable depuis la fiche joueur)
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Badge variant="secondary" className="gap-1">
+            <span>{gInfo.emoji}</span>
+            <span>{gInfo.label}</span>
+          </Badge>
+          <Badge variant="secondary" className="gap-1">
+            <Cake className="h-3 w-3" />
+            {age != null ? `${age} ans` : "Âge non renseigné"}
+          </Badge>
+          {ageCat && (
+            <Badge variant="outline" className="gap-1">
+              Catégorie d'âge : {ageCat}
+            </Badge>
+          )}
+        </div>
       </div>
 
       {dimensions.map((dim) => {
