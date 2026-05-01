@@ -363,6 +363,7 @@ export function AddPlayerDialogWithInvite({
         phone: playerPhone.trim() || undefined,
         birth_year: result.data.birthYear,
         birth_date: birthDate || undefined,
+        gender: gender || undefined,
         discipline: primaryDiscipline || undefined,
         specialty: primarySpecialty || undefined,
         disciplines: disciplineList,
