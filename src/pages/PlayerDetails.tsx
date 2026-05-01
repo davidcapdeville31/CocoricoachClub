@@ -31,7 +31,7 @@ import { AthleteAccessSection } from "@/components/player/AthleteAccessSection";
 import { PlayerAdditionalInfoSection } from "@/components/player/PlayerAdditionalInfoSection";
 import { PlayerCoachesSection } from "@/components/player/PlayerCoachesSection";
 import { PlayerPersonalInfoSection } from "@/components/player/PlayerPersonalInfoSection";
-import { AthleticsDisciplinesEditor } from "@/components/player/AthleticsDisciplinesEditor";
+import { AthleteIdentityEditor } from "@/components/player/AthleteIdentityEditor";
 import { PlayerReferenceCard } from "@/components/player/PlayerReferenceCard";
 import { PlayerBowlingArsenal } from "@/components/bowling/PlayerBowlingArsenal";
 import { BowlingCumulativeStats } from "@/components/bowling/BowlingCumulativeStats";
@@ -455,16 +455,10 @@ function PlayerDetailsContent() {
           <PlayerCoachesSection playerId={playerId!} categoryId={player.category_id} isViewer={isViewer} />
         </div>
 
-        {/* Athlétisme : éditeur multi-disciplines / spécialités */}
-        {isAthletismeCategory(sportType) && !isViewer && (
+        {/* Identité athlète : moteur multi-dimensions (postes, disciplines, styles, profils) */}
+        {!isViewer && (
           <div className="mb-3">
-            <AthleticsDisciplinesEditor
-              playerId={playerId!}
-              initialDisciplines={(player as any).disciplines ?? null}
-              initialSpecialties={(player as any).specialties ?? null}
-              primaryDiscipline={player.discipline ?? null}
-              primarySpecialty={player.specialty ?? null}
-            />
+            <AthleteIdentityEditor playerId={playerId!} sportType={sportType} />
           </div>
         )}
 
