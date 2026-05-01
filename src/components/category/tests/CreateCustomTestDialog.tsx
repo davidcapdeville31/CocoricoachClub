@@ -17,6 +17,8 @@ import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { formatCategoryLabel } from "./customTestCatalog";
 import { TEST_UNIT_OPTIONS, getUnitByKind, type ScoringScale } from "@/lib/constants/testUnits";
 import { ScoringScaleEditor } from "./ScoringScaleEditor";
+import { FormulaConfigEditor } from "./FormulaConfigEditor";
+import type { FormulaConfig } from "@/lib/tests/formulaEngine";
 
 interface CreateCustomTestDialogProps {
   open: boolean;
