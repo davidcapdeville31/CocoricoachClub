@@ -399,14 +399,6 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
             if (filterCategory === "__custom__") return true;
             return t.test_category === filterCategory;
           });
-          // eslint-disable-next-line no-console
-          console.log("[GenericTestsSection] visibleCustomTests", {
-            defaultCategory,
-            filterCategory,
-            customTestsListLen: customTestsList?.length,
-            visibleLen: visibleCustomTests.length,
-            sample: customTestsList?.map((t: any) => ({ name: t.name, cat: t.test_category })),
-          });
           if (!visibleCustomTests.length) return null;
           return (
           <div className="mb-4 rounded-2xl border bg-muted/30 p-3">
