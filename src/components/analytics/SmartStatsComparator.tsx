@@ -528,11 +528,13 @@ export function SmartStatsComparator({
             )}
 
             <div>
-              <div className="h-[300px] w-full">
+              <div className="h-[340px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={data}
                     margin={{ top: 16, right: 12, left: 0, bottom: 36 }}
+                    barCategoryGap="20%"
+                    barGap={2}
                   >
                     <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                     <XAxis
@@ -541,6 +543,7 @@ export function SmartStatsComparator({
                       angle={-25}
                       textAnchor="end"
                       height={56}
+                      interval={0}
                     />
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip
@@ -550,18 +553,22 @@ export function SmartStatsComparator({
                         background: "hsl(var(--background) / 0.92)",
                         border: "1px solid hsl(var(--border))",
                       }}
-                      formatter={(val: any) => [fmt(Number(val), metric), metric.label]}
+                      formatter={(val: any, _name: any, props: any) => {
+                        const m = metrics.find((x) => x.key === props?.dataKey);
+                        return [m ? fmt(Number(val), m) : Number(val).toFixed(1), m?.label ?? props?.dataKey];
+                      }}
                     />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
-                    <Bar
-                      dataKey="value"
-                      name={metric.label}
-                      radius={[8, 8, 0, 0]}
-                    >
-                      {data.map((_, i) => (
-                        <Cell key={i} fill={metric.color ?? "hsl(var(--primary))"} />
-                      ))}
-                    </Bar>
+                    {selectedMetrics.map((m) => (
+                      <Bar
+                        key={m.key}
+                        dataKey={m.key}
+                        name={m.label}
+                        fill={metricColor(m.key)}
+                        maxBarSize={18}
+                        radius={[4, 4, 0, 0]}
+                      />
+                    ))}
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -571,35 +578,35 @@ export function SmartStatsComparator({
                   {(identityData as any[]).map((d) => (
                     <Badge key={d.name} variant="outline" className="text-[10px] gap-1">
                       <Users className="h-3 w-3" />
-                      {d.name}: {d.count}
+                      {d.name}: {d.count ?? "—"}
                     </Badge>
                   ))}
                 </div>
               )}
 
-              {mode === "players" && data.length > 0 && (
+              {mode === "players" && data.length > 0 && metric && (
                 <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <BarChart3 className="h-3 w-3" />
-                    {data.length} athlète{data.length > 1 ? "s" : ""}
+                    {data.length} athlète{data.length > 1 ? "s" : ""} · {selectedMetrics.length} stat{selectedMetrics.length > 1 ? "s" : ""}
                   </span>
                   <span>
-                    Min :{" "}
+                    {metric.label} — Min :{" "}
                     <strong className="text-foreground">
-                      {fmt(Math.min(...data.map((d) => d.value)), metric)}
+                      {fmt(Math.min(...data.map((d: any) => Number(d[metric.key] ?? 0))), metric)}
                     </strong>
                   </span>
                   <span>
                     Max :{" "}
                     <strong className="text-foreground">
-                      {fmt(Math.max(...data.map((d) => d.value)), metric)}
+                      {fmt(Math.max(...data.map((d: any) => Number(d[metric.key] ?? 0))), metric)}
                     </strong>
                   </span>
                   <span>
                     Moyenne :{" "}
                     <strong className="text-foreground">
                       {fmt(
-                        data.reduce((s, d) => s + d.value, 0) / data.length,
+                        data.reduce((s: number, d: any) => s + Number(d[metric.key] ?? 0), 0) / data.length,
                         metric,
                       )}
                     </strong>
