@@ -38,7 +38,9 @@ import { cn } from "@/lib/utils";
 import { type UnifiedOrderItem } from "./ProgramGridView";
 import { DAYS_OF_WEEK } from "./lib/trainingProgramsData";
 import { SessionDayEditor } from "./SessionDayEditor";
-import type { TrainingBlock } from "./TrainingBlockSection";
+
+import { useSaveProgramV2, type V2BlockWithExercises } from "./hooks/useSaveProgramV2";
+import { Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 // -- Local types ---------------------------------------------------------------
@@ -62,7 +64,7 @@ export interface V2ProgramDay {
   dayOfWeek: string;
   name: string;
   exercises: V2ProgramExercise[];
-  blocks: any[]; // detailed in A7.2
+  blocks: V2BlockWithExercises[];
   unifiedOrder: UnifiedOrderItem[];
 }
 
@@ -128,13 +130,39 @@ function buildInitialDraft(): V2ProgramDraft {
 type ScreenMode = "metadata" | "editor";
 
 export function CreateTrainingProgramV2({
-  categoryId: _categoryId, // used in A7.3
+  categoryId,
   onClose,
 }: CreateTrainingProgramV2Props) {
   const [draft, setDraft] = useState<V2ProgramDraft>(buildInitialDraft);
   const [mode, setMode] = useState<ScreenMode>("metadata");
   const [activeWeek, setActiveWeek] = useState(1);
   const [activeDayId, setActiveDayId] = useState<string | null>(null);
+  const saveProgram = useSaveProgramV2();
+
+  const handleSave = useCallback(() => {
+    if (!draft.name.trim()) {
+      toast.error("Donne un nom au programme avant d'enregistrer.");
+      return;
+    }
+    const totalExercises = draft.weeks.reduce(
+      (acc, w) =>
+        acc +
+        w.days.reduce(
+          (a, d) =>
+            a + d.blocks.reduce((x, b) => x + (b.exercises?.length ?? 0), 0),
+          0,
+        ),
+      0,
+    );
+    if (totalExercises === 0) {
+      toast.error("Ajoute au moins un exercice avant d'enregistrer.");
+      return;
+    }
+    saveProgram.mutate(
+      { draft, categoryId },
+      { onSuccess: () => onClose?.() },
+    );
+  }, [draft, categoryId, saveProgram, onClose]);
 
   const currentWeek = useMemo(
     () => draft.weeks.find((w) => w.weekNumber === activeWeek) ?? draft.weeks[0],
@@ -181,7 +209,7 @@ export function CreateTrainingProgramV2({
   }, []);
 
   const setDayBlocks = useCallback(
-    (weekNumber: number, dayId: string, blocks: TrainingBlock[]) => {
+    (weekNumber: number, dayId: string, blocks: V2BlockWithExercises[]) => {
       setDraft((prev) => ({
         ...prev,
         weeks: prev.weeks.map((w) =>
@@ -354,10 +382,24 @@ export function CreateTrainingProgramV2({
               <h2 className="font-semibold truncate">{draft.name || "Sans titre"}</h2>
             </div>
           </div>
-          <Badge variant="outline" className="rounded-2xl shrink-0">
-            <Calendar className="h-3 w-3 mr-1" />
-            {draft.weeks.length} sem · {draft.daysPerWeek} j/sem
-          </Badge>
+          <div className="flex items-center gap-2 shrink-0">
+            <Badge variant="outline" className="rounded-2xl">
+              <Calendar className="h-3 w-3 mr-1" />
+              {draft.weeks.length} sem · {draft.daysPerWeek} j/sem
+            </Badge>
+            <Button
+              size="sm"
+              onClick={handleSave}
+              className="rounded-2xl shadow-md"
+            >
+              {saveProgram.isPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+              ) : (
+                <Save className="h-3.5 w-3.5 mr-1" />
+              )}
+              Enregistrer
+            </Button>
+          </div>
         </div>
 
         {/* Week tabs */}
@@ -439,7 +481,7 @@ export function CreateTrainingProgramV2({
             </CardHeader>
             <CardContent>
               <SessionDayEditor
-                blocks={currentDay.blocks as TrainingBlock[]}
+                blocks={currentDay.blocks}
                 onChange={(blocks) => setDayBlocks(activeWeek, currentDay.id, blocks)}
               />
             </CardContent>
