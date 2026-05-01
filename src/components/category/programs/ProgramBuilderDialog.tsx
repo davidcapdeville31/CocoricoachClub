@@ -22,7 +22,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { ProgramBlockSection, type ProgramBlock } from "./ProgramBlockSection";
 import { ExerciseLibrarySidebar } from "./ExerciseLibrarySidebar";
-import { Plus, Save, AlertTriangle, Layers } from "lucide-react";
+import { Plus, Save, AlertTriangle, Layers, Sparkles } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { CreateTrainingProgramV2 } from "@/components/program-builder-v2/CreateTrainingProgramV2";
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from "@dnd-kit/core";
 import { Badge } from "@/components/ui/badge";
 import { getTrainingTypesForSport } from "@/lib/constants/trainingTypes";
@@ -167,6 +169,7 @@ export function ProgramBuilderDialog({
   const [subTheme, setSubTheme] = useState<string>("");
   const [blocks, setBlocks] = useState<ProgramBlock[]>([]);
   const [saving, setSaving] = useState(false);
+  const [useV2Builder, setUseV2Builder] = useState(false);
   const [activeExercise, setActiveExercise] = useState<any>(null);
   const [selectedInjuryId, setSelectedInjuryId] = useState<string>("");
   const [selectedInjuryType, setSelectedInjuryType] = useState<string>("");
@@ -661,11 +664,28 @@ export function ProgramBuilderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] w-full h-[90vh] flex flex-col p-0">
         <DialogHeader className="p-4 border-b">
-          <DialogTitle>
-            {programId ? "Modifier le programme" : "Créer un programme"}
-          </DialogTitle>
+          <div className="flex items-center justify-between gap-4">
+            <DialogTitle>
+              {programId ? "Modifier le programme" : "Créer un programme"}
+            </DialogTitle>
+            {!programId && !rehabMode && (
+              <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span>Builder V2 (beta)</span>
+                <Switch checked={useV2Builder} onCheckedChange={setUseV2Builder} />
+              </label>
+            )}
+          </div>
         </DialogHeader>
 
+        {useV2Builder && !programId ? (
+          <div className="flex-1 overflow-hidden">
+            <CreateTrainingProgramV2
+              categoryId={categoryId}
+              onClose={() => onOpenChange(false)}
+            />
+          </div>
+        ) : (
         <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div className="flex flex-1 overflow-hidden">
             {/* Left side: Program builder */}
@@ -1112,6 +1132,7 @@ export function ProgramBuilderDialog({
             ) : null}
           </DragOverlay>
         </DndContext>
+        )}
       </DialogContent>
       {showInjuryLibrary && (
         <InjuryLibraryDialog
