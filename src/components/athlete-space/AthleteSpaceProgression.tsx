@@ -422,41 +422,6 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
         )
       ))}
 
-      {selectedCategory === "all" && matchStats.length > 0 && (
-        <Card className="bg-gradient-card shadow-md">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-warning" />
-              Derniers matchs
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {matchStats.slice(0, 5).map((stat: any) => (
-                <div key={stat.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
-                  <div>
-                    <p className="text-sm font-medium">vs {stat.matches.opponent}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(stat.matches.match_date), "dd MMM yyyy", { locale: fr })}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <Badge variant="secondary">
-                      {stat.matches.score_home} - {stat.matches.score_away}
-                    </Badge>
-                    {stat.minutes_played && (
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        <Clock className="h-3 w-3 inline mr-0.5" />
-                        {stat.minutes_played} min
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
