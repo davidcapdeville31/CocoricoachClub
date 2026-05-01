@@ -943,7 +943,72 @@ export function AddPlayerDialogWithInvite({
                 max={new Date().toISOString().split('T')[0]}
               />
             </div>
-            
+
+            {/* Parents */}
+            <div className="space-y-3 rounded-lg border p-3 bg-muted/20">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Coordonnées des parents / tuteurs (optionnel)</p>
+              {[{ data: parent1, set: setParent1, label: "Parent / Tuteur 1" }, { data: parent2, set: setParent2, label: "Parent / Tuteur 2" }].map((p, idx) => (
+                <div key={idx} className="space-y-2 p-3 rounded-md border bg-background/50">
+                  <p className="text-sm font-medium">{p.label}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <Input placeholder="Nom complet" value={p.data.name} onChange={(e) => p.set({ ...p.data, name: e.target.value })} />
+                    <Input placeholder="Relation (Père, Mère…)" value={p.data.relation} onChange={(e) => p.set({ ...p.data, relation: e.target.value })} />
+                    <Input type="tel" placeholder="Téléphone" value={p.data.phone} onChange={(e) => p.set({ ...p.data, phone: e.target.value })} />
+                    <Input type="email" placeholder="Email" value={p.data.email} onChange={(e) => p.set({ ...p.data, email: e.target.value })} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Coaches (illimité) */}
+            <div className="space-y-3 rounded-lg border p-3 bg-muted/20">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Entraîneurs (optionnel)</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => setCoaches((prev) => [...prev, { full_name: "", role: "", phone: "", email: "" }])}
+                >
+                  <Plus className="h-3 w-3 mr-1" /> Ajouter
+                </Button>
+              </div>
+              {coaches.length === 0 && (
+                <p className="text-xs text-muted-foreground italic">Aucun entraîneur. Cliquez sur « Ajouter » pour en renseigner.</p>
+              )}
+              {coaches.map((c, idx) => (
+                <div key={idx} className="space-y-2 p-3 rounded-md border bg-background/50 relative">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Entraîneur {idx + 1}</p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-destructive hover:text-destructive"
+                      onClick={() => setCoaches((prev) => prev.filter((_, i) => i !== idx))}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <Input placeholder="Nom complet" value={c.full_name} onChange={(e) => {
+                      const u = [...coaches]; u[idx].full_name = e.target.value; setCoaches(u);
+                    }} />
+                    <Input placeholder="Spécialité / Rôle" value={c.role} onChange={(e) => {
+                      const u = [...coaches]; u[idx].role = e.target.value; setCoaches(u);
+                    }} />
+                    <Input type="tel" placeholder="Téléphone" value={c.phone} onChange={(e) => {
+                      const u = [...coaches]; u[idx].phone = e.target.value; setCoaches(u);
+                    }} />
+                    <Input type="email" placeholder="Email" value={c.email} onChange={(e) => {
+                      const u = [...coaches]; u[idx].email = e.target.value; setCoaches(u);
+                    }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
 
             {/* Send Invitation Checkbox */}
             <div className="flex items-center space-x-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
