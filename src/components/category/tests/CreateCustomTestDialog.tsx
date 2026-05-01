@@ -142,6 +142,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
           objectives: objectives.trim() || null,
           scoring_scale: enableScoring ? (scoringScale as any) : null,
           max_points: maxPoints,
+          formula_config: formulaConfig?.enabled ? (formulaConfig as any) : null,
           created_by: user?.user?.id || null,
         } as any)
         .select("id")
