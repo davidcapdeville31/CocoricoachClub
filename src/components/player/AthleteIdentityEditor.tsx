@@ -258,14 +258,30 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
               {age != null ? `${age} ans` : "Âge non renseigné"}
             </Badge>
           </button>
-          {ageCat && (
-            <Badge
-              variant="outline"
-              className="gap-1 cursor-help"
-              title="Catégorie calculée automatiquement à partir de la date de naissance"
+          {ageCategoryAttr && (
+            <Select
+              value={ageCategoryAttr.value}
+              onValueChange={(v) => updateMut.mutate({ id: ageCategoryAttr.id, patch: { value: v } })}
             >
-              Catégorie d'âge : {ageCat}
-            </Badge>
+              <SelectTrigger className="h-7 w-auto gap-1 px-2 py-0 text-xs bg-secondary border-transparent hover:bg-secondary/80 rounded-md">
+                <Cake className="h-3 w-3" />
+                <SelectValue>{ageCategoryLabel}</SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-background border z-[200] max-h-[300px]">
+                {ageCategoryOpts.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => deleteMut.mutate(ageCategoryAttr.id)}
+                  className="w-full text-left text-xs text-destructive px-2 py-1.5 hover:bg-muted border-t mt-1"
+                >
+                  Retirer
+                </button>
+              </SelectContent>
+            </Select>
           )}
           {lateralityAttr && (
             <Select
