@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { User, Edit2, Save, X, Phone, Mail, Calendar, MapPin, Mountain, Loader2 } from "lucide-react";
+import { User, Edit2, Save, X, Phone, Mail, Calendar, MapPin, Mountain, Loader2, UserCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { isSkiCategory } from "@/lib/constants/sportTypes";
 import { scrapeFisResults, importFisResultsForPlayer } from "@/lib/fis/scrapeFisResults";
 
