@@ -405,6 +405,12 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
               unit={effectiveUnit}
             />
           )}
+
+          <FormulaConfigEditor
+            value={formulaConfig}
+            onChange={setFormulaConfig}
+            resultUnit={effectiveUnit}
+          />
         </div>
 
         <DialogFooter className="gap-2 sm:justify-between">
