@@ -14,7 +14,9 @@ import {
 } from "@/components/ui/select";
 import {
   computePoints, findMatchingRange, getLevelForPercent, type ScoringScale, type BatteryLevel,
+  type PlayerForScoring,
 } from "@/lib/constants/testUnits";
+import { getPositionGroupsForSport, playerBelongsToGroup } from "@/lib/constants/sportPositionGroups";
 import { toast } from "sonner";
 
 interface RunBatteryDialogProps {
@@ -41,17 +43,50 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
   });
 
   const { data: players } = useQuery({
-    queryKey: ["players-min", categoryId],
+    queryKey: ["players-min-scoring", categoryId],
     queryFn: async () => {
       const { data } = await supabase
         .from("players_safe")
-        .select("id, name, first_name")
+        .select("id, name, first_name, position")
         .eq("category_id", categoryId)
         .order("name");
       return data || [];
     },
     enabled: open,
   });
+
+  const { data: categoryInfo } = useQuery({
+    queryKey: ["category-sport-gender", categoryId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("categories")
+        .select("sport_type, gender")
+        .eq("id", categoryId)
+        .maybeSingle();
+      return data;
+    },
+    enabled: open,
+  });
+
+  const sportType = (categoryInfo as any)?.sport_type as string | undefined;
+  const categoryGender = (categoryInfo as any)?.gender as string | undefined;
+
+  const selectedPlayer: PlayerForScoring | null = useMemo(() => {
+    if (!playerId) return null;
+    const p = (players || []).find((pl: any) => pl.id === playerId) as any;
+    if (!p) return null;
+    const groups = getPositionGroupsForSport(sportType);
+    const group = groups.find(g => playerBelongsToGroup(p.position, g));
+    // Normalize category gender to scale variant gender values
+    let gender: string | null = null;
+    if (categoryGender === "male" || categoryGender === "masculine") gender = "male";
+    else if (categoryGender === "female" || categoryGender === "feminine") gender = "female";
+    return {
+      gender,
+      position: p.position || null,
+      positionGroup: group?.id || null,
+    };
+  }, [playerId, players, sportType, categoryGender]);
 
   const totalMax = useMemo(
     () => (battery?.items || []).reduce((s, it: any) => s + (Number(it.max_points) || 0), 0),
@@ -64,13 +99,13 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     (battery?.items || []).forEach((it: any) => {
       const raw = results[it.id];
       const v = raw === undefined || raw === "" ? null : parseFloat(raw);
-      const pts = computePoints(v, it.scoring_scale as ScoringScale);
-      const matched = findMatchingRange(v, it.scoring_scale as ScoringScale);
+      const pts = computePoints(v, it.scoring_scale as ScoringScale, selectedPlayer);
+      const matched = findMatchingRange(v, it.scoring_scale as ScoringScale, selectedPlayer);
       per[it.id] = { points: pts, matchedLabel: matched?.label };
       total += pts;
     });
     return { totalPoints: total, perItem: per };
-  }, [battery, results]);
+  }, [battery, results, selectedPlayer]);
 
   const percent = totalMax > 0 ? Math.round((totalPoints / totalMax) * 100) : 0;
   const level = useMemo(
