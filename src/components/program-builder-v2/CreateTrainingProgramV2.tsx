@@ -35,8 +35,10 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ProgramGridView, type UnifiedOrderItem } from "./ProgramGridView";
+import { type UnifiedOrderItem } from "./ProgramGridView";
 import { DAYS_OF_WEEK } from "./lib/trainingProgramsData";
+import { SessionDayEditor } from "./SessionDayEditor";
+import type { TrainingBlock } from "./TrainingBlockSection";
 import { toast } from "sonner";
 
 // -- Local types ---------------------------------------------------------------
@@ -177,6 +179,23 @@ export function CreateTrainingProgramV2({
       return { ...prev, weeks: [...prev.weeks, buildEmptyWeek(next, prev.daysPerWeek)] };
     });
   }, []);
+
+  const setDayBlocks = useCallback(
+    (weekNumber: number, dayId: string, blocks: TrainingBlock[]) => {
+      setDraft((prev) => ({
+        ...prev,
+        weeks: prev.weeks.map((w) =>
+          w.weekNumber !== weekNumber
+            ? w
+            : {
+                ...w,
+                days: w.days.map((d) => (d.id === dayId ? { ...d, blocks } : d)),
+              },
+        ),
+      }));
+    },
+    [],
+  );
 
   // -- Navigation --------------------------------------------------------------
 
@@ -419,19 +438,10 @@ export function CreateTrainingProgramV2({
               </div>
             </CardHeader>
             <CardContent>
-              {/*
-                A7.2 will plug coloured TrainingBlockSection rows + method buttons here.
-                For now we render the read-only ProgramGridView slot as a placeholder
-                so the screen is not empty.
-              */}
-              <div className="rounded-2xl border border-dashed border-border/60 bg-muted/30 p-8 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Éditeur de session (blocs colorés + méthodes) — branché en A7.2.
-                </p>
-                <p className="text-xs text-muted-foreground/70 mt-1">
-                  Aucun exercice pour l'instant.
-                </p>
-              </div>
+              <SessionDayEditor
+                blocks={currentDay.blocks as TrainingBlock[]}
+                onChange={(blocks) => setDayBlocks(activeWeek, currentDay.id, blocks)}
+              />
             </CardContent>
           </Card>
         ) : (
