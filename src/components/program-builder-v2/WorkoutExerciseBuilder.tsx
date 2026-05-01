@@ -550,12 +550,17 @@ export const WorkoutExerciseBuilder = ({
         .from("exercise_library")
         .insert({
           name: newExerciseName.trim(),
+          exercise_name: newExerciseName.trim(),
           category: newExerciseCategory,
+          station_name: newExerciseCategory,
           description: newExerciseDescription.trim() || null,
           image_url: newExerciseImageUrl.trim() || null,
           youtube_url: newExerciseVideoUrl.trim() || null,
+          video_url: newExerciseVideoUrl.trim() || null,
           user_id: user.id,
+          coach_id: user.id,
           is_system: false,
+          is_default: false,
         })
         .select()
         .single();
