@@ -509,9 +509,13 @@ const ExerciseLibrary = () => {
       }
     }
     
-    // Category filter
-    if (selectedStation !== "all" && exercise.station_name !== selectedStation) {
-      return false;
+    // Category filter (HYROX = groupe de 8 stations)
+    if (selectedStation !== "all") {
+      if (selectedStation === "HYROX") {
+        if (!HYROX_STATIONS.includes(exercise.station_name)) return false;
+      } else if (exercise.station_name !== selectedStation) {
+        return false;
+      }
     }
     
     // Favorites filter
