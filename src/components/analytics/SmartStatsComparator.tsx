@@ -561,19 +561,15 @@ export function SmartStatsComparator({
             {(() => {
               // Densité : nb d'athlètes × nb de métriques sélectionnées
               const density = data.length * Math.max(1, selectedMetrics.length);
-              const isDense = density > 18;
-              const isVeryDense = density > 30;
-              const chartHeight = isVeryDense ? 440 : isDense ? 380 : 340;
-              const labelAngle = isDense ? -90 : 0;
-              const labelOffset = isDense ? 8 : 4;
-              const labelFontSize = isVeryDense ? 9 : 10;
+              // Au-delà de ce seuil, les labels horizontaux deviennent illisibles : on les masque.
+              const hideLabels = density > 18;
               return (
             <div>
-              <div className="w-full" style={{ height: chartHeight }}>
+              <div className="h-[340px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={data}
-                    margin={{ top: isDense ? 32 : 16, right: 12, left: 0, bottom: 36 }}
+                    margin={{ top: 16, right: 12, left: 0, bottom: 36 }}
                     barCategoryGap="20%"
                     barGap={2}
                   >
@@ -631,22 +627,22 @@ export function SmartStatsComparator({
                         maxBarSize={18}
                         radius={[4, 4, 0, 0]}
                       >
-                        <LabelList
-                          dataKey={m.key}
-                          position="top"
-                          angle={labelAngle}
-                          offset={labelOffset}
-                          formatter={(val: any) =>
-                            val === 0 || val === null || val === undefined
-                              ? ""
-                              : fmt(Number(val), m)
-                          }
-                          style={{
-                            fontSize: labelFontSize,
-                            fontWeight: 600,
-                            fill: "hsl(var(--foreground))",
-                          }}
-                        />
+                        {!hideLabels && (
+                          <LabelList
+                            dataKey={m.key}
+                            position="top"
+                            formatter={(val: any) =>
+                              val === 0 || val === null || val === undefined
+                                ? ""
+                                : fmt(Number(val), m)
+                            }
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 600,
+                              fill: "hsl(var(--foreground))",
+                            }}
+                          />
+                        )}
                       </Bar>
                     ))}
                   </BarChart>
