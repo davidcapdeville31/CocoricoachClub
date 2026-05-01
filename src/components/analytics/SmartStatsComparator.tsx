@@ -213,6 +213,37 @@ export function SmartStatsComparator({
 
   const dims = availableDimensions;
   const activeDim = selectedDim ?? dims[0] ?? null;
+  // Traduction FR des valeurs de dimension (genre, latéralité, catégorie d'âge, etc.)
+  const VALUE_LABELS: Record<string, string> = {
+    male: "Homme",
+    female: "Femme",
+    men: "Hommes",
+    women: "Femmes",
+    boys: "Garçons",
+    girls: "Filles",
+    mixed: "Mixte",
+    other: "Autre",
+    unknown: "Non renseigné",
+    left: "Gauche",
+    right: "Droite",
+    ambidextrous: "Ambidextre",
+    ambi: "Ambidextre",
+    senior: "Senior",
+    seniors: "Seniors",
+    junior: "Junior",
+    juniors: "Juniors",
+    youth: "Jeunes",
+    veteran: "Vétéran",
+    veterans: "Vétérans",
+    masters: "Masters",
+  };
+  const translateValue = (v: any): string => {
+    if (v === null || v === undefined) return "—";
+    const s = String(v).trim();
+    const key = s.toLowerCase();
+    return VALUE_LABELS[key] ?? s;
+  };
+
   const identityData = useMemo(() => {
     if (!activeDim || selectedMetrics.length === 0) return [] as any[];
     // On agrège chaque métrique séparément puis on fusionne par groupe
@@ -222,7 +253,7 @@ export function SmartStatsComparator({
       const rows = aggregateByDimension(activeDim, vmap, { primaryOnly });
       for (const r of rows) {
         const key = r.group.value;
-        if (!groupMap.has(key)) groupMap.set(key, { name: key, count: r.count });
+        if (!groupMap.has(key)) groupMap.set(key, { name: translateValue(key), count: r.count });
         groupMap.get(key)![m.key] = r.avg ?? 0;
       }
     }
