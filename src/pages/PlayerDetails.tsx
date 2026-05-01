@@ -15,7 +15,7 @@ import { PlayerCalendarTab } from "@/components/player/PlayerCalendarTab";
 import { PlayerAwcrTab } from "@/components/player/PlayerAwcrTab";
 import { PlayerTrainingLoadCard } from "@/components/player/PlayerTrainingLoadCard";
 import { PlayerReportSection } from "@/components/player/PlayerReportSection";
-import { PlayerProfile } from "@/components/player/PlayerProfile";
+// PlayerProfile retiré : la création de profilage se fait via Tests
 import { PlayerInjuriesTab } from "@/components/player/PlayerInjuriesTab";
 import { PlayerBiometrics } from "@/components/player/PlayerBiometrics";
 import { PlayerMatchesTab } from "@/components/player/PlayerMatchesTab";
