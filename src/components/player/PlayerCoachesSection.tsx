@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Whistle, Plus, X, Save, Edit2, Phone, Mail, User } from "lucide-react";
+import { Trophy as Whistle, Plus, X, Save, Edit2, Phone, Mail, User } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface PlayerCoachesSectionProps {
