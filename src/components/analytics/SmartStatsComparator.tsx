@@ -102,31 +102,79 @@ export function SmartStatsComparator({
 
   const [mode, setMode] = useState<Mode>("players");
   const [primaryOnly, setPrimaryOnly] = useState(false);
-  const [metricKey, setMetricKey] = useState<string>(metrics[0]?.key ?? "");
+  const [metricKeys, setMetricKeys] = useState<string[]>(
+    metrics[0] ? [metrics[0].key] : [],
+  );
   const [scopeKey, setScopeKey] = useState<string>(scopes[0]?.key ?? "");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[] | null>(null);
   const [selectedDim, setSelectedDim] = useState<string | null>(null);
 
-  const metric = useMemo(
-    () => metrics.find((m) => m.key === metricKey) ?? metrics[0],
-    [metrics, metricKey],
-  );
+  // Palette de couleurs HSL distinctes pour chaque métrique
+  const palette = [
+    "hsl(var(--primary))",
+    "hsl(220 90% 60%)",
+    "hsl(150 70% 45%)",
+    "hsl(35 95% 55%)",
+    "hsl(340 85% 60%)",
+    "hsl(265 75% 62%)",
+    "hsl(190 85% 50%)",
+    "hsl(15 90% 58%)",
+    "hsl(95 60% 48%)",
+    "hsl(50 95% 55%)",
+    "hsl(290 70% 60%)",
+    "hsl(175 70% 42%)",
+    "hsl(245 80% 65%)",
+    "hsl(110 55% 50%)",
+    "hsl(0 80% 60%)",
+    "hsl(210 30% 55%)",
+    "hsl(60 80% 50%)",
+  ];
+  const metricColor = (key: string) => {
+    const m = metrics.find((x) => x.key === key);
+    if (m?.color) return m.color;
+    const idx = metrics.findIndex((x) => x.key === key);
+    return palette[idx % palette.length];
+  };
 
-  // Map playerId -> valeur pour la métrique + scope sélectionnés
-  const valueMap = useMemo(() => {
-    const m = new Map<string, number>();
-    if (!metric || !scopeKey) return m;
-    for (const p of players) {
-      const v = getValue(p.id, metric.key, scopeKey);
-      if (v !== null && v !== undefined && !isNaN(v)) m.set(p.id, v);
+  const selectedMetrics = useMemo(
+    () => metrics.filter((m) => metricKeys.includes(m.key)),
+    [metrics, metricKeys],
+  );
+  // Métrique de référence (1ère sélectionnée) — pour direction de tri & format infos
+  const metric = selectedMetrics[0];
+
+  const toggleMetric = (key: string) => {
+    setMetricKeys((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
+    );
+  };
+
+  // Map metricKey -> (playerId -> valeur)
+  const valuesByMetric = useMemo(() => {
+    const out = new Map<string, Map<string, number>>();
+    if (!scopeKey) return out;
+    for (const m of selectedMetrics) {
+      const inner = new Map<string, number>();
+      for (const p of players) {
+        const v = getValue(p.id, m.key, scopeKey);
+        if (v !== null && v !== undefined && !isNaN(v)) inner.set(p.id, v);
+      }
+      out.set(m.key, inner);
     }
-    return m;
-  }, [players, metric, scopeKey, getValue]);
+    return out;
+  }, [players, selectedMetrics, scopeKey, getValue]);
 
-  const playersWithValue = useMemo(
-    () => players.filter((p) => valueMap.has(p.id)),
-    [players, valueMap],
-  );
+  // Map joueur -> valeur de la métrique de référence (pour sélecteur joueurs et tri)
+  const valueMap = useMemo(() => {
+    return valuesByMetric.get(metric?.key ?? "") ?? new Map<string, number>();
+  }, [valuesByMetric, metric]);
+
+  const playersWithValue = useMemo(() => {
+    // Joueur affiché si au moins une métrique sélectionnée a une valeur
+    return players.filter((p) =>
+      selectedMetrics.some((m) => valuesByMetric.get(m.key)?.has(p.id)),
+    );
+  }, [players, selectedMetrics, valuesByMetric]);
 
   const effectiveSelection = useMemo(() => {
     if (selectedPlayerIds !== null) return selectedPlayerIds;
