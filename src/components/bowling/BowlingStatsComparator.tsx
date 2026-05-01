@@ -56,13 +56,6 @@ const BOWLING_METRICS: MetricDef[] = [
   { key: "firstBallGte8Percentage", label: "% Boules ≥8", unit: "%", group: "Précision (%)" },
   { key: "openFramePercentage", label: "% Frames non fermées", unit: "%", group: "Précision (%)", direction: "lower" },
 
-  // Totaux
-  { key: "totalStrikes", label: "Total strikes", decimals: 0, group: "Totaux" },
-  { key: "totalSpares", label: "Total spares", decimals: 0, group: "Totaux" },
-  { key: "totalPocket", label: "Total poches", decimals: 0, group: "Totaux" },
-  { key: "totalSplits", label: "Total splits", decimals: 0, group: "Totaux" },
-  { key: "totalOpenFrames", label: "Total frames non fermées", decimals: 0, group: "Totaux", direction: "lower" },
-  { key: "totalSinglePin", label: "Total quilles seules", decimals: 0, group: "Totaux" },
 ];
 
 function computeStats(games: BowlingGameData[]) {
