@@ -79,6 +79,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
     setObjectives(test.objectives || "");
     setEnableScoring(!!test.scoring_scale);
     setScoringScale(test.scoring_scale || null);
+    setFormulaConfig(test.formula_config?.enabled ? test.formula_config : null);
     setImageUrl(test.image_url || null);
   }, [open, test]);
 
