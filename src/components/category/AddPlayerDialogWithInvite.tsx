@@ -47,6 +47,7 @@ export function AddPlayerDialogWithInvite({
   const [playerPhone, setPlayerPhone] = useState("");
   const [birthYear, setBirthYear] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [gender, setGender] = useState<"" | "male" | "female" | "other">("");
   const [discipline, setDiscipline] = useState("");
   const [specialty, setSpecialty] = useState("");
   // Athlétisme : un athlète peut pratiquer plusieurs disciplines/spécialités
