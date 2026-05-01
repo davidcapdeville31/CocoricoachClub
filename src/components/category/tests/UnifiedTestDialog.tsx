@@ -19,6 +19,8 @@ import { getTestCategoriesForSport, TestOption } from "@/lib/constants/testCateg
 import { HierarchicalTestSelector, resolveTestCategory, resolveGroupAndZone } from "./HierarchicalTestSelector";
 import { Gauge, Zap, Timer } from "lucide-react";
 import { mergeCustomTestsIntoCategories, normalizeCustomTestType } from "./customTestCatalog";
+import { ComposedTestInputs } from "./ComposedTestInputs";
+import { isValidFormulaConfig, type FormulaConfig } from "@/lib/tests/formulaEngine";
 
 interface UnifiedTestDialogProps {
   open: boolean;
@@ -53,6 +55,7 @@ export function UnifiedTestDialog({
   const [selectedTest, setSelectedTest] = useState("");
   const [playerResults, setPlayerResults] = useState<Record<string, string>>({});
   const [playerSecondaryResults, setPlayerSecondaryResults] = useState<Record<string, string>>({});
+  const [playerComposedInputs, setPlayerComposedInputs] = useState<Record<string, Record<string, string>>>({});
   const [notes, setNotes] = useState("");
   const [customTestName, setCustomTestName] = useState("");
   const [customTestUnit, setCustomTestUnit] = useState("");
@@ -137,7 +140,7 @@ export function UnifiedTestDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_test_categories")
-        .select("custom_tests(name, test_category, unit, is_time)")
+        .select("custom_tests(name, test_category, unit, is_time, formula_config)")
         .eq("category_id", categoryId);
 
       if (error) throw error;
@@ -159,6 +162,15 @@ export function UnifiedTestDialog({
   const currentTest: TestOption | null = isCustom 
     ? (customTestName && customTestUnit ? { value: `custom_${normalizeCustomTestType(customTestName)}`, label: customTestName, unit: customTestUnit, isTime: ["s", "min.s"].includes(customTestUnit) } as TestOption : null)
     : currentCategoryObj?.tests.find(t => t.value === selectedTest) || null;
+
+  const activeFormulaConfig: FormulaConfig | null = useMemo(() => {
+    if (!currentTest) return null;
+    const match = (customTests || []).find((ct: any) =>
+      `custom_${normalizeCustomTestType(ct.name)}` === currentTest.value
+    );
+    const cfg = (match as any)?.formula_config;
+    return isValidFormulaConfig(cfg) ? cfg : null;
+  }, [currentTest, customTests]);
 
   // Compute GPS values for sprint tests
   const computeSprintGpsValues = (timeStr: string) => {

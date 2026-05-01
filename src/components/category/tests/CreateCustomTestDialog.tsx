@@ -17,6 +17,8 @@ import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { formatCategoryLabel } from "./customTestCatalog";
 import { TEST_UNIT_OPTIONS, getUnitByKind, type ScoringScale } from "@/lib/constants/testUnits";
 import { ScoringScaleEditor } from "./ScoringScaleEditor";
+import { FormulaConfigEditor } from "./FormulaConfigEditor";
+import type { FormulaConfig } from "@/lib/tests/formulaEngine";
 
 interface CreateCustomTestDialogProps {
   open: boolean;
@@ -35,6 +37,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
   const [objectives, setObjectives] = useState("");
   const [enableScoring, setEnableScoring] = useState(false);
   const [scoringScale, setScoringScale] = useState<ScoringScale | null>(null);
+  const [formulaConfig, setFormulaConfig] = useState<FormulaConfig | null>(null);
 
   const baseTestCategories = useMemo(() => {
     return getTestCategoriesForSport(sportType || "").filter(c => !c.value.startsWith("rehab_"));
@@ -139,6 +142,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
           objectives: objectives.trim() || null,
           scoring_scale: enableScoring ? (scoringScale as any) : null,
           max_points: maxPoints,
+          formula_config: formulaConfig?.enabled ? (formulaConfig as any) : null,
           created_by: user?.user?.id || null,
         } as any)
         .select("id")
@@ -174,6 +178,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
     setObjectives("");
     setEnableScoring(false);
     setScoringScale(null);
+    setFormulaConfig(null);
   };
 
   const handleSubmit = () => {
@@ -269,6 +274,12 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
               unit={effectiveUnit}
             />
           )}
+
+          <FormulaConfigEditor
+            value={formulaConfig}
+            onChange={setFormulaConfig}
+            resultUnit={effectiveUnit}
+          />
         </div>
 
         <DialogFooter>

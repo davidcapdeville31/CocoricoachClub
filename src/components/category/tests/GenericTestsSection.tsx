@@ -107,7 +107,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_test_categories")
-        .select("custom_tests(id, name, test_category, unit, unit_kind, is_time, description, objectives, scoring_scale, max_points, image_url)")
+        .select("custom_tests(id, name, test_category, unit, unit_kind, is_time, description, objectives, scoring_scale, max_points, image_url, formula_config)")
         .eq("category_id", categoryId);
       if (error) throw error;
       const tests = (data || [])
@@ -360,6 +360,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                       description: customDef.description,
                       objectives: customDef.objectives,
                       scoring_scale: (customDef as any).scoring_scale ?? null,
+                      formula_config: (customDef as any).formula_config ?? null,
                       image_url: (customDef as any).image_url ?? null,
                       source: "custom",
                     });
@@ -403,6 +404,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                       description: t.description,
                       objectives: t.objectives,
                       scoring_scale: t.scoring_scale ?? null,
+                      formula_config: t.formula_config ?? null,
                       image_url: t.image_url ?? null,
                       source: "custom",
                     });

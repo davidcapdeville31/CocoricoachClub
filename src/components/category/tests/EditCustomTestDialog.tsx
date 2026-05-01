@@ -17,6 +17,8 @@ import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { formatCategoryLabel } from "./customTestCatalog";
 import { TEST_UNIT_OPTIONS, getUnitByKind, type ScoringScale } from "@/lib/constants/testUnits";
 import { ScoringScaleEditor } from "./ScoringScaleEditor";
+import { FormulaConfigEditor } from "./FormulaConfigEditor";
+import type { FormulaConfig } from "@/lib/tests/formulaEngine";
 import { Trash2, Upload, X, ImageIcon, Loader2 } from "lucide-react";
 
 export interface EditableTest {
@@ -29,6 +31,7 @@ export interface EditableTest {
   description?: string | null;
   objectives?: string | null;
   scoring_scale?: ScoringScale | null;
+  formula_config?: FormulaConfig | null;
   image_url?: string | null;
   source: "custom" | "seed";   // seed = test pré-existant du catalogue
   seedTestType?: string;       // test_type d'origine si seed (pour réf)
@@ -52,6 +55,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
   const [objectives, setObjectives] = useState("");
   const [enableScoring, setEnableScoring] = useState(false);
   const [scoringScale, setScoringScale] = useState<ScoringScale | null>(null);
+  const [formulaConfig, setFormulaConfig] = useState<FormulaConfig | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
@@ -75,6 +79,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
     setObjectives(test.objectives || "");
     setEnableScoring(!!test.scoring_scale);
     setScoringScale(test.scoring_scale || null);
+    setFormulaConfig(test.formula_config?.enabled ? test.formula_config : null);
     setImageUrl(test.image_url || null);
   }, [open, test]);
 
@@ -202,6 +207,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
         scoring_scale: enableScoring ? (scoringScale as any) : null,
         max_points: maxPoints,
         image_url: imageUrl,
+        formula_config: formulaConfig?.enabled ? (formulaConfig as any) : null,
       };
 
       if (test.source === "custom" && test.id) {
@@ -399,6 +405,12 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
               unit={effectiveUnit}
             />
           )}
+
+          <FormulaConfigEditor
+            value={formulaConfig}
+            onChange={setFormulaConfig}
+            resultUnit={effectiveUnit}
+          />
         </div>
 
         <DialogFooter className="gap-2 sm:justify-between">
