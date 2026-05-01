@@ -46,14 +46,6 @@ export function BenchmarkTab({ categoryId, sportType }: BenchmarkTabProps) {
           categoryId={categoryId}
           values={vmaByPlayer}
           metricLabel="VMA (km/h) — dernier test par athlète"
-          allowedDimensions={[
-            "position",
-            "discipline",
-            
-            "technical_style",
-            "genre",
-            "age_category",
-          ]}
         />
       )}
     </div>
