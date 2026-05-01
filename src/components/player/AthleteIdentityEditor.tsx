@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, Star, Loader2, User, Cake, Venus, Mars } from "lucide-react";
+import { Plus, X, Star, Loader2, User, Cake } from "lucide-react";
 import {
   ATHLETISME_DISCIPLINES,
   ATHLETISME_SPECIALTIES,
@@ -52,12 +52,12 @@ function getAgeCategory(age: number | null): string | null {
   return "Master 2+";
 }
 
-function genderInfo(g: string | null): { label: string; Icon: typeof Venus } {
-  if (!g) return { label: "Non renseigné", Icon: User };
+function genderInfo(g: string | null): { label: string; emoji: string } {
+  if (!g) return { label: "Non renseigné", emoji: "❓" };
   const v = g.toLowerCase();
-  if (v.startsWith("f") || v === "female" || v === "feminin" || v === "féminin") return { label: "Féminin", Icon: Venus };
-  if (v.startsWith("m") || v === "male" || v === "masculin") return { label: "Masculin", Icon: Mars };
-  return { label: g, Icon: User };
+  if (v.startsWith("f") || v === "female" || v === "feminin" || v === "féminin") return { label: "Féminin", emoji: "♀️" };
+  if (v.startsWith("m") || v === "male" || v === "masculin") return { label: "Masculin", emoji: "♂️" };
+  return { label: g, emoji: "•" };
 }
 
 type DimensionConfig = {
