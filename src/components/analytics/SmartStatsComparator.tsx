@@ -694,6 +694,8 @@ export function SmartStatsComparator({
                 </div>
               )}
             </div>
+              );
+            })()}
           </div>
         )}
       </CardContent>
