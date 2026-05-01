@@ -153,11 +153,15 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
   const completedSessionIds = new Set(submittedRpes.map(r => r.training_session_id));
 
-  const sessionDates = sessions.map(s => new Date(s.session_date));
+  // Classify sessions by type
+  const testSessions = sessions.filter((s: any) => !!s.test_reminder_id);
+  const athleteSessionList = sessions.filter((s: any) => s.created_by_player_id === playerId && !s.test_reminder_id);
+  const trainingSessions = sessions.filter((s: any) => !s.test_reminder_id && s.created_by_player_id !== playerId);
+
+  const trainingDates = trainingSessions.map(s => new Date(s.session_date));
+  const testDates = testSessions.map(s => new Date(s.session_date));
   const matchDates = matches.map(m => new Date(m.match_date));
-  const athleteSessionDates = sessions
-    .filter(s => s.created_by_player_id === playerId)
-    .map(s => new Date(s.session_date));
+  const athleteSessionDates = athleteSessionList.map(s => new Date(s.session_date));
 
   // Compute prophylaxis dates for calendar modifiers
   const prophylaxisDates = useMemo(() => {
