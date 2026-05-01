@@ -138,7 +138,7 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
     queryKey: ["player-core-identity", playerId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("players")
+        .from("players_safe")
         .select("gender, birth_date, birth_year")
         .eq("id", playerId)
         .maybeSingle();
