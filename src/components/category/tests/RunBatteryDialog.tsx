@@ -77,10 +77,11 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     if (!p) return null;
     const groups = getPositionGroupsForSport(sportType);
     const group = groups.find(g => playerBelongsToGroup(p.position, g));
-    // Normalize category gender to scale variant gender values
+    // Prefer the player's own gender, fall back to the category gender for compatibility
     let gender: string | null = null;
-    if (categoryGender === "male" || categoryGender === "masculine") gender = "male";
-    else if (categoryGender === "female" || categoryGender === "feminine") gender = "female";
+    const raw = (p.gender || categoryGender || "").toString().toLowerCase();
+    if (raw === "male" || raw === "masculine" || raw === "men") gender = "male";
+    else if (raw === "female" || raw === "feminine" || raw === "women") gender = "female";
     return {
       gender,
       position: p.position || null,
