@@ -370,6 +370,28 @@ export function AddPlayerDialogWithInvite({
         fis_objective_date: fisObjectiveDate || undefined,
       });
 
+      // Upload avatar if provided
+      if (avatarFile) {
+        try {
+          const fileExt = avatarFile.name.split(".").pop();
+          const fileName = `${player.id}/avatar.${fileExt}`;
+          const { error: upErr } = await supabase.storage
+            .from("player-avatars")
+            .upload(fileName, avatarFile, { upsert: true });
+          if (!upErr) {
+            const { data: { publicUrl } } = supabase.storage
+              .from("player-avatars")
+              .getPublicUrl(fileName);
+            await supabase
+              .from("players")
+              .update({ avatar_url: publicUrl } as any)
+              .eq("id", player.id);
+          }
+        } catch (err) {
+          console.error("Avatar upload error:", err);
+        }
+      }
+
       // Save parents contacts on player record (if any provided)
       const hasParent1 = parent1.name.trim() || parent1.phone.trim() || parent1.email.trim();
       const hasParent2 = parent2.name.trim() || parent2.phone.trim() || parent2.email.trim();
