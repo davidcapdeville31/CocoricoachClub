@@ -26,6 +26,7 @@ import {
   isAthletismeCategory,
 } from "@/lib/constants/sportTypes";
 import { getPositionsForSport } from "@/lib/constants/sportPositions";
+import { getAgeCategoriesForSport, getAgeCategoryLabel } from "@/lib/constants/ageCategories";
 
 function computeAge(birthDate: string | null, birthYear: number | null): number | null {
   if (birthDate) {
@@ -37,19 +38,6 @@ function computeAge(birthDate: string | null, birthYear: number | null): number 
   }
   if (birthYear) return new Date().getFullYear() - birthYear;
   return null;
-}
-
-function getAgeCategory(age: number | null): string | null {
-  if (age == null) return null;
-  if (age < 12) return "U12";
-  if (age < 14) return "U14";
-  if (age < 16) return "U16";
-  if (age < 18) return "U18";
-  if (age < 20) return "U20";
-  if (age < 23) return "Espoirs (U23)";
-  if (age < 35) return "Senior";
-  if (age < 45) return "Master 1";
-  return "Master 2+";
 }
 
 function genderInfo(g: string | null): { label: string; emoji: string } {
