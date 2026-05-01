@@ -38,7 +38,7 @@ import { cn } from "@/lib/utils";
 import { type UnifiedOrderItem } from "./ProgramGridView";
 import { DAYS_OF_WEEK } from "./lib/trainingProgramsData";
 import { SessionDayEditor } from "./SessionDayEditor";
-import type { TrainingBlock } from "./TrainingBlockSection";
+
 import { useSaveProgramV2, type V2BlockWithExercises } from "./hooks/useSaveProgramV2";
 import { Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
