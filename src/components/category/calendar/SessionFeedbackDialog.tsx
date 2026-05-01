@@ -753,7 +753,7 @@ export function SessionFeedbackDialog({
                         </div>
 
                         {test.test_type && playersToShow.length > 0 && (
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {playersToShow.map((player) => {
                               const isSaved = test.savedPlayerIds?.has(player.id) || false;
                               const hasValue = !!test.player_results[player.id];
@@ -761,7 +761,7 @@ export function SessionFeedbackDialog({
                                 <div
                                   key={player.id}
                                   className={cn(
-                                    "flex items-center gap-2 p-2 rounded-lg border",
+                                    "flex items-center gap-2 p-2 rounded-lg border min-w-0",
                                     isSaved
                                       ? "border-muted bg-muted/60 opacity-60"
                                       : hasValue
@@ -769,13 +769,13 @@ export function SessionFeedbackDialog({
                                         : "border-border"
                                   )}
                                 >
-                                  <Avatar className="h-5 w-5 shrink-0">
+                                  <Avatar className="h-6 w-6 shrink-0">
                                     <AvatarImage src={player.avatar_url || undefined} />
                                     <AvatarFallback className="text-[10px]">
                                       {(player.first_name || player.name).slice(0, 2).toUpperCase()}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <span className="text-xs truncate flex-1">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
+                                  <span className="text-sm font-medium flex-1 break-words">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
                                   {isSaved ? (
                                     <span className="text-xs font-medium text-muted-foreground">
                                       ✓ {test.player_results[player.id]} {test.result_unit}
