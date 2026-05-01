@@ -37,6 +37,7 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
     birth_date: null,
     club_origin: null,
     fis_code: null,
+    gender: null,
   });
 
   const isSki = isSkiCategory(sportType);
