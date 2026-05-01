@@ -40,6 +40,7 @@ import { getPositionsForSport } from "@/lib/constants/sportPositions";
 import { getInvitationStatus } from "@/hooks/useResendInvitation";
 
 import { AVIRON_ROLES } from "@/lib/constants/sportTypes";
+import { AthleteIdentityBadges } from "@/components/player/AthleteIdentityBadges";
 
 function getAvironRoleLabel(role: string | null): string {
   if (!role) return "";
@@ -420,12 +421,17 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
       );
     }
     if (showPosition) {
-      return player.position ? (
-        <Badge variant="secondary" className="font-normal">
-          {player.position}
-        </Badge>
-      ) : (
-        <span className="text-muted-foreground text-sm">—</span>
+      return (
+        <div className="flex items-center gap-1 flex-wrap">
+          {player.position ? (
+            <Badge variant="secondary" className="font-normal">
+              {player.position}
+            </Badge>
+          ) : (
+            <span className="text-muted-foreground text-sm">—</span>
+          )}
+          <AthleteIdentityBadges playerId={player.id} dimensions={["position"]} />
+        </div>
       );
     }
     return null;

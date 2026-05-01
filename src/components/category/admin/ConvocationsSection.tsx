@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { AthleteIdentityBadges } from "@/components/player/AthleteIdentityBadges";
 
 interface ConvocationsSectionProps {
   categoryId: string;
@@ -477,11 +478,14 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
                           onCheckedChange={() => togglePlayer(player.id)}
                         />
                         <span className="font-medium text-sm">{player.name}</span>
-                        {player.position && (
-                          <Badge variant="outline" className="text-xs ml-auto">
-                            {player.position}
-                          </Badge>
-                        )}
+                        <div className="flex items-center gap-1 ml-auto flex-wrap justify-end">
+                          {player.position && (
+                            <Badge variant="outline" className="text-xs">
+                              {player.position}
+                            </Badge>
+                          )}
+                          <AthleteIdentityBadges playerId={player.id} dimensions={["position"]} />
+                        </div>
                       </div>
                     ))}
                   </div>

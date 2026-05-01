@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import { Plus, FileSpreadsheet, Users, Star, Clock, MapPin, Trash2, Edit, Send, Check } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { AthleteIdentityBadges } from "@/components/player/AthleteIdentityBadges";
 
 interface MatchSheetsSectionProps {
   categoryId: string;
@@ -629,12 +630,19 @@ export function MatchSheetsSection({ categoryId, preSelectedMatchId }: MatchShee
                               />
                             </TableCell>
                             <TableCell className="font-medium py-2.5">
-                              <span className="flex items-center gap-1.5">
-                                {player.name}
-                                {playerData.isCaptain && (
-                                  <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500 drop-shadow-sm" />
-                                )}
-                              </span>
+                              <div className="flex flex-col gap-0.5">
+                                <span className="flex items-center gap-1.5">
+                                  {player.name}
+                                  {playerData.isCaptain && (
+                                    <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500 drop-shadow-sm" />
+                                  )}
+                                </span>
+                                <AthleteIdentityBadges
+                                  playerId={player.id}
+                                  dimensions={["position"]}
+                                  className="opacity-90"
+                                />
+                              </div>
                             </TableCell>
                             <TableCell className="py-2.5">
                               <Input
