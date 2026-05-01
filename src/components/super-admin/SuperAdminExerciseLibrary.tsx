@@ -375,14 +375,20 @@ function ExerciseFormDialog({
     try {
       const payload = {
         name,
+        exercise_name: name,
         category,
+        station_name: category,
         subcategory: subcategory || null,
         youtube_url: youtubeUrl || null,
+        video_url: youtubeUrl || null,
         description: description || null,
         difficulty,
+        difficulty_level: difficulty,
         image_url: imageUrl || null,
         is_system: isSystem,
+        is_default: isSystem,
         user_id: exercise?.user_id || userId,
+        coach_id: exercise?.user_id || userId,
       };
 
       if (exercise?.id) {
