@@ -1,9 +1,10 @@
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { CalendarDays, FolderOpen, ClipboardCheck, Bell } from "lucide-react";
+import { CalendarDays, FolderOpen, ClipboardCheck, Bell, Library } from "lucide-react";
 import { TestsTab } from "@/components/category/TestsTab";
 import { SessionsTab } from "@/components/category/sessions/SessionsTab";
 import { ProgramsTab } from "@/components/category/programs/ProgramsTab";
 import { TestRemindersTab } from "@/components/category/TestRemindersTab";
+import { ExerciseLibrarySection } from "@/components/library/ExerciseLibrarySection";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
@@ -68,6 +69,15 @@ export function ProgrammationTab({ categoryId }: ProgrammationTabProps) {
             <span className="hidden sm:inline">Rappels tests</span>
             <span className="sm:hidden">Rappels</span>
           </ColoredSubTabsTrigger>
+          <ColoredSubTabsTrigger 
+            value="exercise-library" 
+            colorKey="programmation"
+            icon={<Library className="h-4 w-4" />}
+            tooltip="Banque de données d'exercices : exercices système (gérés par Super Admin) et vos exercices personnels"
+          >
+            <span className="hidden sm:inline">Banque de données</span>
+            <span className="sm:hidden">Banque</span>
+          </ColoredSubTabsTrigger>
         </ColoredSubTabsList>
       </div>
 
@@ -86,6 +96,10 @@ export function ProgrammationTab({ categoryId }: ProgrammationTabProps) {
 
       <TabsContent value="test-reminders">
         <TestRemindersTab categoryId={categoryId} />
+      </TabsContent>
+
+      <TabsContent value="exercise-library">
+        <ExerciseLibrarySection />
       </TabsContent>
     </Tabs>
   );
