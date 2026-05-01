@@ -87,6 +87,7 @@ interface LinkedMethodSlotsProps {
   onConfirm: () => void;
   onCancel: () => void;
   dayId: string;
+  defaultEditing?: boolean;
   // Method-level rest (between exercises in the method)
   methodRestSeconds?: number;
   onMethodRestChange?: (seconds: number | undefined) => void;
@@ -601,6 +602,7 @@ export const LinkedMethodSlots = ({
   onConfirm,
   onCancel,
   dayId,
+  defaultEditing = true,
   methodRestSeconds,
   onMethodRestChange,
 }: LinkedMethodSlotsProps) => {
@@ -613,6 +615,7 @@ export const LinkedMethodSlots = ({
       onConfirm={onConfirm}
       onCancel={onCancel}
       dayId={dayId}
+      defaultEditing={defaultEditing}
       methodRestSeconds={methodRestSeconds}
       onMethodRestChange={onMethodRestChange}
     />
@@ -628,14 +631,12 @@ const LinkedMethodSlotsContent = ({
   onConfirm,
   onCancel,
   dayId,
+  defaultEditing = true,
   methodRestSeconds,
   onMethodRestChange,
 }: LinkedMethodSlotsProps) => {
-  // État local pour forcer le mode lecture seule après validation
-  const [isValidated, setIsValidated] = useState(false);
-  
-  // Mode édition: true si pas encore validé
-  const [isEditing, setIsEditing] = useState(true);
+  const [isValidated, setIsValidated] = useState(!defaultEditing);
+  const [isEditing, setIsEditing] = useState(defaultEditing);
   
   const config = getMethodConfig(method);
   const isDynamic = config.slots > config.minSlots;
@@ -660,6 +661,10 @@ const LinkedMethodSlotsContent = ({
   
   // Handler d'annulation
   const handleCancel = () => {
+    if (isValidated) {
+      setIsEditing(false);
+      return;
+    }
     onCancel();
   };
 

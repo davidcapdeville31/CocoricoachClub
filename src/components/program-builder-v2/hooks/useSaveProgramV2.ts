@@ -24,6 +24,7 @@ export interface V2BlockExercise {
   tempo?: string;
   restSeconds?: number;
   method?: string; // ConfigMethod | LinkedMethod | "normal"
+  groupId?: string;
   notes?: string;
   config?: Record<string, unknown>; // serialised method-specific config
 }
