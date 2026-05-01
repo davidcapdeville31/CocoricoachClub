@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useComparisonGroups } from "@/hooks/useComparisonGroups";
-import { BarChart3, Filter, UserCheck, Star, Users, Sparkles } from "lucide-react";
+import { BarChart3, Filter, UserCheck, Users, Sparkles } from "lucide-react";
 import {
   Bar,
   BarChart,
