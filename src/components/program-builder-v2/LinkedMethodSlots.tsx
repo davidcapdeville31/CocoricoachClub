@@ -68,7 +68,7 @@ export interface SlottedExerciseParams {
   startingPosition?: string;
 }
 
-interface SlottedExercise {
+export interface SlottedExercise {
   id: string;
   exerciseId: string;
   exerciseName: string;
