@@ -403,6 +403,7 @@ export function SmartStatsComparator({
             "sport_gender",
             "positions_all",
             "position_all",
+            ...hiddenDimensions,
           ]);
           const visibleDims = dims.filter((d) => !HIDDEN_DIMS.has(d));
           if (visibleDims.length === 0) return null;
