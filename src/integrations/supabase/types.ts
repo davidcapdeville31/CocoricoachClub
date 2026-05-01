@@ -13664,6 +13664,7 @@ export type Database = {
         | "laterality"
         | "specialty"
         | "role"
+        | "age_category"
       consent_type:
         | "terms_of_service"
         | "privacy_policy"
@@ -13825,6 +13826,7 @@ export const Constants = {
         "laterality",
         "specialty",
         "role",
+        "age_category",
       ],
       consent_type: [
         "terms_of_service",

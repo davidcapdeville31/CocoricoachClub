@@ -26,6 +26,7 @@ import {
   isAthletismeCategory,
 } from "@/lib/constants/sportTypes";
 import { getPositionsForSport } from "@/lib/constants/sportPositions";
+import { getAgeCategoriesForSport, getAgeCategoryLabel } from "@/lib/constants/ageCategories";
 
 function computeAge(birthDate: string | null, birthYear: number | null): number | null {
   if (birthDate) {
@@ -37,19 +38,6 @@ function computeAge(birthDate: string | null, birthYear: number | null): number 
   }
   if (birthYear) return new Date().getFullYear() - birthYear;
   return null;
-}
-
-function getAgeCategory(age: number | null): string | null {
-  if (age == null) return null;
-  if (age < 12) return "U12";
-  if (age < 14) return "U14";
-  if (age < 16) return "U16";
-  if (age < 18) return "U18";
-  if (age < 20) return "U20";
-  if (age < 23) return "Espoirs (U23)";
-  if (age < 35) return "Senior";
-  if (age < 45) return "Master 1";
-  return "Master 2+";
 }
 
 function genderInfo(g: string | null): { label: string; emoji: string } {
@@ -165,7 +153,6 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
   const isAthletics = isAthletismeCategory(sportType);
 
   const age = computeAge(playerCore?.birth_date ?? null, playerCore?.birth_year ?? null);
-  const ageCat = getAgeCategory(age);
   const gInfo = genderInfo(playerCore?.gender ?? null);
 
   const dimensions: DimensionConfig[] = useMemo(() => {
@@ -214,6 +201,17 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
       });
     }
 
+    // 5) Catégorie d'âge — officielle par sport, valeur unique
+    const hasAgeCategory = attributes.some((a) => a.dimension === "age_category");
+    if (!hasAgeCategory) {
+      list.push({
+        dimension: "age_category" as AthleteDimension,
+        label: "Catégorie d'âge",
+        description: "Catégorie officielle de la fédération.",
+        options: getAgeCategoriesForSport(sportType),
+      });
+    }
+
     return list;
   }, [sportType, isAthletics, attributes]);
 
@@ -221,6 +219,12 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
   const lateralityOpts = getLateralityOptions(sportType);
   const lateralityLabel = lateralityAttr
     ? lateralityOpts.find((o) => o.value === lateralityAttr.value)?.label ?? lateralityAttr.value
+    : null;
+
+  const ageCategoryAttr = attributes.find((a) => a.dimension === ("age_category" as AthleteDimension));
+  const ageCategoryOpts = getAgeCategoriesForSport(sportType);
+  const ageCategoryLabel = ageCategoryAttr
+    ? getAgeCategoryLabel(sportType, ageCategoryAttr.value)
     : null;
 
   const requestEditPersonalInfo = () => {
@@ -271,14 +275,30 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
               {age != null ? `${age} ans` : "Âge non renseigné"}
             </Badge>
           </button>
-          {ageCat && (
-            <Badge
-              variant="outline"
-              className="gap-1 cursor-help"
-              title="Catégorie calculée automatiquement à partir de la date de naissance"
+          {ageCategoryAttr && (
+            <Select
+              value={ageCategoryAttr.value}
+              onValueChange={(v) => updateMut.mutate({ id: ageCategoryAttr.id, patch: { value: v } })}
             >
-              Catégorie d'âge : {ageCat}
-            </Badge>
+              <SelectTrigger className="h-7 w-auto gap-1 px-2 py-0 text-xs bg-secondary border-transparent hover:bg-secondary/80 rounded-md">
+                <Cake className="h-3 w-3" />
+                <SelectValue>{ageCategoryLabel}</SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-background border z-[200] max-h-[300px]">
+                {ageCategoryOpts.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => deleteMut.mutate(ageCategoryAttr.id)}
+                  className="w-full text-left text-xs text-destructive px-2 py-1.5 hover:bg-muted border-t mt-1"
+                >
+                  Retirer
+                </button>
+              </SelectContent>
+            </Select>
           )}
           {lateralityAttr && (
             <Select

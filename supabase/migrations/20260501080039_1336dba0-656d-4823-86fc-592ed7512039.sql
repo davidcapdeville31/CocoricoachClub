@@ -1,0 +1,1 @@
+ALTER TYPE public.athlete_attribute_dimension ADD VALUE IF NOT EXISTS 'age_category';
