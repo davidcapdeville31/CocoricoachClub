@@ -73,9 +73,9 @@ export function ProgrammationTab({ categoryId }: ProgrammationTabProps) {
             value="exercise-library" 
             colorKey="programmation"
             icon={<Library className="h-4 w-4" />}
-            tooltip="Banque de données d'exercices : exercices système (gérés par Super Admin) et vos exercices personnels"
+            tooltip="Banque d'exercices : exercices système (gérés par Super Admin) et vos exercices personnels"
           >
-            <span className="hidden sm:inline">Banque de données</span>
+            <span className="hidden sm:inline">Banque d'exercices</span>
             <span className="sm:hidden">Banque</span>
           </ColoredSubTabsTrigger>
         </ColoredSubTabsList>
