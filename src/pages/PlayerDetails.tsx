@@ -11,6 +11,7 @@ import { ColoredNavTabsList } from "@/components/ui/colored-nav-tabs";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
 import { PlayerTestsTab } from "@/components/player/PlayerTestsTab";
+import { SuggestedBenchmarksCard } from "@/components/player/SuggestedBenchmarksCard";
 import { PlayerCalendarTab } from "@/components/player/PlayerCalendarTab";
 import { PlayerAwcrTab } from "@/components/player/PlayerAwcrTab";
 import { PlayerTrainingLoadCard } from "@/components/player/PlayerTrainingLoadCard";
@@ -521,7 +522,10 @@ function PlayerDetailsContent() {
           </TabsContent>
 
           <TabsContent value="tests">
-            <PlayerTestsTab playerId={playerId!} categoryId={player.category_id} sportType={sportType} />
+            <div className="space-y-4">
+              <SuggestedBenchmarksCard playerId={playerId!} categoryId={player.category_id} />
+              <PlayerTestsTab playerId={playerId!} categoryId={player.category_id} sportType={sportType} />
+            </div>
           </TabsContent>
 
           <TabsContent value="matches">
