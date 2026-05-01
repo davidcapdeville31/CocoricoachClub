@@ -212,9 +212,21 @@ export function BenchmarkComparison({ categoryId, sportType }: BenchmarkComparis
   }, [benchmarks, genericTests, speedTests, strengthTests]);
 
   // Filter players based on benchmark filter
+  // Désormais : on regarde l'identité athlète (positions multiples)
+  // en plus du champ legacy `position` pour matcher tout poste joué.
   const getFilteredPlayers = (bm: Benchmark) => {
     if (bm.filter_type === "all" || !bm.filter_value) return players;
-    return players.filter(p => (p as any).position === bm.filter_value);
+    return players.filter((p: any) => {
+      // 1) Champ legacy
+      if (p.position === bm.filter_value) return true;
+      // 2) Identité athlète : positions secondaires
+      const dims = playerDimensionValues.get(p.id);
+      if (!dims) return false;
+      // Le filter_type peut être 'position' ; sinon on tente la dimension homonyme
+      const dim = bm.filter_type === "position" ? "position" : bm.filter_type;
+      const values = dims.get(dim);
+      return !!values && values.has(bm.filter_value);
+    });
   };
 
   if (benchmarks.length === 0) {
