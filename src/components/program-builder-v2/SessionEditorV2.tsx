@@ -210,13 +210,11 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
             </p>
           </div>
 
-          <SessionDayEditor blocks={blocks} onChange={setBlocks} />
+          <SessionDayEditor blocks={blocks} onChange={handleBlocksChange} />
         </div>
       )}
       renderExerciseLibrary={() => (
-        <div className="p-4 text-xs text-muted-foreground">
-          Sélectionne les exercices directement dans chaque bloc à gauche.
-        </div>
+        <V2ExerciseBankSidebar onPick={handlePickFromBank} />
       )}
     />
   );
