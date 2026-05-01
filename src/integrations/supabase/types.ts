@@ -4253,23 +4253,31 @@ export type Database = {
           duration_seconds: number | null
           exercise_category: string | null
           exercise_name: string
+          fartlek_config: Json | null
           group_id: string | null
           group_order: number | null
           id: string
+          intermittent_config: Json | null
           library_exercise_id: string | null
+          linked_group_id: string | null
           method: string | null
+          method_config: Json | null
           notes: string | null
           order_index: number | null
           player_id: string
           reps: number | null
+          rest_pause_config: Json | null
           rest_seconds: number | null
           rpe: number | null
           set_type: string | null
           sets: number
+          stato_dynamique_config: Json | null
           target_force_newton: number | null
           tempo: string | null
           training_session_id: string
+          variable_sets: Json | null
           weight_kg: number | null
+          weightlifting_position: string | null
         }
         Insert: {
           category_id: string
@@ -4280,23 +4288,31 @@ export type Database = {
           duration_seconds?: number | null
           exercise_category?: string | null
           exercise_name: string
+          fartlek_config?: Json | null
           group_id?: string | null
           group_order?: number | null
           id?: string
+          intermittent_config?: Json | null
           library_exercise_id?: string | null
+          linked_group_id?: string | null
           method?: string | null
+          method_config?: Json | null
           notes?: string | null
           order_index?: number | null
           player_id: string
           reps?: number | null
+          rest_pause_config?: Json | null
           rest_seconds?: number | null
           rpe?: number | null
           set_type?: string | null
           sets?: number
+          stato_dynamique_config?: Json | null
           target_force_newton?: number | null
           tempo?: string | null
           training_session_id: string
+          variable_sets?: Json | null
           weight_kg?: number | null
+          weightlifting_position?: string | null
         }
         Update: {
           category_id?: string
@@ -4307,23 +4323,31 @@ export type Database = {
           duration_seconds?: number | null
           exercise_category?: string | null
           exercise_name?: string
+          fartlek_config?: Json | null
           group_id?: string | null
           group_order?: number | null
           id?: string
+          intermittent_config?: Json | null
           library_exercise_id?: string | null
+          linked_group_id?: string | null
           method?: string | null
+          method_config?: Json | null
           notes?: string | null
           order_index?: number | null
           player_id?: string
           reps?: number | null
+          rest_pause_config?: Json | null
           rest_seconds?: number | null
           rpe?: number | null
           set_type?: string | null
           sets?: number
+          stato_dynamique_config?: Json | null
           target_force_newton?: number | null
           tempo?: string | null
           training_session_id?: string
+          variable_sets?: Json | null
           weight_kg?: number | null
+          weightlifting_position?: string | null
         }
         Relationships: [
           {
