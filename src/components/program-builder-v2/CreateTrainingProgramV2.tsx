@@ -438,19 +438,10 @@ export function CreateTrainingProgramV2({
               </div>
             </CardHeader>
             <CardContent>
-              {/*
-                A7.2 will plug coloured TrainingBlockSection rows + method buttons here.
-                For now we render the read-only ProgramGridView slot as a placeholder
-                so the screen is not empty.
-              */}
-              <div className="rounded-2xl border border-dashed border-border/60 bg-muted/30 p-8 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Éditeur de session (blocs colorés + méthodes) — branché en A7.2.
-                </p>
-                <p className="text-xs text-muted-foreground/70 mt-1">
-                  Aucun exercice pour l'instant.
-                </p>
-              </div>
+              <SessionDayEditor
+                blocks={currentDay.blocks as TrainingBlock[]}
+                onChange={(blocks) => setDayBlocks(activeWeek, currentDay.id, blocks)}
+              />
             </CardContent>
           </Card>
         ) : (
