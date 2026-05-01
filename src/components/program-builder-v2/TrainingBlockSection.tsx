@@ -460,7 +460,7 @@ export const AddTrainingBlockButton = ({ onAddBlock, variant = "default" }: AddT
           Ajouter un bloc de travail
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="center" className="w-56">
+      <DropdownMenuContent align="center" className="w-56 z-[90]">
         {TRAINING_BLOCK_TYPES.map((blockType) => {
           const Icon = blockType.icon;
           return (
