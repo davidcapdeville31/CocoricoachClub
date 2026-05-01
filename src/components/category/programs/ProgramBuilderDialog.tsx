@@ -169,6 +169,7 @@ export function ProgramBuilderDialog({
   const [subTheme, setSubTheme] = useState<string>("");
   const [blocks, setBlocks] = useState<ProgramBlock[]>([]);
   const [saving, setSaving] = useState(false);
+  const [useV2Builder, setUseV2Builder] = useState(false);
   const [activeExercise, setActiveExercise] = useState<any>(null);
   const [selectedInjuryId, setSelectedInjuryId] = useState<string>("");
   const [selectedInjuryType, setSelectedInjuryType] = useState<string>("");
