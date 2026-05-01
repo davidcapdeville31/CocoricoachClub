@@ -633,7 +633,22 @@ export function SmartStatsComparator({
                         fill={metricColor(m.key)}
                         maxBarSize={18}
                         radius={[4, 4, 0, 0]}
-                      />
+                      >
+                        <LabelList
+                          dataKey={m.key}
+                          position="top"
+                          formatter={(val: any) =>
+                            val === 0 || val === null || val === undefined
+                              ? ""
+                              : fmt(Number(val), m)
+                          }
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 600,
+                            fill: "hsl(var(--foreground))",
+                          }}
+                        />
+                      </Bar>
                     ))}
                   </BarChart>
                 </ResponsiveContainer>
