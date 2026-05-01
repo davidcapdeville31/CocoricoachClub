@@ -201,6 +201,17 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
       });
     }
 
+    // 5) Catégorie d'âge — officielle par sport, valeur unique
+    const hasAgeCategory = attributes.some((a) => a.dimension === "age_category");
+    if (!hasAgeCategory) {
+      list.push({
+        dimension: "age_category" as AthleteDimension,
+        label: "Catégorie d'âge",
+        description: "Catégorie officielle de la fédération.",
+        options: getAgeCategoriesForSport(sportType),
+      });
+    }
+
     return list;
   }, [sportType, isAthletics, attributes]);
 
@@ -208,6 +219,12 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
   const lateralityOpts = getLateralityOptions(sportType);
   const lateralityLabel = lateralityAttr
     ? lateralityOpts.find((o) => o.value === lateralityAttr.value)?.label ?? lateralityAttr.value
+    : null;
+
+  const ageCategoryAttr = attributes.find((a) => a.dimension === ("age_category" as AthleteDimension));
+  const ageCategoryOpts = getAgeCategoriesForSport(sportType);
+  const ageCategoryLabel = ageCategoryAttr
+    ? getAgeCategoryLabel(sportType, ageCategoryAttr.value)
     : null;
 
   const requestEditPersonalInfo = () => {
