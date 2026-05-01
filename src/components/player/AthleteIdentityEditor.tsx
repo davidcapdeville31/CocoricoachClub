@@ -485,7 +485,26 @@ function DimensionBlock({
       )}
 
       <div className="flex flex-col sm:flex-row gap-2">
-        <Select value={draft} onValueChange={(v) => { setDraft(v); setDraftSpecialty(""); }}>
+        <Select
+          value={draft}
+          onValueChange={(v) => {
+            setDraft(v);
+            setDraftSpecialty("");
+            const needsSpecialty = isAthleticsDiscipline && (ATHLETISME_SPECIALTIES[v] || []).length > 0;
+            if (!needsSpecialty) {
+              const compoundKey = `${v}|`;
+              if (usedValues.has(compoundKey)) return;
+              onAdd({
+                dimension: config.dimension,
+                value: v,
+                is_primary: items.length === 0,
+                weight: null,
+                metadata: {},
+              });
+              setDraft("");
+            }
+          }}
+        >
           <SelectTrigger className="w-full bg-background">
             <SelectValue placeholder={`Ajouter ${config.label.toLowerCase()}…`} />
           </SelectTrigger>
