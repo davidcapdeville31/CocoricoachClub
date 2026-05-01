@@ -349,25 +349,52 @@ export function SmartStatsComparator({
         </div>
 
         {/* Sélection dimension (mode identité) */}
-        {mode === "identity" && dims.length > 0 && (
-          <div className="mt-2">
-            <label className="text-[10px] font-semibold uppercase text-muted-foreground tracking-wide">
-              Dimension
-            </label>
-            <Select value={activeDim ?? undefined} onValueChange={setSelectedDim}>
-              <SelectTrigger className="h-9 bg-muted/40 mt-0.5 w-full md:w-[280px]">
-                <SelectValue placeholder="Dimension" />
-              </SelectTrigger>
-              <SelectContent>
-                {dims.map((d) => (
-                  <SelectItem key={d} value={d}>
-                    {d.replace(/_/g, " ").replace(/^./, (s) => s.toUpperCase())}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+        {mode === "identity" && dims.length > 0 && (() => {
+          const DIM_LABELS: Record<string, string> = {
+            genre: "Genre",
+            age_category: "Catégorie d'âge",
+            laterality: "Latéralité",
+            position: "Poste",
+            discipline: "Discipline",
+            technical_style: "Style technique",
+            styles: "Styles",
+            specialties: "Spécialités",
+            profile: "Profil",
+          };
+          // Dimensions à masquer (peu pertinentes ou redondantes)
+          const HIDDEN_DIMS = new Set([
+            "birth_year",
+            "sport",
+            "sport_principal",
+            "sport_gender",
+            "positions_all",
+            "position_all",
+          ]);
+          const visibleDims = dims.filter((d) => !HIDDEN_DIMS.has(d));
+          if (visibleDims.length === 0) return null;
+          const labelFor = (d: string) =>
+            DIM_LABELS[d] ??
+            d.replace(/_/g, " ").replace(/^./, (s) => s.toUpperCase());
+          return (
+            <div className="mt-2">
+              <label className="text-[10px] font-semibold uppercase text-muted-foreground tracking-wide">
+                Dimension
+              </label>
+              <Select value={activeDim ?? undefined} onValueChange={setSelectedDim}>
+                <SelectTrigger className="h-9 bg-muted/40 mt-0.5 w-full md:w-[280px]">
+                  <SelectValue placeholder="Dimension" />
+                </SelectTrigger>
+                <SelectContent>
+                  {visibleDims.map((d) => (
+                    <SelectItem key={d} value={d}>
+                      {labelFor(d)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          );
+        })()}
       </CardHeader>
 
       <CardContent>
