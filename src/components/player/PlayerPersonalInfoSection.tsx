@@ -130,6 +130,7 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
         birth_date: playerInfo.birth_date,
         club_origin: playerInfo.club_origin,
         fis_code: playerInfo.fis_code,
+        gender: playerInfo.gender ?? null,
       });
     }
     setIsEditing(true);
