@@ -144,7 +144,7 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
     setIsEditing(false);
   };
 
-  const hasInfo = playerInfo?.email || playerInfo?.phone || playerInfo?.birth_date || playerInfo?.club_origin || playerInfo?.fis_code;
+  const hasInfo = playerInfo?.email || playerInfo?.phone || playerInfo?.birth_date || playerInfo?.club_origin || playerInfo?.fis_code || playerInfo?.gender;
 
   if (isLoading) {
     return (
