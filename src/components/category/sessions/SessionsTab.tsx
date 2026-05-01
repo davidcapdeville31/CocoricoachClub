@@ -248,22 +248,22 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Séances d'entraînement</h2>
-        {!isViewer && (
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => setV2EditorOpen(true)}
-              size="sm"
-              className="gap-1"
-              title="Ajouter une séance — méthodes d'intensification avancées"
-            >
-              <Sparkles className="h-4 w-4" />
-              Ajouter une séance
-            </Button>
-          </div>
-        )}
+      <div className="flex items-center justify-center">
+        <h2 className="text-lg font-semibold sr-only">Séances d'entraînement</h2>
       </div>
+      {!isViewer && (
+        <div className="flex items-center justify-center py-2">
+          <Button
+            onClick={() => setV2EditorOpen(true)}
+            size="lg"
+            className="gap-2 px-8 py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all rounded-2xl"
+            title="Ajouter une séance — méthodes d'intensification avancées"
+          >
+            <Sparkles className="h-5 w-5" />
+            Ajouter une séance
+          </Button>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Chargement...</div>
