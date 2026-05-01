@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { User, Edit2, Save, X, Phone, Mail, Calendar, MapPin, Mountain, Loader2 } from "lucide-react";
+import { User, Edit2, Save, X, Phone, Mail, Calendar, MapPin, Mountain, Loader2, UserCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { isSkiCategory } from "@/lib/constants/sportTypes";
 import { scrapeFisResults, importFisResultsForPlayer } from "@/lib/fis/scrapeFisResults";
 
@@ -24,6 +25,7 @@ interface PlayerPersonalInfo {
   birth_date: string | null;
   club_origin: string | null;
   fis_code: string | null;
+  gender: string | null;
 }
 
 export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = false, sportType = "XV" }: PlayerPersonalInfoSectionProps) {
@@ -35,6 +37,7 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
     birth_date: null,
     club_origin: null,
     fis_code: null,
+    gender: null,
   });
 
   const isSki = isSkiCategory(sportType);
@@ -44,7 +47,7 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select(`email, phone, birth_date, club_origin, fis_code, name`)
+        .select(`email, phone, birth_date, club_origin, fis_code, gender, name`)
         .eq("id", playerId)
         .single();
       if (error) throw error;
@@ -66,6 +69,7 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
           birth_date: data.birth_date,
           club_origin: data.club_origin,
           fis_code: data.fis_code,
+          gender: data.gender,
         })
         .eq("id", playerId);
       if (error) throw error;
@@ -126,6 +130,7 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
         birth_date: playerInfo.birth_date,
         club_origin: playerInfo.club_origin,
         fis_code: playerInfo.fis_code,
+        gender: playerInfo.gender ?? null,
       });
     }
     setIsEditing(true);
@@ -139,7 +144,7 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
     setIsEditing(false);
   };
 
-  const hasInfo = playerInfo?.email || playerInfo?.phone || playerInfo?.birth_date || playerInfo?.club_origin || playerInfo?.fis_code;
+  const hasInfo = playerInfo?.email || playerInfo?.phone || playerInfo?.birth_date || playerInfo?.club_origin || playerInfo?.fis_code || playerInfo?.gender;
 
   if (isLoading) {
     return (
@@ -242,6 +247,31 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
                 />
               </div>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="player_gender" className="flex items-center gap-2">
+                  <UserCircle2 className="h-4 w-4" />
+                  Genre
+                </Label>
+                <Select
+                  value={formData.gender ?? "unspecified"}
+                  onValueChange={(v) => setFormData({ ...formData, gender: v === "unspecified" ? null : v })}
+                >
+                  <SelectTrigger id="player_gender">
+                    <SelectValue placeholder="Sélectionner un genre" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unspecified">Non précisé</SelectItem>
+                    <SelectItem value="male">Masculin</SelectItem>
+                    <SelectItem value="female">Féminin</SelectItem>
+                    <SelectItem value="other">Autre</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Détermine quel barème spécifique (filles / garçons) s'applique sur les tests.
+                </p>
+              </div>
+            </div>
             {isSki && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -307,6 +337,17 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
                     <div>
                       <p className="text-xs text-muted-foreground">Club d'origine</p>
                       <p className="text-sm">{playerInfo.club_origin}</p>
+                    </div>
+                  </div>
+                )}
+                {playerInfo?.gender && (
+                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                    <UserCircle2 className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Genre</p>
+                      <p className="text-sm">
+                        {playerInfo.gender === "male" ? "Masculin" : playerInfo.gender === "female" ? "Féminin" : "Autre"}
+                      </p>
                     </div>
                   </div>
                 )}

@@ -47,6 +47,7 @@ export function AddPlayerDialogWithInvite({
   const [playerPhone, setPlayerPhone] = useState("");
   const [birthYear, setBirthYear] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [gender, setGender] = useState<"" | "male" | "female" | "other">("");
   const [discipline, setDiscipline] = useState("");
   const [specialty, setSpecialty] = useState("");
   // Athlétisme : un athlète peut pratiquer plusieurs disciplines/spécialités
@@ -247,6 +248,7 @@ export function AddPlayerDialogWithInvite({
       phone?: string; 
       birth_year?: number; 
       birth_date?: string; 
+      gender?: string;
       discipline?: string; 
       specialty?: string; 
       disciplines?: string[];
@@ -266,6 +268,7 @@ export function AddPlayerDialogWithInvite({
           phone: data.phone || null,
           birth_year: data.birth_year,
           birth_date: data.birth_date || null,
+          gender: data.gender || null,
           discipline: data.discipline || null,
           specialty: data.specialty || null,
           disciplines: data.disciplines && data.disciplines.length > 0 ? data.disciplines : null,
@@ -360,6 +363,7 @@ export function AddPlayerDialogWithInvite({
         phone: playerPhone.trim() || undefined,
         birth_year: result.data.birthYear,
         birth_date: birthDate || undefined,
+        gender: gender || undefined,
         discipline: primaryDiscipline || undefined,
         specialty: primarySpecialty || undefined,
         disciplines: disciplineList,
@@ -1078,6 +1082,21 @@ export function AddPlayerDialogWithInvite({
               ))}
             </div>
 
+            {/* Genre */}
+            <div className="space-y-2">
+              <Label htmlFor="gender">Genre</Label>
+              <Select value={gender} onValueChange={(v) => setGender(v as any)}>
+                <SelectTrigger id="gender">
+                  <SelectValue placeholder="Sélectionner un genre (optionnel)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Masculin</SelectItem>
+                  <SelectItem value="female">Féminin</SelectItem>
+                  <SelectItem value="other">Autre / Non précisé</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Utilisé pour appliquer automatiquement les barèmes spécifiques (filles / garçons) sur les tests.</p>
+            </div>
 
             {/* Send Invitation Checkbox */}
             <div className="flex items-center space-x-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
