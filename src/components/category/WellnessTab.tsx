@@ -91,10 +91,14 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
     return avg.toFixed(1);
   };
 
-  // Filter wellness data by selected date
-  const filteredWellnessData = filterDate
-    ? wellnessData?.filter(entry => entry.tracking_date === format(filterDate, "yyyy-MM-dd"))
-    : wellnessData;
+  // Filter wellness data by date range
+  const fromStr = filterFrom ? format(filterFrom, "yyyy-MM-dd") : null;
+  const toStr = filterTo ? format(filterTo, "yyyy-MM-dd") : null;
+  const filteredWellnessData = wellnessData?.filter(entry => {
+    if (fromStr && entry.tracking_date < fromStr) return false;
+    if (toStr && entry.tracking_date > toStr) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-6">
