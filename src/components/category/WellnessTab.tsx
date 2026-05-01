@@ -33,7 +33,8 @@ const getScoreBadgeClass = (score: number) => {
 
 export function WellnessTab({ categoryId }: WellnessTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [filterDate, setFilterDate] = useState<Date | undefined>(subDays(new Date(), 1));
+  const [filterFrom, setFilterFrom] = useState<Date | undefined>(subDays(new Date(), 7));
+  const [filterTo, setFilterTo] = useState<Date | undefined>(new Date());
   const { isViewer } = useViewerModeContext();
 
   useRealtimeSync({
