@@ -443,18 +443,14 @@ function PlayerDetailsContent() {
           />
         </div>
 
-        {/* Personal Info Section */}
-        <div className="mb-3">
+        {/* Fiche Personnelle + Informations complémentaires + Entraîneurs sur la même ligne */}
+        <div className="mb-3 grid grid-cols-1 lg:grid-cols-3 gap-3">
           <PlayerPersonalInfoSection 
             playerId={playerId!}
             categoryId={player.category_id}
             isViewer={isViewer}
             sportType={sportType}
           />
-        </div>
-
-        {/* Contacts complémentaires (parents) + entraîneurs */}
-        <div className="mb-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
           <PlayerAdditionalInfoSection playerId={playerId!} isViewer={isViewer} />
           <PlayerCoachesSection playerId={playerId!} categoryId={player.category_id} isViewer={isViewer} />
         </div>
