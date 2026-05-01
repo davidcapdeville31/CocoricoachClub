@@ -57,6 +57,25 @@ export const getDefaultClusterConfig = (): ClusterConfig => ({
   loadValue: 85,
 });
 
+export const calculateClusterVolume = (config: ClusterConfig): {
+  totalReps: number | 'variable';
+  totalSets: number;
+  repsPerSet: number | 'variable';
+  estimatedTonnage: number | null;
+} => {
+  const hasMax = config.clusterSteps.some(s => s.reps === 'max');
+  if (hasMax) {
+    return { totalReps: 'variable', totalSets: config.sets, repsPerSet: 'variable', estimatedTonnage: null };
+  }
+  const repsPerSet = config.clusterSteps.reduce((sum, s) => sum + (s.reps as number), 0);
+  const totalReps = repsPerSet * config.sets;
+  let estimatedTonnage: number | null = null;
+  if (config.loadType === 'weight_kg' && config.loadValue) {
+    estimatedTonnage = config.loadValue * totalReps;
+  }
+  return { totalReps, totalSets: config.sets, repsPerSet, estimatedTonnage };
+};
+
 export const formatClusterSummary = (config: ClusterConfig): string => {
   const loadDisplay = config.loadType === 'percentage'
     ? `${config.loadValue}% 1RM`
