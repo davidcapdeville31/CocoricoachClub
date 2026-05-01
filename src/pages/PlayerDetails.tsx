@@ -29,6 +29,7 @@ import { TransferPlayerDialog } from "@/components/player/TransferPlayerDialog";
 import { PlayerTransferHistory } from "@/components/player/PlayerTransferHistory";
 import { AthleteAccessSection } from "@/components/player/AthleteAccessSection";
 import { PlayerAdditionalInfoSection } from "@/components/player/PlayerAdditionalInfoSection";
+import { PlayerCoachesSection } from "@/components/player/PlayerCoachesSection";
 import { PlayerPersonalInfoSection } from "@/components/player/PlayerPersonalInfoSection";
 import { AthleticsDisciplinesEditor } from "@/components/player/AthleticsDisciplinesEditor";
 import { PlayerReferenceCard } from "@/components/player/PlayerReferenceCard";
@@ -450,6 +451,12 @@ function PlayerDetailsContent() {
             isViewer={isViewer}
             sportType={sportType}
           />
+        </div>
+
+        {/* Contacts complémentaires (parents) + entraîneurs */}
+        <div className="mb-3 space-y-3">
+          <PlayerAdditionalInfoSection playerId={playerId!} isViewer={isViewer} />
+          <PlayerCoachesSection playerId={playerId!} categoryId={player.category_id} isViewer={isViewer} />
         </div>
 
         {/* Athlétisme : éditeur multi-disciplines / spécialités */}
