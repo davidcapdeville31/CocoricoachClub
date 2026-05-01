@@ -35,8 +35,10 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ProgramGridView, type UnifiedOrderItem } from "./ProgramGridView";
+import { type UnifiedOrderItem } from "./ProgramGridView";
 import { DAYS_OF_WEEK } from "./lib/trainingProgramsData";
+import { SessionDayEditor } from "./SessionDayEditor";
+import type { TrainingBlock } from "./TrainingBlockSection";
 import { toast } from "sonner";
 
 // -- Local types ---------------------------------------------------------------
