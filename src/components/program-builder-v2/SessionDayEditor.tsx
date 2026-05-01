@@ -35,8 +35,8 @@ import { ExercisePicker, type PickedExercise } from "./ExercisePicker";
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
 
 export interface SessionDayEditorProps {
-  blocks: TrainingBlock[];
-  onChange: (blocks: TrainingBlock[]) => void;
+  blocks: V2BlockWithExercises[];
+  onChange: (blocks: V2BlockWithExercises[]) => void;
 }
 
 function makeBlockId() {
