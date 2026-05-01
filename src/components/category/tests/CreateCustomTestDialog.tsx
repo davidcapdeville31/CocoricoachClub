@@ -263,6 +263,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
     setEnableScoring(false);
     setScoringScale(null);
     setFormulaConfig(null);
+    setImageUrl(null);
   };
 
   const handleSubmit = () => {
