@@ -453,6 +453,12 @@ function PlayerDetailsContent() {
           />
         </div>
 
+        {/* Contacts complémentaires (parents) + entraîneurs */}
+        <div className="mb-3 space-y-3">
+          <PlayerAdditionalInfoSection playerId={playerId!} isViewer={isViewer} />
+          <PlayerCoachesSection playerId={playerId!} categoryId={player.category_id} isViewer={isViewer} />
+        </div>
+
         {/* Athlétisme : éditeur multi-disciplines / spécialités */}
         {isAthletismeCategory(sportType) && !isViewer && (
           <div className="mb-3">
