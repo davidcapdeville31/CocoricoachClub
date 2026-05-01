@@ -237,6 +237,7 @@ export function SessionFeedbackDialog({
         test_type: t.test_type,
         result_unit: t.result_unit || "",
         player_results: {},
+        isPreselected: true,
       }));
       setSessionTests(entries);
     }
