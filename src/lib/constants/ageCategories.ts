@@ -145,9 +145,10 @@ const GENERIC_U_CATEGORIES: AgeCategoryOption[] = [
 export function getAgeCategoriesForSport(sportType: string): AgeCategoryOption[] {
   if (AGE_CATEGORIES_BY_SPORT[sportType]) return AGE_CATEGORIES_BY_SPORT[sportType];
 
-  // Préfixes dynamiques (ski_*, athletisme_*)
+  // Préfixes dynamiques (ski_*, athletisme_*, bowling_*)
   if (sportType?.startsWith("ski_") || sportType === "snowboard") return skiCategories();
   if (sportType?.startsWith("athletisme")) return athletismeCategories();
+  if (sportType?.startsWith("bowling")) return AGE_CATEGORIES_BY_SPORT.bowling;
 
   return GENERIC_U_CATEGORIES;
 }
