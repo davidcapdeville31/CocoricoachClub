@@ -79,6 +79,18 @@ const LATERALITY_OPTIONS: { value: string; label: string }[] = [
   { value: "ambidextre", label: "Ambidextre" },
 ];
 
+const LATERALITY_OPTIONS_BOWLING: { value: string; label: string }[] = [
+  { value: "droitier_1main", label: "Droitier 1 main" },
+  { value: "droitier_2mains", label: "Droitier 2 mains" },
+  { value: "gaucher_1main", label: "Gaucher 1 main" },
+  { value: "gaucher_2mains", label: "Gaucher 2 mains" },
+  { value: "ambidextre", label: "Ambidextre" },
+];
+
+function getLateralityOptions(sportType: string) {
+  return sportType === "bowling" ? LATERALITY_OPTIONS_BOWLING : LATERALITY_OPTIONS;
+}
+
 const STYLES_BY_SPORT: Record<string, { value: string; label: string }[]> = {
   bowling: [
     { value: "1_main", label: "1 main" },
