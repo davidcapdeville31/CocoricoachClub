@@ -15,7 +15,7 @@ interface Props {
   sportType?: string;
 }
 
-export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
+export function AthleteSpaceTests({ playerId, sportType }: Props) {
   const testCategories = useMemo(() => getTestCategoriesForSport(sportType || ""), [sportType]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
@@ -58,31 +58,6 @@ export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
     },
   });
 
-  // Group generic tests by test_type
-  const genericByType = useMemo(() => {
-    const map: Record<string, { date: string; fullDate: string; value: number; unit: string; label: string; categoryLabel: string; categoryValue: string; notes: string | null }[]> = {};
-    genericTests.forEach((t: any) => {
-      const key = `${t.test_category}__${t.test_type}`;
-      if (!map[key]) map[key] = [];
-      const cat = testCategories.find(c => c.value === t.test_category);
-      const testDef = cat?.tests.find(tt => tt.value === t.test_type);
-      const label = testDef?.label || t.test_type?.replace(/_/g, " ") || "Test";
-      const categoryLabel = cat?.label || t.test_category?.replace(/_/g, " ") || "";
-      map[key].push({
-        date: format(new Date(t.test_date), "dd/MM", { locale: fr }),
-        fullDate: format(new Date(t.test_date), "dd MMM yyyy", { locale: fr }),
-        value: t.result_value,
-        unit: t.result_unit || "",
-        label,
-        categoryLabel,
-        categoryValue: t.test_category,
-        notes: t.notes,
-      });
-    });
-    return map;
-  }, [genericTests, testCategories]);
-
-  // Categories with data
   const categoriesWithData = useMemo(() => {
     const catSet = new Set<string>();
     if (speedTests.length > 0) catSet.add("__speed__");
@@ -104,13 +79,6 @@ export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
   const showSpeed = selectedCategory === "all" || selectedCategory === "__speed__";
   const showStrength = selectedCategory === "all" || selectedCategory === "__strength__";
 
-  const filteredGeneric = useMemo(() => {
-    if (selectedCategory === "all") return genericByType;
-    return Object.fromEntries(
-      Object.entries(genericByType).filter(([, data]) => data[0]?.categoryValue === selectedCategory)
-    );
-  }, [selectedCategory, genericByType]);
-
   if (isLoading) return null;
 
   const noData = genericTests.length === 0 && speedTests.length === 0 && strengthTests.length === 0;
@@ -125,34 +93,14 @@ export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
     );
   }
 
-  // Speed chart
-  const speedChartData = speedTests
-    .filter((t: any) => t.time_40m_seconds)
-    .map((t: any) => ({
-      date: format(new Date(t.test_date), "dd/MM", { locale: fr }),
-      fullDate: format(new Date(t.test_date), "dd MMM yyyy", { locale: fr }),
-      temps: t.time_40m_seconds,
-    }));
-
-  // Strength by exercise
-  const strengthByExercise: Record<string, { date: string; fullDate: string; value: number }[]> = {};
-  strengthTests.forEach((t: any) => {
-    if (!strengthByExercise[t.test_name]) strengthByExercise[t.test_name] = [];
-    strengthByExercise[t.test_name].push({
-      date: format(new Date(t.test_date), "dd/MM", { locale: fr }),
-      fullDate: format(new Date(t.test_date), "dd MMM yyyy", { locale: fr }),
-      value: t.weight_kg,
-    });
-  });
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Filters */}
       {availableFilters.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-muted-foreground">Filtrer</span>
+            <span className="text-sm font-medium text-muted-foreground">Filtrer l'historique</span>
           </div>
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex gap-2 pb-2">
@@ -180,8 +128,6 @@ export function AthleteSpaceTests({ playerId, categoryId, sportType }: Props) {
           </ScrollArea>
         </div>
       )}
-
-      {/* Graphiques supprimés — affichage compact mobile-friendly via "Comparatif tests" */}
 
       {/* Full test history table */}
       <Card className="bg-gradient-card shadow-md">
