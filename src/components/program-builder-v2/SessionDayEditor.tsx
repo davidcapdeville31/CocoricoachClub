@@ -415,7 +415,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
       )}
     </div>
   );
-}
+});
 
 // -- Helpers -------------------------------------------------------------------
 
