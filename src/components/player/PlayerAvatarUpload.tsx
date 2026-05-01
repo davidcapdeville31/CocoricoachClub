@@ -52,6 +52,18 @@ export function PlayerAvatarUpload({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player", playerId] });
+      // Invalider toutes les listes d'effectifs / vues qui affichent les avatars
+      queryClient.invalidateQueries({
+        predicate: (q) => {
+          const k = q.queryKey?.[0];
+          return typeof k === "string" && (
+            k === "players" ||
+            k === "category-players" ||
+            k === "players_safe" ||
+            k.startsWith("players")
+          );
+        },
+      });
       toast.success("Photo mise à jour");
       setUploading(false);
     },
