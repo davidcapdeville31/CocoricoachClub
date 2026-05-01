@@ -49,7 +49,7 @@ export function BenchmarkTab({ categoryId, sportType }: BenchmarkTabProps) {
           allowedDimensions={[
             "position",
             "discipline",
-            "performance_profile",
+            
             "technical_style",
             "genre",
             "age_category",

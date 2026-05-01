@@ -33,7 +33,7 @@ const DIMENSION_LABELS: Record<string, string> = {
   position: "Poste",
   discipline: "Discipline",
   technical_style: "Style technique",
-  performance_profile: "Profil de performance",
+  
   genre: "Genre",
   age_category: "Catégorie d'âge",
   sport_principal: "Sport principal",
