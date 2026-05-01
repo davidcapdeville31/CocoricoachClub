@@ -398,12 +398,14 @@ export function SmartStatsComparator({
           const labelFor = (d: string) =>
             DIM_LABELS[d] ??
             d.replace(/_/g, " ").replace(/^./, (s) => s.toUpperCase());
+          // Si activeDim est masqué (ou non défini), on retombe sur la 1ʳᵉ dimension visible
+          const currentDim = activeDim && visibleDims.includes(activeDim) ? activeDim : visibleDims[0];
           return (
             <div className="mt-2">
               <label className="text-[10px] font-semibold uppercase text-muted-foreground tracking-wide">
                 Dimension
               </label>
-              <Select value={activeDim ?? undefined} onValueChange={setSelectedDim}>
+              <Select value={currentDim} onValueChange={setSelectedDim}>
                 <SelectTrigger className="h-9 bg-muted/40 mt-0.5 w-full md:w-[280px]">
                   <SelectValue placeholder="Dimension" />
                 </SelectTrigger>
