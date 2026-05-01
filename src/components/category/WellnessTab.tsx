@@ -139,6 +139,18 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
                   </CardDescription>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
+                  {/* Player filter */}
+                  <Select value={filterPlayerId} onValueChange={setFilterPlayerId}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Tous les athlètes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les athlètes</SelectItem>
+                      {playersList.map(p => (
+                        <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {/* Date range: from */}
                   <Popover>
                     <PopoverTrigger asChild>
@@ -190,12 +202,12 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
                       />
                     </PopoverContent>
                   </Popover>
-                  {(filterFrom || filterTo) && (
+                  {hasActiveFilter && (
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => { setFilterFrom(undefined); setFilterTo(undefined); }}
-                      title="Effacer le filtre"
+                      onClick={() => { setFilterFrom(undefined); setFilterTo(undefined); setFilterPlayerId("all"); }}
+                      title="Effacer les filtres"
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -212,8 +224,8 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
             <CardContent>
         {!filteredWellnessData || filteredWellnessData.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <p>{(filterFrom || filterTo) ? "Aucune donnée wellness pour la période sélectionnée." : "Aucune donnée wellness enregistrée."}</p>
-            {!isViewer && !filterFrom && !filterTo && (
+            <p>{hasActiveFilter ? "Aucune donnée wellness pour les filtres sélectionnés." : "Aucune donnée wellness enregistrée."}</p>
+            {!isViewer && !hasActiveFilter && (
               <Button 
                 variant="outline" 
                 className="mt-4"
