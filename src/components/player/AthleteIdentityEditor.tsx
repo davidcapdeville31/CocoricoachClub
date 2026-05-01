@@ -93,8 +93,6 @@ function getLateralityOptions(sportType: string) {
 
 const STYLES_BY_SPORT: Record<string, { value: string; label: string }[]> = {
   bowling: [
-    { value: "1_main", label: "1 main" },
-    { value: "2_mains", label: "2 mains" },
     { value: "stroker", label: "Stroker" },
     { value: "cranker", label: "Cranker" },
     { value: "tweener", label: "Tweener" },
