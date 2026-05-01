@@ -38,6 +38,12 @@ interface Props {
   sportType: string;
 }
 
+const LATERALITY_OPTIONS: { value: string; label: string }[] = [
+  { value: "droitier", label: "Droitier" },
+  { value: "gaucher", label: "Gaucher" },
+  { value: "ambidextre", label: "Ambidextre" },
+];
+
 const STYLES_BY_SPORT: Record<string, { value: string; label: string }[]> = {
   bowling: [
     { value: "1_main", label: "1 main" },
@@ -47,16 +53,38 @@ const STYLES_BY_SPORT: Record<string, { value: string; label: string }[]> = {
     { value: "tweener", label: "Tweener" },
   ],
   tennis: [
-    { value: "droitier", label: "Droitier" },
-    { value: "gaucher", label: "Gaucher" },
     { value: "revers_1main", label: "Revers 1 main" },
     { value: "revers_2mains", label: "Revers 2 mains" },
+    { value: "service_volley", label: "Service-volée" },
+    { value: "fond_court", label: "Fond de court" },
+    { value: "contre_attaquant", label: "Contre-attaquant" },
   ],
   padel: [
-    { value: "droitier", label: "Droitier" },
-    { value: "gaucher", label: "Gaucher" },
-    { value: "cote_droit", label: "Côté droit" },
-    { value: "cote_gauche", label: "Côté gauche" },
+    { value: "cote_droit", label: "Côté droit (revers)" },
+    { value: "cote_gauche", label: "Côté gauche (coup droit)" },
+    { value: "polyvalent", label: "Polyvalent" },
+  ],
+  judo: [
+    { value: "tachi_waza", label: "Tachi-waza (debout)" },
+    { value: "ne_waza", label: "Ne-waza (sol)" },
+    { value: "migi", label: "Garde droite (migi)" },
+    { value: "hidari", label: "Garde gauche (hidari)" },
+  ],
+  ski: [
+    { value: "technicien", label: "Technicien" },
+    { value: "vitesse", label: "Skieur de vitesse" },
+    { value: "polyvalent", label: "Polyvalent" },
+  ],
+  snowboard: [
+    { value: "regular", label: "Regular" },
+    { value: "goofy", label: "Goofy" },
+    { value: "switch", label: "Switch confirmé" },
+  ],
+  surf: [
+    { value: "regular", label: "Regular" },
+    { value: "goofy", label: "Goofy" },
+    { value: "shortboard", label: "Shortboard" },
+    { value: "longboard", label: "Longboard" },
   ],
 };
 
