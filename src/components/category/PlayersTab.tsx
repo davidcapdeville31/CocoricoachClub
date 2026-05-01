@@ -474,7 +474,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                 </Button>
                 <Button onClick={() => setIsBulkDialogOpen(true)} variant="outline" size="sm" className="gap-1.5 flex-1 sm:flex-none">
                   <FileSpreadsheet className="h-4 w-4" />
-                  <span className="hidden sm:inline">Import Excel</span>
+                  <span className="hidden sm:inline">Importer ses athlètes depuis un fichier Excel</span>
                 </Button>
                 <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="gap-1.5 flex-1 sm:flex-none">
                   <Plus className="h-4 w-4" />
