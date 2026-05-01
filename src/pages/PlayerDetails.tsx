@@ -454,7 +454,7 @@ function PlayerDetailsContent() {
         </div>
 
         {/* Contacts complémentaires (parents) + entraîneurs */}
-        <div className="mb-3 space-y-3">
+        <div className="mb-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
           <PlayerAdditionalInfoSection playerId={playerId!} isViewer={isViewer} />
           <PlayerCoachesSection playerId={playerId!} categoryId={player.category_id} isViewer={isViewer} />
         </div>
