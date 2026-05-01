@@ -5,7 +5,7 @@
 // Les autres ConfigMethod (Drop Set, EMOM, AMRAP, Tabata, etc.) déclenchent
 // MethodConfigSlots.
 
-import { useCallback, useMemo, useState } from "react";
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +34,20 @@ export interface SessionDayEditorProps {
   onChange: (blocks: V2BlockWithExercises[]) => void;
 }
 
+export interface SessionDayEditorHandle {
+  /** Insère un exercice depuis la bibliothèque externe.
+   *  - Si une méthode liée (Biset/Superset/...) est en cours d'édition sur le bloc cible,
+   *    l'exercice est placé dans le prochain slot vide de la carte de configuration.
+   *  - Sinon, il est ajouté comme exercice normal au bloc.
+   *  Retourne true si l'insertion a eu lieu. */
+  insertExternalExercise: (
+    blockId: string,
+    picked: { id: string; name: string },
+  ) => boolean;
+  /** Indique s'il existe un draft de méthode liée actif pour le bloc donné */
+  hasActiveLinkedDraft: (blockId: string) => boolean;
+}
+
 type LinkedDraft = {
   blockId: string;
   method: LinkedMethodType;
@@ -54,7 +68,7 @@ const LINKED_METHODS: LinkedMethodType[] = [
   "combine_haltero",
 ];
 
-export function SessionDayEditor({ blocks, onChange }: SessionDayEditorProps) {
+export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEditorProps>(function SessionDayEditor({ blocks, onChange }, ref) {
   // Drafts en cours pour les méthodes liées (un par bloc max)
   const [linkedDrafts, setLinkedDrafts] = useState<Record<string, LinkedDraft>>({});
   // Mode actif pour méthode "config" (drop_set, emom, etc.) — toast informatif en attendant le wiring complet
