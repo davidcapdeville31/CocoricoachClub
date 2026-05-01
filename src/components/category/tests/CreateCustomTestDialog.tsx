@@ -210,6 +210,10 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
       queryClient.invalidateQueries({ queryKey: ["custom-test-categories", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["custom-tests", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["generic_tests_discovery", categoryId] });
+      // Invalider la liste utilisée par GenericTestsSection (toutes variantes de defaultCategory)
+      queryClient.invalidateQueries({ queryKey: ["custom_tests_list", categoryId] });
+      // Invalider aussi les onglets du parent (TestsTab)
+      queryClient.invalidateQueries({ queryKey: ["custom-test-categories"] });
       resetForm();
       onOpenChange(false);
     },
