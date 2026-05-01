@@ -216,6 +216,7 @@ export function SessionFeedbackDialog({
             player_results: {},
             savedPlayerIds: new Set<string>(),
             isExisting: true,
+            isPreselected: true,
           });
         }
         const group = testGroups.get(key)!;
