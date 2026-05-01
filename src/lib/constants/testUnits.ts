@@ -40,18 +40,102 @@ export interface ScoringRange {
   label?: string;           // optional label (e.g. "PÔLE 1ere année")
 }
 
-export interface ScoringScale {
+/**
+ * Filter targeting a specific subset of athletes (by gender, position group, etc.)
+ * Empty arrays = no constraint on that dimension.
+ */
+export interface ScoringVariantFilter {
+  genders?: string[];          // e.g. ["male"], ["female"]
+  positionGroups?: string[];   // e.g. ["avants"]
+  positions?: string[];        // raw positions (free text)
+}
+
+export interface ScoringVariant {
+  id: string;
+  label: string;               // human label, e.g. "Avants", "Filles U16"
+  filter: ScoringVariantFilter;
   ranges: ScoringRange[];
-  lowerIsBetter?: boolean;  // for time-based tests where lower = better
+  lowerIsBetter?: boolean;
+}
+
+export interface ScoringScale {
+  // Default / fallback scale (used when no variant matches an athlete)
+  ranges: ScoringRange[];
+  lowerIsBetter?: boolean;
+  // Optional specific variants (filles/garçons, postes, etc.)
+  variants?: ScoringVariant[];
+}
+
+/**
+ * Minimal player attributes needed to pick the right variant.
+ */
+export interface PlayerForScoring {
+  gender?: string | null;          // 'male' | 'female' | etc.
+  position?: string | null;        // raw position
+  positionGroup?: string | null;   // resolved group id (e.g. 'avants')
+}
+
+/**
+ * Pick the most specific variant matching the player. Falls back to base scale.
+ * "Most specific" = variant with the most filter dimensions defined that all match.
+ */
+export function pickScaleVariant(
+  scale?: ScoringScale | null,
+  player?: PlayerForScoring | null
+): { ranges: ScoringRange[]; lowerIsBetter?: boolean; variantLabel?: string } | null {
+  if (!scale) return null;
+  const base = { ranges: scale.ranges || [], lowerIsBetter: scale.lowerIsBetter };
+  if (!player || !scale.variants?.length) return base;
+
+  let best: { v: ScoringVariant; score: number } | null = null;
+  for (const v of scale.variants) {
+    const f = v.filter || {};
+    let score = 0;
+    let ok = true;
+
+    if (f.genders?.length) {
+      if (!player.gender || !f.genders.includes(player.gender)) { ok = false; }
+      else score += 1;
+    }
+    if (ok && f.positionGroups?.length) {
+      if (!player.positionGroup || !f.positionGroups.includes(player.positionGroup)) { ok = false; }
+      else score += 2; // position group is more specific
+    }
+    if (ok && f.positions?.length) {
+      const playerPos = (player.position || "").toLowerCase().trim();
+      if (!playerPos || !f.positions.some(p => p.toLowerCase().trim() === playerPos)) { ok = false; }
+      else score += 3;
+    }
+
+    if (ok && score > 0 && (!best || score > best.score)) {
+      best = { v, score };
+    }
+  }
+
+  if (best) {
+    return {
+      ranges: best.v.ranges || [],
+      lowerIsBetter: best.v.lowerIsBetter,
+      variantLabel: best.v.label,
+    };
+  }
+  return base;
 }
 
 /**
  * Compute points awarded for a given result value based on a scoring scale.
+ * If a player is provided, picks the most specific matching variant.
  * Returns 0 if no range matches.
  */
-export function computePoints(value: number | null | undefined, scale?: ScoringScale | null): number {
-  if (value == null || isNaN(value) || !scale?.ranges?.length) return 0;
-  for (const r of scale.ranges) {
+export function computePoints(
+  value: number | null | undefined,
+  scale?: ScoringScale | null,
+  player?: PlayerForScoring | null
+): number {
+  if (value == null || isNaN(value)) return 0;
+  const picked = pickScaleVariant(scale, player);
+  if (!picked?.ranges?.length) return 0;
+  for (const r of picked.ranges) {
     const minOk = r.min == null || value >= r.min;
     const maxOk = r.max == null || value <= r.max;
     if (minOk && maxOk) return r.points;
@@ -62,9 +146,15 @@ export function computePoints(value: number | null | undefined, scale?: ScoringS
 /**
  * Find which range label matches a value (for display)
  */
-export function findMatchingRange(value: number | null | undefined, scale?: ScoringScale | null): ScoringRange | null {
-  if (value == null || isNaN(value) || !scale?.ranges?.length) return null;
-  for (const r of scale.ranges) {
+export function findMatchingRange(
+  value: number | null | undefined,
+  scale?: ScoringScale | null,
+  player?: PlayerForScoring | null
+): ScoringRange | null {
+  if (value == null || isNaN(value)) return null;
+  const picked = pickScaleVariant(scale, player);
+  if (!picked?.ranges?.length) return null;
+  for (const r of picked.ranges) {
     const minOk = r.min == null || value >= r.min;
     const maxOk = r.max == null || value <= r.max;
     if (minOk && maxOk) return r;
