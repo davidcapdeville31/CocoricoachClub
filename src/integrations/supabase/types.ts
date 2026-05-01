@@ -7962,6 +7962,7 @@ export type Database = {
           fis_objective_date: string | null
           fis_points: number | null
           fis_ranking: number | null
+          gender: string | null
           id: string
           medical_notes: string | null
           name: string
@@ -8000,6 +8001,7 @@ export type Database = {
           fis_objective_date?: string | null
           fis_points?: number | null
           fis_ranking?: number | null
+          gender?: string | null
           id?: string
           medical_notes?: string | null
           name: string
@@ -8038,6 +8040,7 @@ export type Database = {
           fis_objective_date?: string | null
           fis_points?: number | null
           fis_ranking?: number | null
+          gender?: string | null
           id?: string
           medical_notes?: string | null
           name?: string
