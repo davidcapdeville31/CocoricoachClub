@@ -37,6 +37,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
   const [objectives, setObjectives] = useState("");
   const [enableScoring, setEnableScoring] = useState(false);
   const [scoringScale, setScoringScale] = useState<ScoringScale | null>(null);
+  const [formulaConfig, setFormulaConfig] = useState<FormulaConfig | null>(null);
 
   const baseTestCategories = useMemo(() => {
     return getTestCategoriesForSport(sportType || "").filter(c => !c.value.startsWith("rehab_"));
