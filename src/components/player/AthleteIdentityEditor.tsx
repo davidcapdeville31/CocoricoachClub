@@ -136,6 +136,14 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
       });
     }
 
+    // 4) Latéralité — universelle
+    list.push({
+      dimension: "laterality",
+      label: "Latéralité",
+      description: "Main / pied dominant.",
+      options: LATERALITY_OPTIONS,
+    });
+
     return list;
   }, [sportType, isAthletics]);
 
