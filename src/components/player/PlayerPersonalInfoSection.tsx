@@ -173,7 +173,7 @@ export function PlayerPersonalInfoSection({ playerId, categoryId, isViewer = fal
   }
 
   return (
-    <Card className="bg-gradient-card shadow-md">
+    <Card ref={cardRef} className="bg-gradient-card shadow-md">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2 text-lg">
           <User className="h-5 w-5" />
