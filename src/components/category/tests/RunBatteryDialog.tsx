@@ -14,7 +14,9 @@ import {
 } from "@/components/ui/select";
 import {
   computePoints, findMatchingRange, getLevelForPercent, type ScoringScale, type BatteryLevel,
+  type PlayerForScoring,
 } from "@/lib/constants/testUnits";
+import { getPositionGroupsForSport, playerBelongsToGroup } from "@/lib/constants/sportPositionGroups";
 import { toast } from "sonner";
 
 interface RunBatteryDialogProps {
