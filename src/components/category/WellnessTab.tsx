@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, AlertTriangle, Calendar, X } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -35,6 +36,7 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterFrom, setFilterFrom] = useState<Date | undefined>(subDays(new Date(), 7));
   const [filterTo, setFilterTo] = useState<Date | undefined>(new Date());
+  const [filterPlayerId, setFilterPlayerId] = useState<string>("all");
   const { isViewer } = useViewerModeContext();
 
   useRealtimeSync({
@@ -97,8 +99,20 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
   const filteredWellnessData = wellnessData?.filter(entry => {
     if (fromStr && entry.tracking_date < fromStr) return false;
     if (toStr && entry.tracking_date > toStr) return false;
+    if (filterPlayerId !== "all" && entry.player_id !== filterPlayerId) return false;
     return true;
   });
+
+  // Unique players list from wellness data for the dropdown
+  const playersList = Array.from(
+    new Map(
+      (wellnessData || [])
+        .filter(e => e.player_id && e.players)
+        .map(e => [e.player_id, { id: e.player_id as string, label: [e.players?.first_name, e.players?.name].filter(Boolean).join(" ") }])
+    ).values()
+  ).sort((a, b) => a.label.localeCompare(b.label));
+
+  const hasActiveFilter = !!filterFrom || !!filterTo || filterPlayerId !== "all";
 
   return (
     <div className="space-y-6">
