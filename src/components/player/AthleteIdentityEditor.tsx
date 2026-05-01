@@ -162,10 +162,13 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
     // 1) Positions (sports collectifs)
     const positions = getPositionsForSport(sportType as any);
     if (positions.length > 0 && !isAthletics) {
+      const teamSport = isTeamSport(sportType);
       list.push({
         dimension: "position",
-        label: "Postes",
-        description: "Postes occupés (cochez le principal, ajoutez des secondaires).",
+        label: teamSport ? "Poste" : "Postes",
+        description: teamSport
+          ? "Un seul poste par athlète."
+          : "Postes occupés (cochez le principal, ajoutez des secondaires).",
         options: positions.map((p) => ({ value: p.name, label: `${p.id}. ${p.name}` })),
       });
     }
