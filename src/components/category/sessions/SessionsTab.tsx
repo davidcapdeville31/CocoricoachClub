@@ -256,10 +256,10 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
               onClick={() => setV2EditorOpen(true)}
               size="sm"
               className="gap-1"
-              title="Nouvel éditeur — méthodes d'intensification avancées"
+              title="Ajouter une séance — méthodes d'intensification avancées"
             >
               <Sparkles className="h-4 w-4" />
-              Nouvel éditeur (V2)
+              Ajouter une séance
             </Button>
           </div>
         )}
@@ -272,7 +272,7 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
           <CardContent className="py-8 text-center text-muted-foreground">
             <Dumbbell className="h-12 w-12 mx-auto mb-3 opacity-50" />
             <p>Aucune séance créée</p>
-            <p className="text-sm mt-1">Cliquez sur "Nouvel éditeur (V2)" pour commencer</p>
+            <p className="text-sm mt-1">Cliquez sur "Ajouter une séance" pour commencer</p>
           </CardContent>
         </Card>
       ) : (
