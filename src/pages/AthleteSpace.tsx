@@ -680,11 +680,19 @@ export default function AthleteSpace() {
           <TabsContent value="wellness">
             <Tabs defaultValue="wellness-entry" className="space-y-4">
               <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-muted/40 rounded-xl p-1">
-                <TabsTrigger value="wellness-entry" className="flex-1 gap-1.5 rounded-lg">
+                <TabsTrigger
+                  value="wellness-entry"
+                  style={{ ["--tab-accent" as any]: NAV_COLORS.sante.base } as React.CSSProperties}
+                  className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   <Heart className="h-3.5 w-3.5" />
                   Wellness
                 </TabsTrigger>
-                <TabsTrigger value="health-sub" className="flex-1 gap-1.5 rounded-lg">
+                <TabsTrigger
+                  value="health-sub"
+                  style={{ ["--tab-accent" as any]: NAV_COLORS.sante.base } as React.CSSProperties}
+                  className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   <Shield className="h-3.5 w-3.5" />
                   Santé
                 </TabsTrigger>
