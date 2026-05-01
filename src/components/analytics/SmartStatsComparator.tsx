@@ -82,6 +82,8 @@ interface SmartStatsComparatorProps {
   title?: string;
   /** Sous-titre / description */
   description?: string;
+  /** Dimensions d'identité à masquer en plus des dimensions par défaut */
+  hiddenDimensions?: string[];
 }
 
 type Mode = "identity" | "players";
@@ -97,6 +99,7 @@ export function SmartStatsComparator({
   getValue,
   title = "Comparateur intelligent",
   description = "Compare n'importe quelle statistique entre athlètes",
+  hiddenDimensions = [],
 }: SmartStatsComparatorProps) {
   const { availableDimensions, aggregateByDimension } = useComparisonGroups(categoryId);
 
@@ -400,6 +403,7 @@ export function SmartStatsComparator({
             "sport_gender",
             "positions_all",
             "position_all",
+            ...hiddenDimensions,
           ]);
           const visibleDims = dims.filter((d) => !HIDDEN_DIMS.has(d));
           if (visibleDims.length === 0) return null;

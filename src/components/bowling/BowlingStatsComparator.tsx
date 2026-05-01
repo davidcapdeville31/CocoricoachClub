@@ -284,6 +284,7 @@ export function BowlingStatsComparator({ categoryId, allGames }: Props) {
       getValue={getValue}
       title="Comparer les stats bowling"
       description="Choisis une statistique et une période (toute l'année, une compétition précise ou un type d'huilage)"
+      hiddenDimensions={["styles", "discipline", "specialties", "disciplines_all", "technical_style", "position", "positions"]}
     />
   );
 }
