@@ -130,13 +130,39 @@ function buildInitialDraft(): V2ProgramDraft {
 type ScreenMode = "metadata" | "editor";
 
 export function CreateTrainingProgramV2({
-  categoryId: _categoryId, // used in A7.3
+  categoryId,
   onClose,
 }: CreateTrainingProgramV2Props) {
   const [draft, setDraft] = useState<V2ProgramDraft>(buildInitialDraft);
   const [mode, setMode] = useState<ScreenMode>("metadata");
   const [activeWeek, setActiveWeek] = useState(1);
   const [activeDayId, setActiveDayId] = useState<string | null>(null);
+  const saveProgram = useSaveProgramV2();
+
+  const handleSave = useCallback(() => {
+    if (!draft.name.trim()) {
+      toast.error("Donne un nom au programme avant d'enregistrer.");
+      return;
+    }
+    const totalExercises = draft.weeks.reduce(
+      (acc, w) =>
+        acc +
+        w.days.reduce(
+          (a, d) =>
+            a + d.blocks.reduce((x, b) => x + (b.exercises?.length ?? 0), 0),
+          0,
+        ),
+      0,
+    );
+    if (totalExercises === 0) {
+      toast.error("Ajoute au moins un exercice avant d'enregistrer.");
+      return;
+    }
+    saveProgram.mutate(
+      { draft, categoryId },
+      { onSuccess: () => onClose?.() },
+    );
+  }, [draft, categoryId, saveProgram, onClose]);
 
   const currentWeek = useMemo(
     () => draft.weeks.find((w) => w.weekNumber === activeWeek) ?? draft.weeks[0],
