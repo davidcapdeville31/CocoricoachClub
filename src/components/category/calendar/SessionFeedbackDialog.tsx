@@ -43,6 +43,8 @@ interface SessionTest {
   savedPlayerIds?: Set<string>;
   /** Whether the entire test row was loaded from existing data */
   isExisting?: boolean;
+  /** Test was pre-selected at session creation (lock category/type) */
+  isPreselected?: boolean;
 }
 
 export function SessionFeedbackDialog({
@@ -214,6 +216,7 @@ export function SessionFeedbackDialog({
             player_results: {},
             savedPlayerIds: new Set<string>(),
             isExisting: true,
+            isPreselected: true,
           });
         }
         const group = testGroups.get(key)!;
@@ -234,6 +237,7 @@ export function SessionFeedbackDialog({
         test_type: t.test_type,
         result_unit: t.result_unit || "",
         player_results: {},
+        isPreselected: true,
       }));
       setSessionTests(entries);
     }
@@ -704,7 +708,9 @@ export function SessionFeedbackDialog({
                             variant="ghost"
                             size="icon"
                             onClick={() => removeTest(test.id)}
-                            className="h-7 w-7 text-destructive"
+                            disabled={test.isPreselected}
+                            className="h-7 w-7 text-destructive disabled:opacity-30"
+                            title={test.isPreselected ? "Test prédéfini lors de la création de la séance" : "Supprimer"}
                           >
                             <X className="h-4 w-4" />
                           </Button>
@@ -714,8 +720,9 @@ export function SessionFeedbackDialog({
                           <Select
                             value={test.test_category}
                             onValueChange={(v) => handleTestCategoryChange(test.id, v)}
+                            disabled={test.isPreselected}
                           >
-                            <SelectTrigger className="h-9">
+                            <SelectTrigger className="h-9 disabled:opacity-70 disabled:cursor-not-allowed">
                               <SelectValue placeholder="Catégorie..." />
                             </SelectTrigger>
                             <SelectContent>
@@ -730,9 +737,9 @@ export function SessionFeedbackDialog({
                           <Select
                             value={test.test_type}
                             onValueChange={(v) => handleTestTypeChange(test.id, v)}
-                            disabled={!test.test_category}
+                            disabled={!test.test_category || test.isPreselected}
                           >
-                            <SelectTrigger className="h-9">
+                            <SelectTrigger className="h-9 disabled:opacity-70 disabled:cursor-not-allowed">
                               <SelectValue placeholder="Type..." />
                             </SelectTrigger>
                             <SelectContent>

@@ -8,7 +8,7 @@ import { Calendar as CalendarIcon, Target, BarChart3, Dumbbell, LayoutGrid } fro
 import { toast } from "sonner";
 import { SessionFormDialog } from "./sessions/SessionFormDialog";
 import { AddMatchCalendarDialog } from "./matches/AddMatchCalendarDialog";
-import { QuickTestEntryDialog } from "./QuickTestEntryDialog";
+
 import { SessionDetailsDialog } from "./SessionDetailsDialog";
 import { MatchRpeDialog } from "./MatchRpeDialog";
 import { MatchLineupDialog } from "./matches/MatchLineupDialog";
@@ -416,17 +416,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         editSession={editingSession}
       />
 
-      {selectedSession?.type === "test" && (
-        <QuickTestEntryDialog
-          open={true}
-          onOpenChange={(open) => !open && setSelectedSession(null)}
-          categoryId={categoryId}
-          sessionDate={selectedSession.date}
-          sessionId={selectedSession.id}
-        />
-      )}
-
-      {selectedSession?.type === "training" && (
+      {selectedSession && (
         <SessionDetailsDialog
           open={true}
           onOpenChange={(open) => !open && setSelectedSession(null)}
