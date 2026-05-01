@@ -226,7 +226,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
             </p>
           </div>
 
-          <SessionDayEditor blocks={blocks} onChange={handleBlocksChange} />
+          <SessionDayEditor ref={dayEditorRef} blocks={blocks} onChange={handleBlocksChange} />
         </div>
       )}
       renderExerciseLibrary={() => (
