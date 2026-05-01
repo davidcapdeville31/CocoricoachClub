@@ -12,6 +12,8 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { SessionFormDialog } from "./SessionFormDialog";
+import { SessionEditorV2 } from "@/components/program-builder-v2/SessionEditorV2";
+import { Sparkles } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,6 +50,7 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
   const [sessionToDeleteMeta, setSessionToDeleteMeta] = useState<{ date: string; type: string } | null>(null);
+  const [v2EditorOpen, setV2EditorOpen] = useState(false);
 
   const handlePrintSession = async (session: any) => {
     // Fetch exercises for this session
@@ -248,10 +251,22 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Séances d'entraînement</h2>
         {!isViewer && (
-          <Button onClick={() => setFormOpen(true)} size="sm">
-            <Plus className="h-4 w-4 mr-1" />
-            Nouvelle séance
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setFormOpen(true)} size="sm">
+              <Plus className="h-4 w-4 mr-1" />
+              Nouvelle séance
+            </Button>
+            <Button
+              onClick={() => setV2EditorOpen(true)}
+              size="sm"
+              variant="outline"
+              className="gap-1 border-primary/40 text-primary hover:bg-primary/10"
+              title="Nouvel éditeur (aperçu) — méthodes d'intensification avancées"
+            >
+              <Sparkles className="h-4 w-4" />
+              Nouvel éditeur (V2)
+            </Button>
+          </div>
         )}
       </div>
 
@@ -340,6 +355,12 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
         onOpenChange={handleFormClose}
         categoryId={categoryId}
         editSession={editingSession}
+      />
+
+      <SessionEditorV2
+        open={v2EditorOpen}
+        onClose={() => setV2EditorOpen(false)}
+        categoryId={categoryId}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
