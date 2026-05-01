@@ -436,7 +436,8 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
               ))}
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {!tests || tests.length === 0 ? (
           <div className="text-center py-12">
