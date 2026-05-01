@@ -142,7 +142,11 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
         .select("gender, birth_date, birth_year")
         .eq("id", playerId)
         .maybeSingle();
-      if (error) throw error;
+      if (error) {
+        console.error("[AthleteIdentityEditor] players_safe error", error);
+        throw error;
+      }
+      console.log("[AthleteIdentityEditor] playerCore loaded", { playerId, data });
       return data;
     },
     enabled: !!playerId,
