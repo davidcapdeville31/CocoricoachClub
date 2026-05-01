@@ -65,8 +65,8 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
     },
   });
 
-  const { data: nextTest } = useQuery({
-    queryKey: ["athlete-space-next-test", categoryId],
+  const { data: nextTests } = useQuery({
+    queryKey: ["athlete-space-next-tests", categoryId],
     queryFn: async () => {
       const today = new Date().toISOString().split("T")[0];
       const { data, error } = await supabase
@@ -76,35 +76,46 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
         .eq("training_type", "test")
         .gte("session_date", today)
         .order("session_date", { ascending: true })
-        .limit(1)
-        .maybeSingle();
+        .order("session_start_time", { ascending: true })
+        .limit(20);
       if (error) throw error;
-      if (!data) return null;
-      let testLabel: string | null = null;
-      if (data.test_reminder_id) {
-        const { data: reminder } = await supabase
+      if (!data || data.length === 0) return [];
+      // Garder uniquement les sessions de la prochaine date contenant des tests
+      const firstDate = data[0].session_date;
+      const sameDay = data.filter((d: any) => d.session_date === firstDate);
+      const reminderIds = sameDay.map((s: any) => s.test_reminder_id).filter(Boolean);
+      const remindersMap: Record<string, string> = {};
+      if (reminderIds.length > 0) {
+        const { data: reminders } = await supabase
           .from("test_reminders")
-          .select("test_type")
-          .eq("id", data.test_reminder_id)
-          .maybeSingle();
-        if (reminder?.test_type) {
-          testLabel = getTestLabel(reminder.test_type) || reminder.test_type;
+          .select("id, test_type")
+          .in("id", reminderIds);
+        (reminders || []).forEach((r: any) => {
+          remindersMap[r.id] = r.test_type;
+        });
+      }
+      return sameDay.map((session: any) => {
+        let testLabel: string | null = null;
+        if (session.test_reminder_id && remindersMap[session.test_reminder_id]) {
+          const t = remindersMap[session.test_reminder_id];
+          testLabel = getTestLabel(t) || t;
         }
-      }
-      if (!testLabel) {
-        const tests = parseTestsFromNotes((data as any).notes);
-        if (tests.length > 0) {
-          testLabel = tests.map(t => getTestLabel(t.test_type) || t.test_type).join(", ");
+        if (!testLabel) {
+          const tests = parseTestsFromNotes(session.notes);
+          if (tests.length > 0) {
+            testLabel = tests.map((t: any) => getTestLabel(t.test_type) || t.test_type).join(", ");
+          }
         }
-      }
-      if (!testLabel) {
-        const legacy = ((data as any).notes || "").match(/Test auto-planifi[ée]\s*:\s*([^\n<]+)/i);
-        if (legacy) testLabel = legacy[1].trim();
-      }
-      return { ...data, testLabel };
+        if (!testLabel) {
+          const legacy = (session.notes || "").match(/Test auto-planifi[ée]\s*:\s*([^\n<]+)/i);
+          if (legacy) testLabel = legacy[1].trim();
+        }
+        return { ...session, testLabel: testLabel || "Test" };
+      });
     },
     enabled: !!categoryId,
   });
+  const nextTest = nextTests && nextTests.length > 0 ? nextTests[0] : null;
 
   const { data: nextMatch } = useQuery({
     queryKey: ["athlete-space-next-match", categoryId],
@@ -312,17 +323,23 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
         </Card>
         <Card className="shadow-sm border-2" style={{ borderColor: `${NAV_COLORS.planification.base}40`, backgroundColor: `${NAV_COLORS.planification.base}08` }}>
           <CardContent className="pt-4 pb-3 px-4">
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">Prochain test</p>
-            {nextTest ? (
-              <>
-                <p className="text-sm font-semibold leading-tight" style={{ color: NAV_COLORS.planification.base }}>
-                  {nextTest.testLabel || "Test"}
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  {format(new Date(nextTest.session_date), "d MMM", { locale: fr })}
-                  {nextTest.session_start_time ? ` • ${nextTest.session_start_time.slice(0, 5)}` : ""}
-                </p>
-              </>
+            <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium">
+              {nextTests && nextTests.length > 1 ? `Prochains tests (${nextTests.length})` : "Prochain test"}
+            </p>
+            {nextTests && nextTests.length > 0 ? (
+              <div className="space-y-1 mt-0.5">
+                {nextTests.map((t: any) => (
+                  <div key={t.id}>
+                    <p className="text-sm font-semibold leading-tight" style={{ color: NAV_COLORS.planification.base }}>
+                      {t.testLabel}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {format(new Date(t.session_date), "d MMM", { locale: fr })}
+                      {t.session_start_time ? ` • ${t.session_start_time.slice(0, 5)}` : ""}
+                    </p>
+                  </div>
+                ))}
+              </div>
             ) : (
               <p className="text-sm font-semibold" style={{ color: NAV_COLORS.planification.base }}>—</p>
             )}
