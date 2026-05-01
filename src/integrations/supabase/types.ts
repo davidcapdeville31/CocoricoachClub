@@ -13210,6 +13210,7 @@ export type Database = {
           email: string | null
           emergency_notes: string | null
           first_name: string | null
+          gender: string | null
           id: string | null
           medical_notes: string | null
           name: string | null
@@ -13241,6 +13242,7 @@ export type Database = {
           email?: never
           emergency_notes?: never
           first_name?: string | null
+          gender?: string | null
           id?: string | null
           medical_notes?: never
           name?: string | null
@@ -13272,6 +13274,7 @@ export type Database = {
           email?: never
           emergency_notes?: never
           first_name?: string | null
+          gender?: string | null
           id?: string | null
           medical_notes?: never
           name?: string | null
