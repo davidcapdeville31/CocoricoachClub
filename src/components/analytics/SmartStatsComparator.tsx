@@ -366,21 +366,8 @@ export function SmartStatsComparator({
             </Select>
           </div>
 
-          {/* Switch primaire (mode identité) */}
-          {mode === "identity" && dims.length > 0 && (
-            <div className="flex items-end">
-              <Button
-                type="button"
-                variant={primaryOnly ? "default" : "outline"}
-                size="sm"
-                className="h-9 gap-1"
-                onClick={() => setPrimaryOnly((v) => !v)}
-              >
-                <Star className="h-3.5 w-3.5" />
-                {primaryOnly ? "Primaire" : "Tous rôles"}
-              </Button>
-            </div>
-          )}
+          {/* Toggle "Tous rôles / Primaire" supprimé : un athlète n'a plus
+              qu'une seule identité par dimension dans les sports collectifs. */}
         </div>
 
         {/* Sélection dimension (mode identité) */}
