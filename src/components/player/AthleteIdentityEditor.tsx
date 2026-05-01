@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   useAthleteAttributes,
   useAddAthleteAttribute,
@@ -17,13 +19,46 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, Star, Loader2 } from "lucide-react";
+import { Plus, X, Star, Loader2, User, Cake } from "lucide-react";
 import {
   ATHLETISME_DISCIPLINES,
   ATHLETISME_SPECIALTIES,
   isAthletismeCategory,
 } from "@/lib/constants/sportTypes";
 import { getPositionsForSport } from "@/lib/constants/sportPositions";
+
+function computeAge(birthDate: string | null, birthYear: number | null): number | null {
+  if (birthDate) {
+    const d = new Date(birthDate);
+    if (!isNaN(d.getTime())) {
+      const diff = Date.now() - d.getTime();
+      return Math.floor(diff / (365.25 * 24 * 3600 * 1000));
+    }
+  }
+  if (birthYear) return new Date().getFullYear() - birthYear;
+  return null;
+}
+
+function getAgeCategory(age: number | null): string | null {
+  if (age == null) return null;
+  if (age < 12) return "U12";
+  if (age < 14) return "U14";
+  if (age < 16) return "U16";
+  if (age < 18) return "U18";
+  if (age < 20) return "U20";
+  if (age < 23) return "Espoirs (U23)";
+  if (age < 35) return "Senior";
+  if (age < 45) return "Master 1";
+  return "Master 2+";
+}
+
+function genderInfo(g: string | null): { label: string; emoji: string } {
+  if (!g) return { label: "Non renseigné", emoji: "❓" };
+  const v = g.toLowerCase();
+  if (v.startsWith("f") || v === "female" || v === "feminin" || v === "féminin") return { label: "Féminin", emoji: "♀️" };
+  if (v.startsWith("m") || v === "male" || v === "masculin") return { label: "Masculin", emoji: "♂️" };
+  return { label: g, emoji: "•" };
+}
 
 type DimensionConfig = {
   dimension: AthleteDimension;
@@ -99,7 +134,25 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
   const updateMut = useUpdateAthleteAttribute(playerId);
   const deleteMut = useDeleteAthleteAttribute(playerId);
 
+  const { data: playerCore } = useQuery({
+    queryKey: ["player-core-identity", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("gender, birth_date, birth_year")
+        .eq("id", playerId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!playerId,
+  });
+
   const isAthletics = isAthletismeCategory(sportType);
+
+  const age = computeAge(playerCore?.birth_date ?? null, playerCore?.birth_year ?? null);
+  const ageCat = getAgeCategory(age);
+  const gInfo = genderInfo(playerCore?.gender ?? null);
 
   const dimensions: DimensionConfig[] = useMemo(() => {
     const list: DimensionConfig[] = [];
@@ -163,6 +216,34 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
           Définit comment l'application adapte tests, barèmes et analyses à cet athlète.
           ⭐ = valeur principale.
         </p>
+      </div>
+
+      {/* Identité de base — lecture seule, éditable depuis la fiche joueur */}
+      <div className="rounded-xl border bg-background/60 p-3">
+        <div className="flex items-center gap-2 mb-2">
+          <User className="h-4 w-4 text-muted-foreground" />
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Identité de base
+          </span>
+          <span className="text-[10px] text-muted-foreground/70 ml-auto">
+            (modifiable depuis la fiche joueur)
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Badge variant="secondary" className="gap-1">
+            <span>{gInfo.emoji}</span>
+            <span>{gInfo.label}</span>
+          </Badge>
+          <Badge variant="secondary" className="gap-1">
+            <Cake className="h-3 w-3" />
+            {age != null ? `${age} ans` : "Âge non renseigné"}
+          </Badge>
+          {ageCat && (
+            <Badge variant="outline" className="gap-1">
+              Catégorie d'âge : {ageCat}
+            </Badge>
+          )}
+        </div>
       </div>
 
       {dimensions.map((dim) => {
