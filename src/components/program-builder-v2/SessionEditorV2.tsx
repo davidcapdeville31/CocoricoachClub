@@ -7,9 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SessionEditorSheet } from "./SessionEditorSheet";
 import { SessionDayEditor } from "./SessionDayEditor";
-import { V2ExerciseBankSidebar } from "./V2ExerciseBankSidebar";
+import { V2ExerciseBankSidebar, type PickedExerciseRich } from "./V2ExerciseBankSidebar";
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
-import type { PickedExercise } from "./ExercisePicker";
 
 interface SessionEditorV2Props {
   open: boolean;
@@ -58,7 +57,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
     }
   }, [blocks]);
 
-  const handlePickFromBank = (picked: PickedExercise) => {
+  const handlePickFromBank = (picked: PickedExerciseRich) => {
     const targetId = activeBlockIdRef.current ?? blocks[blocks.length - 1]?.id;
     if (!targetId) {
       toast.error("Ajoute d'abord un bloc de travail à gauche.");
@@ -67,7 +66,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
     const newExercise: V2BlockExercise = {
       id: `ex-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       exerciseId: picked.id,
-      exerciseName: picked.name,
+      exerciseName: picked.exercise_name,
       sets: 3,
       reps: "10",
       restSeconds: 90,
@@ -81,7 +80,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
       ),
     );
     activeBlockIdRef.current = targetId;
-    toast.success(`« ${picked.name} » ajouté`);
+    toast.success(`« ${picked.exercise_name} » ajouté`);
   };
 
   const handleBlocksChange = (next: V2BlockWithExercises[]) => {
@@ -214,7 +213,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
         </div>
       )}
       renderExerciseLibrary={() => (
-        <V2ExerciseBankSidebar onPick={handlePickFromBank} />
+        <V2ExerciseBankSidebar onClickInsert={handlePickFromBank} />
       )}
     />
   );
