@@ -104,7 +104,7 @@ export function SmartStatsComparator({
   const [mode, setMode] = useState<Mode>("players");
   const [primaryOnly, setPrimaryOnly] = useState(false);
   const [metricKeys, setMetricKeys] = useState<string[]>(
-    metrics[0] ? [metrics[0].key] : [],
+    metrics.map((m) => m.key),
   );
   const [scopeKey, setScopeKey] = useState<string>(scopes[0]?.key ?? "");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[] | null>(null);
