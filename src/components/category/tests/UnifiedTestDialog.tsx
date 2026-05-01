@@ -163,6 +163,15 @@ export function UnifiedTestDialog({
     ? (customTestName && customTestUnit ? { value: `custom_${normalizeCustomTestType(customTestName)}`, label: customTestName, unit: customTestUnit, isTime: ["s", "min.s"].includes(customTestUnit) } as TestOption : null)
     : currentCategoryObj?.tests.find(t => t.value === selectedTest) || null;
 
+  const activeFormulaConfig: FormulaConfig | null = useMemo(() => {
+    if (!currentTest) return null;
+    const match = (customTests || []).find((ct: any) =>
+      `custom_${normalizeCustomTestType(ct.name)}` === currentTest.value
+    );
+    const cfg = (match as any)?.formula_config;
+    return isValidFormulaConfig(cfg) ? cfg : null;
+  }, [currentTest, customTests]);
+
   // Compute GPS values for sprint tests
   const computeSprintGpsValues = (timeStr: string) => {
     const time = parseFloat(timeStr);
