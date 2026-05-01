@@ -3106,14 +3106,23 @@ export type Database = {
           description: string | null
           difficulty: string | null
           equipment: string[] | null
+          execution_criteria: Json | null
+          exercise_type: string | null
+          general_description: string | null
           id: string
           image_url: string | null
           is_system: boolean | null
+          joint_movements: string[] | null
           muscle_groups: string[] | null
           name: string
+          positioning_criteria: Json | null
+          safety_prevention: Json | null
+          station_name: string | null
           subcategory: string | null
+          tips: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
+          video_url: string | null
           youtube_url: string | null
         }
         Insert: {
@@ -3122,14 +3131,23 @@ export type Database = {
           description?: string | null
           difficulty?: string | null
           equipment?: string[] | null
+          execution_criteria?: Json | null
+          exercise_type?: string | null
+          general_description?: string | null
           id?: string
           image_url?: string | null
           is_system?: boolean | null
+          joint_movements?: string[] | null
           muscle_groups?: string[] | null
           name: string
+          positioning_criteria?: Json | null
+          safety_prevention?: Json | null
+          station_name?: string | null
           subcategory?: string | null
+          tips?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
+          video_url?: string | null
           youtube_url?: string | null
         }
         Update: {
@@ -3138,14 +3156,23 @@ export type Database = {
           description?: string | null
           difficulty?: string | null
           equipment?: string[] | null
+          execution_criteria?: Json | null
+          exercise_type?: string | null
+          general_description?: string | null
           id?: string
           image_url?: string | null
           is_system?: boolean | null
+          joint_movements?: string[] | null
           muscle_groups?: string[] | null
           name?: string
+          positioning_criteria?: Json | null
+          safety_prevention?: Json | null
+          station_name?: string | null
           subcategory?: string | null
+          tips?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
+          video_url?: string | null
           youtube_url?: string | null
         }
         Relationships: []
