@@ -250,28 +250,28 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       </button>
 
       {expanded && (
-        <CardContent className="space-y-2 pt-0 pb-4 px-2 sm:px-6">
+        <CardContent className="space-y-1.5 pt-0 pb-3 px-2 sm:px-4">
           {WELLNESS_FIELDS.map(field => {
             const currentValue = (values as any)[field.key];
 
             if ('isNumber' in field && field.isNumber) {
               return (
                 <div key={field.key}>
-                  <Label className="text-xs flex items-center gap-1.5 mb-1.5">
-                    <span className="text-sm">{field.emoji}</span>
+                  <Label className="text-[11px] flex items-center gap-1 mb-1">
+                    <span className="text-xs">{field.emoji}</span>
                     {field.label}
                     {currentValue > 0 && (
-                      <Badge variant="secondary" className="ml-auto text-[10px] font-bold px-1.5 py-0">{currentValue}h</Badge>
+                      <Badge variant="secondary" className="ml-auto text-[10px] font-bold px-1 py-0 leading-tight">{currentValue}h</Badge>
                     )}
                   </Label>
-                  <div className="grid grid-cols-9 gap-0.5 sm:gap-1">
+                  <div className="grid grid-cols-9 gap-0.5">
                     {SLEEP_HOURS.map(hour => (
                       <button
                         key={hour}
                         type="button"
                         onClick={() => setValues(prev => ({ ...prev, [field.key]: hour }))}
                         className={cn(
-                          "h-7 sm:h-8 rounded-md text-[11px] sm:text-xs font-semibold transition-all duration-150",
+                          "h-6 sm:h-7 rounded text-[10px] sm:text-xs font-semibold transition-all duration-150",
                           "border active:scale-95",
                           currentValue === hour
                             ? "text-white shadow-sm"
@@ -291,8 +291,8 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
 
             return (
               <div key={field.key}>
-                <Label className="text-xs flex items-center gap-1.5 mb-1.5">
-                  <span className="text-sm">{field.emoji}</span>
+                <Label className="text-[11px] flex items-center gap-1 mb-1">
+                  <span className="text-xs">{field.emoji}</span>
                   <span className="flex-1 truncate">{field.label}</span>
                   {currentValue > 0 && (
                     <span className="text-[10px] text-muted-foreground truncate max-w-[60%] text-right">
@@ -300,7 +300,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                     </span>
                   )}
                 </Label>
-                <div className="grid grid-cols-5 gap-0.5 sm:gap-1">
+                <div className="grid grid-cols-5 gap-0.5">
                   {fieldOptions.map(opt => (
                     <button
                       key={opt.value}
@@ -308,7 +308,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                       title={opt.label}
                       onClick={() => setValues(prev => ({ ...prev, [field.key]: opt.value }))}
                       className={cn(
-                        "h-8 sm:h-9 rounded-md text-xs sm:text-sm font-bold transition-all duration-150",
+                        "h-7 sm:h-8 rounded text-xs sm:text-sm font-bold transition-all duration-150",
                         "border active:scale-95",
                         currentValue === opt.value
                           ? "text-white shadow-sm"
