@@ -267,7 +267,7 @@ function PlayerDetailsContent() {
             className="gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Retour à la catégorie
+            Retour à l'effectif
           </Button>
           <div className="flex items-center gap-2">
             <Button
