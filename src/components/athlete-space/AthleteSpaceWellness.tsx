@@ -289,9 +289,14 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
 
             const fieldOptions = 'options' in field ? field.options : [];
 
+            const isInverted = 'inverted' in field && field.inverted;
+            const scaleHint = isInverted
+              ? "1 = très bon · 5 = très mauvais"
+              : "1 = très mauvais · 5 = très bon";
+
             return (
               <div key={field.key}>
-                <Label className="text-[11px] flex items-center gap-1 mb-1">
+                <Label className="text-[11px] flex items-center gap-1 mb-0.5">
                   <span className="text-xs">{field.emoji}</span>
                   <span className="flex-1 truncate">{field.label}</span>
                   {currentValue > 0 && (
@@ -300,6 +305,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                     </span>
                   )}
                 </Label>
+                <p className="text-[9px] text-muted-foreground mb-1 italic">{scaleHint}</p>
                 <div className="grid grid-cols-5 gap-0.5">
                   {fieldOptions.map(opt => (
                     <button
