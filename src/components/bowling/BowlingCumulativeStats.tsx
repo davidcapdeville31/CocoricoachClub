@@ -19,6 +19,7 @@ import { exportBowlingPdf, exportBowlingTeamPdf } from "@/lib/bowling/bowlingPdf
 import { resolveBallCatalogImages } from "@/lib/bowling/bowlingBallImageResolver";
 import type { FrameData } from "@/components/athlete-portal/BowlingScoreSheet";
 import { BowlingOilPatternStats } from "./BowlingOilPatternStats";
+import { IdentityComparisonPanel } from "@/components/analytics/IdentityComparisonPanel";
 
 interface BowlingCumulativeStatsProps {
   categoryId: string;
