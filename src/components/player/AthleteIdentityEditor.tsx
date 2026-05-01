@@ -513,16 +513,6 @@ function DimensionBlock({
           </Select>
         )}
 
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          onClick={handleAdd}
-          disabled={pending || !draft || (draftSpecialties.length > 0 && !draftSpecialty)}
-          aria-label="Ajouter"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
       </div>
     </div>
   );
