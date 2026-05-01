@@ -445,24 +445,26 @@ function PlayerDetailsContent() {
           />
         </div>
 
-        {/* Fiche Personnelle + Informations complémentaires + Entraîneurs sur la même ligne */}
-        <div className="mb-3 grid grid-cols-1 lg:grid-cols-3 gap-3">
+        {/* Fiche Personnelle + Identité athlète mise en avant côte à côte */}
+        <div className="mb-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
           <PlayerPersonalInfoSection 
             playerId={playerId!}
             categoryId={player.category_id}
             isViewer={isViewer}
             sportType={sportType}
           />
-          <PlayerAdditionalInfoSection playerId={playerId!} isViewer={isViewer} />
-          <PlayerCoachesSection playerId={playerId!} categoryId={player.category_id} isViewer={isViewer} />
+          {!isViewer ? (
+            <AthleteIdentityEditor playerId={playerId!} sportType={sportType} />
+          ) : (
+            <PlayerAdditionalInfoSection playerId={playerId!} isViewer={isViewer} />
+          )}
         </div>
 
-        {/* Identité athlète : moteur multi-dimensions (postes, disciplines, styles, profils) */}
-        {!isViewer && (
-          <div className="mb-3">
-            <AthleteIdentityEditor playerId={playerId!} sportType={sportType} />
-          </div>
-        )}
+        {/* Informations complémentaires + Entraîneurs */}
+        <div className="mb-3 grid grid-cols-1 lg:grid-cols-2 gap-3">
+          {!isViewer && <PlayerAdditionalInfoSection playerId={playerId!} isViewer={isViewer} />}
+          <PlayerCoachesSection playerId={playerId!} categoryId={player.category_id} isViewer={isViewer} />
+        </div>
 
         {/* Données biométriques déplacées dans l'onglet "Tests" pour centralisation */}
 
