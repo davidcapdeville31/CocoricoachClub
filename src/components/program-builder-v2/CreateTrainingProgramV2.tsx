@@ -26,6 +26,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Select,
   SelectContent,
@@ -37,10 +39,15 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Plus,
   Calendar,
+  CalendarPlus,
   Sparkles,
+  Settings,
 } from "lucide-react";
+import { AssignProgramDialog } from "@/components/category/programs/AssignProgramDialog";
 import { cn } from "@/lib/utils";
 import { type UnifiedOrderItem } from "./ProgramGridView";
 import { DAYS_OF_WEEK } from "./lib/trainingProgramsData";
