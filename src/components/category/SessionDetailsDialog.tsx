@@ -531,7 +531,7 @@ export function SessionDetailsDialog({
                 <Activity className="h-3 w-3" />
                 {trainingTypeLabels[session.training_type] || session.training_type}
               </Badge>
-              {session.intensity && (
+              {session.intensity && !isTestSession && (
                 <Badge variant="outline">Intensité: {session.intensity}/10</Badge>
               )}
               {session.session_start_time && (
@@ -541,12 +541,16 @@ export function SessionDetailsDialog({
                   {session.session_end_time && ` - ${session.session_end_time}`}
                 </Badge>
               )}
-              {attendance && (
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <Users className="h-3 w-3" />
-                  {attendance.length} joueur(s)
-                </Badge>
-              )}
+              {(() => {
+                const count = (attendance?.length || 0) + (eventParticipants?.length || 0);
+                if (count === 0) return null;
+                return (
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <Users className="h-3 w-3" />
+                    {count} joueur(s)
+                  </Badge>
+                );
+              })()}
               {session.created_by_player_id && (() => {
                 const creator = players?.find(p => p.id === session.created_by_player_id);
                 return creator ? (
