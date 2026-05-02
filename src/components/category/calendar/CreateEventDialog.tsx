@@ -34,7 +34,7 @@ interface CreateEventDialogProps {
   categoryId: string;
   onAddSession: () => void;
   onAddMatch: () => void;
-  onSelectExternalType?: (type: "session" | "match") => void;
+  onSelectExternalType?: (type: "session" | "match" | "test") => void;
 }
 
 const EVENT_TYPES = [
@@ -162,19 +162,23 @@ export function CreateEventDialog({
 
   const handleTypeSelect = (typeId: string) => {
     const eventType = EVENT_TYPES.find(t => t.id === typeId);
-    
+
     if (eventType?.useExistingDialog && onSelectExternalType) {
-      const action: "session" | "match" = (typeId === "session" || typeId === "test") ? "session" : "match";
+      const action: "session" | "match" | "test" =
+        typeId === "test" ? "test" : typeId === "match" ? "match" : "session";
       resetForm();
       onSelectExternalType(action);
     } else if (eventType?.useExistingDialog) {
       // Fallback if no onSelectExternalType
       resetForm();
       onOpenChange(false);
-      if (typeId === "session" || typeId === "test") {
+      if (typeId === "session") {
         onAddSession();
       } else if (typeId === "match") {
         onAddMatch();
+      } else if (typeId === "test") {
+        // No external handler — fallback to session flow
+        onAddSession();
       }
     } else {
       setSelectedType(typeId);
