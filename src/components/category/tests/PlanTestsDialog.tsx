@@ -390,27 +390,50 @@ export function PlanTestsDialog({
                   <>
                     <div className="space-y-1.5">
                       <Label className="text-xs">Thématique</Label>
-                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                        <SelectTrigger className="bg-surface">
-                          <SelectValue placeholder="Choisir une thématique…" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {groupedTests.map(([catLabel, tests]) => {
-                            const count = selectedCountByCategory[catLabel] || 0;
-                            return (
-                              <SelectItem key={catLabel} value={catLabel}>
-                                <span className="flex items-center gap-2">
-                                  <span className="font-medium uppercase text-xs tracking-wide">{catLabel}</span>
-                                  <span className="text-xs text-muted-foreground">({tests.length})</span>
-                                  {count > 0 && (
-                                    <Badge variant="default" className="text-[10px] h-4 px-1.5">{count}</Badge>
-                                  )}
-                                </span>
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-2">
+                        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                          <SelectTrigger className="bg-surface flex-1">
+                            <SelectValue placeholder="Choisir une thématique…" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {groupedTests.map(([catLabel, tests]) => {
+                              const count = selectedCountByCategory[catLabel] || 0;
+                              const catValue = tests[0]?.category;
+                              const isFav = catValue ? favoriteCategories.has(catValue) : false;
+                              return (
+                                <SelectItem key={catLabel} value={catLabel}>
+                                  <span className="flex items-center gap-2">
+                                    {isFav && <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />}
+                                    <span className="font-medium uppercase text-xs tracking-wide">{catLabel}</span>
+                                    <span className="text-xs text-muted-foreground">({tests.length})</span>
+                                    {count > 0 && (
+                                      <Badge variant="default" className="text-[10px] h-4 px-1.5">{count}</Badge>
+                                    )}
+                                  </span>
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                        {(() => {
+                          const current = groupedTests.find(([l]) => l === selectedCategory);
+                          const catValue = current?.[1]?.[0]?.category;
+                          if (!catValue) return null;
+                          const isFav = favoriteCategories.has(catValue);
+                          return (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => toggleFavoriteCategory(catValue)}
+                              title={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+                              className="h-9 w-9 shrink-0"
+                            >
+                              <Star className={`h-4 w-4 ${isFav ? "fill-yellow-400 text-yellow-400" : ""}`} />
+                            </Button>
+                          );
+                        })()}
+                      </div>
                     </div>
 
                     {selectedCategory && (
