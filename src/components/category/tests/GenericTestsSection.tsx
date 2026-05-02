@@ -428,7 +428,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                     });
                     setIsEditDialogOpen(true);
                   }}
-                  className={`group inline-flex items-center gap-2 rounded-2xl bg-background text-foreground border hover:border-primary hover:bg-accent hover:text-accent-foreground transition-colors text-sm ${t.image_url ? "p-1.5 pr-3" : "px-2.5 py-1 text-xs"}`}
+                  className={`group inline-flex items-center gap-2 rounded-2xl bg-card text-card-foreground border border-border hover:border-primary hover:bg-accent hover:text-accent-foreground transition-colors text-sm ${t.image_url ? "p-1.5 pr-3" : "px-2.5 py-1 text-xs"}`}
                   title={isViewer ? (t.description || "") : "Cliquer pour modifier ce test"}
                 >
                   {t.image_url && (
@@ -442,7 +442,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                       className="h-16 w-16 rounded-xl object-cover border hover:opacity-90 hover:scale-105 transition-transform cursor-zoom-in"
                     />
                   )}
-                  <span className="font-medium">{t.name}</span>
+                  <span className="font-medium text-card-foreground group-hover:text-accent-foreground">{t.name}</span>
                   {t.unit && <span className="text-muted-foreground">({t.unit})</span>}
                   {!isViewer && <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />}
                 </button>
