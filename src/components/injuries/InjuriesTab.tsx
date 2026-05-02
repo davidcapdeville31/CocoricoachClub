@@ -178,12 +178,18 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                 Suivi médical et réathlétisation
               </p>
             </div>
-            {!isViewer && (
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Ajouter une blessure
+            <div className="flex gap-2 flex-wrap">
+              <Button variant="outline" onClick={() => setShowLibrary(true)}>
+                <Library className="h-4 w-4 mr-2" />
+                Bibliothèque blessures
               </Button>
-            )}
+              {!isViewer && (
+                <Button onClick={() => setIsDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter une blessure
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
