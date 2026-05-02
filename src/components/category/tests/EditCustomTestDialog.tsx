@@ -58,6 +58,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
   const [scoringScale, setScoringScale] = useState<ScoringScale | null>(null);
   const [formulaConfig, setFormulaConfig] = useState<FormulaConfig | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string>("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Initialise le formulaire quand un test est sélectionné
