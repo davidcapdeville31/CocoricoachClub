@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { SessionFormDialog } from "./sessions/SessionFormDialog";
 import { SessionEditorV2 } from "@/components/program-builder-v2/SessionEditorV2";
 import { AddMatchCalendarDialog } from "./matches/AddMatchCalendarDialog";
+import { ScheduleTestEventDialog } from "./calendar/ScheduleTestEventDialog";
 
 import { SessionDetailsDialog } from "./SessionDetailsDialog";
 import { MatchRpeDialog } from "./MatchRpeDialog";
@@ -39,6 +40,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
   const [addMatchDate, setAddMatchDate] = useState<Date | undefined>();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<any | null>(null);
+  const [editingTestSession, setEditingTestSession] = useState<{ id: string; date: Date } | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [isDailyDialogOpen, setIsDailyDialogOpen] = useState(false);
   const [currentWeek, setCurrentWeek] = useState(new Date());
@@ -338,6 +340,13 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
             onExportPdf={handleExportPdf}
             isViewer={isViewer}
             onEditSession={(session) => {
+              if (session.training_type === "test") {
+                setEditingTestSession({
+                  id: session.id,
+                  date: new Date(session.session_date),
+                });
+                return;
+              }
               supabase
                 .from("training_sessions")
                 .select("*")
@@ -419,6 +428,19 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         editSession={editingSession}
       />
 
+      {/* Edit Test Session Dialog (uses the same UI as creation) */}
+      {editingTestSession && (
+        <ScheduleTestEventDialog
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setEditingTestSession(null);
+          }}
+          date={editingTestSession.date}
+          categoryId={categoryId}
+          editSessionId={editingTestSession.id}
+        />
+      )}
+
       {selectedSession && (
         <SessionDetailsDialog
           open={true}
@@ -449,6 +471,14 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
           matches={getMatchesForDate(selectedDate)}
           planning={getPlanningForDate(selectedDate)}
           onEditSession={(session) => {
+            if (session.training_type === "test") {
+              setEditingTestSession({
+                id: session.id,
+                date: new Date(session.session_date),
+              });
+              setIsDailyDialogOpen(false);
+              return;
+            }
             setEditingSession(session);
             setIsEditDialogOpen(true);
             setIsDailyDialogOpen(false);
