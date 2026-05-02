@@ -365,7 +365,7 @@ export function TrainingProgramsList({ categoryId }: TrainingProgramsListProps) 
                         className="inline-block h-3 w-3 rounded-full shrink-0"
                         style={{ backgroundColor: section.color }}
                       />
-                      <h3 className="text-base font-bold tracking-wide text-foreground truncate">
+                      <h3 className="text-base font-bold tracking-wider text-foreground truncate uppercase">
                         {section.label}
                       </h3>
                       <Badge variant="secondary" className="rounded-full shrink-0">
