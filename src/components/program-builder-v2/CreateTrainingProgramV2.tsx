@@ -26,6 +26,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Select,
   SelectContent,
@@ -37,10 +39,15 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Plus,
   Calendar,
+  CalendarPlus,
   Sparkles,
+  Settings,
 } from "lucide-react";
+import { AssignProgramDialog } from "@/components/category/programs/AssignProgramDialog";
 import { cn } from "@/lib/utils";
 import { type UnifiedOrderItem } from "./ProgramGridView";
 import { DAYS_OF_WEEK } from "./lib/trainingProgramsData";
@@ -135,16 +142,18 @@ function buildInitialDraft(): V2ProgramDraft {
 
 // -- Component -----------------------------------------------------------------
 
-type ScreenMode = "metadata" | "editor";
-
 export function CreateTrainingProgramV2({
   categoryId,
   onClose,
 }: CreateTrainingProgramV2Props) {
   const [draft, setDraft] = useState<V2ProgramDraft>(buildInitialDraft);
-  const [mode, setMode] = useState<ScreenMode>("metadata");
   const [activeWeek, setActiveWeek] = useState(1);
-  const [activeDayId, setActiveDayId] = useState<string | null>(null);
+  const [activeDayId, setActiveDayId] = useState<string | null>(
+    () => buildInitialDraft().weeks[0]?.days[0]?.id ?? null,
+  );
+  const [infoOpen, setInfoOpen] = useState(true);
+  const [assignProgramId, setAssignProgramId] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<"save" | "assign" | null>(null);
   const saveProgram = useSaveProgramV2();
   const dayEditorRef = useRef<SessionDayEditorHandle | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
@@ -185,7 +194,6 @@ export function CreateTrainingProgramV2({
       toast.error("Sélectionne d'abord un jour, puis ajoute un bloc.");
       return;
     }
-    // Pick the last block of the current day if any
     const day = currentDayRef.current;
     const targetId = day?.blocks?.[day.blocks.length - 1]?.id;
     if (!targetId) {
@@ -198,10 +206,10 @@ export function CreateTrainingProgramV2({
 
   const currentDayRef = useRef<V2ProgramDay | null>(null);
 
-  const handleSave = useCallback(() => {
+  const validate = useCallback((): boolean => {
     if (!draft.name.trim()) {
       toast.error("Donne un nom au programme avant d'enregistrer.");
-      return;
+      return false;
     }
     const totalExercises = draft.weeks.reduce(
       (acc, w) =>
@@ -215,13 +223,40 @@ export function CreateTrainingProgramV2({
     );
     if (totalExercises === 0) {
       toast.error("Ajoute au moins un exercice avant d'enregistrer.");
-      return;
+      return false;
     }
+    return true;
+  }, [draft]);
+
+  const handleSave = useCallback(() => {
+    if (!validate()) return;
+    setPendingAction("save");
     saveProgram.mutate(
       { draft, categoryId },
-      { onSuccess: () => onClose?.() },
+      {
+        onSuccess: () => {
+          setPendingAction(null);
+          onClose?.();
+        },
+        onError: () => setPendingAction(null),
+      },
     );
-  }, [draft, categoryId, saveProgram, onClose]);
+  }, [draft, categoryId, saveProgram, onClose, validate]);
+
+  const handleSaveAndAssign = useCallback(() => {
+    if (!validate()) return;
+    setPendingAction("assign");
+    saveProgram.mutate(
+      { draft, categoryId },
+      {
+        onSuccess: ({ programId }) => {
+          setPendingAction(null);
+          setAssignProgramId(programId);
+        },
+        onError: () => setPendingAction(null),
+      },
+    );
+  }, [draft, categoryId, saveProgram, validate]);
 
   const currentWeek = useMemo(
     () => draft.weeks.find((w) => w.weekNumber === activeWeek) ?? draft.weeks[0],
@@ -231,7 +266,6 @@ export function CreateTrainingProgramV2({
     () => currentWeek?.days.find((d) => d.id === activeDayId) ?? currentWeek?.days[0] ?? null,
     [currentWeek, activeDayId],
   );
-  // Keep ref in sync so drag handlers always see the latest day
   currentDayRef.current = currentDay;
 
   // -- Metadata mutations ------------------------------------------------------
@@ -286,287 +320,317 @@ export function CreateTrainingProgramV2({
     [],
   );
 
-  // -- Navigation --------------------------------------------------------------
+  // -- Render: Single-screen editor (style Remix) ------------------------------
 
-  const goToEditor = useCallback(() => {
-    if (!draft.name.trim()) {
-      toast.error("Donne un nom à ton programme avant de continuer.");
-      return;
-    }
-    const firstDay = draft.weeks[0]?.days[0];
-    setActiveWeek(1);
-    setActiveDayId(firstDay?.id ?? null);
-    setMode("editor");
-  }, [draft]);
-
-  const goBackToMetadata = useCallback(() => setMode("metadata"), []);
-
-  // -- Render: Metadata --------------------------------------------------------
-
-  if (mode === "metadata") {
-    return (
-      <div className="space-y-6 p-4 md:p-6 max-w-3xl mx-auto">
-        <div className="flex items-center gap-3">
-          {onClose && (
-            <Button variant="ghost" size="icon" onClick={onClose} className="rounded-2xl">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          )}
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <h1 className="text-2xl font-bold">Nouveau programme d'entraînement</h1>
-          </div>
-        </div>
-
-        <Card className="rounded-2xl shadow-lg border-border/60 bg-card/95 backdrop-blur">
-          <CardHeader>
-            <CardTitle className="text-base">Informations générales</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="prog-name">Nom du programme *</Label>
-              <Input
-                id="prog-name"
-                value={draft.name}
-                onChange={(e) => updateMeta("name", e.target.value)}
-                placeholder="Ex : Préparation hivernale — Force"
-                className="rounded-2xl bg-muted/40 border-border/60"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="prog-desc">Description</Label>
-              <Input
-                id="prog-desc"
-                value={draft.description}
-                onChange={(e) => updateMeta("description", e.target.value)}
-                placeholder="Objectif, public visé, prérequis…"
-                className="rounded-2xl bg-muted/40 border-border/60"
-              />
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2">
-                <Label>Niveau</Label>
-                <Select
-                  value={draft.difficultyLevel}
-                  onValueChange={(v) => updateMeta("difficultyLevel", v as V2ProgramDraft["difficultyLevel"])}
-                >
-                  <SelectTrigger className="rounded-2xl bg-muted/40 border-border/60">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DIFFICULTY_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>
-                        {o.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Jours / semaine</Label>
-                <div className="flex flex-wrap gap-1.5">
-                  {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                    <Button
-                      key={n}
-                      type="button"
-                      size="sm"
-                      variant={draft.daysPerWeek === n ? "default" : "outline"}
-                      onClick={() => setDaysPerWeek(n)}
-                      className={cn(
-                        "rounded-2xl h-9 w-9 p-0",
-                        draft.daysPerWeek === n && "shadow-md",
-                      )}
-                    >
-                      {n}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Semaines</Label>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="rounded-2xl text-sm px-3 py-1">
-                    {draft.weeks.length} semaine{draft.weeks.length > 1 ? "s" : ""}
-                  </Badge>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={addWeek}
-                    className="rounded-2xl"
-                  >
-                    <Plus className="h-3.5 w-3.5 mr-1" /> Ajouter
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-end gap-2">
-          {onClose && (
-            <Button variant="outline" onClick={onClose} className="rounded-2xl">
-              Annuler
-            </Button>
-          )}
-          <Button onClick={goToEditor} className="rounded-2xl shadow-md">
-            Continuer vers l'éditeur
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // -- Render: Editor ----------------------------------------------------------
+  const isSavingOnly = pendingAction === "save" && saveProgram.isPending;
+  const isSavingAndAssigning = pendingAction === "assign" && saveProgram.isPending;
 
   return (
-    <DndContext sensors={sensors} onDragEnd={handleProgramDragEnd}>
-    <div className="flex flex-col h-full">
-      {/* Header bar */}
-      <div className="sticky top-0 z-20 backdrop-blur bg-background/80 border-b border-border/60">
-        <div className="flex items-center justify-between gap-3 px-4 md:px-6 py-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={goBackToMetadata}
-              className="rounded-2xl shrink-0"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">Programme</p>
-              <h2 className="font-semibold truncate">{draft.name || "Sans titre"}</h2>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Badge variant="outline" className="rounded-2xl">
-              <Calendar className="h-3 w-3 mr-1" />
-              {draft.weeks.length} sem · {draft.daysPerWeek} j/sem
-            </Badge>
-            <Button
-              size="sm"
-              onClick={handleSave}
-              className="rounded-2xl shadow-md"
-            >
-              {saveProgram.isPending ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
-              ) : (
-                <Save className="h-3.5 w-3.5 mr-1" />
-              )}
-              Enregistrer
-            </Button>
-          </div>
-        </div>
-
-        {/* Week tabs */}
-        <div className="flex items-center gap-1 px-4 md:px-6 pb-2 overflow-x-auto">
-          {draft.weeks.map((w) => (
-            <Button
-              key={w.weekNumber}
-              size="sm"
-              variant={activeWeek === w.weekNumber ? "default" : "ghost"}
-              onClick={() => {
-                setActiveWeek(w.weekNumber);
-                setActiveDayId(w.days[0]?.id ?? null);
-              }}
-              className={cn(
-                "rounded-2xl shrink-0 h-8",
-                activeWeek === w.weekNumber && "shadow-md",
-              )}
-            >
-              S{w.weekNumber}
-            </Button>
-          ))}
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={addWeek}
-            className="rounded-2xl shrink-0 h-8"
-          >
-            <Plus className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-
-        {/* Day tabs */}
-        {currentWeek && (
-          <div className="flex items-center gap-1 px-4 md:px-6 pb-3 overflow-x-auto">
-            {currentWeek.days.map((d, idx) => {
-              const isActive = currentDay?.id === d.id;
-              return (
+    <>
+      <DndContext sensors={sensors} onDragEnd={handleProgramDragEnd}>
+        <div className="flex flex-col h-full">
+          {/* Header bar — style Remix */}
+          <div className="sticky top-0 z-20 backdrop-blur bg-background/80 border-b border-border/60">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 md:px-6 py-3">
+              <div className="flex items-center gap-2 min-w-0">
+                {onClose && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onClose}
+                    className="rounded-2xl shrink-0"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-1" />
+                    Retour
+                  </Button>
+                )}
+                <div className="min-w-0 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary shrink-0" />
+                  <h2 className="font-semibold truncate">
+                    {draft.name || "Nouveau programme d'entraînement"}
+                  </h2>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                <Badge variant="outline" className="rounded-2xl">
+                  <Calendar className="h-3 w-3 mr-1" />
+                  {draft.weeks.length} sem · {draft.daysPerWeek} j/sem
+                </Badge>
                 <Button
-                  key={d.id}
+                  variant="outline"
                   size="sm"
-                  variant={isActive ? "default" : "outline"}
-                  onClick={() => setActiveDayId(d.id)}
+                  onClick={handleSave}
+                  disabled={saveProgram.isPending}
+                  className="rounded-2xl gap-2"
+                >
+                  {isSavingOnly ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Save className="h-3.5 w-3.5" />
+                  )}
+                  Enregistrer
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSaveAndAssign}
+                  disabled={saveProgram.isPending}
+                  className="rounded-2xl shadow-md gap-2"
+                >
+                  {isSavingAndAssigning ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <CalendarPlus className="h-3.5 w-3.5" />
+                  )}
+                  Appliquer au calendrier
+                </Button>
+              </div>
+            </div>
+
+            {/* Week tabs */}
+            <div className="flex items-center gap-1 px-4 md:px-6 pb-2 overflow-x-auto">
+              {draft.weeks.map((w) => (
+                <Button
+                  key={w.weekNumber}
+                  size="sm"
+                  variant={activeWeek === w.weekNumber ? "default" : "ghost"}
+                  onClick={() => {
+                    setActiveWeek(w.weekNumber);
+                    setActiveDayId(w.days[0]?.id ?? null);
+                  }}
                   className={cn(
                     "rounded-2xl shrink-0 h-8",
-                    isActive && "shadow-md",
+                    activeWeek === w.weekNumber && "shadow-md",
                   )}
                 >
-                  J{idx + 1}
-                  <span className="ml-1.5 text-[10px] opacity-70 uppercase">
-                    {DAYS_OF_WEEK.find((dd) => dd.id === d.dayOfWeek)?.shortLabel}
-                  </span>
+                  S{w.weekNumber}
                 </Button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Day editor + Library sidebar */}
-      <div className="flex-1 overflow-hidden flex">
-        <div className="flex-1 overflow-auto p-4 md:p-6">
-          {currentDay ? (
-            <Card className="rounded-2xl shadow-lg border-border/60 bg-card/95 backdrop-blur">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">
-                    Semaine {activeWeek} ·{" "}
-                    {DAYS_OF_WEEK.find((d) => d.id === currentDay.dayOfWeek)?.label}
-                  </p>
-                  <CardTitle className="text-base mt-0.5">{currentDay.name}</CardTitle>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="icon" className="rounded-2xl h-8 w-8">
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="rounded-2xl h-8 w-8">
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <SessionDayEditor
-                  ref={dayEditorRef}
-                  blocks={currentDay.blocks}
-                  onChange={(blocks) => setDayBlocks(activeWeek, currentDay.id, blocks)}
-                />
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="text-center text-muted-foreground py-12">
-              Sélectionne un jour pour commencer.
+              ))}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={addWeek}
+                className="rounded-2xl shrink-0 h-8"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </Button>
             </div>
-          )}
+
+            {/* Day tabs */}
+            {currentWeek && (
+              <div className="flex items-center gap-1 px-4 md:px-6 pb-3 overflow-x-auto">
+                {currentWeek.days.map((d, idx) => {
+                  const isActive = currentDay?.id === d.id;
+                  return (
+                    <Button
+                      key={d.id}
+                      size="sm"
+                      variant={isActive ? "default" : "outline"}
+                      onClick={() => setActiveDayId(d.id)}
+                      className={cn(
+                        "rounded-2xl shrink-0 h-8",
+                        isActive && "shadow-md",
+                      )}
+                    >
+                      J{idx + 1}
+                      <span className="ml-1.5 text-[10px] opacity-70 uppercase">
+                        {DAYS_OF_WEEK.find((dd) => dd.id === d.dayOfWeek)?.shortLabel}
+                      </span>
+                    </Button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Day editor + Library sidebar */}
+          <div className="flex-1 overflow-hidden flex">
+            <div className="flex-1 overflow-auto p-4 md:p-6 space-y-4">
+              {/* Inline metadata card (collapsible) */}
+              <Collapsible open={infoOpen} onOpenChange={setInfoOpen}>
+                <Card className="rounded-2xl shadow-lg border-border/60 bg-card/95 backdrop-blur">
+                  <CollapsibleTrigger asChild>
+                    <button
+                      type="button"
+                      className="w-full flex items-center justify-between px-6 py-3 hover:bg-muted/30 rounded-t-2xl"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Settings className="h-4 w-4 text-primary" />
+                        <span className="font-semibold text-sm">Informations du programme</span>
+                        {!infoOpen && draft.name && (
+                          <span className="text-xs text-muted-foreground truncate">
+                            — {draft.name}
+                          </span>
+                        )}
+                      </div>
+                      {infoOpen ? (
+                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <CardContent className="space-y-4 pt-2">
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="prog-name" className="text-xs">
+                            Nom du programme *
+                          </Label>
+                          <Input
+                            id="prog-name"
+                            value={draft.name}
+                            onChange={(e) => updateMeta("name", e.target.value)}
+                            placeholder="Ex : Préparation hivernale — Force"
+                            className="rounded-2xl bg-muted/40 border-border/60 h-9"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Niveau</Label>
+                          <Select
+                            value={draft.difficultyLevel}
+                            onValueChange={(v) =>
+                              updateMeta(
+                                "difficultyLevel",
+                                v as V2ProgramDraft["difficultyLevel"],
+                              )
+                            }
+                          >
+                            <SelectTrigger className="rounded-2xl bg-muted/40 border-border/60 h-9">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {DIFFICULTY_OPTIONS.map((o) => (
+                                <SelectItem key={o.value} value={o.value}>
+                                  {o.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="prog-desc" className="text-xs">
+                          Description
+                        </Label>
+                        <Textarea
+                          id="prog-desc"
+                          value={draft.description}
+                          onChange={(e) => updateMeta("description", e.target.value)}
+                          placeholder="Objectif, public visé, prérequis…"
+                          className="rounded-2xl bg-muted/40 border-border/60 min-h-[60px]"
+                        />
+                      </div>
+
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Jours / semaine</Label>
+                          <div className="flex flex-wrap gap-1.5">
+                            {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                              <Button
+                                key={n}
+                                type="button"
+                                size="sm"
+                                variant={draft.daysPerWeek === n ? "default" : "outline"}
+                                onClick={() => setDaysPerWeek(n)}
+                                className={cn(
+                                  "rounded-2xl h-9 w-9 p-0",
+                                  draft.daysPerWeek === n && "shadow-md",
+                                )}
+                              >
+                                {n}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Semaines</Label>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="rounded-2xl text-sm px-3 py-1">
+                              {draft.weeks.length} semaine{draft.weeks.length > 1 ? "s" : ""}
+                            </Badge>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={addWeek}
+                              className="rounded-2xl"
+                            >
+                              <Plus className="h-3.5 w-3.5 mr-1" /> Ajouter
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
+
+              {currentDay ? (
+                <Card className="rounded-2xl shadow-lg border-border/60 bg-card/95 backdrop-blur">
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">
+                        Semaine {activeWeek} ·{" "}
+                        {DAYS_OF_WEEK.find((d) => d.id === currentDay.dayOfWeek)?.label}
+                      </p>
+                      <CardTitle className="text-base mt-0.5">{currentDay.name}</CardTitle>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="icon" className="rounded-2xl h-8 w-8">
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="rounded-2xl h-8 w-8">
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <SessionDayEditor
+                      ref={dayEditorRef}
+                      blocks={currentDay.blocks}
+                      onChange={(blocks) => setDayBlocks(activeWeek, currentDay.id, blocks)}
+                    />
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="text-center text-muted-foreground py-12">
+                  Sélectionne un jour pour commencer.
+                </div>
+              )}
+            </div>
+            <aside className="hidden md:flex flex-col w-[340px] border-l border-border/60 bg-muted/20">
+              <V2ExerciseBankSidebar
+                onClickInsert={handleProgramClickInsert}
+                mode={
+                  currentDay?.blocks?.[currentDay.blocks.length - 1]?.type === "tests"
+                    ? "tests"
+                    : "exercises"
+                }
+                categoryId={categoryId}
+              />
+            </aside>
+          </div>
         </div>
-        <aside className="hidden md:flex flex-col w-[340px] border-l border-border/60 bg-muted/20">
-          <V2ExerciseBankSidebar
-            onClickInsert={handleProgramClickInsert}
-            mode={currentDay?.blocks?.[currentDay.blocks.length - 1]?.type === "tests" ? "tests" : "exercises"}
-            categoryId={categoryId}
-          />
-        </aside>
-      </div>
-    </div>
-    </DndContext>
+      </DndContext>
+
+      {/* Assign to calendar dialog (chooses athletes + start date) */}
+      {assignProgramId && (
+        <AssignProgramDialog
+          categoryId={categoryId}
+          programId={assignProgramId}
+          open={!!assignProgramId}
+          onOpenChange={(open) => {
+            if (!open) {
+              setAssignProgramId(null);
+              onClose?.();
+            }
+          }}
+        />
+      )}
+    </>
   );
 }
 
 export default CreateTrainingProgramV2;
+
