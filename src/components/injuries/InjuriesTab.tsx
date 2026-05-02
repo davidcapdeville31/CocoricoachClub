@@ -19,15 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Activity, TrendingUp, HeartPulse, Dumbbell, Library } from "lucide-react";
+import { Plus, Activity, TrendingUp, Library } from "lucide-react";
 import { AddInjuryDialog } from "./AddInjuryDialog";
 import { InjuryLibraryDialog } from "@/components/category/programs/InjuryLibraryDialog";
 import { toast } from "sonner";
 import { INJURY_STATUS, INJURY_STATUS_LABELS } from "@/lib/constants/injury";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
-import { ActiveProtocolsDashboard } from "@/components/rehab/ActiveProtocolsDashboard";
 
 interface InjuriesTabProps {
   categoryId: string;
