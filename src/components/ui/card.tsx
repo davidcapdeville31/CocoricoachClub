@@ -4,24 +4,29 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const cardVariants = cva(
-  "rounded-2xl border text-card-foreground transition-all duration-200",
+  "rounded-2xl border text-card-foreground transition-all duration-300 relative",
   {
     variants: {
       variant: {
-        // Default: surface (white in light, #161A22 in dark) with subtle shadow
-        default: "border-border/70 bg-card shadow-sm hover:shadow-md",
+        // Default: layered gradient + deeper shadow + lift on hover
+        default:
+          "border-border/60 bg-gradient-to-b from-card to-[hsl(var(--surface-elevated))] shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)] hover:-translate-y-0.5",
         // Elevated: lifted card for important sections / KPIs
-        elevated: "border-border/70 bg-[hsl(var(--surface-elevated))] shadow-md hover:shadow-lg",
+        elevated:
+          "border-border/60 bg-[hsl(var(--surface-elevated))] shadow-[var(--shadow-lg)] hover:shadow-[var(--shadow-xl)]",
         // Sunken: looks "inset" — for inputs/wells inside cards
-        sunken: "border-border/50 bg-[hsl(var(--surface-sunken))] shadow-none",
-        // Flat: minimal border, no shadow — for grouping inside dense layouts
-        flat: "border-border/60 bg-card shadow-none",
-        // Interactive: clickable card with strong hover
+        sunken: "border-border/40 bg-[hsl(var(--surface-sunken))] shadow-inner",
+        // Flat: minimal border, no shadow
+        flat: "border-border/50 bg-card shadow-none",
+        // Interactive: clickable card with strong hover & brand glow
         interactive:
-          "border-border/70 bg-card shadow-sm hover:shadow-lg hover:border-border-strong hover:-translate-y-0.5 cursor-pointer",
-        // Accent: branded card with brand-tinted background
+          "border-border/60 bg-gradient-to-b from-card to-[hsl(var(--surface-elevated))] shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-glow)] hover:border-primary/40 hover:-translate-y-1 cursor-pointer",
+        // Accent: branded vivid gradient card
         accent:
-          "border-primary/20 bg-gradient-to-br from-[hsl(var(--brand-50))] to-card shadow-sm hover:shadow-md dark:from-[hsl(var(--brand-900)/0.3)] dark:to-card",
+          "border-primary/30 bg-gradient-to-br from-[hsl(var(--brand-50))] via-card to-[hsl(var(--accent-50))] shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-glow)] dark:from-[hsl(var(--brand-900)/0.5)] dark:via-card dark:to-[hsl(var(--brand-800)/0.3)]",
+        // Premium: hero card with top accent line
+        premium:
+          "border-primary/20 bg-gradient-to-br from-card via-[hsl(var(--surface-elevated))] to-card shadow-[var(--shadow-xl)] overflow-hidden before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-primary/50 before:to-transparent",
       },
     },
     defaultVariants: { variant: "default" },

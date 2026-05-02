@@ -57,20 +57,20 @@ All colors MUST be HSL.
        SEMANTIC — Light theme — 3-level surface hierarchy
        background < surface < surface-elevated
        ============================================================ */
-    --background: 220 28% 95%;            /* page bg — visibly cooler than cards */
-    --foreground: 222 24% 12%;
+    --background: 224 32% 92%;            /* page bg — much cooler/darker, makes cards pop */
+    --foreground: 222 28% 10%;
 
     --surface: 0 0% 100%;
-    --surface-foreground: 222 24% 12%;
-    --surface-elevated: 0 0% 100%;
-    --surface-elevated-foreground: 222 24% 12%;
-    --surface-sunken: 220 24% 91%;
+    --surface-foreground: 222 28% 10%;
+    --surface-elevated: 220 40% 99%;
+    --surface-elevated-foreground: 222 28% 10%;
+    --surface-sunken: 222 26% 88%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 24% 12%;
+    --card-foreground: 222 28% 10%;
 
-    --popover: 220 30% 99%;
-    --popover-foreground: 222 24% 12%;
+    --popover: 220 40% 99%;
+    --popover-foreground: 222 28% 10%;
 
     --primary: 232 70% 56%;
     --primary-foreground: 0 0% 100%;
@@ -107,13 +107,13 @@ All colors MUST be HSL.
     --risk-medium: 32 92% 50%;
     --risk-high: 0 78% 55%;
 
-    --border: 220 18% 88%;
-    --border-strong: 220 16% 78%;
-    --input: 220 18% 88%;
+    --border: 222 20% 84%;
+    --border-strong: 222 18% 70%;
+    --input: 222 20% 86%;
     --ring: 232 70% 56%;
 
     --radius: 1rem;
-    --radius-sm: 0.5rem;
+    --radius-sm: 0.625rem;
     --radius-lg: 1.5rem;
 
     /* Tab/Navigation Colors - Vivid palette */
@@ -130,19 +130,23 @@ All colors MUST be HSL.
     --nav-communication: 210 80% 55%;
     --nav-settings: 220 15% 50%;
 
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(232 60% 40%), hsl(232 70% 56%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 30% 98%));
-    --gradient-performance: linear-gradient(135deg, hsl(188 76% 45%), hsl(232 70% 56%));
-    --gradient-subtle: linear-gradient(180deg, hsl(220 30% 99%), hsl(220 30% 96%));
+    /* Gradients — premium SaaS richness */
+    --gradient-hero: linear-gradient(135deg, hsl(232 75% 42%) 0%, hsl(232 70% 56%) 50%, hsl(188 76% 48%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 40% 98%));
+    --gradient-performance: linear-gradient(135deg, hsl(188 80% 48%), hsl(232 72% 58%));
+    --gradient-subtle: linear-gradient(180deg, hsl(220 40% 99%), hsl(220 32% 96%));
+    --gradient-mesh: radial-gradient(at 20% 0%, hsl(232 70% 56% / 0.08) 0px, transparent 50%),
+                     radial-gradient(at 80% 100%, hsl(188 76% 48% / 0.08) 0px, transparent 50%),
+                     radial-gradient(at 100% 0%, hsl(280 60% 60% / 0.05) 0px, transparent 40%);
 
-    /* Shadows — layered depth */
-    --shadow-xs: 0 1px 2px 0 hsl(222 24% 12% / 0.04);
-    --shadow-sm: 0 1px 3px 0 hsl(222 24% 12% / 0.06), 0 1px 2px -1px hsl(222 24% 12% / 0.04);
-    --shadow-md: 0 4px 12px -2px hsl(222 24% 12% / 0.08), 0 2px 4px -2px hsl(222 24% 12% / 0.05);
-    --shadow-lg: 0 12px 32px -8px hsl(222 24% 12% / 0.12), 0 4px 12px -4px hsl(222 24% 12% / 0.08);
-    --shadow-xl: 0 24px 48px -12px hsl(222 24% 12% / 0.18);
-    --shadow-glow: 0 0 0 1px hsl(232 70% 56% / 0.1), 0 8px 24px -8px hsl(232 70% 56% / 0.25);
+    /* Shadows — layered depth with brand glow */
+    --shadow-xs: 0 1px 2px 0 hsl(222 24% 12% / 0.05);
+    --shadow-sm: 0 1px 3px 0 hsl(222 24% 12% / 0.08), 0 1px 2px -1px hsl(222 24% 12% / 0.05);
+    --shadow-md: 0 6px 16px -4px hsl(222 24% 12% / 0.12), 0 2px 6px -2px hsl(222 24% 12% / 0.07);
+    --shadow-lg: 0 18px 40px -10px hsl(222 30% 15% / 0.18), 0 8px 16px -6px hsl(222 24% 12% / 0.1);
+    --shadow-xl: 0 32px 64px -16px hsl(222 30% 15% / 0.25), 0 12px 24px -8px hsl(222 24% 12% / 0.12);
+    --shadow-glow: 0 0 0 1px hsl(232 70% 56% / 0.15), 0 12px 32px -8px hsl(232 70% 56% / 0.35);
+    --shadow-glow-accent: 0 0 0 1px hsl(188 76% 45% / 0.15), 0 12px 32px -8px hsl(188 76% 45% / 0.35);
 
     --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-snappy: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -178,73 +182,77 @@ All colors MUST be HSL.
        SEMANTIC — Dark theme — no pure black, 3-level hierarchy
        bg #0E1117 < surface #161A22 < elevated #1E232E
        ============================================================ */
-    --background: 222 25% 7%;
-    --foreground: 220 18% 95%;
+    --background: 224 30% 5%;
+    --foreground: 220 20% 96%;
 
-    --surface: 222 22% 11%;
-    --surface-foreground: 220 18% 95%;
-    --surface-elevated: 222 20% 15%;
-    --surface-elevated-foreground: 220 18% 96%;
-    --surface-sunken: 222 28% 5%;
+    --surface: 224 24% 9%;
+    --surface-foreground: 220 20% 96%;
+    --surface-elevated: 224 22% 13%;
+    --surface-elevated-foreground: 220 20% 97%;
+    --surface-sunken: 224 32% 4%;
 
-    --card: 222 22% 11%;
-    --card-foreground: 220 18% 95%;
+    --card: 224 24% 9%;
+    --card-foreground: 220 20% 96%;
 
-    --popover: 222 20% 15%;
-    --popover-foreground: 220 18% 96%;
+    --popover: 224 22% 13%;
+    --popover-foreground: 220 20% 97%;
 
-    --primary: 232 75% 68%;
-    --primary-foreground: 222 28% 8%;
-    --primary-hover: 232 75% 74%;
+    --primary: 232 80% 70%;
+    --primary-foreground: 224 30% 5%;
+    --primary-hover: 232 85% 76%;
 
-    --secondary: 222 18% 20%;
-    --secondary-foreground: 220 18% 95%;
-    --secondary-hover: 222 16% 24%;
+    --secondary: 224 18% 18%;
+    --secondary-foreground: 220 20% 96%;
+    --secondary-hover: 224 18% 22%;
 
-    --muted: 222 18% 16%;
-    --muted-foreground: 220 14% 68%;
+    --muted: 224 20% 14%;
+    --muted-foreground: 220 14% 70%;
 
-    --accent: 188 80% 55%;
-    --accent-foreground: 222 28% 8%;
-    --accent-hover: 188 80% 62%;
+    --accent: 188 85% 58%;
+    --accent-foreground: 224 30% 5%;
+    --accent-hover: 188 85% 65%;
 
-    --destructive: 0 75% 62%;
+    --destructive: 0 78% 64%;
     --destructive-foreground: 0 0% 100%;
 
-    --warning: 32 92% 60%;
-    --warning-foreground: 222 28% 8%;
+    --warning: 32 95% 62%;
+    --warning-foreground: 224 30% 5%;
 
-    --success: 152 60% 50%;
-    --success-foreground: 222 28% 8%;
+    --success: 152 65% 52%;
+    --success-foreground: 224 30% 5%;
 
-    --info: 210 85% 62%;
-    --info-foreground: 222 28% 8%;
+    --info: 210 88% 64%;
+    --info-foreground: 224 30% 5%;
 
-    --status-optimal: 152 60% 50%;
-    --status-attention: 32 92% 60%;
-    --status-critical: 0 75% 62%;
+    --status-optimal: 152 65% 52%;
+    --status-attention: 32 95% 62%;
+    --status-critical: 0 78% 64%;
 
-    --risk-low: 152 60% 50%;
-    --risk-medium: 32 92% 60%;
-    --risk-high: 0 75% 62%;
+    --risk-low: 152 65% 52%;
+    --risk-medium: 32 95% 62%;
+    --risk-high: 0 78% 64%;
 
-    --border: 222 16% 22%;
-    --border-strong: 222 14% 32%;
-    --input: 222 18% 20%;
-    --ring: 232 75% 68%;
+    --border: 224 18% 20%;
+    --border-strong: 224 16% 30%;
+    --input: 224 18% 18%;
+    --ring: 232 80% 70%;
 
-    --gradient-hero: linear-gradient(135deg, hsl(232 55% 24%), hsl(232 60% 38%));
-    --gradient-card: linear-gradient(180deg, hsl(222 22% 12%), hsl(222 22% 14%));
-    --gradient-performance: linear-gradient(135deg, hsl(188 80% 50%), hsl(232 75% 60%));
-    --gradient-subtle: linear-gradient(180deg, hsl(222 22% 12%), hsl(222 22% 10%));
+    --gradient-hero: linear-gradient(135deg, hsl(232 70% 22%) 0%, hsl(232 65% 38%) 50%, hsl(188 75% 35%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(224 24% 10%), hsl(224 22% 13%));
+    --gradient-performance: linear-gradient(135deg, hsl(188 85% 50%), hsl(232 80% 65%));
+    --gradient-subtle: linear-gradient(180deg, hsl(224 24% 11%), hsl(224 24% 9%));
+    --gradient-mesh: radial-gradient(at 20% 0%, hsl(232 80% 70% / 0.12) 0px, transparent 50%),
+                     radial-gradient(at 80% 100%, hsl(188 85% 58% / 0.1) 0px, transparent 50%),
+                     radial-gradient(at 100% 0%, hsl(280 70% 65% / 0.08) 0px, transparent 40%);
 
-    /* Dark shadows — deeper */
-    --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
-    --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.4), 0 1px 2px -1px hsl(0 0% 0% / 0.3);
-    --shadow-md: 0 4px 12px -2px hsl(0 0% 0% / 0.45), 0 2px 4px -2px hsl(0 0% 0% / 0.35);
-    --shadow-lg: 0 12px 32px -8px hsl(0 0% 0% / 0.55), 0 4px 12px -4px hsl(0 0% 0% / 0.4);
-    --shadow-xl: 0 24px 48px -12px hsl(0 0% 0% / 0.65);
-    --shadow-glow: 0 0 0 1px hsl(232 75% 68% / 0.2), 0 8px 24px -8px hsl(232 75% 68% / 0.4);
+    /* Dark shadows — much deeper with subtle glow */
+    --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.4);
+    --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.5), 0 1px 2px -1px hsl(0 0% 0% / 0.4);
+    --shadow-md: 0 6px 16px -4px hsl(0 0% 0% / 0.55), 0 2px 6px -2px hsl(0 0% 0% / 0.45);
+    --shadow-lg: 0 18px 40px -10px hsl(0 0% 0% / 0.65), 0 8px 16px -6px hsl(0 0% 0% / 0.5);
+    --shadow-xl: 0 32px 64px -16px hsl(0 0% 0% / 0.75);
+    --shadow-glow: 0 0 0 1px hsl(232 80% 70% / 0.25), 0 12px 32px -8px hsl(232 80% 70% / 0.5);
+    --shadow-glow-accent: 0 0 0 1px hsl(188 85% 58% / 0.25), 0 12px 32px -8px hsl(188 85% 58% / 0.5);
 
     /* Sidebar - Deeper for dark theme */
     --sidebar-background: 222 28% 5%;
@@ -371,6 +379,9 @@ All colors MUST be HSL.
     /* Honour the iOS safe-areas so notch / home-indicator never crop content */
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+    background-image: var(--gradient-mesh);
+    background-attachment: fixed;
+    min-height: 100vh;
   }
 
   /* Improve readability for data-heavy interfaces */
