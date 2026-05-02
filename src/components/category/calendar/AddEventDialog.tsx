@@ -1,6 +1,4 @@
-import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   Dumbbell, 
@@ -32,60 +30,60 @@ const EVENT_TYPES = [
     label: "Séance d'entraînement",
     description: "Planifier un entraînement",
     icon: Dumbbell,
-    color: "bg-emerald-500",
-    bgColor: "bg-emerald-50 dark:bg-emerald-950/30",
-    borderColor: "border-emerald-200 dark:border-emerald-800",
-    hoverColor: "hover:bg-emerald-100 dark:hover:bg-emerald-900/50",
+    iconColor: "text-emerald-700 dark:text-emerald-300",
+    iconBgColor: "bg-emerald-100 dark:bg-emerald-500/15",
+    accentBorderColor: "border-l-emerald-500",
+    hoverBorderColor: "hover:border-emerald-400 dark:hover:border-emerald-500",
   },
   {
     id: "match",
     label: "Match / Compétition",
     description: "Ajouter un match ou une compétition",
     icon: Swords,
-    color: "bg-rose-500",
-    bgColor: "bg-rose-50 dark:bg-rose-950/30",
-    borderColor: "border-rose-200 dark:border-rose-800",
-    hoverColor: "hover:bg-rose-100 dark:hover:bg-rose-900/50",
+    iconColor: "text-rose-700 dark:text-rose-300",
+    iconBgColor: "bg-rose-100 dark:bg-rose-500/15",
+    accentBorderColor: "border-l-rose-500",
+    hoverBorderColor: "hover:border-rose-400 dark:hover:border-rose-500",
   },
   {
     id: "medical",
     label: "Rendez-vous médical",
     description: "Consultation, bilan, suivi",
     icon: Stethoscope,
-    color: "bg-sky-500",
-    bgColor: "bg-sky-50 dark:bg-sky-950/30",
-    borderColor: "border-sky-200 dark:border-sky-800",
-    hoverColor: "hover:bg-sky-100 dark:hover:bg-sky-900/50",
+    iconColor: "text-sky-700 dark:text-sky-300",
+    iconBgColor: "bg-sky-100 dark:bg-sky-500/15",
+    accentBorderColor: "border-l-sky-500",
+    hoverBorderColor: "hover:border-sky-400 dark:hover:border-sky-500",
   },
   {
     id: "video",
     label: "Analyse vidéo",
     description: "Session d'analyse vidéo",
     icon: Video,
-    color: "bg-purple-500",
-    bgColor: "bg-purple-50 dark:bg-purple-950/30",
-    borderColor: "border-purple-200 dark:border-purple-800",
-    hoverColor: "hover:bg-purple-100 dark:hover:bg-purple-900/50",
+    iconColor: "text-purple-700 dark:text-purple-300",
+    iconBgColor: "bg-purple-100 dark:bg-purple-500/15",
+    accentBorderColor: "border-l-purple-500",
+    hoverBorderColor: "hover:border-purple-400 dark:hover:border-purple-500",
   },
   {
     id: "test",
     label: "Test physique",
     description: "Évaluation et tests de performance",
     icon: ClipboardList,
-    color: "bg-amber-500",
-    bgColor: "bg-amber-50 dark:bg-amber-950/30",
-    borderColor: "border-amber-200 dark:border-amber-800",
-    hoverColor: "hover:bg-amber-100 dark:hover:bg-amber-900/50",
+    iconColor: "text-amber-700 dark:text-amber-300",
+    iconBgColor: "bg-amber-100 dark:bg-amber-500/15",
+    accentBorderColor: "border-l-amber-500",
+    hoverBorderColor: "hover:border-amber-400 dark:hover:border-amber-500",
   },
   {
     id: "team",
     label: "Réunion d'équipe",
     description: "Briefing, débriefing, tactique",
     icon: Users,
-    color: "bg-indigo-500",
-    bgColor: "bg-indigo-50 dark:bg-indigo-950/30",
-    borderColor: "border-indigo-200 dark:border-indigo-800",
-    hoverColor: "hover:bg-indigo-100 dark:hover:bg-indigo-900/50",
+    iconColor: "text-indigo-700 dark:text-indigo-300",
+    iconBgColor: "bg-indigo-100 dark:bg-indigo-500/15",
+    accentBorderColor: "border-l-indigo-500",
+    hoverBorderColor: "hover:border-indigo-400 dark:hover:border-indigo-500",
   },
 ];
 
@@ -98,8 +96,6 @@ export function AddEventDialog({
   onAddMedical,
   onAddVideoAnalysis,
 }: AddEventDialogProps) {
-  const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
-
   const handleEventClick = (eventType: string) => {
     switch (eventType) {
       case "session":
@@ -127,7 +123,7 @@ export function AddEventDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg border-border/70 bg-background/95 shadow-2xl backdrop-blur-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Calendar className="h-5 w-5 text-primary" />
@@ -145,27 +141,23 @@ export function AddEventDialog({
               <Card
                 key={event.id}
                 className={cn(
-                  "cursor-pointer transition-all border-2",
-                  event.bgColor,
-                  event.borderColor,
-                  event.hoverColor,
-                  "hover:shadow-md hover:scale-[1.02]"
+                  "cursor-pointer border border-border/70 border-l-4 bg-card/95 transition-all duration-200 hover:bg-accent/50 hover:shadow-lg hover:scale-[1.02]",
+                  "dark:bg-card dark:hover:bg-muted/70",
+                  event.accentBorderColor,
+                  event.hoverBorderColor,
                 )}
                 onClick={() => handleEventClick(event.id)}
               >
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
-                    <div className={cn(
-                      "p-2 rounded-lg",
-                      event.color
-                    )}>
-                      <Icon className="h-5 w-5 text-white" />
+                    <div className={cn("rounded-lg p-2", event.iconBgColor)}>
+                      <Icon className={cn("h-5 w-5", event.iconColor)} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm leading-tight">
+                      <p className="text-sm font-semibold leading-tight text-foreground">
                         {event.label}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground dark:text-foreground/80 line-clamp-2">
                         {event.description}
                       </p>
                     </div>
