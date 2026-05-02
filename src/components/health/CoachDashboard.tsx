@@ -231,140 +231,113 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
         <p className="text-muted-foreground">Vue consolidée des indicateurs critiques</p>
       </div>
 
-      {/* Main KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Main KPIs + Rappels */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         <Card className="bg-gradient-to-br from-green-500/20 to-green-600/10 border-green-500/30">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Users className="h-4 w-4" />
+          <CardHeader className="pb-1 px-3 pt-3">
+            <CardTitle className="text-xs flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5" />
               Disponibilité
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-600">
+          <CardContent className="px-3 pb-3">
+            <div className="text-2xl font-bold text-green-600">
               {availablePlayers}/{totalPlayers}
             </div>
-            <Progress value={availabilityRate} className="mt-2 h-2" />
-            <p className="text-xs text-muted-foreground mt-1">
+            <Progress value={availabilityRate} className="mt-1.5 h-1.5" />
+            <p className="text-[10px] text-muted-foreground mt-1">
               {availabilityRate.toFixed(0)}% disponibles
             </p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-red-500/20 to-red-600/10 border-red-500/30">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Activity className="h-4 w-4" />
+          <CardHeader className="pb-1 px-3 pt-3">
+            <CardTitle className="text-xs flex items-center gap-1.5">
+              <Activity className="h-3.5 w-3.5" />
               Blessures actives
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-red-600">{injuredPlayers}</div>
-            <p className="text-xs text-muted-foreground mt-1">
+          <CardContent className="px-3 pb-3">
+            <div className="text-2xl font-bold text-red-600">{injuredPlayers}</div>
+            <p className="text-[10px] text-muted-foreground mt-1">
               {rtpProtocols?.length || 0} en protocole RTP
             </p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-orange-500/20 to-orange-600/10 border-orange-500/30">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
+          <CardHeader className="pb-1 px-3 pt-3">
+            <CardTitle className="text-xs flex items-center gap-1.5">
+              <TrendingUp className="h-3.5 w-3.5" />
               EWMA élevé
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-orange-600">{highEwma.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">
+          <CardContent className="px-3 pb-3">
+            <div className="text-2xl font-bold text-orange-600">{highEwma.length}</div>
+            <p className="text-[10px] text-muted-foreground mt-1">
               Risque de surcharge
             </p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border-blue-500/30">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <HeartPulse className="h-4 w-4" />
+          <CardHeader className="pb-1 px-3 pt-3">
+            <CardTitle className="text-xs flex items-center gap-1.5">
+              <HeartPulse className="h-3.5 w-3.5" />
               Wellness faible
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-blue-600">{lowWellnessPlayers.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">
+          <CardContent className="px-3 pb-3">
+            <div className="text-2xl font-bold text-blue-600">{lowWellnessPlayers.length}</div>
+            <p className="text-[10px] text-muted-foreground mt-1">
               Attention requise
             </p>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Reminders section (Alertes critiques retirées) */}
-      <div className="grid grid-cols-1 gap-6">
-
-        {/* Upcoming reminders */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Clock className="h-5 w-5" />
+        {/* Rappels à venir - compact */}
+        <Card className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 border-purple-500/30">
+          <CardHeader className="pb-1 px-3 pt-3">
+            <CardTitle className="text-xs flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5" />
               Rappels à venir
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[300px]">
-              <div className="space-y-3">
-                {/* Medical records due soon */}
+          <CardContent className="px-3 pb-3">
+            <div className="text-2xl font-bold text-purple-600">
+              {(dueSoonMedical?.length || 0) + (rtpProtocols?.length || 0) + (birthdaysThisMonth?.length || 0)}
+            </div>
+            <ScrollArea className="h-[90px] mt-1.5">
+              <div className="space-y-1">
                 {dueSoonMedical?.map((record) => (
-                  <div
-                    key={record.id}
-                    className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg"
-                  >
-                    <Syringe className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{record.players?.name}</p>
-                      <p className="text-xs text-muted-foreground">{record.name}</p>
-                    </div>
-                    <Badge variant="outline">
+                  <div key={record.id} className="flex items-center gap-1.5 text-[10px]">
+                    <Syringe className="h-3 w-3 text-muted-foreground shrink-0" />
+                    <span className="truncate flex-1">{record.players?.name}</span>
+                    <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">
                       {safeDiffDays(record.next_due_date, new Date())}j
                     </Badge>
                   </div>
                 ))}
-
-                {/* RTP protocols */}
                 {rtpProtocols?.map((protocol: any) => (
-                  <div
-                    key={protocol.id}
-                    className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg"
-                  >
-                    <Activity className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{protocol.players?.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        RTP {protocol.injuries?.injury_type} - Phase {protocol.current_phase}/6
-                      </p>
-                    </div>
-                    <Badge variant="secondary">En cours</Badge>
+                  <div key={protocol.id} className="flex items-center gap-1.5 text-[10px]">
+                    <Activity className="h-3 w-3 text-muted-foreground shrink-0" />
+                    <span className="truncate flex-1">{protocol.players?.name}</span>
+                    <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">RTP</Badge>
                   </div>
                 ))}
-
-                {/* Birthdays */}
                 {birthdaysThisMonth?.map((player) => (
-                  <div
-                    key={player.id}
-                    className="flex items-start gap-3 p-3 bg-pink-500/10 rounded-lg"
-                  >
-                    <Cake className="h-4 w-4 text-pink-500 mt-0.5" />
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{player.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Anniversaire le{" "}
-                        {safeFormat(player.birth_date ? parseISO(player.birth_date) : null, "dd MMMM", { locale: fr })}
-                      </p>
-                    </div>
+                  <div key={player.id} className="flex items-center gap-1.5 text-[10px]">
+                    <Cake className="h-3 w-3 text-pink-500 shrink-0" />
+                    <span className="truncate flex-1">{player.name}</span>
+                    <span className="text-[9px] text-muted-foreground">
+                      {safeFormat(player.birth_date ? parseISO(player.birth_date) : null, "dd/MM", { locale: fr })}
+                    </span>
                   </div>
                 ))}
-
                 {(!dueSoonMedical?.length && !rtpProtocols?.length && !birthdaysThisMonth?.length) && (
-                  <p className="text-center text-muted-foreground py-4">
-                    Aucun rappel à venir
+                  <p className="text-center text-[10px] text-muted-foreground py-2">
+                    Aucun rappel
                   </p>
                 )}
               </div>
