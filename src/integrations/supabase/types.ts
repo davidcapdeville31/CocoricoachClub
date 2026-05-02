@@ -2718,6 +2718,7 @@ export type Database = {
           unit: string | null
           unit_kind: string | null
           updated_at: string | null
+          video_url: string | null
         }
         Insert: {
           club_id: string
@@ -2736,6 +2737,7 @@ export type Database = {
           unit?: string | null
           unit_kind?: string | null
           updated_at?: string | null
+          video_url?: string | null
         }
         Update: {
           club_id?: string
@@ -2754,6 +2756,7 @@ export type Database = {
           unit?: string | null
           unit_kind?: string | null
           updated_at?: string | null
+          video_url?: string | null
         }
         Relationships: [
           {
