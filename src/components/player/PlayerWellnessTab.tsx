@@ -321,7 +321,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                           <Badge variant={getScoreBadge(entry.sleep_quality)}>{entry.sleep_quality}</Badge>
                         </TableCell>
                         <TableCell className="text-center">
-                          <Badge variant={getScoreBadge(entry.sleep_duration)}>{entry.sleep_duration}</Badge>
+                          <Badge variant={getScoreBadge(entry.sleep_duration)}>{sleepScoreLabel(entry.sleep_duration)}</Badge>
                         </TableCell>
                         <TableCell className="text-center">
                           <Badge variant={getScoreBadge(entry.general_fatigue)}>{entry.general_fatigue}</Badge>
