@@ -376,8 +376,8 @@ export function PlanTestsDialog({
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-3 border-b">
+      <DialogContent className="max-w-3xl h-[90vh] flex flex-col p-0 overflow-hidden">
+        <DialogHeader className="shrink-0 px-6 pt-6 pb-3 border-b">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <CalendarPlus className="h-5 w-5 text-primary" />
             Planifier des tests dans le calendrier
@@ -387,7 +387,7 @@ export function PlanTestsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-6 py-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
           <div className="space-y-6">
             {/* === TESTS SELECTION (Accordion) === */}
             <section className="space-y-3">
@@ -776,9 +776,9 @@ export function PlanTestsDialog({
               />
             </section>
           </div>
-        </ScrollArea>
+        </div>
 
-        <DialogFooter className="px-6 py-4 border-t bg-[hsl(var(--surface-sunken))]">
+        <DialogFooter className="shrink-0 px-6 py-4 border-t bg-[hsl(var(--surface-sunken))]">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
