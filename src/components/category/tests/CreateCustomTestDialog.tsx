@@ -40,6 +40,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
   const [scoringScale, setScoringScale] = useState<ScoringScale | null>(null);
   const [formulaConfig, setFormulaConfig] = useState<FormulaConfig | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string>("");
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -223,6 +224,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
           max_points: maxPoints,
           formula_config: formulaConfig?.enabled ? (formulaConfig as any) : null,
           image_url: imageUrl,
+          video_url: videoUrl.trim() || null,
           created_by: user?.user?.id || null,
         } as any)
         .select("id")
@@ -264,6 +266,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
     setScoringScale(null);
     setFormulaConfig(null);
     setImageUrl(null);
+    setVideoUrl("");
   };
 
   const handleSubmit = () => {
@@ -352,6 +355,16 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
                 )}
               </button>
             )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Lien vidéo (YouTube, Vimeo...) (optionnel)</Label>
+            <Input
+              type="url"
+              value={videoUrl}
+              onChange={e => setVideoUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=..."
+            />
           </div>
 
           <div className="space-y-1.5">

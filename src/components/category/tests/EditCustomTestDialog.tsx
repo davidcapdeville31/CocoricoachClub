@@ -33,6 +33,7 @@ export interface EditableTest {
   scoring_scale?: ScoringScale | null;
   formula_config?: FormulaConfig | null;
   image_url?: string | null;
+  video_url?: string | null;
   source: "custom" | "seed";   // seed = test pré-existant du catalogue
   seedTestType?: string;       // test_type d'origine si seed (pour réf)
 }
@@ -57,6 +58,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
   const [scoringScale, setScoringScale] = useState<ScoringScale | null>(null);
   const [formulaConfig, setFormulaConfig] = useState<FormulaConfig | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string>("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Initialise le formulaire quand un test est sélectionné
@@ -81,6 +83,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
     setScoringScale(test.scoring_scale || null);
     setFormulaConfig(test.formula_config?.enabled ? test.formula_config : null);
     setImageUrl(test.image_url || null);
+    setVideoUrl(test.video_url || "");
   }, [open, test]);
 
   const handleImageUpload = async (file: File) => {
@@ -207,6 +210,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
         scoring_scale: enableScoring ? (scoringScale as any) : null,
         max_points: maxPoints,
         image_url: imageUrl,
+        video_url: videoUrl.trim() || null,
         formula_config: formulaConfig?.enabled ? (formulaConfig as any) : null,
       };
 
@@ -374,6 +378,16 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
                 />
               </label>
             )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Lien vidéo (YouTube, Vimeo...) (optionnel)</Label>
+            <Input
+              type="url"
+              value={videoUrl}
+              onChange={e => setVideoUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=..."
+            />
           </div>
 
           <div className="space-y-1.5">

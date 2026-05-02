@@ -300,7 +300,7 @@ export function SessionDetailsDialog({
       if (!clubId) return [];
       const { data, error } = await supabase
         .from("custom_tests")
-        .select("id, name, description, objectives, image_url, unit, test_category")
+        .select("id, name, description, objectives, image_url, video_url, unit, test_category")
         .eq("club_id", clubId);
       if (error) throw error;
       return data || [];
@@ -1139,7 +1139,37 @@ export function SessionDetailsDialog({
                 </p>
               </div>
             )}
-            {!selectedTestDetail?.description && !selectedTestDetail?.objectives && !selectedTestDetail?.image_url && (
+            {selectedTestDetail?.video_url && (() => {
+              const url: string = selectedTestDetail.video_url;
+              const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
+              const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+              const embedSrc = ytMatch
+                ? `https://www.youtube.com/embed/${ytMatch[1]}`
+                : vimeoMatch
+                ? `https://player.vimeo.com/video/${vimeoMatch[1]}`
+                : null;
+              return (
+                <div>
+                  <h5 className="text-sm font-semibold mb-2">Vidéo de démonstration</h5>
+                  {embedSrc ? (
+                    <div className="relative w-full rounded-xl overflow-hidden bg-black" style={{ paddingBottom: "56.25%" }}>
+                      <iframe
+                        src={embedSrc}
+                        title={selectedTestDetail.name}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="absolute inset-0 w-full h-full border-0"
+                      />
+                    </div>
+                  ) : (
+                    <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline break-all">
+                      {url}
+                    </a>
+                  )}
+                </div>
+              );
+            })()}
+            {!selectedTestDetail?.description && !selectedTestDetail?.objectives && !selectedTestDetail?.image_url && !selectedTestDetail?.video_url && (
               <p className="text-sm text-muted-foreground italic">
                 Aucune information complémentaire pour ce test.
               </p>
