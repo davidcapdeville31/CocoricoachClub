@@ -9321,6 +9321,60 @@ export type Database = {
           },
         ]
       }
+      program_themes: {
+        Row: {
+          club_id: string
+          color: string
+          created_at: string
+          created_by: string | null
+          display_order: number
+          icon: string | null
+          id: string
+          is_system: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          icon?: string | null
+          id?: string
+          is_system?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          icon?: string | null
+          id?: string
+          is_system?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_themes_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "admin_all_clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_themes_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       program_weeks: {
         Row: {
           block_name: string | null
@@ -12408,6 +12462,7 @@ export type Database = {
           program_kind: string
           reathletisation_phase: string | null
           theme: string | null
+          theme_id: string | null
           updated_at: string
         }
         Insert: {
@@ -12424,6 +12479,7 @@ export type Database = {
           program_kind?: string
           reathletisation_phase?: string | null
           theme?: string | null
+          theme_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -12440,6 +12496,7 @@ export type Database = {
           program_kind?: string
           reathletisation_phase?: string | null
           theme?: string | null
+          theme_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -12455,6 +12512,13 @@ export type Database = {
             columns: ["injury_library_id"]
             isOneToOne: false
             referencedRelation: "injury_library"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_programs_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "program_themes"
             referencedColumns: ["id"]
           },
         ]
@@ -13772,6 +13836,10 @@ export type Database = {
       respond_to_category_link: {
         Args: { _player_category_id: string; _response: string }
         Returns: Json
+      }
+      seed_default_program_themes: {
+        Args: { p_club_id: string }
+        Returns: undefined
       }
       transfer_player_with_history: {
         Args: {
