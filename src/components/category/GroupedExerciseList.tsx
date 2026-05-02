@@ -140,8 +140,8 @@ export function GroupedExerciseList({
           compact ? "p-2" : "p-3",
           "border rounded-lg",
           isGrouped 
-            ? (fieldMode ? "bg-slate-700/50" : "bg-background/50") 
-            : (fieldMode ? "bg-slate-700" : "bg-card")
+            ? (fieldMode ? "bg-secondary/50" : "bg-background/50") 
+            : (fieldMode ? "bg-secondary" : "bg-card")
         )}
       >
         <div className="flex items-start justify-between gap-2 mb-1">
@@ -154,7 +154,7 @@ export function GroupedExerciseList({
             {!isGrouped && (
               <span className={cn(
                 "text-sm font-medium w-5",
-                fieldMode ? "text-slate-400" : "text-muted-foreground"
+                fieldMode ? "text-muted-foreground" : "text-muted-foreground"
               )}>
                 {idx + 1}.
               </span>
@@ -225,7 +225,7 @@ export function GroupedExerciseList({
         <div className={cn(
           "flex flex-wrap gap-2",
           compact ? "text-xs" : "text-sm",
-          fieldMode ? "text-slate-400" : "text-muted-foreground"
+          fieldMode ? "text-muted-foreground" : "text-muted-foreground"
         )}>
           <span>{ex.sets} séries</span>
           {ex.reps && <span>× {ex.reps} reps</span>}
@@ -241,7 +241,7 @@ export function GroupedExerciseList({
         {!compact && ex.notes && (
           <p className={cn(
             "text-xs mt-2 italic",
-            fieldMode ? "text-slate-500" : "text-muted-foreground"
+            fieldMode ? "text-muted-foreground" : "text-muted-foreground"
           )}>
             {ex.notes}
           </p>
@@ -278,7 +278,7 @@ export function GroupedExerciseList({
           </Badge>
           <span className={cn(
             "text-xs",
-            fieldMode ? "text-slate-400" : "text-muted-foreground"
+            fieldMode ? "text-muted-foreground" : "text-muted-foreground"
           )}>
             {group.exercises.length} exercices liés
           </span>
@@ -298,7 +298,7 @@ export function GroupedExerciseList({
     return (
       <div className={cn(
         "text-center py-6",
-        fieldMode ? "text-slate-400" : "text-muted-foreground"
+        fieldMode ? "text-muted-foreground" : "text-muted-foreground"
       )}>
         <Dumbbell className="h-10 w-10 mx-auto mb-2 opacity-30" />
         <p className="text-sm">Aucun exercice détaillé</p>

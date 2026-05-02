@@ -53,11 +53,11 @@ const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps>(
           className={cn(
             "h-8 rounded-md px-3 py-1 text-sm text-center",
             // CRITICAL: Visible border and background for editable fields
-            "border-2 border-input bg-white dark:bg-background",
+            "border-2 border-input bg-card dark:bg-background",
             "ring-offset-background transition-all duration-200",
             "placeholder:text-muted-foreground/60",
-            "hover:border-primary/50 hover:bg-white dark:hover:bg-card",
-            "focus:bg-white dark:focus:bg-card focus:ring-2 focus:ring-ring focus:ring-offset-1 focus:outline-none focus:border-primary",
+            "hover:border-primary/50 hover:bg-card dark:hover:bg-card",
+            "focus:bg-card dark:focus:bg-card focus:ring-2 focus:ring-ring focus:ring-offset-1 focus:outline-none focus:border-primary",
             "disabled:cursor-not-allowed disabled:opacity-50",
             className
           )}

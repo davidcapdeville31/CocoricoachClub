@@ -42,8 +42,8 @@ const COLOR_MAP: Record<string, { bg: string; text: string; badgeBg: string }> =
   emerald: { bg: "bg-emerald-500/5", text: "text-emerald-600", badgeBg: "bg-emerald-500/10 border-emerald-500/30" },
   teal: { bg: "bg-teal-500/5", text: "text-teal-600", badgeBg: "bg-teal-500/10 border-teal-500/30" },
   sky: { bg: "bg-sky-500/5", text: "text-sky-600", badgeBg: "bg-sky-500/10 border-sky-500/30" },
-  stone: { bg: "bg-stone-500/5", text: "text-stone-600", badgeBg: "bg-stone-500/10 border-stone-500/30" },
-  slate: { bg: "bg-slate-500/5", text: "text-slate-600", badgeBg: "bg-slate-500/10 border-slate-500/30" },
+  stone: { bg: "bg-stone-500/5", text: "text-muted-foreground", badgeBg: "bg-stone-500/10 border-stone-500/30" },
+  slate: { bg: "bg-slate-500/5", text: "text-muted-foreground", badgeBg: "bg-slate-500/10 border-slate-500/30" },
   rose: { bg: "bg-rose-500/5", text: "text-rose-600", badgeBg: "bg-rose-500/10 border-rose-500/30" },
 };
 

@@ -208,7 +208,7 @@ export const ExerciseFocusPanel = ({
                 </div>
                 
                 {showVideo && (
-                  <div className="aspect-video bg-black rounded-lg overflow-hidden border flex items-center justify-center">
+                  <div className="aspect-video bg-foreground rounded-lg overflow-hidden border flex items-center justify-center">
                     {videoType === 'youtube' && (
                       <iframe
                         key={videoUrl}

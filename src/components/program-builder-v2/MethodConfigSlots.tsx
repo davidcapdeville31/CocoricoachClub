@@ -348,7 +348,7 @@ const getMethodConfig = (method: string) => {
         color: "bg-stone-500",
         borderColor: "border-stone-500",
         bgActive: "bg-stone-500/20",
-        textColor: "text-stone-600",
+        textColor: "text-muted-foreground",
         description: "Contraction maximale contre résistance fixe",
         defaultSeries: [
           { reps: "1", angle: 90, timeUnderTension: 6, rpe: 10, isActive: true },
@@ -372,7 +372,7 @@ const getMethodConfig = (method: string) => {
         color: "bg-slate-500",
         borderColor: "border-slate-500",
         bgActive: "bg-slate-500/20",
-        textColor: "text-slate-600",
+        textColor: "text-muted-foreground",
         description: "Maintien de charge à un angle spécifique",
         defaultSeries: [
           { reps: "1", angle: 90, timeUnderTension: 20, load: 50, rpe: 8, isActive: true },
@@ -564,7 +564,7 @@ const getMethodConfig = (method: string) => {
         color: "bg-gray-500",
         borderColor: "border-gray-500",
         bgActive: "bg-gray-500/20",
-        textColor: "text-gray-600",
+        textColor: "text-muted-foreground",
         description: "",
         defaultSeries: [{ reps: "10", isActive: true }],
         showRpe: false,
