@@ -458,6 +458,14 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
           matches={getMatchesForDate(selectedDate)}
           planning={getPlanningForDate(selectedDate)}
           onEditSession={(session) => {
+            if (session.training_type === "test") {
+              setEditingTestSession({
+                id: session.id,
+                date: new Date(session.session_date),
+              });
+              setIsDailyDialogOpen(false);
+              return;
+            }
             setEditingSession(session);
             setIsEditDialogOpen(true);
             setIsDailyDialogOpen(false);
