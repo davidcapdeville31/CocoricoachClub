@@ -125,9 +125,16 @@ export function SuperAdminExerciseLibrary() {
     const exerciseGroup = getCategoryGroup(exercise.category);
     const config = exerciseGroup ? CATEGORY_GROUP_CONFIGS[exerciseGroup] : null;
     const Icon = config?.icon || Library;
+    const styles = getGroupStyles(exerciseGroup);
 
     return (
-      <Card key={exercise.id} className="overflow-hidden transition-all hover:shadow-md">
+      <Card
+        key={exercise.id}
+        className={cn(
+          "overflow-hidden border-l-4 transition-all hover:shadow-md",
+          styles.border
+        )}
+      >
         {/* Image */}
         {exercise.image_url && (
           <div className="aspect-video bg-muted overflow-hidden">
@@ -145,10 +152,10 @@ export function SuperAdminExerciseLibrary() {
             />
           </div>
         )}
-        <CardHeader className="pb-2">
+        <CardHeader className={cn("pb-2", styles.bg)}>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
-              <Icon className={cn("h-4 w-4", config?.color)} />
+              <Icon className={cn("h-4 w-4", styles.text)} />
               <CardTitle className="text-base">{exercise.name}</CardTitle>
             </div>
             <div className="flex gap-1">
@@ -158,7 +165,7 @@ export function SuperAdminExerciseLibrary() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-destructive"
+                className="h-7 w-7 text-destructive hover:text-destructive"
                 onClick={() => deleteMutation.mutate(exercise.id)}
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -166,28 +173,49 @@ export function SuperAdminExerciseLibrary() {
             </div>
           </div>
           <div className="flex flex-wrap gap-1 mt-1">
-            <Badge variant="outline" className="text-xs">{getCategoryLabel(exercise.category)}</Badge>
-            {exercise.subcategory && <Badge variant="secondary" className="text-xs">{getSubcategoryLabel(exercise.subcategory)}</Badge>}
-            {exercise.is_system && <Badge className="text-xs bg-primary/10 text-primary border-primary/30">Système</Badge>}
+            <Badge
+              variant="outline"
+              className={cn("border", styles.bg, styles.text, styles.border)}
+            >
+              {getCategoryLabel(exercise.category)}
+            </Badge>
+            {exercise.subcategory && (
+              <Badge variant="secondary" className="text-xs">
+                {getSubcategoryLabel(exercise.subcategory)}
+              </Badge>
+            )}
+            {exercise.is_system && (
+              <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
+                Système
+              </Badge>
+            )}
           </div>
         </CardHeader>
         {exercise.description && (
-          <CardContent className="pt-1 pb-2">
-            <p className="text-xs text-muted-foreground line-clamp-2">{exercise.description}</p>
+          <CardContent className="pt-2 pb-2">
+            <p className="text-sm text-muted-foreground line-clamp-2">{exercise.description}</p>
           </CardContent>
         )}
-        <CardContent className="pt-0 pb-3 flex gap-2">
-          {exercise.youtube_url && (
-            <a href={exercise.youtube_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline inline-flex items-center gap-1">
-              <Video className="h-3 w-3" /> Vidéo
-            </a>
-          )}
-          {exercise.image_url && (
-            <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-              <ImageIcon className="h-3 w-3" /> Photo
-            </span>
-          )}
-        </CardContent>
+        {(exercise.youtube_url || exercise.image_url) && (
+          <CardContent className="pt-0 pb-3 flex gap-3">
+            {exercise.youtube_url && (
+              <a
+                href={exercise.youtube_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+              >
+                <ExternalLink className="h-3 w-3" />
+                Voir sur YouTube
+              </a>
+            )}
+            {exercise.image_url && (
+              <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                <ImageIcon className="h-3 w-3" /> Photo
+              </span>
+            )}
+          </CardContent>
+        )}
       </Card>
     );
   };
