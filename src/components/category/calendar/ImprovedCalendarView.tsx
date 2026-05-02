@@ -482,16 +482,18 @@ export function ImprovedCalendarView({
               <Button variant="outline" size="icon" className="h-9 w-9" onClick={onExportPdf} title="Exporter PDF">
                 <Download className="h-4 w-4" />
               </Button>
-              {!isViewer && (
-                <Button onClick={() => onAddSession()} className="gap-2 h-9">
-                  <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">Ajouter</span>
-                </Button>
-              )}
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {!isViewer && (
+            <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent px-3 py-2 text-xs sm:text-sm">
+              <Plus className="h-4 w-4 shrink-0 text-primary" />
+              <span className="text-muted-foreground">
+                <span className="font-medium text-foreground">Astuce :</span> cliquez sur n'importe quel jour du calendrier pour ajouter une séance, une compétition, un test, un rendez-vous médical, etc.
+              </span>
+            </div>
+          )}
           {/* Navigation */}
           <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
             <Button
