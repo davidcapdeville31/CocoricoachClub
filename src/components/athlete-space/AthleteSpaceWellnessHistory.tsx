@@ -74,8 +74,7 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
 
   // Latest recovery score
   const latestRecovery = chartData[chartData.length - 1]?.recovery_score || 0;
-  // Convert sleep_duration score (1-5) to approximate hours: 1=>8.5, 2=>7.5, 3=>6.5, 4=>5.5, 5=>4.5
-  const sleepScoreToHours = (score: number) => 9.5 - score;
+  // sleep_duration is stored as a 1-5 score (1 = >8h, 5 = <5h). Convert to approximate hours for display.
   const sleepEntries = wellnessHistory.filter((w: any) => w.sleep_duration != null && w.sleep_duration > 0);
   const avgSleep = sleepEntries.length > 0
     ? (sleepEntries.reduce((s: number, w: any) => s + sleepScoreToHours(w.sleep_duration), 0) / sleepEntries.length).toFixed(1)
