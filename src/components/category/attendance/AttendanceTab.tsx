@@ -380,20 +380,20 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
 
         return (
           <Tabs defaultValue="today" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="today" className="gap-2">
+            <TabsList className="bg-surface-elevated border-border/70 shadow-none">
+              <TabsTrigger value="today" className="gap-2 bg-transparent data-[state=active]:bg-surface data-[state=active]:text-foreground dark:data-[state=active]:bg-surface-elevated dark:data-[state=active]:text-foreground">
                 <ClipboardCheck className="h-4 w-4" />
                 Aujourd'hui ({todaySessions.length})
               </TabsTrigger>
-              <TabsTrigger value="upcoming" className="gap-2">
+              <TabsTrigger value="upcoming" className="gap-2 bg-transparent data-[state=active]:bg-surface data-[state=active]:text-foreground dark:data-[state=active]:bg-surface-elevated dark:data-[state=active]:text-foreground">
                 <Calendar className="h-4 w-4" />
                 À venir ({upcomingSessions.length})
               </TabsTrigger>
-              <TabsTrigger value="past" className="gap-2">
+              <TabsTrigger value="past" className="gap-2 bg-transparent data-[state=active]:bg-surface data-[state=active]:text-foreground dark:data-[state=active]:bg-surface-elevated dark:data-[state=active]:text-foreground">
                 <Clock className="h-4 w-4" />
                 Passées ({pastSessions.length})
               </TabsTrigger>
-              <TabsTrigger value="players" className="gap-2">
+              <TabsTrigger value="players" className="gap-2 bg-transparent data-[state=active]:bg-surface data-[state=active]:text-foreground dark:data-[state=active]:bg-surface-elevated dark:data-[state=active]:text-foreground">
                 <Users className="h-4 w-4" />
                 Par joueur
               </TabsTrigger>
