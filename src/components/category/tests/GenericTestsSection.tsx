@@ -371,6 +371,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                       scoring_scale: (customDef as any).scoring_scale ?? null,
                       formula_config: (customDef as any).formula_config ?? null,
                       image_url: (customDef as any).image_url ?? null,
+                      video_url: (customDef as any).video_url ?? null,
                       source: "custom",
                     });
                   } else {
