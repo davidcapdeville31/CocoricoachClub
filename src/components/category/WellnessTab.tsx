@@ -25,6 +25,8 @@ import { sleepScoreLabel } from "@/lib/sleepConversion";
 
 interface WellnessTabProps {
   categoryId: string;
+  /** Restrict view to a single section. When omitted, all sub-tabs are shown. */
+  view?: "tracking" | "pain-stats" | "risk";
 }
 
 const getScoreBadgeClass = (score: number) => {
@@ -33,7 +35,7 @@ const getScoreBadgeClass = (score: number) => {
   return "bg-status-critical/15 text-status-critical border-status-critical/30";
 };
 
-export function WellnessTab({ categoryId }: WellnessTabProps) {
+export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterFrom, setFilterFrom] = useState<Date | undefined>(new Date());
   const [filterTo, setFilterTo] = useState<Date | undefined>(new Date());
