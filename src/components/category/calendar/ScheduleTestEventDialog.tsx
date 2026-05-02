@@ -179,12 +179,12 @@ export function ScheduleTestEventDialog({
     enabled: open,
   });
 
-  // Auto-select all players by default when dialog opens
+  // Auto-select all players by default when dialog opens (creation only).
   useEffect(() => {
-    if (open && players && selectAll) {
+    if (open && !isEditMode && players && selectAll) {
       setSelectedPlayers(players.map((p) => p.id));
     }
-  }, [open, players, selectAll]);
+  }, [open, players, selectAll, isEditMode]);
 
   // Reset on close
   useEffect(() => {
@@ -201,6 +201,26 @@ export function ScheduleTestEventDialog({
       setNotes("");
     }
   }, [open]);
+
+  // --- Edit mode: load existing session + participants ----------------------
+  const { data: existingSession } = useQuery({
+    queryKey: ["test-session-edit", editSessionId],
+    queryFn: async () => {
+      if (!editSessionId) return null;
+      const { data, error } = await supabase
+        .from("training_sessions")
+        .select("id, session_start_time, session_end_time, notes")
+        .eq("id", editSessionId)
+        .single();
+      if (error) throw error;
+      const { data: parts } = await supabase
+        .from("event_participants")
+        .select("player_id")
+        .eq("training_session_id", editSessionId);
+      return { session: data, participantIds: (parts || []).map((p) => p.player_id) };
+    },
+    enabled: open && !!editSessionId,
+  });
 
   // Merge built-in + custom tests into a single hierarchical catalog
   const mergedCategories = useMemo<TestCategory[]>(() => {
