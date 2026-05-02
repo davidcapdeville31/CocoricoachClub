@@ -122,19 +122,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
   }
 
   return (
-    <Tabs defaultValue="injuries" className="space-y-6">
-      <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
-        <ColoredSubTabsList colorKey="sante" className="inline-flex w-max">
-          <ColoredSubTabsTrigger value="injuries" colorKey="sante" icon={<HeartPulse className="h-4 w-4" />}>
-            Blessures
-          </ColoredSubTabsTrigger>
-          <ColoredSubTabsTrigger value="rehab" colorKey="sante" icon={<Dumbbell className="h-4 w-4" />}>
-            Réhabilitation
-          </ColoredSubTabsTrigger>
-        </ColoredSubTabsList>
-      </div>
-
-      <TabsContent value="injuries" className="space-y-6">
+    <div className="space-y-6">
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-gradient-card shadow-md">
