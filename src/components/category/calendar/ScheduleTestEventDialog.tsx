@@ -886,5 +886,39 @@ export function ScheduleTestEventDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    {previewImage && (
+      <Dialog open onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="max-w-2xl p-2">
+          <img src={previewImage} alt="Aperçu" className="w-full h-auto rounded-lg" />
+        </DialogContent>
+      </Dialog>
+    )}
+    {previewVideo && (
+      <Dialog open onOpenChange={() => setPreviewVideo(null)}>
+        <DialogContent className="max-w-3xl p-2">
+          {(() => {
+            const yt = getYoutubeEmbed(previewVideo);
+            const vm = getVimeoEmbed(previewVideo);
+            if (yt || vm) {
+              return (
+                <div className="aspect-video w-full">
+                  <iframe
+                    src={yt || vm || ""}
+                    title="Vidéo du test"
+                    className="w-full h-full rounded-lg"
+                    allow="autoplay; encrypted-media; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              );
+            }
+            return (
+              <video src={previewVideo} controls className="w-full h-auto rounded-lg" />
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+    )}
+    </>
   );
 }
