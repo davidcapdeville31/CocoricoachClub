@@ -41,6 +41,7 @@ import PolitiqueConfidentialite from "./pages/legal/PolitiqueConfidentialite";
 import CGU from "./pages/legal/CGU";
 import PolitiqueCookies from "./pages/legal/PolitiqueCookies";
 import { CookieConsentBanner } from "./components/legal/CookieConsentBanner";
+import { MaintenanceGate } from "./components/MaintenanceGate";
 
 // Auth wrapper component that allows public access
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -138,31 +139,33 @@ const App = () => (
                 <ActivityTracker />
                 <SessionTimeoutGuard />
                 <CookieConsentBanner />
-                <Routes>
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/" element={<Clubs />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/accept-invitation" element={<AcceptInvitation />} />
-                  <Route path="/public-view" element={<PublicView />} />
-                  <Route path="/public/categories/:categoryId" element={<PublicCategoryView />} />
-                  <Route path="/athlete-portal" element={<AthletePortal />} />
-                  <Route path="/athlete-space" element={<AthleteSpace />} />
-                  <Route path="/accept-athlete-invitation" element={<AcceptAthleteInvitation />} />
-                  <Route path="/install" element={<Install />} />
-                  <Route path="/admin" element={<Admin />} />
-                   <Route path="/super-admin" element={<SuperAdmin />} />
-                  <Route path="/ambassador-invitation" element={<AcceptAmbassadorInvitation />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/clubs/:clubId" element={<ClubDetailsWithAuth />} />
-                   <Route path="/clubs/:clubId/admin" element={<AdminClubWithAuth />} />
-                  <Route path="/categories/:categoryId" element={<CategoryDetailsWithAuth />} />
-                  <Route path="/players/:playerId" element={<PlayerDetailsWithAuth />} />
-                  <Route path="/mentions-legales" element={<MentionsLegales />} />
-                  <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
-                  <Route path="/cgu" element={<CGU />} />
-                  <Route path="/politique-cookies" element={<PolitiqueCookies />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                <MaintenanceGate>
+                  <Routes>
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/" element={<Clubs />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/accept-invitation" element={<AcceptInvitation />} />
+                    <Route path="/public-view" element={<PublicView />} />
+                    <Route path="/public/categories/:categoryId" element={<PublicCategoryView />} />
+                    <Route path="/athlete-portal" element={<AthletePortal />} />
+                    <Route path="/athlete-space" element={<AthleteSpace />} />
+                    <Route path="/accept-athlete-invitation" element={<AcceptAthleteInvitation />} />
+                    <Route path="/install" element={<Install />} />
+                    <Route path="/admin" element={<Admin />} />
+                     <Route path="/super-admin" element={<SuperAdmin />} />
+                    <Route path="/ambassador-invitation" element={<AcceptAmbassadorInvitation />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/clubs/:clubId" element={<ClubDetailsWithAuth />} />
+                     <Route path="/clubs/:clubId/admin" element={<AdminClubWithAuth />} />
+                    <Route path="/categories/:categoryId" element={<CategoryDetailsWithAuth />} />
+                    <Route path="/players/:playerId" element={<PlayerDetailsWithAuth />} />
+                    <Route path="/mentions-legales" element={<MentionsLegales />} />
+                    <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
+                    <Route path="/cgu" element={<CGU />} />
+                    <Route path="/politique-cookies" element={<PolitiqueCookies />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </MaintenanceGate>
               </OfflineSyncProvider>
             </PublicAccessProvider>
           </AuthProvider>
