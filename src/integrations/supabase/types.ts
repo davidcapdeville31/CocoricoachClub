@@ -13619,6 +13619,7 @@ export type Database = {
           granted_at: string
         }[]
       }
+      get_maintenance_status: { Args: never; Returns: Json }
       get_merged_exercises_for_coach: {
         Args: { p_coach_id: string }
         Returns: {
