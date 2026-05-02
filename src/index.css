@@ -603,7 +603,8 @@ All colors MUST be HSL.
 }
 
 .colored-tab-trigger:not([data-state="active"]) {
-  background-color: transparent;
+  background-color: color-mix(in srgb, var(--tab-color) 12%, hsl(var(--surface)) 88%) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tab-color) 28%, transparent) !important;
 }
 
 .colored-tab-trigger[data-state="active"] .colored-tab-text {
@@ -613,8 +614,8 @@ All colors MUST be HSL.
   color: var(--tab-active-foreground, white) !important;
 }
 .colored-tab-trigger:not([data-state="active"]):hover {
-  color: white !important;
-  background-color: color-mix(in srgb, var(--tab-color) 18%, transparent);
+  color: var(--tab-ink, color-mix(in srgb, var(--tab-color) 88%, white 12%)) !important;
+  background-color: color-mix(in srgb, var(--tab-color) 18%, hsl(var(--surface)) 82%) !important;
 }
 
 .dark .colored-tab-trigger {
