@@ -50,6 +50,7 @@ import {
   Settings,
 } from "lucide-react";
 import { AssignProgramDialog } from "@/components/category/programs/AssignProgramDialog";
+import { ProgramThemeSelector } from "./ProgramThemeSelector";
 import { cn } from "@/lib/utils";
 import { type UnifiedOrderItem } from "./ProgramGridView";
 import { DAYS_OF_WEEK } from "./lib/trainingProgramsData";
