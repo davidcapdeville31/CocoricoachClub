@@ -137,12 +137,12 @@ export function PlanTestsDialog({
     return Array.from(map.entries());
   }, [filteredTests]);
 
-  // Auto-open first category when search changes (or on open)
+  // Auto-select first category when categories change or on open
   useEffect(() => {
-    if (search.trim() && groupedTests.length > 0) {
-      setOpenCategory(groupedTests[0][0]);
+    if (groupedTests.length > 0 && !groupedTests.find(([l]) => l === selectedCategory)) {
+      setSelectedCategory(groupedTests[0][0]);
     }
-  }, [search, groupedTests]);
+  }, [groupedTests, selectedCategory]);
 
   const computeDates = (): string[] => {
     const start = new Date(date);
