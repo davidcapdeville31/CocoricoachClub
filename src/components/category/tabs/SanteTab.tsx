@@ -154,11 +154,10 @@ export function SanteTab({ categoryId }: SanteTabProps) {
           <CoachDashboard categoryId={categoryId} />
         </TabsContent>
 
-        {!isViewer && (
-          <TabsContent value="wellness">
-            <WellnessTab categoryId={categoryId} view="tracking" />
-          </TabsContent>
-        )}
+        <TabsContent value="wellness-health" className="space-y-6">
+          {!isViewer && <WellnessTab categoryId={categoryId} view="tracking" />}
+          <MedicalRecordsTab categoryId={categoryId} />
+        </TabsContent>
 
         {!isViewer && (
           <TabsContent value="nutrition">
