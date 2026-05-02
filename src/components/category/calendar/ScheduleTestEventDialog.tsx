@@ -383,40 +383,74 @@ export function ScheduleTestEventDialog({
       const noteContent = `${title}${notes ? `\n${notes}` : ""}`;
       const fullNotes = `${noteContent}\n<!--TESTS:${JSON.stringify(testsMeta)}-->`;
 
-      const { data: session, error } = await supabase
-        .from("training_sessions")
-        .insert({
-          category_id: categoryId,
-          session_date: format(date, "yyyy-MM-dd"),
-          session_start_time: startTime,
-          session_end_time: endTime,
-          training_type: "test",
-          notes: fullNotes,
-          intensity: 1,
-        })
-        .select("id")
-        .single();
-      if (error) throw error;
+      let savedSessionId: string | null = null;
 
-      // Save participants in event_participants
-      if (selectedPlayers.length > 0 && session) {
-        await supabase.from("event_participants").insert(
-          selectedPlayers.map((pid) => ({
-            training_session_id: session.id,
-            player_id: pid,
-          })),
-        );
+      if (isEditMode && editSessionId) {
+        // UPDATE existing test session
+        const { error } = await supabase
+          .from("training_sessions")
+          .update({
+            session_date: format(date, "yyyy-MM-dd"),
+            session_start_time: startTime,
+            session_end_time: endTime,
+            notes: fullNotes,
+          })
+          .eq("id", editSessionId);
+        if (error) throw error;
+        savedSessionId = editSessionId;
+
+        // Re-sync participants: delete existing + insert new selection
+        await supabase
+          .from("event_participants")
+          .delete()
+          .eq("training_session_id", editSessionId);
+
+        if (selectedPlayers.length > 0) {
+          await supabase.from("event_participants").insert(
+            selectedPlayers.map((pid) => ({
+              training_session_id: editSessionId,
+              player_id: pid,
+            })),
+          );
+        }
+      } else {
+        // CREATE new test session
+        const { data: session, error } = await supabase
+          .from("training_sessions")
+          .insert({
+            category_id: categoryId,
+            session_date: format(date, "yyyy-MM-dd"),
+            session_start_time: startTime,
+            session_end_time: endTime,
+            training_type: "test",
+            notes: fullNotes,
+            intensity: 1,
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        savedSessionId = session?.id ?? null;
+
+        if (selectedPlayers.length > 0 && savedSessionId) {
+          await supabase.from("event_participants").insert(
+            selectedPlayers.map((pid) => ({
+              training_session_id: savedSessionId!,
+              player_id: pid,
+            })),
+          );
+        }
       }
 
-      return session;
+      return { id: savedSessionId };
     },
     onSuccess: (session) => {
       queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
-      toast.success("Test planifié au calendrier");
+      queryClient.invalidateQueries({ queryKey: ["test-session-edit", editSessionId] });
+      toast.success(isEditMode ? "Test mis à jour" : "Test planifié au calendrier");
 
-      if (session?.id) {
+      if (session?.id && !isEditMode) {
         notify({
           action: "created",
           sessionId: session.id,
