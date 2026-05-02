@@ -146,6 +146,57 @@ export function CreateTrainingProgramV2({
   const [activeWeek, setActiveWeek] = useState(1);
   const [activeDayId, setActiveDayId] = useState<string | null>(null);
   const saveProgram = useSaveProgramV2();
+  const dayEditorRef = useRef<SessionDayEditorHandle | null>(null);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+
+  const handleProgramDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+    const data = active.data.current as { type?: string; exercise?: PickedExerciseRich } | undefined;
+    if (data?.type !== "library-exercise" || !data.exercise) return;
+    const overData = over.data.current as { type?: string; slotIndex?: number } | undefined;
+    const overId = String(over.id);
+    const handle = dayEditorRef.current;
+    if (!handle) return;
+    if (overData?.type === "linked-slot" && typeof overData.slotIndex === "number") {
+      const m = overId.match(/^linked-slot-(.+)-(\d+)$/);
+      const blockId = m?.[1];
+      if (!blockId) return;
+      handle.insertExternalExerciseAtSlot(blockId, overData.slotIndex, {
+        id: data.exercise.id,
+        name: data.exercise.exercise_name,
+      });
+      toast.success(`« ${data.exercise.exercise_name} » ajouté au slot`);
+      return;
+    }
+    if (overId.startsWith("drop-")) {
+      const blockId = overId.replace(/^drop-/, "");
+      handle.insertExternalExercise(blockId, {
+        id: data.exercise.id,
+        name: data.exercise.exercise_name,
+      });
+      toast.success(`« ${data.exercise.exercise_name} » ajouté`);
+    }
+  }, []);
+
+  const handleProgramClickInsert = useCallback((picked: PickedExerciseRich) => {
+    const handle = dayEditorRef.current;
+    if (!handle) {
+      toast.error("Sélectionne d'abord un jour, puis ajoute un bloc.");
+      return;
+    }
+    // Pick the last block of the current day if any
+    const day = currentDayRef.current;
+    const targetId = day?.blocks?.[day.blocks.length - 1]?.id;
+    if (!targetId) {
+      toast.error("Ajoute d'abord un bloc de travail.");
+      return;
+    }
+    handle.insertExternalExercise(targetId, { id: picked.id, name: picked.exercise_name });
+    toast.success(`« ${picked.exercise_name} » ajouté`);
+  }, []);
+
+  const currentDayRef = useRef<V2ProgramDay | null>(null);
 
   const handleSave = useCallback(() => {
     if (!draft.name.trim()) {
