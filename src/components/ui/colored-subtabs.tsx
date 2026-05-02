@@ -56,6 +56,9 @@ const ColoredSubTabsTrigger = React.forwardRef<
       )}
       style={{
         ["--tab-color" as string]: colors.base,
+        ["--tab-ink" as string]: `color-mix(in srgb, ${colors.base} 86%, white 14%)`,
+        ["--tab-ink-dark" as string]: `color-mix(in srgb, ${colors.base} 30%, white 70%)`,
+        ["--tab-soft-bg-dark" as string]: `color-mix(in srgb, ${colors.base} 12%, hsl(var(--surface-elevated)) 88%)`,
       }}
       {...props}
     >
