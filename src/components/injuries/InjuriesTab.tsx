@@ -19,8 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Activity, TrendingUp, HeartPulse, Dumbbell } from "lucide-react";
+import { Plus, Activity, TrendingUp, HeartPulse, Dumbbell, Library } from "lucide-react";
 import { AddInjuryDialog } from "./AddInjuryDialog";
+import { InjuryLibraryDialog } from "@/components/category/programs/InjuryLibraryDialog";
 import { toast } from "sonner";
 import { INJURY_STATUS, INJURY_STATUS_LABELS } from "@/lib/constants/injury";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
@@ -34,6 +35,7 @@ interface InjuriesTabProps {
 
 export function InjuriesTab({ categoryId }: InjuriesTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
   const queryClient = useQueryClient();
   const { isViewer } = useViewerModeContext();
 
@@ -176,12 +178,18 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                 Suivi médical et réathlétisation
               </p>
             </div>
-            {!isViewer && (
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Ajouter une blessure
+            <div className="flex gap-2 flex-wrap">
+              <Button variant="outline" onClick={() => setShowLibrary(true)}>
+                <Library className="h-4 w-4 mr-2" />
+                Bibliothèque blessures
               </Button>
-            )}
+              {!isViewer && (
+                <Button onClick={() => setIsDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter une blessure
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -275,6 +283,11 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
       <AddInjuryDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
+        categoryId={categoryId}
+      />
+      <InjuryLibraryDialog
+        open={showLibrary}
+        onOpenChange={setShowLibrary}
         categoryId={categoryId}
       />
       </TabsContent>

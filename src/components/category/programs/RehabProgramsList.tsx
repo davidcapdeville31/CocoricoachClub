@@ -4,9 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, HeartPulse, Library, Pencil, Trash2 } from "lucide-react";
+import { Plus, HeartPulse, Pencil, Trash2 } from "lucide-react";
 import { ProgramBuilderDialog } from "./ProgramBuilderDialog";
-import { InjuryLibraryDialog } from "./InjuryLibraryDialog";
 import { toast } from "sonner";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 
@@ -18,7 +17,6 @@ export function RehabProgramsList({ categoryId }: RehabProgramsListProps) {
   const { isViewer } = useViewerModeContext();
   const [showBuilder, setShowBuilder] = useState(false);
   const [editingProgram, setEditingProgram] = useState<string | null>(null);
-  const [showLibrary, setShowLibrary] = useState(false);
 
   const { data: programs, isLoading, refetch } = useQuery({
     queryKey: ["rehab-programs", categoryId],
@@ -57,10 +55,6 @@ export function RehabProgramsList({ categoryId }: RehabProgramsListProps) {
           <h2 className="text-xl font-semibold">Programmes de réhabilitation</h2>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowLibrary(true)}>
-            <Library className="h-4 w-4 mr-2" />
-            Bibliothèque blessures
-          </Button>
           {!isViewer && (
             <Button onClick={() => setShowBuilder(true)}>
               <Plus className="h-4 w-4 mr-2" />
@@ -158,13 +152,6 @@ export function RehabProgramsList({ categoryId }: RehabProgramsListProps) {
         />
       )}
 
-      {showLibrary && (
-        <InjuryLibraryDialog
-          categoryId={categoryId}
-          open={showLibrary}
-          onOpenChange={setShowLibrary}
-        />
-      )}
     </div>
   );
 }
