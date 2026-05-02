@@ -59,6 +59,7 @@ export function useSaveProgramV2() {
             name: draft.name,
             description: draft.description || null,
             level: draft.difficultyLevel,
+            theme_id: draft.themeId ?? null,
           })
           .eq("id", programId)
           .select("id")
@@ -84,6 +85,7 @@ export function useSaveProgramV2() {
             program_kind: "training",
             created_by: user.id,
             is_active: false,
+            theme_id: draft.themeId ?? null,
           })
           .select("id")
           .single();
