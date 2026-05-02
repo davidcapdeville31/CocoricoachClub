@@ -24,7 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { CalendarPlus, Repeat, Search, Users, ChevronDown, Star } from "lucide-react";
+import { CalendarPlus, Repeat, Search, Users, ChevronDown, Star, Info, Image as ImageIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { addMonths, addWeeks, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
