@@ -7,7 +7,8 @@
  import { Label } from "@/components/ui/label";
  import { Switch } from "@/components/ui/switch";
  import { toast } from "@/components/ui/sonner";
- import { Settings, Save } from "lucide-react";
+import { Settings, Save } from "lucide-react";
+import { MaintenanceModeCard } from "./MaintenanceModeCard";
  import { useState, useEffect } from "react";
  
  export function SuperAdminSettings() {
@@ -106,9 +107,12 @@
      return <p className="text-muted-foreground">Chargement...</p>;
    }
  
-   return (
-     <div className="space-y-6">
-       {/* Modules */}
+    return (
+      <div className="space-y-6">
+        {/* Maintenance Mode */}
+        <MaintenanceModeCard />
+
+        {/* Modules */}
        <Card>
          <CardHeader>
            <CardTitle className="flex items-center gap-2">
