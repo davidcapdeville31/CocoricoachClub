@@ -143,6 +143,36 @@ export function PlanTestsDialog({
     },
   });
 
+  // Fetch custom test details (image, description, video) for previews
+  const { data: customTestsMeta = [] } = useQuery({
+    queryKey: ["plan_tests_custom_meta", categoryId],
+    enabled: open && !!categoryId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_test_categories")
+        .select("custom_tests(id, name, description, image_url, video_url, unit, objectives)")
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return (data || []).map((r: any) => r.custom_tests).filter(Boolean);
+    },
+  });
+
+  const customMetaById = useMemo(() => {
+    const map = new Map<string, any>();
+    (customTestsMeta as any[]).forEach((t) => map.set(t.id, t));
+    return map;
+  }, [customTestsMeta]);
+
+  const getTestMeta = (t: AvailableTest) => {
+    if (t.type.startsWith("custom:")) {
+      const id = t.type.replace("custom:", "");
+      return customMetaById.get(id) || null;
+    }
+    return null;
+  };
+
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
   const filteredPlayers = useMemo(() => {
     const q = playerSearch.trim().toLowerCase();
     if (!q) return players;
