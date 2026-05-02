@@ -358,6 +358,16 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
           </div>
 
           <div className="space-y-1.5">
+            <Label>Lien vidéo (YouTube, Vimeo...) (optionnel)</Label>
+            <Input
+              type="url"
+              value={videoUrl}
+              onChange={e => setVideoUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=..."
+            />
+          </div>
+
+          <div className="space-y-1.5">
             <Label>Catégorie <span className="text-destructive">*</span></Label>
             <Select value={testCategory} onValueChange={setTestCategory}>
               <SelectTrigger><SelectValue placeholder="Choisir une catégorie..." /></SelectTrigger>
