@@ -348,7 +348,7 @@ export function CreateTrainingProgramV2({
     if (!validate()) return;
     setPendingAction("save");
     saveProgram.mutate(
-      { draft, categoryId },
+      { draft, categoryId, programId },
       {
         onSuccess: () => {
           setPendingAction(null);
@@ -357,22 +357,22 @@ export function CreateTrainingProgramV2({
         onError: () => setPendingAction(null),
       },
     );
-  }, [draft, categoryId, saveProgram, onClose, validate]);
+  }, [draft, categoryId, programId, saveProgram, onClose, validate]);
 
   const handleSaveAndAssign = useCallback(() => {
     if (!validate()) return;
     setPendingAction("assign");
     saveProgram.mutate(
-      { draft, categoryId },
+      { draft, categoryId, programId },
       {
-        onSuccess: ({ programId }) => {
+        onSuccess: ({ programId: savedId }) => {
           setPendingAction(null);
-          setAssignProgramId(programId);
+          setAssignProgramId(savedId);
         },
         onError: () => setPendingAction(null),
       },
     );
-  }, [draft, categoryId, saveProgram, validate]);
+  }, [draft, categoryId, programId, saveProgram, validate]);
 
   const currentWeek = useMemo(
     () => draft.weeks.find((w) => w.weekNumber === activeWeek) ?? draft.weeks[0],
