@@ -338,26 +338,128 @@ export function applyDualModePaletteToDocument(dualPalette: DualModePalette): vo
     document.head.appendChild(styleEl);
   }
 
-  const generateCssVars = (palette: BrandingPalette) => `
-    --primary: ${hexToHslCss(palette.primary)};
-    --primary-foreground: ${hexToHslCss(palette.primaryForeground)};
-    --secondary: ${hexToHslCss(palette.secondary)};
-    --secondary-foreground: ${hexToHslCss(palette.secondaryForeground)};
-    --accent: ${hexToHslCss(palette.accent)};
-    --accent-foreground: ${hexToHslCss(palette.accentForeground)};
-    --ring: ${hexToHslCss(palette.primary)};
-    --destructive: ${hexToHslCss(palette.destructive)};
-    --destructive-foreground: ${hexToHslCss(palette.destructiveForeground)};
-    --sidebar-primary: ${hexToHslCss(palette.primary)};
-    --sidebar-primary-foreground: ${hexToHslCss(palette.primaryForeground)};
-    --sidebar-ring: ${hexToHslCss(palette.primary)};
-    --sidebar-accent: ${hexToHslCss(palette.secondary)};
-    --sidebar-accent-foreground: ${hexToHslCss(palette.secondaryForeground)};
-  `;
+  const generateCssVars = (palette: BrandingPalette, isDark: boolean) => {
+    const primaryHsl = hexToHsl(palette.primary);
+    const accentHsl = hexToHsl(palette.accent);
+
+    // Variations brand (primitives) — pour que tous les composants qui utilisent --brand-* suivent
+    const brand500 = `${primaryHsl.h} ${primaryHsl.s}% ${primaryHsl.l}%`;
+    const brand600 = `${primaryHsl.h} ${primaryHsl.s}% ${Math.max(10, primaryHsl.l - 8)}%`;
+    const brand700 = `${primaryHsl.h} ${primaryHsl.s}% ${Math.max(8, primaryHsl.l - 16)}%`;
+    const brand400 = `${primaryHsl.h} ${primaryHsl.s}% ${Math.min(90, primaryHsl.l + 8)}%`;
+    const brand300 = `${primaryHsl.h} ${primaryHsl.s}% ${Math.min(94, primaryHsl.l + 16)}%`;
+    const brand100 = `${primaryHsl.h} ${Math.min(70, primaryHsl.s)}% ${isDark ? 22 : 92}%`;
+    const brand50  = `${primaryHsl.h} ${Math.min(70, primaryHsl.s)}% ${isDark ? 14 : 97}%`;
+
+    const accent500 = `${accentHsl.h} ${accentHsl.s}% ${accentHsl.l}%`;
+    const accent600 = `${accentHsl.h} ${accentHsl.s}% ${Math.max(10, accentHsl.l - 8)}%`;
+
+    // Hover dynamique pour primary
+    const primaryHoverL = isDark ? Math.min(85, primaryHsl.l + 8) : Math.max(10, primaryHsl.l - 8);
+    const primaryHover = `${primaryHsl.h} ${primaryHsl.s}% ${primaryHoverL}%`;
+    const accentHoverL = isDark ? Math.min(85, accentHsl.l + 8) : Math.max(10, accentHsl.l - 8);
+    const accentHover = `${accentHsl.h} ${accentHsl.s}% ${accentHoverL}%`;
+
+    // Surfaces — en dark on teinte légèrement avec la couleur primaire
+    const surfaces = isDark
+      ? `
+      --background: ${hexToHslCss(palette.background)};
+      --foreground: ${hexToHslCss(palette.foreground)};
+      --card: ${hexToHslCss(palette.card)};
+      --card-foreground: ${hexToHslCss(palette.cardForeground)};
+      --popover: ${hexToHslCss(palette.card)};
+      --popover-foreground: ${hexToHslCss(palette.cardForeground)};
+      --surface: ${hexToHslCss(palette.card)};
+      --surface-foreground: ${hexToHslCss(palette.cardForeground)};
+      --surface-elevated: ${primaryHsl.h} 18% 16%;
+      --surface-elevated-foreground: ${hexToHslCss(palette.cardForeground)};
+      --surface-sunken: ${primaryHsl.h} 22% 7%;
+      --muted: ${hexToHslCss(palette.muted)};
+      --muted-foreground: ${hexToHslCss(palette.mutedForeground)};
+      --border: ${primaryHsl.h} 18% 22%;
+      --border-strong: ${primaryHsl.h} 18% 32%;
+      --input: ${primaryHsl.h} 18% 18%;
+      --sidebar-background: ${primaryHsl.h} 28% 8%;
+      --sidebar-foreground: 220 16% 92%;
+      --sidebar-border: ${primaryHsl.h} 22% 16%;
+      `
+      : `
+      --background: ${primaryHsl.h} 32% 96%;
+      --foreground: ${hexToHslCss(palette.foreground)};
+      --card: ${hexToHslCss(palette.card)};
+      --card-foreground: ${hexToHslCss(palette.cardForeground)};
+      --popover: ${hexToHslCss(palette.card)};
+      --popover-foreground: ${hexToHslCss(palette.cardForeground)};
+      --surface: 0 0% 100%;
+      --surface-foreground: ${hexToHslCss(palette.foreground)};
+      --surface-elevated: ${primaryHsl.h} 40% 99%;
+      --surface-elevated-foreground: ${hexToHslCss(palette.foreground)};
+      --surface-sunken: ${primaryHsl.h} 26% 92%;
+      --muted: ${primaryHsl.h} 22% 95%;
+      --muted-foreground: ${hexToHslCss(palette.mutedForeground)};
+      --border: ${primaryHsl.h} 20% 86%;
+      --border-strong: ${primaryHsl.h} 18% 72%;
+      --input: ${primaryHsl.h} 20% 88%;
+      --sidebar-background: ${primaryHsl.h} 30% 12%;
+      --sidebar-foreground: 220 18% 92%;
+      --sidebar-border: ${primaryHsl.h} 22% 20%;
+      `;
+
+    return `
+      ${surfaces}
+      --primary: ${hexToHslCss(palette.primary)};
+      --primary-foreground: ${hexToHslCss(palette.primaryForeground)};
+      --primary-hover: ${primaryHover};
+      --secondary: ${hexToHslCss(palette.secondary)};
+      --secondary-foreground: ${hexToHslCss(palette.secondaryForeground)};
+      --secondary-hover: ${hexToHslCss(palette.secondary)};
+      --accent: ${hexToHslCss(palette.accent)};
+      --accent-foreground: ${hexToHslCss(palette.accentForeground)};
+      --accent-hover: ${accentHover};
+      --ring: ${hexToHslCss(palette.primary)};
+      --destructive: ${hexToHslCss(palette.destructive)};
+      --destructive-foreground: ${hexToHslCss(palette.destructiveForeground)};
+
+      /* Brand primitives (utilisées par variantes premium, gradients, etc.) */
+      --brand-50:  ${brand50};
+      --brand-100: ${brand100};
+      --brand-300: ${brand300};
+      --brand-400: ${brand400};
+      --brand-500: ${brand500};
+      --brand-600: ${brand600};
+      --brand-700: ${brand700};
+      --accent-50:  ${accentHsl.h} ${Math.min(70, accentHsl.s)}% ${isDark ? 14 : 95}%;
+      --accent-500: ${accent500};
+      --accent-600: ${accent600};
+
+      /* Sidebar — couleurs club */
+      --sidebar-primary: ${hexToHslCss(palette.primary)};
+      --sidebar-primary-foreground: ${hexToHslCss(palette.primaryForeground)};
+      --sidebar-ring: ${hexToHslCss(palette.primary)};
+      --sidebar-accent: ${primaryHsl.h} ${isDark ? 22 : 25}% ${isDark ? 16 : 90}%;
+      --sidebar-accent-foreground: ${hexToHslCss(isDark ? palette.cardForeground : palette.foreground)};
+
+      /* Charts — primaire + accent + dérivés */
+      --chart-1: ${hexToHslCss(palette.primary)};
+      --chart-2: ${hexToHslCss(palette.accent)};
+      --chart-3: ${primaryHsl.h} ${primaryHsl.s}% ${Math.min(80, primaryHsl.l + 18)}%;
+      --chart-4: ${accentHsl.h} ${accentHsl.s}% ${Math.min(80, accentHsl.l + 15)}%;
+
+      /* Gradients — utilisent la couleur club */
+      --gradient-hero: linear-gradient(135deg, hsl(${brand700}) 0%, hsl(${brand500}) 50%, hsl(${accent500}) 100%);
+      --gradient-performance: linear-gradient(135deg, hsl(${accent500}), hsl(${brand500}));
+      --gradient-mesh: radial-gradient(at 15% 0%, hsl(${brand500} / ${isDark ? '0.06' : '0.04'}) 0px, transparent 45%),
+                       radial-gradient(at 85% 100%, hsl(${accent500} / ${isDark ? '0.05' : '0.035'}) 0px, transparent 45%);
+
+      /* Shadow glow club */
+      --shadow-glow: 0 0 0 1px hsl(${brand500} / ${isDark ? '0.3' : '0.18'}), 0 6px 16px -6px hsl(${brand500} / ${isDark ? '0.4' : '0.25'});
+      --shadow-glow-accent: 0 0 0 1px hsl(${accent500} / ${isDark ? '0.3' : '0.18'}), 0 6px 16px -6px hsl(${accent500} / ${isDark ? '0.4' : '0.25'});
+    `;
+  };
 
   styleEl.textContent = `
-    :root { ${generateCssVars(dualPalette.light)} }
-    .dark { ${generateCssVars(dualPalette.dark)} }
+    :root { ${generateCssVars(dualPalette.light, false)} }
+    .dark { ${generateCssVars(dualPalette.dark, true)} }
   `;
 }
 
