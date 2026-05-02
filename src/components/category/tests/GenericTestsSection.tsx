@@ -541,23 +541,21 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         allowCustomTest={!defaultCategory || defaultCategory === "all"}
       />
 
-      {filterTestType !== "all" && selectedCategory && (() => {
-        const cat = filteredTestCategories.find(c => c.value === filterCategory);
-        const test = cat?.tests.find(t => t.value === filterTestType);
-        if (!cat || !test) return null;
-        return (
-          <ScheduleTestDialog
-            open={isScheduleDialogOpen}
-            onOpenChange={setIsScheduleDialogOpen}
-            categoryId={categoryId}
-            testCategoryLabel={cat.label}
-            testTypeLabel={test.label}
-            testCategory={cat.value}
-            testType={test.value}
-            testUnit={test.unit || ""}
-          />
-        );
-      })()}
+      <PlanTestsDialog
+        open={isScheduleDialogOpen}
+        onOpenChange={setIsScheduleDialogOpen}
+        categoryId={categoryId}
+        defaultCategoryFilter={filterCategory !== "all" ? filterCategory : undefined}
+        availableTests={filteredTestCategories.flatMap((cat) =>
+          cat.tests.map((t) => ({
+            category: cat.value,
+            categoryLabel: cat.label,
+            type: t.value,
+            typeLabel: t.label,
+            unit: t.unit || "",
+          }))
+        )}
+      />
 
       <CreateCustomTestDialog
         open={isCreateTestDialogOpen}
