@@ -114,6 +114,64 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
     setBlocks(next);
   };
 
+  // Drag & Drop : capteur souris/touch avec petite distance d'activation pour ne pas
+  // entrer en conflit avec les clics et les boutons d'action de la sidebar.
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+    const data = active.data.current as
+      | { type?: string; exercise?: PickedExerciseRich }
+      | undefined;
+    if (data?.type !== "library-exercise" || !data.exercise) return;
+
+    const overData = over.data.current as
+      | { type?: string; slotIndex?: number }
+      | undefined;
+    const overId = String(over.id);
+    const handle = dayEditorRef.current;
+    if (!handle) return;
+
+    // 1) Drop sur un slot lié (Biset/Superset/Triset/Giant Set/Bulgarian/Combiné Haltéro)
+    //    ID format : `linked-slot-${blockId}-${slotIndex}`
+    if (overData?.type === "linked-slot" && typeof overData.slotIndex === "number") {
+      // Récupère le blockId à partir de l'ID du slot
+      const m = overId.match(/^linked-slot-(.+)-(\d+)$/);
+      const blockId = m?.[1] ?? activeBlockIdRef.current;
+      if (!blockId) return;
+      handle.insertExternalExerciseAtSlot(blockId, overData.slotIndex, {
+        id: data.exercise.id,
+        name: data.exercise.exercise_name,
+      });
+      activeBlockIdRef.current = blockId;
+      toast.success(`« ${data.exercise.exercise_name} » ajouté au slot`);
+      return;
+    }
+
+    // 2) Drop sur un bloc (zone "drop-${blockId}")
+    if (overId.startsWith("drop-")) {
+      const blockId = overId.replace(/^drop-/, "");
+      handle.insertExternalExercise(blockId, {
+        id: data.exercise.id,
+        name: data.exercise.exercise_name,
+      });
+      activeBlockIdRef.current = blockId;
+      toast.success(`« ${data.exercise.exercise_name} » ajouté`);
+      return;
+    }
+
+    // 3) Fallback : on tente le bloc actif
+    const fallbackId = activeBlockIdRef.current ?? blocks[blocks.length - 1]?.id;
+    if (fallbackId) {
+      handle.insertExternalExercise(fallbackId, {
+        id: data.exercise.id,
+        name: data.exercise.exercise_name,
+      });
+      toast.success(`« ${data.exercise.exercise_name} » ajouté`);
+    }
+  };
+
   const currentSnapshot = JSON.stringify({ dayName, dayOfWeek, sessionDate, blocks });
   const isSavedUpToDate = savedSnapshot !== null && savedSnapshot === currentSnapshot;
 
