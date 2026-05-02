@@ -241,7 +241,7 @@ function CategoryDetailsContent() {
               onClick={handleBack}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">
+              <span className="hidden sm:inline text-white">
                 {isPublicAccess ? "Retour" : "Retour aux catégories"}
               </span>
               <span className="sm:hidden">Retour</span>
