@@ -548,6 +548,14 @@ const DroppableSlot = ({
                   visibleColumns={mapParamsToColumns(visibleParams)}
                 />
               </div>
+
+              {/* Consignes spécifiques (coach notes) - éditable */}
+              <CoachNotesEditor
+                value={params.coachNotes}
+                onChange={(val) =>
+                  onUpdateParams({ ...params, coachNotes: val })
+                }
+              />
             </>
           ) : (
             /* Mode lecture seule: afficher les valeurs */
