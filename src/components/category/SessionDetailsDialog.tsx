@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -90,6 +91,7 @@ export function SessionDetailsDialog({
   const queryClient = useQueryClient();
   const [rpeValues, setRpeValues] = useState<Record<string, { rpe: string; duration: string }>>({});
   const [isNotifyOpen, setIsNotifyOpen] = useState(false);
+  const [selectedTestDetail, setSelectedTestDetail] = useState<any>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
   // Fetch category to determine sport type
@@ -265,7 +267,7 @@ export function SessionDetailsDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("event_participants")
-        .select("player_id, players(id, name, first_name)")
+        .select("player_id, players(id, name, first_name, avatar_url)")
         .eq("training_session_id", sessionId);
       if (error) throw error;
       return data || [];
@@ -289,6 +291,34 @@ export function SessionDetailsDialog({
       return [];
     }
   }, [session?.notes]);
+
+  // Fetch custom_tests metadata to enrich tests cards (image / description / objectives)
+  const customTestIds = useMemo(
+    () => testsMeta
+      .map((t: any) => (typeof t.test_type === "string" && t.test_type.startsWith("test:") ? t.test_type.slice(5) : null))
+      .filter(Boolean) as string[],
+    [testsMeta],
+  );
+
+  const { data: customTestsDetails } = useQuery({
+    queryKey: ["session-custom-tests-details", customTestIds],
+    queryFn: async () => {
+      if (customTestIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("custom_tests")
+        .select("id, name, description, objectives, image_url, unit, test_category")
+        .in("id", customTestIds);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && customTestIds.length > 0,
+  });
+
+  const getCustomTest = (testType: string) => {
+    if (!testType?.startsWith("test:")) return null;
+    const id = testType.slice(5);
+    return customTestsDetails?.find((c) => c.id === id) || null;
+  };
 
   const isTestSession = session?.training_type === "test";
 
@@ -781,12 +811,12 @@ export function SessionDetailsDialog({
 
         <Tabs defaultValue={session?.training_type === "precision" && isRugby ? "precision_stats" : "exercises"} className="flex-1 flex flex-col min-h-0">
           <TabsList className={cn(
-            "grid w-full shrink-0",
+            "shrink-0",
             session?.training_type === "precision" && isRugby
-              ? "grid-cols-3"
+              ? "grid w-full grid-cols-3"
               : isTestSession
-                ? "grid-cols-1"
-                : "grid-cols-2",
+                ? "inline-flex w-auto self-start"
+                : "grid w-full grid-cols-2",
           )}>
             <TabsTrigger value="exercises" className="flex items-center gap-1">
               {isTestSession ? (
@@ -844,23 +874,43 @@ export function SessionDetailsDialog({
                               t.test_category,
                               t.test_type,
                             );
+                            const customTest = getCustomTest(t.test_type);
+                            const displayName = customTest?.name || testLabel;
+                            const imageUrl = customTest?.image_url || null;
+                            const hasDetails = !!customTest;
                             return (
-                              <div
+                              <button
+                                type="button"
                                 key={`${t.test_category}-${t.test_type}-${i}`}
-                                className="rounded-xl border bg-muted/30 p-3"
+                                onClick={() => hasDetails && setSelectedTestDetail({ ...customTest, _categoryLabel: categoryLabel, _resultUnit: t.result_unit })}
+                                disabled={!hasDetails}
+                                className={cn(
+                                  "rounded-xl border bg-muted/30 p-3 text-left flex items-center gap-3 transition-colors",
+                                  hasDetails && "hover:bg-muted/60 cursor-pointer",
+                                )}
                               >
-                                <div className="text-sm font-medium">
-                                  {testLabel}
-                                  {t.result_unit && (
-                                    <span className="text-xs text-muted-foreground ml-1">
-                                      ({t.result_unit})
-                                    </span>
+                                <div className="h-12 w-12 shrink-0 rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+                                  {imageUrl ? (
+                                    <img src={imageUrl} alt={displayName} className="h-full w-full object-cover" />
+                                  ) : (
+                                    <Target className="h-5 w-5 text-muted-foreground" />
                                   )}
                                 </div>
-                                <div className="text-xs text-muted-foreground mt-0.5">
-                                  {categoryLabel}
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-sm font-medium truncate">
+                                    {displayName}
+                                    {(customTest?.unit || t.result_unit) && (
+                                      <span className="text-xs text-muted-foreground ml-1">
+                                        ({customTest?.unit || t.result_unit})
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground mt-0.5 truncate">
+                                    {categoryLabel}
+                                    {hasDetails && <span className="ml-1 text-primary">· Détails</span>}
+                                  </div>
                                 </div>
-                              </div>
+                              </button>
                             );
                           })}
                         </div>
@@ -879,19 +929,24 @@ export function SessionDetailsDialog({
                         </p>
                       ) : (
                         <div className="grid gap-1.5 sm:grid-cols-2">
-                          {eventParticipants!.map((p: any) => (
-                            <div
-                              key={p.player_id}
-                              className="flex items-center gap-2 rounded-lg border bg-background p-2 text-sm"
-                            >
-                              <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                              <span className="truncate">
-                                {p.players?.first_name
-                                  ? `${p.players.first_name} ${p.players.name}`
-                                  : p.players?.name || "Athlète"}
-                              </span>
-                            </div>
-                          ))}
+                          {eventParticipants!.map((p: any) => {
+                            const name = p.players?.first_name
+                              ? `${p.players.first_name} ${p.players.name}`
+                              : p.players?.name || "Athlète";
+                            const initials = (p.players?.first_name || p.players?.name || "A").slice(0, 2).toUpperCase();
+                            return (
+                              <div
+                                key={p.player_id}
+                                className="flex items-center gap-2 rounded-lg border bg-background p-2 text-sm"
+                              >
+                                <Avatar className="h-7 w-7">
+                                  <AvatarImage src={p.players?.avatar_url || undefined} />
+                                  <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                                </Avatar>
+                                <span className="truncate">{name}</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                       <p className="text-xs text-muted-foreground mt-1">
@@ -1022,6 +1077,60 @@ export function SessionDetailsDialog({
           time: session?.session_start_time ? session.session_start_time.slice(0, 5) : undefined,
         }}
       />
+
+      {/* Test details dialog */}
+      <Dialog open={!!selectedTestDetail} onOpenChange={(o) => !o && setSelectedTestDetail(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              {selectedTestDetail?.name}
+              {(selectedTestDetail?.unit || selectedTestDetail?._resultUnit) && (
+                <span className="text-sm text-muted-foreground font-normal">
+                  ({selectedTestDetail?.unit || selectedTestDetail?._resultUnit})
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedTestDetail?.image_url && (
+              <div className="w-full rounded-xl overflow-hidden bg-muted">
+                <img
+                  src={selectedTestDetail.image_url}
+                  alt={selectedTestDetail.name}
+                  className="w-full max-h-72 object-contain"
+                />
+              </div>
+            )}
+            {selectedTestDetail?._categoryLabel && (
+              <div>
+                <Badge variant="secondary">{selectedTestDetail._categoryLabel}</Badge>
+              </div>
+            )}
+            {selectedTestDetail?.description && (
+              <div>
+                <h5 className="text-sm font-semibold mb-1">Description</h5>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {selectedTestDetail.description}
+                </p>
+              </div>
+            )}
+            {selectedTestDetail?.objectives && (
+              <div>
+                <h5 className="text-sm font-semibold mb-1">Objectifs</h5>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {selectedTestDetail.objectives}
+                </p>
+              </div>
+            )}
+            {!selectedTestDetail?.description && !selectedTestDetail?.objectives && !selectedTestDetail?.image_url && (
+              <p className="text-sm text-muted-foreground italic">
+                Aucune information complémentaire pour ce test.
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
