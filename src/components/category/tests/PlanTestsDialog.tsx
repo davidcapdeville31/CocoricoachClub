@@ -785,5 +785,13 @@ export function PlanTestsDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    {previewImage && (
+      <Dialog open onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="max-w-2xl p-2">
+          <img src={previewImage} alt="Aperçu" className="w-full h-auto rounded-lg" />
+        </DialogContent>
+      </Dialog>
+    )}
+    </>
   );
 }
