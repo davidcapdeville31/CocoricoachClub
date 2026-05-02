@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { CalendarPlus, Repeat, Search, Users, ChevronDown } from "lucide-react";
+import { CalendarPlus, Repeat, Search, Users, ChevronDown, Star } from "lucide-react";
 import { addMonths, addWeeks, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
