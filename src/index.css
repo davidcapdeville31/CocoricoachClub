@@ -849,3 +849,124 @@ main, [role="main"] { background-color: transparent; }
 .dark .border-neutral-200 {
   border-color: hsl(var(--border)) !important;
 }
+
+/* ============================================================
+   CONTRAST SAFETY NET — both modes
+   Prevents low-contrast text/bg combinations regardless of theme
+   ============================================================ */
+
+/* LIGHT MODE: text-white that lands on a card / surface (white bg) → flip to foreground.
+   We keep text-white when it's intentionally on a colored background:
+   - inside elements with bg-primary / bg-accent / bg-destructive / bg-* color
+   - inside gradient hero sections
+   - inside buttons (handled by button variants)
+   So we only override when the parent is a known light surface.        */
+:root .bg-card .text-white:not([class*="bg-"]):not([class*="from-"]),
+:root .bg-background .text-white:not([class*="bg-"]):not([class*="from-"]),
+:root .bg-surface .text-white:not([class*="bg-"]):not([class*="from-"]),
+:root .bg-popover .text-white:not([class*="bg-"]):not([class*="from-"]),
+:root .bg-muted .text-white:not([class*="bg-"]):not([class*="from-"]),
+:root .bg-secondary .text-white:not([class*="bg-"]):not([class*="from-"]) {
+  color: hsl(var(--foreground)) !important;
+}
+
+/* DARK MODE: text-black that lands anywhere → always flip (already handled, reinforce) */
+.dark .text-black,
+.dark [class*="text-black/"] {
+  color: hsl(var(--foreground)) !important;
+}
+
+/* DARK MODE: light gray text (300/400) used as body copy on dark bg = ok,
+   but on a white/light pastel bg becomes invisible → flip to dark fg */
+.dark .bg-white .text-gray-300,
+.dark .bg-white .text-gray-400,
+.dark .bg-white .text-slate-300,
+.dark .bg-white .text-slate-400,
+.dark .bg-white .text-neutral-300,
+.dark .bg-white .text-neutral-400 {
+  color: hsl(var(--foreground)) !important;
+}
+
+/* DARK MODE: very light text used on light pastel backgrounds */
+.dark .text-white\/50,
+.dark .text-white\/60,
+.dark .text-white\/70 { color: hsl(var(--muted-foreground)) !important; }
+
+/* DARK MODE: solid bg-white with opacity utilities on dark surface = white veil OK,
+   but plain bg-white inside a dark card = blinding. Flip to elevated surface. */
+.dark .bg-card .bg-white:not([class*="bg-white/"]),
+.dark .bg-background .bg-white:not([class*="bg-white/"]),
+.dark .bg-surface .bg-white:not([class*="bg-white/"]),
+.dark .bg-popover .bg-white:not([class*="bg-white/"]) {
+  background-color: hsl(var(--surface-elevated)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* LIGHT MODE: pitch-dark text on dark backgrounds */
+:root .bg-primary .text-black:not([class*="text-black/"]),
+:root .bg-accent .text-black:not([class*="text-black/"]),
+:root .bg-destructive .text-black:not([class*="text-black/"]),
+:root .bg-foreground .text-black:not([class*="text-black/"]) {
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* ============================================================
+   TABS — guaranteed contrast for inactive vs active state
+   ============================================================ */
+
+/* Inactive trigger — secondary, low emphasis but readable */
+[role="tab"][data-state="inactive"] {
+  color: hsl(var(--muted-foreground)) !important;
+  opacity: 1 !important;
+}
+
+/* Active trigger — strong contrast, brand emphasis */
+[role="tab"][data-state="active"] {
+  color: hsl(var(--foreground)) !important;
+  font-weight: 600 !important;
+}
+
+/* Hover on inactive */
+[role="tab"][data-state="inactive"]:hover {
+  color: hsl(var(--foreground)) !important;
+}
+
+/* If a tab uses a colored bg in active state, ensure text is the right contrast */
+[role="tab"][data-state="active"][class*="bg-primary"],
+[role="tab"][data-state="active"][class*="bg-accent"],
+[role="tab"][data-state="active"][style*="background"] {
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* ============================================================
+   ICONS — same logic as text (inherit by default)
+   Force lucide icons to use currentColor strictly so they follow text rules
+   ============================================================ */
+.lucide { color: currentColor; }
+
+/* In dark mode, low-contrast standalone icon utilities → boost */
+.dark .text-gray-300:not(svg ~ *):not(p):not(span),
+.dark .text-gray-400:not(svg ~ *):not(p):not(span),
+.dark .text-slate-300,
+.dark .text-slate-400,
+.dark .text-neutral-300,
+.dark .text-neutral-400 {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+/* ============================================================
+   BUTTONS — final contrast guarantee
+   ============================================================ */
+button[class*="bg-primary"],
+a[class*="bg-primary"] { color: hsl(var(--primary-foreground)); }
+
+button[class*="bg-accent"],
+a[class*="bg-accent"] { color: hsl(var(--accent-foreground)); }
+
+button[class*="bg-destructive"],
+a[class*="bg-destructive"] { color: hsl(var(--destructive-foreground)); }
+
+/* Ghost / outline buttons must always have readable text */
+button[class*="variant-ghost"],
+button[class*="variant-outline"] { color: hsl(var(--foreground)); }
+
