@@ -278,11 +278,6 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
         onOpenChange={setShowLibrary}
         categoryId={categoryId}
       />
-      </TabsContent>
-
-      <TabsContent value="rehab">
-        <ActiveProtocolsDashboard categoryId={categoryId} />
-      </TabsContent>
-    </Tabs>
+    </div>
   );
 }
