@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { cn } from "@/lib/utils";
 import { PAIN_ZONES } from "@/lib/constants/pain-locations";
+import { sleepHoursToScore } from "@/lib/sleepConversion";
 
 interface Props {
   playerId: string;
