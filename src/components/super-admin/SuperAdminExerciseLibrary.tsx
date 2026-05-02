@@ -55,6 +55,39 @@ import {
   getTerrainCategoriesForSport,
 } from "@/lib/constants/exerciseCategories";
 
+// Colored styles per group (aligned with coach library Screen 1)
+const getGroupStyles = (group: string | null) => {
+  switch (group) {
+    case "halterophilie":
+      return { border: "border-l-yellow-600", bg: "bg-yellow-50 dark:bg-yellow-950/30", text: "text-yellow-700 dark:text-yellow-400" };
+    case "musculation":
+      return { border: "border-l-orange-500", bg: "bg-orange-50 dark:bg-orange-950/30", text: "text-orange-700 dark:text-orange-400" };
+    case "course":
+      return { border: "border-l-blue-500", bg: "bg-blue-50 dark:bg-blue-950/30", text: "text-blue-700 dark:text-blue-400" };
+    case "ergo":
+      return { border: "border-l-cyan-500", bg: "bg-cyan-50 dark:bg-cyan-950/30", text: "text-cyan-700 dark:text-cyan-400" };
+    case "bodyweight":
+      return { border: "border-l-purple-500", bg: "bg-purple-50 dark:bg-purple-950/30", text: "text-purple-700 dark:text-purple-400" };
+    case "crossfit_hyrox":
+      return { border: "border-l-red-500", bg: "bg-red-50 dark:bg-red-950/30", text: "text-red-700 dark:text-red-400" };
+    case "sled":
+      return { border: "border-l-amber-500", bg: "bg-amber-50 dark:bg-amber-950/30", text: "text-amber-700 dark:text-amber-400" };
+    case "plyometrie":
+      return { border: "border-l-lime-600", bg: "bg-lime-50 dark:bg-lime-950/30", text: "text-lime-700 dark:text-lime-400" };
+    case "neuro":
+      return { border: "border-l-indigo-500", bg: "bg-indigo-50 dark:bg-indigo-950/30", text: "text-indigo-700 dark:text-indigo-400" };
+    case "stretching_mobility":
+      return { border: "border-l-teal-500", bg: "bg-teal-50 dark:bg-teal-950/30", text: "text-teal-700 dark:text-teal-400" };
+    case "reathletisation":
+      return { border: "border-l-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-950/30", text: "text-emerald-700 dark:text-emerald-400" };
+    case "pilates":
+      return { border: "border-l-pink-500", bg: "bg-pink-50 dark:bg-pink-950/30", text: "text-pink-700 dark:text-pink-400" };
+    case "terrain":
+      return { border: "border-l-green-600", bg: "bg-green-50 dark:bg-green-950/30", text: "text-green-700 dark:text-green-400" };
+    default:
+      return { border: "border-l-muted", bg: "bg-muted/30", text: "text-muted-foreground" };
+  }
+};
 export function SuperAdminExerciseLibrary() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
