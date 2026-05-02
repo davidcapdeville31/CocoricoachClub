@@ -874,23 +874,43 @@ export function SessionDetailsDialog({
                               t.test_category,
                               t.test_type,
                             );
+                            const customTest = getCustomTest(t.test_type);
+                            const displayName = customTest?.name || testLabel;
+                            const imageUrl = customTest?.image_url || null;
+                            const hasDetails = !!customTest;
                             return (
-                              <div
+                              <button
+                                type="button"
                                 key={`${t.test_category}-${t.test_type}-${i}`}
-                                className="rounded-xl border bg-muted/30 p-3"
+                                onClick={() => hasDetails && setSelectedTestDetail({ ...customTest, _categoryLabel: categoryLabel, _resultUnit: t.result_unit })}
+                                disabled={!hasDetails}
+                                className={cn(
+                                  "rounded-xl border bg-muted/30 p-3 text-left flex items-center gap-3 transition-colors",
+                                  hasDetails && "hover:bg-muted/60 cursor-pointer",
+                                )}
                               >
-                                <div className="text-sm font-medium">
-                                  {testLabel}
-                                  {t.result_unit && (
-                                    <span className="text-xs text-muted-foreground ml-1">
-                                      ({t.result_unit})
-                                    </span>
+                                <div className="h-12 w-12 shrink-0 rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+                                  {imageUrl ? (
+                                    <img src={imageUrl} alt={displayName} className="h-full w-full object-cover" />
+                                  ) : (
+                                    <Target className="h-5 w-5 text-muted-foreground" />
                                   )}
                                 </div>
-                                <div className="text-xs text-muted-foreground mt-0.5">
-                                  {categoryLabel}
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-sm font-medium truncate">
+                                    {displayName}
+                                    {(customTest?.unit || t.result_unit) && (
+                                      <span className="text-xs text-muted-foreground ml-1">
+                                        ({customTest?.unit || t.result_unit})
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground mt-0.5 truncate">
+                                    {categoryLabel}
+                                    {hasDetails && <span className="ml-1 text-primary">· Détails</span>}
+                                  </div>
                                 </div>
-                              </div>
+                              </button>
                             );
                           })}
                         </div>
