@@ -57,18 +57,18 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
       setSessionDate(todayIso());
       setBlocks([]);
       setSavedSnapshot(null);
-      activeBlockIdRef.current = null;
+      setActiveBlock(null);
     }
   }, [open]);
 
   // Keep activeBlock synced when blocks change externally
   useEffect(() => {
     if (!blocks.length) {
-      activeBlockIdRef.current = null;
+      setActiveBlock(null);
       return;
     }
     if (!activeBlockIdRef.current || !blocks.find((b) => b.id === activeBlockIdRef.current)) {
-      activeBlockIdRef.current = blocks[blocks.length - 1].id;
+      setActiveBlock(blocks[blocks.length - 1].id);
     }
   }, [blocks]);
 
@@ -85,7 +85,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
     if (handle) {
       const isLinked = handle.hasActiveLinkedDraft(targetId);
       handle.insertExternalExercise(targetId, { id: picked.id, name: picked.exercise_name });
-      activeBlockIdRef.current = targetId;
+      setActiveBlock(targetId);
       toast.success(
         isLinked
           ? `« ${picked.exercise_name} » ajouté au slot`
@@ -110,13 +110,13 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
           : b,
       ),
     );
-    activeBlockIdRef.current = targetId;
+    setActiveBlock(targetId);
     toast.success(`« ${picked.exercise_name} » ajouté`);
   };
 
   const handleBlocksChange = (next: V2BlockWithExercises[]) => {
     if (next.length > blocks.length) {
-      activeBlockIdRef.current = next[next.length - 1].id;
+      setActiveBlock(next[next.length - 1].id);
     }
     setBlocks(next);
   };
@@ -151,7 +151,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
         id: data.exercise.id,
         name: data.exercise.exercise_name,
       });
-      activeBlockIdRef.current = blockId;
+      setActiveBlock(blockId);
       toast.success(`« ${data.exercise.exercise_name} » ajouté au slot`);
       return;
     }
@@ -163,7 +163,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
         id: data.exercise.id,
         name: data.exercise.exercise_name,
       });
-      activeBlockIdRef.current = blockId;
+      setActiveBlock(blockId);
       toast.success(`« ${data.exercise.exercise_name} » ajouté`);
       return;
     }
