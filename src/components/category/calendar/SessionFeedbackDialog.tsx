@@ -325,7 +325,8 @@ export function SessionFeedbackDialog({
 
       for (const player of playersToSave) {
         const existingEntry = existingRpe?.find((r) => r.player_id === player.id);
-        if (existingEntry) continue; // Skip already saved
+        const isEditing = editingRpe.has(player.id);
+        if (existingEntry && !isEditing) continue; // Skip already saved unless editing
 
         const rpe = parseInt(rpeValues[player.id].rpe);
         const duration = parseInt(rpeValues[player.id].duration);
@@ -337,19 +338,32 @@ export function SessionFeedbackDialog({
           trainingLoad
         );
 
-        const { error } = await supabase.from("awcr_tracking").insert({
-          player_id: player.id,
-          category_id: categoryId,
-          training_session_id: sessionId,
-          session_date: session.session_date,
-          rpe,
-          duration_minutes: duration,
-          acute_load: acuteLoad,
-          chronic_load: chronicLoad,
-          awcr: awcr,
-        });
-
-        if (error) throw error;
+        if (existingEntry && isEditing) {
+          const { error } = await supabase
+            .from("awcr_tracking")
+            .update({
+              rpe,
+              duration_minutes: duration,
+              acute_load: acuteLoad,
+              chronic_load: chronicLoad,
+              awcr: awcr,
+            })
+            .eq("id", existingEntry.id);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.from("awcr_tracking").insert({
+            player_id: player.id,
+            category_id: categoryId,
+            training_session_id: sessionId,
+            session_date: session.session_date,
+            rpe,
+            duration_minutes: duration,
+            acute_load: acuteLoad,
+            chronic_load: chronicLoad,
+            awcr: awcr,
+          });
+          if (error) throw error;
+        }
       }
 
       // Save test results
