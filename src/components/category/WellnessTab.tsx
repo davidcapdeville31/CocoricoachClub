@@ -270,8 +270,8 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={getScoreBadgeClass(sleepHoursToScore(entry.sleep_duration))}>
-                          {entry.sleep_duration}h
+                        <Badge variant="outline" className={getScoreBadgeClass(entry.sleep_duration)}>
+                          {sleepScoreLabel(entry.sleep_duration)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
