@@ -53,9 +53,16 @@ export interface PickedExerciseRich {
 
 interface Props {
   onClickInsert: (exercise: PickedExerciseRich) => void;
+  /** When set to "tests", lists category custom tests instead of the exercise library. */
+  mode?: "exercises" | "tests";
+  /** Required when mode === "tests" — the current category id to fetch tests for. */
+  categoryId?: string;
 }
 
-export function V2ExerciseBankSidebar({ onClickInsert }: Props) {
+export function V2ExerciseBankSidebar({ onClickInsert, mode = "exercises", categoryId }: Props) {
+  if (mode === "tests") {
+    return <TestsBankSidebar onClickInsert={onClickInsert} categoryId={categoryId} />;
+  }
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<ExerciseFiltersState>({
     showFavoritesOnly: false,
