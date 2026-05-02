@@ -152,13 +152,6 @@ export function RehabProgramsList({ categoryId }: RehabProgramsListProps) {
         />
       )}
 
-      {showLibrary && (
-        <InjuryLibraryDialog
-          categoryId={categoryId}
-          open={showLibrary}
-          onOpenChange={setShowLibrary}
-        />
-      )}
     </div>
   );
 }
