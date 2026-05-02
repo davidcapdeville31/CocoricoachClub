@@ -79,16 +79,14 @@ export function SanteTab({ categoryId }: SanteTabProps) {
             >
               Dashboard Coach
             </ColoredSubTabsTrigger>
-            {!isViewer && (
-              <ColoredSubTabsTrigger
-                value="wellness"
-                colorKey="sante"
-                icon={<Smile className="h-4 w-4" />}
-                tooltip="Suivi quotidien du bien-être : sommeil, fatigue, stress, courbatures"
-              >
-                Wellness
-              </ColoredSubTabsTrigger>
-            )}
+            <ColoredSubTabsTrigger
+              value="wellness-health"
+              colorKey="sante"
+              icon={<Smile className="h-4 w-4" />}
+              tooltip="Wellness quotidien et dossiers médicaux des athlètes"
+            >
+              Wellness & Santé
+            </ColoredSubTabsTrigger>
             {!isViewer && (
               <ColoredSubTabsTrigger
                 value="nutrition"
