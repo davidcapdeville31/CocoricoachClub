@@ -19,7 +19,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Dumbbell, Users, Activity, Clock, Calendar, Printer, Calculator, Info, Bell, Target } from "lucide-react";
+import { Dumbbell, Users, Activity, Clock, Calendar, Printer, Calculator, Info, Bell, Target, Video } from "lucide-react";
 import { getCategoryLabel } from "@/lib/constants/exerciseCategories";
 import { printElement, exportSessionToPdf, preparePdfWithSettings } from "@/lib/pdfExport";
 import { TEST_CATEGORIES } from "@/lib/constants/testCategories";
@@ -913,11 +913,19 @@ export function SessionDetailsDialog({
                                   )}
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                  <div className="text-sm font-medium truncate">
-                                    {displayName}
+                                  <div className="text-sm font-medium truncate flex items-center gap-1.5">
+                                    <span className="truncate">{displayName}</span>
                                     {(customTest?.unit || t.result_unit) && (
-                                      <span className="text-xs text-muted-foreground ml-1">
+                                      <span className="text-xs text-muted-foreground">
                                         ({customTest?.unit || t.result_unit})
+                                      </span>
+                                    )}
+                                    {customTest?.video_url && (
+                                      <span
+                                        className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-primary/10 text-primary shrink-0"
+                                        title="Vidéo de démonstration disponible"
+                                      >
+                                        <Video className="h-3 w-3" />
                                       </span>
                                     )}
                                   </div>
