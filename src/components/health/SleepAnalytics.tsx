@@ -87,7 +87,7 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
       dailyMap[e.tracking_date] = { qualities: [], durations: [], count: 0 };
     }
     dailyMap[e.tracking_date].qualities.push(e.sleep_quality || 0);
-    dailyMap[e.tracking_date].durations.push(e.sleep_duration || 0);
+    dailyMap[e.tracking_date].durations.push(e.sleep_duration ? sleepScoreToHours(e.sleep_duration) : 0);
     dailyMap[e.tracking_date].count++;
   });
 
