@@ -297,94 +297,8 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
         </Card>
       </div>
 
-      {/* Alerts section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Critical alerts */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-              Alertes critiques
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[300px]">
-              <div className="space-y-3">
-                {/* Expired medical records */}
-                {expiredMedical?.map((record) => (
-                  <div
-                    key={record.id}
-                    className="flex items-start gap-3 p-3 bg-destructive/10 rounded-lg border border-destructive/30"
-                  >
-                    <Syringe className="h-4 w-4 text-destructive mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">{record.players?.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {record.name} expiré depuis{" "}
-                        {Math.abs(safeDiffDays(record.next_due_date, new Date()))} jours
-                      </p>
-                    </div>
-                  </div>
-                ))}
-
-                {/* High EWMA players */}
-                {highEwma.map((player, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-3 p-3 bg-orange-500/10 rounded-lg border border-orange-500/30"
-                  >
-                    <TrendingUp className="h-4 w-4 text-orange-500 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">{player.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        EWMA: {player.ewmaRatio.toFixed(2)} - Risque de surcharge
-                      </p>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Low EWMA players */}
-                {lowEwma.map((player, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-3 p-3 bg-blue-500/10 rounded-lg border border-blue-500/30"
-                  >
-                    <TrendingDown className="h-4 w-4 text-blue-500 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">{player.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        EWMA: {player.ewmaRatio.toFixed(2)} - Sous-entraîné
-                      </p>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Low wellness */}
-                {lowWellnessPlayers.map((player: any, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-3 p-3 bg-purple-500/10 rounded-lg border border-purple-500/30"
-                  >
-                    <HeartPulse className="h-4 w-4 text-purple-500 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">{player.players?.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Wellness faible - Vérifier état général
-                      </p>
-                    </div>
-                  </div>
-                ))}
-
-                {(!expiredMedical?.length && !highEwma.length && !lowEwma.length && !lowWellnessPlayers.length) && (
-                  <div className="flex items-center gap-2 text-green-600 p-3">
-                    <CheckCircle className="h-5 w-5" />
-                    <span>Aucune alerte critique</span>
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+      {/* Reminders section (Alertes critiques retirées) */}
+      <div className="grid grid-cols-1 gap-6">
 
         {/* Upcoming reminders */}
         <Card>
@@ -524,18 +438,86 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="p-4 bg-blue-500/10 rounded-lg">
-                <p className="text-2xl font-bold text-blue-600">{lowEwma.length}</p>
-                <p className="text-sm text-muted-foreground">Sous-entraînés (&lt;0.8)</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Sous-entraînés */}
+              <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20 flex flex-col">
+                <div className="text-center mb-3">
+                  <p className="text-2xl font-bold text-blue-600">{lowEwma.length}</p>
+                  <p className="text-sm text-muted-foreground">Sous-entraînés (&lt;0.8)</p>
+                </div>
+                <div className="space-y-1.5 max-h-[260px] overflow-y-auto">
+                  {lowEwma.length === 0 ? (
+                    <p className="text-xs text-center text-muted-foreground italic py-2">Aucun joueur</p>
+                  ) : (
+                    [...lowEwma]
+                      .sort((a, b) => a.ewmaRatio - b.ewmaRatio)
+                      .map((p, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between gap-2 px-2 py-1.5 bg-background/60 rounded-md text-xs"
+                        >
+                          <span className="font-medium truncate">{p.name}</span>
+                          <Badge variant="outline" className="text-[10px] border-blue-500/40 text-blue-600 shrink-0">
+                            {p.ewmaRatio.toFixed(2)}
+                          </Badge>
+                        </div>
+                      ))
+                  )}
+                </div>
               </div>
-              <div className="p-4 bg-green-500/10 rounded-lg">
-                <p className="text-2xl font-bold text-green-600">{optimalEwma.length}</p>
-                <p className="text-sm text-muted-foreground">Zone optimale (0.8-1.3)</p>
+
+              {/* Zone optimale */}
+              <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/20 flex flex-col">
+                <div className="text-center mb-3">
+                  <p className="text-2xl font-bold text-green-600">{optimalEwma.length}</p>
+                  <p className="text-sm text-muted-foreground">Zone optimale (0.8-1.3)</p>
+                </div>
+                <div className="space-y-1.5 max-h-[260px] overflow-y-auto">
+                  {optimalEwma.length === 0 ? (
+                    <p className="text-xs text-center text-muted-foreground italic py-2">Aucun joueur</p>
+                  ) : (
+                    [...optimalEwma]
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map((p, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between gap-2 px-2 py-1.5 bg-background/60 rounded-md text-xs"
+                        >
+                          <span className="font-medium truncate">{p.name}</span>
+                          <Badge variant="outline" className="text-[10px] border-green-500/40 text-green-600 shrink-0">
+                            {p.ewmaRatio.toFixed(2)}
+                          </Badge>
+                        </div>
+                      ))
+                  )}
+                </div>
               </div>
-              <div className="p-4 bg-orange-500/10 rounded-lg">
-                <p className="text-2xl font-bold text-orange-600">{highEwma.length}</p>
-                <p className="text-sm text-muted-foreground">Surcharge (&gt;1.3)</p>
+
+              {/* Surcharge */}
+              <div className="p-4 bg-orange-500/10 rounded-lg border border-orange-500/20 flex flex-col">
+                <div className="text-center mb-3">
+                  <p className="text-2xl font-bold text-orange-600">{highEwma.length}</p>
+                  <p className="text-sm text-muted-foreground">Sur-entraînés (&gt;1.3)</p>
+                </div>
+                <div className="space-y-1.5 max-h-[260px] overflow-y-auto">
+                  {highEwma.length === 0 ? (
+                    <p className="text-xs text-center text-muted-foreground italic py-2">Aucun joueur</p>
+                  ) : (
+                    [...highEwma]
+                      .sort((a, b) => b.ewmaRatio - a.ewmaRatio)
+                      .map((p, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between gap-2 px-2 py-1.5 bg-background/60 rounded-md text-xs"
+                        >
+                          <span className="font-medium truncate">{p.name}</span>
+                          <Badge variant="outline" className="text-[10px] border-orange-500/40 text-orange-600 shrink-0">
+                            {p.ewmaRatio.toFixed(2)}
+                          </Badge>
+                        </div>
+                      ))
+                  )}
+                </div>
               </div>
             </div>
           )}
