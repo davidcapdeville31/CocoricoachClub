@@ -459,8 +459,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                 <Button
                   onClick={() => setIsScheduleDialogOpen(true)}
                   size="lg"
-                  variant="premium"
-                  className="gap-2 px-8 py-6 text-base"
+                  className="gap-2 px-8 py-6 text-base bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:opacity-90 shadow-lg shadow-violet-500/30 rounded-2xl"
                 >
                   <CalendarPlus className="h-5 w-5" />
                   Planifier des tests dans le calendrier
