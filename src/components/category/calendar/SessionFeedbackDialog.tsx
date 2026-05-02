@@ -839,9 +839,9 @@ export function SessionFeedbackDialog({
                                       {(player.first_name || player.name).slice(0, 2).toUpperCase()}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <span className="text-sm font-medium flex-1 break-words">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
+                                  <span className="text-sm font-medium flex-1 min-w-0 truncate">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
                                   {isSaved ? (
-                                    <span className="text-xs font-medium text-muted-foreground">
+                                    <span className="text-xs font-medium text-muted-foreground shrink-0">
                                       ✓ {test.player_results[player.id]} {test.result_unit}
                                     </span>
                                   ) : (
@@ -849,7 +849,7 @@ export function SessionFeedbackDialog({
                                       type="number"
                                       step="0.01"
                                       placeholder={test.result_unit || "val"}
-                                      className="h-9 w-28 text-sm font-medium"
+                                      className="h-9 w-20 shrink-0 text-sm font-medium"
                                       value={test.player_results[player.id] || ""}
                                       onChange={(e) => updatePlayerTestResult(test.id, player.id, e.target.value)}
                                       onBlur={(e) => autosaveTestResult(test.id, player.id, e.target.value)}
