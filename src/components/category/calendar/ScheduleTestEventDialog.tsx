@@ -64,13 +64,57 @@ export function ScheduleTestEventDialog({
 
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
-  const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string>("");
+  const [activeTest, setActiveTest] = useState<string>("");
   const [selectedTests, setSelectedTests] = useState<Record<string, SelectedTest>>({});
   const [selectedBatteryId, setSelectedBatteryId] = useState<string | null>(null);
   const [mode, setMode] = useState<"individual" | "battery">("individual");
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(true);
   const [notes, setNotes] = useState("");
+
+  // Favorites — synced with Programmation > Tests via localStorage + custom event
+  const favStorageKey = `tests-fav-categories:${categoryId}`;
+  const [favoriteCategories, setFavoriteCategories] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(favStorageKey);
+      if (raw) return new Set(JSON.parse(raw) as string[]);
+    } catch {}
+    return new Set();
+  });
+  useEffect(() => {
+    const reload = () => {
+      try {
+        const raw = localStorage.getItem(favStorageKey);
+        setFavoriteCategories(raw ? new Set(JSON.parse(raw) as string[]) : new Set());
+      } catch {}
+    };
+    const handleCustom = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (!detail || detail.key === favStorageKey) reload();
+    };
+    window.addEventListener("tests-fav-categories-changed", handleCustom);
+    window.addEventListener("storage", reload);
+    return () => {
+      window.removeEventListener("tests-fav-categories-changed", handleCustom);
+      window.removeEventListener("storage", reload);
+    };
+  }, [favStorageKey]);
+
+  const toggleFavorite = (categoryValue: string) => {
+    setFavoriteCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoryValue)) next.delete(categoryValue);
+      else next.add(categoryValue);
+      try {
+        localStorage.setItem(favStorageKey, JSON.stringify(Array.from(next)));
+      } catch {}
+      window.dispatchEvent(
+        new CustomEvent("tests-fav-categories-changed", { detail: { key: favStorageKey } }),
+      );
+      return next;
+    });
+  };
 
   // Fetch club_id
   const { data: clubData } = useQuery({
@@ -144,7 +188,8 @@ export function ScheduleTestEventDialog({
     if (!open) {
       setStartTime("09:00");
       setEndTime("10:00");
-      setSearch("");
+      setActiveCategory("");
+      setActiveTest("");
       setSelectedTests({});
       setSelectedBatteryId(null);
       setMode("individual");
@@ -158,6 +203,23 @@ export function ScheduleTestEventDialog({
   const mergedCategories = useMemo<TestCategory[]>(() => {
     return mergeCustomTestsIntoCategories(TEST_CATEGORIES, customTests || []);
   }, [customTests]);
+
+  // Sort categories: favorites first, then alphabetical by label
+  const orderedCategories = useMemo(() => {
+    const arr = [...mergedCategories];
+    arr.sort((a, b) => {
+      const af = favoriteCategories.has(a.value) ? 0 : 1;
+      const bf = favoriteCategories.has(b.value) ? 0 : 1;
+      if (af !== bf) return af - bf;
+      return a.label.localeCompare(b.label);
+    });
+    return arr;
+  }, [mergedCategories, favoriteCategories]);
+
+  const selectedCategory = useMemo(
+    () => mergedCategories.find((c) => c.value === activeCategory) || null,
+    [mergedCategories, activeCategory],
+  );
 
   const filteredCategories = useMemo(() => {
     const q = search.toLowerCase().trim();
