@@ -591,7 +591,7 @@ export function SessionFeedbackDialog({
   }, [players, invitedPlayerIds, playersToShow]);
 
   const hasNewRpeValues = Object.entries(rpeValues).some(
-    ([id, val]) => val.rpe && val.duration && !playersWithRpe.has(id)
+    ([id, val]) => val.rpe && val.duration && (!playersWithRpe.has(id) || editingRpe.has(id))
   );
 
   const hasTestResults = sessionTests.some(t => 
