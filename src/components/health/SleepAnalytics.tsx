@@ -20,6 +20,7 @@ import {
   Legend,
 } from "recharts";
 import { useState } from "react";
+import { sleepScoreToHours } from "@/lib/sleepConversion";
 
 interface SleepAnalyticsProps {
   categoryId: string;
