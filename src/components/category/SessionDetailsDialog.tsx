@@ -1077,6 +1077,60 @@ export function SessionDetailsDialog({
           time: session?.session_start_time ? session.session_start_time.slice(0, 5) : undefined,
         }}
       />
+
+      {/* Test details dialog */}
+      <Dialog open={!!selectedTestDetail} onOpenChange={(o) => !o && setSelectedTestDetail(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              {selectedTestDetail?.name}
+              {(selectedTestDetail?.unit || selectedTestDetail?._resultUnit) && (
+                <span className="text-sm text-muted-foreground font-normal">
+                  ({selectedTestDetail?.unit || selectedTestDetail?._resultUnit})
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedTestDetail?.image_url && (
+              <div className="w-full rounded-xl overflow-hidden bg-muted">
+                <img
+                  src={selectedTestDetail.image_url}
+                  alt={selectedTestDetail.name}
+                  className="w-full max-h-72 object-contain"
+                />
+              </div>
+            )}
+            {selectedTestDetail?._categoryLabel && (
+              <div>
+                <Badge variant="secondary">{selectedTestDetail._categoryLabel}</Badge>
+              </div>
+            )}
+            {selectedTestDetail?.description && (
+              <div>
+                <h5 className="text-sm font-semibold mb-1">Description</h5>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {selectedTestDetail.description}
+                </p>
+              </div>
+            )}
+            {selectedTestDetail?.objectives && (
+              <div>
+                <h5 className="text-sm font-semibold mb-1">Objectifs</h5>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {selectedTestDetail.objectives}
+                </p>
+              </div>
+            )}
+            {!selectedTestDetail?.description && !selectedTestDetail?.objectives && !selectedTestDetail?.image_url && (
+              <p className="text-sm text-muted-foreground italic">
+                Aucune information complémentaire pour ce test.
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
