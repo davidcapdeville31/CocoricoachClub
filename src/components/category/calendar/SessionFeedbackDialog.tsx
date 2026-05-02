@@ -150,6 +150,20 @@ export function SessionFeedbackDialog({
     enabled: open && !!sessionId,
   });
 
+  // Fetch invited participants (athletes assigned to this test session)
+  const { data: invitedParticipants } = useQuery({
+    queryKey: ["session-event-participants", sessionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_participants")
+        .select("player_id")
+        .eq("training_session_id", sessionId);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!sessionId,
+  });
+
   // Initialize RPE values with default duration when players load
   useEffect(() => {
     if (players && open) {
