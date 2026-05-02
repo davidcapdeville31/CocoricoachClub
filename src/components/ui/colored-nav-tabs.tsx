@@ -166,6 +166,10 @@ const ColoredTabTrigger = React.forwardRef<
   ColoredTabTriggerProps
 >(({ colorKey, icon, children, className, value, badge, label, shortLabel, tooltip, ...props }, ref) => {
   const colors = NAV_COLORS[colorKey];
+  const tabHex = colors.base.match(/hsl\((\d+)\s+(\d+)%\s+(\d+)%\)/);
+  const tabHsl = tabHex ? { h: Number(tabHex[1]), s: Number(tabHex[2]), l: Number(tabHex[3]) } : { h: 280, s: 70, l: 55 };
+  const prefersDarkForeground = tabHsl.l > 64 || ((tabHsl.h >= 32 && tabHsl.h <= 84) && tabHsl.l > 44);
+  const activeForeground = prefersDarkForeground ? "hsl(var(--foreground))" : "white";
   
   const trigger = (
     <TabsPrimitive.Trigger
@@ -180,8 +184,9 @@ const ColoredTabTrigger = React.forwardRef<
       style={{
         ["--tab-color" as string]: colors.base,
         ["--tab-ink" as string]: `color-mix(in srgb, ${colors.base} 86%, white 14%)`,
-        ["--tab-ink-dark" as string]: `color-mix(in srgb, ${colors.base} 30%, white 70%)`,
-        ["--tab-soft-bg-dark" as string]: `color-mix(in srgb, ${colors.base} 12%, hsl(var(--surface-elevated)) 88%)`,
+        ["--tab-ink-dark" as string]: `color-mix(in srgb, ${colors.base} 22%, white 78%)`,
+        ["--tab-soft-bg-dark" as string]: `color-mix(in srgb, ${colors.base} 16%, hsl(var(--surface-elevated)) 84%)`,
+        ["--tab-active-foreground" as string]: activeForeground,
       }}
       {...props}
     >
