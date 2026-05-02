@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { SessionFormDialog } from "./sessions/SessionFormDialog";
 import { SessionEditorV2 } from "@/components/program-builder-v2/SessionEditorV2";
 import { AddMatchCalendarDialog } from "./matches/AddMatchCalendarDialog";
+import { ScheduleTestEventDialog } from "./calendar/ScheduleTestEventDialog";
 
 import { SessionDetailsDialog } from "./SessionDetailsDialog";
 import { MatchRpeDialog } from "./MatchRpeDialog";
@@ -39,6 +40,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
   const [addMatchDate, setAddMatchDate] = useState<Date | undefined>();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<any | null>(null);
+  const [editingTestSession, setEditingTestSession] = useState<{ id: string; date: Date } | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [isDailyDialogOpen, setIsDailyDialogOpen] = useState(false);
   const [currentWeek, setCurrentWeek] = useState(new Date());
