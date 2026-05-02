@@ -172,6 +172,16 @@ export function PlanTestsDialog({
   };
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewVideo, setPreviewVideo] = useState<string | null>(null);
+
+  const getYoutubeEmbed = (url: string) => {
+    const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?\/\s]+)/);
+    return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+  };
+  const getVimeoEmbed = (url: string) => {
+    const m = url.match(/vimeo\.com\/(\d+)/);
+    return m ? `https://player.vimeo.com/video/${m[1]}` : null;
+  };
 
   const filteredPlayers = useMemo(() => {
     const q = playerSearch.trim().toLowerCase();
