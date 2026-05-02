@@ -42,6 +42,8 @@ interface ScheduleTestEventDialogProps {
   onOpenChange: (open: boolean) => void;
   date: Date;
   categoryId: string;
+  /** When provided, the dialog edits this existing test session instead of creating a new one. */
+  editSessionId?: string | null;
 }
 
 interface SelectedTest {
@@ -57,9 +59,11 @@ export function ScheduleTestEventDialog({
   onOpenChange,
   date,
   categoryId,
+  editSessionId,
 }: ScheduleTestEventDialogProps) {
   const queryClient = useQueryClient();
   const { notify } = useSessionNotifications();
+  const isEditMode = !!editSessionId;
 
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
