@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { NotifyStatsButton } from "./NotifyStatsButton";
 import {
   Dialog,
   DialogContent,
@@ -623,7 +624,7 @@ export function SportMatchStatsDialog({
               </Button>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap justify-end">
             {activeCategoryIndex < statCategories.length - 1 ? (
               <Button onClick={goNextCategory} className="gap-1">
                 <Check className="h-4 w-4" />
@@ -638,6 +639,12 @@ export function SportMatchStatsDialog({
                 {saveStats.isPending ? "Enregistrement..." : "Enregistrer tout"}
               </Button>
             )}
+            <NotifyStatsButton
+              matchId={matchId}
+              categoryId={categoryId}
+              size="sm"
+              disabled={saveStats.isPending}
+            />
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Annuler
             </Button>
