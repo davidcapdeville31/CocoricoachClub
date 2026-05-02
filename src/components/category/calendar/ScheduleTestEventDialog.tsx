@@ -275,6 +275,11 @@ export function ScheduleTestEventDialog({
         });
         setSelectedTests(next);
         setMode("individual");
+        // Auto-select the category of the first hydrated test so the user sees the checked tests
+        const firstMeta = meta[0];
+        if (firstMeta?.test_category) {
+          setActiveCategory(firstMeta.test_category);
+        }
       } catch (err) {
         console.warn("Could not parse TESTS metadata", err);
       }
