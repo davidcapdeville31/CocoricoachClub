@@ -107,7 +107,7 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
       playerMap[e.player_id] = { name: fullName, qualities: [], durations: [], entries: [] };
     }
     playerMap[e.player_id].qualities.push(e.sleep_quality || 0);
-    playerMap[e.player_id].durations.push(e.sleep_duration || 0);
+    playerMap[e.player_id].durations.push(e.sleep_duration ? sleepScoreToHours(e.sleep_duration) : 0);
     playerMap[e.player_id].entries.push(e);
   });
 
