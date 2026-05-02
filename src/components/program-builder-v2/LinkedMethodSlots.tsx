@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
-import { Dumbbell, X, Plus, Clock } from "lucide-react";
+import { Dumbbell, X, Plus, Clock, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MethodExerciseDisplay } from "./MethodExerciseDisplay";
 import { WeightliftingPositionSelector } from "./WeightliftingPositionSelector";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Popover,
   PopoverContent,
@@ -66,6 +67,8 @@ export interface SlottedExerciseParams {
   useVariableSets?: boolean;
   // Weightlifting starting position
   startingPosition?: string;
+  // Coach-specific note for this exercise inside the linked method
+  coachNotes?: string;
 }
 
 export interface SlottedExercise {
@@ -200,6 +203,66 @@ const getMethodConfig = (method: string) => {
   }
 };
 
+// Editable coach notes block (collapsible) for a single slotted exercise
+const CoachNotesEditor = ({
+  value,
+  onChange,
+}: {
+  value?: string;
+  onChange: (val: string) => void;
+}) => {
+  const [open, setOpen] = useState(Boolean(value && value.length > 0));
+
+  return (
+    <div className="mt-2">
+      {!open ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setOpen(true)}
+          onPointerDown={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          className="h-6 px-2 text-[11px] text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 gap-1"
+        >
+          <MessageSquare className="h-3 w-3" />
+          + Consignes spécifiques
+        </Button>
+      ) : (
+        <div className="p-2 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900">
+          <div className="flex items-center justify-between mb-1">
+            <Label className="text-[10px] uppercase tracking-wide text-blue-700 dark:text-blue-400 font-semibold flex items-center gap-1">
+              <MessageSquare className="h-3 w-3" /> Consignes spécifiques
+            </Label>
+            <button
+              type="button"
+              onClick={() => {
+                onChange("");
+                setOpen(false);
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              className="p-0.5 hover:bg-destructive/20 rounded"
+              title="Retirer la consigne"
+            >
+              <X className="h-3 w-3 text-destructive" />
+            </button>
+          </div>
+          <Textarea
+            value={value ?? ""}
+            onChange={(e) => onChange(e.target.value)}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            placeholder="Ex: Garde le dos bien droit, contrôle la descente..."
+            rows={2}
+            className="text-xs resize-y min-h-[44px] bg-background/70"
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Single param input with remove button
 const ParamInput = ({
   label,
@@ -234,10 +297,10 @@ const ParamInput = ({
 
   // Calculate dynamic width based on field type
   const getFieldWidth = () => {
-    if (paramKey === 'tempo') return 'w-[75px]';
-    if (paramKey === 'load' || paramKey === 'percentage') return 'w-[55px]';
-    if (isRepsField) return 'w-[75px]';
-    return 'w-[50px]';
+    if (paramKey === 'tempo') return 'w-[80px]';
+    if (paramKey === 'load' || paramKey === 'percentage') return 'w-[60px]';
+    if (isRepsField) return 'w-[120px]';
+    return 'w-[55px]';
   };
 
   return (
@@ -545,6 +608,14 @@ const DroppableSlot = ({
                   visibleColumns={mapParamsToColumns(visibleParams)}
                 />
               </div>
+
+              {/* Consignes spécifiques (coach notes) - éditable */}
+              <CoachNotesEditor
+                value={params.coachNotes}
+                onChange={(val) =>
+                  onUpdateParams({ ...params, coachNotes: val })
+                }
+              />
             </>
           ) : (
             /* Mode lecture seule: afficher les valeurs */
@@ -575,6 +646,14 @@ const DroppableSlot = ({
                   </div>
                 );
               })}
+              {params.coachNotes && (
+                <div className="w-full mt-1 p-2 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900">
+                  <p className="text-[10px] uppercase tracking-wide text-blue-700 dark:text-blue-400 font-semibold mb-0.5 flex items-center gap-1">
+                    <MessageSquare className="h-3 w-3" /> Consignes spécifiques
+                  </p>
+                  <p className="text-xs text-blue-900 dark:text-blue-200 whitespace-pre-wrap">{params.coachNotes}</p>
+                </div>
+              )}
             </div>
           )}
         </div>
