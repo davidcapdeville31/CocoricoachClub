@@ -210,6 +210,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
         scoring_scale: enableScoring ? (scoringScale as any) : null,
         max_points: maxPoints,
         image_url: imageUrl,
+        video_url: videoUrl.trim() || null,
         formula_config: formulaConfig?.enabled ? (formulaConfig as any) : null,
       };
 
