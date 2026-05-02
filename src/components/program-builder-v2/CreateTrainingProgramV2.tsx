@@ -141,6 +141,7 @@ function buildInitialDraft(): V2ProgramDraft {
     difficultyLevel: "intermediate",
     daysPerWeek: 3,
     weeks: [buildEmptyWeek(1, 3)],
+    themeId: null,
   };
 }
 
