@@ -102,8 +102,38 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         addExerciseToBlock(blockId, { id: picked.id, name: picked.name } as PickedExercise);
         return true;
       },
+      insertExternalExerciseAtSlot: (blockId, slotIndex, picked) => {
+        const draft = linkedDrafts[blockId];
+        if (!draft) {
+          // Pas de méthode active → fallback : ajout normal au bloc
+          addExerciseToBlock(blockId, { id: picked.id, name: picked.name } as PickedExercise);
+          return true;
+        }
+        // Remplace l'exercice existant à cet index, ou l'ajoute si le slot est vide
+        const existing = draft.slottedExercises.find((s) => s.slotIndex === slotIndex);
+        const newSlotted: SlottedExercise = {
+          id: existing?.id ?? `slot-${Date.now()}-${slotIndex}`,
+          exerciseId: picked.id,
+          exerciseName: picked.name,
+          stationName: picked.name,
+          slotIndex,
+        };
+        setLinkedDrafts((p) => {
+          const current = p[blockId];
+          if (!current) return p;
+          const others = current.slottedExercises.filter((s) => s.slotIndex !== slotIndex);
+          return {
+            ...p,
+            [blockId]: {
+              ...current,
+              slottedExercises: [...others, newSlotted].sort((a, b) => a.slotIndex - b.slotIndex),
+            },
+          };
+        });
+        return true;
+      },
     }),
-    [linkedDrafts],
+    [linkedDrafts, addExerciseToBlock],
   );
 
   const addBlock = useCallback(
