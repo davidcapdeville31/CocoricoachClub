@@ -32,6 +32,16 @@ const getScoreBadgeClass = (score: number) => {
   return "bg-status-critical/15 text-status-critical border-status-critical/30";
 };
 
+// La durée de sommeil est saisie en heures, on la convertit en score 1-5
+// (1 = optimal, 5 = très mauvais) pour la coloration et le calcul du score moyen.
+const sleepHoursToScore = (hours: number) => {
+  if (hours >= 8) return 1;
+  if (hours >= 7) return 2;
+  if (hours >= 6) return 3;
+  if (hours >= 5) return 4;
+  return 5;
+};
+
 export function WellnessTab({ categoryId }: WellnessTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterFrom, setFilterFrom] = useState<Date | undefined>(subDays(new Date(), 7));
@@ -84,7 +94,7 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
   const calculateWellnessScore = (entry: NonNullable<typeof wellnessData>[0]) => {
     const avg = (
       entry.sleep_quality +
-      entry.sleep_duration +
+      sleepHoursToScore(entry.sleep_duration) +
       entry.general_fatigue +
       entry.stress_level +
       entry.soreness_upper_body +
@@ -244,13 +254,13 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
                   <TableRow>
                     <TableHead>Joueur</TableHead>
                     <TableHead>Date</TableHead>
-                    <TableHead className="text-center">Sommeil Qualité</TableHead>
-                    <TableHead className="text-center">Sommeil Durée</TableHead>
-                    <TableHead className="text-center">Fatigue</TableHead>
-                    <TableHead className="text-center">Stress</TableHead>
-                    <TableHead className="text-center">Soreness Haut</TableHead>
-                    <TableHead className="text-center">Soreness Bas</TableHead>
-                    <TableHead className="text-center">Score Moyen</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">Sommeil Qualité</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">Sommeil Durée</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">Fatigue</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">Stress</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">Soreness Haut</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">Soreness Bas</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">Score Moyen</TableHead>
                     <TableHead>Douleur Spécifique</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -269,8 +279,8 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={getScoreBadgeClass(entry.sleep_duration)}>
-                          {entry.sleep_duration}
+                        <Badge variant="outline" className={getScoreBadgeClass(sleepHoursToScore(entry.sleep_duration))}>
+                          {entry.sleep_duration}h
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
