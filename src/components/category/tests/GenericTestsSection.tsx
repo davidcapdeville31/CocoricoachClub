@@ -29,7 +29,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { UnifiedTestDialog } from "./UnifiedTestDialog";
-import { ScheduleTestDialog } from "./ScheduleTestDialog";
+import { PlanTestsDialog } from "./PlanTestsDialog";
 import { TEST_CATEGORIES, getTestLabel, getTestCategoriesForSport, TestCategory } from "@/lib/constants/testCategories";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 
@@ -453,12 +453,23 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         })()}
 
         {!tests || tests.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12 space-y-3">
             {!isViewer ? (
-              <Button onClick={() => setIsDialogOpen(true)} size="lg" className="gap-2 px-8 py-6 text-base">
-                <ClipboardList className="h-5 w-5" />
-                Saisir des résultats
-              </Button>
+              <>
+                <Button
+                  onClick={() => setIsScheduleDialogOpen(true)}
+                  size="lg"
+                  variant="premium"
+                  className="gap-2 px-8 py-6 text-base"
+                >
+                  <CalendarPlus className="h-5 w-5" />
+                  Planifier des tests dans le calendrier
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Choisissez un ou plusieurs tests, une date et une récurrence.
+                  Les séances apparaîtront dans le calendrier global et celui des athlètes.
+                </p>
+              </>
             ) : (
               <p className="text-muted-foreground">Aucun test enregistré</p>
             )}
@@ -530,23 +541,21 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         allowCustomTest={!defaultCategory || defaultCategory === "all"}
       />
 
-      {filterTestType !== "all" && selectedCategory && (() => {
-        const cat = filteredTestCategories.find(c => c.value === filterCategory);
-        const test = cat?.tests.find(t => t.value === filterTestType);
-        if (!cat || !test) return null;
-        return (
-          <ScheduleTestDialog
-            open={isScheduleDialogOpen}
-            onOpenChange={setIsScheduleDialogOpen}
-            categoryId={categoryId}
-            testCategoryLabel={cat.label}
-            testTypeLabel={test.label}
-            testCategory={cat.value}
-            testType={test.value}
-            testUnit={test.unit || ""}
-          />
-        );
-      })()}
+      <PlanTestsDialog
+        open={isScheduleDialogOpen}
+        onOpenChange={setIsScheduleDialogOpen}
+        categoryId={categoryId}
+        defaultCategoryFilter={filterCategory !== "all" ? filterCategory : undefined}
+        availableTests={filteredTestCategories.flatMap((cat) =>
+          cat.tests.map((t) => ({
+            category: cat.value,
+            categoryLabel: cat.label,
+            type: t.value,
+            typeLabel: t.label,
+            unit: t.unit || "",
+          }))
+        )}
+      />
 
       <CreateCustomTestDialog
         open={isCreateTestDialogOpen}
