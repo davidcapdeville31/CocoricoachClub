@@ -22,7 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ClipboardList, Layers, Users, Star, Plus, X } from "lucide-react";
+import { ClipboardList, Layers, Users, Star, Plus, X, Info, Image as ImageIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -34,6 +35,7 @@ import {
   mergeCustomTestsIntoCategories,
   type CustomTestCatalogItem,
 } from "@/components/category/tests/customTestCatalog";
+import { normalizeCustomTestType } from "@/components/category/tests/customTestCatalog";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 import { cn } from "@/lib/utils";
 
@@ -139,14 +141,37 @@ export function ScheduleTestEventDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_tests")
-        .select("name, test_category, unit, is_time")
+        .select("id, name, test_category, unit, is_time, description, image_url, video_url, objectives")
         .eq("club_id", clubData?.club_id || "")
         .order("name");
       if (error) throw error;
-      return (data || []) as CustomTestCatalogItem[];
+      return (data || []) as (CustomTestCatalogItem & { id: string; description?: string | null; image_url?: string | null; video_url?: string | null; objectives?: string | null })[];
     },
     enabled: open && !!clubData?.club_id,
   });
+
+  // Map for quick metadata lookup by normalized test value
+  const customMetaByValue = useMemo(() => {
+    const map = new Map<string, any>();
+    (customTests || []).forEach((t: any) => {
+      const v = `custom_${normalizeCustomTestType(t.name)}`;
+      map.set(v, t);
+    });
+    return map;
+  }, [customTests]);
+
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewVideo, setPreviewVideo] = useState<string | null>(null);
+
+  const getYoutubeEmbed = (url: string) => {
+    const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?\/\s]+)/);
+    return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+  };
+  const getVimeoEmbed = (url: string) => {
+    const m = url.match(/vimeo\.com\/(\d+)/);
+    return m ? `https://player.vimeo.com/video/${m[1]}` : null;
+  };
+
 
   // Fetch batteries for this category/club
   const { data: batteries } = useQuery({
@@ -474,6 +499,7 @@ export function ScheduleTestEventDialog({
   });
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[92vh] flex flex-col overflow-hidden border-border/70 bg-background/95 p-0 shadow-2xl backdrop-blur-md">
         <DialogHeader className="shrink-0 border-b border-border/60 px-6 pt-6 pb-4">
@@ -622,6 +648,7 @@ export function ScheduleTestEventDialog({
                       {selectedCategory.tests.map((test) => {
                         const key = `${selectedCategory.value}::${test.value}`;
                         const isSel = !!selectedTests[key];
+                        const meta = customMetaByValue.get(test.value);
                         const toggle = () => {
                           setSelectedTests((prev) => {
                             const next = { ...prev };
@@ -640,23 +667,80 @@ export function ScheduleTestEventDialog({
                         return (
                           <div
                             key={test.value}
-                            onClick={toggle}
                             className={cn(
-                              "flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all text-sm",
+                              "flex items-center gap-2 p-2 rounded-lg border transition-all text-sm",
                               isSel
                                 ? "bg-primary/15 border-primary ring-1 ring-primary/40"
                                 : "bg-background hover:bg-muted/50 border-border/60",
                             )}
                           >
-                            <Checkbox checked={isSel} onCheckedChange={toggle} />
-                            <span className="flex-1 truncate">
-                              {test.label}
-                              {test.unit && (
-                                <span className="text-muted-foreground text-xs ml-1">
-                                  ({test.unit})
-                                </span>
-                              )}
-                            </span>
+                            {meta?.image_url ? (
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); setPreviewImage(meta.image_url); }}
+                                className="shrink-0 h-10 w-10 rounded-md overflow-hidden border border-border bg-muted"
+                                title="Voir la photo"
+                              >
+                                <img src={meta.image_url} alt={test.label} className="h-full w-full object-cover" />
+                              </button>
+                            ) : (
+                              <div className="shrink-0 h-10 w-10 rounded-md bg-muted flex items-center justify-center text-muted-foreground">
+                                <ImageIcon className="h-4 w-4" />
+                              </div>
+                            )}
+                            <label
+                              className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+                              onClick={(e) => { e.preventDefault(); toggle(); }}
+                            >
+                              <Checkbox checked={isSel} onCheckedChange={toggle} />
+                              <span className="flex-1 truncate text-foreground">
+                                {test.label}
+                                {test.unit && (
+                                  <span className="text-muted-foreground text-xs ml-1">
+                                    ({test.unit})
+                                  </span>
+                                )}
+                              </span>
+                            </label>
+                            {(meta?.description || meta?.objectives || meta?.video_url) && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 shrink-0"
+                                    title="Détails"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <Info className="h-4 w-4 text-muted-foreground" />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent side="left" className="w-72 text-sm space-y-2">
+                                  <p className="font-semibold">{test.label}</p>
+                                  {meta?.description && (
+                                    <p className="text-muted-foreground whitespace-pre-wrap text-xs">
+                                      {meta.description}
+                                    </p>
+                                  )}
+                                  {meta?.objectives && (
+                                    <div className="text-xs">
+                                      <span className="font-medium">Objectifs : </span>
+                                      <span className="text-muted-foreground">{meta.objectives}</span>
+                                    </div>
+                                  )}
+                                  {meta?.video_url && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setPreviewVideo(meta.video_url)}
+                                      className="text-xs text-primary hover:underline inline-block"
+                                    >
+                                      Voir la vidéo →
+                                    </button>
+                                  )}
+                                </PopoverContent>
+                              </Popover>
+                            )}
                           </div>
                         );
                       })}
@@ -802,5 +886,39 @@ export function ScheduleTestEventDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    {previewImage && (
+      <Dialog open onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="max-w-2xl p-2">
+          <img src={previewImage} alt="Aperçu" className="w-full h-auto rounded-lg" />
+        </DialogContent>
+      </Dialog>
+    )}
+    {previewVideo && (
+      <Dialog open onOpenChange={() => setPreviewVideo(null)}>
+        <DialogContent className="max-w-3xl p-2">
+          {(() => {
+            const yt = getYoutubeEmbed(previewVideo);
+            const vm = getVimeoEmbed(previewVideo);
+            if (yt || vm) {
+              return (
+                <div className="aspect-video w-full">
+                  <iframe
+                    src={yt || vm || ""}
+                    title="Vidéo du test"
+                    className="w-full h-full rounded-lg"
+                    allow="autoplay; encrypted-media; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              );
+            }
+            return (
+              <video src={previewVideo} controls className="w-full h-auto rounded-lg" />
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+    )}
+    </>
   );
 }
