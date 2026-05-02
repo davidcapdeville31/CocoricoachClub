@@ -239,6 +239,52 @@ export function ScheduleTestEventDialog({
     return arr;
   }, [mergedCategories, favoriteCategories]);
 
+  // Hydrate state once existingSession AND mergedCategories are available
+  useEffect(() => {
+    if (!open || !isEditMode || !existingSession?.session) return;
+    const s = existingSession.session;
+    if (s.session_start_time) setStartTime(String(s.session_start_time).slice(0, 5));
+    if (s.session_end_time) setEndTime(String(s.session_end_time).slice(0, 5));
+
+    const rawNotes = s.notes || "";
+    const metaMatch = rawNotes.match(/<!--TESTS:(.*?)-->/);
+    let visibleNotes = rawNotes.replace(/<!--TESTS:.*?-->/g, "").trim();
+    // Strip the auto-prepended "Test : ..." / "Batterie : ..." title line
+    visibleNotes = visibleNotes.replace(/^(Test\s*:|Batterie[^\n]*).*?(\n|$)/, "").trim();
+    setNotes(visibleNotes);
+
+    if (metaMatch) {
+      try {
+        const meta = JSON.parse(metaMatch[1]) as Array<{
+          test_category: string;
+          test_type: string;
+          result_unit?: string;
+        }>;
+        const next: Record<string, SelectedTest> = {};
+        meta.forEach((m) => {
+          const cat = mergedCategories.find((c) => c.value === m.test_category);
+          const t = cat?.tests.find((tt) => tt.value === m.test_type);
+          const key = `${m.test_category}::${m.test_type}`;
+          next[key] = {
+            test_category: m.test_category,
+            test_category_label: cat?.label || m.test_category,
+            test_type: m.test_type,
+            test_label: t?.label || m.test_type,
+            result_unit: m.result_unit || t?.unit || "",
+          };
+        });
+        setSelectedTests(next);
+        setMode("individual");
+      } catch (err) {
+        console.warn("Could not parse TESTS metadata", err);
+      }
+    }
+
+    setSelectAll(false);
+    setSelectedPlayers(existingSession.participantIds || []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, isEditMode, existingSession, mergedCategories]);
+
   const selectedCategory = useMemo(
     () => mergedCategories.find((c) => c.value === activeCategory) || null,
     [mergedCategories, activeCategory],
