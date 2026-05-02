@@ -2,7 +2,6 @@ import * as React from "react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { hexToHsl, isLightColor } from "@/lib/brandingColorUtils";
 
 // Define navigation color mappings
 export const NAV_COLORS = {
@@ -168,10 +167,7 @@ const ColoredTabTrigger = React.forwardRef<
 >(({ colorKey, icon, children, className, value, badge, label, shortLabel, tooltip, ...props }, ref) => {
   const colors = NAV_COLORS[colorKey];
   const tabHex = colors.base.match(/hsl\((\d+)\s+(\d+)%\s+(\d+)%\)/);
-  const tabHexValue = tabHex
-    ? `#${[Number(tabHex[1]), Number(tabHex[2]), Number(tabHex[3])].join("")}`
-    : null;
-  const tabHsl = tabHex ? { h: Number(tabHex[1]), s: Number(tabHex[2]), l: Number(tabHex[3]) } : hexToHsl("#8b5cf6");
+  const tabHsl = tabHex ? { h: Number(tabHex[1]), s: Number(tabHex[2]), l: Number(tabHex[3]) } : { h: 280, s: 70, l: 55 };
   const activeForeground = tabHsl.l > 68 ? "hsl(var(--foreground))" : "white";
   
   const trigger = (
