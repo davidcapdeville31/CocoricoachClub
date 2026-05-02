@@ -142,19 +142,32 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
         <TabsContent value="matches">
           <Card className="bg-gradient-card shadow-md">
             <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Gestion des {itemLabelPlural}
-                </CardTitle>
+          <Card className="overflow-hidden border-0 shadow-2xl rounded-2xl bg-gradient-to-br from-amber-50/80 via-background to-orange-50/40 dark:from-amber-950/30 dark:via-background dark:to-orange-950/20">
+            {/* Premium gradient header */}
+            <div className="relative overflow-hidden bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 px-5 py-4">
+              <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,white,transparent_60%)]" />
+              <div className="relative flex flex-wrap justify-between items-center gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg ring-1 ring-white/30">
+                    <Calendar className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-white tracking-tight">
+                      Gestion des {itemLabelPlural}
+                    </h2>
+                    <p className="text-xs text-white/80">
+                      {matches?.length || 0} {itemLabel}{(matches?.length || 0) > 1 ? "s" : ""} au total
+                    </p>
+                  </div>
+                </div>
                 {!isViewer && (
                   <div className="flex items-center gap-2 flex-wrap">
                     {!isBowling && (
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="secondary"
                         size="sm"
                         onClick={() => setIsStatPrefsOpen(true)}
-                        className="gap-1"
+                        className="gap-1 bg-white/15 hover:bg-white/25 text-white border-0 backdrop-blur-sm"
                       >
                         <Settings2 className="h-4 w-4" />
                         <span className="hidden sm:inline">Personnaliser stats</span>
@@ -162,90 +175,122 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                     )}
                     {showTrainingButton && (
                       <Button
-                        variant="outline"
+                        variant="secondary"
+                        size="sm"
                         onClick={() => createTrainingMatch.mutate()}
                         disabled={createTrainingMatch.isPending}
-                        className="gap-2"
+                        className="gap-2 bg-white/15 hover:bg-white/25 text-white border-0 backdrop-blur-sm"
                       >
                         <Dumbbell className="h-4 w-4" />
                         {isTennis ? "Match entraînement" : "Entraînement bowling"}
                       </Button>
                     )}
-                    <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => setIsAddDialogOpen(true)}
+                      className="gap-2 bg-white text-amber-700 hover:bg-amber-50 shadow-lg font-semibold"
+                    >
                       <Plus className="h-4 w-4" />
                       Ajouter {isIndividual ? "une" : "un"} {itemLabel}
                     </Button>
                   </div>
                 )}
               </div>
-            </CardHeader>
-            <CardContent>
+            </div>
+
+            <CardContent className="p-5">
               {(!matches || matches.length === 0) ? (
-                <div className="text-center py-12">
-                  <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground mb-4">
-                    {isIndividual ? "Aucune compétition programmée" : "Aucun match programmé"} pour cette catégorie
+                <div className="text-center py-16 rounded-2xl bg-gradient-to-br from-muted/40 to-transparent border border-dashed border-border/60">
+                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/40 mb-4 shadow-inner">
+                    <Calendar className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <p className="text-base font-semibold text-foreground mb-1">
+                    {isIndividual ? "Aucune compétition programmée" : "Aucun match programmé"}
+                  </p>
+                  <p className="text-sm text-muted-foreground mb-5">
+                    Commencez par créer votre {isIndividual ? "première compétition" : "premier match"}
                   </p>
                   {!isViewer && (
-                    <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+                    <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg">
                       <Plus className="h-4 w-4" />
                       Créer {isIndividual ? "la première compétition" : "le premier match"}
                     </Button>
                   )}
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {/* Filter row */}
-                  <div className="flex items-center gap-4 flex-wrap p-2 rounded-lg bg-muted/40">
-                    <span className="text-xs font-medium text-muted-foreground">Afficher :</span>
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id="filter-upcoming"
-                        checked={showUpcoming}
-                        onCheckedChange={(v) => setShowUpcoming(v === true)}
-                      />
-                      <Label htmlFor="filter-upcoming" className="text-xs cursor-pointer flex items-center gap-1.5">
-                        <CalendarClock className="h-3.5 w-3.5 text-primary" />
-                        À venir
-                        <span className="text-muted-foreground">({upcomingMatches.length})</span>
-                      </Label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id="filter-past"
-                        checked={showPast}
-                        onCheckedChange={(v) => setShowPast(v === true)}
-                      />
-                      <Label htmlFor="filter-past" className="text-xs cursor-pointer flex items-center gap-1.5">
-                        <History className="h-3.5 w-3.5 text-muted-foreground" />
-                        Passé{isIndividual ? "e" : ""}s
-                        <span className="text-muted-foreground">({pastMatches.length})</span>
-                      </Label>
-                    </div>
+                <div className="space-y-5">
+                  {/* Filter chips */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mr-1">Afficher :</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowUpcoming(!showUpcoming)}
+                      className={cn(
+                        "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border",
+                        showUpcoming
+                          ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-transparent shadow-md shadow-amber-500/30"
+                          : "bg-muted/50 text-muted-foreground border-border hover:bg-muted",
+                      )}
+                    >
+                      <CalendarClock className="h-3.5 w-3.5" />
+                      À venir
+                      <span className={cn(
+                        "ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                        showUpcoming ? "bg-white/25 text-white" : "bg-background text-foreground",
+                      )}>
+                        {upcomingMatches.length}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowPast(!showPast)}
+                      className={cn(
+                        "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border",
+                        showPast
+                          ? "bg-gradient-to-r from-slate-600 to-slate-700 text-white border-transparent shadow-md shadow-slate-500/30"
+                          : "bg-muted/50 text-muted-foreground border-border hover:bg-muted",
+                      )}
+                    >
+                      <History className="h-3.5 w-3.5" />
+                      Passé{isIndividual ? "e" : ""}s
+                      <span className={cn(
+                        "ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                        showPast ? "bg-white/25 text-white" : "bg-background text-foreground",
+                      )}>
+                        {pastMatches.length}
+                      </span>
+                    </button>
                   </div>
 
                   {/* === UPCOMING SECTION === */}
                   {showUpcoming && (
-                    <section className="rounded-xl border border-primary/30 bg-primary/5 p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <CalendarClock className="h-4 w-4 text-primary" />
-                          <h3 className="text-sm font-bold text-primary">
-                            {itemLabelPluralCapital} à venir
-                          </h3>
+                    <section className="rounded-2xl border border-amber-300/40 dark:border-amber-700/40 bg-gradient-to-br from-amber-50 via-orange-50/50 to-transparent dark:from-amber-950/30 dark:via-orange-950/20 dark:to-transparent p-4 shadow-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-md shadow-amber-500/30">
+                            <CalendarClock className="h-4 w-4 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-bold text-amber-900 dark:text-amber-100">
+                              {itemLabelPluralCapital} à venir
+                            </h3>
+                            <p className="text-[10px] text-amber-700/70 dark:text-amber-300/70 uppercase tracking-wider font-semibold">
+                              Prochains événements
+                            </p>
+                          </div>
                         </div>
-                        <span className="inline-flex items-center justify-center min-w-[24px] h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[11px] font-bold">
+                        <span className="inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold shadow-md shadow-amber-500/30">
                           {upcomingMatches.length}
                         </span>
                       </div>
                       {upcomingMatches.length > 0 ? (
-                        <div className="space-y-1.5">
+                        <div className="space-y-2">
                           {upcomingMatches.map((match) => (
                             <MatchCard key={match.id} match={match} categoryId={categoryId} compact />
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-muted-foreground italic text-center py-3">
+                        <p className="text-xs text-muted-foreground italic text-center py-4">
                           Aucun{isIndividual ? "e" : ""} {itemLabel} à venir
                         </p>
                       )}
@@ -254,32 +299,39 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
 
                   {/* === PAST SECTION === */}
                   {showPast && (
-                    <section className="rounded-xl border border-border bg-muted/30 p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <History className="h-4 w-4 text-muted-foreground" />
-                          <h3 className="text-sm font-bold text-foreground/80">
-                            {itemLabelPluralCapital} passé{isIndividual ? "e" : ""}s
-                          </h3>
+                    <section className="rounded-2xl border border-slate-300/40 dark:border-slate-700/40 bg-gradient-to-br from-slate-50 via-slate-100/30 to-transparent dark:from-slate-900/40 dark:via-slate-800/20 dark:to-transparent p-4 shadow-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-slate-500 to-slate-700 flex items-center justify-center shadow-md shadow-slate-500/30">
+                            <History className="h-4 w-4 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                              {itemLabelPluralCapital} passé{isIndividual ? "e" : ""}s
+                            </h3>
+                            <p className="text-[10px] text-slate-700/70 dark:text-slate-300/70 uppercase tracking-wider font-semibold">
+                              Historique & résultats
+                            </p>
+                          </div>
                         </div>
-                        <span className="inline-flex items-center justify-center min-w-[24px] h-5 px-1.5 rounded-full bg-muted-foreground/20 text-foreground text-[11px] font-bold">
+                        <span className="inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded-full bg-gradient-to-r from-slate-500 to-slate-700 text-white text-xs font-bold shadow-md shadow-slate-500/30">
                           {pastMatches.length}
                         </span>
                       </div>
                       {pastMatches.length > 0 ? (
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           {pastMatchesByMonth.map((group) => (
                             <div key={group.key}>
-                              <div className="flex items-center gap-2 mb-1.5">
-                                <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground capitalize">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 capitalize">
                                   {group.label}
                                 </h4>
-                                <div className="flex-1 h-px bg-border" />
-                                <span className="text-[10px] font-semibold text-muted-foreground">
+                                <div className="flex-1 h-px bg-gradient-to-r from-slate-300 to-transparent dark:from-slate-700" />
+                                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full bg-slate-200/60 dark:bg-slate-800/60">
                                   {group.matches.length}
                                 </span>
                               </div>
-                              <div className="space-y-1.5">
+                              <div className="space-y-2">
                                 {group.matches.map((match) => (
                                   <MatchCard key={match.id} match={match} categoryId={categoryId} compact />
                                 ))}
@@ -288,7 +340,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-muted-foreground italic text-center py-3">
+                        <p className="text-xs text-muted-foreground italic text-center py-4">
                           Aucun{isIndividual ? "e" : ""} {itemLabel} passé{isIndividual ? "e" : ""}
                         </p>
                       )}
@@ -296,9 +348,11 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                   )}
 
                   {!showUpcoming && !showPast && (
-                    <p className="text-sm text-muted-foreground italic text-center py-6">
-                      Cochez au moins un filtre pour afficher les {itemLabelPlural}.
-                    </p>
+                    <div className="text-center py-10 rounded-2xl bg-muted/30 border border-dashed">
+                      <p className="text-sm text-muted-foreground italic">
+                        Cochez au moins un filtre pour afficher les {itemLabelPlural}.
+                      </p>
+                    </div>
                   )}
                 </div>
               )}
