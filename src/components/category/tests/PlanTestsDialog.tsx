@@ -83,7 +83,7 @@ export function PlanTestsDialog({
   const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   // Athletes selection
-  const [audience, setAudience] = useState<"all" | "selection">("all");
+  const [audience, setAudience] = useState<"all" | "selection">("selection");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [playerSearch, setPlayerSearch] = useState("");
 
