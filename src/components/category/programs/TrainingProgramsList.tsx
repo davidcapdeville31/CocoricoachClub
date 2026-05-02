@@ -6,13 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Plus, FolderOpen, Dumbbell, Search, Library } from "lucide-react";
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Plus, FolderOpen, Dumbbell, Search, Library, ChevronDown, ChevronRight } from "lucide-react";
 import { ProgramBuilderDialog } from "./ProgramBuilderDialog";
 import { AssignProgramDialog } from "./AssignProgramDialog";
 import { ProgramDetailsDialog } from "./ProgramDetailsDialog";
