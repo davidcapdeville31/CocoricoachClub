@@ -75,6 +75,50 @@ export function PlanTestsDialog({
   const [customWeeks, setCustomWeeks] = useState(4);
   const [occurrences, setOccurrences] = useState(6);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [onlyFavorites, setOnlyFavorites] = useState(false);
+
+  // Favorite categories (shared with GenericTestsSection via localStorage)
+  const favStorageKey = `tests-fav-categories:${categoryId}`;
+  const [favoriteCategories, setFavoriteCategories] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(favStorageKey);
+      if (raw) return new Set(JSON.parse(raw) as string[]);
+    } catch {}
+    return new Set();
+  });
+  useEffect(() => {
+    const reload = () => {
+      try {
+        const raw = localStorage.getItem(favStorageKey);
+        setFavoriteCategories(raw ? new Set(JSON.parse(raw) as string[]) : new Set());
+      } catch {}
+    };
+    const handleCustom = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (!detail || detail.key === favStorageKey) reload();
+    };
+    window.addEventListener("tests-fav-categories-changed", handleCustom);
+    window.addEventListener("storage", reload);
+    return () => {
+      window.removeEventListener("tests-fav-categories-changed", handleCustom);
+      window.removeEventListener("storage", reload);
+    };
+  }, [favStorageKey]);
+
+  const toggleFavoriteCategory = (catValue: string) => {
+    setFavoriteCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(catValue)) next.delete(catValue);
+      else next.add(catValue);
+      try {
+        localStorage.setItem(favStorageKey, JSON.stringify(Array.from(next)));
+        window.dispatchEvent(
+          new CustomEvent("tests-fav-categories-changed", { detail: { key: favStorageKey } })
+        );
+      } catch {}
+      return next;
+    });
+  };
 
   // Athletes selection
   const [audience, setAudience] = useState<"all" | "selection">("selection");
