@@ -15,13 +15,19 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, ClipboardList, Layers, Users } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ClipboardList, Layers, Users, Star, Plus, X } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import {
   TEST_CATEGORIES,
-  type TestOption,
   type TestCategory,
 } from "@/lib/constants/testCategories";
 import {
@@ -57,13 +63,57 @@ export function ScheduleTestEventDialog({
 
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
-  const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string>("");
+  const [activeTest, setActiveTest] = useState<string>("");
   const [selectedTests, setSelectedTests] = useState<Record<string, SelectedTest>>({});
   const [selectedBatteryId, setSelectedBatteryId] = useState<string | null>(null);
   const [mode, setMode] = useState<"individual" | "battery">("individual");
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(true);
   const [notes, setNotes] = useState("");
+
+  // Favorites — synced with Programmation > Tests via localStorage + custom event
+  const favStorageKey = `tests-fav-categories:${categoryId}`;
+  const [favoriteCategories, setFavoriteCategories] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(favStorageKey);
+      if (raw) return new Set(JSON.parse(raw) as string[]);
+    } catch {}
+    return new Set();
+  });
+  useEffect(() => {
+    const reload = () => {
+      try {
+        const raw = localStorage.getItem(favStorageKey);
+        setFavoriteCategories(raw ? new Set(JSON.parse(raw) as string[]) : new Set());
+      } catch {}
+    };
+    const handleCustom = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (!detail || detail.key === favStorageKey) reload();
+    };
+    window.addEventListener("tests-fav-categories-changed", handleCustom);
+    window.addEventListener("storage", reload);
+    return () => {
+      window.removeEventListener("tests-fav-categories-changed", handleCustom);
+      window.removeEventListener("storage", reload);
+    };
+  }, [favStorageKey]);
+
+  const toggleFavorite = (categoryValue: string) => {
+    setFavoriteCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoryValue)) next.delete(categoryValue);
+      else next.add(categoryValue);
+      try {
+        localStorage.setItem(favStorageKey, JSON.stringify(Array.from(next)));
+      } catch {}
+      window.dispatchEvent(
+        new CustomEvent("tests-fav-categories-changed", { detail: { key: favStorageKey } }),
+      );
+      return next;
+    });
+  };
 
   // Fetch club_id
   const { data: clubData } = useQuery({
@@ -137,7 +187,8 @@ export function ScheduleTestEventDialog({
     if (!open) {
       setStartTime("09:00");
       setEndTime("10:00");
-      setSearch("");
+      setActiveCategory("");
+      setActiveTest("");
       setSelectedTests({});
       setSelectedBatteryId(null);
       setMode("individual");
@@ -152,36 +203,51 @@ export function ScheduleTestEventDialog({
     return mergeCustomTestsIntoCategories(TEST_CATEGORIES, customTests || []);
   }, [customTests]);
 
-  const filteredCategories = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return mergedCategories;
-    return mergedCategories
-      .map((cat) => ({
-        ...cat,
-        tests: cat.tests.filter(
-          (t) =>
-            t.label.toLowerCase().includes(q) ||
-            cat.label.toLowerCase().includes(q),
-        ),
-      }))
-      .filter((cat) => cat.tests.length > 0);
-  }, [mergedCategories, search]);
+  // Sort categories: favorites first, then alphabetical by label
+  const orderedCategories = useMemo(() => {
+    const arr = [...mergedCategories];
+    arr.sort((a, b) => {
+      const af = favoriteCategories.has(a.value) ? 0 : 1;
+      const bf = favoriteCategories.has(b.value) ? 0 : 1;
+      if (af !== bf) return af - bf;
+      return a.label.localeCompare(b.label);
+    });
+    return arr;
+  }, [mergedCategories, favoriteCategories]);
 
-  const toggleTest = (cat: TestCategory, test: TestOption) => {
-    const key = `${cat.value}::${test.value}`;
+  const selectedCategory = useMemo(
+    () => mergedCategories.find((c) => c.value === activeCategory) || null,
+    [mergedCategories, activeCategory],
+  );
+
+  const addCurrentTest = () => {
+    if (!selectedCategory || !activeTest) {
+      toast.error("Sélectionnez une catégorie et un test");
+      return;
+    }
+    const test = selectedCategory.tests.find((t) => t.value === activeTest);
+    if (!test) return;
+    const key = `${selectedCategory.value}::${test.value}`;
     setSelectedTests((prev) => {
-      const next = { ...prev };
-      if (next[key]) {
-        delete next[key];
-      } else {
-        next[key] = {
-          test_category: cat.value,
-          test_category_label: cat.label,
+      if (prev[key]) return prev;
+      return {
+        ...prev,
+        [key]: {
+          test_category: selectedCategory.value,
+          test_category_label: selectedCategory.label,
           test_type: test.value,
           test_label: test.label,
           result_unit: test.unit || "",
-        };
-      }
+        },
+      };
+    });
+    setActiveTest("");
+  };
+
+  const removeSelectedTest = (key: string) => {
+    setSelectedTests((prev) => {
+      const next = { ...prev };
+      delete next[key];
       return next;
     });
   };
@@ -354,64 +420,137 @@ export function ScheduleTestEventDialog({
             </TabsList>
 
             <TabsContent value="individual" className="space-y-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  className="pl-9"
-                  placeholder="Rechercher un test..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
-              <ScrollArea className="h-[260px] rounded-2xl border bg-muted/20 p-2">
-                <div className="space-y-2">
-                  {filteredCategories.length === 0 ? (
-                    <div className="p-6 text-center text-sm text-muted-foreground">
-                      Aucun test trouvé
-                    </div>
-                  ) : (
-                    filteredCategories.map((cat) => (
-                      <div key={cat.value} className="space-y-1">
-                        <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground px-2 pt-2">
-                          {cat.label}
-                        </div>
-                        {cat.tests.map((test) => {
-                          const key = `${cat.value}::${test.value}`;
-                          const isSel = !!selectedTests[key];
+              {/* Category + Test selectors with favorite toggle */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Thématique</Label>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={activeCategory}
+                      onValueChange={(v) => {
+                        setActiveCategory(v);
+                        setActiveTest("");
+                      }}
+                    >
+                      <SelectTrigger className="flex-1 bg-muted/40">
+                        <SelectValue placeholder="Choisir une thématique" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[320px]">
+                        {orderedCategories.map((cat) => {
+                          const isFav = favoriteCategories.has(cat.value);
                           return (
-                            <div
-                              key={key}
-                              onClick={() => toggleTest(cat, test)}
-                              className={cn(
-                                "flex items-center gap-3 p-2.5 rounded-xl border cursor-pointer transition-all",
-                                isSel
-                                  ? "bg-primary/10 border-primary"
-                                  : "bg-background hover:bg-muted/50 border-border/60",
-                              )}
-                            >
-                              <Checkbox
-                                checked={isSel}
-                                onCheckedChange={() => toggleTest(cat, test)}
-                              />
-                              <div className="flex-1 min-w-0">
-                                <div className="text-sm font-medium truncate">
-                                  {test.label}
-                                </div>
-                                {test.unit && (
-                                  <div className="text-xs text-muted-foreground">
-                                    Unité : {test.unit}
-                                  </div>
+                            <SelectItem key={cat.value} value={cat.value}>
+                              <span className="flex items-center gap-2">
+                                {isFav && (
+                                  <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
                                 )}
-                              </div>
-                            </div>
+                                {cat.label}
+                              </span>
+                            </SelectItem>
                           );
                         })}
-                      </div>
-                    ))
-                  )}
+                      </SelectContent>
+                    </Select>
+                    {activeCategory && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="shrink-0"
+                        onClick={() => toggleFavorite(activeCategory)}
+                        title={
+                          favoriteCategories.has(activeCategory)
+                            ? "Retirer des favoris"
+                            : "Ajouter aux favoris"
+                        }
+                      >
+                        <Star
+                          className={cn(
+                            "h-4 w-4",
+                            favoriteCategories.has(activeCategory)
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "text-muted-foreground",
+                          )}
+                        />
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </ScrollArea>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Test</Label>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={activeTest}
+                      onValueChange={setActiveTest}
+                      disabled={!selectedCategory}
+                    >
+                      <SelectTrigger className="flex-1 bg-muted/40">
+                        <SelectValue
+                          placeholder={
+                            selectedCategory ? "Choisir un test" : "Sélectionnez d'abord une thématique"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[320px]">
+                        {(selectedCategory?.tests || []).map((test) => (
+                          <SelectItem key={test.value} value={test.value}>
+                            {test.label}
+                            {test.unit ? ` (${test.unit})` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      size="icon"
+                      onClick={addCurrentTest}
+                      disabled={!activeTest}
+                      className="shrink-0"
+                      title="Ajouter ce test"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Selected tests chips */}
+              <div className="rounded-2xl border bg-muted/20 p-3 min-h-[80px]">
+                {Object.keys(selectedTests).length === 0 ? (
+                  <div className="text-center text-sm text-muted-foreground py-4">
+                    Aucun test ajouté pour le moment.<br />
+                    <span className="text-xs">
+                      Choisissez une thématique, puis un test, et cliquez sur <Plus className="inline h-3 w-3" />.
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(selectedTests).map(([key, t]) => (
+                      <Badge
+                        key={key}
+                        variant="secondary"
+                        className="pl-3 pr-1 py-1.5 gap-1.5 text-xs"
+                      >
+                        <span className="font-medium">{t.test_label}</span>
+                        <span className="text-muted-foreground">
+                          · {t.test_category_label}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5 ml-1 hover:bg-destructive/20"
+                          onClick={() => removeSelectedTest(key)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
             </TabsContent>
+
 
             <TabsContent value="battery" className="space-y-3">
               {(batteries?.length ?? 0) === 0 ? (
