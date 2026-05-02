@@ -694,17 +694,19 @@ export function SessionFeedbackDialog({
                               onChange={(e) => handleRpeChange(player.id, "rpe", e.target.value)}
                             />
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Label className="text-xs text-muted-foreground">Min</Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              placeholder="Min"
-                              className="w-20 h-8"
-                              value={rpeValues[player.id]?.duration || ""}
-                              onChange={(e) => handleRpeChange(player.id, "duration", e.target.value)}
-                            />
-                          </div>
+                          {sessionType !== "test" && (
+                            <div className="flex items-center gap-1">
+                              <Label className="text-xs text-muted-foreground">Min</Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                placeholder="Min"
+                                className="w-20 h-8"
+                                value={rpeValues[player.id]?.duration || ""}
+                                onChange={(e) => handleRpeChange(player.id, "duration", e.target.value)}
+                              />
+                            </div>
+                          )}
                         </>
                       )}
                     </div>
