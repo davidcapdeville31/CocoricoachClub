@@ -140,8 +140,6 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
         </div>
 
         <TabsContent value="matches">
-          <Card className="bg-gradient-card shadow-md">
-            <CardHeader>
           <Card className="overflow-hidden border-0 shadow-2xl rounded-2xl bg-gradient-to-br from-amber-50/80 via-background to-orange-50/40 dark:from-amber-950/30 dark:via-background dark:to-orange-950/20">
             {/* Premium gradient header */}
             <div className="relative overflow-hidden bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 px-5 py-4">
