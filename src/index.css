@@ -213,7 +213,13 @@ All colors MUST be HSL.
     --secondary-hover: 224 18% 22%;
 
     --muted: 224 20% 14%;
-    --muted-foreground: 220 14% 76%;
+    --muted-foreground: 220 16% 78%; /* boosted from 76% for WCAG AA on dark surface */
+
+    /* Typographic hierarchy — dark */
+    --text-primary: 220 20% 96%;
+    --text-secondary: 220 16% 84%;
+    --text-tertiary: 220 14% 68%;
+    --text-disabled: 220 12% 50%;
 
     --accent: 188 85% 58%;
     --accent-foreground: 224 30% 5%;
