@@ -744,6 +744,15 @@ export default function AthleteSpace() {
             />
           </TabsContent>
 
+          <TabsContent value="stats">
+            <PlayerMatchesTab
+              playerId={athleteInfo.player_id}
+              categoryId={athleteInfo.category_id}
+              playerName={displayName}
+              sportType={athleteInfo.sport_type}
+            />
+          </TabsContent>
+
           {isBowling && (
             <TabsContent value="arsenal">
               <PlayerBowlingArsenal
