@@ -308,7 +308,7 @@ export function TrainingProgramsList({ categoryId }: TrainingProgramsListProps) 
             <Button
               onClick={() => setShowBuilder(true)}
               size="lg"
-              className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 font-semibold px-8 rounded-2xl"
+              className="gap-2 bg-primary text-primary-foreground hover:opacity-90 shadow-lg shadow-primary/25 font-semibold px-8 rounded-2xl"
             >
               <Plus className="h-5 w-5" />
               Créer un programme d'entraînement
