@@ -476,79 +476,92 @@ export function ScheduleTestEventDialog({
                     )}
                   </div>
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Test</Label>
-                  <div className="flex items-center gap-2">
-                    <Select
-                      value={activeTest}
-                      onValueChange={setActiveTest}
-                      disabled={!selectedCategory}
-                    >
-                      <SelectTrigger className="flex-1 bg-muted/40">
-                        <SelectValue
-                          placeholder={
-                            selectedCategory ? "Choisir un test" : "Sélectionnez d'abord une thématique"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[320px]">
-                        {(selectedCategory?.tests || []).map((test) => (
-                          <SelectItem key={test.value} value={test.value}>
-                            {test.label}
-                            {test.unit ? ` (${test.unit})` : ""}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      type="button"
-                      size="icon"
-                      onClick={addCurrentTest}
-                      disabled={!activeTest}
-                      className="shrink-0"
-                      title="Ajouter ce test"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
               </div>
 
-              {/* Selected tests chips */}
-              <div className="rounded-2xl border bg-muted/20 p-3 min-h-[80px]">
-                {Object.keys(selectedTests).length === 0 ? (
-                  <div className="text-center text-sm text-muted-foreground py-4">
-                    Aucun test ajouté pour le moment.<br />
-                    <span className="text-xs">
-                      Choisissez une thématique, puis un test, et cliquez sur <Plus className="inline h-3 w-3" />.
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(selectedTests).map(([key, t]) => (
-                      <Badge
-                        key={key}
-                        variant="secondary"
-                        className="pl-3 pr-1 py-1.5 gap-1.5 text-xs"
+              {/* Tests list for selected category */}
+              {!selectedCategory ? (
+                <div className="rounded-2xl border-2 border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                  Sélectionnez d'abord une thématique pour afficher les tests disponibles.
+                </div>
+              ) : (selectedCategory.tests || []).length === 0 ? (
+                <div className="rounded-2xl border-2 border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                  Aucun test dans cette thématique.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">
+                      Tests disponibles
+                      <span className="text-muted-foreground ml-1">
+                        ({selectedCategory.tests.length})
+                      </span>
+                    </Label>
+                    {selectedTestsList.length > 0 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => setSelectedTests({})}
                       >
-                        <span className="font-medium">{t.test_label}</span>
-                        <span className="text-muted-foreground">
-                          · {t.test_category_label}
-                        </span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-5 w-5 ml-1 hover:bg-destructive/20"
-                          onClick={() => removeSelectedTest(key)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </Badge>
-                    ))}
+                        Tout désélectionner
+                      </Button>
+                    )}
                   </div>
-                )}
-              </div>
+                  <ScrollArea className="h-[260px] rounded-2xl border bg-muted/20 p-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                      {selectedCategory.tests.map((test) => {
+                        const key = `${selectedCategory.value}::${test.value}`;
+                        const isSel = !!selectedTests[key];
+                        const toggle = () => {
+                          setSelectedTests((prev) => {
+                            const next = { ...prev };
+                            if (next[key]) delete next[key];
+                            else
+                              next[key] = {
+                                test_category: selectedCategory.value,
+                                test_category_label: selectedCategory.label,
+                                test_type: test.value,
+                                test_label: test.label,
+                                result_unit: test.unit || "",
+                              };
+                            return next;
+                          });
+                        };
+                        return (
+                          <div
+                            key={test.value}
+                            onClick={toggle}
+                            className={cn(
+                              "flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all text-sm",
+                              isSel
+                                ? "bg-primary/15 border-primary ring-1 ring-primary/40"
+                                : "bg-background hover:bg-muted/50 border-border/60",
+                            )}
+                          >
+                            <Checkbox checked={isSel} onCheckedChange={toggle} />
+                            <span className="flex-1 truncate">
+                              {test.label}
+                              {test.unit && (
+                                <span className="text-muted-foreground text-xs ml-1">
+                                  ({test.unit})
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
+                  {selectedTestsList.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      <strong>{selectedTestsList.length}</strong> test
+                      {selectedTestsList.length > 1 ? "s" : ""} sélectionné
+                      {selectedTestsList.length > 1 ? "s" : ""}.
+                    </p>
+                  )}
+                </div>
+              )}
             </TabsContent>
 
 
