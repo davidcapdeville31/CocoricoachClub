@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Dumbbell, Star, Video, Info } from "lucide-react";
+import { Search, Dumbbell, Star, Video, Info, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   ExerciseFilters,
