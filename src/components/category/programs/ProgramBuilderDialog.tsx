@@ -663,27 +663,18 @@ export function ProgramBuilderDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] w-full h-[90vh] flex flex-col p-0">
-        <DialogHeader className="p-4 border-b">
-          <div className="flex items-center justify-between gap-4">
-            <DialogTitle>
-              {programId ? "Modifier le programme" : "Créer un programme"}
-            </DialogTitle>
-            {!programId && !rehabMode && (
-              <span className="flex items-center gap-2 text-sm text-muted-foreground select-none">
-                <Sparkles className="h-4 w-4 text-primary" />
-                Builder V2
-              </span>
-            )}
-          </div>
-        </DialogHeader>
-
         {useV2Builder && !programId ? (
-          <div className="flex-1 overflow-hidden">
-            <CreateTrainingProgramV2
-              categoryId={categoryId}
-              onClose={() => onOpenChange(false)}
-            />
-          </div>
+          <>
+            <DialogHeader className="sr-only">
+              <DialogTitle>Créer un programme</DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-hidden">
+              <CreateTrainingProgramV2
+                categoryId={categoryId}
+                onClose={() => onOpenChange(false)}
+              />
+            </div>
+          </>
         ) : (
         <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div className="flex flex-1 overflow-hidden">
