@@ -18,12 +18,13 @@ const ColoredSubTabsList = React.forwardRef<
     <TabsPrimitive.List
       ref={ref}
       className={cn(
-        "flex w-full overflow-x-auto no-scrollbar gap-1 h-auto flex-wrap md:flex-nowrap rounded-xl border p-1",
+        "flex w-full overflow-x-auto no-scrollbar gap-1 h-auto flex-wrap md:flex-nowrap p-1 rounded-lg",
         className
       )}
-      style={{
-        backgroundColor: "hsl(var(--surface))",
-        borderColor: `color-mix(in srgb, ${colors.base} 44%, hsl(var(--border)) 56%)`,
+      style={{ 
+        backgroundColor: `${colors.base}15`,
+        borderColor: colors.base,
+        borderWidth: "1px"
       }}
       {...props}
     />
@@ -45,35 +46,32 @@ const ColoredSubTabsTrigger = React.forwardRef<
   const tabHex = colors.base.match(/hsl\((\d+)\s+(\d+)%\s+(\d+)%\)/);
   const tabHsl = tabHex ? { h: Number(tabHex[1]), s: Number(tabHex[2]), l: Number(tabHex[3]) } : { h: 280, s: 70, l: 55 };
   const prefersDarkForeground = tabHsl.l > 64 || ((tabHsl.h >= 32 && tabHsl.h <= 84) && tabHsl.l > 44);
-  const activeForeground = prefersDarkForeground ? "hsl(var(--foreground))" : "hsl(var(--primary-foreground))";
+  const activeForeground = prefersDarkForeground ? "hsl(var(--foreground))" : "white";
 
   const trigger = (
     <TabsPrimitive.Trigger
       ref={ref}
       className={cn(
-        "colored-tab-trigger group relative inline-flex items-center gap-1.5 px-2 sm:px-3 py-2 rounded-lg border border-transparent font-medium text-xs sm:text-sm",
+        "colored-tab-trigger group relative inline-flex items-center gap-1.5 px-2 sm:px-3 py-2 rounded-md font-medium text-xs sm:text-sm",
         "transition-all duration-200 ease-out",
-        "text-foreground/88 hover:text-foreground",
-        "bg-transparent hover:bg-[hsl(var(--surface-elevated))]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        "data-[state=active]:shadow-sm",
+        "data-[state=active]:shadow-md",
         className
       )}
       style={{
         ["--tab-color" as string]: colors.base,
-        ["--tab-ink" as string]: `color-mix(in srgb, ${colors.base} 66%, hsl(var(--foreground)) 34%)`,
-        ["--tab-ink-dark" as string]: `color-mix(in srgb, ${colors.base} 34%, hsl(var(--foreground)) 66%)`,
-        ["--tab-soft-bg-dark" as string]: `color-mix(in srgb, ${colors.base} 18%, hsl(var(--surface-elevated)) 82%)`,
+        ["--tab-ink" as string]: `color-mix(in srgb, ${colors.base} 86%, white 14%)`,
+        ["--tab-ink-dark" as string]: `color-mix(in srgb, ${colors.base} 22%, white 78%)`,
+        ["--tab-soft-bg-dark" as string]: `color-mix(in srgb, ${colors.base} 16%, hsl(var(--surface-elevated)) 84%)`,
         ["--tab-active-foreground" as string]: activeForeground,
-        borderColor: "transparent",
       }}
       {...props}
     >
       <span 
-        className="colored-tab-bg pointer-events-none absolute inset-0 rounded-lg border transition-all duration-200 opacity-0 scale-95 group-data-[state=active]:opacity-100 group-data-[state=active]:scale-100"
+        className="colored-tab-bg pointer-events-none absolute inset-0 rounded-md transition-all duration-200 opacity-0 scale-95 group-data-[state=active]:opacity-100 group-data-[state=active]:scale-100"
         style={{ backgroundColor: colors.base }}
       />
-      <span className="colored-tab-text relative z-10 flex items-center gap-1.5 transition-colors duration-200">
+      <span className="colored-tab-text relative z-10 flex items-center gap-1.5 transition-colors duration-200" style={{ color: 'var(--tab-color)' }}>
         {icon && <span className="shrink-0 h-4 w-4">{icon}</span>}
         {children}
       </span>

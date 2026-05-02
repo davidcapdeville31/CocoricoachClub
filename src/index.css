@@ -589,9 +589,8 @@ All colors MUST be HSL.
 /* Colored tab trigger active state */
 .colored-tab-trigger[data-state="active"] {
   background-color: var(--tab-color) !important;
-  color: var(--tab-active-foreground, hsl(var(--primary-foreground))) !important;
-  border-color: color-mix(in srgb, var(--tab-color) 78%, transparent) !important;
-  box-shadow: var(--shadow-sm);
+  color: var(--tab-active-foreground, white) !important;
+  box-shadow: 0 4px 8px -2px rgb(0 0 0 / 0.2);
 }
 
 .colored-tab-trigger {
@@ -614,15 +613,14 @@ All colors MUST be HSL.
   color: var(--tab-active-foreground, white) !important;
 }
 .colored-tab-trigger:not([data-state="active"]):hover {
-  color: hsl(var(--foreground)) !important;
-  background-color: color-mix(in srgb, var(--tab-color) 10%, hsl(var(--surface-elevated)) 90%) !important;
-  border-color: color-mix(in srgb, var(--tab-color) 24%, hsl(var(--border)) 76%) !important;
+  color: white !important;
+  background-color: color-mix(in srgb, var(--tab-color) 18%, transparent);
 }
 
 .dark .colored-tab-trigger {
-  color: var(--tab-ink-dark, color-mix(in srgb, var(--tab-color) 28%, hsl(var(--foreground)) 72%)) !important;
-  background-color: transparent !important;
-  box-shadow: none !important;
+  color: var(--tab-ink-dark, color-mix(in srgb, var(--tab-color) 22%, white 78%)) !important;
+  background-color: var(--tab-soft-bg-dark, color-mix(in srgb, var(--tab-color) 16%, hsl(var(--surface-elevated)) 84%)) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tab-color) 34%, transparent) !important;
 }
 
 .dark .athlete-tab:not([data-state="active"]) {
@@ -634,14 +632,18 @@ All colors MUST be HSL.
 
 .dark .colored-tab-trigger:not([data-state="active"]):hover,
 .dark .athlete-tab:not([data-state="active"]):hover {
-  color: hsl(var(--foreground)) !important;
-  background-color: color-mix(in srgb, var(--tab-color) 12%, hsl(var(--surface-elevated)) 88%) !important;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tab-color) 32%, hsl(var(--border)) 68%) !important;
+  color: white !important;
+  background-color: color-mix(in srgb, var(--tab-color) 24%, hsl(var(--surface-elevated)) 76%) !important;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--tab-color) 48%, transparent),
+    0 10px 24px -18px color-mix(in srgb, var(--tab-color) 55%, transparent) !important;
 }
 
 .dark .colored-tab-trigger[data-state="active"],
 .dark .athlete-tab[data-state="active"] {
-  box-shadow: var(--shadow-sm) !important;
+  box-shadow:
+    0 16px 34px -22px color-mix(in srgb, var(--tab-color) 70%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.14) !important;
 }
 
 .dark [role="tab"]:not([data-state="active"])[style*="--tab-accent"] {
