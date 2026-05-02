@@ -254,13 +254,13 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
                   <TableRow>
                     <TableHead>Joueur</TableHead>
                     <TableHead>Date</TableHead>
-                    <TableHead className="text-center">Sommeil Qualité</TableHead>
-                    <TableHead className="text-center">Sommeil Durée</TableHead>
-                    <TableHead className="text-center">Fatigue</TableHead>
-                    <TableHead className="text-center">Stress</TableHead>
-                    <TableHead className="text-center">Soreness Haut</TableHead>
-                    <TableHead className="text-center">Soreness Bas</TableHead>
-                    <TableHead className="text-center">Score Moyen</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">Sommeil Qualité</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">Sommeil Durée</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">Fatigue</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">Stress</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">Soreness Haut</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">Soreness Bas</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">Score Moyen</TableHead>
                     <TableHead>Douleur Spécifique</TableHead>
                   </TableRow>
                 </TableHeader>
