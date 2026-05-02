@@ -802,6 +802,33 @@ export function PlanTestsDialog({
         </DialogContent>
       </Dialog>
     )}
+    {previewVideo && (
+      <Dialog open onOpenChange={() => setPreviewVideo(null)}>
+        <DialogContent className="max-w-3xl p-2">
+          {(() => {
+            const yt = getYoutubeEmbed(previewVideo);
+            const vm = getVimeoEmbed(previewVideo);
+            const embed = yt || vm;
+            if (embed) {
+              return (
+                <div className="aspect-video w-full">
+                  <iframe
+                    src={embed}
+                    className="w-full h-full rounded-lg"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title="Vidéo du test"
+                  />
+                </div>
+              );
+            }
+            return (
+              <video src={previewVideo} controls className="w-full h-auto rounded-lg" />
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+    )}
     </>
   );
 }
