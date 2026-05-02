@@ -285,6 +285,11 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
         onOpenChange={setIsDialogOpen}
         categoryId={categoryId}
       />
+      <InjuryLibraryDialog
+        open={showLibrary}
+        onOpenChange={setShowLibrary}
+        categoryId={categoryId}
+      />
       </TabsContent>
 
       <TabsContent value="rehab">
