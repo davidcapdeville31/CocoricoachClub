@@ -11,7 +11,7 @@ import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CategoryCoverUpload } from "@/components/category/CategoryCoverUpload";
-import { CustomizeBrandingButton } from "@/components/branding/CustomizeBrandingButton";
+import { NavThemedSection } from "@/components/ui/nav-themed-section";
 import { ClubBrandingProvider } from "@/contexts/ClubBrandingContext";
 import { GlobalPlayerSearch } from "@/components/search/GlobalPlayerSearch";
 import { EditableCategoryName } from "@/components/category/EditableCategoryName";
@@ -296,9 +296,6 @@ function CategoryDetailsContent() {
                   categoryId={categoryId} 
                   currentCoverUrl={category?.cover_image_url}
                 />
-                {category?.clubs?.id && (
-                  <CustomizeBrandingButton clubId={category.clubs.id} />
-                )}
               </div>
             )}
           </div>
@@ -449,95 +446,123 @@ function CategoryDetailsContent() {
           </div>
 
           <TabsContent value="overview" className="space-y-4">
-            <OverviewTab categoryId={categoryId!} categoryName={displayCategoryName} />
+            <NavThemedSection colorKey="overview">
+              <OverviewTab categoryId={categoryId!} categoryName={displayCategoryName} />
+            </NavThemedSection>
           </TabsContent>
 
           {canSeeMenu("administratif") && (
             <TabsContent value="admin" className="space-y-4">
-              <AdminTab categoryId={categoryId!} />
+              <NavThemedSection colorKey="admin">
+                <AdminTab categoryId={categoryId!} />
+              </NavThemedSection>
             </TabsContent>
           )}
 
           {canSeeMenu("academique") && isAcademy && (
             <TabsContent value="academy" className="space-y-4">
-              <AcademyTab categoryId={categoryId!} />
+              <NavThemedSection colorKey="effectif">
+                <AcademyTab categoryId={categoryId!} />
+              </NavThemedSection>
             </TabsContent>
           )}
 
           {canSeeMenu("effectif") && (
             <TabsContent value="effectif" className="space-y-4">
-              <EffectifTab categoryId={categoryId!} />
+              <NavThemedSection colorKey="effectif">
+                <EffectifTab categoryId={categoryId!} />
+              </NavThemedSection>
             </TabsContent>
           )}
 
           {canSeeMenu("planification") && (
             <TabsContent value="planification" className="space-y-4">
-              <PlanificationTab categoryId={categoryId!} sportType={category?.rugby_type} />
+              <NavThemedSection colorKey="planification">
+                <PlanificationTab categoryId={categoryId!} sportType={category?.rugby_type} />
+              </NavThemedSection>
             </TabsContent>
           )}
 
           {canSeeMenu("programmation") && (
             <TabsContent value="programmation" className="space-y-4">
-              <ProgrammationTab categoryId={categoryId!} />
+              <NavThemedSection colorKey="programmation">
+                <ProgrammationTab categoryId={categoryId!} />
+              </NavThemedSection>
             </TabsContent>
           )}
 
           {canSeeMenu("performance") && (
             <TabsContent value="performance" className="space-y-4">
-              <PerformanceTab categoryId={categoryId!} sportType={category?.rugby_type} />
+              <NavThemedSection colorKey="performance">
+                <PerformanceTab categoryId={categoryId!} sportType={category?.rugby_type} />
+              </NavThemedSection>
             </TabsContent>
           )}
 
           {canSeeMenu("sante") && (
             <TabsContent value="sante" className="space-y-4">
-              <SanteTab categoryId={categoryId!} />
+              <NavThemedSection colorKey="sante">
+                <SanteTab categoryId={categoryId!} />
+              </NavThemedSection>
             </TabsContent>
           )}
 
           {canSeeMenu("competition") && (
             <TabsContent value="competition" className="space-y-4">
-              <CompetitionTab 
-                categoryId={categoryId!} 
-                isRugby7={isRugby7} 
-                isNationalTeam={isNationalTeam}
-                sportType={category?.rugby_type}
-              />
+              <NavThemedSection colorKey="competition">
+                <CompetitionTab 
+                  categoryId={categoryId!} 
+                  isRugby7={isRugby7} 
+                  isNationalTeam={isNationalTeam}
+                  sportType={category?.rugby_type}
+                />
+              </NavThemedSection>
             </TabsContent>
           )}
 
           {isBowling && (
             <TabsContent value="arsenal" className="space-y-4">
-              <BowlingArsenalCatalogTab categoryId={categoryId!} />
+              <NavThemedSection colorKey="performance">
+                <BowlingArsenalCatalogTab categoryId={categoryId!} />
+              </NavThemedSection>
             </TabsContent>
           )}
 
           {/* GPS Tab - Only for Football and Rugby + Client option enabled */}
           {showGpsTab && (
             <TabsContent value="gps" className="space-y-4">
-              <GpsDataTab categoryId={categoryId!} />
+              <NavThemedSection colorKey="gps">
+                <GpsDataTab categoryId={categoryId!} />
+              </NavThemedSection>
             </TabsContent>
           )}
 
           {/* Video Analysis Tab - Sport supported + Client option enabled */}
           {showVideoTab && (
             <TabsContent value="video" className="space-y-4">
-              <VideoAnalysisTab categoryId={categoryId!} sportType={category?.rugby_type} />
+              <NavThemedSection colorKey="video">
+                <VideoAnalysisTab categoryId={categoryId!} sportType={category?.rugby_type} />
+              </NavThemedSection>
             </TabsContent>
           )}
 
           {canSeeMenu("messagerie") && (
             <TabsContent value="communication" className="space-y-4">
-              <CommunicationTab 
-                categoryId={categoryId!} 
-                isAcademy={false}
-              />
+              <NavThemedSection colorKey="communication">
+                <CommunicationTab 
+                  categoryId={categoryId!} 
+                  isAcademy={false}
+                />
+              </NavThemedSection>
             </TabsContent>
           )}
 
 
           {canSeeMenu("parametres") && (
             <TabsContent value="settings" className="space-y-4">
-              <SettingsTab categoryId={categoryId!} />
+              <NavThemedSection colorKey="settings">
+                <SettingsTab categoryId={categoryId!} />
+              </NavThemedSection>
             </TabsContent>
           )}
         </Tabs>
