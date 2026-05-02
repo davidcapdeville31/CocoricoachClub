@@ -24,11 +24,12 @@ import {
   Check,
   Trophy,
   Trash2,
-  Palette
+  Palette,
+  ClipboardList
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type TrainingBlockType = "echauffement" | "musculation" | "halterophilie" | "crossfit" | "cardio" | "mobilite" | "custom";
+export type TrainingBlockType = "echauffement" | "musculation" | "halterophilie" | "crossfit" | "cardio" | "mobilite" | "tests" | "custom";
 
 export interface TrainingBlock {
   id: string;
