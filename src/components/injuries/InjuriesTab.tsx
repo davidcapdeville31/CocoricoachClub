@@ -19,15 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Activity, TrendingUp, HeartPulse, Dumbbell, Library } from "lucide-react";
+import { Plus, Activity, TrendingUp, Library } from "lucide-react";
 import { AddInjuryDialog } from "./AddInjuryDialog";
 import { InjuryLibraryDialog } from "@/components/category/programs/InjuryLibraryDialog";
 import { toast } from "sonner";
 import { INJURY_STATUS, INJURY_STATUS_LABELS } from "@/lib/constants/injury";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
-import { ActiveProtocolsDashboard } from "@/components/rehab/ActiveProtocolsDashboard";
 
 interface InjuriesTabProps {
   categoryId: string;
@@ -122,19 +119,7 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
   }
 
   return (
-    <Tabs defaultValue="injuries" className="space-y-6">
-      <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
-        <ColoredSubTabsList colorKey="sante" className="inline-flex w-max">
-          <ColoredSubTabsTrigger value="injuries" colorKey="sante" icon={<HeartPulse className="h-4 w-4" />}>
-            Blessures
-          </ColoredSubTabsTrigger>
-          <ColoredSubTabsTrigger value="rehab" colorKey="sante" icon={<Dumbbell className="h-4 w-4" />}>
-            Réhabilitation
-          </ColoredSubTabsTrigger>
-        </ColoredSubTabsList>
-      </div>
-
-      <TabsContent value="injuries" className="space-y-6">
+    <div className="space-y-6">
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-gradient-card shadow-md">
@@ -290,11 +275,6 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
         onOpenChange={setShowLibrary}
         categoryId={categoryId}
       />
-      </TabsContent>
-
-      <TabsContent value="rehab">
-        <ActiveProtocolsDashboard categoryId={categoryId} />
-      </TabsContent>
-    </Tabs>
+    </div>
   );
 }
