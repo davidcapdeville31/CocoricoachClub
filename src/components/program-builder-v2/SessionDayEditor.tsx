@@ -225,6 +225,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
     [linkedDrafts, addExerciseToBlock],
   );
 
+  const removeExerciseFromBlock = useCallback(
     (blockId: string, exerciseId: string) => {
       onChange(
         blocks.map((b) =>
