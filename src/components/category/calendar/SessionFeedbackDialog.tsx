@@ -825,9 +825,9 @@ export function SessionFeedbackDialog({
                           </Select>
                         </div>
 
-                        {test.test_type && playersToShow.length > 0 && (
+                        {test.test_type && playersForTests.length > 0 && (
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {playersToShow.map((player) => {
+                            {playersForTests.map((player) => {
                               const isSaved = test.savedPlayerIds?.has(player.id) || false;
                               const hasValue = !!test.player_results[player.id];
                               return (
