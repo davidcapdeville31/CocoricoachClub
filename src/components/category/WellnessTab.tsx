@@ -85,7 +85,7 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
   const calculateWellnessScore = (entry: NonNullable<typeof wellnessData>[0]) => {
     const avg = (
       entry.sleep_quality +
-      sleepHoursToScore(entry.sleep_duration) +
+      entry.sleep_duration +
       entry.general_fatigue +
       entry.stress_level +
       entry.soreness_upper_body +
