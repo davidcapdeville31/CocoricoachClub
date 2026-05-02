@@ -428,6 +428,19 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         editSession={editingSession}
       />
 
+      {/* Edit Test Session Dialog (uses the same UI as creation) */}
+      {editingTestSession && (
+        <ScheduleTestEventDialog
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setEditingTestSession(null);
+          }}
+          date={editingTestSession.date}
+          categoryId={categoryId}
+          editSessionId={editingTestSession.id}
+        />
+      )}
+
       {selectedSession && (
         <SessionDetailsDialog
           open={true}
