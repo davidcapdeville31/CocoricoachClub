@@ -40,6 +40,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
   const [scoringScale, setScoringScale] = useState<ScoringScale | null>(null);
   const [formulaConfig, setFormulaConfig] = useState<FormulaConfig | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string>("");
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
