@@ -561,6 +561,18 @@ export function SessionFeedbackDialog({
     return players.filter((p) => presentPlayerIds.has(p.id));
   }, [players, attendance, presentPlayerIds]);
 
+  // For tests: restrict to athletes explicitly invited to this test session.
+  // Falls back to playersToShow if no participants were recorded (legacy sessions).
+  const invitedPlayerIds = useMemo(
+    () => new Set((invitedParticipants || []).map((p) => p.player_id)),
+    [invitedParticipants],
+  );
+  const playersForTests = useMemo(() => {
+    if (!players) return [];
+    if (invitedPlayerIds.size === 0) return playersToShow;
+    return players.filter((p) => invitedPlayerIds.has(p.id));
+  }, [players, invitedPlayerIds, playersToShow]);
+
   const hasNewRpeValues = Object.entries(rpeValues).some(
     ([id, val]) => val.rpe && val.duration && !playersWithRpe.has(id)
   );
