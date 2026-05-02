@@ -395,17 +395,8 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         defaultDate={addSessionDate}
       />
 
-      {/* Edit existing session keeps the legacy dialog */}
-      <SessionFormDialog
-        open={isEditDialogOpen}
-        onOpenChange={(open) => {
-          setIsEditDialogOpen(open);
-          if (!open) setEditingSession(null);
-        }}
-        categoryId={categoryId}
-        editSession={editingSession}
-      />
 
+      
       <AddMatchCalendarDialog
         open={isAddMatchDialogOpen}
         onOpenChange={(open) => {
