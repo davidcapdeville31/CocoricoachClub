@@ -237,10 +237,10 @@ const ParamInput = ({
 
   // Calculate dynamic width based on field type
   const getFieldWidth = () => {
-    if (paramKey === 'tempo') return 'w-[75px]';
-    if (paramKey === 'load' || paramKey === 'percentage') return 'w-[55px]';
-    if (isRepsField) return 'w-[75px]';
-    return 'w-[50px]';
+    if (paramKey === 'tempo') return 'w-[80px]';
+    if (paramKey === 'load' || paramKey === 'percentage') return 'w-[60px]';
+    if (isRepsField) return 'w-[120px]';
+    return 'w-[55px]';
   };
 
   return (
