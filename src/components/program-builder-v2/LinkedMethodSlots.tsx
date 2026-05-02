@@ -586,6 +586,14 @@ const DroppableSlot = ({
                   </div>
                 );
               })}
+              {params.coachNotes && (
+                <div className="w-full mt-1 p-2 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900">
+                  <p className="text-[10px] uppercase tracking-wide text-blue-700 dark:text-blue-400 font-semibold mb-0.5 flex items-center gap-1">
+                    <MessageSquare className="h-3 w-3" /> Consignes spécifiques
+                  </p>
+                  <p className="text-xs text-blue-900 dark:text-blue-200 whitespace-pre-wrap">{params.coachNotes}</p>
+                </div>
+              )}
             </div>
           )}
         </div>
