@@ -83,6 +83,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
     setScoringScale(test.scoring_scale || null);
     setFormulaConfig(test.formula_config?.enabled ? test.formula_config : null);
     setImageUrl(test.image_url || null);
+    setVideoUrl(test.video_url || "");
   }, [open, test]);
 
   const handleImageUpload = async (file: File) => {
