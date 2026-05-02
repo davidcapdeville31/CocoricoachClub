@@ -390,6 +390,8 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
             />
           </div>
 
+          <div className="space-y-1.5">
+            <Label>Description (optionnel)</Label>
             <Textarea value={description} onChange={e => setDescription(e.target.value)}
               placeholder="Comment se déroule le test, protocole..." rows={2} />
           </div>
