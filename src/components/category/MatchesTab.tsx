@@ -316,9 +316,6 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
 
 
 
-        <TabsContent value="photos">
-          <CategoryPhotosTab categoryId={categoryId} />
-        </TabsContent>
       </Tabs>
 
       <AddMatchCalendarDialog
