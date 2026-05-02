@@ -745,11 +745,11 @@ export default function AthleteSpace() {
           </TabsContent>
 
           <TabsContent value="stats">
-            <PlayerMatchesTab
-              playerId={athleteInfo.player_id}
+            <PlayerCumulativeStats
               categoryId={athleteInfo.category_id}
-              playerName={displayName}
               sportType={athleteInfo.sport_type}
+              playerId={athleteInfo.player_id}
+              showTeamView={!isBowling && !isSurf && !isSki && !isPadel}
             />
           </TabsContent>
 
