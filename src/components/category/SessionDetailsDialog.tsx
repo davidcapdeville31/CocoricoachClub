@@ -292,32 +292,48 @@ export function SessionDetailsDialog({
     }
   }, [session?.notes]);
 
-  // Fetch custom_tests metadata to enrich tests cards (image / description / objectives)
-  const customTestIds = useMemo(
-    () => testsMeta
-      .map((t: any) => (typeof t.test_type === "string" && t.test_type.startsWith("test:") ? t.test_type.slice(5) : null))
-      .filter(Boolean) as string[],
-    [testsMeta],
-  );
-
+  // Fetch all custom_tests of the club to enrich test cards (image / description / objectives)
+  const clubId = (category as any)?.club_id;
   const { data: customTestsDetails } = useQuery({
-    queryKey: ["session-custom-tests-details", customTestIds],
+    queryKey: ["session-custom-tests-club", clubId],
     queryFn: async () => {
-      if (customTestIds.length === 0) return [];
+      if (!clubId) return [];
       const { data, error } = await supabase
         .from("custom_tests")
         .select("id, name, description, objectives, image_url, unit, test_category")
-        .in("id", customTestIds);
+        .eq("club_id", clubId);
       if (error) throw error;
       return data || [];
     },
-    enabled: open && customTestIds.length > 0,
+    enabled: open && !!clubId,
   });
 
-  const getCustomTest = (testType: string) => {
-    if (!testType?.startsWith("test:")) return null;
-    const id = testType.slice(5);
-    return customTestsDetails?.find((c) => c.id === id) || null;
+  const normalizeSlug = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+
+  const getCustomTest = (cat: string, testType: string) => {
+    if (!customTestsDetails || !testType) return null;
+    // 1) Legacy support: test:<uuid>
+    if (testType.startsWith("test:")) {
+      const id = testType.slice(5);
+      return customTestsDetails.find((c) => c.id === id) || null;
+    }
+    // 2) Standard: test_type stored as `custom_<slug>` and category matches custom_tests.test_category
+    if (testType.startsWith("custom_")) {
+      const slug = testType.slice(7);
+      return (
+        customTestsDetails.find(
+          (c) => c.test_category === cat && normalizeSlug(c.name) === slug,
+        ) || null
+      );
+    }
+    return null;
   };
 
   const isTestSession = session?.training_type === "test";
@@ -874,7 +890,7 @@ export function SessionDetailsDialog({
                               t.test_category,
                               t.test_type,
                             );
-                            const customTest = getCustomTest(t.test_type);
+                            const customTest = getCustomTest(t.test_category, t.test_type);
                             const displayName = customTest?.name || testLabel;
                             const imageUrl = customTest?.image_url || null;
                             const hasDetails = !!customTest;

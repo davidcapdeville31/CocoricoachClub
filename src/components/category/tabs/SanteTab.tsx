@@ -79,16 +79,14 @@ export function SanteTab({ categoryId }: SanteTabProps) {
             >
               Dashboard Coach
             </ColoredSubTabsTrigger>
-            {!isViewer && (
-              <ColoredSubTabsTrigger
-                value="wellness"
-                colorKey="sante"
-                icon={<Smile className="h-4 w-4" />}
-                tooltip="Suivi quotidien du bien-être : sommeil, fatigue, stress, courbatures"
-              >
-                Wellness
-              </ColoredSubTabsTrigger>
-            )}
+            <ColoredSubTabsTrigger
+              value="wellness-health"
+              colorKey="sante"
+              icon={<Smile className="h-4 w-4" />}
+              tooltip="Wellness quotidien et dossiers médicaux des athlètes"
+            >
+              Wellness & Santé
+            </ColoredSubTabsTrigger>
             {!isViewer && (
               <ColoredSubTabsTrigger
                 value="nutrition"
@@ -139,14 +137,6 @@ export function SanteTab({ categoryId }: SanteTabProps) {
                 Risque blessure
               </ColoredSubTabsTrigger>
             )}
-            <ColoredSubTabsTrigger
-              value="health"
-              colorKey="sante"
-              icon={<Heart className="h-4 w-4" />}
-              tooltip="Dossiers médicaux et historique de santé des athlètes"
-            >
-              Santé
-            </ColoredSubTabsTrigger>
             {!isViewer && hasConcussionProtocol && (
               <ColoredSubTabsTrigger
                 value="concussion"
@@ -164,11 +154,10 @@ export function SanteTab({ categoryId }: SanteTabProps) {
           <CoachDashboard categoryId={categoryId} />
         </TabsContent>
 
-        {!isViewer && (
-          <TabsContent value="wellness">
-            <WellnessTab categoryId={categoryId} view="tracking" />
-          </TabsContent>
-        )}
+        <TabsContent value="wellness-health" className="space-y-6">
+          {!isViewer && <WellnessTab categoryId={categoryId} view="tracking" />}
+          <MedicalRecordsTab categoryId={categoryId} />
+        </TabsContent>
 
         {!isViewer && (
           <TabsContent value="nutrition">
@@ -200,9 +189,6 @@ export function SanteTab({ categoryId }: SanteTabProps) {
           </TabsContent>
         )}
 
-        <TabsContent value="health">
-          <MedicalRecordsTab categoryId={categoryId} />
-        </TabsContent>
 
         {!isViewer && hasConcussionProtocol && (
           <TabsContent value="concussion">
