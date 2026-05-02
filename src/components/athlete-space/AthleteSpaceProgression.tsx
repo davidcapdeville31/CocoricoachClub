@@ -296,7 +296,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
               {Object.entries(filteredLatestGeneric).map(([key, test]) => {
                 const series = filteredGenericByType[key] || [];
                 let progression: { pct: number; positive: boolean } | null = null;
@@ -312,22 +312,22 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                   }
                 }
                 return (
-                  <div key={key} className="p-3 rounded-lg bg-muted/30 text-center relative">
+                  <div key={key} className="p-2 sm:p-3 rounded-lg bg-muted/30 text-center relative min-w-0">
                     {progression && (
                       <Badge
                         variant="secondary"
-                        className={`absolute top-1 right-1 text-[9px] px-1.5 py-0 ${
+                        className={`absolute top-1 right-1 text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0 ${
                           progression.positive ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
                         }`}
                       >
                         {progression.positive ? "▲" : "▼"} {progression.pct.toFixed(1)}%
                       </Badge>
                     )}
-                    <p className="text-[10px] text-muted-foreground/70 uppercase tracking-wide">{test.categoryLabel}</p>
-                    <p className="text-xs text-muted-foreground mb-1">{test.label}</p>
-                    <p className="text-lg font-bold">{test.value} <span className="text-xs font-normal text-muted-foreground">{test.unit}</span></p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {format(new Date(test.date), "dd MMM yyyy", { locale: fr })}
+                    <p className="text-[9px] sm:text-[10px] text-muted-foreground/70 uppercase tracking-wide truncate">{test.categoryLabel}</p>
+                    <p className="text-[11px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1 truncate">{test.label}</p>
+                    <p className="text-sm sm:text-lg font-bold leading-tight">{test.value} <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">{test.unit}</span></p>
+                    <p className="text-[9px] sm:text-[10px] text-muted-foreground">
+                      {format(new Date(test.date), "dd MMM yy", { locale: fr })}
                     </p>
                   </div>
                 );
@@ -438,36 +438,36 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                 const positive = row.isTimeTest ? rawPct < 0 : rawPct > 0;
                 const pct = Math.abs(rawPct);
                 return (
-                  <div key={row.key} className="rounded-xl bg-muted/40 p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="min-w-0">
-                        <p className="text-[10px] text-muted-foreground/70 uppercase tracking-wide truncate">{row.categoryLabel}</p>
-                        <p className="text-sm font-semibold truncate">{row.label}</p>
+                  <div key={row.key} className="rounded-xl bg-muted/40 p-2 sm:p-3">
+                    <div className="flex items-center justify-between mb-1.5 sm:mb-2 gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[9px] sm:text-[10px] text-muted-foreground/70 uppercase tracking-wide truncate">{row.categoryLabel}</p>
+                        <p className="text-[12px] sm:text-sm font-semibold truncate">{row.label}</p>
                       </div>
                       <Badge
                         variant="secondary"
-                        className={`text-[11px] px-2 py-0.5 shrink-0 ${
+                        className={`text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0 sm:py-0.5 shrink-0 ${
                           positive ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
                         }`}
                       >
                         {positive ? "▲" : "▼"} {pct.toFixed(1)}%
                       </Badge>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="rounded-lg bg-background/60 p-2 text-center">
-                        <p className="text-[10px] text-muted-foreground">
-                          {format(new Date(row.prevDate), "dd MMM yyyy", { locale: fr })}
+                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                      <div className="rounded-lg bg-background/60 p-1.5 sm:p-2 text-center">
+                        <p className="text-[9px] sm:text-[10px] text-muted-foreground">
+                          {format(new Date(row.prevDate), "dd MMM yy", { locale: fr })}
                         </p>
-                        <p className="text-base font-bold">
-                          {row.prevValue} <span className="text-[10px] font-normal text-muted-foreground">{row.unit}</span>
+                        <p className="text-sm sm:text-base font-bold leading-tight">
+                          {row.prevValue} <span className="text-[9px] sm:text-[10px] font-normal text-muted-foreground">{row.unit}</span>
                         </p>
                       </div>
-                      <div className="rounded-lg bg-background/60 p-2 text-center ring-1 ring-primary/30">
-                        <p className="text-[10px] text-muted-foreground">
-                          {format(new Date(row.lastDate), "dd MMM yyyy", { locale: fr })}
+                      <div className="rounded-lg bg-background/60 p-1.5 sm:p-2 text-center ring-1 ring-primary/30">
+                        <p className="text-[9px] sm:text-[10px] text-muted-foreground">
+                          {format(new Date(row.lastDate), "dd MMM yy", { locale: fr })}
                         </p>
-                        <p className="text-base font-bold">
-                          {row.lastValue} <span className="text-[10px] font-normal text-muted-foreground">{row.unit}</span>
+                        <p className="text-sm sm:text-base font-bold leading-tight">
+                          {row.lastValue} <span className="text-[9px] sm:text-[10px] font-normal text-muted-foreground">{row.unit}</span>
                         </p>
                       </div>
                     </div>
