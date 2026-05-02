@@ -36,33 +36,60 @@ export interface V2BlockWithExercises extends TrainingBlock {
 interface SaveArgs {
   draft: V2ProgramDraft;
   categoryId: string;
+  programId?: string;
 }
 
 export function useSaveProgramV2() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ draft, categoryId }: SaveArgs) => {
+    mutationFn: async ({ draft, categoryId, programId }: SaveArgs) => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié.");
 
-      // 1) training_programs
-      const { data: program, error: pErr } = await supabase
-        .from("training_programs")
-        .insert({
-          category_id: categoryId,
-          name: draft.name,
-          description: draft.description || null,
-          level: draft.difficultyLevel,
-          program_kind: "training",
-          created_by: user.id,
-          is_active: false,
-        })
-        .select("id")
-        .single();
-      if (pErr) throw pErr;
+      let program: { id: string };
+
+      if (programId) {
+        // UPDATE existing program
+        const { data: updated, error: uErr } = await supabase
+          .from("training_programs")
+          .update({
+            name: draft.name,
+            description: draft.description || null,
+            level: draft.difficultyLevel,
+          })
+          .eq("id", programId)
+          .select("id")
+          .single();
+        if (uErr) throw uErr;
+        program = updated;
+
+        // Wipe existing weeks (cascade deletes sessions + exercises)
+        const { error: dErr } = await supabase
+          .from("program_weeks")
+          .delete()
+          .eq("program_id", programId);
+        if (dErr) throw dErr;
+      } else {
+        // INSERT new program
+        const { data: inserted, error: pErr } = await supabase
+          .from("training_programs")
+          .insert({
+            category_id: categoryId,
+            name: draft.name,
+            description: draft.description || null,
+            level: draft.difficultyLevel,
+            program_kind: "training",
+            created_by: user.id,
+            is_active: false,
+          })
+          .select("id")
+          .single();
+        if (pErr) throw pErr;
+        program = inserted;
+      }
 
       // 2) program_weeks (one per draft week)
       const weekRows = draft.weeks.map((w) => ({

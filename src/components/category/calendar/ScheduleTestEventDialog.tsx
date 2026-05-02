@@ -42,6 +42,8 @@ interface ScheduleTestEventDialogProps {
   onOpenChange: (open: boolean) => void;
   date: Date;
   categoryId: string;
+  /** When provided, the dialog edits this existing test session instead of creating a new one. */
+  editSessionId?: string | null;
 }
 
 interface SelectedTest {
@@ -57,9 +59,11 @@ export function ScheduleTestEventDialog({
   onOpenChange,
   date,
   categoryId,
+  editSessionId,
 }: ScheduleTestEventDialogProps) {
   const queryClient = useQueryClient();
   const { notify } = useSessionNotifications();
+  const isEditMode = !!editSessionId;
 
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
@@ -175,12 +179,12 @@ export function ScheduleTestEventDialog({
     enabled: open,
   });
 
-  // Auto-select all players by default when dialog opens
+  // Auto-select all players by default when dialog opens (creation only).
   useEffect(() => {
-    if (open && players && selectAll) {
+    if (open && !isEditMode && players && selectAll) {
       setSelectedPlayers(players.map((p) => p.id));
     }
-  }, [open, players, selectAll]);
+  }, [open, players, selectAll, isEditMode]);
 
   // Reset on close
   useEffect(() => {
@@ -198,6 +202,26 @@ export function ScheduleTestEventDialog({
     }
   }, [open]);
 
+  // --- Edit mode: load existing session + participants ----------------------
+  const { data: existingSession } = useQuery({
+    queryKey: ["test-session-edit", editSessionId],
+    queryFn: async () => {
+      if (!editSessionId) return null;
+      const { data, error } = await supabase
+        .from("training_sessions")
+        .select("id, session_start_time, session_end_time, notes")
+        .eq("id", editSessionId)
+        .single();
+      if (error) throw error;
+      const { data: parts } = await supabase
+        .from("event_participants")
+        .select("player_id")
+        .eq("training_session_id", editSessionId);
+      return { session: data, participantIds: (parts || []).map((p) => p.player_id) };
+    },
+    enabled: open && !!editSessionId,
+  });
+
   // Merge built-in + custom tests into a single hierarchical catalog
   const mergedCategories = useMemo<TestCategory[]>(() => {
     return mergeCustomTestsIntoCategories(TEST_CATEGORIES, customTests || []);
@@ -214,6 +238,52 @@ export function ScheduleTestEventDialog({
     });
     return arr;
   }, [mergedCategories, favoriteCategories]);
+
+  // Hydrate state once existingSession AND mergedCategories are available
+  useEffect(() => {
+    if (!open || !isEditMode || !existingSession?.session) return;
+    const s = existingSession.session;
+    if (s.session_start_time) setStartTime(String(s.session_start_time).slice(0, 5));
+    if (s.session_end_time) setEndTime(String(s.session_end_time).slice(0, 5));
+
+    const rawNotes = s.notes || "";
+    const metaMatch = rawNotes.match(/<!--TESTS:(.*?)-->/);
+    let visibleNotes = rawNotes.replace(/<!--TESTS:.*?-->/g, "").trim();
+    // Strip the auto-prepended "Test : ..." / "Batterie : ..." title line
+    visibleNotes = visibleNotes.replace(/^(Test\s*:|Batterie[^\n]*).*?(\n|$)/, "").trim();
+    setNotes(visibleNotes);
+
+    if (metaMatch) {
+      try {
+        const meta = JSON.parse(metaMatch[1]) as Array<{
+          test_category: string;
+          test_type: string;
+          result_unit?: string;
+        }>;
+        const next: Record<string, SelectedTest> = {};
+        meta.forEach((m) => {
+          const cat = mergedCategories.find((c) => c.value === m.test_category);
+          const t = cat?.tests.find((tt) => tt.value === m.test_type);
+          const key = `${m.test_category}::${m.test_type}`;
+          next[key] = {
+            test_category: m.test_category,
+            test_category_label: cat?.label || m.test_category,
+            test_type: m.test_type,
+            test_label: t?.label || m.test_type,
+            result_unit: m.result_unit || t?.unit || "",
+          };
+        });
+        setSelectedTests(next);
+        setMode("individual");
+      } catch (err) {
+        console.warn("Could not parse TESTS metadata", err);
+      }
+    }
+
+    setSelectAll(false);
+    setSelectedPlayers(existingSession.participantIds || []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, isEditMode, existingSession, mergedCategories]);
 
   const selectedCategory = useMemo(
     () => mergedCategories.find((c) => c.value === activeCategory) || null,
@@ -313,40 +383,74 @@ export function ScheduleTestEventDialog({
       const noteContent = `${title}${notes ? `\n${notes}` : ""}`;
       const fullNotes = `${noteContent}\n<!--TESTS:${JSON.stringify(testsMeta)}-->`;
 
-      const { data: session, error } = await supabase
-        .from("training_sessions")
-        .insert({
-          category_id: categoryId,
-          session_date: format(date, "yyyy-MM-dd"),
-          session_start_time: startTime,
-          session_end_time: endTime,
-          training_type: "test",
-          notes: fullNotes,
-          intensity: 1,
-        })
-        .select("id")
-        .single();
-      if (error) throw error;
+      let savedSessionId: string | null = null;
 
-      // Save participants in event_participants
-      if (selectedPlayers.length > 0 && session) {
-        await supabase.from("event_participants").insert(
-          selectedPlayers.map((pid) => ({
-            training_session_id: session.id,
-            player_id: pid,
-          })),
-        );
+      if (isEditMode && editSessionId) {
+        // UPDATE existing test session
+        const { error } = await supabase
+          .from("training_sessions")
+          .update({
+            session_date: format(date, "yyyy-MM-dd"),
+            session_start_time: startTime,
+            session_end_time: endTime,
+            notes: fullNotes,
+          })
+          .eq("id", editSessionId);
+        if (error) throw error;
+        savedSessionId = editSessionId;
+
+        // Re-sync participants: delete existing + insert new selection
+        await supabase
+          .from("event_participants")
+          .delete()
+          .eq("training_session_id", editSessionId);
+
+        if (selectedPlayers.length > 0) {
+          await supabase.from("event_participants").insert(
+            selectedPlayers.map((pid) => ({
+              training_session_id: editSessionId,
+              player_id: pid,
+            })),
+          );
+        }
+      } else {
+        // CREATE new test session
+        const { data: session, error } = await supabase
+          .from("training_sessions")
+          .insert({
+            category_id: categoryId,
+            session_date: format(date, "yyyy-MM-dd"),
+            session_start_time: startTime,
+            session_end_time: endTime,
+            training_type: "test",
+            notes: fullNotes,
+            intensity: 1,
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        savedSessionId = session?.id ?? null;
+
+        if (selectedPlayers.length > 0 && savedSessionId) {
+          await supabase.from("event_participants").insert(
+            selectedPlayers.map((pid) => ({
+              training_session_id: savedSessionId!,
+              player_id: pid,
+            })),
+          );
+        }
       }
 
-      return session;
+      return { id: savedSessionId };
     },
     onSuccess: (session) => {
       queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
-      toast.success("Test planifié au calendrier");
+      queryClient.invalidateQueries({ queryKey: ["test-session-edit", editSessionId] });
+      toast.success(isEditMode ? "Test mis à jour" : "Test planifié au calendrier");
 
-      if (session?.id) {
+      if (session?.id && !isEditMode) {
         notify({
           action: "created",
           sessionId: session.id,
@@ -370,7 +474,7 @@ export function ScheduleTestEventDialog({
         <DialogHeader className="shrink-0 border-b border-border/60 px-6 pt-6 pb-4">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <ClipboardList className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-            Planifier un test physique
+            {isEditMode ? "Modifier le test physique" : "Planifier un test physique"}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
             {format(date, "EEEE d MMMM yyyy", { locale: fr })}
@@ -686,7 +790,9 @@ export function ScheduleTestEventDialog({
             Annuler
           </Button>
           <Button onClick={() => schedule.mutate()} disabled={schedule.isPending}>
-            {schedule.isPending ? "Planification..." : "Planifier au calendrier"}
+            {schedule.isPending
+              ? (isEditMode ? "Mise à jour..." : "Planification...")
+              : (isEditMode ? "Enregistrer les modifications" : "Planifier au calendrier")}
           </Button>
         </DialogFooter>
       </DialogContent>

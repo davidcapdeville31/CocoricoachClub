@@ -663,14 +663,15 @@ export function ProgramBuilderDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] w-full h-[90vh] flex flex-col p-0">
-        {useV2Builder && !programId ? (
+        {useV2Builder ? (
           <>
             <DialogHeader className="sr-only">
-              <DialogTitle>Créer un programme</DialogTitle>
+              <DialogTitle>{programId ? "Modifier le programme" : "Créer un programme"}</DialogTitle>
             </DialogHeader>
             <div className="flex-1 overflow-hidden">
               <CreateTrainingProgramV2
                 categoryId={categoryId}
+                programId={programId}
                 onClose={() => onOpenChange(false)}
               />
             </div>

@@ -13,7 +13,9 @@
 //   - Method buttons / linked methods
 //   - Save/load via coach_session_templates
 
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DndContext,
   PointerSensor,
@@ -100,6 +102,7 @@ export interface V2ProgramDraft {
 interface CreateTrainingProgramV2Props {
   categoryId: string;
   onClose?: () => void;
+  programId?: string;
 }
 
 // -- Helpers -------------------------------------------------------------------
@@ -145,7 +148,9 @@ function buildInitialDraft(): V2ProgramDraft {
 export function CreateTrainingProgramV2({
   categoryId,
   onClose,
+  programId,
 }: CreateTrainingProgramV2Props) {
+  const isEditMode = !!programId;
   const [draft, setDraft] = useState<V2ProgramDraft>(buildInitialDraft);
   const [activeWeek, setActiveWeek] = useState(1);
   const [activeDayId, setActiveDayId] = useState<string | null>(
@@ -154,9 +159,120 @@ export function CreateTrainingProgramV2({
   const [infoOpen, setInfoOpen] = useState(true);
   const [assignProgramId, setAssignProgramId] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<"save" | "assign" | null>(null);
+  const [hydrated, setHydrated] = useState(false);
   const saveProgram = useSaveProgramV2();
   const dayEditorRef = useRef<SessionDayEditorHandle | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+
+  // Load existing program for edit mode
+  const { data: existingProgram } = useQuery({
+    queryKey: ["program-v2-edit", programId],
+    queryFn: async () => {
+      if (!programId) return null;
+      const { data: prog, error: pErr } = await supabase
+        .from("training_programs")
+        .select("*")
+        .eq("id", programId)
+        .single();
+      if (pErr) throw pErr;
+      const { data: weeks, error: wErr } = await supabase
+        .from("program_weeks")
+        .select("*, program_sessions(*, program_exercises(*))")
+        .eq("program_id", programId)
+        .order("week_number");
+      if (wErr) throw wErr;
+      return { ...prog, weeks };
+    },
+    enabled: !!programId,
+  });
+
+  // Hydrate draft from existing program (once)
+  useEffect(() => {
+    if (!existingProgram || hydrated) return;
+
+    const DAY_INDEX_TO_ID: Record<number, string> = {
+      1: "monday", 2: "tuesday", 3: "wednesday", 4: "thursday",
+      5: "friday", 6: "saturday", 0: "sunday",
+    };
+
+    const v2Weeks: V2ProgramWeek[] = (existingProgram.weeks ?? [])
+      .sort((a: any, b: any) => a.week_number - b.week_number)
+      .map((w: any): V2ProgramWeek => {
+        const days: V2ProgramDay[] = (w.program_sessions ?? [])
+          .sort((a: any, b: any) => a.session_number - b.session_number)
+          .map((s: any, idx: number): V2ProgramDay => {
+            // Group exercises by block (parsed from notes header)
+            const blocksMap = new Map<string, V2BlockWithExercises>();
+            const orderedExercises = (s.program_exercises ?? []).sort(
+              (a: any, b: any) => a.order_index - b.order_index,
+            );
+            for (const ex of orderedExercises) {
+              const notes: string = ex.notes ?? "";
+              const blockMatch = notes.match(/<!-- v2-block:([^:]+):([^>]+?) -->/);
+              const blockType = (blockMatch?.[1] ?? "musculation") as V2BlockWithExercises["type"];
+              const blockName = blockMatch?.[2]?.trim() ?? "Bloc";
+              const blockKey = `${blockType}::${blockName}`;
+              if (!blocksMap.has(blockKey)) {
+                blocksMap.set(blockKey, {
+                  id: makeId(),
+                  type: blockType,
+                  name: blockName,
+                  isOpen: true,
+                  exercises: [],
+                });
+              }
+              const block = blocksMap.get(blockKey)!;
+              const testMatch = notes.match(/<!-- v2-test:([^>]+?) -->/);
+              const cleanNotes = notes
+                .replace(/<!-- v2-block:[^>]+ -->/g, "")
+                .replace(/<!-- v2-test:[^>]+ -->/g, "")
+                .trim();
+              block.exercises!.push({
+                id: ex.id,
+                exerciseId: testMatch ? `test:${testMatch[1]}` : (ex.library_exercise_id ?? undefined),
+                exerciseName: ex.exercise_name,
+                sets: ex.sets ?? 3,
+                reps: ex.reps ?? "10",
+                percentage: ex.percentage_1rm ?? undefined,
+                tempo: ex.tempo ?? undefined,
+                restSeconds: ex.rest_seconds ?? 90,
+                method: ex.method ?? "normal",
+                notes: cleanNotes,
+                config:
+                  ex.method === "cluster" ? ex.cluster_sets :
+                  ex.method === "drop_set" ? ex.drop_sets : undefined,
+              });
+            }
+            return {
+              id: makeId(),
+              dayOfWeek: DAY_INDEX_TO_ID[s.scheduled_day ?? (idx + 1)] ?? "monday",
+              name: s.name || `Jour ${idx + 1}`,
+              exercises: [],
+              blocks: Array.from(blocksMap.values()),
+              unifiedOrder: [],
+            };
+          });
+        return {
+          weekNumber: w.week_number,
+          name: w.name || `Semaine ${w.week_number}`,
+          days,
+        };
+      });
+
+    const maxDays = Math.max(1, ...v2Weeks.map((w) => w.days.length));
+    const hydratedDraft: V2ProgramDraft = {
+      name: existingProgram.name ?? "",
+      description: existingProgram.description ?? "",
+      difficultyLevel: (existingProgram.level as V2ProgramDraft["difficultyLevel"]) ?? "intermediate",
+      daysPerWeek: maxDays,
+      weeks: v2Weeks.length > 0 ? v2Weeks : [buildEmptyWeek(1, 3)],
+    };
+    setDraft(hydratedDraft);
+    setActiveWeek(hydratedDraft.weeks[0]?.weekNumber ?? 1);
+    setActiveDayId(hydratedDraft.weeks[0]?.days[0]?.id ?? null);
+    setHydrated(true);
+  }, [existingProgram, hydrated]);
+
 
   const handleProgramDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
@@ -232,7 +348,7 @@ export function CreateTrainingProgramV2({
     if (!validate()) return;
     setPendingAction("save");
     saveProgram.mutate(
-      { draft, categoryId },
+      { draft, categoryId, programId },
       {
         onSuccess: () => {
           setPendingAction(null);
@@ -241,22 +357,22 @@ export function CreateTrainingProgramV2({
         onError: () => setPendingAction(null),
       },
     );
-  }, [draft, categoryId, saveProgram, onClose, validate]);
+  }, [draft, categoryId, programId, saveProgram, onClose, validate]);
 
   const handleSaveAndAssign = useCallback(() => {
     if (!validate()) return;
     setPendingAction("assign");
     saveProgram.mutate(
-      { draft, categoryId },
+      { draft, categoryId, programId },
       {
-        onSuccess: ({ programId }) => {
+        onSuccess: ({ programId: savedId }) => {
           setPendingAction(null);
-          setAssignProgramId(programId);
+          setAssignProgramId(savedId);
         },
         onError: () => setPendingAction(null),
       },
     );
-  }, [draft, categoryId, saveProgram, validate]);
+  }, [draft, categoryId, programId, saveProgram, validate]);
 
   const currentWeek = useMemo(
     () => draft.weeks.find((w) => w.weekNumber === activeWeek) ?? draft.weeks[0],
@@ -347,7 +463,7 @@ export function CreateTrainingProgramV2({
                 <div className="min-w-0 flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary shrink-0" />
                   <h2 className="font-semibold truncate">
-                    {draft.name || "Nouveau programme d'entraînement"}
+                    {draft.name || (isEditMode ? "Modifier le programme" : "Nouveau programme d'entraînement")}
                   </h2>
                 </div>
               </div>
