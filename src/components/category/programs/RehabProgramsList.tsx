@@ -55,10 +55,6 @@ export function RehabProgramsList({ categoryId }: RehabProgramsListProps) {
           <h2 className="text-xl font-semibold">Programmes de réhabilitation</h2>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowLibrary(true)}>
-            <Library className="h-4 w-4 mr-2" />
-            Bibliothèque blessures
-          </Button>
           {!isViewer && (
             <Button onClick={() => setShowBuilder(true)}>
               <Plus className="h-4 w-4 mr-2" />
