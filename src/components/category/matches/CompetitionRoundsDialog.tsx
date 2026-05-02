@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { NotifyStatsButton } from "./NotifyStatsButton";
 import {
   Dialog,
   DialogContent,
@@ -2547,6 +2548,12 @@ export function CompetitionRoundsDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
+          <NotifyStatsButton
+            matchId={matchId}
+            categoryId={categoryId}
+            variant="secondary"
+            disabled={saveRounds.isPending}
+          />
           <Button
             variant="secondary"
             onClick={() => {
