@@ -259,6 +259,48 @@ export function SessionDetailsDialog({
     enabled: open && !!sessionId,
   });
 
+  // Fetch event participants (used for tests / scheduled events)
+  const { data: eventParticipants } = useQuery({
+    queryKey: ["session-event-participants", sessionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_participants")
+        .select("player_id, players(id, name, first_name)")
+        .eq("training_session_id", sessionId);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!sessionId,
+  });
+
+  // Parse tests metadata embedded in notes (<!--TESTS:[...]-->)
+  const testsMeta = useMemo(() => {
+    if (!session?.notes) return [] as Array<{
+      test_category: string;
+      test_type: string;
+      result_unit?: string;
+    }>;
+    const m = session.notes.match(/<!--TESTS:(.*?)-->/);
+    if (!m) return [];
+    try {
+      const parsed = JSON.parse(m[1]);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }, [session?.notes]);
+
+  const isTestSession = session?.training_type === "test";
+
+  const getTestLabel = (cat: string, type: string) => {
+    const c = TEST_CATEGORIES.find((x: any) => x.value === cat);
+    const t = c?.tests.find((x: any) => x.value === type);
+    return {
+      categoryLabel: c?.label || cat,
+      testLabel: t?.label || type,
+    };
+  };
+
   // Calculate AWCR for a player
   const calculateAWCR = async (playerId: string, sessionDateStr: string, newLoad: number) => {
     const sevenDaysAgo = new Date(sessionDateStr);
@@ -489,7 +531,7 @@ export function SessionDetailsDialog({
                 <Activity className="h-3 w-3" />
                 {trainingTypeLabels[session.training_type] || session.training_type}
               </Badge>
-              {session.intensity && (
+              {session.intensity && !isTestSession && (
                 <Badge variant="outline">Intensité: {session.intensity}/10</Badge>
               )}
               {session.session_start_time && (
@@ -499,12 +541,16 @@ export function SessionDetailsDialog({
                   {session.session_end_time && ` - ${session.session_end_time}`}
                 </Badge>
               )}
-              {attendance && (
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <Users className="h-3 w-3" />
-                  {attendance.length} joueur(s)
-                </Badge>
-              )}
+              {(() => {
+                const count = (attendance?.length || 0) + (eventParticipants?.length || 0);
+                if (count === 0) return null;
+                return (
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <Users className="h-3 w-3" />
+                    {count} joueur(s)
+                  </Badge>
+                );
+              })()}
               {session.created_by_player_id && (() => {
                 const creator = players?.find(p => p.id === session.created_by_player_id);
                 return creator ? (
@@ -734,12 +780,31 @@ export function SessionDetailsDialog({
         </div>
 
         <Tabs defaultValue={session?.training_type === "precision" && isRugby ? "precision_stats" : "exercises"} className="flex-1 flex flex-col min-h-0">
-          <TabsList className={cn("grid w-full shrink-0", session?.training_type === "precision" && isRugby ? "grid-cols-3" : "grid-cols-2")}>
+          <TabsList className={cn(
+            "grid w-full shrink-0",
+            session?.training_type === "precision" && isRugby
+              ? "grid-cols-3"
+              : isTestSession
+                ? "grid-cols-1"
+                : "grid-cols-2",
+          )}>
             <TabsTrigger value="exercises" className="flex items-center gap-1">
-              <Dumbbell className="h-4 w-4" />
-              Exercices
-              {exercises && exercises.length > 0 && (
-                <Badge variant="secondary" className="ml-1">{exercises.length}</Badge>
+              {isTestSession ? (
+                <>
+                  <Target className="h-4 w-4" />
+                  Tests
+                  {testsMeta.length > 0 && (
+                    <Badge variant="secondary" className="ml-1">{testsMeta.length}</Badge>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Dumbbell className="h-4 w-4" />
+                  Exercices
+                  {exercises && exercises.length > 0 && (
+                    <Badge variant="secondary" className="ml-1">{exercises.length}</Badge>
+                  )}
+                </>
               )}
             </TabsTrigger>
             {session?.training_type === "precision" && isRugby && (
@@ -748,16 +813,93 @@ export function SessionDetailsDialog({
                 Saisie stats
               </TabsTrigger>
             )}
-            <TabsTrigger value="rpe" className="flex items-center gap-1">
-              <Activity className="h-4 w-4" />
-              Saisie RPE
-            </TabsTrigger>
+            {!isTestSession && (
+              <TabsTrigger value="rpe" className="flex items-center gap-1">
+                <Activity className="h-4 w-4" />
+                Saisie RPE
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <div className="flex-1 min-h-0 mt-4">
             <TabsContent value="exercises" className="h-full m-0 data-[state=active]:flex data-[state=active]:flex-col">
               <ScrollArea className="flex-1 h-[60vh]">
-                {!exercises || exercises.length === 0 ? (
+                {isTestSession ? (
+                  <div className="space-y-4 pr-4">
+                    {/* Tests list */}
+                    {testsMeta.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Target className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                        <p>Aucun test associé à cette séance</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-semibold flex items-center gap-2">
+                          <Target className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                          Tests planifiés ({testsMeta.length})
+                        </h4>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {testsMeta.map((t, i) => {
+                            const { categoryLabel, testLabel } = getTestLabel(
+                              t.test_category,
+                              t.test_type,
+                            );
+                            return (
+                              <div
+                                key={`${t.test_category}-${t.test_type}-${i}`}
+                                className="rounded-xl border bg-muted/30 p-3"
+                              >
+                                <div className="text-sm font-medium">
+                                  {testLabel}
+                                  {t.result_unit && (
+                                    <span className="text-xs text-muted-foreground ml-1">
+                                      ({t.result_unit})
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-0.5">
+                                  {categoryLabel}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Participants list */}
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-semibold flex items-center gap-2">
+                        <Users className="h-4 w-4 text-primary" />
+                        Athlètes concernés ({eventParticipants?.length || 0})
+                      </h4>
+                      {(eventParticipants?.length || 0) === 0 ? (
+                        <p className="text-xs text-muted-foreground">
+                          Aucun athlète attribué à cette séance.
+                        </p>
+                      ) : (
+                        <div className="grid gap-1.5 sm:grid-cols-2">
+                          {eventParticipants!.map((p: any) => (
+                            <div
+                              key={p.player_id}
+                              className="flex items-center gap-2 rounded-lg border bg-background p-2 text-sm"
+                            >
+                              <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                              <span className="truncate">
+                                {p.players?.first_name
+                                  ? `${p.players.first_name} ${p.players.name}`
+                                  : p.players?.name || "Athlète"}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Les résultats sont à saisir dans <strong>Programmation → Tests</strong> pour chaque athlète.
+                      </p>
+                    </div>
+                  </div>
+                ) : !exercises || exercises.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Dumbbell className="h-12 w-12 mx-auto mb-3 opacity-30" />
                     <p>Aucun exercice détaillé pour cette séance</p>
