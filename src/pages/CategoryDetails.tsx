@@ -11,7 +11,7 @@ import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CategoryCoverUpload } from "@/components/category/CategoryCoverUpload";
-import { CustomizeBrandingButton } from "@/components/branding/CustomizeBrandingButton";
+import { NavThemedSection } from "@/components/ui/nav-themed-section";
 import { ClubBrandingProvider } from "@/contexts/ClubBrandingContext";
 import { GlobalPlayerSearch } from "@/components/search/GlobalPlayerSearch";
 import { EditableCategoryName } from "@/components/category/EditableCategoryName";
@@ -296,9 +296,6 @@ function CategoryDetailsContent() {
                   categoryId={categoryId} 
                   currentCoverUrl={category?.cover_image_url}
                 />
-                {category?.clubs?.id && (
-                  <CustomizeBrandingButton clubId={category.clubs.id} />
-                )}
               </div>
             )}
           </div>
