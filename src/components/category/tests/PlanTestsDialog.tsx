@@ -600,6 +600,22 @@ export function PlanTestsDialog({
                 <Repeat className="h-4 w-4 text-primary" />
                 Récurrence
               </Label>
+
+              <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 space-y-1.5">
+                <Label className="text-xs font-semibold text-primary">
+                  📅 Date du premier test (point de départ de la récurrence)
+                </Label>
+                <Input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="bg-background"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Toutes les séances suivantes sont calculées à partir de cette date selon la récurrence choisie ci-dessous.
+                </p>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {RECURRENCE_OPTIONS.map((opt) => (
                   <button
