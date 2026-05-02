@@ -1982,6 +1982,60 @@ export type Database = {
           },
         ]
       }
+      club_branding: {
+        Row: {
+          accent_color: string
+          club_id: string
+          created_at: string
+          id: string
+          is_custom: boolean
+          logo_crop: Json | null
+          logo_url: string | null
+          primary_color: string
+          secondary_color: string
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string
+          club_id: string
+          created_at?: string
+          id?: string
+          is_custom?: boolean
+          logo_crop?: Json | null
+          logo_url?: string | null
+          primary_color?: string
+          secondary_color?: string
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string
+          club_id?: string
+          created_at?: string
+          id?: string
+          is_custom?: boolean
+          logo_crop?: Json | null
+          logo_url?: string | null
+          primary_color?: string
+          secondary_color?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_branding_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: true
+            referencedRelation: "admin_all_clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_branding_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: true
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_invitations: {
         Row: {
           assigned_categories: string[] | null

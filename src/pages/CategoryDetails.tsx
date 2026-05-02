@@ -11,6 +11,8 @@ import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CategoryCoverUpload } from "@/components/category/CategoryCoverUpload";
+import { CustomizeBrandingButton } from "@/components/branding/CustomizeBrandingButton";
+import { ClubBrandingProvider } from "@/contexts/ClubBrandingContext";
 import { GlobalPlayerSearch } from "@/components/search/GlobalPlayerSearch";
 import { EditableCategoryName } from "@/components/category/EditableCategoryName";
 import { EditableRugbyType } from "@/components/category/EditableRugbyType";
@@ -281,10 +283,15 @@ function CategoryDetailsContent() {
               </div>
             </div>
             {categoryId && !isViewer && (
-              <CategoryCoverUpload 
-                categoryId={categoryId} 
-                currentCoverUrl={category?.cover_image_url}
-              />
+              <div className="flex flex-wrap gap-2">
+                <CategoryCoverUpload 
+                  categoryId={categoryId} 
+                  currentCoverUrl={category?.cover_image_url}
+                />
+                {category?.clubs?.id && (
+                  <CustomizeBrandingButton clubId={category.clubs.id} />
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -574,9 +581,11 @@ export default function CategoryDetails() {
 
   return (
     <ViewerModeProvider clubId={category?.club_id} categoryId={categoryId}>
-      <PublicDataProvider categoryId={categoryId || ""}>
-        <CategoryDetailsContent />
-      </PublicDataProvider>
+      <ClubBrandingProvider clubId={category?.club_id}>
+        <PublicDataProvider categoryId={categoryId || ""}>
+          <CategoryDetailsContent />
+        </PublicDataProvider>
+      </ClubBrandingProvider>
     </ViewerModeProvider>
   );
 }
