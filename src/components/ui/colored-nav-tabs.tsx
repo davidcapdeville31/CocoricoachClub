@@ -168,7 +168,8 @@ const ColoredTabTrigger = React.forwardRef<
   const colors = NAV_COLORS[colorKey];
   const tabHex = colors.base.match(/hsl\((\d+)\s+(\d+)%\s+(\d+)%\)/);
   const tabHsl = tabHex ? { h: Number(tabHex[1]), s: Number(tabHex[2]), l: Number(tabHex[3]) } : { h: 280, s: 70, l: 55 };
-  const activeForeground = tabHsl.l > 68 ? "hsl(var(--foreground))" : "white";
+  const prefersDarkForeground = tabHsl.l > 64 || ((tabHsl.h >= 32 && tabHsl.h <= 84) && tabHsl.l > 44);
+  const activeForeground = prefersDarkForeground ? "hsl(var(--foreground))" : "white";
   
   const trigger = (
     <TabsPrimitive.Trigger
