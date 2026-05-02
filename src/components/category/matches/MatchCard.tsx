@@ -774,6 +774,8 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
             </CollapsibleContent>
           </Collapsible>
         )}
+        </div>
+        )}
       </div>
 
       <EditMatchDialog
