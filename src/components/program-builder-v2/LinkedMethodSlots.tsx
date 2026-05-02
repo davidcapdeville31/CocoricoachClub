@@ -203,6 +203,66 @@ const getMethodConfig = (method: string) => {
   }
 };
 
+// Editable coach notes block (collapsible) for a single slotted exercise
+const CoachNotesEditor = ({
+  value,
+  onChange,
+}: {
+  value?: string;
+  onChange: (val: string) => void;
+}) => {
+  const [open, setOpen] = useState(Boolean(value && value.length > 0));
+
+  return (
+    <div className="mt-2">
+      {!open ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setOpen(true)}
+          onPointerDown={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          className="h-6 px-2 text-[11px] text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 gap-1"
+        >
+          <MessageSquare className="h-3 w-3" />
+          + Consignes spécifiques
+        </Button>
+      ) : (
+        <div className="p-2 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900">
+          <div className="flex items-center justify-between mb-1">
+            <Label className="text-[10px] uppercase tracking-wide text-blue-700 dark:text-blue-400 font-semibold flex items-center gap-1">
+              <MessageSquare className="h-3 w-3" /> Consignes spécifiques
+            </Label>
+            <button
+              type="button"
+              onClick={() => {
+                onChange("");
+                setOpen(false);
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              className="p-0.5 hover:bg-destructive/20 rounded"
+              title="Retirer la consigne"
+            >
+              <X className="h-3 w-3 text-destructive" />
+            </button>
+          </div>
+          <Textarea
+            value={value ?? ""}
+            onChange={(e) => onChange(e.target.value)}
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            placeholder="Ex: Garde le dos bien droit, contrôle la descente..."
+            rows={2}
+            className="text-xs resize-y min-h-[44px] bg-background/70"
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Single param input with remove button
 const ParamInput = ({
   label,
