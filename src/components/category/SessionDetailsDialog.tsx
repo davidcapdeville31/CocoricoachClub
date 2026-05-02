@@ -19,7 +19,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Dumbbell, Users, Activity, Clock, Calendar, Printer, Calculator, Info, Bell, Target } from "lucide-react";
+import { Dumbbell, Users, Activity, Clock, Calendar, Printer, Calculator, Info, Bell, Target, Video } from "lucide-react";
 import { getCategoryLabel } from "@/lib/constants/exerciseCategories";
 import { printElement, exportSessionToPdf, preparePdfWithSettings } from "@/lib/pdfExport";
 import { TEST_CATEGORIES } from "@/lib/constants/testCategories";
