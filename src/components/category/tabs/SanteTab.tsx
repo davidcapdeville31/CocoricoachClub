@@ -137,14 +137,6 @@ export function SanteTab({ categoryId }: SanteTabProps) {
                 Risque blessure
               </ColoredSubTabsTrigger>
             )}
-            <ColoredSubTabsTrigger
-              value="health"
-              colorKey="sante"
-              icon={<Heart className="h-4 w-4" />}
-              tooltip="Dossiers médicaux et historique de santé des athlètes"
-            >
-              Santé
-            </ColoredSubTabsTrigger>
             {!isViewer && hasConcussionProtocol && (
               <ColoredSubTabsTrigger
                 value="concussion"
