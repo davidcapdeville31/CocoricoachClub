@@ -573,12 +573,39 @@ All colors MUST be HSL.
   border-bottom-color: transparent !important;
 }
 
+.athlete-tab:not([data-state="active"]) {
+  color: color-mix(in srgb, var(--tab-color) 90%, white 10%) !important;
+}
+
+.athlete-tab:not([data-state="active"]) svg {
+  color: inherit !important;
+}
+
+.athlete-tab:not([data-state="active"]):hover {
+  color: white !important;
+  background-color: color-mix(in srgb, var(--tab-color) 22%, transparent) !important;
+}
+
 /* Colored tab trigger active state */
 .colored-tab-trigger[data-state="active"] {
   background-color: var(--tab-color) !important;
   color: white !important;
   box-shadow: 0 4px 8px -2px rgb(0 0 0 / 0.2);
 }
+
+.colored-tab-trigger {
+  color: color-mix(in srgb, var(--tab-color) 88%, white 12%) !important;
+}
+
+.colored-tab-trigger .colored-tab-text,
+.colored-tab-trigger svg {
+  color: inherit !important;
+}
+
+.colored-tab-trigger:not([data-state="active"]) {
+  background-color: transparent;
+}
+
 .colored-tab-trigger[data-state="active"] .colored-tab-text {
   color: white !important;
 }
@@ -586,7 +613,29 @@ All colors MUST be HSL.
   color: white !important;
 }
 .colored-tab-trigger:not([data-state="active"]):hover {
-  background-color: color-mix(in srgb, var(--tab-color) 15%, transparent);
+  color: white !important;
+  background-color: color-mix(in srgb, var(--tab-color) 18%, transparent);
+}
+
+.dark .colored-tab-trigger {
+  color: color-mix(in srgb, var(--tab-color) 72%, white 28%) !important;
+}
+
+.dark .athlete-tab:not([data-state="active"]) {
+  color: color-mix(in srgb, var(--tab-color) 72%, white 28%) !important;
+}
+
+.dark [role="tab"]:not([data-state="active"])[style*="--tab-accent"] {
+  color: hsl(var(--foreground)) !important;
+}
+
+.dark [role="tab"][data-state="active"][style*="--tab-accent"] {
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+.dark [role="tab"]:not([data-state="active"])[style*="--tab-accent"] svg,
+.dark [role="tab"][data-state="active"][style*="--tab-accent"] svg {
+  color: inherit !important;
 }
 
 /* ============================================================
