@@ -44,6 +44,13 @@ export interface SessionDayEditorHandle {
     blockId: string,
     picked: { id: string; name: string },
   ) => boolean;
+  /** Insère un exercice dans un slot spécifique d'une méthode liée active.
+   *  Utilisé par le drag & drop pour cibler exactement le slot visé. */
+  insertExternalExerciseAtSlot: (
+    blockId: string,
+    slotIndex: number,
+    picked: { id: string; name: string },
+  ) => boolean;
   /** Indique s'il existe un draft de méthode liée actif pour le bloc donné */
   hasActiveLinkedDraft: (blockId: string) => boolean;
 }
