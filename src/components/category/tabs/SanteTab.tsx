@@ -189,9 +189,6 @@ export function SanteTab({ categoryId }: SanteTabProps) {
           </TabsContent>
         )}
 
-        <TabsContent value="health">
-          <MedicalRecordsTab categoryId={categoryId} />
-        </TabsContent>
 
         {!isViewer && hasConcussionProtocol && (
           <TabsContent value="concussion">
