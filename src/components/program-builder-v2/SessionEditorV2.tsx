@@ -228,13 +228,15 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
       const rows = players.flatMap((player) =>
         flat.map(({ block, ex }, idx) => {
           const blockTag = `<!-- v2-block:${block.type}:${block.name} -->`;
+          const isTestRef = typeof ex.exerciseId === "string" && ex.exerciseId.startsWith("test:");
+          const testTag = isTestRef ? `<!-- v2-test:${ex.exerciseId.slice(5)} -->` : "";
           const userNote = ex.notes ? `\n${ex.notes}` : "";
           const repsNum = ex.reps ? Number(String(ex.reps).replace(/[^0-9]/g, "")) : null;
           return {
             training_session_id: session.id,
             player_id: player.id,
             category_id: categoryId,
-            library_exercise_id: ex.exerciseId || null,
+            library_exercise_id: isTestRef ? null : (ex.exerciseId || null),
             exercise_name: ex.exerciseName,
             sets: ex.sets ?? 1,
             reps: repsNum && !Number.isNaN(repsNum) ? repsNum : null,
@@ -243,7 +245,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
             percentage_1rm: ex.percentage ?? null,
             order_index: idx,
             method: ex.method && ex.method !== "normal" ? ex.method : null,
-            notes: `${blockTag}${userNote}`,
+            notes: `${blockTag}${testTag}${userNote}`,
           };
         }),
       );
