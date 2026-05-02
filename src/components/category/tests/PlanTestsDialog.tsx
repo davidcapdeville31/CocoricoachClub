@@ -468,30 +468,86 @@ export function PlanTestsDialog({
                     </div>
 
                     {selectedCategory && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-64 overflow-y-auto">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-80 overflow-y-auto">
                         {(groupedTests.find(([l]) => l === selectedCategory)?.[1] || []).map((t) => {
                           const key = `${t.category}::${t.type}`;
                           const checked = selectedTestKeys.includes(key);
+                          const meta = getTestMeta(t);
                           return (
-                            <label
+                            <div
                               key={key}
-                              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition-all ${
+                              className={`flex items-center gap-2 rounded-lg border px-2 py-1.5 text-sm transition-all ${
                                 checked
                                   ? "border-primary bg-primary/10 shadow-sm"
                                   : "border-border bg-surface hover:border-border-strong hover:bg-secondary/40"
                               }`}
                             >
-                              <Checkbox
-                                checked={checked}
-                                onCheckedChange={() => toggleTest(key)}
-                              />
-                              <span className="flex-1 min-w-0 truncate">
-                                <span className="font-medium">{t.typeLabel}</span>
-                                {t.unit && (
-                                  <span className="text-muted-foreground ml-1">({t.unit})</span>
-                                )}
-                              </span>
-                            </label>
+                              {meta?.image_url ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setPreviewImage(meta.image_url)}
+                                  className="shrink-0 h-10 w-10 rounded-md overflow-hidden border border-border bg-muted"
+                                  title="Voir la photo"
+                                >
+                                  <img src={meta.image_url} alt={t.typeLabel} className="h-full w-full object-cover" />
+                                </button>
+                              ) : (
+                                <div className="shrink-0 h-10 w-10 rounded-md bg-muted flex items-center justify-center text-muted-foreground">
+                                  <ImageIcon className="h-4 w-4" />
+                                </div>
+                              )}
+                              <label className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer">
+                                <Checkbox
+                                  checked={checked}
+                                  onCheckedChange={() => toggleTest(key)}
+                                />
+                                <span className="flex-1 min-w-0 truncate">
+                                  <span className="font-medium">{t.typeLabel}</span>
+                                  {t.unit && (
+                                    <span className="text-muted-foreground ml-1">({t.unit})</span>
+                                  )}
+                                </span>
+                              </label>
+                              {(meta?.description || meta?.objectives || meta?.video_url) && (
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7 shrink-0"
+                                      title="Détails"
+                                    >
+                                      <Info className="h-4 w-4 text-muted-foreground" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent side="left" className="w-72 text-sm space-y-2">
+                                    <p className="font-semibold">{t.typeLabel}</p>
+                                    {meta?.description && (
+                                      <p className="text-muted-foreground whitespace-pre-wrap text-xs">
+                                        {meta.description}
+                                      </p>
+                                    )}
+                                    {meta?.objectives && (
+                                      <div className="text-xs">
+                                        <span className="font-medium">Objectifs : </span>
+                                        <span className="text-muted-foreground">{meta.objectives}</span>
+                                      </div>
+                                    )}
+                                    {meta?.video_url && (
+                                      <a
+                                        href={meta.video_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-primary hover:underline inline-block"
+                                      >
+                                        Voir la vidéo →
+                                      </a>
+                                    )}
+                                  </PopoverContent>
+                                </Popover>
+                              )}
+                            </div>
                           );
                         })}
                       </div>
