@@ -1,10 +1,11 @@
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Smile, Apple, Activity, Dumbbell, LayoutDashboard, Brain } from "lucide-react";
+import { Heart, Smile, Apple, Activity, Dumbbell, LayoutDashboard, Brain, BarChart3, AlertTriangle } from "lucide-react";
+import { MedicalRecordsTab } from "@/components/health/MedicalRecordsTab";
 import { CoachDashboard } from "@/components/health/CoachDashboard";
 import { InjuriesTab } from "@/components/injuries/InjuriesTab";
 import { ActiveProtocolsDashboard } from "@/components/rehab/ActiveProtocolsDashboard";
 import { ConcussionProtocolTab } from "@/components/category/ConcussionProtocolTab";
-import { WellnessWithHealthTab } from "@/components/category/WellnessWithHealthTab";
+import { WellnessTab } from "@/components/category/WellnessTab";
 import { NutritionTab } from "@/components/category/NutritionTab";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
@@ -83,7 +84,7 @@ export function SanteTab({ categoryId }: SanteTabProps) {
                 value="wellness"
                 colorKey="sante"
                 icon={<Smile className="h-4 w-4" />}
-                tooltip="Wellness quotidien et dossiers médicaux des athlètes"
+                tooltip="Suivi quotidien du bien-être : sommeil, fatigue, stress, courbatures"
               >
                 Wellness
               </ColoredSubTabsTrigger>
@@ -93,7 +94,7 @@ export function SanteTab({ categoryId }: SanteTabProps) {
                 value="nutrition"
                 colorKey="sante"
                 icon={<Apple className="h-4 w-4" />}
-                tooltip="Plans nutritionnels et suivi alimentaire adaptés aux objectifs de chaque athlète"
+                tooltip="Plans nutritionnels et suivi alimentaire"
               >
                 Nutrition
               </ColoredSubTabsTrigger>
@@ -103,7 +104,7 @@ export function SanteTab({ categoryId }: SanteTabProps) {
                 value="injuries"
                 colorKey="sante"
                 icon={<Activity className="h-4 w-4" />}
-                tooltip="Suivi des blessures, historique et bibliothèque blessures"
+                tooltip="Suivi des blessures, historique et bibliothèque"
               >
                 Blessures
               </ColoredSubTabsTrigger>
@@ -113,11 +114,39 @@ export function SanteTab({ categoryId }: SanteTabProps) {
                 value="rehab"
                 colorKey="sante"
                 icon={<Dumbbell className="h-4 w-4" />}
-                tooltip="Protocoles de réhabilitation actifs et suivi de retour au jeu"
+                tooltip="Protocoles de réhabilitation actifs"
               >
                 Réhabilitation
               </ColoredSubTabsTrigger>
             )}
+            {!isViewer && (
+              <ColoredSubTabsTrigger
+                value="stats"
+                colorKey="sante"
+                icon={<BarChart3 className="h-4 w-4" />}
+                tooltip="Statistiques détaillées des douleurs et indicateurs wellness"
+              >
+                Statistiques
+              </ColoredSubTabsTrigger>
+            )}
+            {!isViewer && (
+              <ColoredSubTabsTrigger
+                value="risk"
+                colorKey="sante"
+                icon={<AlertTriangle className="h-4 w-4" />}
+                tooltip="Évaluation du risque de blessure (EWMA + AWCR + Wellness)"
+              >
+                Risque blessure
+              </ColoredSubTabsTrigger>
+            )}
+            <ColoredSubTabsTrigger
+              value="health"
+              colorKey="sante"
+              icon={<Heart className="h-4 w-4" />}
+              tooltip="Dossiers médicaux et historique de santé des athlètes"
+            >
+              Santé
+            </ColoredSubTabsTrigger>
             {!isViewer && hasConcussionProtocol && (
               <ColoredSubTabsTrigger
                 value="concussion"
@@ -137,7 +166,7 @@ export function SanteTab({ categoryId }: SanteTabProps) {
 
         {!isViewer && (
           <TabsContent value="wellness">
-            <WellnessWithHealthTab categoryId={categoryId} />
+            <WellnessTab categoryId={categoryId} view="tracking" />
           </TabsContent>
         )}
 
@@ -158,6 +187,22 @@ export function SanteTab({ categoryId }: SanteTabProps) {
             <ActiveProtocolsDashboard categoryId={categoryId} />
           </TabsContent>
         )}
+
+        {!isViewer && (
+          <TabsContent value="stats">
+            <WellnessTab categoryId={categoryId} view="pain-stats" />
+          </TabsContent>
+        )}
+
+        {!isViewer && (
+          <TabsContent value="risk">
+            <WellnessTab categoryId={categoryId} view="risk" />
+          </TabsContent>
+        )}
+
+        <TabsContent value="health">
+          <MedicalRecordsTab categoryId={categoryId} />
+        </TabsContent>
 
         {!isViewer && hasConcussionProtocol && (
           <TabsContent value="concussion">
