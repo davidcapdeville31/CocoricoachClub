@@ -28,7 +28,6 @@ import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import {
   TEST_CATEGORIES,
-  type TestOption,
   type TestCategory,
 } from "@/lib/constants/testCategories";
 import {
