@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { CalendarPlus, Repeat, Search, Users, ChevronDown } from "lucide-react";
+import { CalendarPlus, Repeat, Search, Users, ChevronDown, Star } from "lucide-react";
 import { addMonths, addWeeks, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
@@ -75,6 +75,50 @@ export function PlanTestsDialog({
   const [customWeeks, setCustomWeeks] = useState(4);
   const [occurrences, setOccurrences] = useState(6);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [onlyFavorites, setOnlyFavorites] = useState(false);
+
+  // Favorite categories (shared with GenericTestsSection via localStorage)
+  const favStorageKey = `tests-fav-categories:${categoryId}`;
+  const [favoriteCategories, setFavoriteCategories] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(favStorageKey);
+      if (raw) return new Set(JSON.parse(raw) as string[]);
+    } catch {}
+    return new Set();
+  });
+  useEffect(() => {
+    const reload = () => {
+      try {
+        const raw = localStorage.getItem(favStorageKey);
+        setFavoriteCategories(raw ? new Set(JSON.parse(raw) as string[]) : new Set());
+      } catch {}
+    };
+    const handleCustom = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (!detail || detail.key === favStorageKey) reload();
+    };
+    window.addEventListener("tests-fav-categories-changed", handleCustom);
+    window.addEventListener("storage", reload);
+    return () => {
+      window.removeEventListener("tests-fav-categories-changed", handleCustom);
+      window.removeEventListener("storage", reload);
+    };
+  }, [favStorageKey]);
+
+  const toggleFavoriteCategory = (catValue: string) => {
+    setFavoriteCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(catValue)) next.delete(catValue);
+      else next.add(catValue);
+      try {
+        localStorage.setItem(favStorageKey, JSON.stringify(Array.from(next)));
+        window.dispatchEvent(
+          new CustomEvent("tests-fav-categories-changed", { detail: { key: favStorageKey } })
+        );
+      } catch {}
+      return next;
+    });
+  };
 
   // Athletes selection
   const [audience, setAudience] = useState<"all" | "selection">("selection");
@@ -109,27 +153,32 @@ export function PlanTestsDialog({
   const filteredTests = useMemo(() => {
     const q = search.trim().toLowerCase();
     return availableTests.filter((t) => {
-      if (defaultCategoryFilter && defaultCategoryFilter !== "all" && t.category !== defaultCategoryFilter) {
-        if (!q) return false;
-      }
+      if (onlyFavorites && !favoriteCategories.has(t.category)) return false;
       if (!q) return true;
       return (
         t.typeLabel.toLowerCase().includes(q) ||
         t.categoryLabel.toLowerCase().includes(q)
       );
     });
-  }, [availableTests, search, defaultCategoryFilter]);
+  }, [availableTests, search, onlyFavorites, favoriteCategories]);
 
-  // Group by category for accordion
+  // Group by category — favorites first
   const groupedTests = useMemo(() => {
-    const map = new Map<string, AvailableTest[]>();
+    const map = new Map<string, { items: AvailableTest[]; catValue: string }>();
     filteredTests.forEach((t) => {
-      const arr = map.get(t.categoryLabel) || [];
-      arr.push(t);
-      map.set(t.categoryLabel, arr);
+      const entry = map.get(t.categoryLabel) || { items: [], catValue: t.category };
+      entry.items.push(t);
+      map.set(t.categoryLabel, entry);
     });
-    return Array.from(map.entries());
-  }, [filteredTests]);
+    const entries = Array.from(map.entries()).map(([label, v]) => [label, v.items, v.catValue] as const);
+    entries.sort((a, b) => {
+      const aFav = favoriteCategories.has(a[2]) ? 0 : 1;
+      const bFav = favoriteCategories.has(b[2]) ? 0 : 1;
+      if (aFav !== bFav) return aFav - bFav;
+      return a[0].localeCompare(b[0]);
+    });
+    return entries.map(([label, items]) => [label, items] as [string, AvailableTest[]]);
+  }, [filteredTests, favoriteCategories]);
 
   // Auto-select first category when categories change or on open
   useEffect(() => {
@@ -309,14 +358,26 @@ export function PlanTestsDialog({
                     </Badge>
                   )}
                 </Label>
-                <div className="relative w-64">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Rechercher un test…"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-8 h-9"
-                  />
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant={onlyFavorites ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setOnlyFavorites((v) => !v)}
+                    className="h-9 gap-1"
+                  >
+                    <Star className={`h-4 w-4 ${onlyFavorites ? "fill-current" : ""}`} />
+                    Favoris
+                  </Button>
+                  <div className="relative w-64">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Rechercher un test…"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="pl-8 h-9"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -329,27 +390,50 @@ export function PlanTestsDialog({
                   <>
                     <div className="space-y-1.5">
                       <Label className="text-xs">Thématique</Label>
-                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                        <SelectTrigger className="bg-surface">
-                          <SelectValue placeholder="Choisir une thématique…" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {groupedTests.map(([catLabel, tests]) => {
-                            const count = selectedCountByCategory[catLabel] || 0;
-                            return (
-                              <SelectItem key={catLabel} value={catLabel}>
-                                <span className="flex items-center gap-2">
-                                  <span className="font-medium uppercase text-xs tracking-wide">{catLabel}</span>
-                                  <span className="text-xs text-muted-foreground">({tests.length})</span>
-                                  {count > 0 && (
-                                    <Badge variant="default" className="text-[10px] h-4 px-1.5">{count}</Badge>
-                                  )}
-                                </span>
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-2">
+                        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                          <SelectTrigger className="bg-surface flex-1">
+                            <SelectValue placeholder="Choisir une thématique…" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {groupedTests.map(([catLabel, tests]) => {
+                              const count = selectedCountByCategory[catLabel] || 0;
+                              const catValue = tests[0]?.category;
+                              const isFav = catValue ? favoriteCategories.has(catValue) : false;
+                              return (
+                                <SelectItem key={catLabel} value={catLabel}>
+                                  <span className="flex items-center gap-2">
+                                    {isFav && <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />}
+                                    <span className="font-medium uppercase text-xs tracking-wide">{catLabel}</span>
+                                    <span className="text-xs text-muted-foreground">({tests.length})</span>
+                                    {count > 0 && (
+                                      <Badge variant="default" className="text-[10px] h-4 px-1.5">{count}</Badge>
+                                    )}
+                                  </span>
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                        {(() => {
+                          const current = groupedTests.find(([l]) => l === selectedCategory);
+                          const catValue = current?.[1]?.[0]?.category;
+                          if (!catValue) return null;
+                          const isFav = favoriteCategories.has(catValue);
+                          return (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => toggleFavoriteCategory(catValue)}
+                              title={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+                              className="h-9 w-9 shrink-0"
+                            >
+                              <Star className={`h-4 w-4 ${isFav ? "fill-yellow-400 text-yellow-400" : ""}`} />
+                            </Button>
+                          );
+                        })()}
+                      </div>
                     </div>
 
                     {selectedCategory && (
