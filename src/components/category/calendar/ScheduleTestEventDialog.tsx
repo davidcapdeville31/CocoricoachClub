@@ -35,6 +35,7 @@ import {
   mergeCustomTestsIntoCategories,
   type CustomTestCatalogItem,
 } from "@/components/category/tests/customTestCatalog";
+import { normalizeCustomTestType } from "@/components/category/tests/customTestCatalog";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 import { cn } from "@/lib/utils";
 
