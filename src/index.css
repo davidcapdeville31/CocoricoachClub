@@ -20,57 +20,102 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Pure White Background - Clean & Modern */
-    --background: 0 0% 100%;
-    --foreground: 220 20% 15%;
+    /* ============================================================
+       PRIMITIVES — never used directly in components
+       ============================================================ */
+    /* Brand primary — Modern indigo (Linear/Stripe inspired) */
+    --brand-50:  232 70% 97%;
+    --brand-100: 232 70% 92%;
+    --brand-200: 232 70% 84%;
+    --brand-300: 232 70% 72%;
+    --brand-400: 232 70% 64%;
+    --brand-500: 232 70% 56%;
+    --brand-600: 232 65% 48%;
+    --brand-700: 232 60% 40%;
+    --brand-800: 232 55% 30%;
+    --brand-900: 232 50% 20%;
+
+    /* Accent — Cyan signature (CocoriCoach heritage) */
+    --accent-50:  188 76% 95%;
+    --accent-500: 188 76% 45%;
+    --accent-600: 188 76% 38%;
+
+    /* Neutral — Slate-tinted */
+    --neutral-50:  220 30% 98%;
+    --neutral-100: 220 25% 95%;
+    --neutral-200: 220 20% 90%;
+    --neutral-300: 220 18% 82%;
+    --neutral-400: 220 15% 64%;
+    --neutral-500: 220 13% 48%;
+    --neutral-600: 220 14% 36%;
+    --neutral-700: 220 16% 26%;
+    --neutral-800: 222 20% 16%;
+    --neutral-900: 222 24% 10%;
+    --neutral-950: 222 28% 6%;
+
+    /* ============================================================
+       SEMANTIC — Light theme — 3-level surface hierarchy
+       background < surface < surface-elevated
+       ============================================================ */
+    --background: 220 30% 97%;            /* page bg #F4F6FB */
+    --foreground: 222 24% 12%;
+
+    --surface: 0 0% 100%;
+    --surface-foreground: 222 24% 12%;
+    --surface-elevated: 220 30% 99%;
+    --surface-elevated-foreground: 222 24% 12%;
+    --surface-sunken: 220 25% 94%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 15%;
+    --card-foreground: 222 24% 12%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 15%;
+    --popover: 220 30% 99%;
+    --popover-foreground: 222 24% 12%;
 
-    /* Deep Blue Primary #0B1F3A */
-    --primary: 214 70% 14%;
+    --primary: 232 70% 56%;
     --primary-foreground: 0 0% 100%;
+    --primary-hover: 232 65% 48%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 214 70% 14%;
+    --secondary: 220 25% 94%;
+    --secondary-foreground: 222 24% 18%;
+    --secondary-hover: 220 22% 90%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 220 22% 95%;
+    --muted-foreground: 220 13% 42%;
 
-    /* Cyan Performance #17A2B8 - Progression & Validation */
-    --accent: 188 76% 40%;
+    --accent: 188 76% 45%;
     --accent-foreground: 0 0% 100%;
+    --accent-hover: 188 76% 38%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 78% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Controlled Orange #F28C28 - Alerts & Attention */
-    --warning: 32 89% 55%;
+    --warning: 32 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    /* Status colors - Performance indicators */
-    --status-optimal: 160 65% 45%;
-    --status-attention: 32 89% 55%;
-    --status-critical: 0 84% 60%;
-    
-    /* Risk gradient colors */
-    --risk-low: 160 60% 42%;
-    --risk-medium: 32 89% 55%;
-    --risk-high: 0 84% 60%;
-
-    /* Success/Positive states */
-    --success: 160 65% 45%;
+    --success: 152 60% 38%;
     --success-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 188 76% 40%;
+    --info: 210 85% 50%;
+    --info-foreground: 0 0% 100%;
 
-    --radius: 0.75rem;
-    
+    --status-optimal: 152 60% 40%;
+    --status-attention: 32 92% 50%;
+    --status-critical: 0 78% 55%;
+
+    --risk-low: 152 60% 40%;
+    --risk-medium: 32 92% 50%;
+    --risk-high: 0 78% 55%;
+
+    --border: 220 18% 88%;
+    --border-strong: 220 16% 78%;
+    --input: 220 18% 88%;
+    --ring: 232 70% 56%;
+
+    --radius: 1rem;
+    --radius-sm: 0.5rem;
+    --radius-lg: 1.5rem;
+
     /* Tab/Navigation Colors - Vivid palette */
     --nav-overview: 220 80% 55%;
     --nav-admin: 280 70% 55%;
@@ -84,20 +129,25 @@ All colors MUST be HSL.
     --nav-video: 350 80% 60%;
     --nav-communication: 210 80% 55%;
     --nav-settings: 220 15% 50%;
-    
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(214 70% 14%), hsl(214 60% 22%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 14% 98%));
-    --gradient-performance: linear-gradient(135deg, hsl(188 76% 40%), hsl(188 70% 48%));
-    
-    /* Shadows - Modern elevated style */
-    --shadow-sm: 0 1px 2px hsl(220 20% 15% / 0.05);
-    --shadow-md: 0 4px 12px hsl(220 20% 15% / 0.08);
-    --shadow-lg: 0 12px 32px hsl(220 20% 15% / 0.12);
-    
-    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* Training type colors - professional palette */
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(232 60% 40%), hsl(232 70% 56%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 30% 98%));
+    --gradient-performance: linear-gradient(135deg, hsl(188 76% 45%), hsl(232 70% 56%));
+    --gradient-subtle: linear-gradient(180deg, hsl(220 30% 99%), hsl(220 30% 96%));
+
+    /* Shadows — layered depth */
+    --shadow-xs: 0 1px 2px 0 hsl(222 24% 12% / 0.04);
+    --shadow-sm: 0 1px 3px 0 hsl(222 24% 12% / 0.06), 0 1px 2px -1px hsl(222 24% 12% / 0.04);
+    --shadow-md: 0 4px 12px -2px hsl(222 24% 12% / 0.08), 0 2px 4px -2px hsl(222 24% 12% / 0.05);
+    --shadow-lg: 0 12px 32px -8px hsl(222 24% 12% / 0.12), 0 4px 12px -4px hsl(222 24% 12% / 0.08);
+    --shadow-xl: 0 24px 48px -12px hsl(222 24% 12% / 0.18);
+    --shadow-glow: 0 0 0 1px hsl(232 70% 56% / 0.1), 0 8px 24px -8px hsl(232 70% 56% / 0.25);
+
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-snappy: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Training type colors */
     --training-collectif: 214 70% 50%;
     --training-technique: 188 76% 40%;
     --training-physique: 160 60% 42%;
@@ -105,109 +155,127 @@ All colors MUST be HSL.
     --training-repos: 214 15% 55%;
     --training-test: 45 93% 47%;
 
-    /* Sidebar - Deep blue theme */
-    --sidebar-background: 214 70% 14%;
-    --sidebar-foreground: 214 20% 95%;
-    --sidebar-primary: 188 76% 40%;
+    /* Sidebar - Premium deep brand */
+    --sidebar-background: 222 30% 10%;
+    --sidebar-foreground: 220 18% 92%;
+    --sidebar-primary: 188 76% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 214 60% 22%;
-    --sidebar-accent-foreground: 214 20% 95%;
-    --sidebar-border: 214 50% 25%;
-    --sidebar-ring: 188 76% 40%;
+    --sidebar-accent: 222 25% 16%;
+    --sidebar-accent-foreground: 220 18% 96%;
+    --sidebar-border: 222 22% 18%;
+    --sidebar-ring: 188 76% 45%;
 
     /* Chart colors */
-    --chart-1: 188 76% 40%;
-    --chart-2: 214 70% 50%;
-    --chart-3: 160 60% 42%;
-    --chart-4: 32 89% 55%;
-    --chart-5: 280 55% 55%;
+    --chart-1: 232 70% 56%;
+    --chart-2: 188 76% 45%;
+    --chart-3: 152 60% 42%;
+    --chart-4: 32 92% 55%;
+    --chart-5: 280 65% 58%;
   }
 
   .dark {
-    /* Dark mode - improved contrast hierarchy
-       background (deepest) < card/popover < muted < secondary < border */
-    --background: 220 25% 7%;
-    --foreground: 210 20% 96%;
+    /* ============================================================
+       SEMANTIC — Dark theme — no pure black, 3-level hierarchy
+       bg #0E1117 < surface #161A22 < elevated #1E232E
+       ============================================================ */
+    --background: 222 25% 7%;
+    --foreground: 220 18% 95%;
 
-    --card: 220 22% 12%;
-    --card-foreground: 210 20% 96%;
+    --surface: 222 22% 11%;
+    --surface-foreground: 220 18% 95%;
+    --surface-elevated: 222 20% 15%;
+    --surface-elevated-foreground: 220 18% 96%;
+    --surface-sunken: 222 28% 5%;
 
-    --popover: 220 22% 13%;
-    --popover-foreground: 210 20% 96%;
+    --card: 222 22% 11%;
+    --card-foreground: 220 18% 95%;
 
-    --primary: 188 76% 50%;
-    --primary-foreground: 220 30% 8%;
+    --popover: 222 20% 15%;
+    --popover-foreground: 220 18% 96%;
 
-    --secondary: 220 20% 20%;
-    --secondary-foreground: 210 20% 96%;
+    --primary: 232 75% 68%;
+    --primary-foreground: 222 28% 8%;
+    --primary-hover: 232 75% 74%;
 
-    --muted: 220 18% 16%;
-    --muted-foreground: 215 18% 70%;
+    --secondary: 222 18% 20%;
+    --secondary-foreground: 220 18% 95%;
+    --secondary-hover: 222 16% 24%;
 
-    --accent: 188 76% 52%;
-    --accent-foreground: 220 30% 8%;
+    --muted: 222 18% 16%;
+    --muted-foreground: 220 14% 68%;
 
-    --destructive: 0 75% 58%;
+    --accent: 188 80% 55%;
+    --accent-foreground: 222 28% 8%;
+    --accent-hover: 188 80% 62%;
+
+    --destructive: 0 75% 62%;
     --destructive-foreground: 0 0% 100%;
 
-    --warning: 32 92% 58%;
-    --warning-foreground: 220 30% 8%;
+    --warning: 32 92% 60%;
+    --warning-foreground: 222 28% 8%;
 
-    /* Status colors */
-    --status-optimal: 160 60% 50%;
+    --success: 152 60% 50%;
+    --success-foreground: 222 28% 8%;
+
+    --info: 210 85% 62%;
+    --info-foreground: 222 28% 8%;
+
+    --status-optimal: 152 60% 50%;
     --status-attention: 32 92% 60%;
-    --status-critical: 0 75% 58%;
-    
-    /* Risk gradient colors */
-    --risk-low: 160 60% 50%;
+    --status-critical: 0 75% 62%;
+
+    --risk-low: 152 60% 50%;
     --risk-medium: 32 92% 60%;
-    --risk-high: 0 75% 58%;
+    --risk-high: 0 75% 62%;
 
-    --success: 160 60% 50%;
-    --success-foreground: 220 30% 8%;
+    --border: 222 16% 22%;
+    --border-strong: 222 14% 32%;
+    --input: 222 18% 20%;
+    --ring: 232 75% 68%;
 
-    --border: 220 18% 28%;
-    --input: 220 18% 24%;
-    --ring: 188 76% 52%;
-    
-    --gradient-hero: linear-gradient(135deg, hsl(214 50% 18%), hsl(214 45% 25%));
-    --gradient-card: linear-gradient(180deg, hsl(214 35% 14%), hsl(214 35% 16%));
-    --gradient-performance: linear-gradient(135deg, hsl(188 76% 45%), hsl(188 70% 52%));
-    
-    --shadow-sm: 0 1px 3px hsl(0 0% 0% / 0.2);
-    --shadow-md: 0 4px 6px hsl(0 0% 0% / 0.25);
-    --shadow-lg: 0 10px 15px hsl(0 0% 0% / 0.3);
+    --gradient-hero: linear-gradient(135deg, hsl(232 55% 24%), hsl(232 60% 38%));
+    --gradient-card: linear-gradient(180deg, hsl(222 22% 12%), hsl(222 22% 14%));
+    --gradient-performance: linear-gradient(135deg, hsl(188 80% 50%), hsl(232 75% 60%));
+    --gradient-subtle: linear-gradient(180deg, hsl(222 22% 12%), hsl(222 22% 10%));
 
-    /* Sidebar - Dark theme */
-    --sidebar-background: 214 45% 8%;
-    --sidebar-foreground: 214 15% 92%;
-    --sidebar-primary: 188 76% 50%;
-    --sidebar-primary-foreground: 214 70% 10%;
-    --sidebar-accent: 214 40% 16%;
-    --sidebar-accent-foreground: 214 15% 92%;
-    --sidebar-border: 214 35% 18%;
-    --sidebar-ring: 188 76% 50%;
+    /* Dark shadows — deeper */
+    --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
+    --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.4), 0 1px 2px -1px hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 4px 12px -2px hsl(0 0% 0% / 0.45), 0 2px 4px -2px hsl(0 0% 0% / 0.35);
+    --shadow-lg: 0 12px 32px -8px hsl(0 0% 0% / 0.55), 0 4px 12px -4px hsl(0 0% 0% / 0.4);
+    --shadow-xl: 0 24px 48px -12px hsl(0 0% 0% / 0.65);
+    --shadow-glow: 0 0 0 1px hsl(232 75% 68% / 0.2), 0 8px 24px -8px hsl(232 75% 68% / 0.4);
 
-    /* Chart colors - slightly brighter for dark mode */
-    --chart-1: 188 76% 50%;
-    --chart-2: 214 65% 55%;
-    --chart-3: 160 60% 48%;
-    --chart-4: 32 89% 60%;
-    --chart-5: 280 55% 60%;
-    
-    /* Nav colors - same in dark mode */
-    --nav-overview: 220 80% 60%;
-    --nav-admin: 280 70% 60%;
-    --nav-effectif: 200 85% 55%;
-    --nav-planification: 35 90% 60%;
-    --nav-programmation: 260 70% 65%;
-    --nav-performance: 320 75% 60%;
-    --nav-sante: 160 65% 50%;
-    --nav-competition: 45 95% 55%;
-    --nav-gps: 190 80% 50%;
-    --nav-video: 350 80% 65%;
-    --nav-communication: 210 80% 60%;
-    --nav-settings: 220 15% 55%;
+    /* Sidebar - Deeper for dark theme */
+    --sidebar-background: 222 28% 5%;
+    --sidebar-foreground: 220 16% 90%;
+    --sidebar-primary: 188 80% 55%;
+    --sidebar-primary-foreground: 222 28% 8%;
+    --sidebar-accent: 222 22% 14%;
+    --sidebar-accent-foreground: 220 16% 94%;
+    --sidebar-border: 222 18% 18%;
+    --sidebar-ring: 188 80% 55%;
+
+    /* Chart colors - brighter for dark */
+    --chart-1: 232 75% 68%;
+    --chart-2: 188 80% 55%;
+    --chart-3: 152 60% 52%;
+    --chart-4: 32 92% 62%;
+    --chart-5: 280 70% 68%;
+
+    /* Nav colors */
+    --nav-overview: 220 80% 65%;
+    --nav-admin: 280 70% 65%;
+    --nav-effectif: 200 85% 60%;
+    --nav-planification: 35 90% 62%;
+    --nav-programmation: 260 70% 70%;
+    --nav-performance: 320 75% 65%;
+    --nav-sante: 160 65% 55%;
+    --nav-competition: 45 95% 58%;
+    --nav-gps: 190 80% 55%;
+    --nav-video: 350 80% 68%;
+    --nav-communication: 210 80% 65%;
+    --nav-settings: 220 15% 60%;
   }
 
   /* Field Mode - High contrast dark theme for outdoor use */
