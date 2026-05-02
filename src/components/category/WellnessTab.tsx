@@ -119,17 +119,19 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="tracking" className="space-y-4">
-        <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
-          <ColoredSubTabsList colorKey="sante" className="inline-flex w-max">
-            <ColoredSubTabsTrigger value="tracking" colorKey="sante">Suivi Wellness</ColoredSubTabsTrigger>
-            <ColoredSubTabsTrigger value="pain-stats" colorKey="sante">Statistiques Douleurs</ColoredSubTabsTrigger>
-            <ColoredSubTabsTrigger value="risk" colorKey="sante">Risque Blessure (EWMA + AWCR + Wellness)</ColoredSubTabsTrigger>
-            {isFeminine && (
-              <ColoredSubTabsTrigger value="menstrual" colorKey="sante">Cycle Menstruel</ColoredSubTabsTrigger>
-            )}
-          </ColoredSubTabsList>
-        </div>
+      <Tabs value={view ?? undefined} defaultValue={view ?? "tracking"} className="space-y-4">
+        {!view && (
+          <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
+            <ColoredSubTabsList colorKey="sante" className="inline-flex w-max">
+              <ColoredSubTabsTrigger value="tracking" colorKey="sante">Suivi Wellness</ColoredSubTabsTrigger>
+              <ColoredSubTabsTrigger value="pain-stats" colorKey="sante">Statistiques Douleurs</ColoredSubTabsTrigger>
+              <ColoredSubTabsTrigger value="risk" colorKey="sante">Risque Blessure (EWMA + AWCR + Wellness)</ColoredSubTabsTrigger>
+              {isFeminine && (
+                <ColoredSubTabsTrigger value="menstrual" colorKey="sante">Cycle Menstruel</ColoredSubTabsTrigger>
+              )}
+            </ColoredSubTabsList>
+          </div>
+        )}
 
         <TabsContent value="tracking">
           <Card>
