@@ -340,7 +340,7 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
                   </div>
                   <div>
                     <span className="text-xs text-muted-foreground">Durée moy.</span>
-                    <p className="font-bold">{player.avgDuration}/5</p>
+                    <p className="font-bold">{player.avgDuration}h</p>
                   </div>
                 </div>
 
