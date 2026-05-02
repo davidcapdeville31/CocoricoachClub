@@ -318,7 +318,7 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
                               <img
                                 src={phase.taping_diagram_url}
                                 alt="Schéma de taping"
-                                className="w-full max-h-64 object-contain rounded-lg border bg-white cursor-pointer hover:opacity-90 transition-opacity"
+                                className="w-full max-h-64 object-contain rounded-lg border bg-card cursor-pointer hover:opacity-90 transition-opacity"
                                 onClick={() => window.open(phase.taping_diagram_url, '_blank')}
                               />
                               <p className="text-[10px] text-muted-foreground mt-1 text-center">

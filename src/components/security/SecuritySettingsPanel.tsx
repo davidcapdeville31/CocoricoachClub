@@ -285,7 +285,7 @@ export function SecuritySettingsPanel() {
           </DialogHeader>
           {enrollData && (
             <div className="space-y-4">
-              <div className="flex justify-center p-4 bg-white rounded-2xl">
+              <div className="flex justify-center p-4 bg-card rounded-2xl">
                 <img src={enrollData.qr} alt="QR Code 2FA" className="w-48 h-48" />
               </div>
               <Alert className="rounded-xl">

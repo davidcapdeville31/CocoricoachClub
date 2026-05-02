@@ -362,7 +362,7 @@ export const TrainingBlockHeader = ({
       
       {/* Active indicator */}
       {isActive && (
-        <Badge className="bg-white text-foreground text-[10px] font-semibold animate-pulse px-1.5 py-0">
+        <Badge className="bg-card text-foreground text-[10px] font-semibold animate-pulse px-1.5 py-0">
           ACTIF
         </Badge>
       )}

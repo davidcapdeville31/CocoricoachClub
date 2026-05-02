@@ -99,7 +99,7 @@ const ColoredNavTabsList = React.forwardRef<
     ref={ref}
     className={cn(
       "inline-flex items-center gap-2 p-2 rounded-xl shadow-sm border border-border/50",
-      "bg-white",
+      "bg-card",
       "field-mode:bg-[hsl(215_25%_14%)] field-mode:border-[hsl(215_25%_25%)]",
       className
     )}

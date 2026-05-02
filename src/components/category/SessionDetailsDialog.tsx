@@ -1160,7 +1160,7 @@ export function SessionDetailsDialog({
                 <div>
                   <h5 className="text-sm font-semibold mb-2">Vidéo de démonstration</h5>
                   {embedSrc ? (
-                    <div className="relative w-full rounded-xl overflow-hidden bg-black" style={{ paddingBottom: "56.25%" }}>
+                    <div className="relative w-full rounded-xl overflow-hidden bg-foreground" style={{ paddingBottom: "56.25%" }}>
                       <iframe
                         src={embedSrc}
                         title={selectedTestDetail.name}

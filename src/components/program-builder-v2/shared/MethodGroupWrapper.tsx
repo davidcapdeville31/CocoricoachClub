@@ -112,7 +112,7 @@ export const getMethodColors = (trainingStyle?: string) => {
   return colorMap[trainingStyle || ""] || { 
     bg: "bg-gradient-to-r from-gray-500/10 to-gray-400/5", 
     border: "border-gray-400", 
-    text: "text-gray-700 dark:text-gray-300",
+    text: "text-foreground/80 dark:text-gray-300",
     iconBg: "bg-gray-500"
   };
 };

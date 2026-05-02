@@ -212,7 +212,7 @@ export default function Clubs() {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      <div className="bg-white py-0 px-4 border-b border-border">
+      <div className="bg-card py-0 px-4 border-b border-border">
         <div className="container mx-auto max-w-6xl">
           {/* Header: title + actions on the same row */}
           <div className="flex items-center justify-between gap-3 sm:gap-4 min-w-0">

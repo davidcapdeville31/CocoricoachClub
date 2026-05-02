@@ -943,7 +943,7 @@ export function ProgramBuilderDialog({
 
                         {/* Show protocol details if selected */}
                         {selectedInjuryType && injuryProtocols && (
-                          <div className="bg-white dark:bg-background rounded-lg p-3 border">
+                          <div className="bg-card dark:bg-background rounded-lg p-3 border">
                             {(() => {
                               const protocol = injuryProtocols.find(p => p.id === selectedInjuryType);
                               if (!protocol) return null;
