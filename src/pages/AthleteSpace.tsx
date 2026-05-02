@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, User, LogOut, Activity, Heart, BarChart3, Target, Video, Shield, ArrowLeft, Search, ChevronRight, MessageSquare, Settings, CalendarDays, CircleDot, Waves, FileText } from "lucide-react";
+import { Loader2, User, LogOut, Activity, Heart, BarChart3, Target, Video, Shield, ArrowLeft, Search, ChevronRight, MessageSquare, Settings, CalendarDays, CircleDot, Waves, FileText, Trophy } from "lucide-react";
+import { PlayerMatchesTab } from "@/components/player/PlayerMatchesTab";
 import { PlayerBowlingArsenal } from "@/components/bowling/PlayerBowlingArsenal";
 import { PlayerSurfEquipment } from "@/components/surf/PlayerSurfEquipment";
 import { PlayerSkiEquipment } from "@/components/ski/PlayerSkiEquipment";
@@ -550,6 +551,19 @@ export default function AthleteSpace() {
                 <BarChart3 className="h-3.5 w-3.5" />
                 Performance
               </TabsTrigger>
+              <TabsTrigger
+                value="stats"
+                className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                style={{
+                  color: NAV_COLORS.performance.base,
+                  backgroundColor: `${NAV_COLORS.performance.base}15`,
+                  borderBottom: `3px solid ${NAV_COLORS.performance.base}`,
+                  ["--tab-color" as string]: NAV_COLORS.performance.base,
+                }}
+              >
+                <Trophy className="h-3.5 w-3.5" />
+                Stats
+              </TabsTrigger>
               {/* Onglet Santé fusionné en sous-menu de Wellness */}
                {isBowling && (
                  <TabsTrigger 
@@ -726,6 +740,15 @@ export default function AthleteSpace() {
             <AthleteSpacePerformance
               playerId={athleteInfo.player_id}
               categoryId={athleteInfo.category_id}
+              sportType={athleteInfo.sport_type}
+            />
+          </TabsContent>
+
+          <TabsContent value="stats">
+            <PlayerMatchesTab
+              playerId={athleteInfo.player_id}
+              categoryId={athleteInfo.category_id}
+              playerName={displayName}
               sportType={athleteInfo.sport_type}
             />
           </TabsContent>
