@@ -172,6 +172,16 @@ export function PlanTestsDialog({
   };
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewVideo, setPreviewVideo] = useState<string | null>(null);
+
+  const getYoutubeEmbed = (url: string) => {
+    const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?\/\s]+)/);
+    return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+  };
+  const getVimeoEmbed = (url: string) => {
+    const m = url.match(/vimeo\.com\/(\d+)/);
+    return m ? `https://player.vimeo.com/video/${m[1]}` : null;
+  };
 
   const filteredPlayers = useMemo(() => {
     const q = playerSearch.trim().toLowerCase();
@@ -536,14 +546,13 @@ export function PlanTestsDialog({
                                       </div>
                                     )}
                                     {meta?.video_url && (
-                                      <a
-                                        href={meta.video_url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
+                                      <button
+                                        type="button"
+                                        onClick={() => setPreviewVideo(meta.video_url)}
                                         className="text-xs text-primary hover:underline inline-block"
                                       >
                                         Voir la vidéo →
-                                      </a>
+                                      </button>
                                     )}
                                   </PopoverContent>
                                 </Popover>
@@ -790,6 +799,33 @@ export function PlanTestsDialog({
       <Dialog open onOpenChange={() => setPreviewImage(null)}>
         <DialogContent className="max-w-2xl p-2">
           <img src={previewImage} alt="Aperçu" className="w-full h-auto rounded-lg" />
+        </DialogContent>
+      </Dialog>
+    )}
+    {previewVideo && (
+      <Dialog open onOpenChange={() => setPreviewVideo(null)}>
+        <DialogContent className="max-w-3xl p-2">
+          {(() => {
+            const yt = getYoutubeEmbed(previewVideo);
+            const vm = getVimeoEmbed(previewVideo);
+            const embed = yt || vm;
+            if (embed) {
+              return (
+                <div className="aspect-video w-full">
+                  <iframe
+                    src={embed}
+                    className="w-full h-full rounded-lg"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title="Vidéo du test"
+                  />
+                </div>
+              );
+            }
+            return (
+              <video src={previewVideo} controls className="w-full h-auto rounded-lg" />
+            );
+          })()}
         </DialogContent>
       </Dialog>
     )}
