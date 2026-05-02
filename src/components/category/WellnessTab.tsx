@@ -21,6 +21,7 @@ import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { sleepScoreLabel } from "@/lib/sleepConversion";
 
 interface WellnessTabProps {
   categoryId: string;
@@ -30,16 +31,6 @@ const getScoreBadgeClass = (score: number) => {
   if (score <= 2) return "bg-status-optimal/15 text-status-optimal border-status-optimal/30";
   if (score <= 3) return "bg-status-attention/15 text-status-attention border-status-attention/30";
   return "bg-status-critical/15 text-status-critical border-status-critical/30";
-};
-
-// La durée de sommeil est saisie en heures, on la convertit en score 1-5
-// (1 = optimal, 5 = très mauvais) pour la coloration et le calcul du score moyen.
-const sleepHoursToScore = (hours: number) => {
-  if (hours >= 8) return 1;
-  if (hours >= 7) return 2;
-  if (hours >= 6) return 3;
-  if (hours >= 5) return 4;
-  return 5;
 };
 
 export function WellnessTab({ categoryId }: WellnessTabProps) {
