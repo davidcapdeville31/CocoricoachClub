@@ -141,7 +141,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
         category_id: categoryId,
         tracking_date: today,
         sleep_quality: values.sleep_quality,
-        sleep_duration: values.sleep_duration,
+        sleep_duration: sleepHoursToScore(values.sleep_duration),
         general_fatigue: values.general_fatigue,
         soreness_upper_body: values.soreness_upper_body,
         soreness_lower_body: values.soreness_lower_body,
