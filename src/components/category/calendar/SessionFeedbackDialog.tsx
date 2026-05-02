@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { Badge } from "@/components/ui/badge";
-import { Activity, ClipboardCheck, Dumbbell, Plus, Target, X } from "lucide-react";
+import { Activity, ClipboardCheck, Dumbbell, Pencil, Plus, Target, X } from "lucide-react";
 import { SessionWeightLogTab } from "./SessionWeightLogTab";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,6 +55,7 @@ export function SessionFeedbackDialog({
   categoryId,
 }: SessionFeedbackDialogProps) {
   const [rpeValues, setRpeValues] = useState<Record<string, { rpe: string; duration: string }>>({});
+  const [editingRpe, setEditingRpe] = useState<Set<string>>(new Set());
   const [sessionTests, setSessionTests] = useState<SessionTest[]>([]);
   const [weightLogs, setWeightLogs] = useState<Record<string, Record<string, { weight: string; sets: string; reps: string }>>>({});
   const [activeTab, setActiveTab] = useState(sessionType === "precision" ? "precision" : "rpe");
@@ -97,6 +98,8 @@ export function SessionFeedbackDialog({
 
   // Calculate default duration from session times
   const defaultDuration = useMemo(() => {
+    // For test sessions, duration has no meaning — use 1 so trainingLoad = rpe
+    if (sessionType === "test") return 1;
     if (session?.session_start_time && session?.session_end_time) {
       const start = session.session_start_time.split(":");
       const end = session.session_end_time.split(":");
@@ -105,7 +108,7 @@ export function SessionFeedbackDialog({
       return Math.max(0, endMinutes - startMinutes);
     }
     return 60; // Default 60 minutes if no times set
-  }, [session]);
+  }, [session, sessionType]);
 
   // Fetch players
   const { data: players } = useQuery({
@@ -322,7 +325,8 @@ export function SessionFeedbackDialog({
 
       for (const player of playersToSave) {
         const existingEntry = existingRpe?.find((r) => r.player_id === player.id);
-        if (existingEntry) continue; // Skip already saved
+        const isEditing = editingRpe.has(player.id);
+        if (existingEntry && !isEditing) continue; // Skip already saved unless editing
 
         const rpe = parseInt(rpeValues[player.id].rpe);
         const duration = parseInt(rpeValues[player.id].duration);
@@ -334,19 +338,32 @@ export function SessionFeedbackDialog({
           trainingLoad
         );
 
-        const { error } = await supabase.from("awcr_tracking").insert({
-          player_id: player.id,
-          category_id: categoryId,
-          training_session_id: sessionId,
-          session_date: session.session_date,
-          rpe,
-          duration_minutes: duration,
-          acute_load: acuteLoad,
-          chronic_load: chronicLoad,
-          awcr: awcr,
-        });
-
-        if (error) throw error;
+        if (existingEntry && isEditing) {
+          const { error } = await supabase
+            .from("awcr_tracking")
+            .update({
+              rpe,
+              duration_minutes: duration,
+              acute_load: acuteLoad,
+              chronic_load: chronicLoad,
+              awcr: awcr,
+            })
+            .eq("id", existingEntry.id);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.from("awcr_tracking").insert({
+            player_id: player.id,
+            category_id: categoryId,
+            training_session_id: sessionId,
+            session_date: session.session_date,
+            rpe,
+            duration_minutes: duration,
+            acute_load: acuteLoad,
+            chronic_load: chronicLoad,
+            awcr: awcr,
+          });
+          if (error) throw error;
+        }
       }
 
       // Save test results
@@ -574,7 +591,7 @@ export function SessionFeedbackDialog({
   }, [players, invitedPlayerIds, playersToShow]);
 
   const hasNewRpeValues = Object.entries(rpeValues).some(
-    ([id, val]) => val.rpe && val.duration && !playersWithRpe.has(id)
+    ([id, val]) => val.rpe && val.duration && (!playersWithRpe.has(id) || editingRpe.has(id))
   );
 
   const hasTestResults = sessionTests.some(t => 
@@ -661,11 +678,37 @@ export function SessionFeedbackDialog({
                         </AvatarFallback>
                       </Avatar>
                       <Label className="flex-1 min-w-0 font-medium text-sm break-words">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</Label>
-                      {existing ? (
-                        <span className="text-sm text-muted-foreground">
-                          ✓ RPE {existing.rpe} - {existing.duration_minutes}min
-                          <span className="text-xs ml-1">(charge: {existing.training_load})</span>
-                        </span>
+                      {existing && !editingRpe.has(player.id) ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">
+                            ✓ RPE {existing.rpe}
+                            {sessionType !== "test" && ` - ${existing.duration_minutes}min`}
+                            <span className="text-xs ml-1">(charge: {existing.training_load})</span>
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            title="Modifier"
+                            onClick={() => {
+                              setRpeValues((prev) => ({
+                                ...prev,
+                                [player.id]: {
+                                  rpe: String(existing.rpe ?? ""),
+                                  duration: String(existing.duration_minutes ?? defaultDuration),
+                                },
+                              }));
+                              setEditingRpe((prev) => {
+                                const next = new Set(prev);
+                                next.add(player.id);
+                                return next;
+                              });
+                            }}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       ) : (
                         <>
                           <div className="flex items-center gap-1">
