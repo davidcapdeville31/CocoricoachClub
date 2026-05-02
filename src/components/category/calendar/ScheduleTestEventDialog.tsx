@@ -499,6 +499,7 @@ export function ScheduleTestEventDialog({
   });
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[92vh] flex flex-col overflow-hidden border-border/70 bg-background/95 p-0 shadow-2xl backdrop-blur-md">
         <DialogHeader className="shrink-0 border-b border-border/60 px-6 pt-6 pb-4">
