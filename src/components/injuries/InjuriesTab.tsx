@@ -35,6 +35,7 @@ interface InjuriesTabProps {
 
 export function InjuriesTab({ categoryId }: InjuriesTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
   const queryClient = useQueryClient();
   const { isViewer } = useViewerModeContext();
 
