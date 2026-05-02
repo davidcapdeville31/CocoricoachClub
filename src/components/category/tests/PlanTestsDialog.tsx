@@ -162,16 +162,23 @@ export function PlanTestsDialog({
     });
   }, [availableTests, search, onlyFavorites, favoriteCategories]);
 
-  // Group by category for accordion
+  // Group by category — favorites first
   const groupedTests = useMemo(() => {
-    const map = new Map<string, AvailableTest[]>();
+    const map = new Map<string, { items: AvailableTest[]; catValue: string }>();
     filteredTests.forEach((t) => {
-      const arr = map.get(t.categoryLabel) || [];
-      arr.push(t);
-      map.set(t.categoryLabel, arr);
+      const entry = map.get(t.categoryLabel) || { items: [], catValue: t.category };
+      entry.items.push(t);
+      map.set(t.categoryLabel, entry);
     });
-    return Array.from(map.entries());
-  }, [filteredTests]);
+    const entries = Array.from(map.entries()).map(([label, v]) => [label, v.items, v.catValue] as const);
+    entries.sort((a, b) => {
+      const aFav = favoriteCategories.has(a[2]) ? 0 : 1;
+      const bFav = favoriteCategories.has(b[2]) ? 0 : 1;
+      if (aFav !== bFav) return aFav - bFav;
+      return a[0].localeCompare(b[0]);
+    });
+    return entries.map(([label, items]) => [label, items] as [string, AvailableTest[]]);
+  }, [filteredTests, favoriteCategories]);
 
   // Auto-select first category when categories change or on open
   useEffect(() => {
