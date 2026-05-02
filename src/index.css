@@ -107,8 +107,8 @@ All colors MUST be HSL.
     --risk-medium: 32 92% 50%;
     --risk-high: 0 78% 55%;
 
-    --border: 222 20% 84%;
-    --border-strong: 222 18% 70%;
+    --border: 222 18% 80%;
+    --border-strong: 222 16% 64%;
     --input: 222 20% 86%;
     --ring: 232 70% 56%;
 
@@ -183,19 +183,19 @@ All colors MUST be HSL.
        SEMANTIC — Dark theme — no pure black, 3-level hierarchy
        bg #0E1117 < surface #161A22 < elevated #1E232E
        ============================================================ */
-    --background: 224 30% 5%;
+    --background: 224 30% 6%;
     --foreground: 220 20% 96%;
 
-    --surface: 224 24% 9%;
+    --surface: 224 22% 11%;
     --surface-foreground: 220 20% 96%;
-    --surface-elevated: 224 22% 13%;
+    --surface-elevated: 224 20% 17%;
     --surface-elevated-foreground: 220 20% 97%;
-    --surface-sunken: 224 32% 4%;
+    --surface-sunken: 224 30% 4%;
 
-    --card: 224 24% 9%;
+    --card: 224 22% 11%;
     --card-foreground: 220 20% 96%;
 
-    --popover: 224 22% 13%;
+    --popover: 224 20% 15%;
     --popover-foreground: 220 20% 97%;
 
     --primary: 232 80% 70%;
@@ -207,7 +207,7 @@ All colors MUST be HSL.
     --secondary-hover: 224 18% 22%;
 
     --muted: 224 20% 14%;
-    --muted-foreground: 220 14% 70%;
+    --muted-foreground: 220 14% 76%;
 
     --accent: 188 85% 58%;
     --accent-foreground: 224 30% 5%;
@@ -233,9 +233,9 @@ All colors MUST be HSL.
     --risk-medium: 32 95% 62%;
     --risk-high: 0 78% 64%;
 
-    --border: 224 18% 20%;
-    --border-strong: 224 16% 30%;
-    --input: 224 18% 18%;
+    --border: 224 16% 24%;
+    --border-strong: 224 14% 36%;
+    --input: 224 18% 20%;
     --ring: 232 80% 70%;
 
     --gradient-hero: linear-gradient(135deg, hsl(232 70% 22%) 0%, hsl(232 65% 38%) 50%, hsl(188 75% 35%) 100%);
@@ -1041,3 +1041,46 @@ button[class*="variant-outline"] { color: hsl(var(--foreground)); }
 
 /* Exception: keep semantic warning/success buttons untouched.
    We only target primary + destructive + raw red, NOT bg-warning / bg-success / bg-yellow / bg-green. */
+
+/* ============================================================
+   FINAL CONTRAST GUARANTEES — both modes
+   Last-line defense against remaining low-contrast combinations.
+   ============================================================ */
+
+/* Outline / ghost / link buttons must always inherit foreground in both themes */
+button[class*="border-input"]:not([class*="bg-"]),
+button[data-variant="outline"]:not([class*="bg-"]) {
+  color: hsl(var(--foreground));
+}
+
+/* Tabs lists — guarantee inactive triggers are never invisible on a sunken bar */
+[role="tablist"] [role="tab"]:not([data-state="active"]) {
+  color: hsl(var(--muted-foreground));
+}
+[role="tablist"] [role="tab"]:not([data-state="active"]):hover {
+  color: hsl(var(--foreground));
+}
+
+/* Icons inside muted/secondary surfaces should never disappear */
+.bg-muted svg:not([class*="text-"]),
+.bg-secondary svg:not([class*="text-"]) {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Inputs / textareas — explicit foreground for both themes */
+input, textarea, select {
+  color: hsl(var(--foreground));
+}
+input::placeholder, textarea::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Cards always maintain a visible separation from background */
+.bg-card, [class*="bg-card"]:not([class*="bg-card/"]) {
+  border-color: hsl(var(--border));
+}
+
+/* Sober mode: kill heavy permanent glows on standard buttons (keep on .premium variant only) */
+button[class*="shadow-glow"]:not([class*="premium"]):not(:hover):not(:focus) {
+  box-shadow: var(--shadow-sm);
+}
