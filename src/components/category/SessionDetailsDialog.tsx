@@ -300,7 +300,7 @@ export function SessionDetailsDialog({
       if (!clubId) return [];
       const { data, error } = await supabase
         .from("custom_tests")
-        .select("id, name, description, objectives, image_url, unit, test_category")
+        .select("id, name, description, objectives, image_url, video_url, unit, test_category")
         .eq("club_id", clubId);
       if (error) throw error;
       return data || [];
