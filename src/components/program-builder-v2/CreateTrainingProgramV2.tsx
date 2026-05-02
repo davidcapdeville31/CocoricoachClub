@@ -102,6 +102,7 @@ export interface V2ProgramDraft {
 interface CreateTrainingProgramV2Props {
   categoryId: string;
   onClose?: () => void;
+  programId?: string;
 }
 
 // -- Helpers -------------------------------------------------------------------
