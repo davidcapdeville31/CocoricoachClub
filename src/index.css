@@ -379,6 +379,9 @@ All colors MUST be HSL.
     /* Honour the iOS safe-areas so notch / home-indicator never crop content */
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+    background-image: var(--gradient-mesh);
+    background-attachment: fixed;
+    min-height: 100vh;
   }
 
   /* Improve readability for data-heavy interfaces */
