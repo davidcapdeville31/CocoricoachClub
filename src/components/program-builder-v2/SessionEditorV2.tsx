@@ -260,43 +260,45 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
   });
 
   return (
-    <SessionEditorSheet
-      open={open}
-      onClose={onClose}
-      weekNumber={weekNumber}
-      dayName={dayName}
-      dayOfWeek={dayOfWeek}
-      dayId="v2-day-1"
-      weekId="v2-week-1"
-      onUpdateDayName={(_w, _d, name) => setDayName(name)}
-      onUpdateDayOfWeek={(_w, _d, dow) => setDayOfWeek(dow)}
-      onSave={() => saveMutation.mutate()}
-      saving={saveMutation.isPending}
-      isSavedUpToDate={isSavedUpToDate}
-      renderSessionContent={() => (
-        <div className="space-y-4">
-          <div className="flex items-end gap-3 rounded-2xl border bg-muted/40 p-3">
-            <div className="space-y-1">
-              <Label htmlFor="v2-session-date" className="text-xs">Date de la séance</Label>
-              <Input
-                id="v2-session-date"
-                type="date"
-                value={sessionDate}
-                onChange={(e) => setSessionDate(e.target.value)}
-                className="h-9 w-44"
-              />
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <SessionEditorSheet
+        open={open}
+        onClose={onClose}
+        weekNumber={weekNumber}
+        dayName={dayName}
+        dayOfWeek={dayOfWeek}
+        dayId="v2-day-1"
+        weekId="v2-week-1"
+        onUpdateDayName={(_w, _d, name) => setDayName(name)}
+        onUpdateDayOfWeek={(_w, _d, dow) => setDayOfWeek(dow)}
+        onSave={() => saveMutation.mutate()}
+        saving={saveMutation.isPending}
+        isSavedUpToDate={isSavedUpToDate}
+        renderSessionContent={() => (
+          <div className="space-y-4">
+            <div className="flex items-end gap-3 rounded-2xl border bg-muted/40 p-3">
+              <div className="space-y-1">
+                <Label htmlFor="v2-session-date" className="text-xs">Date de la séance</Label>
+                <Input
+                  id="v2-session-date"
+                  type="date"
+                  value={sessionDate}
+                  onChange={(e) => setSessionDate(e.target.value)}
+                  className="h-9 w-44"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground pb-2">
+                La séance sera créée pour tous les athlètes de la catégorie.
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground pb-2">
-              La séance sera créée pour tous les athlètes de la catégorie.
-            </p>
-          </div>
 
-          <SessionDayEditor ref={dayEditorRef} blocks={blocks} onChange={handleBlocksChange} />
-        </div>
-      )}
-      renderExerciseLibrary={() => (
-        <V2ExerciseBankSidebar onClickInsert={handlePickFromBank} />
-      )}
-    />
+            <SessionDayEditor ref={dayEditorRef} blocks={blocks} onChange={handleBlocksChange} />
+          </div>
+        )}
+        renderExerciseLibrary={() => (
+          <V2ExerciseBankSidebar onClickInsert={handlePickFromBank} />
+        )}
+      />
+    </DndContext>
   );
 }
