@@ -67,6 +67,8 @@ export interface SlottedExerciseParams {
   useVariableSets?: boolean;
   // Weightlifting starting position
   startingPosition?: string;
+  // Coach-specific note for this exercise inside the linked method
+  coachNotes?: string;
 }
 
 export interface SlottedExercise {
