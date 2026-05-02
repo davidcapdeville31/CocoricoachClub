@@ -4,9 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, HeartPulse, Library, Pencil, Trash2 } from "lucide-react";
+import { Plus, HeartPulse, Pencil, Trash2 } from "lucide-react";
 import { ProgramBuilderDialog } from "./ProgramBuilderDialog";
-import { InjuryLibraryDialog } from "./InjuryLibraryDialog";
 import { toast } from "sonner";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 
