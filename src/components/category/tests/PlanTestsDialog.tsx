@@ -326,75 +326,68 @@ export function PlanTestsDialog({
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border bg-[hsl(var(--surface-sunken))] p-2">
+              <div className="rounded-xl border border-border bg-[hsl(var(--surface-sunken))] p-3 space-y-3">
                 {groupedTests.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-6">
                     Aucun test disponible. Créez d'abord un test personnalisé.
                   </p>
                 ) : (
-                  <Accordion
-                    type="single"
-                    collapsible
-                    value={openCategory}
-                    onValueChange={setOpenCategory}
-                    className="space-y-1"
-                  >
-                    {groupedTests.map(([catLabel, tests]) => {
-                      const count = selectedCountByCategory[catLabel] || 0;
-                      return (
-                        <AccordionItem
-                          key={catLabel}
-                          value={catLabel}
-                          className="border border-border rounded-lg bg-card overflow-hidden"
-                        >
-                          <AccordionTrigger className="px-3 py-2.5 hover:no-underline hover:bg-secondary/40 [&[data-state=open]]:bg-secondary/60">
-                            <div className="flex items-center gap-2 flex-1">
-                              <span className="text-sm font-semibold uppercase tracking-wide">
-                                {catLabel}
+                  <>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Thématique</Label>
+                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                        <SelectTrigger className="bg-surface">
+                          <SelectValue placeholder="Choisir une thématique…" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {groupedTests.map(([catLabel, tests]) => {
+                            const count = selectedCountByCategory[catLabel] || 0;
+                            return (
+                              <SelectItem key={catLabel} value={catLabel}>
+                                <span className="flex items-center gap-2">
+                                  <span className="font-medium uppercase text-xs tracking-wide">{catLabel}</span>
+                                  <span className="text-xs text-muted-foreground">({tests.length})</span>
+                                  {count > 0 && (
+                                    <Badge variant="default" className="text-[10px] h-4 px-1.5">{count}</Badge>
+                                  )}
+                                </span>
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {selectedCategory && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-64 overflow-y-auto">
+                        {(groupedTests.find(([l]) => l === selectedCategory)?.[1] || []).map((t) => {
+                          const key = `${t.category}::${t.type}`;
+                          const checked = selectedTestKeys.includes(key);
+                          return (
+                            <label
+                              key={key}
+                              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition-all ${
+                                checked
+                                  ? "border-primary bg-primary/10 shadow-sm"
+                                  : "border-border bg-surface hover:border-border-strong hover:bg-secondary/40"
+                              }`}
+                            >
+                              <Checkbox
+                                checked={checked}
+                                onCheckedChange={() => toggleTest(key)}
+                              />
+                              <span className="flex-1 min-w-0 truncate">
+                                <span className="font-medium">{t.typeLabel}</span>
+                                {t.unit && (
+                                  <span className="text-muted-foreground ml-1">({t.unit})</span>
+                                )}
                               </span>
-                              <Badge variant="outline" className="text-xs">
-                                {tests.length}
-                              </Badge>
-                              {count > 0 && (
-                                <Badge variant="default" className="text-xs">
-                                  {count} sélect.
-                                </Badge>
-                              )}
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent className="px-3 pb-3 pt-1">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                              {tests.map((t) => {
-                                const key = `${t.category}::${t.type}`;
-                                const checked = selectedTestKeys.includes(key);
-                                return (
-                                  <label
-                                    key={key}
-                                    className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition-all ${
-                                      checked
-                                        ? "border-primary bg-primary/10 shadow-sm"
-                                        : "border-border bg-surface hover:border-border-strong hover:bg-secondary/40"
-                                    }`}
-                                  >
-                                    <Checkbox
-                                      checked={checked}
-                                      onCheckedChange={() => toggleTest(key)}
-                                    />
-                                    <span className="flex-1 min-w-0 truncate">
-                                      <span className="font-medium">{t.typeLabel}</span>
-                                      {t.unit && (
-                                        <span className="text-muted-foreground ml-1">({t.unit})</span>
-                                      )}
-                                    </span>
-                                  </label>
-                                );
-                              })}
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      );
-                    })}
-                  </Accordion>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </section>
