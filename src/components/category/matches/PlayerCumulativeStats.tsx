@@ -2355,9 +2355,9 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
       </div>
 
       {/* STACKED LAYOUT: Team (top, full width) + Individual (below) — or just individual in single player mode */}
-      <div className={isSinglePlayerMode ? "" : "space-y-6"}>
+      <div className={isSinglePlayerMode && !showTeamView ? "" : "space-y-6"}>
         {/* TOP: Team Stats — full width, all categories stacked */}
-        {!isSinglePlayerMode && !isAthletics && (
+        {(!isSinglePlayerMode || showTeamView) && !isAthletics && (
         <div>
           <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
             <Users className="h-5 w-5 text-primary" />
