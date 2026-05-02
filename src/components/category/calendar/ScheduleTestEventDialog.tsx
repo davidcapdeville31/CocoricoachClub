@@ -141,14 +141,37 @@ export function ScheduleTestEventDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_tests")
-        .select("name, test_category, unit, is_time")
+        .select("id, name, test_category, unit, is_time, description, image_url, video_url, objectives")
         .eq("club_id", clubData?.club_id || "")
         .order("name");
       if (error) throw error;
-      return (data || []) as CustomTestCatalogItem[];
+      return (data || []) as (CustomTestCatalogItem & { id: string; description?: string | null; image_url?: string | null; video_url?: string | null; objectives?: string | null })[];
     },
     enabled: open && !!clubData?.club_id,
   });
+
+  // Map for quick metadata lookup by normalized test value
+  const customMetaByValue = useMemo(() => {
+    const map = new Map<string, any>();
+    (customTests || []).forEach((t: any) => {
+      const v = `custom_${normalizeCustomTestType(t.name)}`;
+      map.set(v, t);
+    });
+    return map;
+  }, [customTests]);
+
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewVideo, setPreviewVideo] = useState<string | null>(null);
+
+  const getYoutubeEmbed = (url: string) => {
+    const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?\/\s]+)/);
+    return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+  };
+  const getVimeoEmbed = (url: string) => {
+    const m = url.match(/vimeo\.com\/(\d+)/);
+    return m ? `https://player.vimeo.com/video/${m[1]}` : null;
+  };
+
 
   // Fetch batteries for this category/club
   const { data: batteries } = useQuery({
