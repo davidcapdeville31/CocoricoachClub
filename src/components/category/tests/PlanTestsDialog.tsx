@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -17,6 +17,12 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -24,8 +30,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { CalendarPlus, Repeat, Search } from "lucide-react";
-import { addDays, addMonths, addWeeks, format } from "date-fns";
+import { CalendarPlus, Repeat, Search, Users, ChevronDown } from "lucide-react";
+import { addMonths, addWeeks, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 
@@ -34,7 +40,7 @@ type RecurrenceMode = "once" | "weekly" | "biweekly" | "monthly" | "quarterly" |
 interface AvailableTest {
   category: string;
   categoryLabel: string;
-  type: string;       // "custom:<id>" or builtin key
+  type: string;
   typeLabel: string;
   unit: string;
 }
@@ -43,9 +49,7 @@ interface PlanTestsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   categoryId: string;
-  /** Pre-built list of selectable tests (from the parent's filtered categories) */
   availableTests: AvailableTest[];
-  /** Optional: pre-select tests matching this category */
   defaultCategoryFilter?: string;
 }
 
@@ -76,15 +80,42 @@ export function PlanTestsDialog({
   const [recurrence, setRecurrence] = useState<RecurrenceMode>("once");
   const [customWeeks, setCustomWeeks] = useState(4);
   const [occurrences, setOccurrences] = useState(6);
+  const [openCategory, setOpenCategory] = useState<string | undefined>(undefined);
+
+  // Athletes selection
+  const [audience, setAudience] = useState<"all" | "selection">("all");
+  const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
+  const [playerSearch, setPlayerSearch] = useState("");
 
   const queryClient = useQueryClient();
   const { notify } = useSessionNotifications();
+
+  const { data: players = [] } = useQuery({
+    queryKey: ["players_safe_plan_tests", categoryId],
+    enabled: open && !!categoryId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players_safe")
+        .select("id, name, first_name, position, avatar_url")
+        .eq("category_id", categoryId)
+        .order("name");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const filteredPlayers = useMemo(() => {
+    const q = playerSearch.trim().toLowerCase();
+    if (!q) return players;
+    return players.filter((p: any) =>
+      `${p.first_name || ""} ${p.name || ""}`.toLowerCase().includes(q)
+    );
+  }, [players, playerSearch]);
 
   const filteredTests = useMemo(() => {
     const q = search.trim().toLowerCase();
     return availableTests.filter((t) => {
       if (defaultCategoryFilter && defaultCategoryFilter !== "all" && t.category !== defaultCategoryFilter) {
-        // still allow if it matches search; otherwise hide
         if (!q) return false;
       }
       if (!q) return true;
@@ -95,7 +126,7 @@ export function PlanTestsDialog({
     });
   }, [availableTests, search, defaultCategoryFilter]);
 
-  // Group by category for readability
+  // Group by category for accordion
   const groupedTests = useMemo(() => {
     const map = new Map<string, AvailableTest[]>();
     filteredTests.forEach((t) => {
@@ -106,10 +137,16 @@ export function PlanTestsDialog({
     return Array.from(map.entries());
   }, [filteredTests]);
 
+  // Auto-open first category when search changes (or on open)
+  useEffect(() => {
+    if (search.trim() && groupedTests.length > 0) {
+      setOpenCategory(groupedTests[0][0]);
+    }
+  }, [search, groupedTests]);
+
   const computeDates = (): string[] => {
     const start = new Date(date);
     if (recurrence === "once") return [date];
-
     const stepDays = (() => {
       switch (recurrence) {
         case "weekly":      return { weeks: 1 };
@@ -120,7 +157,6 @@ export function PlanTestsDialog({
         default:            return { weeks: 1 };
       }
     })();
-
     const dates: string[] = [];
     let cursor = start;
     const cap = Math.min(Math.max(occurrences, 1), 24);
@@ -142,15 +178,39 @@ export function PlanTestsDialog({
     );
   };
 
+  const togglePlayer = (id: string) => {
+    setSelectedPlayerIds((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
+    );
+  };
+
+  const togglePlayersAll = () => {
+    if (selectedPlayerIds.length === filteredPlayers.length) {
+      setSelectedPlayerIds([]);
+    } else {
+      setSelectedPlayerIds(filteredPlayers.map((p: any) => p.id));
+    }
+  };
+
   const selectedTests = useMemo(
     () => availableTests.filter((t) => selectedTestKeys.includes(`${t.category}::${t.type}`)),
     [availableTests, selectedTestKeys]
   );
 
+  // Per-category selected count for accordion badges
+  const selectedCountByCategory = useMemo(() => {
+    const map: Record<string, number> = {};
+    selectedTests.forEach((t) => {
+      map[t.categoryLabel] = (map[t.categoryLabel] || 0) + 1;
+    });
+    return map;
+  }, [selectedTests]);
+
   const planTests = useMutation({
     mutationFn: async () => {
       if (selectedTests.length === 0) throw new Error("NO_TEST");
       if (!date) throw new Error("NO_DATE");
+      if (audience === "selection" && selectedPlayerIds.length === 0) throw new Error("NO_PLAYER");
 
       const dates = computeDates();
       const testMeta = JSON.stringify(
@@ -160,12 +220,23 @@ export function PlanTestsDialog({
           result_unit: t.unit,
         }))
       );
+
+      // Targeted players metadata (empty array = all athletes of the category)
+      const targetPlayers = audience === "selection" ? selectedPlayerIds : [];
+      const playersMeta = JSON.stringify(targetPlayers);
+
       const recurrenceLabel = RECURRENCE_OPTIONS.find((o) => o.value === recurrence)?.label || "";
       const baseNote = notes.trim();
+      const audienceLabel =
+        audience === "all"
+          ? "👥 Tous les athlètes"
+          : `👥 ${selectedPlayerIds.length} athlète(s) ciblé(s)`;
       const fullNote =
         `${baseNote ? baseNote + "\n\n" : ""}` +
         `📋 ${selectedTests.length} test(s) planifié(s)${recurrence !== "once" ? ` — ${recurrenceLabel}` : ""}` +
-        `\n<!--TESTS:${testMeta}-->`;
+        `\n${audienceLabel}` +
+        `\n<!--TESTS:${testMeta}-->` +
+        `\n<!--TEST_PLAYERS:${playersMeta}-->`;
 
       const rows = dates.map((d) => ({
         category_id: categoryId,
@@ -194,7 +265,6 @@ export function PlanTestsDialog({
           ? `Test planifié au calendrier`
           : `${count} séances de tests planifiées au calendrier`
       );
-      // Notify athletes for each created session
       data?.forEach((s: any) => {
         notify({
           action: "created",
@@ -205,14 +275,16 @@ export function PlanTestsDialog({
           sessionType: "test",
         });
       });
-      // Reset & close
       setSelectedTestKeys([]);
+      setSelectedPlayerIds([]);
+      setAudience("all");
       setNotes("");
       onOpenChange(false);
     },
     onError: (e: any) => {
       if (e?.message === "NO_TEST") return toast.error("Sélectionnez au moins un test");
       if (e?.message === "NO_DATE") return toast.error("Choisissez une date de départ");
+      if (e?.message === "NO_PLAYER") return toast.error("Sélectionnez au moins un athlète");
       toast.error("Erreur lors de la planification");
     },
   });
@@ -226,16 +298,15 @@ export function PlanTestsDialog({
             Planifier des tests dans le calendrier
           </DialogTitle>
           <DialogDescription>
-            Choisissez les tests, la date de départ et la récurrence. Les séances seront ajoutées
-            au calendrier global et au calendrier des athlètes.
+            Choisissez les tests par catégorie, la date / récurrence, et les athlètes concernés.
           </DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="flex-1 px-6 py-4">
           <div className="space-y-6">
-            {/* === TESTS SELECTION === */}
+            {/* === TESTS SELECTION (Accordion) === */}
             <section className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
                 <Label className="text-base font-semibold">
                   Tests à planifier
                   {selectedTests.length > 0 && (
@@ -255,46 +326,75 @@ export function PlanTestsDialog({
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border bg-[hsl(var(--surface-sunken))] max-h-72 overflow-y-auto p-3 space-y-4">
+              <div className="rounded-xl border border-border bg-[hsl(var(--surface-sunken))] p-2">
                 {groupedTests.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-6">
                     Aucun test disponible. Créez d'abord un test personnalisé.
                   </p>
                 ) : (
-                  groupedTests.map(([catLabel, tests]) => (
-                    <div key={catLabel} className="space-y-1.5">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        {catLabel}
-                      </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                        {tests.map((t) => {
-                          const key = `${t.category}::${t.type}`;
-                          const checked = selectedTestKeys.includes(key);
-                          return (
-                            <label
-                              key={key}
-                              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition-all ${
-                                checked
-                                  ? "border-primary bg-primary/10 shadow-sm"
-                                  : "border-border bg-surface hover:border-border-strong hover:bg-secondary/40"
-                              }`}
-                            >
-                              <Checkbox
-                                checked={checked}
-                                onCheckedChange={() => toggleTest(key)}
-                              />
-                              <span className="flex-1 min-w-0 truncate">
-                                <span className="font-medium">{t.typeLabel}</span>
-                                {t.unit && (
-                                  <span className="text-muted-foreground ml-1">({t.unit})</span>
-                                )}
+                  <Accordion
+                    type="single"
+                    collapsible
+                    value={openCategory}
+                    onValueChange={setOpenCategory}
+                    className="space-y-1"
+                  >
+                    {groupedTests.map(([catLabel, tests]) => {
+                      const count = selectedCountByCategory[catLabel] || 0;
+                      return (
+                        <AccordionItem
+                          key={catLabel}
+                          value={catLabel}
+                          className="border border-border rounded-lg bg-card overflow-hidden"
+                        >
+                          <AccordionTrigger className="px-3 py-2.5 hover:no-underline hover:bg-secondary/40 [&[data-state=open]]:bg-secondary/60">
+                            <div className="flex items-center gap-2 flex-1">
+                              <span className="text-sm font-semibold uppercase tracking-wide">
+                                {catLabel}
                               </span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))
+                              <Badge variant="outline" className="text-xs">
+                                {tests.length}
+                              </Badge>
+                              {count > 0 && (
+                                <Badge variant="default" className="text-xs">
+                                  {count} sélect.
+                                </Badge>
+                              )}
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="px-3 pb-3 pt-1">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                              {tests.map((t) => {
+                                const key = `${t.category}::${t.type}`;
+                                const checked = selectedTestKeys.includes(key);
+                                return (
+                                  <label
+                                    key={key}
+                                    className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition-all ${
+                                      checked
+                                        ? "border-primary bg-primary/10 shadow-sm"
+                                        : "border-border bg-surface hover:border-border-strong hover:bg-secondary/40"
+                                    }`}
+                                  >
+                                    <Checkbox
+                                      checked={checked}
+                                      onCheckedChange={() => toggleTest(key)}
+                                    />
+                                    <span className="flex-1 min-w-0 truncate">
+                                      <span className="font-medium">{t.typeLabel}</span>
+                                      {t.unit && (
+                                        <span className="text-muted-foreground ml-1">({t.unit})</span>
+                                      )}
+                                    </span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      );
+                    })}
+                  </Accordion>
                 )}
               </div>
             </section>
@@ -381,7 +481,6 @@ export function PlanTestsDialog({
                 </div>
               )}
 
-              {/* PREVIEW */}
               <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
                 <p className="text-xs font-semibold text-primary mb-1.5">
                   📅 Aperçu — {totalSessions} séance{totalSessions > 1 ? "s" : ""} sera{totalSessions > 1 ? "ont" : ""} créée{totalSessions > 1 ? "s" : ""}
@@ -397,6 +496,105 @@ export function PlanTestsDialog({
                   )}
                 </div>
               </div>
+            </section>
+
+            {/* === ATHLETES === */}
+            <section className="space-y-3">
+              <Label className="text-base font-semibold flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" />
+                Athlètes concernés
+              </Label>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAudience("all")}
+                  className={`text-left rounded-xl border px-3 py-2 transition-all ${
+                    audience === "all"
+                      ? "border-primary bg-primary/10 shadow-sm"
+                      : "border-border bg-surface hover:border-border-strong"
+                  }`}
+                >
+                  <p className="text-sm font-semibold">Tous les athlètes</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Toute la catégorie ({players.length})
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAudience("selection")}
+                  className={`text-left rounded-xl border px-3 py-2 transition-all ${
+                    audience === "selection"
+                      ? "border-primary bg-primary/10 shadow-sm"
+                      : "border-border bg-surface hover:border-border-strong"
+                  }`}
+                >
+                  <p className="text-sm font-semibold">Sélection ciblée</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {selectedPlayerIds.length > 0
+                      ? `${selectedPlayerIds.length} athlète(s) sélectionné(s)`
+                      : "Choisir manuellement"}
+                  </p>
+                </button>
+              </div>
+
+              {audience === "selection" && (
+                <div className="rounded-xl border border-border bg-[hsl(var(--surface-sunken))] p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Rechercher un athlète…"
+                        value={playerSearch}
+                        onChange={(e) => setPlayerSearch(e.target.value)}
+                        className="pl-8 h-9"
+                      />
+                    </div>
+                    <Button type="button" variant="outline" size="sm" onClick={togglePlayersAll}>
+                      {selectedPlayerIds.length === filteredPlayers.length && filteredPlayers.length > 0
+                        ? "Tout désélectionner"
+                        : "Tout sélectionner"}
+                    </Button>
+                  </div>
+
+                  <div className="max-h-56 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                    {filteredPlayers.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4 col-span-full">
+                        Aucun athlète trouvé
+                      </p>
+                    ) : (
+                      filteredPlayers.map((p: any) => {
+                        const checked = selectedPlayerIds.includes(p.id);
+                        return (
+                          <label
+                            key={p.id}
+                            className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition-all ${
+                              checked
+                                ? "border-primary bg-primary/10"
+                                : "border-border bg-surface hover:border-border-strong"
+                            }`}
+                          >
+                            <Checkbox
+                              checked={checked}
+                              onCheckedChange={() => togglePlayer(p.id)}
+                            />
+                            <span className="flex-1 min-w-0 truncate">
+                              <span className="font-medium">
+                                {p.first_name} {p.name}
+                              </span>
+                              {p.position && (
+                                <span className="text-muted-foreground ml-1 text-xs">
+                                  ({p.position})
+                                </span>
+                              )}
+                            </span>
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
             </section>
 
             {/* === NOTES === */}
