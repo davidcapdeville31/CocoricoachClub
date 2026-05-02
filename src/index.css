@@ -970,3 +970,74 @@ a[class*="bg-destructive"] { color: hsl(var(--destructive-foreground)); }
 button[class*="variant-ghost"],
 button[class*="variant-outline"] { color: hsl(var(--foreground)); }
 
+
+/* ============================================================
+   NAV-THEMED SECTIONS
+   When a tab content is wrapped in <NavThemedSection colorKey="...">,
+   its primary / destructive / red-ish action buttons adopt the active
+   tab's colour for visual coherence.
+   --nav-color, --nav-color-hover, --nav-color-fg are set by the wrapper.
+   ============================================================ */
+
+/* Repaint shadcn primary / destructive button variants */
+.nav-themed button[class*="bg-primary"]:not([class*="bg-primary/"]),
+.nav-themed a[class*="bg-primary"]:not([class*="bg-primary/"]),
+.nav-themed button[class*="bg-destructive"]:not([class*="bg-destructive/"]),
+.nav-themed a[class*="bg-destructive"]:not([class*="bg-destructive/"]) {
+  background-color: hsl(var(--nav-color)) !important;
+  color: hsl(var(--nav-color-fg)) !important;
+  border-color: transparent !important;
+}
+.nav-themed button[class*="bg-primary"]:hover,
+.nav-themed a[class*="bg-primary"]:hover,
+.nav-themed button[class*="bg-destructive"]:hover,
+.nav-themed a[class*="bg-destructive"]:hover {
+  background-color: hsl(var(--nav-color-hover)) !important;
+}
+
+/* Repaint hardcoded red / brand action buttons (legacy) */
+.nav-themed button[class*="bg-red-5"],
+.nav-themed button[class*="bg-red-6"],
+.nav-themed button[class*="bg-red-7"],
+.nav-themed a[class*="bg-red-5"],
+.nav-themed a[class*="bg-red-6"],
+.nav-themed a[class*="bg-red-7"],
+.nav-themed button[class*="bg-rose-5"],
+.nav-themed button[class*="bg-rose-6"],
+.nav-themed a[class*="bg-rose-5"],
+.nav-themed a[class*="bg-rose-6"] {
+  background-color: hsl(var(--nav-color)) !important;
+  color: hsl(var(--nav-color-fg)) !important;
+}
+
+/* Icons inside repainted buttons follow the foreground colour */
+.nav-themed button[class*="bg-primary"] svg,
+.nav-themed button[class*="bg-destructive"] svg,
+.nav-themed a[class*="bg-primary"] svg,
+.nav-themed a[class*="bg-destructive"] svg,
+.nav-themed button[class*="bg-red-"] svg,
+.nav-themed button[class*="bg-rose-"] svg {
+  color: hsl(var(--nav-color-fg)) !important;
+}
+
+/* Sub-tab triggers (active state) — adopt nav colour as accent */
+.nav-themed [role="tab"][data-state="active"] {
+  color: hsl(var(--nav-color-fg)) !important;
+}
+.nav-themed [role="tab"][data-state="active"]::before,
+.nav-themed [role="tab"][data-state="active"] > span:first-child {
+  background-color: hsl(var(--nav-color)) !important;
+}
+
+/* Focus rings inside themed sections use the nav colour */
+.nav-themed *:focus-visible {
+  outline-color: hsl(var(--nav-color)) !important;
+}
+
+/* Links / accent text within themed area */
+.nav-themed .text-primary:not([class*="bg-"]) {
+  color: hsl(var(--nav-color)) !important;
+}
+
+/* Exception: keep semantic warning/success buttons untouched.
+   We only target primary + destructive + raw red, NOT bg-warning / bg-success / bg-yellow / bg-green. */
