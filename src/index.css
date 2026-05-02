@@ -124,50 +124,51 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Dark mode - maintain institutional feel */
-    --background: 214 40% 10%;
-    --foreground: 214 15% 92%;
+    /* Dark mode - improved contrast hierarchy
+       background (deepest) < card/popover < muted < secondary < border */
+    --background: 220 25% 7%;
+    --foreground: 210 20% 96%;
 
-    --card: 214 35% 14%;
-    --card-foreground: 214 15% 92%;
+    --card: 220 22% 12%;
+    --card-foreground: 210 20% 96%;
 
-    --popover: 214 35% 14%;
-    --popover-foreground: 214 15% 92%;
+    --popover: 220 22% 13%;
+    --popover-foreground: 210 20% 96%;
 
-    --primary: 188 76% 45%;
-    --primary-foreground: 214 70% 10%;
+    --primary: 188 76% 50%;
+    --primary-foreground: 220 30% 8%;
 
-    --secondary: 214 30% 20%;
-    --secondary-foreground: 214 15% 92%;
+    --secondary: 220 20% 20%;
+    --secondary-foreground: 210 20% 96%;
 
-    --muted: 214 25% 18%;
-    --muted-foreground: 214 15% 60%;
+    --muted: 220 18% 16%;
+    --muted-foreground: 215 18% 70%;
 
-    --accent: 188 76% 50%;
-    --accent-foreground: 214 70% 10%;
+    --accent: 188 76% 52%;
+    --accent-foreground: 220 30% 8%;
 
-    --destructive: 0 72% 55%;
+    --destructive: 0 75% 58%;
     --destructive-foreground: 0 0% 100%;
 
-    --warning: 32 89% 55%;
-    --warning-foreground: 0 0% 100%;
+    --warning: 32 92% 58%;
+    --warning-foreground: 220 30% 8%;
 
     /* Status colors */
-    --status-optimal: 188 76% 50%;
-    --status-attention: 32 89% 60%;
-    --status-critical: 0 72% 55%;
+    --status-optimal: 160 60% 50%;
+    --status-attention: 32 92% 60%;
+    --status-critical: 0 75% 58%;
     
     /* Risk gradient colors */
-    --risk-low: 160 60% 48%;
-    --risk-medium: 32 89% 60%;
-    --risk-high: 0 72% 55%;
+    --risk-low: 160 60% 50%;
+    --risk-medium: 32 92% 60%;
+    --risk-high: 0 75% 58%;
 
-    --success: 160 60% 48%;
-    --success-foreground: 0 0% 100%;
+    --success: 160 60% 50%;
+    --success-foreground: 220 30% 8%;
 
-    --border: 214 30% 22%;
-    --input: 214 30% 22%;
-    --ring: 188 76% 50%;
+    --border: 220 18% 28%;
+    --input: 220 18% 24%;
+    --ring: 188 76% 52%;
     
     --gradient-hero: linear-gradient(135deg, hsl(214 50% 18%), hsl(214 45% 25%));
     --gradient-card: linear-gradient(180deg, hsl(214 35% 14%), hsl(214 35% 16%));
