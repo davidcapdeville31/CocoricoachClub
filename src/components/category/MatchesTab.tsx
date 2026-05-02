@@ -129,14 +129,14 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
     <div className="space-y-6">
       <Tabs defaultValue="matches" className="w-full">
         <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
-          <ColoredSubTabsList colorKey="competition" className="inline-flex w-max">
-            <ColoredSubTabsTrigger value="matches" colorKey="competition" icon={<Calendar className="h-4 w-4" />}>
+          <ColoredSubTabsList colorKey="competition" className="inline-flex w-max p-0.5">
+            <ColoredSubTabsTrigger value="matches" colorKey="competition" icon={<Calendar className="h-3 w-3" />} className="text-[11px] px-2 py-1">
               Gestion
             </ColoredSubTabsTrigger>
-            <ColoredSubTabsTrigger value="stats" colorKey="competition" icon={<BarChart3 className="h-4 w-4" />}>
-              Stats compétition
+            <ColoredSubTabsTrigger value="stats" colorKey="competition" icon={<BarChart3 className="h-3 w-3" />} className="text-[11px] px-2 py-1">
+              Stats
             </ColoredSubTabsTrigger>
-            <ColoredSubTabsTrigger value="photos" colorKey="competition" icon={<Camera className="h-4 w-4" />}>
+            <ColoredSubTabsTrigger value="photos" colorKey="competition" icon={<Camera className="h-3 w-3" />} className="text-[11px] px-2 py-1">
               Photos
             </ColoredSubTabsTrigger>
           </ColoredSubTabsList>
