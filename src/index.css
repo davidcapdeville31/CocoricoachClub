@@ -669,3 +669,89 @@ All colors MUST be HSL.
 
 /* Subtle sheen / overlays bg-white/5..30 stay translucent (they layer over
    colored backdrops and remain visually correct in dark mode). */
+
+/* ============================================================
+   PREMIUM SURFACE UTILITIES
+   3-level visual hierarchy reusable everywhere
+   ============================================================ */
+@layer utilities {
+  .surface-base       { background-color: hsl(var(--background)); }
+  .surface-card       { background-color: hsl(var(--surface)); border: 1px solid hsl(var(--border) / 0.7); }
+  .surface-elevated   { background-color: hsl(var(--surface-elevated)); border: 1px solid hsl(var(--border) / 0.7); box-shadow: var(--shadow-md); }
+  .surface-sunken     { background-color: hsl(var(--surface-sunken)); border: 1px solid hsl(var(--border) / 0.5); }
+
+  /* Premium card preset — drop-in for "hero" KPI cards */
+  .card-premium {
+    background-image: linear-gradient(180deg, hsl(var(--surface)), hsl(var(--surface-elevated)));
+    border: 1px solid hsl(var(--border) / 0.7);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    transition: var(--transition-smooth);
+  }
+  .card-premium:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+
+  /* Branded tinted surface — for highlight sections */
+  .surface-brand {
+    background-image: linear-gradient(135deg, hsl(var(--brand-50)), hsl(var(--surface)));
+    border: 1px solid hsl(var(--brand-200) / 0.6);
+  }
+  .dark .surface-brand {
+    background-image: linear-gradient(135deg, hsl(var(--brand-900) / 0.4), hsl(var(--surface)));
+    border-color: hsl(var(--primary) / 0.25);
+  }
+
+  /* Section dividers for visual hierarchy in long pages */
+  .section-divider {
+    background-image: linear-gradient(90deg, transparent, hsl(var(--border)), transparent);
+    height: 1px;
+  }
+}
+
+/* ============================================================
+   LIGHT MODE — give depth to flat areas
+   Prevent the "all-white" feeling by softening pure white
+   container backgrounds inside the page (NOT inside cards).
+   ============================================================ */
+:root body { background-color: hsl(var(--background)); }
+
+/* Anchor "main" section to background, never pure white */
+main, [role="main"] { background-color: transparent; }
+
+/* ============================================================
+   DARK MODE EXTRA SAFETY
+   ============================================================ */
+.dark .bg-gray-50,
+.dark .bg-gray-100,
+.dark .bg-slate-50,
+.dark .bg-slate-100,
+.dark .bg-neutral-50,
+.dark .bg-neutral-100,
+.dark .bg-zinc-50,
+.dark .bg-zinc-100 {
+  background-color: hsl(var(--surface-elevated)) !important;
+}
+
+/* Pure black text inside dark mode → readable foreground */
+.dark .text-black:not([class*="text-black/"]) { color: hsl(var(--foreground)) !important; }
+
+/* Generic gray text often used on dark sections — boost readability */
+.dark .text-gray-500,
+.dark .text-gray-600,
+.dark .text-slate-500,
+.dark .text-slate-600,
+.dark .text-neutral-500,
+.dark .text-neutral-600,
+.dark .text-zinc-500,
+.dark .text-zinc-600 {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+/* Common border combinations that lose contrast in dark */
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-neutral-100,
+.dark .border-neutral-200 {
+  border-color: hsl(var(--border)) !important;
+}
