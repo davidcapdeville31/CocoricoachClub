@@ -259,6 +259,48 @@ export function SessionDetailsDialog({
     enabled: open && !!sessionId,
   });
 
+  // Fetch event participants (used for tests / scheduled events)
+  const { data: eventParticipants } = useQuery({
+    queryKey: ["session-event-participants", sessionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_participants")
+        .select("player_id, players(id, name, first_name)")
+        .eq("training_session_id", sessionId);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!sessionId,
+  });
+
+  // Parse tests metadata embedded in notes (<!--TESTS:[...]-->)
+  const testsMeta = useMemo(() => {
+    if (!session?.notes) return [] as Array<{
+      test_category: string;
+      test_type: string;
+      result_unit?: string;
+    }>;
+    const m = session.notes.match(/<!--TESTS:(.*?)-->/);
+    if (!m) return [];
+    try {
+      const parsed = JSON.parse(m[1]);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }, [session?.notes]);
+
+  const isTestSession = session?.training_type === "test";
+
+  const getTestLabel = (cat: string, type: string) => {
+    const c = TEST_CATEGORIES.find((x: any) => x.value === cat);
+    const t = c?.tests.find((x: any) => x.value === type);
+    return {
+      categoryLabel: c?.label || cat,
+      testLabel: t?.label || type,
+    };
+  };
+
   // Calculate AWCR for a player
   const calculateAWCR = async (playerId: string, sessionDateStr: string, newLoad: number) => {
     const sevenDaysAgo = new Date(sessionDateStr);
