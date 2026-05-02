@@ -57,7 +57,7 @@ export function SessionFeedbackDialog({
   const [rpeValues, setRpeValues] = useState<Record<string, { rpe: string; duration: string }>>({});
   const [sessionTests, setSessionTests] = useState<SessionTest[]>([]);
   const [weightLogs, setWeightLogs] = useState<Record<string, Record<string, { weight: string; sets: string; reps: string }>>>({});
-  const [activeTab, setActiveTab] = useState(sessionType === "test" ? "tests" : sessionType === "precision" ? "precision" : "rpe");
+  const [activeTab, setActiveTab] = useState(sessionType === "precision" ? "precision" : "rpe");
   const queryClient = useQueryClient();
 
   // Fetch category to get sport type
@@ -263,7 +263,7 @@ export function SessionFeedbackDialog({
       setRpeValues({});
       setSessionTests([]);
       setWeightLogs({});
-      setActiveTab(sessionType === "test" ? "tests" : sessionType === "precision" ? "precision" : "rpe");
+      setActiveTab(sessionType === "precision" ? "precision" : "rpe");
     }
   }, [open, sessionType]);
 
@@ -624,20 +624,6 @@ export function SessionFeedbackDialog({
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="tests" className="flex-1 gap-2">
-              <ClipboardCheck className="h-4 w-4" />
-              Tests
-              {savedTestResultsCount > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs bg-muted text-muted-foreground">
-                  ✓ {savedTestResultsCount}
-                </Badge>
-              )}
-              {testResultsCount > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs bg-emerald-100 text-emerald-700">
-                  +{testResultsCount}
-                </Badge>
-              )}
-            </TabsTrigger>
           </TabsList>
 
           {/* Precision tab */}
@@ -716,159 +702,6 @@ export function SessionFeedbackDialog({
             </div>
           </TabsContent>
 
-          <TabsContent value="tests" className="flex-1 flex flex-col min-h-0 mt-4">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm text-muted-foreground">
-                Ajoutez des résultats de tests réalisés pendant la séance
-              </p>
-              <Button
-                type="button"
-                onClick={addTest}
-                variant="outline"
-                size="sm"
-                className="border-emerald-500 text-emerald-600 hover:bg-emerald-50"
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Ajouter test
-              </Button>
-            </div>
-
-            <div className="flex-1 min-h-0 overflow-y-auto pr-2" style={{ maxHeight: "calc(90vh - 240px)" }}>
-              {sessionTests.length === 0 ? (
-                <div className="border-2 border-dashed border-emerald-500/30 rounded-xl p-6 bg-emerald-500/5 text-center">
-                  <ClipboardCheck className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    Aucun test ajouté. Cliquez sur "Ajouter test" pour enregistrer des résultats.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {sessionTests.map((test, idx) => {
-                    const currentCategory = testCategories.find(c => c.value === test.test_category);
-                    const savedCount = test.savedPlayerIds?.size || 0;
-                    const newFilledCount = Object.entries(test.player_results).filter(([pid, v]) => v && v.trim() !== "" && !test.savedPlayerIds?.has(pid)).length;
-
-                    return (
-                      <div
-                        key={test.id}
-                        className="border-2 rounded-xl border-emerald-500/30 bg-background p-4 space-y-3"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-xs">
-                              {idx + 1}
-                            </div>
-                            {test.test_type && savedCount > 0 && (
-                              <Badge variant="outline" className="text-xs bg-muted text-muted-foreground">
-                                ✓ {savedCount} enregistré(s)
-                              </Badge>
-                            )}
-                            {test.test_type && newFilledCount > 0 && (
-                              <Badge variant="outline" className="text-xs border-emerald-300 text-emerald-600">
-                                +{newFilledCount} nouveau(x)
-                              </Badge>
-                            )}
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeTest(test.id)}
-                            disabled={test.isPreselected}
-                            className="h-7 w-7 text-destructive disabled:opacity-30"
-                            title={test.isPreselected ? "Test prédéfini lors de la création de la séance" : "Supprimer"}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <Select
-                            value={test.test_category}
-                            onValueChange={(v) => handleTestCategoryChange(test.id, v)}
-                            disabled={test.isPreselected}
-                          >
-                            <SelectTrigger className="h-9 disabled:opacity-70 disabled:cursor-not-allowed">
-                              <SelectValue placeholder="Catégorie..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {testCategories.map((cat) => (
-                                <SelectItem key={cat.value} value={cat.value}>
-                                  {cat.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-
-                          <Select
-                            value={test.test_type}
-                            onValueChange={(v) => handleTestTypeChange(test.id, v)}
-                            disabled={!test.test_category || test.isPreselected}
-                          >
-                            <SelectTrigger className="h-9 disabled:opacity-70 disabled:cursor-not-allowed">
-                              <SelectValue placeholder="Type..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {currentCategory?.tests.map((t) => (
-                                <SelectItem key={t.value} value={t.value}>
-                                  {t.label} {t.unit && `(${t.unit})`}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        {test.test_type && playersForTests.length > 0 && (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {playersForTests.map((player) => {
-                              const isSaved = test.savedPlayerIds?.has(player.id) || false;
-                              const hasValue = !!test.player_results[player.id];
-                              return (
-                                <div
-                                  key={player.id}
-                                  className={cn(
-                                    "flex items-center gap-2 p-2 rounded-lg border min-w-0",
-                                    isSaved
-                                      ? "border-muted bg-muted/60 opacity-60"
-                                      : hasValue
-                                        ? "border-emerald-300 bg-emerald-50/50"
-                                        : "border-border"
-                                  )}
-                                >
-                                  <Avatar className="h-6 w-6 shrink-0">
-                                    <AvatarImage src={player.avatar_url || undefined} />
-                                    <AvatarFallback className="text-[10px]">
-                                      {(player.first_name || player.name).slice(0, 2).toUpperCase()}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <span className="text-sm font-medium flex-1 min-w-0 truncate">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
-                                  {isSaved ? (
-                                    <span className="text-xs font-medium text-muted-foreground shrink-0">
-                                      ✓ {test.player_results[player.id]} {test.result_unit}
-                                    </span>
-                                  ) : (
-                                    <Input
-                                      type="number"
-                                      step="0.01"
-                                      placeholder={test.result_unit || "val"}
-                                      className="h-9 w-20 shrink-0 text-sm font-medium"
-                                      value={test.player_results[player.id] || ""}
-                                      onChange={(e) => updatePlayerTestResult(test.id, player.id, e.target.value)}
-                                      onBlur={(e) => autosaveTestResult(test.id, player.id, e.target.value)}
-                                    />
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </TabsContent>
         </Tabs>
 
         <div className="flex justify-end gap-2 pt-4 border-t">
