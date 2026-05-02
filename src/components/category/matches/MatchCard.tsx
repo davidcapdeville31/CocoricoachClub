@@ -369,7 +369,42 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
 
   return (
     <>
-      <div className={`p-4 rounded-lg border transition-colors ${isTrainingMatch ? 'bg-muted/50 border-muted opacity-75' : resultClass ? resultClass : isFinalized ? 'border-primary/50 bg-primary/5' : 'bg-card hover:bg-accent/5'}`}>
+      <div className={`${compact ? 'p-2.5' : 'p-4'} rounded-lg border transition-colors ${isTrainingMatch ? 'bg-muted/50 border-muted opacity-75' : resultClass ? resultClass : isFinalized ? 'border-primary/50 bg-primary/5' : 'bg-card hover:bg-accent/5'}`}>
+        {compact && (
+          <button
+            type="button"
+            onClick={() => setIsExpanded((v) => !v)}
+            className="w-full flex items-center justify-between gap-3 text-left"
+          >
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              {isFinalized && <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />}
+              {!isIndividual && (
+                match.is_home
+                  ? <Home className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  : <Plane className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              )}
+              <span className="font-medium text-sm truncate">
+                {isIndividual
+                  ? (match.competition || match.opponent || "Compétition")
+                  : `${match.is_home ? "vs" : "@"} ${match.opponent}`}
+              </span>
+              <span className="text-xs text-muted-foreground whitespace-nowrap hidden sm:inline">
+                {format(matchDate, "d MMM yyyy", { locale: fr })}
+                {match.match_time && ` · ${match.match_time.slice(0, 5)}`}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {!isIndividual && match.score_home !== null && match.score_away !== null && (
+                <span className="font-bold text-sm tabular-nums">
+                  {match.score_home}-{match.score_away}
+                </span>
+              )}
+              {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+            </div>
+          </button>
+        )}
+        {isExpanded && (
+        <div className={compact ? 'mt-3' : ''}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
