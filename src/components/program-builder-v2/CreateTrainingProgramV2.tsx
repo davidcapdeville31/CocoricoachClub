@@ -268,6 +268,7 @@ export function CreateTrainingProgramV2({
       difficultyLevel: (existingProgram.level as V2ProgramDraft["difficultyLevel"]) ?? "intermediate",
       daysPerWeek: maxDays,
       weeks: v2Weeks.length > 0 ? v2Weeks : [buildEmptyWeek(1, 3)],
+      themeId: (existingProgram as any).theme_id ?? null,
     };
     setDraft(hydratedDraft);
     setActiveWeek(hydratedDraft.weeks[0]?.weekNumber ?? 1);
