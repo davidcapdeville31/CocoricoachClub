@@ -25,6 +25,8 @@ import { sleepScoreLabel } from "@/lib/sleepConversion";
 
 interface WellnessTabProps {
   categoryId: string;
+  /** Restrict view to a single section. When omitted, all sub-tabs are shown. */
+  view?: "tracking" | "pain-stats" | "risk";
 }
 
 const getScoreBadgeClass = (score: number) => {
@@ -33,7 +35,7 @@ const getScoreBadgeClass = (score: number) => {
   return "bg-status-critical/15 text-status-critical border-status-critical/30";
 };
 
-export function WellnessTab({ categoryId }: WellnessTabProps) {
+export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterFrom, setFilterFrom] = useState<Date | undefined>(new Date());
   const [filterTo, setFilterTo] = useState<Date | undefined>(new Date());
@@ -117,17 +119,19 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="tracking" className="space-y-4">
-        <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
-          <ColoredSubTabsList colorKey="sante" className="inline-flex w-max">
-            <ColoredSubTabsTrigger value="tracking" colorKey="sante">Suivi Wellness</ColoredSubTabsTrigger>
-            <ColoredSubTabsTrigger value="pain-stats" colorKey="sante">Statistiques Douleurs</ColoredSubTabsTrigger>
-            <ColoredSubTabsTrigger value="risk" colorKey="sante">Risque Blessure (EWMA + AWCR + Wellness)</ColoredSubTabsTrigger>
-            {isFeminine && (
-              <ColoredSubTabsTrigger value="menstrual" colorKey="sante">Cycle Menstruel</ColoredSubTabsTrigger>
-            )}
-          </ColoredSubTabsList>
-        </div>
+      <Tabs value={view ?? undefined} defaultValue={view ?? "tracking"} className="space-y-4">
+        {!view && (
+          <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
+            <ColoredSubTabsList colorKey="sante" className="inline-flex w-max">
+              <ColoredSubTabsTrigger value="tracking" colorKey="sante">Suivi Wellness</ColoredSubTabsTrigger>
+              <ColoredSubTabsTrigger value="pain-stats" colorKey="sante">Statistiques Douleurs</ColoredSubTabsTrigger>
+              <ColoredSubTabsTrigger value="risk" colorKey="sante">Risque Blessure (EWMA + AWCR + Wellness)</ColoredSubTabsTrigger>
+              {isFeminine && (
+                <ColoredSubTabsTrigger value="menstrual" colorKey="sante">Cycle Menstruel</ColoredSubTabsTrigger>
+              )}
+            </ColoredSubTabsList>
+          </div>
+        )}
 
         <TabsContent value="tracking">
           <Card>
