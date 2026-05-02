@@ -57,14 +57,14 @@ All colors MUST be HSL.
        SEMANTIC — Light theme — 3-level surface hierarchy
        background < surface < surface-elevated
        ============================================================ */
-    --background: 220 30% 97%;            /* page bg #F4F6FB */
+    --background: 220 28% 95%;            /* page bg — visibly cooler than cards */
     --foreground: 222 24% 12%;
 
     --surface: 0 0% 100%;
     --surface-foreground: 222 24% 12%;
-    --surface-elevated: 220 30% 99%;
+    --surface-elevated: 0 0% 100%;
     --surface-elevated-foreground: 222 24% 12%;
-    --surface-sunken: 220 25% 94%;
+    --surface-sunken: 220 24% 91%;
 
     --card: 0 0% 100%;
     --card-foreground: 222 24% 12%;
