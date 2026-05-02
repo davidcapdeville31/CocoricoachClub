@@ -7,6 +7,7 @@ import { ColoredSubTabsList, ColoredSubTabsTrigger, ColoredContentCard, ColoredC
 import { Calendar as CalendarIcon, Target, BarChart3, Dumbbell, LayoutGrid } from "lucide-react";
 import { toast } from "sonner";
 import { SessionFormDialog } from "./sessions/SessionFormDialog";
+import { SessionEditorV2 } from "@/components/program-builder-v2/SessionEditorV2";
 import { AddMatchCalendarDialog } from "./matches/AddMatchCalendarDialog";
 
 import { SessionDetailsDialog } from "./SessionDetailsDialog";
@@ -383,17 +384,19 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         )}
       </Tabs>
 
-      {/* New Session Dialog with optional default date */}
-      <SessionFormDialog
+      {/* New Session Dialog (V2 builder) with optional default date */}
+      <SessionEditorV2
         open={isAddDialogOpen}
-        onOpenChange={(open) => {
-          setIsAddDialogOpen(open);
-          if (!open) setAddSessionDate(undefined);
+        onClose={() => {
+          setIsAddDialogOpen(false);
+          setAddSessionDate(undefined);
         }}
         categoryId={categoryId}
         defaultDate={addSessionDate}
       />
 
+
+      
       <AddMatchCalendarDialog
         open={isAddMatchDialogOpen}
         onOpenChange={(open) => {

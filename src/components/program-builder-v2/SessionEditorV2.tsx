@@ -21,6 +21,7 @@ interface SessionEditorV2Props {
   open: boolean;
   onClose: () => void;
   categoryId: string;
+  defaultDate?: string;
 }
 
 const todayIso = () => format(new Date(), "yyyy-MM-dd");
@@ -30,7 +31,7 @@ const todayIso = () => format(new Date(), "yyyy-MM-dd");
  * Mirrors the program builder V2 experience but persists directly into
  * `training_sessions` + `gym_session_exercises` for one team-wide session.
  */
-export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Props) {
+export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: SessionEditorV2Props) {
   const queryClient = useQueryClient();
 
   const [weekNumber] = useState(1);
@@ -54,7 +55,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
     if (open) {
       setDayName("Séance 1");
       setDayOfWeek("");
-      setSessionDate(todayIso());
+      setSessionDate(defaultDate || todayIso());
       setBlocks([]);
       setSavedSnapshot(null);
       setActiveBlock(null);
