@@ -97,6 +97,8 @@ export function SessionFeedbackDialog({
 
   // Calculate default duration from session times
   const defaultDuration = useMemo(() => {
+    // For test sessions, duration has no meaning — use 1 so trainingLoad = rpe
+    if (sessionType === "test") return 1;
     if (session?.session_start_time && session?.session_end_time) {
       const start = session.session_start_time.split(":");
       const end = session.session_end_time.split(":");
@@ -105,7 +107,7 @@ export function SessionFeedbackDialog({
       return Math.max(0, endMinutes - startMinutes);
     }
     return 60; // Default 60 minutes if no times set
-  }, [session]);
+  }, [session, sessionType]);
 
   // Fetch players
   const { data: players } = useQuery({
