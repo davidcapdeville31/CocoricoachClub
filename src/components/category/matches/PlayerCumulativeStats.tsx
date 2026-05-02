@@ -67,7 +67,7 @@ interface CumulativeStats {
   position?: string;
 }
 
-export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: fixedPlayerId }: PlayerCumulativeStatsProps) {
+export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: fixedPlayerId, showTeamView = false }: PlayerCumulativeStatsProps) {
   const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>(fixedPlayerId || "");
