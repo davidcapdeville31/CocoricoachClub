@@ -594,7 +594,7 @@ All colors MUST be HSL.
 }
 
 .colored-tab-trigger {
-  color: color-mix(in srgb, var(--tab-color) 88%, white 12%) !important;
+  color: var(--tab-ink, color-mix(in srgb, var(--tab-color) 88%, white 12%)) !important;
 }
 
 .colored-tab-trigger .colored-tab-text,
@@ -618,8 +618,8 @@ All colors MUST be HSL.
 }
 
 .dark .colored-tab-trigger {
-  color: color-mix(in srgb, var(--tab-color) 38%, white 62%) !important;
-  background-color: color-mix(in srgb, var(--tab-color) 10%, hsl(var(--surface-elevated)) 90%) !important;
+  color: var(--tab-ink-dark, color-mix(in srgb, var(--tab-color) 38%, white 62%)) !important;
+  background-color: var(--tab-soft-bg-dark, color-mix(in srgb, var(--tab-color) 10%, hsl(var(--surface-elevated)) 90%)) !important;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tab-color) 24%, transparent) !important;
 }
 
@@ -650,6 +650,14 @@ All colors MUST be HSL.
   color: hsl(var(--foreground)) !important;
   background-color: hsl(var(--surface-elevated)) !important;
   box-shadow: inset 0 0 0 1px hsl(var(--border) / 0.8) !important;
+}
+
+.dark .colored-tab-trigger .colored-tab-text,
+.dark .colored-tab-trigger .colored-tab-text span,
+.dark .colored-tab-trigger svg,
+.dark .athlete-tab span,
+.dark .athlete-tab svg {
+  color: inherit !important;
 }
 
 .dark [role="tab"][data-state="active"][style*="--tab-accent"] {
