@@ -557,7 +557,11 @@ export function CreateTrainingProgramV2({
           )}
         </div>
         <aside className="hidden md:flex flex-col w-[340px] border-l border-border/60 bg-muted/20">
-          <V2ExerciseBankSidebar onClickInsert={handleProgramClickInsert} />
+          <V2ExerciseBankSidebar
+            onClickInsert={handleProgramClickInsert}
+            mode={currentDay?.blocks?.[currentDay.blocks.length - 1]?.type === "tests" ? "tests" : "exercises"}
+            categoryId={categoryId}
+          />
         </aside>
       </div>
     </div>
