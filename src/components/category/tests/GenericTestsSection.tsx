@@ -423,6 +423,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                       scoring_scale: t.scoring_scale ?? null,
                       formula_config: t.formula_config ?? null,
                       image_url: t.image_url ?? null,
+                      video_url: t.video_url ?? null,
                       source: "custom",
                     });
                     setIsEditDialogOpen(true);
