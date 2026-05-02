@@ -293,10 +293,11 @@ export function generateDarkPalette(primary: string, secondary: string, accent: 
   const primaryHsl = hexToHsl(primary);
   const accentHsl = hexToHsl(accent);
 
-  const darkPrimary = hslToHex(primaryHsl.h, Math.min(primaryHsl.s, 70), Math.max(55, Math.min(65, primaryHsl.l + 15)));
-  const darkAccent = hslToHex(accentHsl.h, Math.min(accentHsl.s, 75), Math.max(55, Math.min(65, accentHsl.l + 10)));
+  // Brighten primary/accent for dark mode contrast
+  const darkPrimary = hslToHex(primaryHsl.h, Math.min(primaryHsl.s, 75), Math.max(58, Math.min(70, primaryHsl.l + 18)));
+  const darkAccent = hslToHex(accentHsl.h, Math.min(accentHsl.s, 80), Math.max(58, Math.min(70, accentHsl.l + 12)));
   const secHsl = hexToHsl(secondary);
-  const darkSecondary = hslToHex(secHsl.h, Math.min(secHsl.s, 15), 20);
+  const darkSecondary = hslToHex(secHsl.h, Math.min(secHsl.s, 18), 18);
 
   const isAccentReddish = (accentHsl.h >= 0 && accentHsl.h <= 30) || accentHsl.h >= 330;
   const destructive = isAccentReddish ? darkAccent : '#ef4444';
@@ -308,13 +309,14 @@ export function generateDarkPalette(primary: string, secondary: string, accent: 
     secondaryForeground: getContrastTextColor(darkSecondary),
     accent: darkAccent,
     accentForeground: getContrastTextColor(darkAccent),
-    background: '#0a0a0f',
-    foreground: '#fafafa',
-    muted: '#1f1f23',
-    mutedForeground: '#a1a1aa',
-    card: '#18181b',
-    cardForeground: '#fafafa',
-    border: '#27272a',
+    // Aligned with Design System V2 dark surfaces (bg #0E1117 < surface #161A22 < elevated)
+    background: '#0e1117',
+    foreground: '#f1f5f9',
+    muted: '#1e232e',
+    mutedForeground: '#94a3b8',
+    card: '#161a22',
+    cardForeground: '#f1f5f9',
+    border: '#2a3344',
     destructive,
     destructiveForeground: getContrastTextColor(destructive),
   };
