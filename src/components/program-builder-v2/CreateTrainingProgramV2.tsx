@@ -463,7 +463,7 @@ export function CreateTrainingProgramV2({
                 <div className="min-w-0 flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary shrink-0" />
                   <h2 className="font-semibold truncate">
-                    {draft.name || "Nouveau programme d'entraînement"}
+                    {draft.name || (isEditMode ? "Modifier le programme" : "Nouveau programme d'entraînement")}
                   </h2>
                 </div>
               </div>
