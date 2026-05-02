@@ -97,6 +97,7 @@ export interface V2ProgramDraft {
   difficultyLevel: "beginner" | "intermediate" | "advanced";
   daysPerWeek: number;
   weeks: V2ProgramWeek[];
+  themeId?: string | null;
 }
 
 interface CreateTrainingProgramV2Props {
