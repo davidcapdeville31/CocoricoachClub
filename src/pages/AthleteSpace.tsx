@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, User, LogOut, Activity, Heart, BarChart3, Target, Video, Shield, ArrowLeft, Search, ChevronRight, MessageSquare, Settings, CalendarDays, CircleDot, Waves, FileText, Trophy } from "lucide-react";
 import { PlayerCumulativeStats } from "@/components/category/matches/PlayerCumulativeStats";
+import { BowlingCumulativeStats } from "@/components/bowling/BowlingCumulativeStats";
 import { PlayerBowlingArsenal } from "@/components/bowling/PlayerBowlingArsenal";
 import { PlayerSurfEquipment } from "@/components/surf/PlayerSurfEquipment";
 import { PlayerSkiEquipment } from "@/components/ski/PlayerSkiEquipment";
@@ -745,12 +746,19 @@ export default function AthleteSpace() {
           </TabsContent>
 
           <TabsContent value="stats">
-            <PlayerCumulativeStats
-              categoryId={athleteInfo.category_id}
-              sportType={athleteInfo.sport_type}
-              playerId={athleteInfo.player_id}
-              showTeamView={!isBowling && !isSurf && !isSki && !isPadel}
-            />
+            {isBowling ? (
+              <BowlingCumulativeStats
+                categoryId={athleteInfo.category_id}
+                playerId={athleteInfo.player_id}
+              />
+            ) : (
+              <PlayerCumulativeStats
+                categoryId={athleteInfo.category_id}
+                sportType={athleteInfo.sport_type}
+                playerId={athleteInfo.player_id}
+                showTeamView={!isSurf && !isSki && !isPadel}
+              />
+            )}
           </TabsContent>
 
           {isBowling && (

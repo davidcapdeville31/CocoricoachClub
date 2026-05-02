@@ -544,12 +544,16 @@ function PlayerDetailsContent() {
           </TabsContent>
 
           <TabsContent value="stats">
-            <PlayerCumulativeStats
-              categoryId={player.category_id}
-              sportType={(player.categories as { rugby_type?: string })?.rugby_type}
-              playerId={playerId!}
-              showTeamView={!isBowling && !isSurf && !isSki && !isPadel}
-            />
+            {isBowling ? (
+              <BowlingCumulativeStats categoryId={player.category_id} playerId={playerId!} />
+            ) : (
+              <PlayerCumulativeStats
+                categoryId={player.category_id}
+                sportType={(player.categories as { rugby_type?: string })?.rugby_type}
+                playerId={playerId!}
+                showTeamView={!isSurf && !isSki && !isPadel}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="calendar">
