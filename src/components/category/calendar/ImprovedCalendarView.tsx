@@ -20,6 +20,7 @@ import { SessionFeedbackDialog } from "./SessionFeedbackDialog";
 import { SessionNotifyDialog } from "./SessionNotifyDialog";
 import { MatchNotifyDialog } from "./MatchNotifyDialog";
 import { CreateEventDialog } from "./CreateEventDialog";
+import { ScheduleTestEventDialog } from "./ScheduleTestEventDialog";
 import { DailyCalendarView } from "./DailyCalendarView";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -109,7 +110,8 @@ export function ImprovedCalendarView({
   const [feedbackSession, setFeedbackSession] = useState<Session | null>(null);
   const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
   const [addEventDate, setAddEventDate] = useState<Date | null>(null);
-  const [pendingExternalType, setPendingExternalType] = useState<"session" | "match" | null>(null);
+  const [pendingExternalType, setPendingExternalType] = useState<"session" | "match" | "test" | null>(null);
+  const [scheduleTestDate, setScheduleTestDate] = useState<Date | null>(null);
   const addEventDateRef = useRef<Date | null>(null);
   const [notifySession, setNotifySession] = useState<Session | null>(null);
   const [notifyMatch, setNotifyMatch] = useState<Match | null>(null);
@@ -364,6 +366,7 @@ export function ImprovedCalendarView({
       if (dateToUse) {
         if (type === "session") onAddSession(dateToUse);
         else if (type === "match") onAddMatch(dateToUse);
+        else if (type === "test") setScheduleTestDate(dateToUse);
       }
     }
   }, [pendingExternalType, addEventDate, onAddSession, onAddMatch]);
@@ -811,6 +814,14 @@ export function ImprovedCalendarView({
           setPendingExternalType(type);
           setAddEventDate(null);
         }}
+      />
+
+      {/* Schedule Test Event Dialog */}
+      <ScheduleTestEventDialog
+        open={!!scheduleTestDate}
+        onOpenChange={(open) => !open && setScheduleTestDate(null)}
+        date={scheduleTestDate || new Date()}
+        categoryId={categoryId}
       />
 
       {/* Feedback Dialog */}
