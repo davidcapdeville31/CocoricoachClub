@@ -428,7 +428,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                     });
                     setIsEditDialogOpen(true);
                   }}
-                  className={`group inline-flex items-center gap-2 rounded-2xl bg-background border hover:border-primary hover:bg-accent transition-colors text-sm ${t.image_url ? "p-1.5 pr-3" : "px-2.5 py-1 text-xs"}`}
+                  className={`group inline-flex items-center gap-2 rounded-2xl bg-background text-foreground border hover:border-primary hover:bg-accent hover:text-accent-foreground transition-colors text-sm ${t.image_url ? "p-1.5 pr-3" : "px-2.5 py-1 text-xs"}`}
                   title={isViewer ? (t.description || "") : "Cliquer pour modifier ce test"}
                 >
                   {t.image_url && (
