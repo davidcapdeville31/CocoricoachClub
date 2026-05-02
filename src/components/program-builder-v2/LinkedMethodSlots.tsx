@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
-import { Dumbbell, X, Plus, Clock } from "lucide-react";
+import { Dumbbell, X, Plus, Clock, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MethodExerciseDisplay } from "./MethodExerciseDisplay";
 import { WeightliftingPositionSelector } from "./WeightliftingPositionSelector";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Popover,
   PopoverContent,
