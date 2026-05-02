@@ -6,13 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Plus, FolderOpen, Dumbbell, Search, Library } from "lucide-react";
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Plus, FolderOpen, Dumbbell, Search, Library, ChevronDown, ChevronRight } from "lucide-react";
 import { ProgramBuilderDialog } from "./ProgramBuilderDialog";
 import { AssignProgramDialog } from "./AssignProgramDialog";
 import { ProgramDetailsDialog } from "./ProgramDetailsDialog";
@@ -218,59 +216,82 @@ export function TrainingProgramsList({ categoryId }: TrainingProgramsListProps) 
     }
   };
 
-  // Filter + search
+  // Fetch club themes (shared at club level)
+  const { data: clubData } = useQuery({
+    queryKey: ["category-club", categoryId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("categories")
+        .select("club_id")
+        .eq("id", categoryId)
+        .single();
+      return data;
+    },
+  });
+
+  const { data: themes } = useQuery({
+    queryKey: ["program-themes", clubData?.club_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("program_themes")
+        .select("id, name, color, display_order")
+        .eq("club_id", clubData!.club_id)
+        .order("display_order")
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!clubData?.club_id,
+  });
+
+  // Filter by search
   const filteredPrograms = useMemo(() => {
     if (!programs) return [];
     const term = searchTerm.trim().toLowerCase();
-    return programs.filter((p: any) => {
-      const themeKey = p.theme || UNCATEGORIZED;
-      if (selectedTheme !== "all" && themeKey !== selectedTheme) return false;
-      if (!term) return true;
-      const haystack = [
-        p.name,
-        p.description,
-        THEME_LABELS[p.theme] || "",
-        SUBTHEME_LABELS[p.reathletisation_phase] || "",
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(term);
-    });
-  }, [programs, searchTerm, selectedTheme]);
+    if (!term) return programs;
+    return programs.filter((p: any) =>
+      [p.name, p.description].filter(Boolean).join(" ").toLowerCase().includes(term),
+    );
+  }, [programs, searchTerm]);
 
-  // Group by theme for display
-  const groupedPrograms = useMemo(() => {
-    const groups: Record<string, any[]> = {};
+  // Group programs by theme_id (sections), uncategorized last
+  const groupedSections = useMemo(() => {
+    const themeMap = new Map((themes ?? []).map((t) => [t.id, t]));
+    const groups = new Map<string, any[]>();
     for (const p of filteredPrograms) {
-      const key = p.theme || UNCATEGORIZED;
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(p);
+      const key = p.theme_id && themeMap.has(p.theme_id) ? p.theme_id : UNCATEGORIZED;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(p);
     }
-    // Order: known themes first, uncategorized last
-    const ordered = Object.entries(groups).sort(([a], [b]) => {
-      if (a === UNCATEGORIZED) return 1;
-      if (b === UNCATEGORIZED) return -1;
-      return (THEME_LABELS[a] || a).localeCompare(THEME_LABELS[b] || b);
-    });
-    return ordered;
-  }, [filteredPrograms]);
-
-  // Theme counts for the dropdown
-  const themeCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const p of programs || []) {
-      const key = p.theme || UNCATEGORIZED;
-      counts[key] = (counts[key] || 0) + 1;
+    const sections: Array<{
+      key: string;
+      label: string;
+      color: string;
+      programs: any[];
+    }> = [];
+    // Themed sections in DB order
+    for (const t of themes ?? []) {
+      const list = groups.get(t.id);
+      if (list?.length) {
+        sections.push({ key: t.id, label: t.name, color: t.color, programs: list });
+      }
     }
-    return counts;
-  }, [programs]);
-
-  const availableThemes = Object.keys(themeCounts);
+    // Uncategorized last
+    const uncat = groups.get(UNCATEGORIZED);
+    if (uncat?.length) {
+      sections.push({
+        key: UNCATEGORIZED,
+        label: "Sans thématique",
+        color: "#94a3b8",
+        programs: uncat,
+      });
+    }
+    return sections;
+  }, [filteredPrograms, themes]);
 
   return (
     <div className="space-y-6">
-      {/* Hero header — Bibliothèque de Programmes */}
+      {/* Hero header */}
       <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/15 via-primary/5 to-transparent p-6 shadow-sm">
         <div className="flex flex-col items-center text-center gap-4">
           <div>
@@ -279,8 +300,8 @@ export function TrainingProgramsList({ categoryId }: TrainingProgramsListProps) 
               Bibliothèque de Programmes
             </h2>
             <p className="text-muted-foreground mt-1">
-              Vos programmes sont sauvegardés ici par thématique pour les
-              réutiliser et les attribuer à tout moment
+              Vos programmes sont rangés par thématique pour les retrouver et les
+              attribuer rapidement
             </p>
           </div>
           {!isViewer && (
@@ -307,63 +328,20 @@ export function TrainingProgramsList({ categoryId }: TrainingProgramsListProps) 
         />
       </div>
 
-      {/* Theme filters */}
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge
-          variant={selectedTheme === "all" ? "default" : "outline"}
-          className="cursor-pointer px-3 py-1.5 text-sm"
-          onClick={() => setSelectedTheme("all")}
-        >
-          Toutes ({programs?.length || 0})
-        </Badge>
-
-        <Select
-          value={selectedTheme !== "all" ? selectedTheme : ""}
-          onValueChange={setSelectedTheme}
-        >
-          <SelectTrigger className="w-[280px] h-9 rounded-2xl">
-            <SelectValue placeholder="Filtrer par thématique..." />
-          </SelectTrigger>
-          <SelectContent>
-            {availableThemes.map((key) => (
-              <SelectItem key={key} value={key}>
-                {key === UNCATEGORIZED
-                  ? "Sans thématique"
-                  : THEME_LABELS[key] || key}{" "}
-                ({themeCounts[key]})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {selectedTheme !== "all" && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSelectedTheme("all")}
-            className="text-xs h-7"
-          >
-            Réinitialiser
-          </Button>
-        )}
-      </div>
-
       {/* Content */}
       {isLoading ? (
-        <div className="text-center py-8 text-muted-foreground">
-          Chargement...
-        </div>
+        <div className="text-center py-8 text-muted-foreground">Chargement...</div>
       ) : !programs?.length ? (
         <Card className="border-dashed rounded-2xl">
           <CardContent className="py-12 text-center">
             <Dumbbell className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground">
-              Votre bibliothèque est vide. Créez votre premier programme
-              d'entraînement pour le retrouver ici.
+              Votre bibliothèque est vide. Créez votre premier programme pour le
+              retrouver ici.
             </p>
           </CardContent>
         </Card>
-      ) : filteredPrograms.length === 0 ? (
+      ) : groupedSections.length === 0 ? (
         <Card className="border-dashed rounded-2xl">
           <CardContent className="py-12 text-center">
             <FolderOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
@@ -373,34 +351,50 @@ export function TrainingProgramsList({ categoryId }: TrainingProgramsListProps) 
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-8">
-          {groupedPrograms.map(([themeKey, themePrograms]) => (
-            <section key={themeKey} className="space-y-3">
-              <div className="flex items-center gap-3 border-l-4 border-primary pl-3">
-                <h3 className="text-lg font-bold uppercase tracking-wide text-foreground">
-                  {themeKey === UNCATEGORIZED
-                    ? "Sans thématique"
-                    : THEME_LABELS[themeKey] || themeKey}
-                </h3>
-                <Badge variant="secondary" className="rounded-full">
-                  {themePrograms.length}
-                </Badge>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {themePrograms.map((program: any) => (
-                  <ProgramCard
-                    key={program.id}
-                    program={program}
-                    isViewer={isViewer}
-                    onEdit={setEditingProgram}
-                    onDuplicate={handleDuplicate}
-                    onAssign={setAssigningProgram}
-                    onDelete={handleDelete}
-                    onViewDetails={setViewingProgram}
-                  />
-                ))}
-              </div>
-            </section>
+        <div className="space-y-3">
+          {groupedSections.map((section) => (
+            <Collapsible key={section.key} defaultOpen>
+              <Card className="rounded-2xl border-border/60 bg-card/95 backdrop-blur shadow-sm overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between gap-3 px-5 py-3 hover:bg-muted/30 transition-colors group"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span
+                        className="inline-block h-3 w-3 rounded-full shrink-0"
+                        style={{ backgroundColor: section.color }}
+                      />
+                      <h3 className="text-base font-bold tracking-wide text-foreground truncate">
+                        {section.label}
+                      </h3>
+                      <Badge variant="secondary" className="rounded-full shrink-0">
+                        {section.programs.length}
+                      </Badge>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=closed]:-rotate-90" />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-5 pb-5 pt-1">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {section.programs.map((program: any) => (
+                        <ProgramCard
+                          key={program.id}
+                          program={program}
+                          isViewer={isViewer}
+                          onEdit={setEditingProgram}
+                          onDuplicate={handleDuplicate}
+                          onAssign={setAssigningProgram}
+                          onDelete={handleDelete}
+                          onViewDetails={setViewingProgram}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
           ))}
         </div>
       )}

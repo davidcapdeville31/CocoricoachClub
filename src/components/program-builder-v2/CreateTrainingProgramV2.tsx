@@ -50,6 +50,7 @@ import {
   Settings,
 } from "lucide-react";
 import { AssignProgramDialog } from "@/components/category/programs/AssignProgramDialog";
+import { ProgramThemeSelector } from "./ProgramThemeSelector";
 import { cn } from "@/lib/utils";
 import { type UnifiedOrderItem } from "./ProgramGridView";
 import { DAYS_OF_WEEK } from "./lib/trainingProgramsData";
@@ -97,6 +98,7 @@ export interface V2ProgramDraft {
   difficultyLevel: "beginner" | "intermediate" | "advanced";
   daysPerWeek: number;
   weeks: V2ProgramWeek[];
+  themeId?: string | null;
 }
 
 interface CreateTrainingProgramV2Props {
@@ -140,6 +142,7 @@ function buildInitialDraft(): V2ProgramDraft {
     difficultyLevel: "intermediate",
     daysPerWeek: 3,
     weeks: [buildEmptyWeek(1, 3)],
+    themeId: null,
   };
 }
 
@@ -266,6 +269,7 @@ export function CreateTrainingProgramV2({
       difficultyLevel: (existingProgram.level as V2ProgramDraft["difficultyLevel"]) ?? "intermediate",
       daysPerWeek: maxDays,
       weeks: v2Weeks.length > 0 ? v2Weeks : [buildEmptyWeek(1, 3)],
+      themeId: (existingProgram as any).theme_id ?? null,
     };
     setDraft(hydratedDraft);
     setActiveWeek(hydratedDraft.weeks[0]?.weekNumber ?? 1);
@@ -623,6 +627,15 @@ export function CreateTrainingProgramV2({
                             </SelectContent>
                           </Select>
                         </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Thématique</Label>
+                        <ProgramThemeSelector
+                          categoryId={categoryId}
+                          value={draft.themeId ?? null}
+                          onChange={(id) => updateMeta("themeId", id)}
+                        />
                       </div>
 
                       <div className="space-y-1.5">
