@@ -629,7 +629,13 @@ export function CreateTrainingProgramV2({
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label htmlFor="prog-desc" className="text-xs">
+                        <Label className="text-xs">Thématique</Label>
+                        <ProgramThemeSelector
+                          categoryId={categoryId}
+                          value={draft.themeId ?? null}
+                          onChange={(id) => updateMeta("themeId", id)}
+                        />
+                      </div>
                           Description
                         </Label>
                         <Textarea
