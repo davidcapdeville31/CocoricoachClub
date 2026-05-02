@@ -17,7 +17,6 @@ export function RehabProgramsList({ categoryId }: RehabProgramsListProps) {
   const { isViewer } = useViewerModeContext();
   const [showBuilder, setShowBuilder] = useState(false);
   const [editingProgram, setEditingProgram] = useState<string | null>(null);
-  const [showLibrary, setShowLibrary] = useState(false);
 
   const { data: programs, isLoading, refetch } = useQuery({
     queryKey: ["rehab-programs", categoryId],
