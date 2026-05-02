@@ -590,6 +590,7 @@ function defaultLabelFor(type: TrainingBlockType): string {
     crossfit: "CrossFit / WOD",
     cardio: "Cardio",
     mobilite: "Mobilité",
+    tests: "Tests",
     custom: "Personnalisé",
   };
   return map[type] ?? "Bloc";
