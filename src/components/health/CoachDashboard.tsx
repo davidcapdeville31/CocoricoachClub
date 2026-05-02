@@ -438,18 +438,86 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="p-4 bg-blue-500/10 rounded-lg">
-                <p className="text-2xl font-bold text-blue-600">{lowEwma.length}</p>
-                <p className="text-sm text-muted-foreground">Sous-entraînés (&lt;0.8)</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Sous-entraînés */}
+              <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20 flex flex-col">
+                <div className="text-center mb-3">
+                  <p className="text-2xl font-bold text-blue-600">{lowEwma.length}</p>
+                  <p className="text-sm text-muted-foreground">Sous-entraînés (&lt;0.8)</p>
+                </div>
+                <div className="space-y-1.5 max-h-[260px] overflow-y-auto">
+                  {lowEwma.length === 0 ? (
+                    <p className="text-xs text-center text-muted-foreground italic py-2">Aucun joueur</p>
+                  ) : (
+                    [...lowEwma]
+                      .sort((a, b) => a.ewmaRatio - b.ewmaRatio)
+                      .map((p, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between gap-2 px-2 py-1.5 bg-background/60 rounded-md text-xs"
+                        >
+                          <span className="font-medium truncate">{p.name}</span>
+                          <Badge variant="outline" className="text-[10px] border-blue-500/40 text-blue-600 shrink-0">
+                            {p.ewmaRatio.toFixed(2)}
+                          </Badge>
+                        </div>
+                      ))
+                  )}
+                </div>
               </div>
-              <div className="p-4 bg-green-500/10 rounded-lg">
-                <p className="text-2xl font-bold text-green-600">{optimalEwma.length}</p>
-                <p className="text-sm text-muted-foreground">Zone optimale (0.8-1.3)</p>
+
+              {/* Zone optimale */}
+              <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/20 flex flex-col">
+                <div className="text-center mb-3">
+                  <p className="text-2xl font-bold text-green-600">{optimalEwma.length}</p>
+                  <p className="text-sm text-muted-foreground">Zone optimale (0.8-1.3)</p>
+                </div>
+                <div className="space-y-1.5 max-h-[260px] overflow-y-auto">
+                  {optimalEwma.length === 0 ? (
+                    <p className="text-xs text-center text-muted-foreground italic py-2">Aucun joueur</p>
+                  ) : (
+                    [...optimalEwma]
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map((p, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between gap-2 px-2 py-1.5 bg-background/60 rounded-md text-xs"
+                        >
+                          <span className="font-medium truncate">{p.name}</span>
+                          <Badge variant="outline" className="text-[10px] border-green-500/40 text-green-600 shrink-0">
+                            {p.ewmaRatio.toFixed(2)}
+                          </Badge>
+                        </div>
+                      ))
+                  )}
+                </div>
               </div>
-              <div className="p-4 bg-orange-500/10 rounded-lg">
-                <p className="text-2xl font-bold text-orange-600">{highEwma.length}</p>
-                <p className="text-sm text-muted-foreground">Surcharge (&gt;1.3)</p>
+
+              {/* Surcharge */}
+              <div className="p-4 bg-orange-500/10 rounded-lg border border-orange-500/20 flex flex-col">
+                <div className="text-center mb-3">
+                  <p className="text-2xl font-bold text-orange-600">{highEwma.length}</p>
+                  <p className="text-sm text-muted-foreground">Sur-entraînés (&gt;1.3)</p>
+                </div>
+                <div className="space-y-1.5 max-h-[260px] overflow-y-auto">
+                  {highEwma.length === 0 ? (
+                    <p className="text-xs text-center text-muted-foreground italic py-2">Aucun joueur</p>
+                  ) : (
+                    [...highEwma]
+                      .sort((a, b) => b.ewmaRatio - a.ewmaRatio)
+                      .map((p, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between gap-2 px-2 py-1.5 bg-background/60 rounded-md text-xs"
+                        >
+                          <span className="font-medium truncate">{p.name}</span>
+                          <Badge variant="outline" className="text-[10px] border-orange-500/40 text-orange-600 shrink-0">
+                            {p.ewmaRatio.toFixed(2)}
+                          </Badge>
+                        </div>
+                      ))
+                  )}
+                </div>
               </div>
             </div>
           )}
