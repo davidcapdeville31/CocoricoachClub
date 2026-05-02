@@ -197,87 +197,112 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                   )}
                 </div>
               ) : (
-                <div className="space-y-8">
+                <div className="space-y-4">
+                  {/* Filter row */}
+                  <div className="flex items-center gap-4 flex-wrap p-2 rounded-lg bg-muted/40">
+                    <span className="text-xs font-medium text-muted-foreground">Afficher :</span>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="filter-upcoming"
+                        checked={showUpcoming}
+                        onCheckedChange={(v) => setShowUpcoming(v === true)}
+                      />
+                      <Label htmlFor="filter-upcoming" className="text-xs cursor-pointer flex items-center gap-1.5">
+                        <CalendarClock className="h-3.5 w-3.5 text-primary" />
+                        À venir
+                        <span className="text-muted-foreground">({upcomingMatches.length})</span>
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="filter-past"
+                        checked={showPast}
+                        onCheckedChange={(v) => setShowPast(v === true)}
+                      />
+                      <Label htmlFor="filter-past" className="text-xs cursor-pointer flex items-center gap-1.5">
+                        <History className="h-3.5 w-3.5 text-muted-foreground" />
+                        Passé{isIndividual ? "e" : ""}s
+                        <span className="text-muted-foreground">({pastMatches.length})</span>
+                      </Label>
+                    </div>
+                  </div>
+
                   {/* === UPCOMING SECTION === */}
-                  <section className="rounded-xl border-2 border-primary/30 bg-primary/5 p-4 sm:p-5">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-primary/15 text-primary">
-                          <CalendarClock className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <h3 className="text-base sm:text-lg font-bold text-primary leading-tight">
+                  {showUpcoming && (
+                    <section className="rounded-xl border border-primary/30 bg-primary/5 p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <CalendarClock className="h-4 w-4 text-primary" />
+                          <h3 className="text-sm font-bold text-primary">
                             {itemLabelPluralCapital} à venir
                           </h3>
-                          <p className="text-[11px] text-muted-foreground">
-                            Programmé{isIndividual ? "e" : ""}s prochainement
-                          </p>
                         </div>
+                        <span className="inline-flex items-center justify-center min-w-[24px] h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[11px] font-bold">
+                          {upcomingMatches.length}
+                        </span>
                       </div>
-                      <span className="inline-flex items-center justify-center min-w-[32px] h-7 px-2 rounded-full bg-primary text-primary-foreground text-xs font-bold">
-                        {upcomingMatches.length}
-                      </span>
-                    </div>
-                    {upcomingMatches.length > 0 ? (
-                      <div className="space-y-3">
-                        {upcomingMatches.map((match) => (
-                          <MatchCard key={match.id} match={match} categoryId={categoryId} />
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground italic text-center py-4">
-                        Aucun{isIndividual ? "e" : ""} {itemLabel} à venir
-                      </p>
-                    )}
-                  </section>
+                      {upcomingMatches.length > 0 ? (
+                        <div className="space-y-1.5">
+                          {upcomingMatches.map((match) => (
+                            <MatchCard key={match.id} match={match} categoryId={categoryId} compact />
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted-foreground italic text-center py-3">
+                          Aucun{isIndividual ? "e" : ""} {itemLabel} à venir
+                        </p>
+                      )}
+                    </section>
+                  )}
 
                   {/* === PAST SECTION === */}
-                  <section className="rounded-xl border border-border bg-muted/30 p-4 sm:p-5">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-muted text-muted-foreground">
-                          <History className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <h3 className="text-base sm:text-lg font-bold text-foreground/80 leading-tight">
+                  {showPast && (
+                    <section className="rounded-xl border border-border bg-muted/30 p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <History className="h-4 w-4 text-muted-foreground" />
+                          <h3 className="text-sm font-bold text-foreground/80">
                             {itemLabelPluralCapital} passé{isIndividual ? "e" : ""}s
                           </h3>
-                          <p className="text-[11px] text-muted-foreground">
-                            Historique et résultats
-                          </p>
                         </div>
+                        <span className="inline-flex items-center justify-center min-w-[24px] h-5 px-1.5 rounded-full bg-muted-foreground/20 text-foreground text-[11px] font-bold">
+                          {pastMatches.length}
+                        </span>
                       </div>
-                      <span className="inline-flex items-center justify-center min-w-[32px] h-7 px-2 rounded-full bg-muted-foreground/20 text-foreground text-xs font-bold">
-                        {pastMatches.length}
-                      </span>
-                    </div>
-                    {pastMatches.length > 0 ? (
-                      <div className="space-y-6">
-                        {pastMatchesByMonth.map((group) => (
-                          <div key={group.key}>
-                            <div className="flex items-center gap-3 mb-3">
-                              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground capitalize">
-                                {group.label}
-                              </h4>
-                              <div className="flex-1 h-px bg-border" />
-                              <span className="text-[10px] font-semibold text-muted-foreground">
-                                {group.matches.length}
-                              </span>
+                      {pastMatches.length > 0 ? (
+                        <div className="space-y-3">
+                          {pastMatchesByMonth.map((group) => (
+                            <div key={group.key}>
+                              <div className="flex items-center gap-2 mb-1.5">
+                                <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground capitalize">
+                                  {group.label}
+                                </h4>
+                                <div className="flex-1 h-px bg-border" />
+                                <span className="text-[10px] font-semibold text-muted-foreground">
+                                  {group.matches.length}
+                                </span>
+                              </div>
+                              <div className="space-y-1.5">
+                                {group.matches.map((match) => (
+                                  <MatchCard key={match.id} match={match} categoryId={categoryId} compact />
+                                ))}
+                              </div>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                              {group.matches.map((match) => (
-                                <MatchCard key={match.id} match={match} categoryId={categoryId} />
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground italic text-center py-4">
-                        Aucun{isIndividual ? "e" : ""} {itemLabel} passé{isIndividual ? "e" : ""}
-                      </p>
-                    )}
-                  </section>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted-foreground italic text-center py-3">
+                          Aucun{isIndividual ? "e" : ""} {itemLabel} passé{isIndividual ? "e" : ""}
+                        </p>
+                      )}
+                    </section>
+                  )}
+
+                  {!showUpcoming && !showPast && (
+                    <p className="text-sm text-muted-foreground italic text-center py-6">
+                      Cochez au moins un filtre pour afficher les {itemLabelPlural}.
+                    </p>
+                  )}
                 </div>
               )}
             </CardContent>
