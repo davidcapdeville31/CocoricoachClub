@@ -546,14 +546,13 @@ export function PlanTestsDialog({
                                       </div>
                                     )}
                                     {meta?.video_url && (
-                                      <a
-                                        href={meta.video_url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
+                                      <button
+                                        type="button"
+                                        onClick={() => setPreviewVideo(meta.video_url)}
                                         className="text-xs text-primary hover:underline inline-block"
                                       >
                                         Voir la vidéo →
-                                      </a>
+                                      </button>
                                     )}
                                   </PopoverContent>
                                 </Popover>
