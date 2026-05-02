@@ -929,19 +929,24 @@ export function SessionDetailsDialog({
                         </p>
                       ) : (
                         <div className="grid gap-1.5 sm:grid-cols-2">
-                          {eventParticipants!.map((p: any) => (
-                            <div
-                              key={p.player_id}
-                              className="flex items-center gap-2 rounded-lg border bg-background p-2 text-sm"
-                            >
-                              <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                              <span className="truncate">
-                                {p.players?.first_name
-                                  ? `${p.players.first_name} ${p.players.name}`
-                                  : p.players?.name || "Athlète"}
-                              </span>
-                            </div>
-                          ))}
+                          {eventParticipants!.map((p: any) => {
+                            const name = p.players?.first_name
+                              ? `${p.players.first_name} ${p.players.name}`
+                              : p.players?.name || "Athlète";
+                            const initials = (p.players?.first_name || p.players?.name || "A").slice(0, 2).toUpperCase();
+                            return (
+                              <div
+                                key={p.player_id}
+                                className="flex items-center gap-2 rounded-lg border bg-background p-2 text-sm"
+                              >
+                                <Avatar className="h-7 w-7">
+                                  <AvatarImage src={p.players?.avatar_url || undefined} />
+                                  <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                                </Avatar>
+                                <span className="truncate">{name}</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                       <p className="text-xs text-muted-foreground mt-1">
