@@ -178,21 +178,28 @@ export function TrainingProgramsList({ categoryId }: TrainingProgramsListProps) 
         <h2 className="text-xl font-semibold">Programmes d'entraînement</h2>
       </div>
 
+      {!isViewer && (
+        <div className="flex items-center justify-center py-2">
+          <Button
+            onClick={() => setShowBuilder(true)}
+            size="lg"
+            className="gap-2 px-8 py-6 text-base font-semibold shadow-lg hover:shadow-xl transition-all rounded-2xl"
+          >
+            <Plus className="h-5 w-5" />
+            Créer un programme d'entraînement
+          </Button>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="text-center py-8 text-muted-foreground">Chargement...</div>
       ) : !programs?.length ? (
         <Card>
           <CardContent className="py-12 text-center">
             <FolderOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground">
               Aucun programme créé pour cette catégorie
             </p>
-            {!isViewer && (
-              <Button onClick={() => setShowBuilder(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Créer un programme d'entraînement
-              </Button>
-            )}
           </CardContent>
         </Card>
       ) : (
