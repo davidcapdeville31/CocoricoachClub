@@ -425,6 +425,7 @@ export function CreateTrainingProgramV2({
   // -- Render: Editor ----------------------------------------------------------
 
   return (
+    <DndContext sensors={sensors} onDragEnd={handleProgramDragEnd}>
     <div className="flex flex-col h-full">
       {/* Header bar */}
       <div className="sticky top-0 z-20 backdrop-blur bg-background/80 border-b border-border/60">
