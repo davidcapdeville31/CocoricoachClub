@@ -109,7 +109,8 @@ export function ImprovedCalendarView({
   const [feedbackSession, setFeedbackSession] = useState<Session | null>(null);
   const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
   const [addEventDate, setAddEventDate] = useState<Date | null>(null);
-  const [pendingExternalType, setPendingExternalType] = useState<"session" | "match" | null>(null);
+  const [pendingExternalType, setPendingExternalType] = useState<"session" | "match" | "test" | null>(null);
+  const [scheduleTestDate, setScheduleTestDate] = useState<Date | null>(null);
   const addEventDateRef = useRef<Date | null>(null);
   const [notifySession, setNotifySession] = useState<Session | null>(null);
   const [notifyMatch, setNotifyMatch] = useState<Match | null>(null);
@@ -364,6 +365,7 @@ export function ImprovedCalendarView({
       if (dateToUse) {
         if (type === "session") onAddSession(dateToUse);
         else if (type === "match") onAddMatch(dateToUse);
+        else if (type === "test") setScheduleTestDate(dateToUse);
       }
     }
   }, [pendingExternalType, addEventDate, onAddSession, onAddMatch]);
