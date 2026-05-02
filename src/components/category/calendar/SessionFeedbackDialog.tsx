@@ -55,6 +55,7 @@ export function SessionFeedbackDialog({
   categoryId,
 }: SessionFeedbackDialogProps) {
   const [rpeValues, setRpeValues] = useState<Record<string, { rpe: string; duration: string }>>({});
+  const [editingRpe, setEditingRpe] = useState<Set<string>>(new Set());
   const [sessionTests, setSessionTests] = useState<SessionTest[]>([]);
   const [weightLogs, setWeightLogs] = useState<Record<string, Record<string, { weight: string; sets: string; reps: string }>>>({});
   const [activeTab, setActiveTab] = useState(sessionType === "precision" ? "precision" : "rpe");
