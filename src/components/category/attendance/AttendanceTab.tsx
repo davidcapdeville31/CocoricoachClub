@@ -214,7 +214,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-40"
+                className="w-40 bg-surface text-foreground [color-scheme:light] dark:[color-scheme:dark]"
               />
               <span className="text-muted-foreground">au</span>
               <Input
@@ -222,7 +222,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                 value={endDate}
                 min={startDate || undefined}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-40"
+                className="w-40 bg-surface text-foreground [color-scheme:light] dark:[color-scheme:dark]"
               />
             </div>
             <div className="flex gap-2">
