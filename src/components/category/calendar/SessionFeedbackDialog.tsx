@@ -638,15 +638,6 @@ export function SessionFeedbackDialog({
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="weights" className="flex-1 gap-2">
-              <Dumbbell className="h-4 w-4" />
-              Charges
-              {weightLogCount > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
-                  {weightLogCount}
-                </Badge>
-              )}
-            </TabsTrigger>
           </TabsList>
 
           {/* Precision tab */}
@@ -669,7 +660,7 @@ export function SessionFeedbackDialog({
 
             <div className="flex-1 min-h-0 overflow-y-auto pr-2" style={{ maxHeight: "calc(90vh - 240px)" }}>
               <div className="space-y-2">
-                {playersToShow.map((player) => {
+                {playersForTests.map((player) => {
                   const existing = existingRpe?.find((r) => r.player_id === player.id);
 
                   return (
@@ -848,9 +839,9 @@ export function SessionFeedbackDialog({
                                       {(player.first_name || player.name).slice(0, 2).toUpperCase()}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <span className="text-sm font-medium flex-1 break-words">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
+                                  <span className="text-sm font-medium flex-1 min-w-0 truncate">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</span>
                                   {isSaved ? (
-                                    <span className="text-xs font-medium text-muted-foreground">
+                                    <span className="text-xs font-medium text-muted-foreground shrink-0">
                                       ✓ {test.player_results[player.id]} {test.result_unit}
                                     </span>
                                   ) : (
@@ -858,7 +849,7 @@ export function SessionFeedbackDialog({
                                       type="number"
                                       step="0.01"
                                       placeholder={test.result_unit || "val"}
-                                      className="h-9 w-28 text-sm font-medium"
+                                      className="h-9 w-20 shrink-0 text-sm font-medium"
                                       value={test.player_results[player.id] || ""}
                                       onChange={(e) => updatePlayerTestResult(test.id, player.id, e.target.value)}
                                       onBlur={(e) => autosaveTestResult(test.id, player.id, e.target.value)}
@@ -875,16 +866,6 @@ export function SessionFeedbackDialog({
                 </div>
               )}
             </div>
-          </TabsContent>
-
-          <TabsContent value="weights" className="flex-1 flex flex-col min-h-0 mt-4">
-            <SessionWeightLogTab
-              sessionId={sessionId}
-              categoryId={categoryId}
-              playersToShow={playersToShow}
-              weightLogs={weightLogs}
-              onWeightLogChange={handleWeightLogChange}
-            />
           </TabsContent>
         </Tabs>
 
