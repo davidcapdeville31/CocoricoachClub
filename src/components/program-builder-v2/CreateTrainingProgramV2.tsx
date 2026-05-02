@@ -13,7 +13,9 @@
 //   - Method buttons / linked methods
 //   - Save/load via coach_session_templates
 
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DndContext,
   PointerSensor,
