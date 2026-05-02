@@ -33,6 +33,7 @@ export interface EditableTest {
   scoring_scale?: ScoringScale | null;
   formula_config?: FormulaConfig | null;
   image_url?: string | null;
+  video_url?: string | null;
   source: "custom" | "seed";   // seed = test pré-existant du catalogue
   seedTestType?: string;       // test_type d'origine si seed (pour réf)
 }
