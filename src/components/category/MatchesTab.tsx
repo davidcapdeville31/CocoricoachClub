@@ -11,6 +11,8 @@ import { CategoryPhotosTab } from "./photos/CategoryPhotosTab";
 import { startOfDay, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
