@@ -13,7 +13,14 @@
 //   - Method buttons / linked methods
 //   - Save/load via coach_session_templates
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
+import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +44,8 @@ import {
 import { cn } from "@/lib/utils";
 import { type UnifiedOrderItem } from "./ProgramGridView";
 import { DAYS_OF_WEEK } from "./lib/trainingProgramsData";
-import { SessionDayEditor } from "./SessionDayEditor";
+import { SessionDayEditor, type SessionDayEditorHandle } from "./SessionDayEditor";
+import { V2ExerciseBankSidebar, type PickedExerciseRich } from "./V2ExerciseBankSidebar";
 
 import { useSaveProgramV2, type V2BlockWithExercises } from "./hooks/useSaveProgramV2";
 import { Save, Loader2 } from "lucide-react";
@@ -138,6 +146,57 @@ export function CreateTrainingProgramV2({
   const [activeWeek, setActiveWeek] = useState(1);
   const [activeDayId, setActiveDayId] = useState<string | null>(null);
   const saveProgram = useSaveProgramV2();
+  const dayEditorRef = useRef<SessionDayEditorHandle | null>(null);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+
+  const handleProgramDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+    const data = active.data.current as { type?: string; exercise?: PickedExerciseRich } | undefined;
+    if (data?.type !== "library-exercise" || !data.exercise) return;
+    const overData = over.data.current as { type?: string; slotIndex?: number } | undefined;
+    const overId = String(over.id);
+    const handle = dayEditorRef.current;
+    if (!handle) return;
+    if (overData?.type === "linked-slot" && typeof overData.slotIndex === "number") {
+      const m = overId.match(/^linked-slot-(.+)-(\d+)$/);
+      const blockId = m?.[1];
+      if (!blockId) return;
+      handle.insertExternalExerciseAtSlot(blockId, overData.slotIndex, {
+        id: data.exercise.id,
+        name: data.exercise.exercise_name,
+      });
+      toast.success(`« ${data.exercise.exercise_name} » ajouté au slot`);
+      return;
+    }
+    if (overId.startsWith("drop-")) {
+      const blockId = overId.replace(/^drop-/, "");
+      handle.insertExternalExercise(blockId, {
+        id: data.exercise.id,
+        name: data.exercise.exercise_name,
+      });
+      toast.success(`« ${data.exercise.exercise_name} » ajouté`);
+    }
+  }, []);
+
+  const handleProgramClickInsert = useCallback((picked: PickedExerciseRich) => {
+    const handle = dayEditorRef.current;
+    if (!handle) {
+      toast.error("Sélectionne d'abord un jour, puis ajoute un bloc.");
+      return;
+    }
+    // Pick the last block of the current day if any
+    const day = currentDayRef.current;
+    const targetId = day?.blocks?.[day.blocks.length - 1]?.id;
+    if (!targetId) {
+      toast.error("Ajoute d'abord un bloc de travail.");
+      return;
+    }
+    handle.insertExternalExercise(targetId, { id: picked.id, name: picked.exercise_name });
+    toast.success(`« ${picked.exercise_name} » ajouté`);
+  }, []);
+
+  const currentDayRef = useRef<V2ProgramDay | null>(null);
 
   const handleSave = useCallback(() => {
     if (!draft.name.trim()) {
@@ -172,6 +231,8 @@ export function CreateTrainingProgramV2({
     () => currentWeek?.days.find((d) => d.id === activeDayId) ?? currentWeek?.days[0] ?? null,
     [currentWeek, activeDayId],
   );
+  // Keep ref in sync so drag handlers always see the latest day
+  currentDayRef.current = currentDay;
 
   // -- Metadata mutations ------------------------------------------------------
 
@@ -364,6 +425,7 @@ export function CreateTrainingProgramV2({
   // -- Render: Editor ----------------------------------------------------------
 
   return (
+    <DndContext sensors={sensors} onDragEnd={handleProgramDragEnd}>
     <div className="flex flex-col h-full">
       {/* Header bar */}
       <div className="sticky top-0 z-20 backdrop-blur bg-background/80 border-b border-border/60">
@@ -458,41 +520,48 @@ export function CreateTrainingProgramV2({
         )}
       </div>
 
-      {/* Day editor */}
-      <div className="flex-1 overflow-auto p-4 md:p-6">
-        {currentDay ? (
-          <Card className="rounded-2xl shadow-lg border-border/60 bg-card/95 backdrop-blur">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">
-                  Semaine {activeWeek} ·{" "}
-                  {DAYS_OF_WEEK.find((d) => d.id === currentDay.dayOfWeek)?.label}
-                </p>
-                <CardTitle className="text-base mt-0.5">{currentDay.name}</CardTitle>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="rounded-2xl h-8 w-8">
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="rounded-2xl h-8 w-8">
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <SessionDayEditor
-                blocks={currentDay.blocks}
-                onChange={(blocks) => setDayBlocks(activeWeek, currentDay.id, blocks)}
-              />
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="text-center text-muted-foreground py-12">
-            Sélectionne un jour pour commencer.
-          </div>
-        )}
+      {/* Day editor + Library sidebar */}
+      <div className="flex-1 overflow-hidden flex">
+        <div className="flex-1 overflow-auto p-4 md:p-6">
+          {currentDay ? (
+            <Card className="rounded-2xl shadow-lg border-border/60 bg-card/95 backdrop-blur">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Semaine {activeWeek} ·{" "}
+                    {DAYS_OF_WEEK.find((d) => d.id === currentDay.dayOfWeek)?.label}
+                  </p>
+                  <CardTitle className="text-base mt-0.5">{currentDay.name}</CardTitle>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" className="rounded-2xl h-8 w-8">
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="rounded-2xl h-8 w-8">
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <SessionDayEditor
+                  ref={dayEditorRef}
+                  blocks={currentDay.blocks}
+                  onChange={(blocks) => setDayBlocks(activeWeek, currentDay.id, blocks)}
+                />
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="text-center text-muted-foreground py-12">
+              Sélectionne un jour pour commencer.
+            </div>
+          )}
+        </div>
+        <aside className="hidden md:flex flex-col w-[340px] border-l border-border/60 bg-muted/20">
+          <V2ExerciseBankSidebar onClickInsert={handleProgramClickInsert} />
+        </aside>
       </div>
     </div>
+    </DndContext>
   );
 }
 

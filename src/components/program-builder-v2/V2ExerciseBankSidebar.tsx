@@ -11,6 +11,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -332,45 +335,79 @@ function LibraryExerciseRow({
     safety_prevention: exercise.safety_prevention,
   };
 
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: `library-exercise-${exercise.id}`,
+    data: { type: "library-exercise", exercise },
+  });
+
+  const dragStyle: React.CSSProperties = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
   return (
     <>
       <div
-        role="button"
-        tabIndex={0}
-        onClick={() => onClickInsert(exercise)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onClickInsert(exercise);
-          }
-        }}
+        ref={setNodeRef}
+        style={dragStyle}
         className={cn(
           "flex items-center gap-2 p-2 rounded-md border border-border bg-background",
-          "cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors",
+          "hover:border-primary/50 hover:bg-primary/5 transition-colors",
           "w-full overflow-hidden",
+          isDragging && "ring-2 ring-primary shadow-lg cursor-grabbing",
         )}
       >
-        <ExerciseVisual
-          imageUrl={exercise.image_url}
-          category={exercise.station_name}
-          exerciseName={exercise.exercise_name}
-          size="sm"
-          className="flex-shrink-0"
-        />
+        {/* Drag handle — only this triggers dnd-kit, leaving the rest of the row clickable */}
+        <button
+          type="button"
+          {...listeners}
+          {...attributes}
+          className={cn(
+            "p-1 -ml-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10",
+            "cursor-grab active:cursor-grabbing flex-shrink-0 touch-none",
+          )}
+          title="Glisser vers un slot ou un bloc"
+          aria-label="Glisser cet exercice"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <GripVertical className="h-3.5 w-3.5" />
+        </button>
 
-        <div className="flex-1 min-w-0">
-          <p
-            className="text-xs font-medium truncate"
-            title={exercise.exercise_name}
-          >
-            {exercise.exercise_name}
-          </p>
-          <p
-            className="text-[10px] text-muted-foreground truncate"
-            title={exercise.station_name}
-          >
-            {exercise.station_name}
-          </p>
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => onClickInsert(exercise)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onClickInsert(exercise);
+            }
+          }}
+          className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+        >
+          <ExerciseVisual
+            imageUrl={exercise.image_url}
+            category={exercise.station_name}
+            exerciseName={exercise.exercise_name}
+            size="sm"
+            className="flex-shrink-0"
+          />
+
+          <div className="flex-1 min-w-0">
+            <p
+              className="text-xs font-medium truncate"
+              title={exercise.exercise_name}
+            >
+              {exercise.exercise_name}
+            </p>
+            <p
+              className="text-[10px] text-muted-foreground truncate"
+              title={exercise.station_name}
+            >
+              {exercise.station_name}
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-1 flex-shrink-0">
