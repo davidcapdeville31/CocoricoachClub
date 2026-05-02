@@ -647,6 +647,7 @@ export function ScheduleTestEventDialog({
                       {selectedCategory.tests.map((test) => {
                         const key = `${selectedCategory.value}::${test.value}`;
                         const isSel = !!selectedTests[key];
+                        const meta = customMetaByValue.get(test.value);
                         const toggle = () => {
                           setSelectedTests((prev) => {
                             const next = { ...prev };
@@ -665,23 +666,80 @@ export function ScheduleTestEventDialog({
                         return (
                           <div
                             key={test.value}
-                            onClick={toggle}
                             className={cn(
-                              "flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all text-sm",
+                              "flex items-center gap-2 p-2 rounded-lg border transition-all text-sm",
                               isSel
                                 ? "bg-primary/15 border-primary ring-1 ring-primary/40"
                                 : "bg-background hover:bg-muted/50 border-border/60",
                             )}
                           >
-                            <Checkbox checked={isSel} onCheckedChange={toggle} />
-                            <span className="flex-1 truncate">
-                              {test.label}
-                              {test.unit && (
-                                <span className="text-muted-foreground text-xs ml-1">
-                                  ({test.unit})
-                                </span>
-                              )}
-                            </span>
+                            {meta?.image_url ? (
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); setPreviewImage(meta.image_url); }}
+                                className="shrink-0 h-10 w-10 rounded-md overflow-hidden border border-border bg-muted"
+                                title="Voir la photo"
+                              >
+                                <img src={meta.image_url} alt={test.label} className="h-full w-full object-cover" />
+                              </button>
+                            ) : (
+                              <div className="shrink-0 h-10 w-10 rounded-md bg-muted flex items-center justify-center text-muted-foreground">
+                                <ImageIcon className="h-4 w-4" />
+                              </div>
+                            )}
+                            <label
+                              className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+                              onClick={(e) => { e.preventDefault(); toggle(); }}
+                            >
+                              <Checkbox checked={isSel} onCheckedChange={toggle} />
+                              <span className="flex-1 truncate text-foreground">
+                                {test.label}
+                                {test.unit && (
+                                  <span className="text-muted-foreground text-xs ml-1">
+                                    ({test.unit})
+                                  </span>
+                                )}
+                              </span>
+                            </label>
+                            {(meta?.description || meta?.objectives || meta?.video_url) && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 shrink-0"
+                                    title="Détails"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <Info className="h-4 w-4 text-muted-foreground" />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent side="left" className="w-72 text-sm space-y-2">
+                                  <p className="font-semibold">{test.label}</p>
+                                  {meta?.description && (
+                                    <p className="text-muted-foreground whitespace-pre-wrap text-xs">
+                                      {meta.description}
+                                    </p>
+                                  )}
+                                  {meta?.objectives && (
+                                    <div className="text-xs">
+                                      <span className="font-medium">Objectifs : </span>
+                                      <span className="text-muted-foreground">{meta.objectives}</span>
+                                    </div>
+                                  )}
+                                  {meta?.video_url && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setPreviewVideo(meta.video_url)}
+                                      className="text-xs text-primary hover:underline inline-block"
+                                    >
+                                      Voir la vidéo →
+                                    </button>
+                                  )}
+                                </PopoverContent>
+                              </Popover>
+                            )}
                           </div>
                         );
                       })}
