@@ -150,6 +150,20 @@ export function SessionFeedbackDialog({
     enabled: open && !!sessionId,
   });
 
+  // Fetch invited participants (athletes assigned to this test session)
+  const { data: invitedParticipants } = useQuery({
+    queryKey: ["session-event-participants", sessionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_participants")
+        .select("player_id")
+        .eq("training_session_id", sessionId);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!sessionId,
+  });
+
   // Initialize RPE values with default duration when players load
   useEffect(() => {
     if (players && open) {
@@ -547,6 +561,18 @@ export function SessionFeedbackDialog({
     return players.filter((p) => presentPlayerIds.has(p.id));
   }, [players, attendance, presentPlayerIds]);
 
+  // For tests: restrict to athletes explicitly invited to this test session.
+  // Falls back to playersToShow if no participants were recorded (legacy sessions).
+  const invitedPlayerIds = useMemo(
+    () => new Set((invitedParticipants || []).map((p) => p.player_id)),
+    [invitedParticipants],
+  );
+  const playersForTests = useMemo(() => {
+    if (!players) return [];
+    if (invitedPlayerIds.size === 0) return playersToShow;
+    return players.filter((p) => invitedPlayerIds.has(p.id));
+  }, [players, invitedPlayerIds, playersToShow]);
+
   const hasNewRpeValues = Object.entries(rpeValues).some(
     ([id, val]) => val.rpe && val.duration && !playersWithRpe.has(id)
   );
@@ -799,9 +825,9 @@ export function SessionFeedbackDialog({
                           </Select>
                         </div>
 
-                        {test.test_type && playersToShow.length > 0 && (
+                        {test.test_type && playersForTests.length > 0 && (
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {playersToShow.map((player) => {
+                            {playersForTests.map((player) => {
                               const isSaved = test.savedPlayerIds?.has(player.id) || false;
                               const hasValue = !!test.player_results[player.id];
                               return (
