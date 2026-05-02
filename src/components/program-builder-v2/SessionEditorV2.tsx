@@ -39,8 +39,15 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
   const [sessionDate, setSessionDate] = useState<string>(todayIso());
   const [blocks, setBlocks] = useState<V2BlockWithExercises[]>([]);
   const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
+  const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const activeBlockIdRef = useRef<string | null>(null);
   const dayEditorRef = useRef<SessionDayEditorHandle | null>(null);
+
+  const setActiveBlock = (id: string | null) => {
+    activeBlockIdRef.current = id;
+    setActiveBlockId(id);
+  };
+  const activeBlockType = blocks.find((b) => b.id === activeBlockId)?.type ?? null;
 
   // Reset state every time the editor is reopened
   useEffect(() => {
