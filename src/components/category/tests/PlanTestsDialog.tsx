@@ -776,9 +776,9 @@ export function PlanTestsDialog({
               />
             </section>
           </div>
-        </ScrollArea>
+        </div>
 
-        <DialogFooter className="px-6 py-4 border-t bg-[hsl(var(--surface-sunken))]">
+        <DialogFooter className="shrink-0 px-6 py-4 border-t bg-[hsl(var(--surface-sunken))]">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
