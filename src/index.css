@@ -183,19 +183,19 @@ All colors MUST be HSL.
        SEMANTIC — Dark theme — no pure black, 3-level hierarchy
        bg #0E1117 < surface #161A22 < elevated #1E232E
        ============================================================ */
-    --background: 224 30% 5%;
+    --background: 224 30% 6%;
     --foreground: 220 20% 96%;
 
-    --surface: 224 24% 9%;
+    --surface: 224 22% 11%;
     --surface-foreground: 220 20% 96%;
-    --surface-elevated: 224 22% 13%;
+    --surface-elevated: 224 20% 17%;
     --surface-elevated-foreground: 220 20% 97%;
-    --surface-sunken: 224 32% 4%;
+    --surface-sunken: 224 30% 4%;
 
-    --card: 224 24% 9%;
+    --card: 224 22% 11%;
     --card-foreground: 220 20% 96%;
 
-    --popover: 224 22% 13%;
+    --popover: 224 20% 15%;
     --popover-foreground: 220 20% 97%;
 
     --primary: 232 80% 70%;
