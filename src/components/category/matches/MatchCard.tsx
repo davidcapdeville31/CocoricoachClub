@@ -90,9 +90,11 @@ interface MatchCardProps {
   match: Match;
   categoryId: string;
   isSubMatch?: boolean;
+  compact?: boolean;
 }
 
-export function MatchCard({ match, categoryId, isSubMatch = false }: MatchCardProps) {
+export function MatchCard({ match, categoryId, isSubMatch = false, compact = false }: MatchCardProps) {
+  const [isExpanded, setIsExpanded] = useState(!compact);
   const [isLineupOpen, setIsLineupOpen] = useState(false);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [isAggregatedStatsOpen, setIsAggregatedStatsOpen] = useState(false);
