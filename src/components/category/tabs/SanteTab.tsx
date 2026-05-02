@@ -85,7 +85,7 @@ export function SanteTab({ categoryId }: SanteTabProps) {
               icon={<Smile className="h-4 w-4" />}
               tooltip="Wellness quotidien et dossiers médicaux des athlètes"
             >
-              Wellness & Santé
+              Wellness
             </ColoredSubTabsTrigger>
             {!isViewer && (
               <ColoredSubTabsTrigger
