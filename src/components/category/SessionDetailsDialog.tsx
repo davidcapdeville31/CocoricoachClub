@@ -890,7 +890,7 @@ export function SessionDetailsDialog({
                               t.test_category,
                               t.test_type,
                             );
-                            const customTest = getCustomTest(t.test_type);
+                            const customTest = getCustomTest(t.test_category, t.test_type);
                             const displayName = customTest?.name || testLabel;
                             const imageUrl = customTest?.image_url || null;
                             const hasDetails = !!customTest;
