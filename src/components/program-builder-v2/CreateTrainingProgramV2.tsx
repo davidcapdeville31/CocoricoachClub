@@ -13,7 +13,14 @@
 //   - Method buttons / linked methods
 //   - Save/load via coach_session_templates
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
+import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +44,8 @@ import {
 import { cn } from "@/lib/utils";
 import { type UnifiedOrderItem } from "./ProgramGridView";
 import { DAYS_OF_WEEK } from "./lib/trainingProgramsData";
-import { SessionDayEditor } from "./SessionDayEditor";
+import { SessionDayEditor, type SessionDayEditorHandle } from "./SessionDayEditor";
+import { V2ExerciseBankSidebar, type PickedExerciseRich } from "./V2ExerciseBankSidebar";
 
 import { useSaveProgramV2, type V2BlockWithExercises } from "./hooks/useSaveProgramV2";
 import { Save, Loader2 } from "lucide-react";
