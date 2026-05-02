@@ -8,6 +8,7 @@ import { AlertTriangle, TrendingUp, TrendingDown, Minus, Activity, Info } from "
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { sleepScoreLabel } from "@/lib/sleepConversion";
 import { MenstrualCycleSection } from "@/components/category/MenstrualCycleSection";
 import { 
   calculateWeightedWellnessScore, 
