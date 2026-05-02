@@ -80,7 +80,7 @@ export function PlanTestsDialog({
   const [recurrence, setRecurrence] = useState<RecurrenceMode>("once");
   const [customWeeks, setCustomWeeks] = useState(4);
   const [occurrences, setOccurrences] = useState(6);
-  const [openCategory, setOpenCategory] = useState<string | undefined>(undefined);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   // Athletes selection
   const [audience, setAudience] = useState<"all" | "selection">("all");
