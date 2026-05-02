@@ -1041,3 +1041,46 @@ button[class*="variant-outline"] { color: hsl(var(--foreground)); }
 
 /* Exception: keep semantic warning/success buttons untouched.
    We only target primary + destructive + raw red, NOT bg-warning / bg-success / bg-yellow / bg-green. */
+
+/* ============================================================
+   FINAL CONTRAST GUARANTEES — both modes
+   Last-line defense against remaining low-contrast combinations.
+   ============================================================ */
+
+/* Outline / ghost / link buttons must always inherit foreground in both themes */
+button[class*="border-input"]:not([class*="bg-"]),
+button[data-variant="outline"]:not([class*="bg-"]) {
+  color: hsl(var(--foreground));
+}
+
+/* Tabs lists — guarantee inactive triggers are never invisible on a sunken bar */
+[role="tablist"] [role="tab"]:not([data-state="active"]) {
+  color: hsl(var(--muted-foreground));
+}
+[role="tablist"] [role="tab"]:not([data-state="active"]):hover {
+  color: hsl(var(--foreground));
+}
+
+/* Icons inside muted/secondary surfaces should never disappear */
+.bg-muted svg:not([class*="text-"]),
+.bg-secondary svg:not([class*="text-"]) {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Inputs / textareas — explicit foreground for both themes */
+input, textarea, select {
+  color: hsl(var(--foreground));
+}
+input::placeholder, textarea::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Cards always maintain a visible separation from background */
+.bg-card, [class*="bg-card"]:not([class*="bg-card/"]) {
+  border-color: hsl(var(--border));
+}
+
+/* Sober mode: kill heavy permanent glows on standard buttons (keep on .premium variant only) */
+button[class*="shadow-glow"]:not([class*="premium"]):not(:hover):not(:focus) {
+  box-shadow: var(--shadow-sm);
+}
