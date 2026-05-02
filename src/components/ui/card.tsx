@@ -3,30 +3,36 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Card — Stripe / Linear style: surface uniforme, border subtle, lift léger au hover.
+ * Variantes minimales :
+ *  - default     : sobre (border + shadow-sm), léger lift au hover
+ *  - highlight   : accent border (pour mettre en avant ponctuellement)
+ *  - interactive : clickable (cursor + lift + border accent au hover)
+ *  - flat        : sans shadow (à plat dans une page déjà chargée)
+ *  - sunken      : "inset" (pour groupes de champs)
+ *  - elevated    : alias historique (= default avec shadow-md)
+ *  - accent / premium : gardés pour rétro-compat mais sobres (sans gradient envahissant)
+ */
 const cardVariants = cva(
-  "rounded-2xl border text-card-foreground transition-all duration-300 relative",
+  "rounded-2xl border bg-card text-card-foreground transition-[box-shadow,transform,border-color] duration-200",
   {
     variants: {
       variant: {
-        // Default: layered gradient + deeper shadow + lift on hover
         default:
-          "border-border/60 bg-gradient-to-b from-card to-[hsl(var(--surface-elevated))] shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)] hover:-translate-y-0.5",
-        // Elevated: lifted card for important sections / KPIs
-        elevated:
-          "border-border/60 bg-[hsl(var(--surface-elevated))] shadow-[var(--shadow-lg)] hover:shadow-[var(--shadow-xl)]",
-        // Sunken: looks "inset" — for inputs/wells inside cards
-        sunken: "border-border/40 bg-[hsl(var(--surface-sunken))] shadow-inner",
-        // Flat: minimal border, no shadow
-        flat: "border-border/50 bg-card shadow-none",
-        // Interactive: clickable card with strong hover & brand glow
+          "border-border shadow-sm hover:shadow-md hover:-translate-y-px",
+        highlight:
+          "border-primary/30 shadow-sm hover:shadow-md hover:border-primary/50",
         interactive:
-          "border-border/60 bg-gradient-to-b from-card to-[hsl(var(--surface-elevated))] shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-glow)] hover:border-primary/40 hover:-translate-y-1 cursor-pointer",
-        // Accent: branded vivid gradient card
+          "border-border shadow-sm cursor-pointer hover:shadow-md hover:-translate-y-0.5 hover:border-border-strong",
+        flat: "border-border shadow-none hover:bg-secondary/30",
+        sunken: "border-border/60 bg-[hsl(var(--surface-sunken))] shadow-none",
+        elevated: "border-border shadow-md hover:shadow-lg",
+        // Rétro-compat — alias sobres
         accent:
-          "border-primary/30 bg-gradient-to-br from-[hsl(var(--brand-50))] via-card to-[hsl(var(--accent-50))] shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-glow)] dark:from-[hsl(var(--brand-900)/0.5)] dark:via-card dark:to-[hsl(var(--brand-800)/0.3)]",
-        // Premium: hero card with top accent line
+          "border-primary/30 shadow-sm hover:shadow-md hover:border-primary/50",
         premium:
-          "border-primary/20 bg-gradient-to-br from-card via-[hsl(var(--surface-elevated))] to-card shadow-[var(--shadow-xl)] overflow-hidden before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-primary/50 before:to-transparent",
+          "border-border shadow-md hover:shadow-lg",
       },
     },
     defaultVariants: { variant: "default" },
@@ -51,7 +57,7 @@ CardHeader.displayName = "CardHeader";
 
 const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn("text-2xl font-semibold leading-none tracking-tight", className)} {...props} />
+    <h3 ref={ref} className={cn("text-xl font-semibold leading-none tracking-tight", className)} {...props} />
   ),
 );
 CardTitle.displayName = "CardTitle";
