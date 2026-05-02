@@ -340,6 +340,13 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
             onExportPdf={handleExportPdf}
             isViewer={isViewer}
             onEditSession={(session) => {
+              if (session.training_type === "test") {
+                setEditingTestSession({
+                  id: session.id,
+                  date: new Date(session.session_date),
+                });
+                return;
+              }
               supabase
                 .from("training_sessions")
                 .select("*")
