@@ -38,7 +38,7 @@ export function ProgrammationTab({ categoryId }: ProgrammationTabProps) {
             icon={<FolderOpen className="h-4 w-4" />}
             tooltip="Programmes structurés en blocs et semaines pour organiser la progression à long terme"
           >
-            <span className="hidden sm:inline">Programmes</span>
+            <span className="hidden sm:inline">Programmes d'entraînement</span>
             <span className="sm:hidden">Prog</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger
