@@ -28,6 +28,8 @@ interface MatchesTabProps {
 export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isStatPrefsOpen, setIsStatPrefsOpen] = useState(false);
+  const [showUpcoming, setShowUpcoming] = useState(true);
+  const [showPast, setShowPast] = useState(true);
   const { isViewer } = useViewerModeContext();
   const queryClient = useQueryClient();
 
