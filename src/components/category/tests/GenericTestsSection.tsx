@@ -107,7 +107,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_test_categories")
-        .select("custom_tests(id, name, test_category, unit, unit_kind, is_time, description, objectives, scoring_scale, max_points, image_url, formula_config)")
+        .select("custom_tests(id, name, test_category, unit, unit_kind, is_time, description, objectives, scoring_scale, max_points, image_url, video_url, formula_config)")
         .eq("category_id", categoryId);
       if (error) throw error;
       const tests = (data || [])
