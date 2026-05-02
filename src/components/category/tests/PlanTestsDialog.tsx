@@ -358,14 +358,26 @@ export function PlanTestsDialog({
                     </Badge>
                   )}
                 </Label>
-                <div className="relative w-64">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Rechercher un test…"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-8 h-9"
-                  />
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant={onlyFavorites ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setOnlyFavorites((v) => !v)}
+                    className="h-9 gap-1"
+                  >
+                    <Star className={`h-4 w-4 ${onlyFavorites ? "fill-current" : ""}`} />
+                    Favoris
+                  </Button>
+                  <div className="relative w-64">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Rechercher un test…"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="pl-8 h-9"
+                    />
+                  </div>
                 </div>
               </div>
 
