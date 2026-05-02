@@ -457,13 +457,14 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                 })
               }
             >
-              <TrainingMethodButtons
-                isBuilding={!!linkedDraft || !!pendingConfig[block.id]}
-                blockType={block.type === "custom" ? "musculation" : block.type}
-                onStartLinkedMethod={(m) => handleStartLinked(block.id, m)}
-                onStartConfigMethod={(m) => handleStartConfig(block.id, m)}
-              />
-
+              {block.type !== "tests" && (
+                <TrainingMethodButtons
+                  isBuilding={!!linkedDraft || !!pendingConfig[block.id]}
+                  blockType={(block.type === "custom" || block.type === "tests") ? "musculation" : block.type}
+                  onStartLinkedMethod={(m) => handleStartLinked(block.id, m)}
+                  onStartConfigMethod={(m) => handleStartConfig(block.id, m)}
+                />
+              )}
               {/* Carte de configuration de la méthode liée (Biset/Superset/etc.) */}
               {linkedDraft && (
                 <LinkedMethodSlots
