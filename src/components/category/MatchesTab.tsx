@@ -136,9 +136,6 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
             <ColoredSubTabsTrigger value="stats" colorKey="competition" icon={<BarChart3 className="h-3 w-3" />} className="text-[11px] px-2 py-1">
               Stats
             </ColoredSubTabsTrigger>
-            <ColoredSubTabsTrigger value="photos" colorKey="competition" icon={<Camera className="h-3 w-3" />} className="text-[11px] px-2 py-1">
-              Photos
-            </ColoredSubTabsTrigger>
           </ColoredSubTabsList>
         </div>
 
