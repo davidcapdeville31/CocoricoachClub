@@ -137,11 +137,13 @@ export function useSaveProgramV2() {
           const blockHeader = `<!-- v2-block:${block.type}:${block.name} -->`;
           (block.exercises ?? []).forEach((ex) => {
             const baseNotes = ex.notes ?? "";
-            const notes = `${blockHeader}\n${baseNotes}`.trim();
+            const isTestRef = typeof ex.exerciseId === "string" && ex.exerciseId.startsWith("test:");
+            const testTag = isTestRef ? `<!-- v2-test:${ex.exerciseId.slice(5)} -->` : "";
+            const notes = `${blockHeader}${testTag}\n${baseNotes}`.trim();
 
             const row: ExerciseInsert = {
               session_id: session.id,
-              library_exercise_id: ex.exerciseId ?? null,
+              library_exercise_id: isTestRef ? null : (ex.exerciseId ?? null),
               exercise_name: ex.exerciseName,
               order_index: order++,
               method: ex.method ?? "normal",

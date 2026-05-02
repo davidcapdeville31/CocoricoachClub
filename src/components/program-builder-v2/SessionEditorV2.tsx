@@ -39,8 +39,15 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
   const [sessionDate, setSessionDate] = useState<string>(todayIso());
   const [blocks, setBlocks] = useState<V2BlockWithExercises[]>([]);
   const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
+  const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const activeBlockIdRef = useRef<string | null>(null);
   const dayEditorRef = useRef<SessionDayEditorHandle | null>(null);
+
+  const setActiveBlock = (id: string | null) => {
+    activeBlockIdRef.current = id;
+    setActiveBlockId(id);
+  };
+  const activeBlockType = blocks.find((b) => b.id === activeBlockId)?.type ?? null;
 
   // Reset state every time the editor is reopened
   useEffect(() => {
@@ -50,18 +57,18 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
       setSessionDate(todayIso());
       setBlocks([]);
       setSavedSnapshot(null);
-      activeBlockIdRef.current = null;
+      setActiveBlock(null);
     }
   }, [open]);
 
   // Keep activeBlock synced when blocks change externally
   useEffect(() => {
     if (!blocks.length) {
-      activeBlockIdRef.current = null;
+      setActiveBlock(null);
       return;
     }
     if (!activeBlockIdRef.current || !blocks.find((b) => b.id === activeBlockIdRef.current)) {
-      activeBlockIdRef.current = blocks[blocks.length - 1].id;
+      setActiveBlock(blocks[blocks.length - 1].id);
     }
   }, [blocks]);
 
@@ -78,7 +85,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
     if (handle) {
       const isLinked = handle.hasActiveLinkedDraft(targetId);
       handle.insertExternalExercise(targetId, { id: picked.id, name: picked.exercise_name });
-      activeBlockIdRef.current = targetId;
+      setActiveBlock(targetId);
       toast.success(
         isLinked
           ? `« ${picked.exercise_name} » ajouté au slot`
@@ -103,13 +110,13 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
           : b,
       ),
     );
-    activeBlockIdRef.current = targetId;
+    setActiveBlock(targetId);
     toast.success(`« ${picked.exercise_name} » ajouté`);
   };
 
   const handleBlocksChange = (next: V2BlockWithExercises[]) => {
     if (next.length > blocks.length) {
-      activeBlockIdRef.current = next[next.length - 1].id;
+      setActiveBlock(next[next.length - 1].id);
     }
     setBlocks(next);
   };
@@ -144,7 +151,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
         id: data.exercise.id,
         name: data.exercise.exercise_name,
       });
-      activeBlockIdRef.current = blockId;
+      setActiveBlock(blockId);
       toast.success(`« ${data.exercise.exercise_name} » ajouté au slot`);
       return;
     }
@@ -156,7 +163,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
         id: data.exercise.id,
         name: data.exercise.exercise_name,
       });
-      activeBlockIdRef.current = blockId;
+      setActiveBlock(blockId);
       toast.success(`« ${data.exercise.exercise_name} » ajouté`);
       return;
     }
@@ -221,13 +228,15 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
       const rows = players.flatMap((player) =>
         flat.map(({ block, ex }, idx) => {
           const blockTag = `<!-- v2-block:${block.type}:${block.name} -->`;
+          const isTestRef = typeof ex.exerciseId === "string" && ex.exerciseId.startsWith("test:");
+          const testTag = isTestRef ? `<!-- v2-test:${ex.exerciseId.slice(5)} -->` : "";
           const userNote = ex.notes ? `\n${ex.notes}` : "";
           const repsNum = ex.reps ? Number(String(ex.reps).replace(/[^0-9]/g, "")) : null;
           return {
             training_session_id: session.id,
             player_id: player.id,
             category_id: categoryId,
-            library_exercise_id: ex.exerciseId || null,
+            library_exercise_id: isTestRef ? null : (ex.exerciseId || null),
             exercise_name: ex.exerciseName,
             sets: ex.sets ?? 1,
             reps: repsNum && !Number.isNaN(repsNum) ? repsNum : null,
@@ -236,7 +245,7 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
             percentage_1rm: ex.percentage ?? null,
             order_index: idx,
             method: ex.method && ex.method !== "normal" ? ex.method : null,
-            notes: `${blockTag}${userNote}`,
+            notes: `${blockTag}${testTag}${userNote}`,
           };
         }),
       );
@@ -296,7 +305,11 @@ export function SessionEditorV2({ open, onClose, categoryId }: SessionEditorV2Pr
           </div>
         )}
         renderExerciseLibrary={() => (
-          <V2ExerciseBankSidebar onClickInsert={handlePickFromBank} />
+          <V2ExerciseBankSidebar
+            onClickInsert={handlePickFromBank}
+            mode={activeBlockType === "tests" ? "tests" : "exercises"}
+            categoryId={categoryId}
+          />
         )}
       />
     </DndContext>

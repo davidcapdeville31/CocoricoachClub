@@ -457,13 +457,14 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                 })
               }
             >
-              <TrainingMethodButtons
-                isBuilding={!!linkedDraft || !!pendingConfig[block.id]}
-                blockType={block.type === "custom" ? "musculation" : block.type}
-                onStartLinkedMethod={(m) => handleStartLinked(block.id, m)}
-                onStartConfigMethod={(m) => handleStartConfig(block.id, m)}
-              />
-
+              {block.type !== "tests" && (
+                <TrainingMethodButtons
+                  isBuilding={!!linkedDraft || !!pendingConfig[block.id]}
+                  blockType={block.type === "custom" ? "musculation" : block.type}
+                  onStartLinkedMethod={(m) => handleStartLinked(block.id, m)}
+                  onStartConfigMethod={(m) => handleStartConfig(block.id, m)}
+                />
+              )}
               {/* Carte de configuration de la méthode liée (Biset/Superset/etc.) */}
               {linkedDraft && (
                 <LinkedMethodSlots
@@ -589,6 +590,7 @@ function defaultLabelFor(type: TrainingBlockType): string {
     crossfit: "CrossFit / WOD",
     cardio: "Cardio",
     mobilite: "Mobilité",
+    tests: "Tests",
     custom: "Personnalisé",
   };
   return map[type] ?? "Bloc";

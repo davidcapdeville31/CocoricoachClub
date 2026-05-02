@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Dumbbell, Star, Video, Info } from "lucide-react";
+import { Search, Dumbbell, Star, Video, Info, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   ExerciseFilters,
@@ -53,9 +53,16 @@ export interface PickedExerciseRich {
 
 interface Props {
   onClickInsert: (exercise: PickedExerciseRich) => void;
+  /** When set to "tests", lists category custom tests instead of the exercise library. */
+  mode?: "exercises" | "tests";
+  /** Required when mode === "tests" — the current category id to fetch tests for. */
+  categoryId?: string;
 }
 
-export function V2ExerciseBankSidebar({ onClickInsert }: Props) {
+export function V2ExerciseBankSidebar({ onClickInsert, mode = "exercises", categoryId }: Props) {
+  if (mode === "tests") {
+    return <TestsBankSidebar onClickInsert={onClickInsert} categoryId={categoryId} />;
+  }
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<ExerciseFiltersState>({
     showFavoritesOnly: false,
@@ -474,6 +481,196 @@ function LibraryExerciseRow({
         videoUrl={exercise.video_url}
         data={descriptionData}
       />
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// TestsBankSidebar — alternative panel listing the category custom tests
+// (used when the active block is of type "tests"). Selecting a test inserts
+// it into the active block as a "test exercise" via onClickInsert.
+// ---------------------------------------------------------------------------
+
+interface TestsBankProps {
+  onClickInsert: (exercise: PickedExerciseRich) => void;
+  categoryId?: string;
+}
+
+function TestsBankSidebar({ onClickInsert, categoryId }: TestsBankProps) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTheme, setSelectedTheme] = useState<string>("all");
+
+  const { data: tests = [], isLoading } = useQuery({
+    queryKey: ["v2-bank-sidebar-tests", categoryId],
+    enabled: !!categoryId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_test_categories")
+        .select(
+          "custom_tests(id, name, test_category, unit, description, image_url)",
+        )
+        .eq("category_id", categoryId!);
+      if (error) throw error;
+      return ((data ?? []) as any[])
+        .map((row) => row.custom_tests)
+        .filter(Boolean) as Array<{
+          id: string;
+          name: string;
+          test_category: string | null;
+          unit: string | null;
+          description: string | null;
+          image_url: string | null;
+        }>;
+    },
+  });
+
+  const themes = useMemo(() => {
+    const set = new Set<string>();
+    tests.forEach((t) => {
+      if (t.test_category) set.add(t.test_category);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "fr"));
+  }, [tests]);
+
+  const filteredTests = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    return tests.filter((t) => {
+      if (selectedTheme !== "all" && t.test_category !== selectedTheme) return false;
+      if (q && !t.name.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [tests, searchTerm, selectedTheme]);
+
+  return (
+    <>
+      <div className="p-3 border-b space-y-2 flex-shrink-0 w-full overflow-hidden">
+        <h3 className="font-semibold text-sm flex items-center gap-2">
+          <ClipboardList className="h-4 w-4 text-cyan-600" />
+          <span className="truncate">Tests & Profilages</span>
+        </h3>
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Rechercher un test..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 h-9"
+          />
+        </div>
+      </div>
+
+      <div className="px-2 py-2 border-b bg-muted/50 flex-shrink-0">
+        <div className="flex flex-wrap gap-1">
+          <Button
+            type="button"
+            size="sm"
+            variant={selectedTheme === "all" ? "default" : "outline"}
+            className={cn(
+              "h-7 text-xs font-medium",
+              selectedTheme === "all" && "bg-primary text-primary-foreground shadow-sm",
+            )}
+            onClick={() => setSelectedTheme("all")}
+          >
+            Tous les thèmes
+          </Button>
+          {themes.slice(0, 5).map((theme) => (
+            <Button
+              key={theme}
+              type="button"
+              size="sm"
+              variant={selectedTheme === theme ? "default" : "outline"}
+              className={cn(
+                "h-7 text-xs font-medium",
+                selectedTheme === theme && "bg-primary text-primary-foreground shadow-sm",
+              )}
+              onClick={() => setSelectedTheme(theme)}
+            >
+              <span className="truncate max-w-[100px]">{theme}</span>
+            </Button>
+          ))}
+        </div>
+        {themes.length > 5 && (
+          <div className="mt-1.5">
+            <Select value={themes.slice(5).includes(selectedTheme) ? selectedTheme : ""} onValueChange={setSelectedTheme}>
+              <SelectTrigger className="h-7 text-xs">
+                <SelectValue placeholder={`+ ${themes.length - 5} autres thèmes`} />
+              </SelectTrigger>
+              <SelectContent>
+                {themes.slice(5).map((theme) => (
+                  <SelectItem key={theme} value={theme}>{theme}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        <div className="mt-1.5">
+          <span className="text-xs text-muted-foreground">
+            {filteredTests.length} test{filteredTests.length > 1 ? "s" : ""}
+          </span>
+        </div>
+      </div>
+
+      <ScrollArea className="flex-1 overflow-hidden" style={{ width: "100%" }}>
+        <div className="p-2 space-y-1.5">
+          {!categoryId && (
+            <p className="text-center text-muted-foreground py-8 text-sm">
+              Catégorie non disponible.
+            </p>
+          )}
+          {categoryId && isLoading && (
+            <p className="text-center text-muted-foreground py-8 text-sm">
+              Chargement des tests...
+            </p>
+          )}
+          {categoryId && !isLoading && filteredTests.length === 0 && (
+            <p className="text-center text-muted-foreground py-8 text-sm">
+              Aucun test n'a encore été créé pour cette catégorie.
+            </p>
+          )}
+          {categoryId && !isLoading && filteredTests.map((test) => {
+            const picked: PickedExerciseRich = {
+              id: `test:${test.id}`,
+              exercise_name: test.name,
+              station_name: test.test_category || "Test",
+              image_url: test.image_url,
+              video_url: null,
+              general_description: test.description,
+              muscles: null,
+              equipment: test.unit ? [`Unité : ${test.unit}`] : null,
+            };
+            return (
+              <div
+                key={test.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => onClickInsert(picked)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onClickInsert(picked);
+                  }
+                }}
+                className={cn(
+                  "flex items-center gap-2 p-2 rounded-md border border-border bg-background cursor-pointer",
+                  "hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-colors",
+                )}
+              >
+                <div className="p-1.5 rounded bg-cyan-500/15 text-cyan-600 flex-shrink-0">
+                  <ClipboardList className="h-3.5 w-3.5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium truncate" title={test.name}>
+                    {test.name}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    {test.test_category}{test.unit ? ` · ${test.unit}` : ""}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </ScrollArea>
     </>
   );
 }
