@@ -520,41 +520,48 @@ export function CreateTrainingProgramV2({
         )}
       </div>
 
-      {/* Day editor */}
-      <div className="flex-1 overflow-auto p-4 md:p-6">
-        {currentDay ? (
-          <Card className="rounded-2xl shadow-lg border-border/60 bg-card/95 backdrop-blur">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">
-                  Semaine {activeWeek} ·{" "}
-                  {DAYS_OF_WEEK.find((d) => d.id === currentDay.dayOfWeek)?.label}
-                </p>
-                <CardTitle className="text-base mt-0.5">{currentDay.name}</CardTitle>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="rounded-2xl h-8 w-8">
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="rounded-2xl h-8 w-8">
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <SessionDayEditor
-                blocks={currentDay.blocks}
-                onChange={(blocks) => setDayBlocks(activeWeek, currentDay.id, blocks)}
-              />
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="text-center text-muted-foreground py-12">
-            Sélectionne un jour pour commencer.
-          </div>
-        )}
+      {/* Day editor + Library sidebar */}
+      <div className="flex-1 overflow-hidden flex">
+        <div className="flex-1 overflow-auto p-4 md:p-6">
+          {currentDay ? (
+            <Card className="rounded-2xl shadow-lg border-border/60 bg-card/95 backdrop-blur">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Semaine {activeWeek} ·{" "}
+                    {DAYS_OF_WEEK.find((d) => d.id === currentDay.dayOfWeek)?.label}
+                  </p>
+                  <CardTitle className="text-base mt-0.5">{currentDay.name}</CardTitle>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" className="rounded-2xl h-8 w-8">
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="rounded-2xl h-8 w-8">
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <SessionDayEditor
+                  ref={dayEditorRef}
+                  blocks={currentDay.blocks}
+                  onChange={(blocks) => setDayBlocks(activeWeek, currentDay.id, blocks)}
+                />
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="text-center text-muted-foreground py-12">
+              Sélectionne un jour pour commencer.
+            </div>
+          )}
+        </div>
+        <aside className="hidden md:flex flex-col w-[340px] border-l border-border/60 bg-muted/20">
+          <V2ExerciseBankSidebar onClickInsert={handleProgramClickInsert} />
+        </aside>
       </div>
     </div>
+    </DndContext>
   );
 }
 
