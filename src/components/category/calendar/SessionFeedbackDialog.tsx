@@ -678,11 +678,37 @@ export function SessionFeedbackDialog({
                         </AvatarFallback>
                       </Avatar>
                       <Label className="flex-1 min-w-0 font-medium text-sm break-words">{player.first_name ? `${player.first_name} ${player.name}` : player.name}</Label>
-                      {existing ? (
-                        <span className="text-sm text-muted-foreground">
-                          ✓ RPE {existing.rpe} - {existing.duration_minutes}min
-                          <span className="text-xs ml-1">(charge: {existing.training_load})</span>
-                        </span>
+                      {existing && !editingRpe.has(player.id) ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">
+                            ✓ RPE {existing.rpe}
+                            {sessionType !== "test" && ` - ${existing.duration_minutes}min`}
+                            <span className="text-xs ml-1">(charge: {existing.training_load})</span>
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            title="Modifier"
+                            onClick={() => {
+                              setRpeValues((prev) => ({
+                                ...prev,
+                                [player.id]: {
+                                  rpe: String(existing.rpe ?? ""),
+                                  duration: String(existing.duration_minutes ?? defaultDuration),
+                                },
+                              }));
+                              setEditingRpe((prev) => {
+                                const next = new Set(prev);
+                                next.add(player.id);
+                                return next;
+                              });
+                            }}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       ) : (
                         <>
                           <div className="flex items-center gap-1">
