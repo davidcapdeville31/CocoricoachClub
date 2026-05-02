@@ -660,7 +660,7 @@ export function SessionFeedbackDialog({
 
             <div className="flex-1 min-h-0 overflow-y-auto pr-2" style={{ maxHeight: "calc(90vh - 240px)" }}>
               <div className="space-y-2">
-                {playersToShow.map((player) => {
+                {playersForTests.map((player) => {
                   const existing = existingRpe?.find((r) => r.player_id === player.id);
 
                   return (
