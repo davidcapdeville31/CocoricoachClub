@@ -29,9 +29,10 @@ const TabsTrigger = React.forwardRef<
     className={cn(
       "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3.5 py-1.5 text-sm font-medium ring-offset-background transition-all duration-200",
       // Inactive state
-      "text-muted-foreground hover:text-foreground hover:bg-secondary/60",
+      "text-foreground/80 hover:text-foreground hover:bg-secondary/60",
       // Active state — surface lift with brand accent
       "data-[state=active]:bg-surface data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=active]:font-semibold",
+      "dark:text-foreground/90 dark:data-[state=active]:text-primary-foreground",
       // Focus
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       "disabled:pointer-events-none disabled:opacity-50",
