@@ -212,19 +212,27 @@ function CategoryDetailsContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div 
-        className="relative py-12 px-4 bg-gradient-hero"
-        style={
-          category?.cover_image_url
-            ? {
-                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${category.cover_image_url})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }
-            : undefined
-        }
-      >
-        <div className="container mx-auto max-w-7xl">
+      <div className="relative py-12 px-4 bg-gradient-hero overflow-hidden">
+        {category?.cover_image_url && (
+          <>
+            {/* Blurred backdrop fill — only used to softly extend the image edges */}
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-center bg-cover scale-110 opacity-40 blur-2xl"
+              style={{ backgroundImage: `url(${category.cover_image_url})` }}
+            />
+            {/* Sharp, centered, contained image at native ratio */}
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-center bg-no-repeat bg-contain"
+              style={{ backgroundImage: `url(${category.cover_image_url})` }}
+            />
+            {/* Readability overlay */}
+            <div aria-hidden className="absolute inset-0 bg-black/55" />
+          </>
+        )}
+        <div className="container mx-auto max-w-7xl relative">
+
           <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
             <Button
               variant="ghost"
@@ -233,7 +241,7 @@ function CategoryDetailsContent() {
               onClick={handleBack}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">
+              <span className="hidden sm:inline text-white">
                 {isPublicAccess ? "Retour" : "Retour aux catégories"}
               </span>
               <span className="sm:hidden">Retour</span>
