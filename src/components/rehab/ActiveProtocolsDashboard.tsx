@@ -335,8 +335,13 @@ export function ActiveProtocolsDashboard({ categoryId }: ActiveProtocolsDashboar
           <p className="text-sm text-muted-foreground">Suivi des joueurs blessés et événements de réhab</p>
         </div>
         <Button 
-          onClick={() => setIsAddEventOpen(true)}
-          disabled={!activeProtocols || activeProtocols.length === 0}
+          onClick={() => {
+            if (!activeProtocols || activeProtocols.length === 0) {
+              toast.error("Aucun protocole de réhab actif. Créez d'abord une blessure et assignez-lui un protocole depuis Santé → Blessures.");
+              return;
+            }
+            setIsAddEventOpen(true);
+          }}
         >
           <Plus className="h-4 w-4 mr-2" />
           Ajouter un événement
