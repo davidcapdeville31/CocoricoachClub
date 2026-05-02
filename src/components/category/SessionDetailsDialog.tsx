@@ -811,12 +811,12 @@ export function SessionDetailsDialog({
 
         <Tabs defaultValue={session?.training_type === "precision" && isRugby ? "precision_stats" : "exercises"} className="flex-1 flex flex-col min-h-0">
           <TabsList className={cn(
-            "grid w-full shrink-0",
+            "shrink-0",
             session?.training_type === "precision" && isRugby
-              ? "grid-cols-3"
+              ? "grid w-full grid-cols-3"
               : isTestSession
-                ? "grid-cols-1"
-                : "grid-cols-2",
+                ? "inline-flex w-auto self-start"
+                : "grid w-full grid-cols-2",
           )}>
             <TabsTrigger value="exercises" className="flex items-center gap-1">
               {isTestSession ? (
