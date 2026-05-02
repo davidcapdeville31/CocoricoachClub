@@ -91,6 +91,7 @@ export function SessionDetailsDialog({
   const queryClient = useQueryClient();
   const [rpeValues, setRpeValues] = useState<Record<string, { rpe: string; duration: string }>>({});
   const [isNotifyOpen, setIsNotifyOpen] = useState(false);
+  const [selectedTestDetail, setSelectedTestDetail] = useState<any>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
   // Fetch category to determine sport type
@@ -266,7 +267,7 @@ export function SessionDetailsDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("event_participants")
-        .select("player_id, players(id, name, first_name)")
+        .select("player_id, players(id, name, first_name, avatar_url)")
         .eq("training_session_id", sessionId);
       if (error) throw error;
       return data || [];
