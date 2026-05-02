@@ -19,8 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Activity, TrendingUp, HeartPulse, Dumbbell } from "lucide-react";
+import { Plus, Activity, TrendingUp, HeartPulse, Dumbbell, Library } from "lucide-react";
 import { AddInjuryDialog } from "./AddInjuryDialog";
+import { InjuryLibraryDialog } from "@/components/category/programs/InjuryLibraryDialog";
 import { toast } from "sonner";
 import { INJURY_STATUS, INJURY_STATUS_LABELS } from "@/lib/constants/injury";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
