@@ -461,7 +461,7 @@ function CategoryDetailsContent() {
 
           {canSeeMenu("academique") && isAcademy && (
             <TabsContent value="academy" className="space-y-4">
-              <NavThemedSection colorKey="effectif">
+              <NavThemedSection colorKey="academy">
                 <AcademyTab categoryId={categoryId!} />
               </NavThemedSection>
             </TabsContent>
