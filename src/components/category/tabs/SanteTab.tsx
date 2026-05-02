@@ -1,11 +1,10 @@
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Heart, Smile, Apple, Activity, Dumbbell, LayoutDashboard, Brain } from "lucide-react";
-import { MedicalRecordsTab } from "@/components/health/MedicalRecordsTab";
+import { Smile, Apple, Activity, Dumbbell, LayoutDashboard, Brain } from "lucide-react";
 import { CoachDashboard } from "@/components/health/CoachDashboard";
 import { InjuriesTab } from "@/components/injuries/InjuriesTab";
 import { ActiveProtocolsDashboard } from "@/components/rehab/ActiveProtocolsDashboard";
 import { ConcussionProtocolTab } from "@/components/category/ConcussionProtocolTab";
-import { WellnessTab } from "@/components/category/WellnessTab";
+import { WellnessWithHealthTab } from "@/components/category/WellnessWithHealthTab";
 import { NutritionTab } from "@/components/category/NutritionTab";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
@@ -79,20 +78,12 @@ export function SanteTab({ categoryId }: SanteTabProps) {
             >
               Dashboard Coach
             </ColoredSubTabsTrigger>
-            <ColoredSubTabsTrigger
-              value="health"
-              colorKey="sante"
-              icon={<Heart className="h-4 w-4" />}
-              tooltip="Dossiers médicaux et historique de santé des athlètes"
-            >
-              Santé
-            </ColoredSubTabsTrigger>
             {!isViewer && (
               <ColoredSubTabsTrigger
                 value="wellness"
                 colorKey="sante"
                 icon={<Smile className="h-4 w-4" />}
-                tooltip="Questionnaire de bien-être quotidien : sommeil, fatigue, stress, courbatures et score de récupération"
+                tooltip="Wellness quotidien et dossiers médicaux des athlètes"
               >
                 Wellness
               </ColoredSubTabsTrigger>
@@ -144,13 +135,9 @@ export function SanteTab({ categoryId }: SanteTabProps) {
           <CoachDashboard categoryId={categoryId} />
         </TabsContent>
 
-        <TabsContent value="health">
-          <MedicalRecordsTab categoryId={categoryId} />
-        </TabsContent>
-
         {!isViewer && (
           <TabsContent value="wellness">
-            <WellnessTab categoryId={categoryId} />
+            <WellnessWithHealthTab categoryId={categoryId} />
           </TabsContent>
         )}
 
