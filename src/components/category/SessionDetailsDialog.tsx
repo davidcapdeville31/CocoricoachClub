@@ -292,6 +292,34 @@ export function SessionDetailsDialog({
     }
   }, [session?.notes]);
 
+  // Fetch custom_tests metadata to enrich tests cards (image / description / objectives)
+  const customTestIds = useMemo(
+    () => testsMeta
+      .map((t: any) => (typeof t.test_type === "string" && t.test_type.startsWith("test:") ? t.test_type.slice(5) : null))
+      .filter(Boolean) as string[],
+    [testsMeta],
+  );
+
+  const { data: customTestsDetails } = useQuery({
+    queryKey: ["session-custom-tests-details", customTestIds],
+    queryFn: async () => {
+      if (customTestIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("custom_tests")
+        .select("id, name, description, objectives, image_url, unit, test_category")
+        .in("id", customTestIds);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && customTestIds.length > 0,
+  });
+
+  const getCustomTest = (testType: string) => {
+    if (!testType?.startsWith("test:")) return null;
+    const id = testType.slice(5);
+    return customTestsDetails?.find((c) => c.id === id) || null;
+  };
+
   const isTestSession = session?.training_type === "test";
 
   const getTestLabel = (cat: string, type: string) => {
