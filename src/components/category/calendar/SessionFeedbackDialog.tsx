@@ -624,20 +624,6 @@ export function SessionFeedbackDialog({
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="tests" className="flex-1 gap-2">
-              <ClipboardCheck className="h-4 w-4" />
-              Tests
-              {savedTestResultsCount > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs bg-muted text-muted-foreground">
-                  ✓ {savedTestResultsCount}
-                </Badge>
-              )}
-              {testResultsCount > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs bg-emerald-100 text-emerald-700">
-                  +{testResultsCount}
-                </Badge>
-              )}
-            </TabsTrigger>
           </TabsList>
 
           {/* Precision tab */}
