@@ -10,22 +10,22 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-sm hover:bg-[hsl(var(--primary-hover))] hover:shadow-md active:scale-[0.98]",
+          "bg-gradient-to-b from-primary to-[hsl(var(--primary-hover))] text-primary-foreground shadow-[0_4px_12px_-2px_hsl(var(--primary)/0.4),inset_0_1px_0_hsl(var(--primary-foreground)/0.15)] hover:shadow-[0_6px_20px_-4px_hsl(var(--primary)/0.5)] hover:brightness-110 active:scale-[0.98]",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow-md active:scale-[0.98]",
+          "bg-gradient-to-b from-destructive to-destructive/90 text-destructive-foreground shadow-[0_4px_12px_-2px_hsl(var(--destructive)/0.4)] hover:shadow-[0_6px_20px_-4px_hsl(var(--destructive)/0.5)] hover:brightness-110 active:scale-[0.98]",
         outline:
-          "border border-border bg-surface text-foreground shadow-xs hover:bg-secondary hover:border-border-strong active:scale-[0.98]",
+          "border-2 border-border bg-card/80 backdrop-blur text-foreground shadow-sm hover:bg-secondary hover:border-primary/50 hover:shadow-md active:scale-[0.98]",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-xs hover:bg-[hsl(var(--secondary-hover))] active:scale-[0.98]",
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-[hsl(var(--secondary-hover))] hover:shadow-md active:scale-[0.98]",
         ghost:
           "text-foreground hover:bg-secondary hover:text-foreground active:bg-[hsl(var(--secondary-hover))]",
         link: "text-primary underline-offset-4 hover:underline hover:text-[hsl(var(--primary-hover))]",
         success:
-          "bg-success text-success-foreground shadow-sm hover:bg-success/90 hover:shadow-md active:scale-[0.98]",
+          "bg-gradient-to-b from-success to-success/90 text-success-foreground shadow-[0_4px_12px_-2px_hsl(var(--success)/0.4)] hover:shadow-[0_6px_20px_-4px_hsl(var(--success)/0.5)] hover:brightness-110 active:scale-[0.98]",
         accent:
-          "bg-accent text-accent-foreground shadow-sm hover:bg-[hsl(var(--accent-hover))] hover:shadow-md active:scale-[0.98]",
+          "bg-gradient-to-b from-accent to-[hsl(var(--accent-hover))] text-accent-foreground shadow-[0_4px_12px_-2px_hsl(var(--accent)/0.4)] hover:shadow-[0_6px_20px_-4px_hsl(var(--accent)/0.5)] hover:brightness-110 active:scale-[0.98]",
         premium:
-          "bg-gradient-to-r from-[hsl(var(--brand-500))] to-[hsl(var(--accent-500))] text-white shadow-glow hover:shadow-lg hover:brightness-110 active:scale-[0.98]",
+          "bg-[linear-gradient(135deg,hsl(var(--brand-500)),hsl(var(--brand-600))_50%,hsl(var(--accent-500)))] bg-[length:200%_200%] text-white shadow-[var(--shadow-glow)] hover:shadow-[0_16px_40px_-8px_hsl(var(--primary)/0.6)] hover:bg-[position:100%_100%] active:scale-[0.98] transition-[background-position,box-shadow,transform] duration-500",
       },
       size: {
         default: "h-10 px-5 py-2",
