@@ -169,7 +169,7 @@ export function ProgramBuilderDialog({
   const [subTheme, setSubTheme] = useState<string>("");
   const [blocks, setBlocks] = useState<ProgramBlock[]>([]);
   const [saving, setSaving] = useState(false);
-  const [useV2Builder, setUseV2Builder] = useState(false);
+  const [useV2Builder, setUseV2Builder] = useState(true);
   const [activeExercise, setActiveExercise] = useState<any>(null);
   const [selectedInjuryId, setSelectedInjuryId] = useState<string>("");
   const [selectedInjuryType, setSelectedInjuryType] = useState<string>("");
@@ -669,11 +669,10 @@ export function ProgramBuilderDialog({
               {programId ? "Modifier le programme" : "Créer un programme"}
             </DialogTitle>
             {!programId && !rehabMode && (
-              <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
+              <span className="flex items-center gap-2 text-sm text-muted-foreground select-none">
                 <Sparkles className="h-4 w-4 text-primary" />
-                <span>Builder V2 (beta)</span>
-                <Switch checked={useV2Builder} onCheckedChange={setUseV2Builder} />
-              </label>
+                Builder V2
+              </span>
             )}
           </div>
         </DialogHeader>
