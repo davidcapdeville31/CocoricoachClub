@@ -221,36 +221,34 @@ export function ScheduleTestEventDialog({
     [mergedCategories, activeCategory],
   );
 
-  const filteredCategories = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return mergedCategories;
-    return mergedCategories
-      .map((cat) => ({
-        ...cat,
-        tests: cat.tests.filter(
-          (t) =>
-            t.label.toLowerCase().includes(q) ||
-            cat.label.toLowerCase().includes(q),
-        ),
-      }))
-      .filter((cat) => cat.tests.length > 0);
-  }, [mergedCategories, search]);
-
-  const toggleTest = (cat: TestCategory, test: TestOption) => {
-    const key = `${cat.value}::${test.value}`;
+  const addCurrentTest = () => {
+    if (!selectedCategory || !activeTest) {
+      toast.error("Sélectionnez une catégorie et un test");
+      return;
+    }
+    const test = selectedCategory.tests.find((t) => t.value === activeTest);
+    if (!test) return;
+    const key = `${selectedCategory.value}::${test.value}`;
     setSelectedTests((prev) => {
-      const next = { ...prev };
-      if (next[key]) {
-        delete next[key];
-      } else {
-        next[key] = {
-          test_category: cat.value,
-          test_category_label: cat.label,
+      if (prev[key]) return prev;
+      return {
+        ...prev,
+        [key]: {
+          test_category: selectedCategory.value,
+          test_category_label: selectedCategory.label,
           test_type: test.value,
           test_label: test.label,
           result_unit: test.unit || "",
-        };
-      }
+        },
+      };
+    });
+    setActiveTest("");
+  };
+
+  const removeSelectedTest = (key: string) => {
+    setSelectedTests((prev) => {
+      const next = { ...prev };
+      delete next[key];
       return next;
     });
   };
