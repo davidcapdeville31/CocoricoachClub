@@ -263,7 +263,7 @@ export function SessionFeedbackDialog({
       setRpeValues({});
       setSessionTests([]);
       setWeightLogs({});
-      setActiveTab(sessionType === "test" ? "tests" : sessionType === "precision" ? "precision" : "rpe");
+      setActiveTab(sessionType === "precision" ? "precision" : "rpe");
     }
   }, [open, sessionType]);
 
