@@ -636,6 +636,9 @@ export function CreateTrainingProgramV2({
                           onChange={(id) => updateMeta("themeId", id)}
                         />
                       </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="prog-desc" className="text-xs">
                           Description
                         </Label>
                         <Textarea
