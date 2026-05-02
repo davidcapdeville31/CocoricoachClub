@@ -37,6 +37,8 @@ interface PlayerCumulativeStatsProps {
   categoryId: string;
   sportType?: string;
   playerId?: string;
+  /** When true and in single player mode, also display the team-aggregated stats above the personal stats. */
+  showTeamView?: boolean;
 }
 
 interface MatchInfo {
