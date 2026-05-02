@@ -2,6 +2,7 @@ import * as React from "react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { hexToHsl, isLightColor } from "@/lib/brandingColorUtils";
 
 // Define navigation color mappings
 export const NAV_COLORS = {
@@ -166,6 +167,12 @@ const ColoredTabTrigger = React.forwardRef<
   ColoredTabTriggerProps
 >(({ colorKey, icon, children, className, value, badge, label, shortLabel, tooltip, ...props }, ref) => {
   const colors = NAV_COLORS[colorKey];
+  const tabHex = colors.base.match(/hsl\((\d+)\s+(\d+)%\s+(\d+)%\)/);
+  const tabHexValue = tabHex
+    ? `#${[Number(tabHex[1]), Number(tabHex[2]), Number(tabHex[3])].join("")}`
+    : null;
+  const tabHsl = tabHex ? { h: Number(tabHex[1]), s: Number(tabHex[2]), l: Number(tabHex[3]) } : hexToHsl("#8b5cf6");
+  const activeForeground = tabHsl.l > 68 ? "hsl(var(--foreground))" : "white";
   
   const trigger = (
     <TabsPrimitive.Trigger
@@ -180,8 +187,9 @@ const ColoredTabTrigger = React.forwardRef<
       style={{
         ["--tab-color" as string]: colors.base,
         ["--tab-ink" as string]: `color-mix(in srgb, ${colors.base} 86%, white 14%)`,
-        ["--tab-ink-dark" as string]: `color-mix(in srgb, ${colors.base} 30%, white 70%)`,
-        ["--tab-soft-bg-dark" as string]: `color-mix(in srgb, ${colors.base} 12%, hsl(var(--surface-elevated)) 88%)`,
+        ["--tab-ink-dark" as string]: `color-mix(in srgb, ${colors.base} 22%, white 78%)`,
+        ["--tab-soft-bg-dark" as string]: `color-mix(in srgb, ${colors.base} 16%, hsl(var(--surface-elevated)) 84%)`,
+        ["--tab-active-foreground" as string]: activeForeground,
       }}
       {...props}
     >
