@@ -231,6 +231,8 @@ export function CreateTrainingProgramV2({
     () => currentWeek?.days.find((d) => d.id === activeDayId) ?? currentWeek?.days[0] ?? null,
     [currentWeek, activeDayId],
   );
+  // Keep ref in sync so drag handlers always see the latest day
+  currentDayRef.current = currentDay;
 
   // -- Metadata mutations ------------------------------------------------------
 
