@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, User, LogOut, Activity, Heart, BarChart3, Target, Video, Shield, ArrowLeft, Search, ChevronRight, MessageSquare, Settings, CalendarDays, CircleDot, Waves, FileText, Trophy } from "lucide-react";
-import { PlayerMatchesTab } from "@/components/player/PlayerMatchesTab";
+import { PlayerCumulativeStats } from "@/components/category/matches/PlayerCumulativeStats";
 import { PlayerBowlingArsenal } from "@/components/bowling/PlayerBowlingArsenal";
 import { PlayerSurfEquipment } from "@/components/surf/PlayerSurfEquipment";
 import { PlayerSkiEquipment } from "@/components/ski/PlayerSkiEquipment";
@@ -745,11 +745,11 @@ export default function AthleteSpace() {
           </TabsContent>
 
           <TabsContent value="stats">
-            <PlayerMatchesTab
-              playerId={athleteInfo.player_id}
+            <PlayerCumulativeStats
               categoryId={athleteInfo.category_id}
-              playerName={displayName}
               sportType={athleteInfo.sport_type}
+              playerId={athleteInfo.player_id}
+              showTeamView={!isBowling && !isSurf && !isSki && !isPadel}
             />
           </TabsContent>
 
