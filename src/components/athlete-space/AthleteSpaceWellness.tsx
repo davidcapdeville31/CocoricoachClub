@@ -208,12 +208,16 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             <CheckCircle2 className="h-5 w-5 text-status-optimal" />
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-4">
-            {WELLNESS_FIELDS.map(f => (
-              <div key={f.key} className="text-center p-2 rounded-lg" style={{ backgroundColor: `${NAV_COLORS.sante.base}08` }}>
-                <p className="text-lg font-bold" style={{ color: NAV_COLORS.sante.base }}>{(existingWellness as any)[f.key]}</p>
-                <p className="text-[9px] text-muted-foreground leading-tight">{f.label}</p>
-              </div>
-            ))}
+            {WELLNESS_FIELDS.map(f => {
+              const raw = (existingWellness as any)[f.key];
+              const display = f.key === "sleep_duration" ? `${(9.5 - Number(raw)).toFixed(1)}h` : raw;
+              return (
+                <div key={f.key} className="text-center p-2 rounded-lg" style={{ backgroundColor: `${NAV_COLORS.sante.base}08` }}>
+                  <p className="text-lg font-bold" style={{ color: NAV_COLORS.sante.base }}>{display}</p>
+                  <p className="text-[9px] text-muted-foreground leading-tight">{f.label}</p>
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
