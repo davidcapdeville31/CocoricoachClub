@@ -153,16 +153,14 @@ export function PlanTestsDialog({
   const filteredTests = useMemo(() => {
     const q = search.trim().toLowerCase();
     return availableTests.filter((t) => {
-      if (defaultCategoryFilter && defaultCategoryFilter !== "all" && t.category !== defaultCategoryFilter) {
-        if (!q) return false;
-      }
+      if (onlyFavorites && !favoriteCategories.has(t.category)) return false;
       if (!q) return true;
       return (
         t.typeLabel.toLowerCase().includes(q) ||
         t.categoryLabel.toLowerCase().includes(q)
       );
     });
-  }, [availableTests, search, defaultCategoryFilter]);
+  }, [availableTests, search, onlyFavorites, favoriteCategories]);
 
   // Group by category for accordion
   const groupedTests = useMemo(() => {
