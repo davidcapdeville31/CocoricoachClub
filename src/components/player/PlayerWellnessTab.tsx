@@ -8,6 +8,7 @@ import { AlertTriangle, TrendingUp, TrendingDown, Minus, Activity, Info } from "
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { sleepScoreLabel } from "@/lib/sleepConversion";
 import { MenstrualCycleSection } from "@/components/category/MenstrualCycleSection";
 import { 
   calculateWeightedWellnessScore, 
@@ -320,7 +321,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                           <Badge variant={getScoreBadge(entry.sleep_quality)}>{entry.sleep_quality}</Badge>
                         </TableCell>
                         <TableCell className="text-center">
-                          <Badge variant={getScoreBadge(entry.sleep_duration)}>{entry.sleep_duration}</Badge>
+                          <Badge variant={getScoreBadge(entry.sleep_duration)}>{sleepScoreLabel(entry.sleep_duration)}</Badge>
                         </TableCell>
                         <TableCell className="text-center">
                           <Badge variant={getScoreBadge(entry.general_fatigue)}>{entry.general_fatigue}</Badge>

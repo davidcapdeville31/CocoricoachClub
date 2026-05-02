@@ -21,6 +21,7 @@ import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { sleepScoreLabel } from "@/lib/sleepConversion";
 
 interface WellnessTabProps {
   categoryId: string;
@@ -30,16 +31,6 @@ const getScoreBadgeClass = (score: number) => {
   if (score <= 2) return "bg-status-optimal/15 text-status-optimal border-status-optimal/30";
   if (score <= 3) return "bg-status-attention/15 text-status-attention border-status-attention/30";
   return "bg-status-critical/15 text-status-critical border-status-critical/30";
-};
-
-// La durée de sommeil est saisie en heures, on la convertit en score 1-5
-// (1 = optimal, 5 = très mauvais) pour la coloration et le calcul du score moyen.
-const sleepHoursToScore = (hours: number) => {
-  if (hours >= 8) return 1;
-  if (hours >= 7) return 2;
-  if (hours >= 6) return 3;
-  if (hours >= 5) return 4;
-  return 5;
 };
 
 export function WellnessTab({ categoryId }: WellnessTabProps) {
@@ -94,7 +85,7 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
   const calculateWellnessScore = (entry: NonNullable<typeof wellnessData>[0]) => {
     const avg = (
       entry.sleep_quality +
-      sleepHoursToScore(entry.sleep_duration) +
+      entry.sleep_duration +
       entry.general_fatigue +
       entry.stress_level +
       entry.soreness_upper_body +
@@ -279,8 +270,8 @@ export function WellnessTab({ categoryId }: WellnessTabProps) {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={getScoreBadgeClass(sleepHoursToScore(entry.sleep_duration))}>
-                          {entry.sleep_duration}h
+                        <Badge variant="outline" className={getScoreBadgeClass(entry.sleep_duration)}>
+                          {sleepScoreLabel(entry.sleep_duration)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">

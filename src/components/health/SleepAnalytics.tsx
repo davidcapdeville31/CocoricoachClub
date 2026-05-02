@@ -20,6 +20,7 @@ import {
   Legend,
 } from "recharts";
 import { useState } from "react";
+import { sleepScoreToHours } from "@/lib/sleepConversion";
 
 interface SleepAnalyticsProps {
   categoryId: string;
@@ -86,7 +87,7 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
       dailyMap[e.tracking_date] = { qualities: [], durations: [], count: 0 };
     }
     dailyMap[e.tracking_date].qualities.push(e.sleep_quality || 0);
-    dailyMap[e.tracking_date].durations.push(e.sleep_duration || 0);
+    dailyMap[e.tracking_date].durations.push(e.sleep_duration ? sleepScoreToHours(e.sleep_duration) : 0);
     dailyMap[e.tracking_date].count++;
   });
 
@@ -106,7 +107,7 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
       playerMap[e.player_id] = { name: fullName, qualities: [], durations: [], entries: [] };
     }
     playerMap[e.player_id].qualities.push(e.sleep_quality || 0);
-    playerMap[e.player_id].durations.push(e.sleep_duration || 0);
+    playerMap[e.player_id].durations.push(e.sleep_duration ? sleepScoreToHours(e.sleep_duration) : 0);
     playerMap[e.player_id].entries.push(e);
   });
 
@@ -339,7 +340,7 @@ export function SleepAnalytics({ categoryId }: SleepAnalyticsProps) {
                   </div>
                   <div>
                     <span className="text-xs text-muted-foreground">Durée moy.</span>
-                    <p className="font-bold">{player.avgDuration}/5</p>
+                    <p className="font-bold">{player.avgDuration}h</p>
                   </div>
                 </div>
 
