@@ -474,7 +474,7 @@ export function ScheduleTestEventDialog({
         <DialogHeader className="shrink-0 border-b border-border/60 px-6 pt-6 pb-4">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <ClipboardList className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-            Planifier un test physique
+            {isEditMode ? "Modifier le test physique" : "Planifier un test physique"}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
             {format(date, "EEEE d MMMM yyyy", { locale: fr })}
@@ -790,7 +790,9 @@ export function ScheduleTestEventDialog({
             Annuler
           </Button>
           <Button onClick={() => schedule.mutate()} disabled={schedule.isPending}>
-            {schedule.isPending ? "Planification..." : "Planifier au calendrier"}
+            {schedule.isPending
+              ? (isEditMode ? "Mise à jour..." : "Planification...")
+              : (isEditMode ? "Enregistrer les modifications" : "Planifier au calendrier")}
           </Button>
         </DialogFooter>
       </DialogContent>
