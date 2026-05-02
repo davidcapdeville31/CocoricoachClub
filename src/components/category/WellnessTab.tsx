@@ -32,6 +32,16 @@ const getScoreBadgeClass = (score: number) => {
   return "bg-status-critical/15 text-status-critical border-status-critical/30";
 };
 
+// La durée de sommeil est saisie en heures, on la convertit en score 1-5
+// (1 = optimal, 5 = très mauvais) pour la coloration et le calcul du score moyen.
+const sleepHoursToScore = (hours: number) => {
+  if (hours >= 8) return 1;
+  if (hours >= 7) return 2;
+  if (hours >= 6) return 3;
+  if (hours >= 5) return 4;
+  return 5;
+};
+
 export function WellnessTab({ categoryId }: WellnessTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterFrom, setFilterFrom] = useState<Date | undefined>(subDays(new Date(), 7));
