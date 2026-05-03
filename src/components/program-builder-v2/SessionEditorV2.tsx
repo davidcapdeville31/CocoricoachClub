@@ -32,6 +32,24 @@ interface SessionEditorV2Props {
   defaultDate?: string;
 }
 
+const SESSION_KIND_OPTIONS = [
+  { value: "musculation", label: "Musculation" },
+  { value: "course", label: "Course" },
+  { value: "fractionne", label: "Fractionné" },
+  { value: "endurance", label: "Endurance" },
+  { value: "vitesse", label: "Vitesse" },
+  { value: "puissance", label: "Puissance" },
+  { value: "mobilite", label: "Mobilité" },
+  { value: "recuperation", label: "Récupération" },
+  { value: "cardio", label: "Cardio" },
+  { value: "crossfit", label: "CrossFit" },
+] as const;
+
+const SESSION_THEME_LABEL: Record<string, string> = SESSION_KIND_OPTIONS.reduce(
+  (acc, o) => ({ ...acc, [o.value]: o.label }),
+  {} as Record<string, string>,
+);
+
 const todayIso = () => format(new Date(), "yyyy-MM-dd");
 
 /**
