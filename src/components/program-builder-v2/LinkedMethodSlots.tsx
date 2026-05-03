@@ -87,10 +87,12 @@ interface LinkedMethodSlotsProps {
   slottedExercises: SlottedExercise[];
   onRemoveFromSlot: (slotIndex: number) => void;
   onUpdateParams: (slotIndex: number, params: SlottedExerciseParams) => void;
-  onConfirm: () => void;
-  onCancel: () => void;
+  onConfirm?: () => void;
+  onCancel?: () => void;
   dayId: string;
   defaultEditing?: boolean;
+  // Strict read-only: hide all edit/validate actions
+  readOnly?: boolean;
   // Method-level rest (between exercises in the method)
   methodRestSeconds?: number;
   onMethodRestChange?: (seconds: number | undefined) => void;
