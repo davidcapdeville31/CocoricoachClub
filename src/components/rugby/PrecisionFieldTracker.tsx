@@ -370,19 +370,21 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-end">
-        <div className="space-y-1">
-          <Label className="text-xs">Joueur</Label>
-          <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
-            <SelectTrigger className="w-[200px]"><SelectValue placeholder="Sélectionner un joueur" /></SelectTrigger>
-            <SelectContent>
-              {players.map(p => (
-                <SelectItem key={p.id} value={p.id}>
-                  {[p.first_name, p.name].filter(Boolean).join(" ")}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {!lockedPlayerId && (
+          <div className="space-y-1">
+            <Label className="text-xs">Joueur</Label>
+            <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
+              <SelectTrigger className="w-[200px]"><SelectValue placeholder="Sélectionner un joueur" /></SelectTrigger>
+              <SelectContent>
+                {players.map(p => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {[p.first_name, p.name].filter(Boolean).join(" ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="space-y-1">
           <Label className="text-xs">Catégorie</Label>
           <Select value={currentExercise?.category || "buteur"} onValueChange={(cat) => {
