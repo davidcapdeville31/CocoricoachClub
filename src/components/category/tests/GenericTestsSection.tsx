@@ -128,6 +128,66 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
     },
   });
 
+  // Duplicate a custom test (creates a copy with " (copie)" suffix and opens it for editing)
+  const duplicateTest = useMutation({
+    mutationFn: async (test: any) => {
+      const { data: catData, error: catErr } = await supabase
+        .from("categories")
+        .select("club_id")
+        .eq("id", categoryId)
+        .single();
+      if (catErr) throw catErr;
+      const { data: user } = await supabase.auth.getUser();
+      const { data: newTest, error: insErr } = await supabase
+        .from("custom_tests")
+        .insert({
+          club_id: (catData as any).club_id,
+          name: `${test.name} (copie)`,
+          test_category: test.test_category,
+          unit: test.unit,
+          unit_kind: test.unit_kind,
+          is_time: test.is_time,
+          description: test.description,
+          objectives: test.objectives,
+          scoring_scale: test.scoring_scale,
+          max_points: test.max_points,
+          formula_config: test.formula_config,
+          image_url: test.image_url,
+          video_url: test.video_url,
+          created_by: user?.user?.id || null,
+        } as any)
+        .select("*")
+        .single();
+      if (insErr) throw insErr;
+      const { error: linkErr } = await supabase
+        .from("custom_test_categories")
+        .insert({ custom_test_id: (newTest as any).id, category_id: categoryId });
+      if (linkErr) throw linkErr;
+      return newTest;
+    },
+    onSuccess: (newTest: any) => {
+      toast.success("Test dupliqué — modifiez les caractéristiques");
+      queryClient.invalidateQueries({ queryKey: ["custom_tests_list", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["custom-test-categories", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["custom-tests", categoryId] });
+      setEditingTest({
+        id: newTest.id,
+        name: newTest.name,
+        test_category: newTest.test_category,
+        unit: newTest.unit,
+        description: newTest.description,
+        objectives: newTest.objectives,
+        scoring_scale: newTest.scoring_scale ?? null,
+        formula_config: newTest.formula_config ?? null,
+        image_url: newTest.image_url ?? null,
+        video_url: newTest.video_url ?? null,
+        source: "custom",
+      });
+      setIsEditDialogOpen(true);
+    },
+    onError: (e: any) => toast.error("Erreur duplication: " + e.message),
+  });
+
   // Build categories depending on mode
   const filteredTestCategories = useMemo(() => {
     // Separate rehab and non-rehab categories
