@@ -143,17 +143,22 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
       const in14 = format(addWeeks(new Date(), 2), "yyyy-MM-dd");
       const { data, error } = await supabase
         .from("training_sessions")
-        .select("id, session_date, session_start_time, training_type, theme, location")
+        .select("id, session_date, session_start_time, training_type, theme, location, event_participants(player_id)")
         .eq("category_id", categoryId)
         .gt("session_date", today)
         .lte("session_date", in14)
         .order("session_date", { ascending: true })
         .order("session_start_time", { ascending: true })
-        .limit(5);
+        .limit(20);
       if (error) throw error;
-      return data || [];
+      const filtered = (data || []).filter((s: any) => {
+        const parts = s.event_participants || [];
+        if (!parts.length) return true;
+        return parts.some((p: any) => p.player_id === playerId);
+      });
+      return filtered.slice(0, 5);
     },
-    enabled: !!categoryId,
+    enabled: !!categoryId && !!playerId,
   });
 
   const ewmaResults = awcrData && awcrData.length > 0
