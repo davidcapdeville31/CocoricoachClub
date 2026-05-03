@@ -558,20 +558,35 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         allowCustomTest={!defaultCategory || defaultCategory === "all"}
       />
 
-      {filterTestType !== "all" && selectedCategory && (() => {
-        const cat = filteredTestCategories.find(c => c.value === filterCategory);
-        const test = cat?.tests.find(t => t.value === filterTestType);
-        if (!cat || !test) return null;
+      {(() => {
+        let target = scheduleTarget;
+        if (!target && filterTestType !== "all" && selectedCategory) {
+          const cat = filteredTestCategories.find(c => c.value === filterCategory);
+          const test = cat?.tests.find(t => t.value === filterTestType);
+          if (cat && test) {
+            target = {
+              testCategory: cat.value,
+              testType: test.value,
+              testCategoryLabel: cat.label,
+              testTypeLabel: test.label,
+              testUnit: test.unit || "",
+            };
+          }
+        }
+        if (!target) return null;
         return (
           <ScheduleTestDialog
             open={isScheduleDialogOpen}
-            onOpenChange={setIsScheduleDialogOpen}
+            onOpenChange={(o) => {
+              setIsScheduleDialogOpen(o);
+              if (!o) setScheduleTarget(null);
+            }}
             categoryId={categoryId}
-            testCategoryLabel={cat.label}
-            testTypeLabel={test.label}
-            testCategory={cat.value}
-            testType={test.value}
-            testUnit={test.unit || ""}
+            testCategoryLabel={target.testCategoryLabel}
+            testTypeLabel={target.testTypeLabel}
+            testCategory={target.testCategory}
+            testType={target.testType}
+            testUnit={target.testUnit}
           />
         );
       })()}
