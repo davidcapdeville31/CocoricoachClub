@@ -640,7 +640,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
        {/* Header */}
        <div className="flex items-center justify-between">
          <div>
-           <h2 className="text-2xl font-bold">Centre de décision</h2>
+           <h2 className="text-2xl font-bold">Accueil</h2>
            <p className="text-muted-foreground text-sm">
              {format(new Date(), "EEEE d MMMM yyyy", { locale: fr })}
            </p>
