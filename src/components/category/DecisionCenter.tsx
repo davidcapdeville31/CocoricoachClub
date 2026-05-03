@@ -1234,14 +1234,35 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
                               )}
                             </div>
                           </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-7 px-2"
-                            onClick={() => handleEditSession(session)}
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </Button>
+                          <div className="flex items-center gap-0.5 shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0"
+                              onClick={() => handleEditSession(session)}
+                              title="Modifier"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                              onClick={() => handleNotifySession(session)}
+                              title="Notifier les athlètes"
+                            >
+                              <Bell className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => setDeleteSessionId(session.id)}
+                              title="Supprimer"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </div>
                       );
                     })}
