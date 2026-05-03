@@ -60,6 +60,7 @@ function BatteryRadarCharts({
   onDelete: (id: string) => void;
 }) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const [radarMode, setRadarMode] = useState<Record<string, "tests" | "qualities">>({});
 
   // Lookup max_points and levels from battery definitions
   const { data: batteryLookup } = useQuery({
