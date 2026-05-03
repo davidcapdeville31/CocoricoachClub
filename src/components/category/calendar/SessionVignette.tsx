@@ -182,7 +182,7 @@ export function SessionVignette({
 
         {/* Hover Actions Overlay - displayed ON the session */}
         {isHovered && !isDragging && (
-          <div className="absolute inset-0 flex items-center justify-center bg-card/95 rounded-lg z-[100] animate-fade-in">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 min-w-full w-max flex items-center justify-center gap-0.5 bg-card/95 border border-border rounded-lg shadow-lg px-1 py-1 z-[100] animate-fade-in">
             {/* Preview */}
             <button
               onClick={(e) => handleActionClick(e, onPreview)}
