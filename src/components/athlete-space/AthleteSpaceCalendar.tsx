@@ -27,7 +27,7 @@ import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { getTestLabel } from "@/lib/constants/testCategories";
 import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { GroupedExerciseList } from "@/components/category/GroupedExerciseList";
-import { SessionFormDialog } from "@/components/category/sessions/SessionFormDialog";
+import { SessionEditorV2 } from "@/components/program-builder-v2/SessionEditorV2";
 import { resolveSessionExerciseRows } from "@/lib/utils/sessionExercises";
 
 interface Props {
@@ -650,11 +650,12 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         </CardContent>
       </Card>
 
-      <SessionFormDialog
+      <SessionEditorV2
         open={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
         categoryId={categoryId}
         athletePlayerId={playerId}
+        defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}
       />
     </div>
   );
