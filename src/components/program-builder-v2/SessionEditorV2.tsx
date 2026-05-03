@@ -512,8 +512,10 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
         }),
       );
 
-      const { error: eErr } = await supabase.from("gym_session_exercises").insert(rows);
-      if (eErr) throw eErr;
+      if (rows.length > 0) {
+        const { error: eErr } = await supabase.from("gym_session_exercises").insert(rows);
+        if (eErr) throw eErr;
+      }
 
       return sessionId;
     },
