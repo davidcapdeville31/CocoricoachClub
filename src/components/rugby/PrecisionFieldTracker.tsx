@@ -700,7 +700,18 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
                     <div className="flex items-center gap-3">
                       <div className={`text-sm font-bold ${rateColor}`}>{rate}%</div>
                       <div>
-                        <p className="text-sm font-medium">{e.exercise_label}</p>
+                        <p className="text-sm font-medium flex items-center gap-1.5">
+                          {e.exercise_label}
+                          {e.validated ? (
+                            <Badge variant="outline" className="h-4 text-[9px] gap-0.5 border-green-500/50 text-green-600">
+                              <CheckCircle2 className="h-2.5 w-2.5" /> Validé
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="h-4 text-[9px] gap-0.5 border-amber-500/50 text-amber-600">
+                              <Save className="h-2.5 w-2.5" /> En attente
+                            </Badge>
+                          )}
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           {player ? [player.first_name, player.name].filter(Boolean).join(" ") : ""}
                           {` • ${e.successes}/${e.attempts}`}
