@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { Activity, Calendar, Clock, CheckCircle2, Loader2, Target } from "lucide-react";
+import { Activity, Calendar, Clock, CheckCircle2, Loader2, Target, Info } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
