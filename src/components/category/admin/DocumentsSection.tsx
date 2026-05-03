@@ -522,7 +522,7 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
                 <FileText className="h-12 w-12 mx-auto mb-4 opacity-30" />
-                <p>Aucun document pour {selectedPlayerName}</p>
+                <p>Aucun document</p>
               </CardContent>
             </Card>
           ) : (
