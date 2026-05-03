@@ -132,6 +132,9 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         duration_minutes: 30,
         intensity: 6,
         notes: "",
+        target_intensity: "moderee",
+        volume: "moyen",
+        contact_charge: "aucun",
       },
     ]);
   };
