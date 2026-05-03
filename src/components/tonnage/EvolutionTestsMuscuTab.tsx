@@ -2,11 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TonnageDashboard } from "./TonnageDashboard";
 import { PendingWeightLogsValidation } from "./PendingWeightLogsValidation";
+import { PendingTestResultsValidation } from "@/components/category/tests/PendingTestResultsValidation";
 import { PerformanceEvolution } from "@/components/analytics/PerformanceEvolution";
 import { Weight, TrendingUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePendingWeightLogsCount } from "@/lib/hooks/usePendingWeightLogsCount";
+import { usePendingTestResultsCount } from "@/lib/hooks/usePendingTestResultsCount";
 
 interface EvolutionTestsMuscuTabProps {
   categoryId: string;
@@ -28,6 +30,7 @@ export function EvolutionTestsMuscuTab({ categoryId }: EvolutionTestsMuscuTabPro
 
   const sportType = category?.rugby_type || "XV";
   const pendingCount = usePendingWeightLogsCount(categoryId);
+  const pendingTestsCount = usePendingTestResultsCount(categoryId);
 
   return (
     <Card className="bg-gradient-card shadow-md">
@@ -49,9 +52,14 @@ export function EvolutionTestsMuscuTab({ categoryId }: EvolutionTestsMuscuTabPro
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="evolution" className="text-xs sm:text-sm">
+            <TabsTrigger value="evolution" className="text-xs sm:text-sm relative">
               <TrendingUp className="h-3.5 w-3.5 mr-1" />
               Comparaison & Évolution
+              {pendingTestsCount > 0 && (
+                <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
+                  {pendingTestsCount}
+                </span>
+              )}
             </TabsTrigger>
           </TabsList>
 
@@ -60,7 +68,8 @@ export function EvolutionTestsMuscuTab({ categoryId }: EvolutionTestsMuscuTabPro
             <TonnageDashboard categoryId={categoryId} />
           </TabsContent>
 
-          <TabsContent value="evolution">
+          <TabsContent value="evolution" className="space-y-4">
+            <PendingTestResultsValidation categoryId={categoryId} />
             <PerformanceEvolution categoryId={categoryId} sportType={sportType} />
           </TabsContent>
         </Tabs>
