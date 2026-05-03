@@ -153,7 +153,21 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     return mapped;
   }, [battery?.items, savedRows]);
 
+  const savedInjured = useMemo(() => {
+    const mapped: Record<string, boolean> = {};
+    (battery?.items || []).forEach((it: any) => {
+      const baseTestType = buildBaseTestType(it.test_name);
+      const found = savedRows.find((row: any) =>
+        (row.test_type === baseTestType || row.test_type === `${baseTestType}__right` || row.test_type === `${baseTestType}__left`) &&
+        typeof row.notes === "string" && row.notes.includes("[BLESSÉ]")
+      );
+      if (found) mapped[it.id] = true;
+    });
+    return mapped;
+  }, [battery?.items, savedRows]);
+
   const results = resultsByPlayer[playerId] ?? savedResults;
+  const injured = injuredByPlayer[playerId] ?? savedInjured;
 
   const sportType = (categoryInfo as any)?.sport_type as string | undefined;
   const categoryGender = (categoryInfo as any)?.gender as string | undefined;
