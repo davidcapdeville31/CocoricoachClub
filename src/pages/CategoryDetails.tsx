@@ -296,6 +296,17 @@ function CategoryDetailsContent() {
                   categoryId={categoryId} 
                   currentCoverUrl={category?.cover_image_url}
                 />
+                {canSeeMenu("parametres") && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleTabChange("settings")}
+                    className="gap-2 bg-white/90 text-slate-900 border-white/40 hover:bg-white hover:text-slate-900 backdrop-blur-sm shadow-sm"
+                  >
+                    <Settings className="h-4 w-4" />
+                    Paramètres
+                  </Button>
+                )}
               </div>
             )}
           </div>
