@@ -310,6 +310,18 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
         categoryId={categoryId}
         sportType={sportType}
       />
+
+      <Dialog open={isPlanTestOpen} onOpenChange={setIsPlanTestOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarPlus className="h-5 w-5 text-primary" />
+              Planifier un test
+            </DialogTitle>
+          </DialogHeader>
+          <PlanTestsSection categoryId={categoryId} sportType={sportType} />
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
