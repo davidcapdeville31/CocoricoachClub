@@ -881,6 +881,9 @@ import { SeasonManager } from "@/components/club/SeasonManager";
                   </CollapsibleContent>
                 </Collapsible>
 
+                {/* Auto backup preference */}
+                <AutoBackupToggle clubId={clubId!} />
+
                 {/* Install app guide */}
                 <PWAInstallGuide />
               </TabsContent>
