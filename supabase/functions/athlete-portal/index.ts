@@ -198,7 +198,7 @@ serve(async (req) => {
 
       const { data: sessions, error } = await supabase
         .from("training_sessions")
-        .select("id, session_date, training_type, session_start_time, session_end_time")
+        .select("id, session_date, training_type, session_start_time, session_end_time, notes")
         .eq("category_id", category_id)
         .gte("session_date", twoWeeksAgo.toISOString().split("T")[0])
         .order("session_date", { ascending: false });
@@ -345,6 +345,32 @@ serve(async (req) => {
       if (insertError) throw insertError;
 
       return json({ success: true });
+    }
+
+    // ─── SESSION TEST RESULTS (for athlete test input) ───
+    if (action === "session-test-results") {
+      const sessionId = url.searchParams.get("session_id");
+      if (!sessionId) return json({ success: false, error: "session_id manquant" }, 400);
+
+      const { data: sess } = await supabase
+        .from("training_sessions")
+        .select("id, category_id")
+        .eq("id", sessionId)
+        .single();
+      if (!sess || sess.category_id !== category_id) {
+        return json({ success: false, error: "Séance introuvable" }, 404);
+      }
+
+      const { data: existing, error } = await supabase
+        .from("pending_test_results")
+        .select("test_category, test_type, result_value, result_unit, validation_status")
+        .eq("training_session_id", sessionId)
+        .eq("player_id", player_id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      return json({ success: true, existing: existing || [] });
     }
 
     // ─── SESSION GYM EXERCISES (for weight logging) ───
