@@ -987,6 +987,39 @@ export function SessionDetailsDialog({
                       </p>
                     </div>
                   </div>
+                ) : isInfoOnlySession ? (
+                  <div className="space-y-2 pr-4">
+                    <h4 className="text-sm font-semibold flex items-center gap-2">
+                      <Users className="h-4 w-4 text-primary" />
+                      Participants ({eventParticipants?.length || 0})
+                    </h4>
+                    {(eventParticipants?.length || 0) === 0 ? (
+                      <p className="text-xs text-muted-foreground">
+                        Aucun participant attribué (séance collective).
+                      </p>
+                    ) : (
+                      <div className="grid gap-1.5 sm:grid-cols-2">
+                        {eventParticipants!.map((p: any) => {
+                          const name = p.players?.first_name
+                            ? `${p.players.first_name} ${p.players.name}`
+                            : p.players?.name || "Athlète";
+                          const initials = (p.players?.first_name || p.players?.name || "A").slice(0, 2).toUpperCase();
+                          return (
+                            <div
+                              key={p.player_id}
+                              className="flex items-center gap-2 rounded-lg border bg-background p-2 text-sm"
+                            >
+                              <Avatar className="h-7 w-7">
+                                <AvatarImage src={p.players?.avatar_url || undefined} />
+                                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                              </Avatar>
+                              <span className="truncate">{name}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 ) : !exercises || exercises.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Dumbbell className="h-12 w-12 mx-auto mb-3 opacity-30" />
