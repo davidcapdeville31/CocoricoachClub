@@ -115,7 +115,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("rugby_type")
+        .select("rugby_type, clubs(sport)")
         .eq("id", categoryId)
         .single();
       if (error) throw error;
@@ -221,7 +221,8 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
     enabled: isNotifyOpen,
   });
 
-  const sportType = category?.rugby_type || "XV";
+  const clubSport = (category?.clubs as any)?.sport?.toLowerCase();
+  const sportType = clubSport === "bowling" ? "bowling" : (category?.rugby_type || "XV");
   const isIndividual = isIndividualSport(sportType);
   const isPadel = sportType.toLowerCase().includes("padel");
   const isTennis = sportType.toLowerCase().includes("tennis");
@@ -800,7 +801,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
           onOpenChange={setIsStatsOpen}
           matchId={match.id}
           categoryId={categoryId}
-          sportType={category?.rugby_type || "XV"}
+          sportType={sportType}
         />
       )}
 
