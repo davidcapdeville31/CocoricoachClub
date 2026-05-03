@@ -91,6 +91,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
       setSessionKind("musculation");
       setTargetIntensity("moderee");
       setVolume("moyen");
+      setPlannedRpe(6);
       setSelectedPlayers([]);
       setBlocks([]);
       setSavedSnapshot(null);
