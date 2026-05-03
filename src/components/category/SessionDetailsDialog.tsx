@@ -844,6 +844,14 @@ export function SessionDetailsDialog({
                     <Badge variant="secondary" className="ml-1">{testsMeta.length}</Badge>
                   )}
                 </>
+              ) : isInfoOnlySession ? (
+                <>
+                  <Users className="h-4 w-4" />
+                  Participants
+                  {(eventParticipants?.length || 0) > 0 && (
+                    <Badge variant="secondary" className="ml-1">{eventParticipants!.length}</Badge>
+                  )}
+                </>
               ) : (
                 <>
                   <Dumbbell className="h-4 w-4" />
@@ -860,7 +868,7 @@ export function SessionDetailsDialog({
                 Saisie stats
               </TabsTrigger>
             )}
-            {!isTestSession && (
+            {!isTestSession && !isInfoOnlySession && (
               <TabsTrigger value="rpe" className="flex items-center gap-1">
                 <Activity className="h-4 w-4" />
                 Saisie RPE
