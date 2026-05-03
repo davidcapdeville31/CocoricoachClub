@@ -181,8 +181,7 @@ function BatteryRadarCharts({
         const totalPoints = g.items.reduce((s, i) => s + i.points, 0);
         const totalMax = g.items.reduce((s, i) => s + i.maxPoints, 0);
         const pct = totalMax > 0 ? Math.round((totalPoints / totalMax) * 100) : 0;
-        const color = getColor(pct);
-        const label = getLabel(pct);
+        const { color, label } = getLevelInfo(g.batteryName, pct);
         const radarData = g.items.map((it) => ({
           axis: it.testName,
           value: it.maxPoints > 0 ? Math.round((it.points / it.maxPoints) * 100) : 0,
