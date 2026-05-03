@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   useAthleteAttributes,
@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Plus, X, Star, Loader2, User, Cake, Footprints } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { Checkbox } from "@/components/ui/checkbox";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { toast } from "sonner";
 import {
