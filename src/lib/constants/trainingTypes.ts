@@ -446,13 +446,13 @@ export function getTrainingTypeLabel(value: string): string {
   
   // Fallback labels for legacy values
   const legacyLabels: Record<string, string> = {
-    video: "Analyse Vidéo",
-    video_analyse: "Analyse Vidéo",
+    video: "Analyse vidéo",
+    video_analyse: "Analyse vidéo",
     collectif_general: "Collectif Général",
     competition_training: "Simulation Compétition",
     technique_individuelle: "Technique Individuelle",
     reunion: "Réunion",
-    medical: "Médical",
+    medical: "Rendez-vous médical",
     individuel: "Individuel",
     autre: "Autre",
   };
