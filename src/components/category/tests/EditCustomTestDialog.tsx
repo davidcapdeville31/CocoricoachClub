@@ -199,7 +199,12 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
       if (unitKind === "custom" && !customUnit.trim()) throw new Error("Saisissez l'unité personnalisée");
 
       const baseMaxPoints = enableScoring && scoringScale
-        ? scoringScale.ranges.reduce((m, r) => Math.max(m, r.points), 0)
+        ? Math.max(
+            scoringScale.ranges.reduce((m, r) => Math.max(m, r.points), 0),
+            ...(scoringScale.variants ?? []).map(v =>
+              (v.ranges ?? []).reduce((m, r) => Math.max(m, r.points), 0)
+            )
+          )
         : null;
       const maxPoints = baseMaxPoints != null ? baseMaxPoints * (bilateral ? 2 : 1) : null;
 
