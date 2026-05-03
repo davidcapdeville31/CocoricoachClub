@@ -260,7 +260,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
           session_date: sessionDate,
           session_start_time: startTime || null,
           session_end_time: endTime || null,
-          training_type: "musculation",
+          training_type: sessionKind,
           notes: `<!--v2-meta:${sessionMeta}-->${dayName}`,
         })
         .select("id")
