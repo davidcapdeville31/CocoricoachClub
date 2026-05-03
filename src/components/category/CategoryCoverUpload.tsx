@@ -131,13 +131,14 @@ export function CategoryCoverUpload({ categoryId, currentCoverUrl }: CategoryCov
       {currentCoverUrl && (
         <Button
           variant="outline"
-          size="sm"
+          size="icon"
           onClick={() => deleteCover.mutate()}
           disabled={deleteCover.isPending}
-          className="gap-2 bg-white/90 text-red-600 border-white/40 hover:bg-white hover:text-red-700 backdrop-blur-sm shadow-sm"
+          aria-label="Supprimer l'image"
+          title="Supprimer l'image"
+          className="bg-white/90 text-red-600 border-white/40 hover:bg-white hover:text-red-700 backdrop-blur-sm shadow-sm"
         >
           <Trash2 className="h-4 w-4" />
-          Supprimer
         </Button>
       )}
     </div>

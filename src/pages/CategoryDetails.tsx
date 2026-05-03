@@ -284,17 +284,10 @@ function CategoryDetailsContent() {
                 )}
               </div>
             </div>
-            {categoryId && !isViewer && (
-              <div className="flex flex-wrap gap-2">
-                <CategoryCoverUpload 
-                  categoryId={categoryId} 
-                  currentCoverUrl={category?.cover_image_url}
-                />
-              </div>
-            )}
           </div>
         </div>
       </div>
+
 
       <div className="container mx-auto max-w-7xl px-4 py-8">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
