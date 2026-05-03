@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2, Play, ClipboardList } from "lucide-react";
 import { CreateTestBatteryDialog } from "./CreateTestBatteryDialog";
 import { RunBatteryDialog } from "./RunBatteryDialog";
+import { BatteryResultsList } from "./BatteryResultsList";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -114,9 +115,17 @@ export function TestBatteriesManager({
                     <Badge variant="secondary">{b.items?.length || 0} tests</Badge>
                     <Badge>{totalMax} pts max</Badge>
                   </div>
+
+                  <BatteryResultsList
+                    categoryId={categoryId}
+                    batteryName={b.name}
+                    batteryLevels={(b.levels as any) || undefined}
+                    totalMax={totalMax}
+                  />
+
                   <div className="flex items-center gap-2 pt-2 border-t">
                     <Button size="sm" className="flex-1 gap-1.5" onClick={() => setRunId(b.id)}>
-                      <Play className="h-3.5 w-3.5" /> Lancer
+                      <Play className="h-3.5 w-3.5" /> Lancer / Saisir des résultats
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => openEdit(b.id)}>
                       <Pencil className="h-3.5 w-3.5" />
