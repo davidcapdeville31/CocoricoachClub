@@ -65,6 +65,27 @@ export function BatteryResultsList({
     enabled: !!categoryId && !!batteryName,
   });
 
+  // Lookup max_points per test_name for this battery (to compute % per test → color)
+  const { data: maxByTest = {} } = useQuery({
+    queryKey: ["battery-items-max", categoryId, batteryName],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("test_batteries")
+        .select("items:test_battery_items(test_name, max_points)")
+        .eq("category_id", categoryId)
+        .eq("name", batteryName)
+        .maybeSingle();
+      if (error) throw error;
+      const map: Record<string, number> = {};
+      const items = (data as any)?.items || [];
+      for (const it of items) {
+        if (it?.test_name) map[String(it.test_name).trim().toLowerCase()] = Number(it.max_points) || 0;
+      }
+      return map;
+    },
+    enabled: !!categoryId && !!batteryName,
+  });
+
   /** Group by player+date (one passation = same day for one athlete). */
   const grouped = useMemo(() => {
     const map = new Map<
