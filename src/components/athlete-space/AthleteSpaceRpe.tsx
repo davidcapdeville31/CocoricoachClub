@@ -284,6 +284,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
   const [zone4, setZone4] = useState("");
   const [zone5, setZone5] = useState("");
   const [weightLogs, setWeightLogs] = useState<WeightLogState>({});
+  const [testResults, setTestResults] = useState<TestResultsState>({});
 
   // Fetch exercises for all visible sessions
   const allSessionIds = useMemo(() => allSessions.map(s => s.id), [allSessions]);
