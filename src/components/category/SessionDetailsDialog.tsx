@@ -337,6 +337,7 @@ export function SessionDetailsDialog({
   };
 
   const isTestSession = session?.training_type === "test";
+  const isInfoOnlySession = session?.training_type === "medical" || session?.training_type === "video_analyse";
 
   const getTestLabel = (cat: string, type: string) => {
     const c = TEST_CATEGORIES.find((x: any) => x.value === cat);
@@ -830,7 +831,7 @@ export function SessionDetailsDialog({
             "shrink-0",
             session?.training_type === "precision" && isRugby
               ? "grid w-full grid-cols-3"
-              : isTestSession
+              : isTestSession || isInfoOnlySession
                 ? "inline-flex w-auto self-start"
                 : "grid w-full grid-cols-2",
           )}>
@@ -841,6 +842,14 @@ export function SessionDetailsDialog({
                   Tests
                   {testsMeta.length > 0 && (
                     <Badge variant="secondary" className="ml-1">{testsMeta.length}</Badge>
+                  )}
+                </>
+              ) : isInfoOnlySession ? (
+                <>
+                  <Users className="h-4 w-4" />
+                  Participants
+                  {(eventParticipants?.length || 0) > 0 && (
+                    <Badge variant="secondary" className="ml-1">{eventParticipants!.length}</Badge>
                   )}
                 </>
               ) : (
@@ -859,7 +868,7 @@ export function SessionDetailsDialog({
                 Saisie stats
               </TabsTrigger>
             )}
-            {!isTestSession && (
+            {!isTestSession && !isInfoOnlySession && (
               <TabsTrigger value="rpe" className="flex items-center gap-1">
                 <Activity className="h-4 w-4" />
                 Saisie RPE
@@ -977,6 +986,39 @@ export function SessionDetailsDialog({
                         Les résultats sont à saisir dans <strong>Programmation → Tests</strong> pour chaque athlète.
                       </p>
                     </div>
+                  </div>
+                ) : isInfoOnlySession ? (
+                  <div className="space-y-2 pr-4">
+                    <h4 className="text-sm font-semibold flex items-center gap-2">
+                      <Users className="h-4 w-4 text-primary" />
+                      Participants ({eventParticipants?.length || 0})
+                    </h4>
+                    {(eventParticipants?.length || 0) === 0 ? (
+                      <p className="text-xs text-muted-foreground">
+                        Aucun participant attribué (séance collective).
+                      </p>
+                    ) : (
+                      <div className="grid gap-1.5 sm:grid-cols-2">
+                        {eventParticipants!.map((p: any) => {
+                          const name = p.players?.first_name
+                            ? `${p.players.first_name} ${p.players.name}`
+                            : p.players?.name || "Athlète";
+                          const initials = (p.players?.first_name || p.players?.name || "A").slice(0, 2).toUpperCase();
+                          return (
+                            <div
+                              key={p.player_id}
+                              className="flex items-center gap-2 rounded-lg border bg-background p-2 text-sm"
+                            >
+                              <Avatar className="h-7 w-7">
+                                <AvatarImage src={p.players?.avatar_url || undefined} />
+                                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                              </Avatar>
+                              <span className="truncate">{name}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 ) : !exercises || exercises.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
