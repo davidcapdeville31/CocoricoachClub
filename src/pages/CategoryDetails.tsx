@@ -439,8 +439,8 @@ function CategoryDetailsContent() {
                   value="communication" 
                   colorKey="communication"
                   icon={<MessageSquare className="h-5 w-5" />}
-                  label="Communication"
-                  shortLabel="Com"
+                  label="Chat"
+                  shortLabel="Chat"
                   badge={unreadMessagesCount}
                   tooltip="Messagerie interne : échanges avec le staff et les athlètes, discussions de groupe"
                 />
