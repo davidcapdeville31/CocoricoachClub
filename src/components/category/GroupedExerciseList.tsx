@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Dumbbell, Info } from "lucide-react";
+import { Dumbbell, Info, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getCategoryLabel } from "@/lib/constants/exerciseCategories";
 import { getTrainingStyleConfig } from "@/lib/constants/trainingStyles";
