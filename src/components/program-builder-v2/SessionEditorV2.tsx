@@ -394,28 +394,53 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
         throw new Error("Aucun athlète sélectionné.");
       }
 
-      // 2. Create the training_sessions shell
+      // 2. Create or update the training session shell
       const sessionMeta = JSON.stringify({
         v2: true,
         dayName,
         dayOfWeek: dayOfWeek || null,
         weekNumber,
       });
-      const { data: session, error: sErr } = await supabase
-        .from("training_sessions")
-        .insert({
-          category_id: categoryId,
-          session_date: sessionDate,
-          session_start_time: startTime || null,
-          session_end_time: endTime || null,
-          training_type: sessionKind,
-          intensity: plannedRpe ? Math.max(1, Math.min(10, plannedRpe)) : 1,
-          planned_intensity: plannedRpe || null,
-          notes: `<!--v2-meta:${sessionMeta}-->${dayName}`,
-        })
-        .select("id")
-        .single();
-      if (sErr) throw sErr;
+      let sessionId = editSession?.id;
+
+      if (editSession?.id) {
+        const { error: updateErr } = await supabase
+          .from("training_sessions")
+          .update({
+            session_date: sessionDate,
+            session_start_time: startTime || null,
+            session_end_time: endTime || null,
+            training_type: sessionKind,
+            intensity: plannedRpe ? Math.max(1, Math.min(10, plannedRpe)) : 1,
+            planned_intensity: plannedRpe || null,
+            notes: `<!--v2-meta:${sessionMeta}-->${dayName}`,
+          })
+          .eq("id", editSession.id);
+        if (updateErr) throw updateErr;
+
+        await supabase.from("event_participants").delete().eq("training_session_id", editSession.id);
+        await supabase.from("training_session_blocks").delete().eq("training_session_id", editSession.id);
+        await supabase.from("gym_session_exercises").delete().eq("training_session_id", editSession.id);
+      } else {
+        const { data: session, error: sErr } = await supabase
+          .from("training_sessions")
+          .insert({
+            category_id: categoryId,
+            session_date: sessionDate,
+            session_start_time: startTime || null,
+            session_end_time: endTime || null,
+            training_type: sessionKind,
+            intensity: plannedRpe ? Math.max(1, Math.min(10, plannedRpe)) : 1,
+            planned_intensity: plannedRpe || null,
+            notes: `<!--v2-meta:${sessionMeta}-->${dayName}`,
+          })
+          .select("id")
+          .single();
+        if (sErr) throw sErr;
+        sessionId = session.id;
+      }
+
+      if (!sessionId) throw new Error("Impossible d'identifier la séance.");
 
       // 2b. If specific participants selected, persist them in event_participants
       if (selectedPlayers.length > 0) {
@@ -424,6 +449,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
           .insert(
             selectedPlayers.map((pid) => ({
               training_session_id: session.id,
+              training_session_id: sessionId,
               player_id: pid,
             })),
           );
@@ -444,7 +470,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
               )
             : null;
         await supabase.from("training_session_blocks").insert({
-          training_session_id: session.id,
+          training_session_id: sessionId,
           block_order: 0,
           training_type: sessionKind,
           theme: SESSION_THEME_LABEL[sessionKind] || dayName || "Séance",
@@ -467,8 +493,11 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
           const testTag = isTestRef ? `<!-- v2-test:${ex.exerciseId.slice(5)} -->` : "";
           const userNote = ex.notes ? `\n${ex.notes}` : "";
           const repsNum = ex.reps ? Number(String(ex.reps).replace(/[^0-9]/g, "")) : null;
+          const groupOrder = ex.groupId
+            ? Math.max(0, (block.exercises ?? []).filter((candidate: any) => candidate.groupId === ex.groupId).findIndex((candidate: any) => candidate.id === ex.id))
+            : null;
           return {
-            training_session_id: session.id,
+            training_session_id: sessionId,
             player_id: player.id,
             category_id: categoryId,
             library_exercise_id: isTestRef ? null : (ex.exerciseId || null),
@@ -480,6 +509,8 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
             percentage_1rm: ex.percentage ?? null,
             order_index: idx,
             method: ex.method && ex.method !== "normal" ? ex.method : null,
+            group_id: ex.groupId || null,
+            group_order: groupOrder,
             notes: `${blockTag}${testTag}${userNote}`,
           };
         }),
@@ -488,15 +519,18 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
       const { error: eErr } = await supabase.from("gym_session_exercises").insert(rows);
       if (eErr) throw eErr;
 
-      return session.id;
+      return sessionId;
     },
     onSuccess: () => {
       setSavedSnapshot(currentSnapshot);
-      toast.success("Séance enregistrée ✅");
+      toast.success(isEditing ? "Séance mise à jour ✅" : "Séance enregistrée ✅");
       queryClient.invalidateQueries({ queryKey: ["training_sessions"] });
       queryClient.invalidateQueries({ queryKey: ["training-sessions"] });
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       queryClient.invalidateQueries({ queryKey: ["gym-session-exercises"] });
+      queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["today_session_exercises"] });
+      onClose();
     },
     onError: (e: Error) => {
       toast.error(e.message ?? "Erreur lors de l'enregistrement");
