@@ -128,7 +128,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       if (assignedSessionIds.length === 0) {
         const { data: sessions, error } = await supabase
           .from("training_sessions")
-          .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id")
+          .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, event_participants(player_id)")
           .eq("category_id", categoryId)
           .gte("session_date", today)
           .lte("session_date", endDate)
@@ -137,9 +137,15 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         if (error) throw error;
 
         // Filter out sessions created by other athletes (séance athlète)
-        const filteredSessions = (sessions || []).filter(
-          (s) => !s.created_by_player_id || s.created_by_player_id === playerId
-        );
+        // AND filter by participants if explicitly assigned
+        const filteredSessions = (sessions || []).filter((s: any) => {
+          if (s.created_by_player_id && s.created_by_player_id !== playerId) return false;
+          const parts = s.event_participants || [];
+          if (parts.length > 0) {
+            return parts.some((p: any) => p.player_id === playerId);
+          }
+          return true;
+        });
 
         const sessionIds = filteredSessions.map((s) => s.id);
         if (sessionIds.length === 0) return [];
