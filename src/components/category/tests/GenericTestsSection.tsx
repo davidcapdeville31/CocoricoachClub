@@ -75,19 +75,23 @@ function BatteryRadarCharts({
       if (!clubId) return { maxPoints: {} as Record<string, number>, levels: {} as Record<string, any[]> };
       const { data } = await supabase
         .from("test_batteries")
-        .select("name, levels, items:test_battery_items(test_name, max_points)")
+        .select("name, levels, items:test_battery_items(test_name, max_points, test_category)")
         .eq("club_id", clubId);
       const maxPoints: Record<string, number> = {};
       const levels: Record<string, any[]> = {};
+      const categories: Record<string, string> = {};
       (data || []).forEach((b: any) => {
         if (Array.isArray(b.levels)) levels[b.name] = b.levels;
         (b.items || []).forEach((it: any) => {
           if (it.test_name && it.max_points != null) {
             maxPoints[`${b.name}::${it.test_name}`] = Number(it.max_points);
           }
+          if (it.test_name && it.test_category) {
+            categories[`${b.name}::${it.test_name}`] = it.test_category;
+          }
         });
       });
-      return { maxPoints, levels };
+      return { maxPoints, levels, categories };
     },
   });
 
@@ -155,7 +159,7 @@ function BatteryRadarCharts({
           resultValue: test.result_value,
           resultUnit: test.result_unit,
           rawIds: [test.id],
-          testCategory: test.test_category || null,
+          testCategory: batteryLookup?.categories?.[`${batteryName}::${baseTestName}`] || test.test_category || null,
         });
       }
       g.raw.push(test);
