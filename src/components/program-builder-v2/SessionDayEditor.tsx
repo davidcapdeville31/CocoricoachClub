@@ -25,6 +25,18 @@ import {
   type SlottedExercise,
   type SlottedExerciseParams,
 } from "./LinkedMethodSlots";
+import { FartlekConfigSlots } from "./FartlekConfigSlots";
+import type { FartlekConfig } from "@/lib/program-builder-v2/fartlekTypes";
+import { formatFartlekSummary } from "@/lib/program-builder-v2/fartlekTypes";
+import { ClusterConfigSlots } from "./ClusterConfigSlots";
+import type { ClusterConfig } from "@/lib/program-builder-v2/clusterTypes";
+import { formatClusterSummary } from "@/lib/program-builder-v2/clusterTypes";
+import { StatoDynamiqueConfigSlots } from "./StatoDynamiqueConfigSlots";
+import type { StatoDynamiqueConfig } from "@/lib/program-builder-v2/statoDynamiqueTypes";
+import { formatStatoDynamiqueSummary } from "@/lib/program-builder-v2/statoDynamiqueTypes";
+import { IntermittentCardioConfigSlots } from "./IntermittentCardioConfigSlots";
+import type { IntermittentCardioConfig } from "@/lib/program-builder-v2/intermittentCardioTypes";
+import { formatIntermittentSummary } from "@/lib/program-builder-v2/intermittentCardioTypes";
 import { Trash2 } from "lucide-react";
 import { ExercisePicker, type PickedExercise } from "./ExercisePicker";
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
@@ -92,6 +104,11 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
   const [linkedDrafts, setLinkedDrafts] = useState<Record<string, LinkedDraft>>({});
   // Mode actif pour méthode "config" (drop_set, emom, etc.) — toast informatif en attendant le wiring complet
   const [pendingConfig, setPendingConfig] = useState<Record<string, ConfigMethod>>({});
+  // Draft Fartlek actif par bloc — affiche FartlekConfigSlots
+  const [fartlekDrafts, setFartlekDrafts] = useState<Record<string, { editing: boolean; initial?: FartlekConfig }>>({});
+  const [clusterDrafts, setClusterDrafts] = useState<Record<string, { editing: boolean; initial?: ClusterConfig }>>({});
+  const [statoDrafts, setStatoDrafts] = useState<Record<string, { editing: boolean; initial?: StatoDynamiqueConfig }>>({});
+  const [intermittentDrafts, setIntermittentDrafts] = useState<Record<string, { editing: boolean; initial?: IntermittentCardioConfig }>>({});
 
   // (useImperativeHandle is declared after addExerciseToBlock — see below)
 
@@ -256,11 +273,184 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
 
   const handleStartConfig = useCallback(
     (blockId: string, method: ConfigMethod) => {
+      // Méthodes avec carte de configuration dédiée
+      if (method === "fartlek") {
+        setFartlekDrafts((p) => ({ ...p, [blockId]: { editing: true } }));
+        return;
+      }
+      if (method === "cluster") {
+        setClusterDrafts((p) => ({ ...p, [blockId]: { editing: true } }));
+        return;
+      }
+      if (method === "stato_dynamique") {
+        setStatoDrafts((p) => ({ ...p, [blockId]: { editing: true } }));
+        return;
+      }
+      if (method === "intermittent_cardio") {
+        setIntermittentDrafts((p) => ({ ...p, [blockId]: { editing: true } }));
+        return;
+      }
       setPendingConfig((p) => ({ ...p, [blockId]: method }));
       toast.info(`Méthode « ${method} » — appliquée au prochain exercice ajouté.`);
     },
     [],
   );
+
+  const handleFartlekValidate = useCallback(
+    (blockId: string, config: FartlekConfig) => {
+      const summary = formatFartlekSummary(config);
+      const serialized = `<!--v2-fartlek:${JSON.stringify(config)}-->`;
+      const exercise: V2BlockExercise = {
+        id: `ex-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        exerciseId: undefined,
+        exerciseName: `Fartlek — ${summary}`,
+        sets: 1,
+        reps: String(config.totalDurationMinutes || 1),
+        restSeconds: 0,
+        method: "fartlek",
+        notes: serialized,
+        config: config as unknown as Record<string, unknown>,
+      };
+      onChange(
+        blocks.map((b) =>
+          b.id === blockId
+            ? { ...b, exercises: [...(b.exercises ?? []), exercise] }
+            : b,
+        ),
+      );
+      setFartlekDrafts((p) => {
+        const n = { ...p };
+        delete n[blockId];
+        return n;
+      });
+      toast.success("Fartlek ajouté à la séance");
+    },
+    [blocks, onChange],
+  );
+
+  const handleFartlekCancel = useCallback((blockId: string) => {
+    setFartlekDrafts((p) => {
+      const n = { ...p };
+      delete n[blockId];
+      return n;
+    });
+  }, []);
+
+  // Helper générique pour ajouter un exercice "méthode dédiée" au bloc
+  const appendMethodExercise = useCallback(
+    (
+      blockId: string,
+      params: {
+        method: V2BlockExercise["method"];
+        name: string;
+        sets?: number;
+        reps?: string;
+        restSeconds?: number;
+        notes?: string;
+        config?: Record<string, unknown>;
+      },
+    ) => {
+      const exercise: V2BlockExercise = {
+        id: `ex-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        exerciseId: undefined,
+        exerciseName: params.name,
+        sets: params.sets ?? 1,
+        reps: params.reps ?? "1",
+        restSeconds: params.restSeconds ?? 0,
+        method: params.method,
+        notes: params.notes,
+        config: params.config,
+      };
+      onChange(
+        blocks.map((b) =>
+          b.id === blockId
+            ? { ...b, exercises: [...(b.exercises ?? []), exercise] }
+            : b,
+        ),
+      );
+    },
+    [blocks, onChange],
+  );
+
+  const handleClusterValidate = useCallback(
+    (blockId: string, config: ClusterConfig) => {
+      const summary = formatClusterSummary(config);
+      appendMethodExercise(blockId, {
+        method: "cluster",
+        name: `Cluster — ${summary}`,
+        sets: config.sets ?? 1,
+        notes: `<!--v2-cluster:${JSON.stringify(config)}-->`,
+        config: config as unknown as Record<string, unknown>,
+      });
+      setClusterDrafts((p) => {
+        const n = { ...p };
+        delete n[blockId];
+        return n;
+      });
+      toast.success("Cluster ajouté à la séance");
+    },
+    [appendMethodExercise],
+  );
+  const handleClusterCancel = useCallback((blockId: string) => {
+    setClusterDrafts((p) => {
+      const n = { ...p };
+      delete n[blockId];
+      return n;
+    });
+  }, []);
+
+  const handleStatoValidate = useCallback(
+    (blockId: string, config: StatoDynamiqueConfig) => {
+      const summary = formatStatoDynamiqueSummary(config);
+      appendMethodExercise(blockId, {
+        method: "stato_dynamique",
+        name: `Stato-Dynamique — ${summary}`,
+        notes: `<!--v2-stato:${JSON.stringify(config)}-->`,
+        config: config as unknown as Record<string, unknown>,
+      });
+      setStatoDrafts((p) => {
+        const n = { ...p };
+        delete n[blockId];
+        return n;
+      });
+      toast.success("Stato-Dynamique ajouté à la séance");
+    },
+    [appendMethodExercise],
+  );
+  const handleStatoCancel = useCallback((blockId: string) => {
+    setStatoDrafts((p) => {
+      const n = { ...p };
+      delete n[blockId];
+      return n;
+    });
+  }, []);
+
+  const handleIntermittentValidate = useCallback(
+    (blockId: string, config: IntermittentCardioConfig) => {
+      const summary = formatIntermittentSummary(config);
+      appendMethodExercise(blockId, {
+        method: "intermittent_cardio",
+        name: `Cardio intermittent — ${summary}`,
+        notes: `<!--v2-intermittent:${JSON.stringify(config)}-->`,
+        config: config as unknown as Record<string, unknown>,
+      });
+      setIntermittentDrafts((p) => {
+        const n = { ...p };
+        delete n[blockId];
+        return n;
+      });
+      toast.success("Cardio intermittent ajouté à la séance");
+    },
+    [appendMethodExercise],
+  );
+  const handleIntermittentCancel = useCallback((blockId: string) => {
+    setIntermittentDrafts((p) => {
+      const n = { ...p };
+      delete n[blockId];
+      return n;
+    });
+  }, []);
+
 
   // Slot management pour LinkedMethodSlots
   const handleSlotRemove = useCallback((blockId: string, slotIndex: number) => {
@@ -440,6 +630,11 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
       <div className="space-y-2">
         {blocks.map((block) => {
           const linkedDraft = linkedDrafts[block.id];
+          const fartlekDraft = fartlekDrafts[block.id];
+          const clusterDraft = clusterDrafts[block.id];
+          const statoDraft = statoDrafts[block.id];
+          const intermittentDraft = intermittentDrafts[block.id];
+          const anyDraft = !!linkedDraft || !!pendingConfig[block.id] || !!fartlekDraft || !!clusterDraft || !!statoDraft || !!intermittentDraft;
           return (
             <TrainingBlockWrapper
               key={block.id}
@@ -459,7 +654,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
             >
               {block.type !== "tests" && (
                 <TrainingMethodButtons
-                  isBuilding={!!linkedDraft || !!pendingConfig[block.id]}
+                  isBuilding={anyDraft}
                   blockType={block.type === "custom" ? "musculation" : block.type}
                   onStartLinkedMethod={(m) => handleStartLinked(block.id, m)}
                   onStartConfigMethod={(m) => handleStartConfig(block.id, m)}
@@ -479,6 +674,42 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                   dayId={block.id}
                   methodRestSeconds={linkedDraft.methodRestSeconds}
                   onMethodRestChange={(s) => handleMethodRestChange(block.id, s)}
+                />
+              )}
+
+              {/* Carte de configuration Fartlek */}
+              {fartlekDraft && (
+                <FartlekConfigSlots
+                  initialConfig={fartlekDraft.initial}
+                  onValidate={(config) => handleFartlekValidate(block.id, config)}
+                  onCancel={() => handleFartlekCancel(block.id)}
+                />
+              )}
+
+              {/* Carte Cluster */}
+              {clusterDraft && (
+                <ClusterConfigSlots
+                  initialConfig={clusterDraft.initial}
+                  onValidate={(config) => handleClusterValidate(block.id, config)}
+                  onCancel={() => handleClusterCancel(block.id)}
+                />
+              )}
+
+              {/* Carte Stato-Dynamique */}
+              {statoDraft && (
+                <StatoDynamiqueConfigSlots
+                  initialConfig={statoDraft.initial}
+                  onValidate={(config) => handleStatoValidate(block.id, config)}
+                  onCancel={() => handleStatoCancel(block.id)}
+                />
+              )}
+
+              {/* Carte Cardio Intermittent */}
+              {intermittentDraft && (
+                <IntermittentCardioConfigSlots
+                  initialConfig={intermittentDraft.initial}
+                  onConfirm={(config) => handleIntermittentValidate(block.id, config)}
+                  onCancel={() => handleIntermittentCancel(block.id)}
                 />
               )}
 
