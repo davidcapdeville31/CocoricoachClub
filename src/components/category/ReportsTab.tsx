@@ -2546,46 +2546,31 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         <p className="text-muted-foreground">Générez et exportez des rapports en PDF ou Excel</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="flex flex-col gap-3">
         {/* Squad Overview Report */}
         <Card className="border-primary/20 bg-primary/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Vue d'Ensemble Effectif
-            </CardTitle>
-            <CardDescription>
-              {isIndividualSport 
-                ? "Synthèse : blessures, wellness, ratio EWMA"
-                : "Synthèse globale avec Ratio EWMA"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {renderDateRange(overviewDateFrom, overviewDateTo, setOverviewDateFrom, setOverviewDateTo)}
-            <div className="flex gap-2">
-              <Button 
-                onClick={generateSquadReport} 
-                className="flex-1"
-                disabled={generatingReport === "squad" || generatingReport === "squad-csv"}
-              >
-                {generatingReport === "squad" ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                ) : (
-                  <FileText className="h-4 w-4 mr-1" />
-                )}
+          <CardContent className="p-4 flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex items-start gap-3 md:w-72 shrink-0">
+              <Users className="h-5 w-5 mt-0.5 text-primary" />
+              <div>
+                <p className="font-semibold leading-tight">Vue d'Ensemble Effectif</p>
+                <p className="text-xs text-muted-foreground">
+                  {isIndividualSport
+                    ? "Synthèse : blessures, wellness, ratio EWMA"
+                    : "Synthèse globale avec Ratio EWMA"}
+                </p>
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              {renderDateRange(overviewDateFrom, overviewDateTo, setOverviewDateFrom, setOverviewDateTo)}
+            </div>
+            <div className="flex gap-2 md:w-56 shrink-0">
+              <Button onClick={generateSquadReport} className="flex-1" disabled={generatingReport === "squad" || generatingReport === "squad-csv"}>
+                {generatingReport === "squad" ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileText className="h-4 w-4 mr-1" />}
                 PDF
               </Button>
-              <Button 
-                onClick={generateSquadCsv}
-                variant="outline"
-                className="flex-1"
-                disabled={generatingReport === "squad" || generatingReport === "squad-csv"}
-              >
-                {generatingReport === "squad-csv" ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                ) : (
-                  <FileSpreadsheet className="h-4 w-4 mr-1" />
-                )}
+              <Button onClick={generateSquadCsv} variant="outline" className="flex-1" disabled={generatingReport === "squad" || generatingReport === "squad-csv"}>
+                {generatingReport === "squad-csv" ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileSpreadsheet className="h-4 w-4 mr-1" />}
                 Excel
               </Button>
             </div>
@@ -2595,41 +2580,24 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         {/* Suivi Temps de Jeu (TDJ) - Only for team sports */}
         {hasTdj && (
           <Card className="border-primary/20 bg-primary/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5" />
-                Suivi Temps de Jeu
-              </CardTitle>
-              <CardDescription>
-                Minutes, titularisations, remplacements, hors-groupe
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {renderDateRange(tdjDateFrom, tdjDateTo, setTdjDateFrom, setTdjDateTo)}
-              <div className="flex gap-2">
-                <Button 
-                  onClick={generateTdjReport} 
-                  className="flex-1"
-                  disabled={generatingReport === "tdj" || generatingReport === "tdj-csv"}
-                >
-                  {generatingReport === "tdj" ? (
-                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                  ) : (
-                    <FileText className="h-4 w-4 mr-1" />
-                  )}
+            <CardContent className="p-4 flex flex-col md:flex-row md:items-center gap-4">
+              <div className="flex items-start gap-3 md:w-72 shrink-0">
+                <Trophy className="h-5 w-5 mt-0.5 text-primary" />
+                <div>
+                  <p className="font-semibold leading-tight">Suivi Temps de Jeu</p>
+                  <p className="text-xs text-muted-foreground">Minutes, titularisations, remplacements, hors-groupe</p>
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                {renderDateRange(tdjDateFrom, tdjDateTo, setTdjDateFrom, setTdjDateTo)}
+              </div>
+              <div className="flex gap-2 md:w-56 shrink-0">
+                <Button onClick={generateTdjReport} className="flex-1" disabled={generatingReport === "tdj" || generatingReport === "tdj-csv"}>
+                  {generatingReport === "tdj" ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileText className="h-4 w-4 mr-1" />}
                   PDF
                 </Button>
-                <Button 
-                  onClick={generateTdjCsv}
-                  variant="outline"
-                  className="flex-1"
-                  disabled={generatingReport === "tdj" || generatingReport === "tdj-csv"}
-                >
-                  {generatingReport === "tdj-csv" ? (
-                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                  ) : (
-                    <FileSpreadsheet className="h-4 w-4 mr-1" />
-                  )}
+                <Button onClick={generateTdjCsv} variant="outline" className="flex-1" disabled={generatingReport === "tdj" || generatingReport === "tdj-csv"}>
+                  {generatingReport === "tdj-csv" ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileSpreadsheet className="h-4 w-4 mr-1" />}
                   Excel
                 </Button>
               </div>
@@ -2639,50 +2607,30 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
         {/* Season Report */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Bilan de Saison
-            </CardTitle>
-            <CardDescription>
-              {isIndividualSport 
-                ? "Résumé des compétitions et performances"
-                : isRacketSport
-                ? "Résumé des matchs et performances"
-                : "Résumé complet de la saison en cours"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Saison {new Date().getFullYear()}/{new Date().getFullYear() + 1}
-            </p>
-            <p className="text-sm">
-              {players.length} {athleteLabel.toLowerCase()} • {matches.length} {competitionLabel.toLowerCase()}
-            </p>
-            <div className="flex gap-2">
-              <Button 
-                onClick={generateSeasonReport} 
-                className="flex-1"
-                disabled={generatingReport === "season" || generatingReport === "season-csv"}
-              >
-                {generatingReport === "season" ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                ) : (
-                  <FileText className="h-4 w-4 mr-1" />
-                )}
+          <CardContent className="p-4 flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex items-start gap-3 md:w-72 shrink-0">
+              <Calendar className="h-5 w-5 mt-0.5 text-primary" />
+              <div>
+                <p className="font-semibold leading-tight">Bilan de Saison</p>
+                <p className="text-xs text-muted-foreground">
+                  {isIndividualSport
+                    ? "Résumé des compétitions et performances"
+                    : isRacketSport
+                    ? "Résumé des matchs et performances"
+                    : "Résumé complet de la saison en cours"}
+                </p>
+              </div>
+            </div>
+            <div className="flex-1 min-w-0 text-sm text-muted-foreground">
+              Saison {new Date().getFullYear()}/{new Date().getFullYear() + 1} · {players.length} {athleteLabel.toLowerCase()} · {matches.length} {competitionLabel.toLowerCase()}
+            </div>
+            <div className="flex gap-2 md:w-56 shrink-0">
+              <Button onClick={generateSeasonReport} className="flex-1" disabled={generatingReport === "season" || generatingReport === "season-csv"}>
+                {generatingReport === "season" ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileText className="h-4 w-4 mr-1" />}
                 PDF
               </Button>
-              <Button 
-                onClick={generateSeasonCsv}
-                variant="outline"
-                className="flex-1"
-                disabled={generatingReport === "season" || generatingReport === "season-csv"}
-              >
-                {generatingReport === "season-csv" ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                ) : (
-                  <FileSpreadsheet className="h-4 w-4 mr-1" />
-                )}
+              <Button onClick={generateSeasonCsv} variant="outline" className="flex-1" disabled={generatingReport === "season" || generatingReport === "season-csv"}>
+                {generatingReport === "season-csv" ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileSpreadsheet className="h-4 w-4 mr-1" />}
                 Excel
               </Button>
             </div>
@@ -2691,54 +2639,37 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
         {/* Match / Competition Report */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5" />
-              {isIndividualSport ? "Rapport de Compétition" : "Rapport de Match"}
-            </CardTitle>
-            <CardDescription>
-              {isIndividualSport 
-                ? "Détail par compétition et par athlète"
-                : "Stats dynamiques selon vos préférences"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Select value={selectedMatch} onValueChange={setSelectedMatch}>
-              <SelectTrigger>
-                <SelectValue placeholder={isIndividualSport ? "Sélectionner une compétition" : "Sélectionner un match"} />
-              </SelectTrigger>
-              <SelectContent>
-                {matches.map((match) => (
-                  <SelectItem key={match.id} value={match.id}>
-                    {isIndividualSport ? "" : "vs "}{match.opponent} ({format(new Date(match.match_date), "d MMM", { locale: fr })})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <div className="flex gap-2">
-              <Button 
-                onClick={generateMatchReport} 
-                className="flex-1"
-                disabled={!selectedMatch || generatingReport === "match" || generatingReport === "match-csv"}
-              >
-                {generatingReport === "match" ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                ) : (
-                  <FileText className="h-4 w-4 mr-1" />
-                )}
+          <CardContent className="p-4 flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex items-start gap-3 md:w-72 shrink-0">
+              <Trophy className="h-5 w-5 mt-0.5 text-primary" />
+              <div>
+                <p className="font-semibold leading-tight">{isIndividualSport ? "Rapport de Compétition" : "Rapport de Match"}</p>
+                <p className="text-xs text-muted-foreground">
+                  {isIndividualSport ? "Détail par compétition et par athlète" : "Stats dynamiques selon vos préférences"}
+                </p>
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <Select value={selectedMatch} onValueChange={setSelectedMatch}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder={isIndividualSport ? "Sélectionner une compétition" : "Sélectionner un match"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {matches.map((match) => (
+                    <SelectItem key={match.id} value={match.id}>
+                      {isIndividualSport ? "" : "vs "}{match.opponent} ({format(new Date(match.match_date), "d MMM", { locale: fr })})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2 md:w-56 shrink-0">
+              <Button onClick={generateMatchReport} className="flex-1" disabled={!selectedMatch || generatingReport === "match" || generatingReport === "match-csv"}>
+                {generatingReport === "match" ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileText className="h-4 w-4 mr-1" />}
                 PDF
               </Button>
-              <Button 
-                onClick={generateMatchCsv}
-                variant="outline"
-                className="flex-1"
-                disabled={!selectedMatch || generatingReport === "match" || generatingReport === "match-csv"}
-              >
-                {generatingReport === "match-csv" ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                ) : (
-                  <FileSpreadsheet className="h-4 w-4 mr-1" />
-                )}
+              <Button onClick={generateMatchCsv} variant="outline" className="flex-1" disabled={!selectedMatch || generatingReport === "match" || generatingReport === "match-csv"}>
+                {generatingReport === "match-csv" ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileSpreadsheet className="h-4 w-4 mr-1" />}
                 Excel
               </Button>
             </div>
@@ -2747,41 +2678,24 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
 
         {/* Attendance Report */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ClipboardCheck className="h-5 w-5" />
-              Rapport de Présences
-            </CardTitle>
-            <CardDescription>
-              Taux de présence et retards
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {renderDateRange(attendanceDateFrom, attendanceDateTo, setAttendanceDateFrom, setAttendanceDateTo)}
-            <div className="flex gap-2">
-              <Button 
-                onClick={generateAttendanceReport} 
-                className="flex-1"
-                disabled={generatingReport === "attendance" || generatingReport === "attendance-csv"}
-              >
-                {generatingReport === "attendance" ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                ) : (
-                  <FileText className="h-4 w-4 mr-1" />
-                )}
+          <CardContent className="p-4 flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex items-start gap-3 md:w-72 shrink-0">
+              <ClipboardCheck className="h-5 w-5 mt-0.5 text-primary" />
+              <div>
+                <p className="font-semibold leading-tight">Rapport de Présences</p>
+                <p className="text-xs text-muted-foreground">Taux de présence et retards</p>
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              {renderDateRange(attendanceDateFrom, attendanceDateTo, setAttendanceDateFrom, setAttendanceDateTo)}
+            </div>
+            <div className="flex gap-2 md:w-56 shrink-0">
+              <Button onClick={generateAttendanceReport} className="flex-1" disabled={generatingReport === "attendance" || generatingReport === "attendance-csv"}>
+                {generatingReport === "attendance" ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileText className="h-4 w-4 mr-1" />}
                 PDF
               </Button>
-              <Button 
-                onClick={generateAttendanceCsv}
-                variant="outline"
-                className="flex-1"
-                disabled={generatingReport === "attendance" || generatingReport === "attendance-csv"}
-              >
-                {generatingReport === "attendance-csv" ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                ) : (
-                  <FileSpreadsheet className="h-4 w-4 mr-1" />
-                )}
+              <Button onClick={generateAttendanceCsv} variant="outline" className="flex-1" disabled={generatingReport === "attendance" || generatingReport === "attendance-csv"}>
+                {generatingReport === "attendance-csv" ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileSpreadsheet className="h-4 w-4 mr-1" />}
                 Excel
               </Button>
             </div>
