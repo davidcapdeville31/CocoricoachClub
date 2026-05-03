@@ -48,9 +48,10 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
   const [sessionDate, setSessionDate] = useState<string>(todayIso());
   const [startTime, setStartTime] = useState<string>("");
   const [endTime, setEndTime] = useState<string>("");
-  const [sessionKind, setSessionKind] = useState<"musculation" | "course">("musculation");
+  const [sessionKind, setSessionKind] = useState<string>("musculation");
   const [targetIntensity, setTargetIntensity] = useState<string>("moderee");
   const [volume, setVolume] = useState<string>("moyen");
+  const [plannedRpe, setPlannedRpe] = useState<number>(6);
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [blocks, setBlocks] = useState<V2BlockWithExercises[]>([]);
   const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
