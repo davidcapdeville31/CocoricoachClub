@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { X, Dumbbell, Info } from "lucide-react";
+import { X, Dumbbell, Info, Video } from "lucide-react";
 import { ExerciseMediaViewer } from "@/components/library/ExerciseMediaViewer";
 import { useExerciseMedia } from "@/lib/hooks/useExerciseMedia";
 import {
@@ -15,18 +15,12 @@ interface MethodExerciseDisplayProps {
   onRemove?: () => void;
   className?: string;
   showRemove?: boolean;
-  // Method color props - use these to match the method's color scheme
-  methodBgColor?: string;    // e.g., "bg-purple-500/20"
-  methodBorderColor?: string; // e.g., "border-purple-500"
-  methodTextColor?: string;   // e.g., "text-purple-500"
-  methodIconColor?: string;   // e.g., "bg-purple-500"
+  methodBgColor?: string;
+  methodBorderColor?: string;
+  methodTextColor?: string;
+  methodIconColor?: string;
 }
 
-/**
- * Unified exercise display component for all training methods
- * Shows exercise with icon, name, colored border matching the method,
- * a clickable media viewer (image/video) and an info tooltip (consignes).
- */
 export const MethodExerciseDisplay = ({
   exerciseName,
   onRemove,
@@ -39,6 +33,7 @@ export const MethodExerciseDisplay = ({
 }: MethodExerciseDisplayProps) => {
   const { getMedia } = useExerciseMedia();
   const media = getMedia(exerciseName);
+  const hasMedia = !!(media?.youtube_url || media?.image_url);
 
   return (
     <div
@@ -49,31 +44,41 @@ export const MethodExerciseDisplay = ({
         className
       )}
     >
-      {/* Method-colored icon */}
       <div className={cn(
         "flex items-center justify-center w-5 h-5 rounded flex-shrink-0",
         methodIconColor
       )}>
         <Dumbbell className="h-3 w-3 text-white" />
       </div>
-      <ExerciseMediaViewer
-        exerciseName={exerciseName}
-        imageUrl={media?.image_url}
-        youtubeUrl={media?.youtube_url}
-      >
-        <span className={cn("font-semibold text-xs flex-1 truncate cursor-pointer", methodTextColor)}>
-          {exerciseName}
-        </span>
-      </ExerciseMediaViewer>
+      <span className={cn("font-semibold text-xs flex-1 truncate", methodTextColor)}>
+        {exerciseName}
+      </span>
+
+      {/* Video icon (camcorder) — opens media viewer */}
+      {hasMedia && (
+        <ExerciseMediaViewer
+          exerciseName={exerciseName}
+          imageUrl={media?.image_url}
+          youtubeUrl={media?.youtube_url}
+        >
+          <button
+            type="button"
+            className="inline-flex items-center justify-center h-5 w-5 rounded-full text-primary hover:bg-primary/10 shrink-0 transition-colors"
+            aria-label={`Voir la vidéo de ${exerciseName}`}
+            title="Voir la vidéo / image"
+          >
+            <Video className="h-3.5 w-3.5" />
+          </button>
+        </ExerciseMediaViewer>
+      )}
+
+      {/* Info icon (i) — consignes */}
       <TooltipProvider delayDuration={150}>
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               type="button"
-              className={cn(
-                "inline-flex items-center justify-center rounded-full border h-4 w-4 shrink-0 transition-colors",
-                "border-muted-foreground/40 text-muted-foreground hover:text-primary hover:border-primary"
-              )}
+              className="inline-flex items-center justify-center rounded-full border h-4 w-4 shrink-0 transition-colors border-muted-foreground/40 text-muted-foreground hover:text-primary hover:border-primary"
               aria-label={`Consignes pour ${exerciseName}`}
               onClick={(e) => e.preventDefault()}
             >
@@ -96,14 +101,10 @@ export const MethodExerciseDisplay = ({
                 Aucune consigne renseignée pour cet exercice.
               </p>
             )}
-            {(media?.youtube_url || media?.image_url) && (
-              <p className="pt-1 border-t border-border/40 text-[11px] text-muted-foreground">
-                Clique sur le nom pour voir la vidéo / image.
-              </p>
-            )}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
+
       {showRemove && onRemove && (
         <Button
           type="button"

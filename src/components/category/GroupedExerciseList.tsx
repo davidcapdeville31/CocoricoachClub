@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Dumbbell, Info } from "lucide-react";
+import { Dumbbell, Info, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getCategoryLabel } from "@/lib/constants/exerciseCategories";
 import { getTrainingStyleConfig } from "@/lib/constants/trainingStyles";
@@ -165,15 +165,29 @@ export function GroupedExerciseList({
                 {idx + 1}.
               </span>
             )}
-            <ExerciseMediaViewer
-              exerciseName={ex.exercise_name}
-              imageUrl={media?.image_url}
-              youtubeUrl={media?.youtube_url}
-            >
-              <span className={cn("font-medium", compact && "text-sm", fieldMode && "text-white")}>
-                {ex.exercise_name}
-              </span>
-            </ExerciseMediaViewer>
+            <span className={cn("font-medium", compact && "text-sm", fieldMode && "text-white")}>
+              {ex.exercise_name}
+            </span>
+            {(media?.youtube_url || media?.image_url) && (
+              <ExerciseMediaViewer
+                exerciseName={ex.exercise_name}
+                imageUrl={media?.image_url}
+                youtubeUrl={media?.youtube_url}
+              >
+                <button
+                  type="button"
+                  className={cn(
+                    "inline-flex items-center justify-center rounded-full h-5 w-5 shrink-0 transition-colors",
+                    "text-primary hover:bg-primary/10",
+                    fieldMode && "text-white hover:bg-white/10"
+                  )}
+                  aria-label={`Voir la vidéo de ${ex.exercise_name}`}
+                  title="Voir la vidéo / image"
+                >
+                  <Video className="h-3.5 w-3.5" />
+                </button>
+              </ExerciseMediaViewer>
+            )}
             <TooltipProvider delayDuration={150}>
               <Tooltip>
                 <TooltipTrigger asChild>
