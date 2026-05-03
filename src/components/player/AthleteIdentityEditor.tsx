@@ -77,7 +77,21 @@ const LATERALITY_OPTIONS_BOWLING: { value: string; label: string }[] = [
 ];
 
 function getLateralityOptions(sportType: string) {
-  return sportType?.startsWith("bowling") ? LATERALITY_OPTIONS_BOWLING : LATERALITY_OPTIONS;
+  return sportType?.toLowerCase().startsWith("bowling") ? LATERALITY_OPTIONS_BOWLING : LATERALITY_OPTIONS;
+}
+
+/** Normalise un sportType (ex: "bowling_club", "tennis_club") vers son sport de base. */
+function getBaseSport(sportType: string): string {
+  if (!sportType) return sportType;
+  const lower = sportType.toLowerCase();
+  if (lower.startsWith("bowling")) return "bowling";
+  if (lower.startsWith("tennis")) return "tennis";
+  if (lower.startsWith("padel")) return "padel";
+  if (lower.startsWith("judo")) return "judo";
+  if (lower.startsWith("snowboard")) return "snowboard";
+  if (lower.startsWith("ski")) return "ski";
+  if (lower.startsWith("surf")) return "surf";
+  return sportType;
 }
 
 const STYLES_BY_SPORT: Record<string, { value: string; label: string }[]> = {
