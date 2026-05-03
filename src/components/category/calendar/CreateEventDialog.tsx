@@ -152,6 +152,53 @@ export function CreateEventDialog({
     },
   });
 
+  // Fetch category sport to label "Séance terrain" dynamically per sport
+  const { data: categorySport } = useQuery({
+    queryKey: ["category_sport_for_event", categoryId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("categories")
+        .select("rugby_type")
+        .eq("id", categoryId)
+        .maybeSingle();
+      return (data?.rugby_type as string) || "XV";
+    },
+  });
+
+  const getFieldSessionLabel = (sport: string | undefined): string => {
+    if (!sport) return "Séance terrain";
+    const map: Record<string, string> = {
+      rugby: "Séance rugby",
+      football: "Séance football",
+      handball: "Séance handball",
+      volleyball: "Séance volley",
+      basketball: "Séance basket",
+      judo: "Séance judo",
+      bowling: "Séance bowling",
+      aviron: "Séance aviron",
+      athletisme: "Séance athlétisme",
+      crossfit: "Séance CrossFit",
+      padel: "Séance padel",
+      natation: "Séance natation",
+      surf: "Séance surf",
+      ski: "Séance ski / snow",
+      triathlon: "Séance triathlon",
+      tennis: "Séance tennis",
+    };
+    const main = (() => {
+      if (["XV","7","XIII","touch","15","academie","national_team"].includes(sport)) return "rugby";
+      if (sport.startsWith("snow") || sport.startsWith("ski")) return "ski";
+      const prefixes = Object.keys(map);
+      return prefixes.find(p => sport === p || sport.startsWith(p + "_")) || "rugby";
+    })();
+    return map[main] || "Séance terrain";
+  };
+
+  const fieldSessionLabel = getFieldSessionLabel(categorySport);
+  const eventTypes = EVENT_TYPES.map(t =>
+    t.id === "field_session" ? { ...t, label: fieldSessionLabel } : t
+  );
+
   const resetForm = () => {
     setStep("type");
     setSelectedType(null);
