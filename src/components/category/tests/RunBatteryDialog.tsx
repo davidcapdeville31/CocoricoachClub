@@ -203,10 +203,14 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     const { error } = await supabase.from("generic_tests").insert(rows);
     if (error) return toast.error("Erreur : " + error.message);
 
-    toast.success(`Batterie enregistrée : ${totalPoints}/${totalMax} pts (${level.label})`);
-    onOpenChange(false);
-    setResultsByPlayer({});
-    setPlayerId("");
+    toast.success(`Batterie enregistrée pour cet athlète : ${totalPoints}/${totalMax} pts (${level.label})`);
+    setSavedPlayerIds(prev => new Set(prev).add(playerId));
+    setResultsByPlayer(prev => {
+      const next = { ...prev };
+      delete next[playerId];
+      return next;
+    });
+    setPlayerIdState("");
   };
 
   if (!battery) return null;
