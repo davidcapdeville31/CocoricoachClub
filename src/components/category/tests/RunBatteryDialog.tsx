@@ -444,6 +444,8 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
                       )}
                     </div>
                   )}
+                  </>
+                  )}
                 </div>
               );
             })}
