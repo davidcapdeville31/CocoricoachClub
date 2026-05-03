@@ -204,7 +204,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
 
     toast.success(`Batterie enregistrée : ${totalPoints}/${totalMax} pts (${level.label})`);
     onOpenChange(false);
-    setResults({});
+    setResultsByPlayer({});
     setPlayerId("");
   };
 
