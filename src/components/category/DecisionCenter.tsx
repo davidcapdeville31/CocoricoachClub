@@ -1485,6 +1485,17 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
            session={editingAdminEvent}
          />
 
+         {/* Edit Test Session Dialog (uses the same UI as creation) */}
+         {editingTestSession && (
+           <ScheduleTestEventDialog
+             open={true}
+             onOpenChange={(open) => { if (!open) setEditingTestSession(null); }}
+             date={editingTestSession.date}
+             categoryId={categoryId}
+             editSessionId={editingTestSession.id}
+           />
+         )}
+
          {/* Per-session notify dialog */}
          {notifySession && (
            <NotifyAthletesDialog
