@@ -27,9 +27,11 @@ interface FieldSessionDialogProps {
 
 interface BlockDraft {
   id: string;
-  theme: string;
+  theme: string;          // training_type value (e.g. "bowling_spare", "Collectif")
+  themeLabel: string;     // display label
   duration_minutes: number;
   notes: string;
+  bowling_exercise_type?: string;
 }
 
 const GENERIC_THEMES = [
@@ -42,6 +44,16 @@ const GENERIC_THEMES = [
   "Échauffement",
   "Récupération",
 ];
+
+const BOWLING_PRECISION_EXERCISES = [
+  { value: "quille_7", label: "Quille 7" },
+  { value: "quille_10", label: "Quille 10" },
+  { value: "spares", label: "Spares (général)" },
+  { value: "poche", label: "Poche" },
+];
+
+const isBowlingSport = (sport?: string) =>
+  !!sport && sport.toLowerCase().startsWith("bowling");
 
 export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sportType }: FieldSessionDialogProps) {
   const qc = useQueryClient();
