@@ -61,6 +61,8 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
   const navigate = useNavigate();
   const { isViewer } = useViewerModeContext();
   const calendarContentRef = useRef<HTMLDivElement>(null);
+  const isV2EditableSession = (trainingType?: string | null) =>
+    trainingType === "musculation" || trainingType === "course";
 
   const handleExportPdf = async () => {
     if (sessions && matches) {
@@ -423,8 +425,18 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       />
 
       {/* Edit Session Dialog */}
+      <SessionEditorV2
+        open={isEditDialogOpen && isV2EditableSession(editingSession?.training_type)}
+        onClose={() => {
+          setIsEditDialogOpen(false);
+          setEditingSession(null);
+        }}
+        categoryId={categoryId}
+        editSession={editingSession}
+      />
+
       <SessionFormDialog
-        open={isEditDialogOpen}
+        open={isEditDialogOpen && !isV2EditableSession(editingSession?.training_type)}
         onOpenChange={(open) => {
           setIsEditDialogOpen(open);
           if (!open) setEditingSession(null);

@@ -6,11 +6,35 @@ export function getDisplayNotes(notes: string | null | undefined): string {
   if (!notes) return "";
   return notes
     .replace(/<!--v2-meta:.*?-->/g, "")
+    .replace(/<!--\s*v2-block:[^>]+-->/g, "")
+    .replace(/<!--\s*v2-test:[^>]+-->/g, "")
     .replace(/<!--BLOCK:.*?-->/g, "")
     .replace(/\n?<!--TESTS:.*?-->/g, "")
     .replace(/\n?<!--PRECISION_EXERCISE:.*?-->/g, "")
     .replace(/\n?\[precision_exercise:.*?\]/g, "")
     .trim();
+}
+
+export function parseV2Meta(notes: string | null | undefined): {
+  v2: boolean;
+  dayName?: string | null;
+  dayOfWeek?: string | null;
+  weekNumber?: number | null;
+} | null {
+  if (!notes) return null;
+  const match = notes.match(/<!--v2-meta:(.*?)-->/);
+  if (!match) return null;
+  try {
+    const parsed = JSON.parse(match[1]);
+    return {
+      v2: true,
+      dayName: typeof parsed?.dayName === "string" ? parsed.dayName : null,
+      dayOfWeek: typeof parsed?.dayOfWeek === "string" ? parsed.dayOfWeek : null,
+      weekNumber: typeof parsed?.weekNumber === "number" ? parsed.weekNumber : null,
+    };
+  } catch {
+    return { v2: true };
+  }
 }
 
 /**

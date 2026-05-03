@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -30,6 +30,16 @@ interface SessionEditorV2Props {
   onClose: () => void;
   categoryId: string;
   defaultDate?: string;
+  editSession?: {
+    id: string;
+    session_date: string;
+    session_start_time: string | null;
+    session_end_time: string | null;
+    training_type: string;
+    intensity?: number | null;
+    planned_intensity?: number | null;
+    notes?: string | null;
+  } | null;
 }
 
 const SESSION_KIND_OPTIONS = [
@@ -57,7 +67,7 @@ const todayIso = () => format(new Date(), "yyyy-MM-dd");
  * Mirrors the program builder V2 experience but persists directly into
  * `training_sessions` + `gym_session_exercises` for one team-wide session.
  */
-export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: SessionEditorV2Props) {
+export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSession }: SessionEditorV2Props) {
   const queryClient = useQueryClient();
 
   const [weekNumber] = useState(1);
@@ -76,6 +86,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const activeBlockIdRef = useRef<string | null>(null);
   const dayEditorRef = useRef<SessionDayEditorHandle | null>(null);
+  const isEditing = !!editSession;
 
   // Fetch players for participant selection
   const { data: categoryPlayers } = useQuery({
@@ -92,6 +103,88 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
     enabled: open && !!categoryId,
   });
 
+  const { data: existingExercises } = useQuery({
+    queryKey: ["v2-session-exercises", editSession?.id],
+    queryFn: async () => {
+      if (!editSession?.id) return [];
+      const { data, error } = await supabase
+        .from("gym_session_exercises")
+        .select("id, exercise_name, library_exercise_id, sets, reps, rest_seconds, tempo, percentage_1rm, method, notes, group_id, group_order, order_index")
+        .eq("training_session_id", editSession.id)
+        .order("order_index", { ascending: true })
+        .order("group_order", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!editSession?.id,
+  });
+
+  const { data: existingParticipants } = useQuery({
+    queryKey: ["v2-session-participants", editSession?.id],
+    queryFn: async () => {
+      if (!editSession?.id) return [] as string[];
+      const { data, error } = await supabase
+        .from("event_participants")
+        .select("player_id")
+        .eq("training_session_id", editSession.id);
+      if (error) throw error;
+      return (data || []).map((row) => row.player_id);
+    },
+    enabled: open && !!editSession?.id,
+  });
+
+  const parsedExistingBlocks = useMemo<V2BlockWithExercises[]>(() => {
+    if (!existingExercises?.length) return [];
+
+    const blocksMap = new Map<string, V2BlockWithExercises>();
+    const groupedIndexes = new Map<string, number>();
+
+    existingExercises.forEach((ex, idx) => {
+      const rawNotes = ex.notes || "";
+      const blockMatch = rawNotes.match(/<!--\s*v2-block:([^:]+):([^>]+?)\s*-->/);
+      const blockType = (blockMatch?.[1]?.trim() || "musculation") as V2BlockWithExercises["type"];
+      const blockName = blockMatch?.[2]?.trim() || "Bloc";
+      const blockKey = `${blockType}::${blockName}`;
+
+      if (!blocksMap.has(blockKey)) {
+        blocksMap.set(blockKey, {
+          id: `block-${idx}-${Math.random().toString(36).slice(2, 7)}`,
+          type: blockType,
+          name: blockName,
+          isOpen: true,
+          exercises: [],
+        });
+      }
+
+      const block = blocksMap.get(blockKey)!;
+      const cleanNotes = rawNotes
+        .replace(/<!--\s*v2-block:[^>]+-->/g, "")
+        .replace(/<!--\s*v2-test:[^>]+-->/g, "")
+        .trim();
+      const groupId = ex.group_id || undefined;
+      const groupKey = `${blockKey}::${groupId || "single"}`;
+      const groupOrder = groupId ? (groupedIndexes.get(groupKey) ?? 0) : undefined;
+      if (groupId) groupedIndexes.set(groupKey, (groupOrder ?? 0) + 1);
+
+      block.exercises!.push({
+        id: ex.id,
+        exerciseId: ex.library_exercise_id || undefined,
+        exerciseName: ex.exercise_name,
+        sets: ex.sets ?? 3,
+        reps: ex.reps != null ? String(ex.reps) : "10",
+        percentage: ex.percentage_1rm ?? undefined,
+        tempo: ex.tempo ?? undefined,
+        restSeconds: ex.rest_seconds ?? 90,
+        method: ex.method ?? "normal",
+        groupId,
+        notes: cleanNotes || undefined,
+        ...(typeof groupOrder === "number" ? { groupOrder } : {}),
+      } as any);
+    });
+
+    return Array.from(blocksMap.values());
+  }, [existingExercises]);
+
   const setActiveBlock = (id: string | null) => {
     activeBlockIdRef.current = id;
     setActiveBlockId(id);
@@ -100,22 +193,57 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
 
   // Reset state every time the editor is reopened
   useEffect(() => {
-    if (open) {
-      setDayName("Séance 1");
-      setDayOfWeek("");
-      setSessionDate(defaultDate || todayIso());
-      setStartTime("");
-      setEndTime("");
-      setSessionKind("musculation");
+    if (!open) return;
+
+    if (editSession) {
+      const metaMatch = editSession.notes?.match(/<!--v2-meta:(.*?)-->/);
+      let meta: any = null;
+      if (metaMatch) {
+        try {
+          meta = JSON.parse(metaMatch[1]);
+        } catch {
+          meta = null;
+        }
+      }
+
+      setDayName(meta?.dayName || "Séance 1");
+      setDayOfWeek(meta?.dayOfWeek || "");
+      setSessionDate(editSession.session_date || defaultDate || todayIso());
+      setStartTime(editSession.session_start_time || "");
+      setEndTime(editSession.session_end_time || "");
+      setSessionKind(editSession.training_type || "musculation");
       setTargetIntensity("moderee");
       setVolume("moyen");
-      setPlannedRpe(6);
-      setSelectedPlayers([]);
-      setBlocks([]);
+      setPlannedRpe(editSession.planned_intensity || editSession.intensity || 6);
       setSavedSnapshot(null);
       setActiveBlock(null);
+      return;
     }
-  }, [open]);
+
+    setDayName("Séance 1");
+    setDayOfWeek("");
+    setSessionDate(defaultDate || todayIso());
+    setStartTime("");
+    setEndTime("");
+    setSessionKind("musculation");
+    setTargetIntensity("moderee");
+    setVolume("moyen");
+    setPlannedRpe(6);
+    setSelectedPlayers([]);
+    setBlocks([]);
+    setSavedSnapshot(null);
+    setActiveBlock(null);
+  }, [open, editSession, defaultDate]);
+
+  useEffect(() => {
+    if (!open || !editSession) return;
+    setBlocks(parsedExistingBlocks);
+  }, [open, editSession, parsedExistingBlocks]);
+
+  useEffect(() => {
+    if (!open || !editSession) return;
+    setSelectedPlayers(existingParticipants || []);
+  }, [open, editSession, existingParticipants]);
 
   // Keep activeBlock synced when blocks change externally
   useEffect(() => {
@@ -266,28 +394,53 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
         throw new Error("Aucun athlète sélectionné.");
       }
 
-      // 2. Create the training_sessions shell
+      // 2. Create or update the training session shell
       const sessionMeta = JSON.stringify({
         v2: true,
         dayName,
         dayOfWeek: dayOfWeek || null,
         weekNumber,
       });
-      const { data: session, error: sErr } = await supabase
-        .from("training_sessions")
-        .insert({
-          category_id: categoryId,
-          session_date: sessionDate,
-          session_start_time: startTime || null,
-          session_end_time: endTime || null,
-          training_type: sessionKind,
-          intensity: plannedRpe ? Math.max(1, Math.min(10, plannedRpe)) : 1,
-          planned_intensity: plannedRpe || null,
-          notes: `<!--v2-meta:${sessionMeta}-->${dayName}`,
-        })
-        .select("id")
-        .single();
-      if (sErr) throw sErr;
+      let sessionId = editSession?.id;
+
+      if (editSession?.id) {
+        const { error: updateErr } = await supabase
+          .from("training_sessions")
+          .update({
+            session_date: sessionDate,
+            session_start_time: startTime || null,
+            session_end_time: endTime || null,
+            training_type: sessionKind,
+            intensity: plannedRpe ? Math.max(1, Math.min(10, plannedRpe)) : 1,
+            planned_intensity: plannedRpe || null,
+            notes: `<!--v2-meta:${sessionMeta}-->${dayName}`,
+          })
+          .eq("id", editSession.id);
+        if (updateErr) throw updateErr;
+
+        await supabase.from("event_participants").delete().eq("training_session_id", editSession.id);
+        await supabase.from("training_session_blocks").delete().eq("training_session_id", editSession.id);
+        await supabase.from("gym_session_exercises").delete().eq("training_session_id", editSession.id);
+      } else {
+        const { data: session, error: sErr } = await supabase
+          .from("training_sessions")
+          .insert({
+            category_id: categoryId,
+            session_date: sessionDate,
+            session_start_time: startTime || null,
+            session_end_time: endTime || null,
+            training_type: sessionKind,
+            intensity: plannedRpe ? Math.max(1, Math.min(10, plannedRpe)) : 1,
+            planned_intensity: plannedRpe || null,
+            notes: `<!--v2-meta:${sessionMeta}-->${dayName}`,
+          })
+          .select("id")
+          .single();
+        if (sErr) throw sErr;
+        sessionId = session.id;
+      }
+
+      if (!sessionId) throw new Error("Impossible d'identifier la séance.");
 
       // 2b. If specific participants selected, persist them in event_participants
       if (selectedPlayers.length > 0) {
@@ -295,7 +448,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
           .from("event_participants")
           .insert(
             selectedPlayers.map((pid) => ({
-              training_session_id: session.id,
+              training_session_id: sessionId,
               player_id: pid,
             })),
           );
@@ -316,7 +469,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
               )
             : null;
         await supabase.from("training_session_blocks").insert({
-          training_session_id: session.id,
+          training_session_id: sessionId,
           block_order: 0,
           training_type: sessionKind,
           theme: SESSION_THEME_LABEL[sessionKind] || dayName || "Séance",
@@ -339,8 +492,11 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
           const testTag = isTestRef ? `<!-- v2-test:${ex.exerciseId.slice(5)} -->` : "";
           const userNote = ex.notes ? `\n${ex.notes}` : "";
           const repsNum = ex.reps ? Number(String(ex.reps).replace(/[^0-9]/g, "")) : null;
+          const groupOrder = ex.groupId
+            ? Math.max(0, (block.exercises ?? []).filter((candidate: any) => candidate.groupId === ex.groupId).findIndex((candidate: any) => candidate.id === ex.id))
+            : null;
           return {
-            training_session_id: session.id,
+            training_session_id: sessionId,
             player_id: player.id,
             category_id: categoryId,
             library_exercise_id: isTestRef ? null : (ex.exerciseId || null),
@@ -352,6 +508,8 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
             percentage_1rm: ex.percentage ?? null,
             order_index: idx,
             method: ex.method && ex.method !== "normal" ? ex.method : null,
+            group_id: ex.groupId || null,
+            group_order: groupOrder,
             notes: `${blockTag}${testTag}${userNote}`,
           };
         }),
@@ -360,15 +518,18 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
       const { error: eErr } = await supabase.from("gym_session_exercises").insert(rows);
       if (eErr) throw eErr;
 
-      return session.id;
+      return sessionId;
     },
     onSuccess: () => {
       setSavedSnapshot(currentSnapshot);
-      toast.success("Séance enregistrée ✅");
+      toast.success(isEditing ? "Séance mise à jour ✅" : "Séance enregistrée ✅");
       queryClient.invalidateQueries({ queryKey: ["training_sessions"] });
       queryClient.invalidateQueries({ queryKey: ["training-sessions"] });
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       queryClient.invalidateQueries({ queryKey: ["gym-session-exercises"] });
+      queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["today_session_exercises"] });
+      onClose();
     },
     onError: (e: Error) => {
       toast.error(e.message ?? "Erreur lors de l'enregistrement");
