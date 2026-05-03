@@ -42,6 +42,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>("");
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [bilateral, setBilateral] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = async (file: File) => {
@@ -203,9 +204,10 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
       if (!unitKind) throw new Error("Choisissez une unité de mesure");
       if (unitKind === "custom" && !customUnit.trim()) throw new Error("Saisissez l'unité personnalisée");
 
-      const maxPoints = enableScoring && scoringScale
+      const baseMaxPoints = enableScoring && scoringScale
         ? scoringScale.ranges.reduce((m, r) => Math.max(m, r.points), 0)
         : null;
+      const maxPoints = baseMaxPoints != null ? baseMaxPoints * (bilateral ? 2 : 1) : null;
 
       const { data: user } = await supabase.auth.getUser();
 
@@ -225,6 +227,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
           formula_config: formulaConfig?.enabled ? (formulaConfig as any) : null,
           image_url: imageUrl,
           video_url: videoUrl.trim() || null,
+          bilateral,
           created_by: user?.user?.id || null,
         } as any)
         .select("id")
@@ -267,6 +270,7 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
     setFormulaConfig(null);
     setImageUrl(null);
     setVideoUrl("");
+    setBilateral(false);
   };
 
   const handleSubmit = () => {
@@ -450,6 +454,16 @@ export function CreateCustomTestDialog({ open, onOpenChange, categoryId, sportTy
               </p>
             </div>
             <Switch checked={enableScoring} onCheckedChange={setEnableScoring} />
+          </div>
+
+          <div className="flex items-center justify-between rounded-2xl border bg-muted/40 p-4">
+            <div>
+              <Label className="text-sm font-semibold cursor-pointer">Test bilatéral (côté droit + côté gauche)</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Saisissez deux résultats par athlète (D et G). Le score total est doublé{enableScoring && scoringScale ? ` (max ${(scoringScale.ranges.reduce((m, r) => Math.max(m, r.points), 0)) * 2} pts).` : "."}
+              </p>
+            </div>
+            <Switch checked={bilateral} onCheckedChange={setBilateral} />
           </div>
 
           {enableScoring && (
