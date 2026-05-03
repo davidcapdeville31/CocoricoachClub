@@ -788,7 +788,9 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
           </Card>
         </div>
 
-        {/* 1.5️⃣ WELLNESS DU JOUR */}
+        {/* 1.5️⃣ Grille : Wellness + Présences + Séances prévues */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* WELLNESS DU JOUR */}
         <Card className="border-2 border-green-500/20 bg-gradient-to-r from-green-500/5 to-transparent">
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
@@ -869,6 +871,170 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
             )}
           </CardContent>
         </Card>
+
+        {/* PRÉSENCES DU JOUR */}
+        <Card className="border-2 border-blue-500/20 bg-gradient-to-r from-blue-500/5 to-transparent">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <ClipboardCheck className="h-5 w-5 text-blue-600" />
+              Présences du jour
+              {todayAttendance.length > 0 && (
+                <Badge variant="secondary" className="ml-auto text-xs">
+                  {todayAttendance.length} / {players.length}
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {todayAttendance.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic text-center py-4">
+                Aucune présence enregistrée pour aujourd'hui
+              </p>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {(() => {
+                    const present = todayAttendance.filter(a => a.status === "present").length;
+                    const late = todayAttendance.filter(a => a.status === "late").length;
+                    const absent = todayAttendance.filter(a => a.status === "absent").length;
+                    const excused = todayAttendance.filter(a => a.status === "excused").length;
+                    const notMarked = players.length - todayAttendance.length;
+                    return (
+                      <>
+                        {present > 0 && (
+                          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-green-100 dark:bg-green-900/30">
+                            <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                            <span className="text-xs font-semibold text-green-700 dark:text-green-400">{present} présent{present > 1 ? "s" : ""}</span>
+                          </div>
+                        )}
+                        {late > 0 && (
+                          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                            <Clock className="h-3.5 w-3.5 text-orange-600" />
+                            <span className="text-xs font-semibold text-orange-700 dark:text-orange-400">{late} en retard</span>
+                          </div>
+                        )}
+                        {absent > 0 && (
+                          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-100 dark:bg-red-900/30">
+                            <XCircle className="h-3.5 w-3.5 text-red-600" />
+                            <span className="text-xs font-semibold text-red-700 dark:text-red-400">{absent} absent{absent > 1 ? "s" : ""}</span>
+                          </div>
+                        )}
+                        {excused > 0 && (
+                          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30">
+                            <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+                            <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">{excused} excusé{excused > 1 ? "s" : ""}</span>
+                          </div>
+                        )}
+                        {notMarked > 0 && (
+                          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted">
+                            <span className="text-xs font-semibold text-muted-foreground">{notMarked} non pointé{notMarked > 1 ? "s" : ""}</span>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+                <div className="border-t pt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                    onClick={() => setAttendanceDetailOpen(true)}
+                  >
+                    <ClipboardCheck className="h-4 w-4 mr-2" />
+                    Voir le détail des présences
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* SÉANCES PRÉVUES */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              Séances prévues
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Aujourd'hui</p>
+              {todaySessions.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">Pas de séance prévue</p>
+              ) : (
+                <div className="space-y-2">
+                  {todaySessions.slice(0, 2).map(session => {
+                    const testNames = getTestNamesFromSession(session);
+                    return (
+                      <div key={session.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Activity className="h-4 w-4 text-primary shrink-0" />
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm truncate">{session.training_type}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {session.session_start_time?.slice(0, 5)} • Cible: {session.planned_intensity || 5}/10
+                            </p>
+                            {testNames.length > 0 && (
+                              <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5 truncate">🧪 {testNames.join(", ")}</p>
+                            )}
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 shrink-0" onClick={() => handleEditSession(session)}>
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Demain</p>
+              {tomorrowSessions.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">Pas de séance prévue</p>
+              ) : (
+                <div className="space-y-2">
+                  {tomorrowSessions.slice(0, 2).map(session => {
+                    const testNames = getTestNamesFromSession(session);
+                    return (
+                      <div key={session.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Activity className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm truncate">{session.training_type}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {session.session_start_time?.slice(0, 5)} • Cible: {session.planned_intensity || 5}/10
+                            </p>
+                            {testNames.length > 0 && (
+                              <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5 truncate">🧪 {testNames.join(", ")}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            {playersToAdapt.length > 0 && (
+              <div className="pt-2 border-t">
+                <p className="text-xs font-medium text-orange-600 dark:text-orange-400 mb-2">
+                  ⚠️ À adapter ({playersToAdapt.length})
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {playersToAdapt.map(p => (
+                    <Badge key={p.id} variant="outline" className="text-xs cursor-pointer hover:bg-muted" onClick={() => navigate(`/players/${p.id}`)}>
+                      {p.name} • {p.reason}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        </div>
 
         {/* 1.55️⃣ RPE DU JOUR */}
         {rpeStatus.length > 0 && (() => {
@@ -1015,134 +1181,6 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
           );
         })()}
 
-        {/* 1.6️⃣ PRÉSENCES DU JOUR */}
-          <Card className="border-2 border-blue-500/20 bg-gradient-to-r from-blue-500/5 to-transparent">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <ClipboardCheck className="h-5 w-5 text-blue-600" />
-                Présences du jour
-                {todayAttendance.length > 0 && (
-                  <Badge variant="secondary" className="ml-auto text-xs">
-                    {todayAttendance.length} / {players.length}
-                  </Badge>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {todayAttendance.length === 0 ? (
-                <p className="text-sm text-muted-foreground italic text-center py-4">
-                  Aucune présence enregistrée pour aujourd'hui
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {/* Summary badges */}
-                  <div className="flex flex-wrap gap-2">
-                    {(() => {
-                      const present = todayAttendance.filter(a => a.status === "present").length;
-                      const late = todayAttendance.filter(a => a.status === "late").length;
-                      const absent = todayAttendance.filter(a => a.status === "absent").length;
-                      const excused = todayAttendance.filter(a => a.status === "excused").length;
-                      const notMarked = players.length - todayAttendance.length;
-                      return (
-                        <>
-                          {present > 0 && (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-green-100 dark:bg-green-900/30">
-                              <CheckCircle className="h-3.5 w-3.5 text-green-600" />
-                              <span className="text-xs font-semibold text-green-700 dark:text-green-400">{present} présent{present > 1 ? "s" : ""}</span>
-                            </div>
-                          )}
-                          {late > 0 && (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-orange-100 dark:bg-orange-900/30">
-                              <Clock className="h-3.5 w-3.5 text-orange-600" />
-                              <span className="text-xs font-semibold text-orange-700 dark:text-orange-400">{late} en retard</span>
-                            </div>
-                          )}
-                          {absent > 0 && (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-100 dark:bg-red-900/30">
-                              <XCircle className="h-3.5 w-3.5 text-red-600" />
-                              <span className="text-xs font-semibold text-red-700 dark:text-red-400">{absent} absent{absent > 1 ? "s" : ""}</span>
-                            </div>
-                          )}
-                          {excused > 0 && (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30">
-                              <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
-                              <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">{excused} excusé{excused > 1 ? "s" : ""}</span>
-                            </div>
-                          )}
-                          {notMarked > 0 && (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted">
-                              <span className="text-xs font-semibold text-muted-foreground">{notMarked} non pointé{notMarked > 1 ? "s" : ""}</span>
-                            </div>
-                          )}
-                        </>
-                      );
-                    })()}
-                  </div>
-
-                  {/* Detail list for absent/late/excused with reasons */}
-                  {todayAttendance.filter(a => a.status !== "present").length > 0 && (
-                    <div className="border-t pt-3 space-y-1.5">
-                      {todayAttendance
-                        .filter(a => a.status !== "present")
-                        .map(entry => (
-                          <div
-                            key={entry.id}
-                            className="flex items-center justify-between p-2 rounded-lg bg-muted/50 text-sm"
-                          >
-                            <div className="flex items-center gap-2 min-w-0">
-                              {entry.status === "absent" && <XCircle className="h-4 w-4 text-red-500 shrink-0" />}
-                              {entry.status === "late" && <Clock className="h-4 w-4 text-orange-500 shrink-0" />}
-                              {entry.status === "excused" && <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />}
-                              <div className="min-w-0">
-                                <span className="font-medium truncate block">{entry.players ? [entry.players.first_name, entry.players.name].filter(Boolean).join(" ") : "Inconnu"}</span>
-                                {entry.status === "late" && entry.late_minutes && (
-                                  <span className="text-xs text-orange-600 dark:text-orange-400">+{entry.late_minutes} min</span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <Badge
-                                className={cn(
-                                  "text-xs text-white",
-                                  entry.status === "absent" ? "bg-red-500" :
-                                  entry.status === "late" ? "bg-orange-500" : "bg-amber-500"
-                                )}
-                              >
-                                {entry.status === "absent" ? "Absent" : entry.status === "late" ? `Retard${entry.late_minutes ? ` ${entry.late_minutes}min` : ""}` : "Excusé"}
-                              </Badge>
-                              {entry.status === "late" && entry.late_reason && (
-                                <span className="text-xs text-muted-foreground max-w-[150px] truncate" title={entry.late_reason}>
-                                  {entry.late_reason}
-                                </span>
-                              )}
-                              {entry.status !== "late" && entry.absence_reason && (
-                                <span className="text-xs text-muted-foreground max-w-[150px] truncate" title={entry.absence_reason}>
-                                  {entry.absence_reason}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                </div>
-               )}
-
-                  {/* Button to view full attendance details */}
-                  <div className="border-t pt-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                      onClick={() => setAttendanceDetailOpen(true)}
-                    >
-                      <ClipboardCheck className="h-4 w-4 mr-2" />
-                      Voir le détail des présences
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
         {/* 1.7️⃣ PROCHAIN MATCH / COMPÉTITION */}
         {upcomingMatches.length > 0 && (
           <Card className="border-2 border-purple-500/20 bg-gradient-to-r from-purple-500/5 to-transparent">
@@ -1246,123 +1284,8 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
           </Card>
         )}
   
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-         {/* 2️⃣ AUJOURD'HUI / DEMAIN */}
-         <Card>
-           <CardHeader className="pb-2">
-             <CardTitle className="text-base flex items-center gap-2">
-               <Calendar className="h-5 w-5 text-primary" />
-               Séances prévues
-             </CardTitle>
-           </CardHeader>
-           <CardContent className="space-y-3">
-             {/* Today */}
-             <div>
-               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                 Aujourd'hui
-               </p>
-               {todaySessions.length === 0 ? (
-                 <p className="text-sm text-muted-foreground italic">Pas de séance prévue</p>
-               ) : (
-                 <div className="space-y-2">
-                    {todaySessions.slice(0, 2).map(session => {
-                      const testNames = getTestNamesFromSession(session);
-                      return (
-                        <div 
-                          key={session.id} 
-                          className="flex items-center justify-between p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Activity className="h-4 w-4 text-primary" />
-                            <div>
-                              <p className="font-medium text-sm">{session.training_type}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {session.session_start_time?.slice(0, 5)} • Charge cible: {session.planned_intensity || 5}/10
-                              </p>
-                              {testNames.length > 0 && (
-                                <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
-                                  🧪 Test : {testNames.join(", ")}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-7 px-2"
-                            onClick={() => handleEditSession(session)}
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      );
-                    })}
-                 </div>
-               )}
-             </div>
- 
-             {/* Tomorrow */}
-             <div>
-               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                 Demain
-               </p>
-               {tomorrowSessions.length === 0 ? (
-                 <p className="text-sm text-muted-foreground italic">Pas de séance prévue</p>
-               ) : (
-                 <div className="space-y-2">
-                    {tomorrowSessions.slice(0, 2).map(session => {
-                      const testNames = getTestNamesFromSession(session);
-                      return (
-                        <div 
-                          key={session.id} 
-                          className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Activity className="h-4 w-4 text-muted-foreground" />
-                            <div>
-                              <p className="font-medium text-sm">{session.training_type}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {session.session_start_time?.slice(0, 5)} • Charge cible: {session.planned_intensity || 5}/10
-                              </p>
-                              {testNames.length > 0 && (
-                                <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
-                                  🧪 Test : {testNames.join(", ")}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                 </div>
-               )}
-             </div>
- 
-             {/* Players to adapt */}
-             {playersToAdapt.length > 0 && (
-               <div className="pt-2 border-t">
-                 <p className="text-xs font-medium text-orange-600 dark:text-orange-400 mb-2">
-                   ⚠️ À adapter ({playersToAdapt.length})
-                 </p>
-                 <div className="flex flex-wrap gap-1">
-                   {playersToAdapt.map(p => (
-                     <Badge 
-                       key={p.id} 
-                       variant="outline" 
-                       className="text-xs cursor-pointer hover:bg-muted"
-                       onClick={() => navigate(`/players/${p.id}`)}
-                     >
-                       {p.name} • {p.reason}
-                     </Badge>
-                   ))}
-                 </div>
-               </div>
-             )}
-           </CardContent>
-         </Card>
- 
-        </div>
- 
+        {/* moved to top 3-col grid */}
+
         {/* Edit Session Dialog - Using SessionFormDialog for full editing */}
         <SessionFormDialog
           open={editSessionOpen}
