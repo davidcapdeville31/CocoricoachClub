@@ -447,8 +447,15 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                       >
                         <SelectTrigger><SelectValue placeholder="Choisir un thème" /></SelectTrigger>
                         <SelectContent className="max-h-72">
-                          {themeOptions.map((t) => (
-                            <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                          {themeGroups.map((g) => (
+                            <SelectGroup key={g.label}>
+                              <SelectLabel className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                                {g.label}
+                              </SelectLabel>
+                              {g.options.map((t) => (
+                                <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                              ))}
+                            </SelectGroup>
                           ))}
                         </SelectContent>
                       </Select>
