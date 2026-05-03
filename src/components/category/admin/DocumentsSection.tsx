@@ -359,42 +359,37 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
 
       {/* Onglets athlètes */}
       <div className="space-y-4">
-        <ScrollArea className="w-full">
-          <div className="flex gap-2 pb-2">
+        <div className="flex flex-wrap gap-2 pb-2">
+          <Button
+            variant={selectedTab === "team" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedTab("team")}
+          >
+            <Users className="h-4 w-4 mr-1.5" />
+            Équipe
+            {getDocCount("team") > 0 && (
+              <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-[10px]">
+                {getDocCount("team")}
+              </Badge>
+            )}
+          </Button>
+          {players?.map((player) => (
             <Button
-              variant={selectedTab === "team" ? "default" : "outline"}
+              key={player.id}
+              variant={selectedTab === player.id ? "default" : "outline"}
               size="sm"
-              onClick={() => setSelectedTab("team")}
-              className="shrink-0"
+              onClick={() => setSelectedTab(player.id)}
             >
-              <Users className="h-4 w-4 mr-1.5" />
-              Équipe
-              {getDocCount("team") > 0 && (
+              <User className="h-4 w-4 mr-1.5" />
+              {[player.first_name, player.name].filter(Boolean).join(" ")}
+              {getDocCount(player.id) > 0 && (
                 <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-[10px]">
-                  {getDocCount("team")}
+                  {getDocCount(player.id)}
                 </Badge>
               )}
             </Button>
-            {players?.map((player) => (
-              <Button
-                key={player.id}
-                variant={selectedTab === player.id ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedTab(player.id)}
-                className="shrink-0"
-              >
-                <User className="h-4 w-4 mr-1.5" />
-                {[player.first_name, player.name].filter(Boolean).join(" ")}
-                {getDocCount(player.id) > 0 && (
-                  <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-[10px]">
-                    {getDocCount(player.id)}
-                  </Badge>
-                )}
-              </Button>
-            ))}
-          </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+          ))}
+        </div>
 
         {/* Header avec filtre et bouton ajouter */}
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
