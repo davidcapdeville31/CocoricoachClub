@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
@@ -28,6 +28,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
     Brain,
     FileWarning,
     Pencil,
+    Trash2,
     Bell,
     User,
     ChevronRight,
@@ -46,7 +47,20 @@ import {
 } from "@/lib/wellnessCalculations";
 import { calculateEWMASeries, transformToDailyLoadData } from "@/lib/trainingLoadCalculations";
 import { SessionFormDialog } from "./sessions/SessionFormDialog";
+import { EditAdminEventDialog, ADMIN_EVENT_TYPES } from "./calendar/EditAdminEventDialog";
 import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+import { toast } from "sonner";
 import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { AddWellnessDialog } from "./AddWellnessDialog";
@@ -95,6 +109,9 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
    const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
   const [editSessionOpen, setEditSessionOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<any>(null);
+  const [editingAdminEvent, setEditingAdminEvent] = useState<any>(null);
+  const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
+  const [notifySession, setNotifySession] = useState<any>(null);
   const [notifyDialogOpen, setNotifyDialogOpen] = useState(false);
   const [athleteSelectOpen, setAthleteSelectOpen] = useState(false);
   const [wellnessDialogOpen, setWellnessDialogOpen] = useState(false);
@@ -636,10 +653,41 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
    };
  
    const handleEditSession = (session: any) => {
-     setEditingSession(session);
-     setEditSessionOpen(true);
+     if (ADMIN_EVENT_TYPES.includes(session.training_type)) {
+       setEditingAdminEvent(session);
+     } else {
+       setEditingSession(session);
+       setEditSessionOpen(true);
+     }
    };
- 
+
+   const deleteSessionMutation = useMutation({
+     mutationFn: async (sessionId: string) => {
+       const { error } = await supabase.from("training_sessions").delete().eq("id", sessionId);
+       if (error) throw error;
+       return sessionId;
+     },
+     onSuccess: () => {
+       toast.success("Séance supprimée");
+       queryClient.invalidateQueries({ queryKey: ["today_sessions_decision", categoryId] });
+       queryClient.invalidateQueries({ queryKey: ["tomorrow_sessions_decision", categoryId] });
+       queryClient.invalidateQueries({ queryKey: ["sessions", categoryId] });
+       queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
+     },
+     onError: () => toast.error("Erreur lors de la suppression"),
+   });
+
+   const handleNotifySession = async (session: any) => {
+     // Fetch participants to know who to notify
+     const { data: parts } = await supabase
+       .from("event_participants")
+       .select("player_id")
+       .eq("training_session_id", session.id);
+     const ids = new Set((parts || []).map((p: any) => p.player_id));
+     const targets = ids.size > 0 ? players.filter((p: any) => ids.has(p.id)) : players;
+     setNotifySession({ session, athletes: targets.map((p: any) => ({ id: p.id, name: getFullName(p) })) });
+   };
+
    return (
      <div className="space-y-4">
        {/* Header */}
@@ -1186,14 +1234,35 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
                               )}
                             </div>
                           </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-7 px-2"
-                            onClick={() => handleEditSession(session)}
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </Button>
+                          <div className="flex items-center gap-0.5 shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0"
+                              onClick={() => handleEditSession(session)}
+                              title="Modifier"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                              onClick={() => handleNotifySession(session)}
+                              title="Notifier les athlètes"
+                            >
+                              <Bell className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => setDeleteSessionId(session.id)}
+                              title="Supprimer"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </div>
                       );
                     })}
@@ -1374,7 +1443,53 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
           }}
           categoryId={categoryId}
           editSession={editingSession}
-        />
+         />
+
+         {/* Edit Admin Event Dialog (medical, video, meeting) */}
+         <EditAdminEventDialog
+           open={!!editingAdminEvent}
+           onOpenChange={(open) => { if (!open) setEditingAdminEvent(null); }}
+           session={editingAdminEvent}
+         />
+
+         {/* Per-session notify dialog */}
+         {notifySession && (
+           <NotifyAthletesDialog
+             open={true}
+             onOpenChange={(open) => { if (!open) setNotifySession(null); }}
+             athletes={notifySession.athletes}
+             eventType="session"
+             defaultSubject={`Mise à jour : ${getTrainingTypeLabel(notifySession.session.training_type)}`}
+             eventDetails={{
+               date: notifySession.session.session_date,
+               time: notifySession.session.session_start_time?.slice(0, 5),
+             }}
+           />
+         )}
+
+         {/* Delete confirmation */}
+         <AlertDialog open={!!deleteSessionId} onOpenChange={(open) => { if (!open) setDeleteSessionId(null); }}>
+           <AlertDialogContent>
+             <AlertDialogHeader>
+               <AlertDialogTitle>Supprimer cette séance ?</AlertDialogTitle>
+               <AlertDialogDescription>
+                 La séance sera également retirée du calendrier des athlètes assignés. Cette action est irréversible.
+               </AlertDialogDescription>
+             </AlertDialogHeader>
+             <AlertDialogFooter>
+               <AlertDialogCancel>Annuler</AlertDialogCancel>
+               <AlertDialogAction
+                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                 onClick={() => {
+                   if (deleteSessionId) deleteSessionMutation.mutate(deleteSessionId);
+                   setDeleteSessionId(null);
+                 }}
+               >
+                 Supprimer
+               </AlertDialogAction>
+             </AlertDialogFooter>
+           </AlertDialogContent>
+         </AlertDialog>
 
         {/* Notify Athletes Dialog */}
         <NotifyAthletesDialog
