@@ -245,23 +245,23 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     const rows: any[] = [];
     (battery.items as any[]).forEach((it) => {
       const baseTestType = buildBaseTestType(it.test_name);
-      if (injured[it.id]) {
-        rows.push({
-          player_id: playerId,
-          category_id: categoryId,
-          test_category: it.test_category,
-          test_type: baseTestType,
-          result_value: null,
-          result_unit: it.unit || null,
-          test_date: savedDate,
-          notes: `[Batterie: ${battery.battery.name}] [BLESSÉ] Test: ${it.test_name} · Non réalisé (blessure) · Score 0/${it.max_points} pts`,
-        });
-        return;
-      }
       if (it.bilateral) {
+        const injR = !!injured[`${it.id}__R`];
+        const injL = !!injured[`${it.id}__L`];
         const rawR = results[`${it.id}__R`];
         const rawL = results[`${it.id}__L`];
-        if (rawR !== undefined && rawR !== "") {
+        if (injR) {
+          rows.push({
+            player_id: playerId,
+            category_id: categoryId,
+            test_category: it.test_category,
+            test_type: `${baseTestType}__right`,
+            result_value: null,
+            result_unit: it.unit || null,
+            test_date: savedDate,
+            notes: `[Batterie: ${battery.battery.name}] [BLESSÉ] Test: ${it.test_name} (Droit) · Non réalisé (blessure) · Score 0/${it.max_points} pts`,
+          });
+        } else if (rawR !== undefined && rawR !== "") {
           rows.push({
             player_id: playerId,
             category_id: categoryId,
@@ -273,7 +273,18 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
             notes: `[Batterie: ${battery.battery.name}] Test: ${it.test_name} (Droit) · Score ${perItem[it.id]?.pointsR ?? 0}/${it.max_points} pts`,
           });
         }
-        if (rawL !== undefined && rawL !== "") {
+        if (injL) {
+          rows.push({
+            player_id: playerId,
+            category_id: categoryId,
+            test_category: it.test_category,
+            test_type: `${baseTestType}__left`,
+            result_value: null,
+            result_unit: it.unit || null,
+            test_date: savedDate,
+            notes: `[Batterie: ${battery.battery.name}] [BLESSÉ] Test: ${it.test_name} (Gauche) · Non réalisé (blessure) · Score 0/${it.max_points} pts`,
+          });
+        } else if (rawL !== undefined && rawL !== "") {
           rows.push({
             player_id: playerId,
             category_id: categoryId,
@@ -285,6 +296,17 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
             notes: `[Batterie: ${battery.battery.name}] Test: ${it.test_name} (Gauche) · Score ${perItem[it.id]?.pointsL ?? 0}/${it.max_points} pts`,
           });
         }
+      } else if (injured[it.id]) {
+        rows.push({
+          player_id: playerId,
+          category_id: categoryId,
+          test_category: it.test_category,
+          test_type: baseTestType,
+          result_value: null,
+          result_unit: it.unit || null,
+          test_date: savedDate,
+          notes: `[Batterie: ${battery.battery.name}] [BLESSÉ] Test: ${it.test_name} · Non réalisé (blessure) · Score 0/${it.max_points} pts`,
+        });
       } else if (results[it.id] !== undefined && results[it.id] !== "") {
         rows.push({
           player_id: playerId,
