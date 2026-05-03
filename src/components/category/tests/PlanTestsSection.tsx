@@ -142,6 +142,7 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
   const [selected, setSelected] = useState<Map<string, TestRef>>(new Map());
   const [search, setSearch] = useState("");
   const [showFavorites, setShowFavorites] = useState(false);
+  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
 
   // Favorites (per category) - shared with TestsTab
   const favStorageKey = `tests-fav-categories:${categoryId}`;
