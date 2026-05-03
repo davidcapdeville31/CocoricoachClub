@@ -872,6 +872,170 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
           </CardContent>
         </Card>
 
+        {/* PRÉSENCES DU JOUR */}
+        <Card className="border-2 border-blue-500/20 bg-gradient-to-r from-blue-500/5 to-transparent">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <ClipboardCheck className="h-5 w-5 text-blue-600" />
+              Présences du jour
+              {todayAttendance.length > 0 && (
+                <Badge variant="secondary" className="ml-auto text-xs">
+                  {todayAttendance.length} / {players.length}
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {todayAttendance.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic text-center py-4">
+                Aucune présence enregistrée pour aujourd'hui
+              </p>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {(() => {
+                    const present = todayAttendance.filter(a => a.status === "present").length;
+                    const late = todayAttendance.filter(a => a.status === "late").length;
+                    const absent = todayAttendance.filter(a => a.status === "absent").length;
+                    const excused = todayAttendance.filter(a => a.status === "excused").length;
+                    const notMarked = players.length - todayAttendance.length;
+                    return (
+                      <>
+                        {present > 0 && (
+                          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-green-100 dark:bg-green-900/30">
+                            <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                            <span className="text-xs font-semibold text-green-700 dark:text-green-400">{present} présent{present > 1 ? "s" : ""}</span>
+                          </div>
+                        )}
+                        {late > 0 && (
+                          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                            <Clock className="h-3.5 w-3.5 text-orange-600" />
+                            <span className="text-xs font-semibold text-orange-700 dark:text-orange-400">{late} en retard</span>
+                          </div>
+                        )}
+                        {absent > 0 && (
+                          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-100 dark:bg-red-900/30">
+                            <XCircle className="h-3.5 w-3.5 text-red-600" />
+                            <span className="text-xs font-semibold text-red-700 dark:text-red-400">{absent} absent{absent > 1 ? "s" : ""}</span>
+                          </div>
+                        )}
+                        {excused > 0 && (
+                          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30">
+                            <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+                            <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">{excused} excusé{excused > 1 ? "s" : ""}</span>
+                          </div>
+                        )}
+                        {notMarked > 0 && (
+                          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted">
+                            <span className="text-xs font-semibold text-muted-foreground">{notMarked} non pointé{notMarked > 1 ? "s" : ""}</span>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+                <div className="border-t pt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                    onClick={() => setAttendanceDetailOpen(true)}
+                  >
+                    <ClipboardCheck className="h-4 w-4 mr-2" />
+                    Voir le détail des présences
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* SÉANCES PRÉVUES */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              Séances prévues
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Aujourd'hui</p>
+              {todaySessions.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">Pas de séance prévue</p>
+              ) : (
+                <div className="space-y-2">
+                  {todaySessions.slice(0, 2).map(session => {
+                    const testNames = getTestNamesFromSession(session);
+                    return (
+                      <div key={session.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Activity className="h-4 w-4 text-primary shrink-0" />
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm truncate">{session.training_type}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {session.session_start_time?.slice(0, 5)} • Cible: {session.planned_intensity || 5}/10
+                            </p>
+                            {testNames.length > 0 && (
+                              <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5 truncate">🧪 {testNames.join(", ")}</p>
+                            )}
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 shrink-0" onClick={() => handleEditSession(session)}>
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Demain</p>
+              {tomorrowSessions.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">Pas de séance prévue</p>
+              ) : (
+                <div className="space-y-2">
+                  {tomorrowSessions.slice(0, 2).map(session => {
+                    const testNames = getTestNamesFromSession(session);
+                    return (
+                      <div key={session.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Activity className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm truncate">{session.training_type}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {session.session_start_time?.slice(0, 5)} • Cible: {session.planned_intensity || 5}/10
+                            </p>
+                            {testNames.length > 0 && (
+                              <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5 truncate">🧪 {testNames.join(", ")}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            {playersToAdapt.length > 0 && (
+              <div className="pt-2 border-t">
+                <p className="text-xs font-medium text-orange-600 dark:text-orange-400 mb-2">
+                  ⚠️ À adapter ({playersToAdapt.length})
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {playersToAdapt.map(p => (
+                    <Badge key={p.id} variant="outline" className="text-xs cursor-pointer hover:bg-muted" onClick={() => navigate(`/players/${p.id}`)}>
+                      {p.name} • {p.reason}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        </div>
+
         {/* 1.55️⃣ RPE DU JOUR */}
         {rpeStatus.length > 0 && (() => {
           const completedSessions = rpeStatus.filter(s => s.filledPercent === 100).length;
