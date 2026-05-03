@@ -37,19 +37,17 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     if (!playerId) return;
     setResultsByPlayer(prev => ({ ...prev, [playerId]: updater(prev[playerId] || {}) }));
   };
-  const toggleInjured = (itemId: string, value: boolean) => {
+  const toggleInjured = (key: string, value: boolean) => {
     if (!playerId) return;
     setInjuredByPlayer(prev => ({
       ...prev,
-      [playerId]: { ...(prev[playerId] || {}), [itemId]: value },
+      [playerId]: { ...(prev[playerId] || {}), [key]: value },
     }));
     if (value) {
-      // Clear any entered values for this item when marking as injured
+      // Clear any entered value for this exact key when marking as injured
       setResultsByPlayer(prev => {
         const cur = { ...(prev[playerId] || {}) };
-        delete cur[itemId];
-        delete cur[`${itemId}__R`];
-        delete cur[`${itemId}__L`];
+        delete cur[key];
         return { ...prev, [playerId]: cur };
       });
     }
