@@ -29,6 +29,7 @@ interface RunBatteryDialogProps {
 export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: RunBatteryDialogProps) {
   const [playerId, setPlayerIdState] = useState<string>("");
   const [resultsByPlayer, setResultsByPlayer] = useState<Record<string, Record<string, string>>>({});
+  const [savedPlayerIds, setSavedPlayerIds] = useState<Set<string>>(new Set());
   const results = resultsByPlayer[playerId] || {};
   const setResults = (updater: (prev: Record<string, string>) => Record<string, string>) => {
     if (!playerId) return;
@@ -202,10 +203,14 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     const { error } = await supabase.from("generic_tests").insert(rows);
     if (error) return toast.error("Erreur : " + error.message);
 
-    toast.success(`Batterie enregistrée : ${totalPoints}/${totalMax} pts (${level.label})`);
-    onOpenChange(false);
-    setResultsByPlayer({});
-    setPlayerId("");
+    toast.success(`Batterie enregistrée pour cet athlète : ${totalPoints}/${totalMax} pts (${level.label})`);
+    setSavedPlayerIds(prev => new Set(prev).add(playerId));
+    setResultsByPlayer(prev => {
+      const next = { ...prev };
+      delete next[playerId];
+      return next;
+    });
+    setPlayerIdState("");
   };
 
   if (!battery) return null;
@@ -226,6 +231,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
               {(players || []).map((p: any) => (
                 <SelectItem key={p.id} value={p.id}>
                   {p.first_name ? `${p.first_name} ${p.name}` : p.name}
+                  {savedPlayerIds.has(p.id) ? " ✓" : ""}
                 </SelectItem>
               ))}
             </SelectContent>
