@@ -356,8 +356,23 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
       },
     });
 
-    // Fetch today's RPE data
-    const { data: todayRpeData = [] } = useQuery({
+     // Fetch participants assigned to today's sessions
+     const { data: todaySessionParticipants = [] } = useQuery({
+       queryKey: ["today_session_participants_decision", categoryId, today, todaySessions.map(s => s.id).join(",")],
+       queryFn: async () => {
+         if (todaySessions.length === 0) return [];
+         const { data, error } = await supabase
+           .from("event_participants")
+           .select("player_id, training_session_id")
+           .in("training_session_id", todaySessions.map(s => s.id));
+         if (error) throw error;
+         return data || [];
+       },
+       enabled: todaySessions.length > 0,
+     });
+
+     // Fetch today's RPE data
+     const { data: todayRpeData = [] } = useQuery({
       queryKey: ["today_rpe_decision", categoryId, today],
       queryFn: async () => {
         const { data, error } = await supabase
