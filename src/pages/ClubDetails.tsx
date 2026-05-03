@@ -40,7 +40,22 @@ function ClubDetailsContent() {
         .from("categories")
         .select("*")
         .eq("club_id", clubId)
+        .is("deleted_at", null)
         .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: archivedCategories } = useQuery({
+    queryKey: ["categories-archived", clubId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("club_id", clubId)
+        .not("deleted_at", "is", null)
+        .order("deleted_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -50,17 +65,46 @@ function ClubDetailsContent() {
     mutationFn: async (categoryId: string) => {
       const { error } = await supabase
         .from("categories")
-        .delete()
+        .update({ deleted_at: new Date().toISOString() } as any)
         .eq("id", categoryId);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories", clubId] });
-      toast.success("Catégorie supprimée avec succès");
+      queryClient.invalidateQueries({ queryKey: ["categories-archived", clubId] });
+      toast.success("Catégorie archivée (récupérable)");
     },
     onError: () => {
-      toast.error("Erreur lors de la suppression de la catégorie");
+      toast.error("Erreur lors de l'archivage");
     },
+  });
+
+  const restoreCategory = useMutation({
+    mutationFn: async (categoryId: string) => {
+      const { error } = await supabase
+        .from("categories")
+        .update({ deleted_at: null } as any)
+        .eq("id", categoryId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories", clubId] });
+      queryClient.invalidateQueries({ queryKey: ["categories-archived", clubId] });
+      toast.success("Catégorie restaurée");
+    },
+    onError: () => toast.error("Erreur lors de la restauration"),
+  });
+
+  const permanentDelete = useMutation({
+    mutationFn: async (categoryId: string) => {
+      const { error } = await supabase.from("categories").delete().eq("id", categoryId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories-archived", clubId] });
+      toast.success("Catégorie supprimée définitivement");
+    },
+    onError: () => toast.error("Erreur lors de la suppression"),
   });
 
   if (isLoading) {
