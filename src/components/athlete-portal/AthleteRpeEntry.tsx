@@ -14,6 +14,8 @@ import { athletePortalHeaders, buildAthletePortalFunctionUrl } from "@/lib/athle
 import { AthleteSpareExerciseForm } from "./AthleteSpareExerciseForm";
 import { BowlingScoreSheet, BowlingStats } from "./BowlingScoreSheet";
 
+import { AthletePortalWeightLog } from "./AthletePortalWeightLog";
+
 interface AthleteRpeEntryProps {
   token?: string;
   playerId: string;
@@ -372,6 +374,9 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
               </div>
             </CardContent>
           </Card>
+
+          {/* Actual lifted weights — sent for staff validation */}
+          <AthletePortalWeightLog token={token} sessionId={selectedSession} onSubmitted={onRefreshStats} />
 
           {/* Bowling Precision Stats */}
           {isBowling && isPrecision && (
