@@ -299,8 +299,17 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         setIntermittentDrafts((p) => ({ ...p, [blockId]: { editing: true } }));
         return;
       }
-      setPendingConfig((p) => ({ ...p, [blockId]: method }));
-      toast.info(`Méthode « ${method} » — appliquée au prochain exercice ajouté.`);
+      // Toutes les autres méthodes (drop_set, rest_pause, pyramides, 5x5,
+      // isométries, amrap, for_time, death_by, circuit, tabata, emom)
+      // → MethodConfigSlots
+      setConfigDrafts((p) => ({
+        ...p,
+        [blockId]: {
+          method: method as MethodConfigType,
+          droppedExercise: null,
+          droppedPhaseExercises: {},
+        },
+      }));
     },
     [],
   );
