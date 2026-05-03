@@ -252,11 +252,17 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                       </Button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px] gap-2">
-                      <Select value={b.theme} onValueChange={(v) => updateBlock(b.id, { theme: v })}>
+                      <Select
+                        value={b.theme}
+                        onValueChange={(v) => {
+                          const opt = themeOptions.find((o) => o.value === v);
+                          updateBlock(b.id, { theme: v, themeLabel: opt?.label || v });
+                        }}
+                      >
                         <SelectTrigger><SelectValue placeholder="Choisir un thème" /></SelectTrigger>
                         <SelectContent className="max-h-72">
-                          {allThemes.map((t) => (
-                            <SelectItem key={t} value={t}>{t}</SelectItem>
+                          {themeOptions.map((t) => (
+                            <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -270,6 +276,26 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                         <span className="text-xs text-muted-foreground">min</span>
                       </div>
                     </div>
+                    {b.theme === "bowling_spare" && (
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">
+                          Exercice précision (les athlètes saisiront boules lancées / réussies)
+                        </Label>
+                        <Select
+                          value={b.bowling_exercise_type || ""}
+                          onValueChange={(v) => updateBlock(b.id, { bowling_exercise_type: v })}
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue placeholder="Sélectionner l'exercice..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {BOWLING_PRECISION_EXERCISES.map((ex) => (
+                              <SelectItem key={ex.value} value={ex.value}>{ex.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                     <Textarea
                       rows={2}
                       placeholder="Détail / consignes (optionnel)"
