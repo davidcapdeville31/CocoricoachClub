@@ -17,6 +17,7 @@ import { FolderPlus, Plus, ClipboardList } from "lucide-react";
 import { CreateCustomTestDialog } from "./tests/CreateCustomTestDialog";
 import { CreateThemeCategoryDialog } from "./tests/CreateThemeCategoryDialog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
+import { PlanTestsSection } from "./tests/PlanTestsSection";
 
 interface TestsTabProps {
   categoryId: string;
@@ -281,6 +282,10 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
             onExternalCreateOpenChange={setIsCreateBatteryOpen}
             hideCreateButton
           />
+        </div>
+
+        <div className="mt-8">
+          <PlanTestsSection categoryId={categoryId} sportType={sportType} />
         </div>
       </CardContent>
 
