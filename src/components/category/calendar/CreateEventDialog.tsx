@@ -40,7 +40,7 @@ interface CreateEventDialogProps {
 const EVENT_TYPES = [
   {
     id: "session",
-    label: "Séance musculation",
+    label: "Séance musculation / course",
     description: "Programme d'exercices avec charges et séries",
     icon: Dumbbell,
     iconColor: "text-emerald-700 dark:text-emerald-300",
