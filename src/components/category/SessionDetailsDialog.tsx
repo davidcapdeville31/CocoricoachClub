@@ -499,11 +499,15 @@ export function SessionDetailsDialog({
           {ex.rest_seconds && <span>- {ex.rest_seconds}s repos</span>}
           {ex.tempo && <span>Tempo: {ex.tempo}</span>}
         </div>
-        {ex.notes && (
-          <p className="text-xs text-muted-foreground mt-2 italic">
-            {ex.notes}
-          </p>
-        )}
+        {ex.notes && (() => {
+          const cleanNotes = ex.notes.replace(/<!--[\s\S]*?-->/g, "").trim();
+          if (!cleanNotes) return null;
+          return (
+            <p className="text-xs text-muted-foreground mt-2 italic">
+              {cleanNotes}
+            </p>
+          );
+        })()}
       </div>
     );
   };
