@@ -794,6 +794,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         matchId={match.id}
         categoryId={categoryId}
         matchFormat={match.match_format}
+        sportType={sportType}
       />
 
       {/* For non-round-based sports, use SportMatchStatsDialog */}
