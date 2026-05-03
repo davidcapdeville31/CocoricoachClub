@@ -210,7 +210,7 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
       // Move to next player automatically
       const idx = players.findIndex(p => p.id === selectedPlayerId);
       const next = players[(idx + 1) % Math.max(players.length, 1)];
-      if (next && players.length > 1) setSelectedPlayerId(next.id);
+      if (!lockedPlayerId && next && players.length > 1) setSelectedPlayerId(next.id);
     },
     onError: (e: Error) => toast.error(e.message),
   });
