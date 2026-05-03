@@ -16,6 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getMethodColors } from "./shared/MethodGroupWrapper";
+import { RestPauseReadOnlyUI } from "./RestPauseReadOnlyUI";
+import type { RestPauseConfig } from "./RestPauseTypes";
 import type { V2BlockExercise } from "./hooks/useSaveProgramV2";
 
 const METHOD_LABELS: Record<string, string> = {
@@ -51,6 +53,8 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit }: Props) => {
   const label = METHOD_LABELS[method] ?? method;
   const config = (exercise.config ?? {}) as any;
   const series: any[] = Array.isArray(config.series) ? config.series : [];
+  const restPauseConfig: RestPauseConfig | undefined = config.restPauseConfig;
+  const isRestPause = method === "rest_pause" && restPauseConfig?.series?.length;
   const dropName: string =
     config.droppedExercise?.exerciseName ?? exercise.exerciseName ?? "—";
 
@@ -81,7 +85,9 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit }: Props) => {
           {dropName}
         </span>
         <span className="text-[11px] text-muted-foreground whitespace-nowrap">
-          {exercise.sets} × {series.length || exercise.reps || 1}
+          {isRestPause
+            ? `${restPauseConfig!.series.length} série${restPauseConfig!.series.length > 1 ? "s" : ""}`
+            : `${exercise.sets} × ${series.length || exercise.reps || 1}`}
         </span>
         {onEdit && (
           <Button
@@ -107,8 +113,15 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit }: Props) => {
         </Button>
       </div>
 
+      {/* Rest-Pause structured rendering */}
+      {isRestPause && (
+        <div className={cn("p-2", colors.bg)}>
+          <RestPauseReadOnlyUI config={restPauseConfig!} />
+        </div>
+      )}
+
       {/* Series structure (drop set / pyramid / 5x5 / iso) */}
-      {series.length > 0 && (
+      {!isRestPause && series.length > 0 && (
         <div className={cn("p-2 space-y-1", colors.bg)}>
           {series.map((s, idx) => {
             const isStart = method === "drop_set" && idx === 0;
