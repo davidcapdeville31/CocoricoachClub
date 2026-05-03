@@ -103,6 +103,88 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
     enabled: open && !!categoryId,
   });
 
+  const { data: existingExercises } = useQuery({
+    queryKey: ["v2-session-exercises", editSession?.id],
+    queryFn: async () => {
+      if (!editSession?.id) return [];
+      const { data, error } = await supabase
+        .from("gym_session_exercises")
+        .select("id, exercise_name, library_exercise_id, sets, reps, rest_seconds, tempo, percentage_1rm, method, notes, group_id, group_order, order_index")
+        .eq("training_session_id", editSession.id)
+        .order("order_index", { ascending: true })
+        .order("group_order", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!editSession?.id,
+  });
+
+  const { data: existingParticipants } = useQuery({
+    queryKey: ["v2-session-participants", editSession?.id],
+    queryFn: async () => {
+      if (!editSession?.id) return [] as string[];
+      const { data, error } = await supabase
+        .from("event_participants")
+        .select("player_id")
+        .eq("training_session_id", editSession.id);
+      if (error) throw error;
+      return (data || []).map((row) => row.player_id);
+    },
+    enabled: open && !!editSession?.id,
+  });
+
+  const parsedExistingBlocks = useMemo<V2BlockWithExercises[]>(() => {
+    if (!existingExercises?.length) return [];
+
+    const blocksMap = new Map<string, V2BlockWithExercises>();
+    const groupedIndexes = new Map<string, number>();
+
+    existingExercises.forEach((ex, idx) => {
+      const rawNotes = ex.notes || "";
+      const blockMatch = rawNotes.match(/<!--\s*v2-block:([^:]+):([^>]+?)\s*-->/);
+      const blockType = (blockMatch?.[1]?.trim() || "musculation") as V2BlockWithExercises["type"];
+      const blockName = blockMatch?.[2]?.trim() || "Bloc";
+      const blockKey = `${blockType}::${blockName}`;
+
+      if (!blocksMap.has(blockKey)) {
+        blocksMap.set(blockKey, {
+          id: `block-${idx}-${Math.random().toString(36).slice(2, 7)}`,
+          type: blockType,
+          name: blockName,
+          isOpen: true,
+          exercises: [],
+        });
+      }
+
+      const block = blocksMap.get(blockKey)!;
+      const cleanNotes = rawNotes
+        .replace(/<!--\s*v2-block:[^>]+-->/g, "")
+        .replace(/<!--\s*v2-test:[^>]+-->/g, "")
+        .trim();
+      const groupId = ex.group_id || undefined;
+      const groupKey = `${blockKey}::${groupId || "single"}`;
+      const groupOrder = groupId ? (groupedIndexes.get(groupKey) ?? 0) : undefined;
+      if (groupId) groupedIndexes.set(groupKey, (groupOrder ?? 0) + 1);
+
+      block.exercises!.push({
+        id: ex.id,
+        exerciseId: ex.library_exercise_id || undefined,
+        exerciseName: ex.exercise_name,
+        sets: ex.sets ?? 3,
+        reps: ex.reps != null ? String(ex.reps) : "10",
+        percentage: ex.percentage_1rm ?? undefined,
+        tempo: ex.tempo ?? undefined,
+        restSeconds: ex.rest_seconds ?? 90,
+        method: ex.method ?? "normal",
+        groupId,
+        notes: cleanNotes || undefined,
+        ...(typeof groupOrder === "number" ? { groupOrder } : {}),
+      } as any);
+    });
+
+    return Array.from(blocksMap.values());
+  }, [existingExercises]);
+
   const setActiveBlock = (id: string | null) => {
     activeBlockIdRef.current = id;
     setActiveBlockId(id);
@@ -111,22 +193,57 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
 
   // Reset state every time the editor is reopened
   useEffect(() => {
-    if (open) {
-      setDayName("Séance 1");
-      setDayOfWeek("");
-      setSessionDate(defaultDate || todayIso());
-      setStartTime("");
-      setEndTime("");
-      setSessionKind("musculation");
+    if (!open) return;
+
+    if (editSession) {
+      const metaMatch = editSession.notes?.match(/<!--v2-meta:(.*?)-->/);
+      let meta: any = null;
+      if (metaMatch) {
+        try {
+          meta = JSON.parse(metaMatch[1]);
+        } catch {
+          meta = null;
+        }
+      }
+
+      setDayName(meta?.dayName || "Séance 1");
+      setDayOfWeek(meta?.dayOfWeek || "");
+      setSessionDate(editSession.session_date || defaultDate || todayIso());
+      setStartTime(editSession.session_start_time || "");
+      setEndTime(editSession.session_end_time || "");
+      setSessionKind(editSession.training_type || "musculation");
       setTargetIntensity("moderee");
       setVolume("moyen");
-      setPlannedRpe(6);
-      setSelectedPlayers([]);
-      setBlocks([]);
+      setPlannedRpe(editSession.planned_intensity || editSession.intensity || 6);
       setSavedSnapshot(null);
       setActiveBlock(null);
+      return;
     }
-  }, [open]);
+
+    setDayName("Séance 1");
+    setDayOfWeek("");
+    setSessionDate(defaultDate || todayIso());
+    setStartTime("");
+    setEndTime("");
+    setSessionKind("musculation");
+    setTargetIntensity("moderee");
+    setVolume("moyen");
+    setPlannedRpe(6);
+    setSelectedPlayers([]);
+    setBlocks([]);
+    setSavedSnapshot(null);
+    setActiveBlock(null);
+  }, [open, editSession, defaultDate]);
+
+  useEffect(() => {
+    if (!open || !editSession) return;
+    setBlocks(parsedExistingBlocks);
+  }, [open, editSession, parsedExistingBlocks]);
+
+  useEffect(() => {
+    if (!open || !editSession) return;
+    setSelectedPlayers(existingParticipants || []);
+  }, [open, editSession, existingParticipants]);
 
   // Keep activeBlock synced when blocks change externally
   useEffect(() => {
