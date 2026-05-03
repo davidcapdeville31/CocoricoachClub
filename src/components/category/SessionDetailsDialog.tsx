@@ -550,10 +550,9 @@ export function SessionDetailsDialog({
           slottedExercises={slotted}
           onRemoveFromSlot={() => undefined}
           onUpdateParams={() => undefined}
-          onConfirm={() => undefined}
-          onCancel={() => undefined}
           dayId={`preview-${group.groupId}`}
           defaultEditing={false}
+          readOnly
           methodRestSeconds={restSeconds}
         />
       );
