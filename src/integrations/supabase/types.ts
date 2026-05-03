@@ -12211,7 +12211,8 @@ export type Database = {
           session_end_time: string | null
           session_start_time: string | null
           start_date: string | null
-          test_type: string
+          test_metadata: Json | null
+          test_type: string | null
           updated_at: string | null
         }
         Insert: {
@@ -12227,7 +12228,8 @@ export type Database = {
           session_end_time?: string | null
           session_start_time?: string | null
           start_date?: string | null
-          test_type: string
+          test_metadata?: Json | null
+          test_type?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -12243,7 +12245,8 @@ export type Database = {
           session_end_time?: string | null
           session_start_time?: string | null
           start_date?: string | null
-          test_type?: string
+          test_metadata?: Json | null
+          test_type?: string | null
           updated_at?: string | null
         }
         Relationships: [
