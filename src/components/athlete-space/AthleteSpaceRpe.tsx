@@ -171,7 +171,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
       const { data: allCatSessions } = await supabase
         .from("training_sessions")
-        .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id")
+        .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, event_participants(player_id)")
         .eq("category_id", categoryId)
         .gte("session_date", today)
         .lte("session_date", endDate);
@@ -187,10 +187,15 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           .limit(1000);
 
         const sessionsWithAttendance = new Set(allAttendance?.map((a) => a.training_session_id));
-        const noAttendanceSessions = (allCatSessions || []).filter(
-          (s) => !sessionsWithAttendance.has(s.id) && !existingIds.has(s.id)
-            && (!s.created_by_player_id || s.created_by_player_id === playerId)
-        );
+        const noAttendanceSessions = (allCatSessions || []).filter((s: any) => {
+          if (sessionsWithAttendance.has(s.id) || existingIds.has(s.id)) return false;
+          if (s.created_by_player_id && s.created_by_player_id !== playerId) return false;
+          const parts = s.event_participants || [];
+          if (parts.length > 0) {
+            return parts.some((p: any) => p.player_id === playerId);
+          }
+          return true;
+        });
         const merged = [...(data || []), ...noAttendanceSessions].sort(
           (a, b) =>
             a.session_date.localeCompare(b.session_date) ||
