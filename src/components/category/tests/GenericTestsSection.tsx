@@ -86,8 +86,9 @@ function BatteryRadarCharts({
           if (it.test_name && it.max_points != null) {
             maxPoints[`${b.name}::${it.test_name}`] = Number(it.max_points);
           }
-          if (it.test_name && it.test_category) {
-            categories[`${b.name}::${it.test_name}`] = it.test_category;
+          if (it.test_name) {
+            const liveCat = it.custom_test?.test_category || it.test_category;
+            if (liveCat) categories[`${b.name}::${it.test_name}`] = liveCat;
           }
         });
       });
