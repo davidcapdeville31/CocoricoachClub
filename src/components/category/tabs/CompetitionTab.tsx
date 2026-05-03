@@ -14,9 +14,10 @@ interface CompetitionTabProps {
   isRugby7: boolean;
   isNationalTeam: boolean;
   sportType?: string;
+  view?: "all" | "gestion" | "stats";
 }
 
-export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType }: CompetitionTabProps) {
+export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType, view = "all" }: CompetitionTabProps) {
   const isIndividual = isIndividualSport(sportType || "");
   const isSkiSport = sportType ? getMainSportFromType(sportType) === "ski" : false;
   const isAthletics = sportType ? isAthletismeCategory(sportType) : false;
@@ -26,6 +27,14 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
 
   // Si "Compétitions" est seul (pas d'autres sous-onglets), on masque la barre d'onglets : c'est inutile
   const hasOtherSubtabs = isSkiSport || isRugby7 || isNationalTeam || isAthletics;
+
+  // Stats-only view: render the cumulative stats directly via MatchesTab
+  if (view === "stats") {
+    if (isSkiSport) {
+      return <FisRankingTab categoryId={categoryId} />;
+    }
+    return <MatchesTab categoryId={categoryId} sportType={sportType} view="stats" />;
+  }
 
   return (
     <Tabs defaultValue="matches" className="space-y-4">
@@ -94,7 +103,7 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
         {isSkiSport ? (
           <FisCompetitionsTab categoryId={categoryId} />
         ) : (
-          <MatchesTab categoryId={categoryId} sportType={sportType} />
+          <MatchesTab categoryId={categoryId} sportType={sportType} view="gestion" />
         )}
       </TabsContent>
 

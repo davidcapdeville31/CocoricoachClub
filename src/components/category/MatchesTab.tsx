@@ -26,9 +26,10 @@ import { toast } from "sonner";
 interface MatchesTabProps {
   categoryId: string;
   sportType?: string;
+  view?: "all" | "gestion" | "stats";
 }
 
-export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
+export function MatchesTab({ categoryId, sportType, view = "all" }: MatchesTabProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isStatPrefsOpen, setIsStatPrefsOpen] = useState(false);
   const [showUpcoming, setShowUpcoming] = useState(true);
@@ -128,17 +129,19 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="matches" className="w-full">
-        <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
-          <ColoredSubTabsList colorKey="competition" className="inline-flex w-max p-0.5">
-            <ColoredSubTabsTrigger value="matches" colorKey="competition" icon={<Calendar className="h-3 w-3" />} className="text-[11px] px-2 py-1">
-              Gestion
-            </ColoredSubTabsTrigger>
-            <ColoredSubTabsTrigger value="stats" colorKey="competition" icon={<BarChart3 className="h-3 w-3" />} className="text-[11px] px-2 py-1">
-              Stats
-            </ColoredSubTabsTrigger>
-          </ColoredSubTabsList>
-        </div>
+      <Tabs value={view === "stats" ? "stats" : "matches"} className="w-full">
+        {view === "all" && (
+          <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
+            <ColoredSubTabsList colorKey="competition" className="inline-flex w-max p-0.5">
+              <ColoredSubTabsTrigger value="matches" colorKey="competition" icon={<Calendar className="h-3 w-3" />} className="text-[11px] px-2 py-1">
+                Gestion
+              </ColoredSubTabsTrigger>
+              <ColoredSubTabsTrigger value="stats" colorKey="competition" icon={<BarChart3 className="h-3 w-3" />} className="text-[11px] px-2 py-1">
+                Stats
+              </ColoredSubTabsTrigger>
+            </ColoredSubTabsList>
+          </div>
+        )}
 
         <TabsContent value="matches">
           <Card className="overflow-hidden border-0 shadow-2xl rounded-2xl bg-gradient-to-br from-amber-50/80 via-background to-orange-50/40 dark:from-amber-950/30 dark:via-background dark:to-orange-950/20">
