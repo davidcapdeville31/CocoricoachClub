@@ -322,7 +322,7 @@ function CategoryDetailsContent() {
                   value="admin" 
                   colorKey="admin"
                   icon={<Shield className="h-5 w-5" />}
-                  label="Administratif"
+                  label="Admin"
                   shortLabel="Admin"
                   tooltip="Gestion des documents, licences, certificats médicaux et pièces administratives des athlètes"
                 />
