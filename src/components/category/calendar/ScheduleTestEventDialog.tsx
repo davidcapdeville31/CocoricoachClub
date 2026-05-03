@@ -501,13 +501,13 @@ export function ScheduleTestEventDialog({
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[92vh] flex flex-col overflow-hidden border-border/70 bg-background/95 p-0 shadow-2xl backdrop-blur-md">
-        <DialogHeader className="shrink-0 border-b border-border/60 px-6 pt-6 pb-4">
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <ClipboardList className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+      <DialogContent className="max-w-2xl max-h-[92vh] flex flex-col overflow-hidden border-orange-200 dark:border-orange-900/40 bg-white dark:bg-zinc-950 p-0 shadow-2xl">
+        <DialogHeader className="shrink-0 border-b border-orange-200 dark:border-orange-900/40 bg-gradient-to-r from-orange-500 to-amber-500 px-6 pt-6 pb-4">
+          <DialogTitle className="flex items-center gap-2 text-xl text-white">
+            <ClipboardList className="h-5 w-5 text-white" />
             {isEditMode ? "Modifier le test physique" : "Planifier un test physique"}
           </DialogTitle>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-orange-50/90">
             {format(date, "EEEE d MMMM yyyy", { locale: fr })}
           </p>
         </DialogHeader>
