@@ -23,6 +23,7 @@ interface PrecisionFieldTrackerProps {
   categoryId: string;
   sessionId?: string;
   sessionDate?: string;
+  lockedPlayerId?: string;
 }
 
 // Legacy positions kept for backward compat only
@@ -32,10 +33,10 @@ const LINEOUT_POSITIONS = [
   { key: "fond", label: "Fond", y: 80, description: "12-15m du lanceur" },
 ];
 
-export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, sessionDate: propSessionDate }: PrecisionFieldTrackerProps) {
+export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, sessionDate: propSessionDate, lockedPlayerId }: PrecisionFieldTrackerProps) {
   const queryClient = useQueryClient();
   const { isViewer } = useViewerModeContext();
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string>("");
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string>(lockedPlayerId || "");
   const [exerciseType, setExerciseType] = useState<string>(RUGBY_PRECISION_EXERCISES[0].value);
   const [kickingSide, setKickingSide] = useState<"left" | "right">("right");
   const [clickPos, setClickPos] = useState<{ x: number; y: number } | null>(null);
