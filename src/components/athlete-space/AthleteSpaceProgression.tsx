@@ -338,6 +338,20 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
         </Card>
       )}
 
+      {/* Battery radar charts */}
+      {(() => {
+        const batteryTests = genericTests.filter(t => /^\[Batterie:/i.test((t as any).notes || ""));
+        if (batteryTests.length === 0) return null;
+        return (
+          <BatteryRadarCharts
+            tests={batteryTests}
+            isViewer={true}
+            categoryId={categoryId}
+            onDelete={() => {}}
+          />
+        );
+      })()}
+
       {/* Comparatif test précédent → dernier test (format mobile-friendly) */}
       {(() => {
         type Row = {
