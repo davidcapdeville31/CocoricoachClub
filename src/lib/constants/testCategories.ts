@@ -654,6 +654,32 @@ export const TEST_CATEGORIES: TestCategory[] = [
       { value: "anti_rotation_g", label: "Anti-rotation Pallof - Gauche", unit: "s", isTime: true },
     ],
   },
+  // Stabilité cheville / Proprioception (tous sports)
+  {
+    value: "stabilite_cheville_proprioception",
+    label: "Stabilité cheville / Proprioception",
+    tests: [
+      { value: "equilibre_unipodal_yo_d", label: "Équilibre unipodal yeux ouverts - Droit", unit: "s", isTime: true },
+      { value: "equilibre_unipodal_yo_g", label: "Équilibre unipodal yeux ouverts - Gauche", unit: "s", isTime: true },
+      { value: "equilibre_unipodal_yf_d", label: "Équilibre unipodal yeux fermés - Droit", unit: "s", isTime: true },
+      { value: "equilibre_unipodal_yf_g", label: "Équilibre unipodal yeux fermés - Gauche", unit: "s", isTime: true },
+      { value: "y_balance_d", label: "Y-Balance Test - Droit", unit: "cm" },
+      { value: "y_balance_g", label: "Y-Balance Test - Gauche", unit: "cm" },
+      { value: "star_excursion_d", label: "Star Excursion Balance - Droit", unit: "cm" },
+      { value: "star_excursion_g", label: "Star Excursion Balance - Gauche", unit: "cm" },
+    ],
+  },
+  // Endurance musculaire (tous sports)
+  {
+    value: "endurance_musculaire",
+    label: "Endurance musculaire",
+    tests: [
+      { value: "chaise_90", label: "Chaise 90°", unit: "s", isTime: true },
+      { value: "wall_sit", label: "Wall Sit", unit: "s", isTime: true },
+      { value: "push_ups_max", label: "Pompes max", unit: "reps" },
+      { value: "squat_max_reps", label: "Squats max (PDC)", unit: "reps" },
+    ],
+  },
   // Rugby specific tests
   {
     value: "rugby_specific",
