@@ -198,7 +198,7 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
     }
 
     // 3) Styles techniques
-    const styleOptions = STYLES_BY_SPORT[sportType];
+    const styleOptions = STYLES_BY_SPORT[getBaseSport(sportType)];
     if (styleOptions) {
       list.push({
         dimension: "style",
