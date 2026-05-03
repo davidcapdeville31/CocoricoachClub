@@ -34,6 +34,7 @@ export interface EditableTest {
   formula_config?: FormulaConfig | null;
   image_url?: string | null;
   video_url?: string | null;
+  bilateral?: boolean | null;
   source: "custom" | "seed";   // seed = test pré-existant du catalogue
   seedTestType?: string;       // test_type d'origine si seed (pour réf)
 }
@@ -60,6 +61,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [bilateral, setBilateral] = useState(false);
 
   // Initialise le formulaire quand un test est sélectionné
   useEffect(() => {
@@ -84,6 +86,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
     setFormulaConfig(test.formula_config?.enabled ? test.formula_config : null);
     setImageUrl(test.image_url || null);
     setVideoUrl(test.video_url || "");
+    setBilateral(!!test.bilateral);
   }, [open, test]);
 
   const handleImageUpload = async (file: File) => {
