@@ -288,15 +288,6 @@ function CategoryDetailsContent() {
         </div>
       </div>
 
-      {/* placeholder removed: cover upload moved to Settings tab */}
-      {false && categoryId && !isViewer && (
-        <div className="hidden">
-          <CategoryCoverUpload 
-            categoryId={categoryId} 
-            currentCoverUrl={category?.cover_image_url}
-          />
-        </div>
-      )}
 
       <div className="container mx-auto max-w-7xl px-4 py-8">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
