@@ -224,7 +224,7 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
               Suivi Scolaire
             </ColoredSubTabsTrigger>
             <ColoredSubTabsTrigger value="stats" colorKey="academy" icon={<BarChart3 className="h-4 w-4" />}>
-              Statistiques
+              Résultats scolaires
             </ColoredSubTabsTrigger>
           </ColoredSubTabsList>
         </div>
