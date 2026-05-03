@@ -326,14 +326,28 @@ function BatteryRadarCharts({
                 </RadarChart>
               </ResponsiveContainer>
 
-              <button
-                type="button"
-                onClick={() => setOpenGroups((prev) => ({ ...prev, [g.key]: !prev[g.key] }))}
-                className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-              >
-                {isOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                {isOpen ? "Masquer le détail" : "Voir le détail"}
-              </button>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setOpenGroups((prev) => ({ ...prev, [g.key]: !prev[g.key] }))}
+                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  {isOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                  {isOpen ? "Masquer le détail" : "Voir le détail"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setRadarMode((prev) => ({
+                      ...prev,
+                      [g.key]: (prev[g.key] || "tests") === "tests" ? "qualities" : "tests",
+                    }))
+                  }
+                  className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md border bg-muted/40 hover:bg-muted text-foreground"
+                >
+                  {mode === "tests" ? "Voir par qualité physique" : "Voir par test"}
+                </button>
+              </div>
 
               {isOpen && (
                 <div className="mt-3 space-y-1 border-t pt-3">
