@@ -28,6 +28,7 @@ import { AthleteSpaceSettings } from "@/components/athlete-space/AthleteSpaceSet
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { AthleteSpaceCalendar } from "@/components/athlete-space/AthleteSpaceCalendar";
 import { AthleteSpaceDocuments } from "@/components/athlete-space/AthleteSpaceDocuments";
+import { AthletePrecisionTracker } from "@/components/athlete-space/AthletePrecisionTracker";
 
 interface AthleteInfo {
   player_id: string;
