@@ -261,6 +261,7 @@ export function GroupedExerciseList({
   };
 
   // Render a grouped block of exercises
+  const LINKED_METHODS = ["superset", "biset", "triset", "giant_set", "bulgarian", "combine_haltero"] as const;
   const renderExerciseGroup = (group: ExerciseGroup, groupIdx: number) => {
     if (!group.groupId) {
       // Single exercise, not grouped
@@ -268,9 +269,42 @@ export function GroupedExerciseList({
       return renderExerciseCard(exercise, index, false);
     }
 
-    // Grouped exercises (superset, circuit, etc.)
+    // Linked methods (Superset, Biset, Triset, Giant Set, Bulgarian, Combiné Haltéro)
+    // → reuse the same visual as the session builder, in read-only mode.
+    if (LINKED_METHODS.includes(group.method as any)) {
+      const slotted = group.exercises.map(({ exercise: ex }, idx) => ({
+        id: ex.id || `ro-${groupIdx}-${idx}`,
+        exerciseId: ex.library_exercise_id || ex.id || `ro-${groupIdx}-${idx}`,
+        exerciseName: ex.exercise_name,
+        stationName: ex.exercise_name,
+        slotIndex: idx,
+        params: {
+          sets: ex.sets,
+          reps: ex.reps,
+          percentage: ex.percentage_1rm,
+          tempo: ex.tempo,
+          rest: ex.rest_seconds,
+        },
+      }));
+      const restSeconds = group.exercises[0]?.exercise?.rest_seconds ?? undefined;
+      return (
+        <LinkedMethodSlots
+          key={group.groupId}
+          method={group.method as LinkedMethodType}
+          slottedExercises={slotted as any}
+          onRemoveFromSlot={() => undefined}
+          onUpdateParams={() => undefined}
+          dayId={`preview-${group.groupId}`}
+          defaultEditing={false}
+          readOnly
+          methodRestSeconds={restSeconds ?? undefined}
+        />
+      );
+    }
+
+    // Other grouped exercises (circuit, drop_set, etc.) → keep the previous compact card.
     const styleConfig = getTrainingStyleConfig(group.method);
-    
+
     return (
       <div
         key={group.groupId}
@@ -293,10 +327,10 @@ export function GroupedExerciseList({
             {group.exercises.length} exercices liés
           </span>
         </div>
-        
+
         {/* Exercises in the group */}
         <div className="space-y-1.5">
-          {group.exercises.map(({ exercise, index }, exIdx) => 
+          {group.exercises.map(({ exercise, index }, exIdx) =>
             renderExerciseCard(exercise, index, true, exIdx + 1)
           )}
         </div>
