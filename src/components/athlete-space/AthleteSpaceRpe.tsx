@@ -514,9 +514,16 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
         trainingSessionId: selectedSession,
       });
       if (weightRecords.length > 0) {
+        // Athlete-submitted logs are flagged pending until staff validation.
+        const stamped = weightRecords.map((r) => ({
+          ...r,
+          submitted_by: playerId,
+          submitted_via: "athlete" as const,
+          validation_status: "pending" as const,
+        }));
         const { error: weightError } = await supabase
           .from("athlete_exercise_logs")
-          .upsert(weightRecords, {
+          .upsert(stamped, {
             onConflict: "training_session_id,player_id,exercise_name",
           });
         if (weightError) {
