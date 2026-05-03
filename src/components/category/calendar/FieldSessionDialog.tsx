@@ -53,8 +53,55 @@ const GENERIC_THEMES = [
   "Opposition",
   "Spécifique compétition",
   "Échauffement",
-  "Récupération",
 ];
+
+// Thématiques retirées du menu (à la demande coach) — restent supportées en BDD si déjà saisies
+const EXCLUDED_THEME_VALUES = new Set<string>([
+  "physique",
+  "musculation",
+  "vitesse_general",
+  "endurance_general",
+  "souplesse_mobilite",
+  "repos",
+  "test",
+  "reunion",
+  "medical",
+  "recuperation",
+  "video_analyse",
+  "video",
+]);
+const EXCLUDED_THEME_LABELS = new Set<string>([
+  "Physique",
+  "Musculation",
+  "Endurance",
+  "Vitesse / Explosivité",
+  "Souplesse / Mobilité",
+  "Repos",
+  "Test",
+  "Tests",
+  "Réunion",
+  "Rendez-vous Médical",
+  "Récupération",
+  "Récupération Active",
+  "Analyse Vidéo",
+]);
+
+const customThemesStorageKey = (categoryId: string) => `cc:custom-themes:${categoryId}`;
+const loadCustomThemes = (categoryId: string): string[] => {
+  try {
+    const raw = localStorage.getItem(customThemesStorageKey(categoryId));
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+const saveCustomThemes = (categoryId: string, themes: string[]) => {
+  try {
+    localStorage.setItem(customThemesStorageKey(categoryId), JSON.stringify(themes));
+  } catch {
+    /* noop */
+  }
+};
 
 const BOWLING_PRECISION_EXERCISES = [
   { value: "quille_7", label: "Quille 7" },
