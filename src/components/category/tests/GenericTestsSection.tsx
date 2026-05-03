@@ -48,7 +48,7 @@ interface GenericTestsSectionProps {
   defaultCategory?: string;
 }
 
-function BatteryRadarCharts({
+export function BatteryRadarCharts({
   tests,
   isViewer,
   categoryId,
