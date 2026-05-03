@@ -313,8 +313,8 @@ function CategoryDetailsContent() {
                 value="overview" 
                 colorKey="overview"
                 icon={<LayoutDashboard className="h-5 w-5" />}
-               label="Centre de décision"
-               shortLabel="Décision"
+               label="Décisions"
+               shortLabel="Décisions"
                tooltip="Vue d'ensemble : indicateurs clés, alertes, tâches prioritaires et résumé de l'activité récente"
               />
               {canSeeMenu("administratif") && (
@@ -322,7 +322,7 @@ function CategoryDetailsContent() {
                   value="admin" 
                   colorKey="admin"
                   icon={<Shield className="h-5 w-5" />}
-                  label="Administratif"
+                  label="Admin"
                   shortLabel="Admin"
                   tooltip="Gestion des documents, licences, certificats médicaux et pièces administratives des athlètes"
                 />
@@ -429,7 +429,7 @@ function CategoryDetailsContent() {
                   value="video" 
                   colorKey="video"
                   icon={<Video className="h-5 w-5" />}
-                  label="Analyse Vidéo"
+                  label="Vidéo"
                   shortLabel="Vidéo"
                   tooltip="Import et découpage de vidéos de matchs et entraînements, clips et annotations"
                 />
@@ -439,8 +439,8 @@ function CategoryDetailsContent() {
                   value="communication" 
                   colorKey="communication"
                   icon={<MessageSquare className="h-5 w-5" />}
-                  label="Communication"
-                  shortLabel="Com"
+                  label="Chat"
+                  shortLabel="Chat"
                   badge={unreadMessagesCount}
                   tooltip="Messagerie interne : échanges avec le staff et les athlètes, discussions de groupe"
                 />
