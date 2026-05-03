@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TonnageDashboard } from "./TonnageDashboard";
@@ -7,6 +6,7 @@ import { PerformanceEvolution } from "@/components/analytics/PerformanceEvolutio
 import { Weight, TrendingUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { usePendingWeightLogsCount } from "@/lib/hooks/usePendingWeightLogsCount";
 
 interface EvolutionTestsMuscuTabProps {
   categoryId: string;
@@ -27,6 +27,7 @@ export function EvolutionTestsMuscuTab({ categoryId }: EvolutionTestsMuscuTabPro
   });
 
   const sportType = category?.rugby_type || "XV";
+  const pendingCount = usePendingWeightLogsCount(categoryId);
 
   return (
     <Card className="bg-gradient-card shadow-md">
@@ -39,9 +40,14 @@ export function EvolutionTestsMuscuTab({ categoryId }: EvolutionTestsMuscuTabPro
       <CardContent>
         <Tabs defaultValue="tonnage" className="space-y-4">
           <TabsList className="flex flex-wrap h-auto gap-1">
-            <TabsTrigger value="tonnage" className="text-xs sm:text-sm">
+            <TabsTrigger value="tonnage" className="text-xs sm:text-sm relative">
               <Weight className="h-3.5 w-3.5 mr-1" />
               Tonnage Muscu
+              {pendingCount > 0 && (
+                <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
+                  {pendingCount}
+                </span>
+              )}
             </TabsTrigger>
             <TabsTrigger value="evolution" className="text-xs sm:text-sm">
               <TrendingUp className="h-3.5 w-3.5 mr-1" />

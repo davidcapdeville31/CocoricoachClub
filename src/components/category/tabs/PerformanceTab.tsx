@@ -6,6 +6,7 @@ import { EvolutionTestsMuscuTab } from "@/components/tonnage/EvolutionTestsMuscu
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
+import { usePendingWeightLogsCount } from "@/lib/hooks/usePendingWeightLogsCount";
 
 interface PerformanceTabProps {
   categoryId: string;
@@ -33,6 +34,7 @@ function PerformanceDisabledMessage() {
 
 export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
   const { isViewer } = useViewerModeContext();
+  const pendingCount = usePendingWeightLogsCount(categoryId);
 
   if (isViewer) {
     return <PerformanceDisabledMessage />;
@@ -68,6 +70,11 @@ export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
           >
             <span className="hidden sm:inline">Évolution Tests / Muscu</span>
             <span className="sm:hidden">Tests</span>
+            {pendingCount > 0 && (
+              <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
+                {pendingCount}
+              </span>
+            )}
           </ColoredSubTabsTrigger>
         </ColoredSubTabsList>
       </div>
