@@ -769,7 +769,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
               <p className="mt-2 text-[11px] text-muted-foreground">
                 Si aucun athlète n'est sélectionné, la séance est créée pour toute la catégorie.
               </p>
-            </div>
+            </div>}
 
             <SessionDayEditor ref={dayEditorRef} blocks={blocks} onChange={handleBlocksChange} />
           </div>
