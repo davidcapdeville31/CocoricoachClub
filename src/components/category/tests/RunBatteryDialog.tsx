@@ -391,6 +391,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
                       Test non réalisé (blessure). Aucun score comptabilisé.
                     </div>
                   ) : (
+                  <>
                   {it.bilateral ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div className="space-y-1">
