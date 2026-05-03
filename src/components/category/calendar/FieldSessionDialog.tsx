@@ -155,6 +155,15 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
       if (blocks.length === 0) throw new Error("Ajoutez au moins un bloc");
       if (blocks.some((b) => !b.theme)) throw new Error("Chaque bloc doit avoir un thème");
 
+      // Compute weighted planned RPE from blocks (for workload "RPE prévu")
+      const totalDur = blocks.reduce((s, b) => s + (Number(b.duration_minutes) || 0), 0);
+      const weightedSum = blocks.reduce(
+        (s, b) => s + (Number(b.duration_minutes) || 0) * (Number(b.intensity) || 0),
+        0,
+      );
+      const plannedIntensity =
+        totalDur > 0 && weightedSum > 0 ? Math.round((weightedSum / totalDur) * 10) / 10 : null;
+
       const { data: session, error: sErr } = await supabase
         .from("training_sessions")
         .insert({
@@ -165,7 +174,8 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
           training_type: "terrain",
           location: location || null,
           notes: `${title}${notes ? `\n${notes}` : ""}`,
-          intensity: 1,
+          intensity: plannedIntensity ? Math.round(plannedIntensity) : 1,
+          planned_intensity: plannedIntensity,
         })
         .select("id")
         .single();
