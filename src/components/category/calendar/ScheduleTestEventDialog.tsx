@@ -670,8 +670,8 @@ export function ScheduleTestEventDialog({
                             className={cn(
                               "flex items-center gap-2 p-2 rounded-lg border transition-all text-sm",
                               isSel
-                                ? "bg-primary/15 border-primary ring-1 ring-primary/40"
-                                : "bg-background hover:bg-muted/50 border-border/60",
+                                ? "bg-orange-100 dark:bg-orange-950/30 border-orange-500 ring-1 ring-orange-400"
+                                : "bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-950/20 border-orange-100 dark:border-orange-900/30",
                             )}
                           >
                             {meta?.image_url ? (
@@ -777,8 +777,8 @@ export function ScheduleTestEventDialog({
                           className={cn(
                             "p-3 rounded-xl border cursor-pointer transition-all",
                             isSel
-                              ? "bg-primary/10 border-primary"
-                              : "bg-background hover:bg-muted/50 border-border/60",
+                              ? "bg-orange-100 dark:bg-orange-950/30 border-orange-500"
+                              : "bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-950/20 border-orange-100 dark:border-orange-900/30",
                           )}
                         >
                           <div className="flex items-center gap-3">
@@ -848,8 +848,8 @@ export function ScheduleTestEventDialog({
                       className={cn(
                         "flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all text-sm",
                         isSel
-                          ? "bg-primary/10 border-primary"
-                          : "bg-background hover:bg-muted/50 border-border/60",
+                          ? "bg-orange-100 dark:bg-orange-950/30 border-orange-500"
+                          : "bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-950/20 border-orange-100 dark:border-orange-900/30",
                       )}
                     >
                       <Checkbox checked={isSel} onCheckedChange={() => togglePlayer(p.id)} />
