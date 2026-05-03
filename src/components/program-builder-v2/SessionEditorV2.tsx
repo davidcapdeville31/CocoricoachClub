@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -12,6 +12,9 @@ import {
 } from "@dnd-kit/core";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Users } from "lucide-react";
 import { SessionEditorSheet } from "./SessionEditorSheet";
 import { SessionDayEditor, type SessionDayEditorHandle } from "./SessionDayEditor";
 import { V2ExerciseBankSidebar, type PickedExerciseRich } from "./V2ExerciseBankSidebar";
@@ -38,11 +41,29 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
   const [dayName, setDayName] = useState("Séance 1");
   const [dayOfWeek, setDayOfWeek] = useState<string>("");
   const [sessionDate, setSessionDate] = useState<string>(todayIso());
+  const [startTime, setStartTime] = useState<string>("");
+  const [endTime, setEndTime] = useState<string>("");
+  const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [blocks, setBlocks] = useState<V2BlockWithExercises[]>([]);
   const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const activeBlockIdRef = useRef<string | null>(null);
   const dayEditorRef = useRef<SessionDayEditorHandle | null>(null);
+
+  // Fetch players for participant selection
+  const { data: categoryPlayers } = useQuery({
+    queryKey: ["players-list", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("id, name, first_name")
+        .eq("category_id", categoryId)
+        .order("name");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!categoryId,
+  });
 
   const setActiveBlock = (id: string | null) => {
     activeBlockIdRef.current = id;
@@ -56,6 +77,9 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
       setDayName("Séance 1");
       setDayOfWeek("");
       setSessionDate(defaultDate || todayIso());
+      setStartTime("");
+      setEndTime("");
+      setSelectedPlayers([]);
       setBlocks([]);
       setSavedSnapshot(null);
       setActiveBlock(null);
@@ -180,7 +204,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
     }
   };
 
-  const currentSnapshot = JSON.stringify({ dayName, dayOfWeek, sessionDate, blocks });
+  const currentSnapshot = JSON.stringify({ dayName, dayOfWeek, sessionDate, startTime, endTime, selectedPlayers, blocks });
   const isSavedUpToDate = savedSnapshot !== null && savedSnapshot === currentSnapshot;
 
   const saveMutation = useMutation({
@@ -195,14 +219,20 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
       }
       if (!sessionDate) throw new Error("Choisis une date pour la séance.");
 
-      // 1. Load all athletes of this category
-      const { data: players, error: pErr } = await supabase
+      // 1. Load athletes of this category (filtered to selected ones if any)
+      const { data: allPlayers, error: pErr } = await supabase
         .from("players")
         .select("id")
         .eq("category_id", categoryId);
       if (pErr) throw pErr;
-      if (!players || players.length === 0) {
+      if (!allPlayers || allPlayers.length === 0) {
         throw new Error("Aucun athlète dans cette catégorie.");
+      }
+      const targetPlayers = selectedPlayers.length > 0
+        ? allPlayers.filter((p) => selectedPlayers.includes(p.id))
+        : allPlayers;
+      if (targetPlayers.length === 0) {
+        throw new Error("Aucun athlète sélectionné.");
       }
 
       // 2. Create the training_sessions shell
@@ -217,6 +247,8 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
         .insert({
           category_id: categoryId,
           session_date: sessionDate,
+          session_start_time: startTime || null,
+          session_end_time: endTime || null,
           training_type: "musculation",
           notes: `<!--v2-meta:${sessionMeta}-->${dayName}`,
         })
@@ -224,9 +256,22 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
         .single();
       if (sErr) throw sErr;
 
+      // 2b. If specific participants selected, persist them in event_participants
+      if (selectedPlayers.length > 0) {
+        const { error: epErr } = await supabase
+          .from("event_participants")
+          .insert(
+            selectedPlayers.map((pid) => ({
+              training_session_id: session.id,
+              player_id: pid,
+            })),
+          );
+        if (epErr) console.error("[SessionEditorV2] event_participants insert failed", epErr);
+      }
+
       // 3. Insert one gym_session_exercises row per (player × exercise),
       //    preserving block context inside `notes` via the agreed pattern.
-      const rows = players.flatMap((player) =>
+      const rows = targetPlayers.flatMap((player) =>
         flat.map(({ block, ex }, idx) => {
           const blockTag = `<!-- v2-block:${block.type}:${block.name} -->`;
           const isTestRef = typeof ex.exerciseId === "string" && ex.exerciseId.startsWith("test:");
@@ -286,7 +331,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
         isSavedUpToDate={isSavedUpToDate}
         renderSessionContent={() => (
           <div className="space-y-4">
-            <div className="flex items-end gap-3 rounded-2xl border bg-muted/40 p-3">
+            <div className="flex flex-wrap items-end gap-3 rounded-2xl border bg-muted/40 p-3">
               <div className="space-y-1">
                 <Label htmlFor="v2-session-date" className="text-xs">Date de la séance</Label>
                 <Input
@@ -297,8 +342,82 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
                   className="h-9 w-44"
                 />
               </div>
-              <p className="text-xs text-muted-foreground pb-2">
-                La séance sera créée pour tous les athlètes de la catégorie.
+              <div className="space-y-1">
+                <Label htmlFor="v2-session-start" className="text-xs">Heure de début</Label>
+                <Input
+                  id="v2-session-start"
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="h-9 w-28"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="v2-session-end" className="text-xs">Heure de fin</Label>
+                <Input
+                  id="v2-session-end"
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="h-9 w-28"
+                />
+              </div>
+            </div>
+
+            <div className="rounded-2xl border bg-muted/40 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <Label className="flex items-center gap-1.5 text-xs">
+                  <Users className="h-3.5 w-3.5" />
+                  Participants
+                  <span className="ml-1 text-[11px] font-normal text-muted-foreground">
+                    {selectedPlayers.length === 0
+                      ? "(toute la catégorie)"
+                      : `(${selectedPlayers.length} sélectionné${selectedPlayers.length > 1 ? "s" : ""})`}
+                  </span>
+                </Label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className="text-[11px] text-primary hover:underline"
+                    onClick={() => setSelectedPlayers((categoryPlayers || []).map((p) => p.id))}
+                  >
+                    Tout sélectionner
+                  </button>
+                  <button
+                    type="button"
+                    className="text-[11px] text-muted-foreground hover:underline"
+                    onClick={() => setSelectedPlayers([])}
+                  >
+                    Tout désélectionner
+                  </button>
+                </div>
+              </div>
+              <ScrollArea className="h-32 pr-2">
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                  {(categoryPlayers || []).map((p) => {
+                    const checked = selectedPlayers.includes(p.id);
+                    const label = p.first_name ? `${p.first_name} ${p.name}` : p.name;
+                    return (
+                      <label
+                        key={p.id}
+                        className="flex cursor-pointer items-center gap-2 rounded-md border bg-background px-2 py-1.5 text-xs hover:bg-accent/50"
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(v) => {
+                            setSelectedPlayers((prev) =>
+                              v ? [...prev, p.id] : prev.filter((id) => id !== p.id),
+                            );
+                          }}
+                        />
+                        <span className="truncate">{label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Si aucun athlète n'est sélectionné, la séance est créée pour toute la catégorie.
               </p>
             </div>
 
