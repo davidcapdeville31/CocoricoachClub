@@ -302,33 +302,30 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Player selector list */}
+        {/* Player selector */}
         <div className="space-y-2">
           <p className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
             <Users className="h-4 w-4" />
-            Sélectionner un joueur
+            Sélectionner un athlète
           </p>
-          <div className="flex flex-wrap gap-2">
-            {allPlayers?.map(player => {
-              const fullName = `${player.first_name || ""} ${player.name}`.trim();
-              const isSelected = selectedPlayerId === player.id;
-              return (
-                <button
-                  key={player.id}
-                  onClick={() => setSelectedPlayerId(isSelected ? null : player.id)}
-                  className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all",
-                    isSelected
-                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                      : "bg-card hover:bg-muted border-border"
-                  )}
-                >
-                  <User className="h-4 w-4" />
-                  {fullName}
-                </button>
-              );
-            })}
-          </div>
+          <Select
+            value={selectedPlayerId ?? ""}
+            onValueChange={(v) => setSelectedPlayerId(v || null)}
+          >
+            <SelectTrigger className="w-full md:w-80">
+              <SelectValue placeholder="Choisir un athlète" />
+            </SelectTrigger>
+            <SelectContent>
+              {allPlayers?.map((player) => {
+                const fullName = `${player.first_name || ""} ${player.name}`.trim();
+                return (
+                  <SelectItem key={player.id} value={player.id}>
+                    {fullName}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
         </div>
 
         {!selectedPlayerId ? (
