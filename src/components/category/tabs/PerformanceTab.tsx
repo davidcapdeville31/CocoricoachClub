@@ -33,10 +33,6 @@ function PerformanceDisabledMessage() {
 
 export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
   const { isViewer } = useViewerModeContext();
-  const isBowling = (sportType || "").toLowerCase().includes("bowling");
-  const isTennis = (sportType || "").toLowerCase().includes("tennis");
-  const isRugby = isRugbyType(sportType || "");
-  const isAthletics = isAthletismeCategory(sportType || "");
 
   if (isViewer) {
     return <PerformanceDisabledMessage />;
