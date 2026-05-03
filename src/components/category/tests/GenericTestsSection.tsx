@@ -48,164 +48,204 @@ interface GenericTestsSectionProps {
   defaultCategory?: string;
 }
 
-function TestsTableRows({
+function BatteryRadarCharts({
   tests,
   isViewer,
-  filteredTestCategories,
-  formatCategoryLabel,
-  formatTestTypeLabel,
   onDelete,
 }: {
   tests: any[];
   isViewer: boolean;
-  filteredTestCategories: TestCategory[];
-  formatCategoryLabel: (value?: string | null) => string;
-  formatTestTypeLabel: (value?: string | null) => string;
   onDelete: (id: string) => void;
 }) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
-  const groupedRows = useMemo(() => {
-    const rows: Array<
-      | { type: "single"; test: any }
-      | { type: "battery"; key: string; lead: any; items: any[] }
-    > = [];
-    const batteryMap = new Map<string, { lead: any; items: any[] }>();
+  const groups = useMemo(() => {
+    type Item = { id: string; testName: string; points: number; maxPoints: number; resultValue: any; resultUnit: any };
+    const map = new Map<string, {
+      key: string;
+      playerName: string;
+      playerId: string | null;
+      batteryName: string;
+      date: string;
+      items: Item[];
+      raw: any[];
+    }>();
 
     for (const test of tests) {
-      const notes = test.notes || "";
-      const batteryMatch = notes.match(/^\[Batterie:\s*([^\]]+)\]/i);
-      if (!batteryMatch) {
-        rows.push({ type: "single", test });
-        continue;
-      }
-
+      const notes: string = test.notes || "";
+      const battMatch = notes.match(/^\[Batterie:\s*([^\]]+)\]/i);
+      if (!battMatch) continue;
+      const batteryName = battMatch[1].trim();
+      const testNameMatch = notes.match(/Test:\s*(.+?)\s*·/i);
+      const scoreMatch = notes.match(/Score\s+(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)/i);
+      const points = scoreMatch ? Number(scoreMatch[1].replace(",", ".")) : 0;
+      const maxPoints = scoreMatch ? Number(scoreMatch[2].replace(",", ".")) : 0;
       const playerName = test.players?.name || "Athlète";
-      const key = `${test.player_id || playerName}__${test.test_date}__${batteryMatch[1]}`;
-      const existing = batteryMap.get(key);
-      if (existing) {
-        existing.items.push(test);
-      } else {
-        batteryMap.set(key, { lead: test, items: [test] });
-        rows.push({ type: "battery", key, lead: test, items: batteryMap.get(key)!.items });
+      const playerId = test.player_id || null;
+      const key = `${playerId || playerName}__${test.test_date}__${batteryName}`;
+
+      if (!map.has(key)) {
+        map.set(key, {
+          key,
+          playerName,
+          playerId,
+          batteryName,
+          date: test.test_date,
+          items: [],
+          raw: [],
+        });
       }
+      const g = map.get(key)!;
+      g.items.push({
+        id: test.id,
+        testName: testNameMatch?.[1] || "Test",
+        points,
+        maxPoints,
+        resultValue: test.result_value,
+        resultUnit: test.result_unit,
+      });
+      g.raw.push(test);
     }
 
-    return rows;
+    return Array.from(map.values()).sort((a, b) => (a.date < b.date ? 1 : -1));
   }, [tests]);
 
-  const getBatteryTitle = (notes?: string | null) => {
-    const m = (notes || "").match(/^\[Batterie:\s*([^\]]+)\]/i);
-    return m?.[1] || "Batterie";
+  const getColor = (pct: number) => {
+    if (pct >= 75) return "hsl(142 71% 45%)"; // green
+    if (pct >= 50) return "hsl(38 92% 50%)"; // orange
+    return "hsl(0 84% 60%)"; // red
   };
 
-  const getBatteryScore = (items: any[]) => {
-    return items.reduce((sum, item) => {
-      const m = (item.notes || "").match(/Score\s+(\d+(?:[.,]\d+)?)/i);
-      return sum + (m ? Number(m[1].replace(",", ".")) : 0);
-    }, 0);
+  const getLabel = (pct: number) => {
+    if (pct >= 75) return "Bon";
+    if (pct >= 50) return "Moyen";
+    return "Faible";
   };
 
-  const getBatteryDetailLabel = (notes?: string | null, fallback?: string | null) => {
-    const m = (notes || "").match(/Test:\s*(.+?)\s*·\s*Score/i);
-    return m?.[1] || fallback || "Test";
-  };
+  if (groups.length === 0) {
+    return (
+      <p className="text-center text-muted-foreground py-8">
+        Aucun résultat de batterie pour générer un diagramme.
+      </p>
+    );
+  }
 
   return (
-    <>
-      {groupedRows.map((row) => {
-        if (row.type === "single") {
-          const test = row.test;
-          return (
-            <TableRow key={test.id} className="animate-fade-in">
-              <TableCell></TableCell>
-              <TableCell className="font-medium">{test.players?.name}</TableCell>
-              <TableCell>
-                {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
-              </TableCell>
-              <TableCell>
-                <span className="text-xs text-muted-foreground block">
-                  {filteredTestCategories.find(c => c.value === test.test_category)?.label || formatCategoryLabel(test.test_category)}
-                </span>
-                {filteredTestCategories.find(c => c.value === test.test_category)?.tests.find(t => t.value === test.test_type)?.label || formatTestTypeLabel(test.test_type)}
-              </TableCell>
-              <TableCell className="font-semibold text-primary">
-                {test.result_value} {test.result_unit}
-              </TableCell>
-              <TableCell className="max-w-[150px] truncate text-muted-foreground text-sm">
-                {test.notes || "-"}
-              </TableCell>
-              {!isViewer && (
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => onDelete(test.id)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </TableCell>
-              )}
-            </TableRow>
-          );
-        }
-
-        const isOpen = !!openGroups[row.key];
-        const totalScore = getBatteryScore(row.items);
-        const batteryName = getBatteryTitle(row.lead.notes);
+    <div className="grid gap-4 md:grid-cols-2">
+      {groups.map((g) => {
+        const totalPoints = g.items.reduce((s, i) => s + i.points, 0);
+        const totalMax = g.items.reduce((s, i) => s + i.maxPoints, 0);
+        const pct = totalMax > 0 ? Math.round((totalPoints / totalMax) * 100) : 0;
+        const color = getColor(pct);
+        const label = getLabel(pct);
+        const radarData = g.items.map((it) => ({
+          axis: it.testName,
+          value: it.maxPoints > 0 ? Math.round((it.points / it.maxPoints) * 100) : 0,
+          points: it.points,
+          maxPoints: it.maxPoints,
+        }));
+        const isOpen = !!openGroups[g.key];
 
         return (
-          <>
-            <TableRow key={row.key} className="animate-fade-in">
-              <TableCell>
-                <button
-                  type="button"
-                  onClick={() => setOpenGroups(prev => ({ ...prev, [row.key]: !prev[row.key] }))}
-                  className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground"
-                >
-                  {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                </button>
-              </TableCell>
-              <TableCell className="font-medium">{row.lead.players?.name}</TableCell>
-              <TableCell>
-                {format(new Date(row.lead.test_date), "dd/MM/yyyy", { locale: fr })}
-              </TableCell>
-              <TableCell>
-                <span className="text-xs text-muted-foreground block">Batterie</span>
-                {batteryName}
-              </TableCell>
-              <TableCell className="font-semibold text-primary">
-                {totalScore} pts
-              </TableCell>
-              <TableCell className="text-muted-foreground text-sm">
-                {row.items.length} test{row.items.length > 1 ? "s" : ""}
-              </TableCell>
-              {!isViewer && <TableCell></TableCell>}
-            </TableRow>
-            {isOpen && row.items.map((test) => (
-              <TableRow key={test.id} className="bg-muted/20">
-                <TableCell></TableCell>
-                <TableCell></TableCell>
-                <TableCell></TableCell>
-                <TableCell className="pl-6">
-                  <span className="text-xs text-muted-foreground block">Détail</span>
-                  {getBatteryDetailLabel(test.notes, formatTestTypeLabel(test.test_type))}
-                </TableCell>
-                <TableCell className="font-semibold text-primary">
-                  {test.result_value} {test.result_unit}
-                </TableCell>
-                <TableCell className="max-w-[150px] truncate text-muted-foreground text-sm">
-                  {test.notes || "-"}
-                </TableCell>
-                {!isViewer && (
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => onDelete(test.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </TableCell>
-                )}
-              </TableRow>
-            ))}
-          </>
+          <Card key={g.key} className="overflow-hidden">
+            <CardHeader className="pb-2">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <CardTitle className="text-base">{g.playerName}</CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    {g.batteryName} · {format(new Date(g.date), "dd/MM/yyyy", { locale: fr })}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-bold" style={{ color }}>
+                    {totalPoints}/{totalMax}
+                  </div>
+                  <div className="text-xs font-medium" style={{ color }}>
+                    {pct}% · {label}
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={280}>
+                <RadarChart data={radarData} outerRadius="75%">
+                  <PolarGrid stroke="hsl(var(--border))" />
+                  <PolarAngleAxis
+                    dataKey="axis"
+                    tick={{ fill: "hsl(var(--foreground))", fontSize: 11 }}
+                  />
+                  <PolarRadiusAxis
+                    angle={90}
+                    domain={[0, 100]}
+                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
+                  />
+                  <Radar
+                    name={g.playerName}
+                    dataKey="value"
+                    stroke={color}
+                    fill={color}
+                    fillOpacity={0.35}
+                    strokeWidth={2}
+                  />
+                  <RTooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--popover))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                    }}
+                    formatter={(_v: any, _n: any, p: any) => {
+                      const d = p?.payload;
+                      return [`${d.points}/${d.maxPoints} pts (${d.value}%)`, d.axis];
+                    }}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+
+              <button
+                type="button"
+                onClick={() => setOpenGroups((prev) => ({ ...prev, [g.key]: !prev[g.key] }))}
+                className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              >
+                {isOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                {isOpen ? "Masquer le détail" : "Voir le détail"}
+              </button>
+
+              {isOpen && (
+                <div className="mt-3 space-y-1 border-t pt-3">
+                  {g.items.map((it, idx) => {
+                    const itemPct = it.maxPoints > 0 ? Math.round((it.points / it.maxPoints) * 100) : 0;
+                    const itemColor = getColor(itemPct);
+                    const raw = g.raw[idx];
+                    return (
+                      <div key={it.id} className="flex items-center justify-between text-sm gap-2">
+                        <span className="flex-1 truncate">{it.testName}</span>
+                        <span className="text-muted-foreground text-xs">
+                          {it.resultValue} {it.resultUnit}
+                        </span>
+                        <span className="font-semibold tabular-nums" style={{ color: itemColor }}>
+                          {it.points}/{it.maxPoints}
+                        </span>
+                        {!isViewer && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => onDelete(raw.id)}
+                          >
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         );
       })}
-    </>
+    </div>
   );
 }
 
