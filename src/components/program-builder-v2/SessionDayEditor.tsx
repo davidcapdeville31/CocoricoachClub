@@ -95,6 +95,8 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
   const [linkedDrafts, setLinkedDrafts] = useState<Record<string, LinkedDraft>>({});
   // Mode actif pour méthode "config" (drop_set, emom, etc.) — toast informatif en attendant le wiring complet
   const [pendingConfig, setPendingConfig] = useState<Record<string, ConfigMethod>>({});
+  // Draft Fartlek actif par bloc — affiche FartlekConfigSlots
+  const [fartlekDrafts, setFartlekDrafts] = useState<Record<string, { editing: boolean; initial?: FartlekConfig }>>({});
 
   // (useImperativeHandle is declared after addExerciseToBlock — see below)
 
