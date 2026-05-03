@@ -366,8 +366,12 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
 
       <SessionEditorV2
         open={v2EditorOpen}
-        onClose={() => setV2EditorOpen(false)}
+        onClose={() => {
+          setV2EditorOpen(false);
+          setEditingSession(null);
+        }}
         categoryId={categoryId}
+        editSession={editingSession}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
