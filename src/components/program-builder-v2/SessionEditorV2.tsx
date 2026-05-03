@@ -493,6 +493,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
           const groupOrder = ex.groupId
             ? Math.max(0, (block.exercises ?? []).filter((candidate: any) => candidate.groupId === ex.groupId).findIndex((candidate: any) => candidate.id === ex.id))
             : null;
+          const methodValue = ex.method && ex.method !== "normal" ? ex.method : null;
           return {
             training_session_id: sessionId,
             player_id: player.id,
@@ -505,7 +506,8 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
             tempo: ex.tempo ?? null,
             percentage_1rm: ex.percentage ?? null,
             order_index: idx,
-            method: ex.method && ex.method !== "normal" ? ex.method : null,
+            method: methodValue,
+            set_type: methodValue ?? "normal",
             group_id: ex.groupId || null,
             group_order: groupOrder,
             notes: `${blockTag}${testTag}${userNote}`,
