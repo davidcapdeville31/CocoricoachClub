@@ -791,15 +791,17 @@ const LinkedMethodSlotsContent = ({
           </span>
         </div>
         {/* Actions centralisées */}
-        <MethodActionButtons
-          isEditing={isEditing}
-          onValidate={() => handleValidate()}
-          onEdit={enableEditing}
-          onCancel={handleCancel}
-          isValid={isComplete}
-          methodColor={cn(config.color, "hover:opacity-90")}
-          className="flex-row-reverse gap-2"
-        />
+        {!readOnly && (
+          <MethodActionButtons
+            isEditing={isEditing}
+            onValidate={() => handleValidate()}
+            onEdit={enableEditing}
+            onCancel={handleCancel}
+            isValid={isComplete}
+            methodColor={cn(config.color, "hover:opacity-90")}
+            className="flex-row-reverse gap-2"
+          />
+        )}
       </div>
 
       {/* Slots grid */}
