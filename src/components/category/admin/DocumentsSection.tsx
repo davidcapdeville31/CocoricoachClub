@@ -280,18 +280,8 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
   const expiredDocs = documents?.filter((d) => d.status === "expired") || [];
   const expiringSoonDocs = documents?.filter((d) => d.status === "expiring_soon") || [];
 
-  const selectedPlayerName = selectedTab === "team"
-    ? "Équipe"
-    : (() => {
-        const p = players?.find((pl) => pl.id === selectedTab);
-        return p ? [p.first_name, p.name].filter(Boolean).join(" ") : "";
-      })();
 
-  // Count docs per player/team for badges
-  const getDocCount = (id: string) => {
-    if (id === "team") return documents?.filter((d) => d.player_id === null).length || 0;
-    return documents?.filter((d) => d.player_id === id).length || 0;
-  };
+
 
   return (
     <div className="space-y-6">
