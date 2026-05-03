@@ -114,7 +114,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_test_categories")
-        .select("custom_tests(id, name, test_category, unit, unit_kind, is_time, description, objectives, scoring_scale, max_points, image_url, video_url, formula_config)")
+        .select("custom_tests(id, name, test_category, unit, unit_kind, is_time, description, objectives, scoring_scale, max_points, image_url, video_url, formula_config, bilateral)")
         .eq("category_id", categoryId);
       if (error) throw error;
       const tests = (data || [])
@@ -154,6 +154,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
           formula_config: test.formula_config,
           image_url: test.image_url,
           video_url: test.video_url,
+          bilateral: test.bilateral ?? false,
           created_by: user?.user?.id || null,
         } as any)
         .select("*")
