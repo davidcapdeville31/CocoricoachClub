@@ -30,6 +30,7 @@ interface BlockDraft {
   theme: string;          // training_type value (e.g. "bowling_spare", "Collectif")
   themeLabel: string;     // display label
   duration_minutes: number;
+  intensity: number;      // Planned RPE 1-10 (chosen by staff for this block)
   notes: string;
   bowling_exercise_type?: string;
 }
