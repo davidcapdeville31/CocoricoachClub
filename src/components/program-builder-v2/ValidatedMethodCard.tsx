@@ -67,7 +67,23 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit }: Props) => {
     return <FartlekCard config={config as any} onEdit={onEdit} onRemove={onRemove} />;
   }
   if (method === "cluster" && config.sets != null) {
-    return <ClusterCard config={config as any} exerciseName={dropName} onEdit={onEdit} onRemove={onRemove} />;
+    return (
+      <div className="relative group">
+        <ClusterCard config={config as any} exerciseName={dropName} onRemove={onRemove} />
+        {onEdit && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-10 h-7 w-7 rounded-2xl bg-background/80 hover:text-primary z-10"
+            onClick={onEdit}
+            title="Modifier"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
+    );
   }
   if (method === "stato_dynamique" && (config.phases || config.amplitudeType)) {
     return <StatoDynamiqueCard config={config as any} exerciseName={dropName} onEdit={onEdit} onRemove={onRemove} />;
