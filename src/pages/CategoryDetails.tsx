@@ -148,6 +148,8 @@ function CategoryDetailsContent() {
   const { isPublicAccess, token, clubName: publicClubName, categoryName: publicCategoryName } = usePublicAccess();
   const { total: unreadMessagesCount } = useUnreadMessages(categoryId || "");
   const pendingWeightLogsCount = usePendingWeightLogsCount(categoryId);
+  const pendingTestResultsCount = usePendingTestResultsCount(categoryId);
+  const workloadBadge = pendingWeightLogsCount + pendingTestResultsCount;
 
   // Fetch category data - use edge function for public access, direct query for authenticated
   const { data: category, isLoading } = useQuery({
