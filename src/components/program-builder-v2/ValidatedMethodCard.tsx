@@ -53,6 +53,8 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit }: Props) => {
   const label = METHOD_LABELS[method] ?? method;
   const config = (exercise.config ?? {}) as any;
   const series: any[] = Array.isArray(config.series) ? config.series : [];
+  const restPauseConfig: RestPauseConfig | undefined = config.restPauseConfig;
+  const isRestPause = method === "rest_pause" && restPauseConfig?.series?.length;
   const dropName: string =
     config.droppedExercise?.exerciseName ?? exercise.exerciseName ?? "—";
 
