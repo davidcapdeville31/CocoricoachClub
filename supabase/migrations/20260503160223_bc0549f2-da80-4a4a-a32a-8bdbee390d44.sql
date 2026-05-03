@@ -1,0 +1,1 @@
+ALTER TABLE public.players ADD COLUMN IF NOT EXISTS kicking_work_enabled boolean NOT NULL DEFAULT false;

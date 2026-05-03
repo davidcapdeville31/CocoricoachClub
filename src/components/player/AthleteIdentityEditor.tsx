@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   useAthleteAttributes,
@@ -19,7 +19,10 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, Star, Loader2, User, Cake } from "lucide-react";
+import { Plus, X, Star, Loader2, User, Cake, Footprints } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { isRugbyType } from "@/lib/constants/sportTypes";
+import { toast } from "sonner";
 import {
   ATHLETISME_DISCIPLINES,
   ATHLETISME_SPECIALTIES,
@@ -149,6 +152,36 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
       return data;
     },
     enabled: !!playerId,
+  });
+
+  const queryClient = useQueryClient();
+  const isRugby = isRugbyType(sportType);
+  const { data: kickingFlag } = useQuery({
+    queryKey: ["player-kicking-work", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("kicking_work_enabled")
+        .eq("id", playerId)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as any)?.kicking_work_enabled ?? false;
+    },
+    enabled: !!playerId && isRugby,
+  });
+  const toggleKicking = useMutation({
+    mutationFn: async (val: boolean) => {
+      const { error } = await supabase
+        .from("players")
+        .update({ kicking_work_enabled: val } as any)
+        .eq("id", playerId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["player-kicking-work", playerId] });
+      toast.success("Préférence enregistrée");
+    },
+    onError: (e: any) => toast.error("Erreur : " + e.message),
   });
 
   const isAthletics = isAthletismeCategory(sportType);
@@ -347,6 +380,25 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
           )}
         </div>
       </div>
+
+      {isRugby && (
+        <div className="rounded-xl border bg-background/60 p-3 flex items-start gap-3">
+          <Checkbox
+            id="kicking-work"
+            checked={!!kickingFlag}
+            onCheckedChange={(v) => toggleKicking.mutate(!!v)}
+          />
+          <div className="space-y-0.5">
+            <label htmlFor="kicking-work" className="text-sm font-semibold flex items-center gap-1.5 cursor-pointer">
+              <Footprints className="h-4 w-4 text-primary" />
+              Travail du jeu au pied
+            </label>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Active un sous-onglet "Data d'entraînement" dans l'espace athlète permettant à ce joueur de saisir lui-même ses séances de jeu au pied (uniquement pour lui).
+            </p>
+          </div>
+        </div>
+      )}
 
       {dimensions.map((dim) => {
         const items = attributes.filter((a) => a.dimension === dim.dimension);

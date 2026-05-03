@@ -23,6 +23,7 @@ interface PrecisionFieldTrackerProps {
   categoryId: string;
   sessionId?: string;
   sessionDate?: string;
+  lockedPlayerId?: string;
 }
 
 // Legacy positions kept for backward compat only
@@ -32,10 +33,10 @@ const LINEOUT_POSITIONS = [
   { key: "fond", label: "Fond", y: 80, description: "12-15m du lanceur" },
 ];
 
-export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, sessionDate: propSessionDate }: PrecisionFieldTrackerProps) {
+export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, sessionDate: propSessionDate, lockedPlayerId }: PrecisionFieldTrackerProps) {
   const queryClient = useQueryClient();
   const { isViewer } = useViewerModeContext();
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string>("");
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string>(lockedPlayerId || "");
   const [exerciseType, setExerciseType] = useState<string>(RUGBY_PRECISION_EXERCISES[0].value);
   const [kickingSide, setKickingSide] = useState<"left" | "right">("right");
   const [clickPos, setClickPos] = useState<{ x: number; y: number } | null>(null);
@@ -209,7 +210,7 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
       // Move to next player automatically
       const idx = players.findIndex(p => p.id === selectedPlayerId);
       const next = players[(idx + 1) % Math.max(players.length, 1)];
-      if (next && players.length > 1) setSelectedPlayerId(next.id);
+      if (!lockedPlayerId && next && players.length > 1) setSelectedPlayerId(next.id);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -369,19 +370,21 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-end">
-        <div className="space-y-1">
-          <Label className="text-xs">Joueur</Label>
-          <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
-            <SelectTrigger className="w-[200px]"><SelectValue placeholder="Sélectionner un joueur" /></SelectTrigger>
-            <SelectContent>
-              {players.map(p => (
-                <SelectItem key={p.id} value={p.id}>
-                  {[p.first_name, p.name].filter(Boolean).join(" ")}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {!lockedPlayerId && (
+          <div className="space-y-1">
+            <Label className="text-xs">Joueur</Label>
+            <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
+              <SelectTrigger className="w-[200px]"><SelectValue placeholder="Sélectionner un joueur" /></SelectTrigger>
+              <SelectContent>
+                {players.map(p => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {[p.first_name, p.name].filter(Boolean).join(" ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="space-y-1">
           <Label className="text-xs">Catégorie</Label>
           <Select value={currentExercise?.category || "buteur"} onValueChange={(cat) => {
