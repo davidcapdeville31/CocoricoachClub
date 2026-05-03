@@ -899,6 +899,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                   dayId={block.id}
                   droppedExercise={configDraft.droppedExercise}
                   droppedPhaseExercises={configDraft.droppedPhaseExercises}
+                  initialData={configDraft.initialPayload as any}
                   onExerciseRemove={() => handleConfigExerciseRemove(block.id)}
                   onPhaseExerciseRemove={(idx) => handleConfigPhaseRemove(block.id, idx)}
                   onConfirm={(payload) => handleConfigValidate(block.id, configDraft.method, payload)}
