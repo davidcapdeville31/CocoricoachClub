@@ -452,6 +452,27 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                   <span className="font-medium">{t.name}</span>
                   {t.unit && <span className="text-muted-foreground">({t.unit})</span>}
                   {!isViewer && <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />}
+                  {!isViewer && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setScheduleTarget({
+                          testCategory: t.test_category,
+                          testType: `custom:${t.id}`,
+                          testCategoryLabel: formatCategoryLabel(t.test_category),
+                          testTypeLabel: t.name,
+                          testUnit: t.unit || "",
+                        });
+                        setIsScheduleDialogOpen(true);
+                      }}
+                      className="ml-1 inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 hover:bg-primary/20 px-2 py-0.5 text-[11px] text-primary"
+                      title="Planifier ce test dans le calendrier"
+                    >
+                      <CalendarPlus className="h-3 w-3" /> Planifier
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
