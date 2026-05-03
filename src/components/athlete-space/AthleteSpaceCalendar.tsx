@@ -49,15 +49,20 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
   const { data: sessions = [] } = useQuery({
-    queryKey: ["athlete-calendar-sessions", categoryId],
+    queryKey: ["athlete-calendar-sessions", categoryId, playerId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("training_sessions")
-        .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, test_reminder_id")
+        .select("id, session_date, training_type, session_start_time, session_end_time, notes, created_by_player_id, test_reminder_id, event_participants(player_id)")
         .eq("category_id", categoryId)
         .order("session_date", { ascending: false });
       if (error) throw error;
-      return data || [];
+      // Si la séance a des participants explicites, ne l'afficher qu'aux joueurs assignés
+      return (data || []).filter((s: any) => {
+        const parts = (s as any).event_participants || [];
+        if (!parts.length) return true;
+        return parts.some((p: any) => p.player_id === playerId);
+      });
     },
   });
 

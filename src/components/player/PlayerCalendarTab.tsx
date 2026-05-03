@@ -61,16 +61,21 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
 
   // Fetch training sessions - refetch on focus to catch new events
   const { data: sessions } = useQuery({
-    queryKey: ["training_sessions", categoryId],
+    queryKey: ["training_sessions", categoryId, playerId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("training_sessions")
-        .select("*")
+        .select("*, event_participants(player_id)")
         .eq("category_id", categoryId)
         .order("session_date", { ascending: false })
         .order("session_start_time", { ascending: false });
       if (error) throw error;
-      return data;
+      // Filtrer : si la séance a des participants explicites, ne l'afficher qu'aux joueurs assignés
+      return (data || []).filter((s: any) => {
+        const parts = s.event_participants || [];
+        if (!parts.length) return true;
+        return parts.some((p: any) => p.player_id === playerId);
+      });
     },
     refetchOnWindowFocus: true,
   });
