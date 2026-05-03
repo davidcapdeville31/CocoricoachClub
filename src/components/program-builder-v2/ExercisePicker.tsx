@@ -61,7 +61,7 @@ export function ExercisePicker({ onPick }: Props) {
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-80 p-2 rounded-2xl backdrop-blur bg-popover/95 shadow-xl border-border/60"
+        className="w-80 p-2 rounded-2xl backdrop-blur bg-popover/95 shadow-xl border-border/60 z-[200]"
       >
         <div className="relative mb-2">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
