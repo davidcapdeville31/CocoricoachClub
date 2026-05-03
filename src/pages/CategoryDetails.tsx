@@ -525,7 +525,7 @@ function CategoryDetailsContent() {
                   categoryId={categoryId!} 
                   isRugby7={isRugby7} 
                   isNationalTeam={isNationalTeam}
-                  sportType={category?.rugby_type}
+                  sportType={isBowling ? "bowling" : category?.rugby_type}
                 />
               </NavThemedSection>
             </TabsContent>
@@ -538,7 +538,7 @@ function CategoryDetailsContent() {
                   categoryId={categoryId!} 
                   isRugby7={isRugby7} 
                   isNationalTeam={isNationalTeam}
-                  sportType={category?.rugby_type}
+                  sportType={isBowling ? "bowling" : category?.rugby_type}
                   view="stats"
                 />
               </NavThemedSection>
