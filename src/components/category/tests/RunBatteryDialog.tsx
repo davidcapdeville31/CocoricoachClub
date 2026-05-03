@@ -31,10 +31,28 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
   const queryClient = useQueryClient();
   const [playerId, setPlayerIdState] = useState<string>("");
   const [resultsByPlayer, setResultsByPlayer] = useState<Record<string, Record<string, string>>>({});
+  const [injuredByPlayer, setInjuredByPlayer] = useState<Record<string, Record<string, boolean>>>({});
   const [savedPlayerIds, setSavedPlayerIds] = useState<Set<string>>(new Set());
   const setResults = (updater: (prev: Record<string, string>) => Record<string, string>) => {
     if (!playerId) return;
     setResultsByPlayer(prev => ({ ...prev, [playerId]: updater(prev[playerId] || {}) }));
+  };
+  const toggleInjured = (itemId: string, value: boolean) => {
+    if (!playerId) return;
+    setInjuredByPlayer(prev => ({
+      ...prev,
+      [playerId]: { ...(prev[playerId] || {}), [itemId]: value },
+    }));
+    if (value) {
+      // Clear any entered values for this item when marking as injured
+      setResultsByPlayer(prev => {
+        const cur = { ...(prev[playerId] || {}) };
+        delete cur[itemId];
+        delete cur[`${itemId}__R`];
+        delete cur[`${itemId}__L`];
+        return { ...prev, [playerId]: cur };
+      });
+    }
   };
   const setPlayerId = (id: string) => setPlayerIdState(id);
   const [savedDate] = useState(() => new Date().toISOString().split("T")[0]);
