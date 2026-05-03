@@ -420,6 +420,58 @@ serve(async (req) => {
       return json({ success: true, inserted: records.length });
     }
 
+    // ─── SUBMIT TEST RESULTS (pending validation) ───
+    if (action === "submit-test-results" && req.method === "POST") {
+      const body = await req.json();
+      const { session_id, results } = body as {
+        session_id?: string;
+        results?: Array<{
+          test_category: string;
+          test_type: string;
+          result_value: number;
+          result_unit?: string;
+          notes?: string;
+        }>;
+      };
+      if (!Array.isArray(results) || results.length === 0) {
+        return json({ success: false, error: "Données manquantes" }, 400);
+      }
+
+      let testDate = new Date().toISOString().slice(0, 10);
+      if (session_id) {
+        const { data: sess } = await supabase
+          .from("training_sessions")
+          .select("id, category_id, session_date")
+          .eq("id", session_id)
+          .single();
+        if (!sess || sess.category_id !== category_id) {
+          return json({ success: false, error: "Séance introuvable" }, 404);
+        }
+        if (sess.session_date) testDate = sess.session_date;
+      }
+
+      const records = results
+        .filter((r) => r.test_category && r.test_type && Number.isFinite(r.result_value))
+        .map((r) => ({
+          player_id,
+          category_id,
+          training_session_id: session_id || null,
+          test_date: testDate,
+          test_category: r.test_category,
+          test_type: r.test_type,
+          result_value: r.result_value,
+          result_unit: r.result_unit || null,
+          notes: r.notes || null,
+          submitted_via: "athlete",
+          validation_status: "pending",
+        }));
+      if (records.length === 0) return json({ success: true, inserted: 0 });
+
+      const { error } = await supabase.from("pending_test_results").insert(records);
+      if (error) throw error;
+      return json({ success: true, inserted: records.length });
+    }
+
     // ─── SUBMIT MATCH STATS ───
     if (action === "submit-stats" && req.method === "POST") {
       const body = await req.json();
