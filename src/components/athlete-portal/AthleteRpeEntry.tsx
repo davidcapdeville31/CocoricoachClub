@@ -30,9 +30,41 @@ interface Session {
   training_type: string;
   session_start_time: string | null;
   session_end_time: string | null;
+  notes?: string | null;
   bowling_exercise_type?: string | null;
   blocks?: Array<{ training_type: string; bowling_exercise_type?: string | null }>;
 }
+
+interface TestRef {
+  test_category: string;
+  test_type: string;
+  result_unit?: string;
+}
+
+interface ExistingTestResult {
+  test_category: string;
+  test_type: string;
+  result_value: number;
+  result_unit?: string | null;
+  validation_status: "pending" | "validated" | "rejected";
+}
+
+const parseTestsFromNotes = (notes?: string | null): TestRef[] => {
+  if (!notes) return [];
+  const match = notes.match(/<!--TESTS:(.*?)-->/);
+  if (!match) return [];
+  try {
+    const parsed = JSON.parse(match[1]);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const formatTestLabel = (value: string) =>
+  value
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 
 // Map block bowling_exercise_type values to SPARE_EXERCISE_TYPES values
 const BLOCK_TO_SPARE_MAP: Record<string, string> = {
@@ -60,6 +92,8 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
   const [isSubmittingSpare, setIsSubmittingSpare] = useState(false);
   const [showScoreSheet, setShowScoreSheet] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [testEntries, setTestEntries] = useState<Record<string, string>>({});
+  const [existingTestResults, setExistingTestResults] = useState<ExistingTestResult[]>([]);
 
   const isBowling = sportType?.toLowerCase().startsWith("bowling");
 
@@ -109,6 +143,7 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
   };
 
   const selectedSessionData = sessions.find(s => s.id === selectedSession);
+  const selectedSessionTests = parseTestsFromNotes(selectedSessionData?.notes);
   const isPrecision = selectedSessionData?.training_type === "bowling_spare";
   const isSimulation = selectedSessionData?.training_type === "bowling_game" || selectedSessionData?.training_type === "bowling_practice";
 
@@ -142,6 +177,71 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
         setRpe(5);
         setDuration("");
         onRefreshStats?.();
+      } else {
+        toast.error(data.error || "Erreur");
+      }
+    } catch {
+      toast.error("Erreur de connexion");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedSession || selectedSessionData?.training_type !== "test") {
+      setExistingTestResults([]);
+      setTestEntries({});
+      return;
+    }
+
+    fetch(`${buildAthletePortalFunctionUrl("session-test-results", token)}&session_id=${encodeURIComponent(selectedSession)}`, {
+      headers: athletePortalHeaders(),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setExistingTestResults(data.existing || []);
+        }
+      })
+      .catch(() => {
+        setExistingTestResults([]);
+      });
+  }, [selectedSession, selectedSessionData?.training_type, token]);
+
+  const handleSubmitTestResults = async () => {
+    if (!selectedSession || selectedSessionData?.training_type !== "test") return;
+
+    const results = selectedSessionTests
+      .map((test) => {
+        const key = `${test.test_category}::${test.test_type}`;
+        const value = parseFloat(testEntries[key] || "");
+        if (!Number.isFinite(value)) return null;
+        return {
+          test_category: test.test_category,
+          test_type: test.test_type,
+          result_value: value,
+          result_unit: test.result_unit || null,
+        };
+      })
+      .filter(Boolean);
+
+    if (results.length === 0) {
+      toast.error("Saisis au moins un résultat de test");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(buildAthletePortalFunctionUrl("submit-test-results", token), {
+        method: "POST",
+        headers: athletePortalHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ session_id: selectedSession, results }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Résultat(s) envoyé(s) au staff pour validation");
+        setTestEntries({});
+        setRefreshKey((k) => k + 1);
       } else {
         toast.error(data.error || "Erreur");
       }
@@ -428,6 +528,55 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
 
           {/* Actual lifted weights — sent for staff validation */}
           <AthletePortalWeightLog token={token} sessionId={selectedSession} onSubmitted={onRefreshStats} />
+
+          {selectedSessionData?.training_type === "test" && selectedSessionTests.length > 0 && (
+            <Card className="border-primary/30 bg-primary/5">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Mes résultats de tests</CardTitle>
+                <CardDescription>Envoie tes résultats au staff pour validation.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {selectedSessionTests.map((test) => {
+                  const key = `${test.test_category}::${test.test_type}`;
+                  const existing = existingTestResults.find(
+                    (row) => row.test_category === test.test_category && row.test_type === test.test_type,
+                  );
+
+                  return (
+                    <div key={key} className="rounded-md border bg-background p-3 space-y-2">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className="text-sm font-medium">{formatTestLabel(test.test_type)}</span>
+                        {existing && (
+                          <Badge variant={existing.validation_status === "rejected" ? "destructive" : existing.validation_status === "validated" ? "secondary" : "outline"}>
+                            {existing.result_value} {existing.result_unit || test.result_unit || ""} · {existing.validation_status === "pending" ? "En attente" : existing.validation_status === "validated" ? "Validé" : "Rejeté"}
+                          </Badge>
+                        )}
+                      </div>
+
+                      {!existing && (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            placeholder="Résultat"
+                            value={testEntries[key] || ""}
+                            onChange={(e) => setTestEntries((prev) => ({ ...prev, [key]: e.target.value }))}
+                          />
+                          <span className="text-xs text-muted-foreground min-w-8">{test.result_unit || ""}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {existingTestResults.length < selectedSessionTests.length && (
+                  <Button className="w-full" onClick={handleSubmitTestResults}>
+                    {isSubmitting ? "Envoi..." : "Envoyer les résultats"}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Bowling Precision Stats */}
           {isBowling && isPrecision && (
