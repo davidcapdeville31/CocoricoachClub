@@ -28,6 +28,15 @@ import {
 import { FartlekConfigSlots } from "./FartlekConfigSlots";
 import type { FartlekConfig } from "@/lib/program-builder-v2/fartlekTypes";
 import { formatFartlekSummary } from "@/lib/program-builder-v2/fartlekTypes";
+import { ClusterConfigSlots } from "./ClusterConfigSlots";
+import type { ClusterConfig } from "@/lib/program-builder-v2/clusterTypes";
+import { formatClusterSummary } from "@/lib/program-builder-v2/clusterTypes";
+import { StatoDynamiqueConfigSlots } from "./StatoDynamiqueConfigSlots";
+import type { StatoDynamiqueConfig } from "@/lib/program-builder-v2/statoDynamiqueTypes";
+import { formatStatoDynamiqueSummary } from "@/lib/program-builder-v2/statoDynamiqueTypes";
+import { IntermittentCardioConfigSlots } from "./IntermittentCardioConfigSlots";
+import type { IntermittentCardioConfig } from "@/lib/program-builder-v2/intermittentCardioTypes";
+import { formatIntermittentSummary } from "@/lib/program-builder-v2/intermittentCardioTypes";
 import { Trash2 } from "lucide-react";
 import { ExercisePicker, type PickedExercise } from "./ExercisePicker";
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
