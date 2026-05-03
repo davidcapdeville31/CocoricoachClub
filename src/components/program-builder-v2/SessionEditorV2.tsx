@@ -30,6 +30,8 @@ interface SessionEditorV2Props {
   onClose: () => void;
   categoryId: string;
   defaultDate?: string;
+  /** Si défini, mode athlète : la séance est créée pour ce joueur via l'edge function et la sélection de participants est masquée. */
+  athletePlayerId?: string;
   editSession?: {
     id: string;
     session_date: string;
