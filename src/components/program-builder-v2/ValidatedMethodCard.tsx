@@ -62,6 +62,20 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit }: Props) => {
   const dropName: string =
     config.droppedExercise?.exerciseName ?? exercise.exerciseName ?? "—";
 
+  // Specialized cards keep their full creation UI after validation
+  if (method === "fartlek" && config.effortPhases) {
+    return <FartlekCard config={config as any} onEdit={onEdit} onRemove={onRemove} />;
+  }
+  if (method === "cluster" && config.sets != null) {
+    return <ClusterCard config={config as any} exerciseName={dropName} onEdit={onEdit} onRemove={onRemove} />;
+  }
+  if (method === "stato_dynamique" && (config.phases || config.amplitudeType)) {
+    return <StatoDynamiqueCard config={config as any} exerciseName={dropName} onEdit={onEdit} onRemove={onRemove} />;
+  }
+  if (method === "intermittent_cardio" && config.workSeconds != null) {
+    return <IntermittentCardioCard config={config as any} onEdit={onEdit} onRemove={onRemove} />;
+  }
+
   return (
     <div
       className={cn(
