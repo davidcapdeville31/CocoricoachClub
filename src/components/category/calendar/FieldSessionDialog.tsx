@@ -16,6 +16,11 @@ import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getTrainingTypesForSport } from "@/lib/constants/trainingTypes";
+import {
+  TARGET_INTENSITIES,
+  VOLUME_OPTIONS,
+  CONTACT_CHARGE_OPTIONS,
+} from "@/lib/constants/sessionBlockOptions";
 
 interface FieldSessionDialogProps {
   open: boolean;
@@ -33,6 +38,9 @@ interface BlockDraft {
   intensity: number;      // Planned RPE 1-10 (chosen by staff for this block)
   notes: string;
   bowling_exercise_type?: string;
+  target_intensity?: string; // faible / moderee / elevee / tres_elevee
+  volume?: string;           // court / moyen / long
+  contact_charge?: string;   // aucun / faible / modere / eleve
 }
 
 const GENERIC_THEMES = [
@@ -67,8 +75,8 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(true);
   const [blocks, setBlocks] = useState<BlockDraft[]>([
-    { id: crypto.randomUUID(), theme: "Échauffement", themeLabel: "Échauffement", duration_minutes: 15, intensity: 4, notes: "" },
-    { id: crypto.randomUUID(), theme: "Collectif", themeLabel: "Collectif", duration_minutes: 45, intensity: 7, notes: "" },
+    { id: crypto.randomUUID(), theme: "Échauffement", themeLabel: "Échauffement", duration_minutes: 15, intensity: 4, notes: "", target_intensity: "faible", volume: "court", contact_charge: "aucun" },
+    { id: crypto.randomUUID(), theme: "Collectif", themeLabel: "Collectif", duration_minutes: 45, intensity: 7, notes: "", target_intensity: "elevee", volume: "moyen", contact_charge: "modere" },
   ]);
 
   const isBowling = isBowlingSport(sportType);
@@ -124,6 +132,9 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         duration_minutes: 30,
         intensity: 6,
         notes: "",
+        target_intensity: "moderee",
+        volume: "moyen",
+        contact_charge: "aucun",
       },
     ]);
   };
@@ -191,6 +202,9 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         intensity: b.intensity && b.intensity >= 1 && b.intensity <= 10 ? b.intensity : null,
         notes: b.notes || null,
         bowling_exercise_type: b.theme === "bowling_spare" ? (b.bowling_exercise_type || null) : null,
+        target_intensity: b.target_intensity || null,
+        volume: b.volume || null,
+        contact_charge: b.contact_charge || null,
       }));
       const { error: bErr } = await supabase.from("training_session_blocks").insert(blockRows);
       if (bErr) throw bErr;
@@ -302,6 +316,51 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                           title="RPE prévu (1-10)"
                         />
                         <span className="text-xs text-muted-foreground">RPE</span>
+                      </div>
+                    </div>
+                    {/* Intensité / Volume / Contact (alimente Workload → Répartition) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-muted-foreground">Intensité</Label>
+                        <Select
+                          value={b.target_intensity || ""}
+                          onValueChange={(v) => updateBlock(b.id, { target_intensity: v })}
+                        >
+                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Intensité" /></SelectTrigger>
+                          <SelectContent>
+                            {TARGET_INTENSITIES.map((o) => (
+                              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-muted-foreground">Volume</Label>
+                        <Select
+                          value={b.volume || ""}
+                          onValueChange={(v) => updateBlock(b.id, { volume: v })}
+                        >
+                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Volume" /></SelectTrigger>
+                          <SelectContent>
+                            {VOLUME_OPTIONS.map((o) => (
+                              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-muted-foreground">Charge contact</Label>
+                        <Select
+                          value={b.contact_charge || ""}
+                          onValueChange={(v) => updateBlock(b.id, { contact_charge: v })}
+                        >
+                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Contact" /></SelectTrigger>
+                          <SelectContent>
+                            {CONTACT_CHARGE_OPTIONS.map((o) => (
+                              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                     {b.theme === "bowling_spare" && (

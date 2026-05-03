@@ -15,6 +15,11 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Users } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  TARGET_INTENSITIES,
+  VOLUME_OPTIONS,
+} from "@/lib/constants/sessionBlockOptions";
 import { SessionEditorSheet } from "./SessionEditorSheet";
 import { SessionDayEditor, type SessionDayEditorHandle } from "./SessionDayEditor";
 import { V2ExerciseBankSidebar, type PickedExerciseRich } from "./V2ExerciseBankSidebar";
@@ -43,6 +48,9 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
   const [sessionDate, setSessionDate] = useState<string>(todayIso());
   const [startTime, setStartTime] = useState<string>("");
   const [endTime, setEndTime] = useState<string>("");
+  const [sessionKind, setSessionKind] = useState<"musculation" | "course">("musculation");
+  const [targetIntensity, setTargetIntensity] = useState<string>("moderee");
+  const [volume, setVolume] = useState<string>("moyen");
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [blocks, setBlocks] = useState<V2BlockWithExercises[]>([]);
   const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
@@ -79,6 +87,9 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
       setSessionDate(defaultDate || todayIso());
       setStartTime("");
       setEndTime("");
+      setSessionKind("musculation");
+      setTargetIntensity("moderee");
+      setVolume("moyen");
       setSelectedPlayers([]);
       setBlocks([]);
       setSavedSnapshot(null);
@@ -204,7 +215,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
     }
   };
 
-  const currentSnapshot = JSON.stringify({ dayName, dayOfWeek, sessionDate, startTime, endTime, selectedPlayers, blocks });
+  const currentSnapshot = JSON.stringify({ dayName, dayOfWeek, sessionDate, startTime, endTime, sessionKind, targetIntensity, volume, selectedPlayers, blocks });
   const isSavedUpToDate = savedSnapshot !== null && savedSnapshot === currentSnapshot;
 
   const saveMutation = useMutation({
@@ -249,7 +260,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
           session_date: sessionDate,
           session_start_time: startTime || null,
           session_end_time: endTime || null,
-          training_type: "musculation",
+          training_type: sessionKind,
           notes: `<!--v2-meta:${sessionMeta}-->${dayName}`,
         })
         .select("id")
@@ -267,6 +278,33 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
             })),
           );
         if (epErr) console.error("[SessionEditorV2] event_participants insert failed", epErr);
+      }
+
+      // 2c. Insert a training_session_blocks row to feed Workload "Répartition".
+      try {
+        const dur =
+          startTime && endTime
+            ? Math.max(
+                0,
+                Math.round(
+                  (new Date(`1970-01-01T${endTime}:00`).getTime() -
+                    new Date(`1970-01-01T${startTime}:00`).getTime()) /
+                    60000,
+                ),
+              )
+            : null;
+        await supabase.from("training_session_blocks").insert({
+          training_session_id: session.id,
+          block_order: 0,
+          training_type: sessionKind,
+          theme: dayName || (sessionKind === "course" ? "Course" : "Musculation"),
+          duration_minutes: dur,
+          target_intensity: targetIntensity || null,
+          volume: volume || null,
+          contact_charge: "aucun",
+        });
+      } catch (e) {
+        console.error("[SessionEditorV2] training_session_blocks insert failed", e);
       }
 
       // 3. Insert one gym_session_exercises row per (player × exercise),
@@ -361,6 +399,38 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
                   onChange={(e) => setEndTime(e.target.value)}
                   className="h-9 w-28"
                 />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Type</Label>
+                <Select value={sessionKind} onValueChange={(v) => setSessionKind(v as "musculation" | "course")}>
+                  <SelectTrigger className="h-9 w-36"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="musculation">Musculation</SelectItem>
+                    <SelectItem value="course">Course</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Intensité</Label>
+                <Select value={targetIntensity} onValueChange={setTargetIntensity}>
+                  <SelectTrigger className="h-9 w-36"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {TARGET_INTENSITIES.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Volume</Label>
+                <Select value={volume} onValueChange={setVolume}>
+                  <SelectTrigger className="h-9 w-32"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {VOLUME_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
