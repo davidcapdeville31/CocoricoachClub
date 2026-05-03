@@ -225,7 +225,7 @@ function ClubDetailsContent() {
                       className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (confirm(`Êtes-vous sûr de vouloir supprimer ${category.name} ?`)) {
+                        if (confirm(`Archiver ${category.name} ? (Récupérable depuis "Catégories archivées")`)) {
                           deleteCategory.mutate(category.id);
                         }
                       }}
