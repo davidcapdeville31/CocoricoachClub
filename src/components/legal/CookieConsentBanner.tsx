@@ -22,8 +22,44 @@ export function CookieConsentBanner() {
   const [prefs, setPrefs] = useState(true);
 
   useEffect(() => {
-    const existing = localStorage.getItem(STORAGE_KEY);
-    if (!existing) setOpen(true);
+    let cancelled = false;
+    (async () => {
+      const existing = localStorage.getItem(STORAGE_KEY);
+      if (existing) return;
+      // Check server-side consent for logged-in users (handles new browsers/devices)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (cancelled) return;
+      if (user) {
+        const { data } = await supabase
+          .from("user_consents")
+          .select("consent_type, granted, granted_at")
+          .eq("user_id", user.id)
+          .in("consent_type", ["cookies_essential", "cookies_notifications", "cookies_preferences"])
+          .order("granted_at", { ascending: false });
+        if (cancelled) return;
+        if (data && data.length > 0) {
+          // Rebuild local cache from server so banner stays hidden
+          const latest: Record<string, boolean> = {};
+          for (const row of data) {
+            if (!(row.consent_type in latest)) latest[row.consent_type] = row.granted;
+          }
+          if ("cookies_essential" in latest) {
+            localStorage.setItem(
+              STORAGE_KEY,
+              JSON.stringify({
+                essential: true,
+                notifications: latest["cookies_notifications"] ?? false,
+                preferences: latest["cookies_preferences"] ?? false,
+                timestamp: new Date().toISOString(),
+              }),
+            );
+            return;
+          }
+        }
+      }
+      setOpen(true);
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   const recordConsent = async (choices: ConsentChoices) => {
