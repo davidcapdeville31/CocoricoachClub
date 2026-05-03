@@ -715,11 +715,12 @@ const LinkedMethodSlotsContent = ({
   onCancel,
   dayId,
   defaultEditing = true,
+  readOnly = false,
   methodRestSeconds,
   onMethodRestChange,
 }: LinkedMethodSlotsProps) => {
   const [isValidated, setIsValidated] = useState(!defaultEditing);
-  const [isEditing, setIsEditing] = useState(defaultEditing);
+  const [isEditing, setIsEditing] = useState(defaultEditing && !readOnly);
   
   const config = getMethodConfig(method);
   const isDynamic = config.slots > config.minSlots;
