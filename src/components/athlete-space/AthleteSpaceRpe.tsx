@@ -32,6 +32,11 @@ import {
   countIncompleteWeightLogs,
   type WeightLogState,
 } from "./AthleteWeightLogInput";
+import {
+  AthleteTestResultsInput,
+  buildPendingTestRecords,
+  type TestResultsState,
+} from "./AthleteTestResultsInput";
 
 interface Props {
   playerId: string;
