@@ -53,8 +53,55 @@ const GENERIC_THEMES = [
   "Opposition",
   "Spécifique compétition",
   "Échauffement",
-  "Récupération",
 ];
+
+// Thématiques retirées du menu (à la demande coach) — restent supportées en BDD si déjà saisies
+const EXCLUDED_THEME_VALUES = new Set<string>([
+  "physique",
+  "musculation",
+  "vitesse_general",
+  "endurance_general",
+  "souplesse_mobilite",
+  "repos",
+  "test",
+  "reunion",
+  "medical",
+  "recuperation",
+  "video_analyse",
+  "video",
+]);
+const EXCLUDED_THEME_LABELS = new Set<string>([
+  "Physique",
+  "Musculation",
+  "Endurance",
+  "Vitesse / Explosivité",
+  "Souplesse / Mobilité",
+  "Repos",
+  "Test",
+  "Tests",
+  "Réunion",
+  "Rendez-vous Médical",
+  "Récupération",
+  "Récupération Active",
+  "Analyse Vidéo",
+]);
+
+const customThemesStorageKey = (categoryId: string) => `cc:custom-themes:${categoryId}`;
+const loadCustomThemes = (categoryId: string): string[] => {
+  try {
+    const raw = localStorage.getItem(customThemesStorageKey(categoryId));
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+const saveCustomThemes = (categoryId: string, themes: string[]) => {
+  try {
+    localStorage.setItem(customThemesStorageKey(categoryId), JSON.stringify(themes));
+  } catch {
+    /* noop */
+  }
+};
 
 const BOWLING_PRECISION_EXERCISES = [
   { value: "quille_7", label: "Quille 7" },
@@ -84,22 +131,54 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
   const isBowling = isBowlingSport(sportType);
   const isRugby = isRugbyType(sportType || "");
 
-  // Theme options (value + label). For bowling, include bowling-specific training types so we can store the exact training_type (e.g. "bowling_spare").
+  const [customThemes, setCustomThemes] = useState<string[]>(() => loadCustomThemes(categoryId));
+  const [newCustomTheme, setNewCustomTheme] = useState("");
+
+  // Theme options (value + label). For bowling, include bowling-specific training types.
   const themeOptions = useMemo(() => {
+    const filterOut = (o: { value: string; label: string }) =>
+      !EXCLUDED_THEME_VALUES.has(o.value) && !EXCLUDED_THEME_LABELS.has(o.label);
+
     if (isBowling) {
       const sportTypes = getTrainingTypesForSport(sportType);
       const bowlingTypes = sportTypes
         .filter((t) => t.value.startsWith("bowling_"))
         .map((t) => ({ value: t.value, label: t.label }));
       const generics = GENERIC_THEMES.map((t) => ({ value: t, label: t }));
-      // Bowling first
-      const all = [...bowlingTypes, ...generics];
+      const customs = customThemes.map((t) => ({ value: t, label: t }));
+      const all = [...bowlingTypes, ...generics, ...customs].filter(filterOut);
       const seen = new Set<string>();
       return all.filter((o) => (seen.has(o.value) ? false : (seen.add(o.value), true)));
     }
-    const sportLabels = getTrainingTypesForSport(sportType).map((t) => t.label);
-    return Array.from(new Set([...GENERIC_THEMES, ...sportLabels])).map((t) => ({ value: t, label: t }));
-  }, [sportType, isBowling]);
+    const sportLabels = getTrainingTypesForSport(sportType)
+      .filter((t) => filterOut({ value: t.value, label: t.label }))
+      .map((t) => t.label);
+    return Array.from(new Set([...GENERIC_THEMES, ...sportLabels, ...customThemes])).map((t) => ({
+      value: t,
+      label: t,
+    }));
+  }, [sportType, isBowling, customThemes]);
+
+  const addCustomTheme = () => {
+    const v = newCustomTheme.trim();
+    if (!v) return;
+    if (customThemes.includes(v) || GENERIC_THEMES.includes(v)) {
+      setNewCustomTheme("");
+      return;
+    }
+    const next = [...customThemes, v];
+    setCustomThemes(next);
+    saveCustomThemes(categoryId, next);
+    setNewCustomTheme("");
+    toast.success(`Thématique « ${v} » ajoutée`);
+  };
+
+  const removeCustomTheme = (t: string) => {
+    const next = customThemes.filter((x) => x !== t);
+    setCustomThemes(next);
+    saveCustomThemes(categoryId, next);
+  };
+
 
   const { data: players } = useQuery({
     queryKey: ["players-field-session", categoryId],
@@ -271,7 +350,43 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
               <Label className="flex items-center gap-1"><Layers className="h-3 w-3" /> Blocs / Thématiques</Label>
               <Badge variant="secondary">Total : {totalDuration} min</Badge>
             </div>
+
+            {/* Thématiques personnalisées */}
+            <div className="rounded-md border border-dashed border-border/60 p-2 space-y-2 bg-muted/30">
+              <Label className="text-[11px] text-muted-foreground">Thématiques personnalisées</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={newCustomTheme}
+                  onChange={(e) => setNewCustomTheme(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustomTheme(); } }}
+                  placeholder="Ex : Skills handling, Set-piece, Travail blocs..."
+                  className="h-8 text-xs"
+                />
+                <Button type="button" size="sm" variant="outline" onClick={addCustomTheme} className="h-8">
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Ajouter
+                </Button>
+              </div>
+              {customThemes.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {customThemes.map((t) => (
+                    <Badge key={t} variant="secondary" className="text-[10px] gap-1">
+                      {t}
+                      <button
+                        type="button"
+                        className="ml-1 opacity-60 hover:opacity-100"
+                        onClick={() => removeCustomTheme(t)}
+                        aria-label={`Retirer ${t}`}
+                      >
+                        ×
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
+
               {blocks.map((b, idx) => {
                 const colors = getThemeColorTokens(b.themeLabel || b.theme);
                 return (
