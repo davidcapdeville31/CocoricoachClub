@@ -6,6 +6,7 @@ import { getCategoryLabel } from "@/lib/constants/exerciseCategories";
 import { getTrainingStyleConfig } from "@/lib/constants/trainingStyles";
 import { ExerciseMediaViewer } from "@/components/library/ExerciseMediaViewer";
 import { useExerciseMedia } from "@/lib/hooks/useExerciseMedia";
+import { LinkedMethodSlots, type LinkedMethodType } from "@/components/program-builder-v2/LinkedMethodSlots";
 import {
   Tooltip,
   TooltipContent,
