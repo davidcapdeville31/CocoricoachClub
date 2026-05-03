@@ -631,6 +631,10 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         {blocks.map((block) => {
           const linkedDraft = linkedDrafts[block.id];
           const fartlekDraft = fartlekDrafts[block.id];
+          const clusterDraft = clusterDrafts[block.id];
+          const statoDraft = statoDrafts[block.id];
+          const intermittentDraft = intermittentDrafts[block.id];
+          const anyDraft = !!linkedDraft || !!pendingConfig[block.id] || !!fartlekDraft || !!clusterDraft || !!statoDraft || !!intermittentDraft;
           return (
             <TrainingBlockWrapper
               key={block.id}
@@ -650,7 +654,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
             >
               {block.type !== "tests" && (
                 <TrainingMethodButtons
-                  isBuilding={!!linkedDraft || !!pendingConfig[block.id] || !!fartlekDraft}
+                  isBuilding={anyDraft}
                   blockType={block.type === "custom" ? "musculation" : block.type}
                   onStartLinkedMethod={(m) => handleStartLinked(block.id, m)}
                   onStartConfigMethod={(m) => handleStartConfig(block.id, m)}
@@ -679,6 +683,33 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                   initialConfig={fartlekDraft.initial}
                   onValidate={(config) => handleFartlekValidate(block.id, config)}
                   onCancel={() => handleFartlekCancel(block.id)}
+                />
+              )}
+
+              {/* Carte Cluster */}
+              {clusterDraft && (
+                <ClusterConfigSlots
+                  initialConfig={clusterDraft.initial}
+                  onValidate={(config) => handleClusterValidate(block.id, config)}
+                  onCancel={() => handleClusterCancel(block.id)}
+                />
+              )}
+
+              {/* Carte Stato-Dynamique */}
+              {statoDraft && (
+                <StatoDynamiqueConfigSlots
+                  initialConfig={statoDraft.initial}
+                  onValidate={(config) => handleStatoValidate(block.id, config)}
+                  onCancel={() => handleStatoCancel(block.id)}
+                />
+              )}
+
+              {/* Carte Cardio Intermittent */}
+              {intermittentDraft && (
+                <IntermittentCardioConfigSlots
+                  initialConfig={intermittentDraft.initial}
+                  onConfirm={(config) => handleIntermittentValidate(block.id, config)}
+                  onCancel={() => handleIntermittentCancel(block.id)}
                 />
               )}
 
