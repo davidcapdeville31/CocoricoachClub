@@ -788,7 +788,9 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
           </Card>
         </div>
 
-        {/* 1.5️⃣ WELLNESS DU JOUR */}
+        {/* 1.5️⃣ Grille : Wellness + Présences + Séances prévues */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* WELLNESS DU JOUR */}
         <Card className="border-2 border-green-500/20 bg-gradient-to-r from-green-500/5 to-transparent">
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
