@@ -4514,6 +4514,7 @@ export type Database = {
           method_config: Json | null
           notes: string | null
           order_index: number | null
+          percentage_1rm: number | null
           player_id: string
           reps: number | null
           rest_pause_config: Json | null
@@ -4549,6 +4550,7 @@ export type Database = {
           method_config?: Json | null
           notes?: string | null
           order_index?: number | null
+          percentage_1rm?: number | null
           player_id: string
           reps?: number | null
           rest_pause_config?: Json | null
@@ -4584,6 +4586,7 @@ export type Database = {
           method_config?: Json | null
           notes?: string | null
           order_index?: number | null
+          percentage_1rm?: number | null
           player_id?: string
           reps?: number | null
           rest_pause_config?: Json | null

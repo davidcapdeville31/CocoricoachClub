@@ -1,0 +1,1 @@
+ALTER TABLE public.gym_session_exercises ADD COLUMN IF NOT EXISTS percentage_1rm NUMERIC;
