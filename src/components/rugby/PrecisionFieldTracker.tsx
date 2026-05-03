@@ -423,6 +423,25 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
             </div>
           </div>
         )}
+        {!isViewer && selectedPlayerId && (
+          <div className="ml-auto flex flex-col gap-1 items-end">
+            <Button
+              size="sm"
+              className="gap-1.5 bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => validateAndNext.mutate()}
+              disabled={validateAndNext.isPending}
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              Sauvegarder & valider
+              {playerPendingCount > 0 && (
+                <Badge variant="secondary" className="ml-1 h-5 bg-white/20 text-white">{playerPendingCount}</Badge>
+              )}
+            </Button>
+            <p className="text-[10px] text-muted-foreground">
+              Validation auto à 23h55 si oubli
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Buteur: inline exercise type selector (all 3 on same line) */}
