@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Plus, Trash2, Filter, ClipboardList, CalendarPlus, FolderPlus, Pencil, Star } from "lucide-react";
+import { Plus, Trash2, Filter, ClipboardList, CalendarPlus, FolderPlus, Pencil, Star, Copy } from "lucide-react";
 import { CreateCustomTestDialog } from "./CreateCustomTestDialog";
 import { CreateThemeCategoryDialog } from "./CreateThemeCategoryDialog";
 import { EditCustomTestDialog, type EditableTest } from "./EditCustomTestDialog";
