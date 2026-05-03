@@ -211,6 +211,14 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
               </Button>
               <Button
                 size="sm"
+                variant="outline"
+                onClick={() => setIsPlanTestOpen(true)}
+                className="border-primary/40 text-primary hover:bg-primary/10"
+              >
+                <CalendarPlus className="h-4 w-4 mr-1" /> Planifier un test
+              </Button>
+              <Button
+                size="sm"
                 onClick={() => setIsCreateBatteryOpen(true)}
                 className="bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white hover:opacity-90 border-0"
               >
