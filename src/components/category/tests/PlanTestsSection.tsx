@@ -767,7 +767,7 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
           <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
             <p className="text-xs text-muted-foreground">
               {selected.size} test{selected.size > 1 ? "s" : ""} sélectionné{selected.size > 1 ? "s" : ""}
-              {form.recurring ? ` • ${previewDates.length || 0} séances prévues` : " • 1 séance"}
+              {form.recurring ? ` • ${allPreviewDates.length || 0} séances prévues` : " • 1 séance"}
             </p>
             <Button
               onClick={handlePlan}
