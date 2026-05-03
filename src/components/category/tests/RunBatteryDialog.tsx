@@ -101,6 +101,22 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     enabled: open && !!playerId && !!battery?.battery?.name,
   });
 
+  // Pre-load: which athletes already have results saved for this battery (any date)
+  const { data: alreadySavedPlayerIds = [] } = useQuery({
+    queryKey: ["battery-saved-players", batteryId, categoryId, battery?.battery?.name],
+    queryFn: async () => {
+      if (!battery?.battery?.name) return [];
+      const { data, error } = await supabase
+        .from("generic_tests")
+        .select("player_id")
+        .eq("category_id", categoryId)
+        .ilike("notes", `[Batterie: ${battery.battery.name}]%`);
+      if (error) throw error;
+      return Array.from(new Set((data || []).map((r: any) => r.player_id))) as string[];
+    },
+    enabled: open && !!battery?.battery?.name,
+  });
+
   const savedResults = useMemo(() => {
     const mapped: Record<string, string> = {};
     (battery?.items || []).forEach((it: any) => {
