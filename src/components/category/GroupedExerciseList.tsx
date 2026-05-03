@@ -7,6 +7,8 @@ import { getTrainingStyleConfig } from "@/lib/constants/trainingStyles";
 import { ExerciseMediaViewer } from "@/components/library/ExerciseMediaViewer";
 import { useExerciseMedia } from "@/lib/hooks/useExerciseMedia";
 import { LinkedMethodSlots, type LinkedMethodType } from "@/components/program-builder-v2/LinkedMethodSlots";
+import { FartlekCard } from "@/components/program-builder-v2/FartlekCard";
+import { parseV2MethodConfig, stripV2MethodTags } from "@/lib/program-builder-v2/parseV2MethodConfig";
 import {
   Tooltip,
   TooltipContent,
