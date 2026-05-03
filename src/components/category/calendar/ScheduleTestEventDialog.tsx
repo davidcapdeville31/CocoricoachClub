@@ -535,21 +535,21 @@ export function ScheduleTestEventDialog({
 
           {/* Test selection */}
           <Tabs value={mode} onValueChange={(v) => setMode(v as "individual" | "battery")}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="individual" className="gap-2">
+            <TabsList className="grid w-full grid-cols-2 bg-orange-50 dark:bg-orange-950/30">
+              <TabsTrigger value="individual" className="gap-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white">
                 <ClipboardList className="h-4 w-4" />
                 Tests à la carte
                 {selectedTestsList.length > 0 && (
-                  <Badge variant="secondary" className="ml-1">
+                  <Badge variant="secondary" className="ml-1 bg-white text-orange-600">
                     {selectedTestsList.length}
                   </Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="battery" className="gap-2">
+              <TabsTrigger value="battery" className="gap-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white">
                 <Layers className="h-4 w-4" />
                 Batterie de tests
                 {selectedBatteryId && (
-                  <Badge variant="secondary" className="ml-1">1</Badge>
+                  <Badge variant="secondary" className="ml-1 bg-white text-orange-600">1</Badge>
                 )}
               </TabsTrigger>
             </TabsList>
