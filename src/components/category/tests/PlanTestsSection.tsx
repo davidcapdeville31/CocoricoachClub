@@ -473,9 +473,23 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
     onError: () => toast.error("Suppression impossible"),
   });
 
-  const previewDates = form.recurring
-    ? generateSessionDates(form.start_date, form.frequency_weeks).slice(0, 4)
+  const computedEndDatePreview = form.recurring
+    ? form.end_mode === "never"
+      ? null
+      : form.end_mode === "duration"
+        ? format(
+            addWeeks(
+              new Date(form.start_date),
+              form.duration_unit === "months" ? form.duration_count * 4 : form.duration_count,
+            ),
+            "yyyy-MM-dd",
+          )
+        : form.end_date
+    : null;
+  const allPreviewDates = form.recurring
+    ? generateSessionDates(form.start_date, form.frequency_weeks, computedEndDatePreview)
     : [];
+  const previewDates = allPreviewDates.slice(0, 4);
 
   return (
     <div className="space-y-6">
