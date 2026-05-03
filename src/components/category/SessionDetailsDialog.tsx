@@ -831,7 +831,7 @@ export function SessionDetailsDialog({
             "shrink-0",
             session?.training_type === "precision" && isRugby
               ? "grid w-full grid-cols-3"
-              : isTestSession
+              : isTestSession || isInfoOnlySession
                 ? "inline-flex w-auto self-start"
                 : "grid w-full grid-cols-2",
           )}>
