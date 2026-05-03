@@ -373,9 +373,6 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
         (b.exercises ?? []).map((ex) => ({ block: b, ex })),
       );
 
-      if (flat.length === 0) {
-        throw new Error("Ajoute au moins un exercice avant d'enregistrer.");
-      }
       if (!sessionDate) throw new Error("Choisis une date pour la séance.");
 
       // 1. Load athletes of this category (filtered to selected ones if any)
