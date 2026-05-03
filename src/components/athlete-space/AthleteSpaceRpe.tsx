@@ -759,46 +759,48 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                       />
                     ) : (
                     <>
-                    <div>
-                      <Label className="text-sm">Ressenti (RPE)</Label>
-                      <div className="mt-2">
-                        <Slider
-                          value={[rpe]}
-                          onValueChange={([v]) => setRpe(v)}
-                          min={1}
-                          max={10}
-                          step={1}
-                        />
-                        <div className="flex justify-between mt-1">
-                          <span className={`text-2xl font-bold ${getRpeColor(rpe)}`}>{rpe}/10</span>
-                          <span className="text-sm text-muted-foreground self-end">{getRpeLabel(rpe)}</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-sm">Ressenti (RPE)</Label>
+                        <div className="mt-2">
+                          <Slider
+                            value={[rpe]}
+                            onValueChange={([v]) => setRpe(v)}
+                            min={1}
+                            max={10}
+                            step={1}
+                          />
+                          <div className="flex justify-between mt-1">
+                            <span className={`text-2xl font-bold ${getRpeColor(rpe)}`}>{rpe}/10</span>
+                            <span className="text-sm text-muted-foreground self-end">{getRpeLabel(rpe)}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div>
-                      <Label className="text-sm">Durée (minutes)</Label>
-                      {durationLocked ? (
-                        <div className="mt-1 flex items-center gap-2">
+                      <div>
+                        <Label className="text-sm">Durée (minutes)</Label>
+                        {durationLocked ? (
+                          <div className="mt-1 flex items-center gap-2">
+                            <Input
+                              type="number"
+                              value={duration}
+                              readOnly
+                              className="bg-muted/50 cursor-not-allowed"
+                            />
+                            <Badge variant="secondary" className="text-xs whitespace-nowrap shrink-0">
+                              {duration}'
+                            </Badge>
+                          </div>
+                        ) : (
                           <Input
                             type="number"
                             value={duration}
-                            readOnly
-                            className="bg-muted/50 cursor-not-allowed"
+                            onChange={e => setDuration(e.target.value)}
+                            placeholder="Ex: 90"
+                            className="mt-1"
                           />
-                          <Badge variant="secondary" className="text-xs whitespace-nowrap shrink-0">
-                            {duration}'
-                          </Badge>
-                        </div>
-                      ) : (
-                        <Input
-                          type="number"
-                          value={duration}
-                          onChange={e => setDuration(e.target.value)}
-                          placeholder="Ex: 90"
-                          className="mt-1"
-                        />
-                      )}
+                        )}
+                      </div>
                     </div>
 
                     {/* Bowling precision */}
