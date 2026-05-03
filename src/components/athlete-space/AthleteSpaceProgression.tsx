@@ -304,7 +304,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                  <div className="grid grid-cols-2 gap-1.5">
                     {Object.entries(filteredLatestGeneric).map(([key, test]) => {
                       const series = filteredGenericByType[key] || [];
                       let progression: { pct: number; positive: boolean } | null = null;
