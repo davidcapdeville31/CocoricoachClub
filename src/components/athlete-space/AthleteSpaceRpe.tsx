@@ -978,6 +978,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                       <CheckCircle2 className="h-4 w-4 mr-2" />
                       {isPrecisionSession ? "Valider mon RPE et mes stats" : "Valider mon RPE"}
                     </Button>
+                    </>
+                    )}
                   </div>
                 )}
               </div>
