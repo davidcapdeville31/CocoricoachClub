@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { TonnageDashboard } from "./TonnageDashboard";
 import { PendingWeightLogsValidation } from "./PendingWeightLogsValidation";
 import { PendingTestResultsValidation } from "@/components/category/tests/PendingTestResultsValidation";
@@ -42,26 +43,24 @@ export function EvolutionTestsMuscuTab({ categoryId }: EvolutionTestsMuscuTabPro
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="tonnage" className="space-y-4">
-          <TabsList className="flex flex-wrap h-auto gap-1">
-            <TabsTrigger value="tonnage" className="text-xs sm:text-sm relative">
-              <Weight className="h-3.5 w-3.5 mr-1" />
+          <ColoredSubTabsList colorKey="performance">
+            <ColoredSubTabsTrigger colorKey="performance" value="tonnage" icon={<Weight className="h-3.5 w-3.5" />}>
               Tonnage Muscu
               {pendingCount > 0 && (
                 <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
                   {pendingCount}
                 </span>
               )}
-            </TabsTrigger>
-            <TabsTrigger value="evolution" className="text-xs sm:text-sm relative">
-              <TrendingUp className="h-3.5 w-3.5 mr-1" />
+            </ColoredSubTabsTrigger>
+            <ColoredSubTabsTrigger colorKey="performance" value="evolution" icon={<TrendingUp className="h-3.5 w-3.5" />}>
               Comparaison & Évolution
               {pendingTestsCount > 0 && (
                 <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
                   {pendingTestsCount}
                 </span>
               )}
-            </TabsTrigger>
-          </TabsList>
+            </ColoredSubTabsTrigger>
+          </ColoredSubTabsList>
 
           <TabsContent value="tonnage" className="space-y-4">
             <PendingWeightLogsValidation categoryId={categoryId} />
