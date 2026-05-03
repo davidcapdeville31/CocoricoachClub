@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2, Play, ClipboardList } from "lucide-react";
 import { CreateTestBatteryDialog } from "./CreateTestBatteryDialog";
 import { RunBatteryDialog } from "./RunBatteryDialog";
+import { BatteryResultsList } from "./BatteryResultsList";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
