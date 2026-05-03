@@ -39,6 +39,167 @@ interface GenericTestsSectionProps {
   defaultCategory?: string;
 }
 
+function TestsTableRows({
+  tests,
+  isViewer,
+  filteredTestCategories,
+  formatCategoryLabel,
+  formatTestTypeLabel,
+  onDelete,
+}: {
+  tests: any[];
+  isViewer: boolean;
+  filteredTestCategories: TestCategory[];
+  formatCategoryLabel: (value?: string | null) => string;
+  formatTestTypeLabel: (value?: string | null) => string;
+  onDelete: (id: string) => void;
+}) {
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
+  const groupedRows = useMemo(() => {
+    const rows: Array<
+      | { type: "single"; test: any }
+      | { type: "battery"; key: string; lead: any; items: any[] }
+    > = [];
+    const batteryMap = new Map<string, { lead: any; items: any[] }>();
+
+    for (const test of tests) {
+      const notes = test.notes || "";
+      const batteryMatch = notes.match(/^\[Batterie:\s*([^\]]+)\]/i);
+      if (!batteryMatch) {
+        rows.push({ type: "single", test });
+        continue;
+      }
+
+      const playerName = test.players?.name || "Athlète";
+      const key = `${test.player_id || playerName}__${test.test_date}__${batteryMatch[1]}`;
+      const existing = batteryMap.get(key);
+      if (existing) {
+        existing.items.push(test);
+      } else {
+        batteryMap.set(key, { lead: test, items: [test] });
+        rows.push({ type: "battery", key, lead: test, items: batteryMap.get(key)!.items });
+      }
+    }
+
+    return rows;
+  }, [tests]);
+
+  const getBatteryTitle = (notes?: string | null) => {
+    const m = (notes || "").match(/^\[Batterie:\s*([^\]]+)\]/i);
+    return m?.[1] || "Batterie";
+  };
+
+  const getBatteryScore = (items: any[]) => {
+    return items.reduce((sum, item) => {
+      const m = (item.notes || "").match(/Score\s+(\d+(?:[.,]\d+)?)/i);
+      return sum + (m ? Number(m[1].replace(",", ".")) : 0);
+    }, 0);
+  };
+
+  const getBatteryDetailLabel = (notes?: string | null, fallback?: string | null) => {
+    const m = (notes || "").match(/Test:\s*(.+?)\s*·\s*Score/i);
+    return m?.[1] || fallback || "Test";
+  };
+
+  return (
+    <>
+      {groupedRows.map((row) => {
+        if (row.type === "single") {
+          const test = row.test;
+          return (
+            <TableRow key={test.id} className="animate-fade-in">
+              <TableCell></TableCell>
+              <TableCell className="font-medium">{test.players?.name}</TableCell>
+              <TableCell>
+                {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
+              </TableCell>
+              <TableCell>
+                <span className="text-xs text-muted-foreground block">
+                  {filteredTestCategories.find(c => c.value === test.test_category)?.label || formatCategoryLabel(test.test_category)}
+                </span>
+                {filteredTestCategories.find(c => c.value === test.test_category)?.tests.find(t => t.value === test.test_type)?.label || formatTestTypeLabel(test.test_type)}
+              </TableCell>
+              <TableCell className="font-semibold text-primary">
+                {test.result_value} {test.result_unit}
+              </TableCell>
+              <TableCell className="max-w-[150px] truncate text-muted-foreground text-sm">
+                {test.notes || "-"}
+              </TableCell>
+              {!isViewer && (
+                <TableCell className="text-right">
+                  <Button variant="ghost" size="icon" onClick={() => onDelete(test.id)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </TableCell>
+              )}
+            </TableRow>
+          );
+        }
+
+        const isOpen = !!openGroups[row.key];
+        const totalScore = getBatteryScore(row.items);
+        const batteryName = getBatteryTitle(row.lead.notes);
+
+        return (
+          <>
+            <TableRow key={row.key} className="animate-fade-in">
+              <TableCell>
+                <button
+                  type="button"
+                  onClick={() => setOpenGroups(prev => ({ ...prev, [row.key]: !prev[row.key] }))}
+                  className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground"
+                >
+                  {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </button>
+              </TableCell>
+              <TableCell className="font-medium">{row.lead.players?.name}</TableCell>
+              <TableCell>
+                {format(new Date(row.lead.test_date), "dd/MM/yyyy", { locale: fr })}
+              </TableCell>
+              <TableCell>
+                <span className="text-xs text-muted-foreground block">Batterie</span>
+                {batteryName}
+              </TableCell>
+              <TableCell className="font-semibold text-primary">
+                {totalScore} pts
+              </TableCell>
+              <TableCell className="text-muted-foreground text-sm">
+                {row.items.length} test{row.items.length > 1 ? "s" : ""}
+              </TableCell>
+              {!isViewer && <TableCell></TableCell>}
+            </TableRow>
+            {isOpen && row.items.map((test) => (
+              <TableRow key={test.id} className="bg-muted/20">
+                <TableCell></TableCell>
+                <TableCell></TableCell>
+                <TableCell></TableCell>
+                <TableCell className="pl-6">
+                  <span className="text-xs text-muted-foreground block">Détail</span>
+                  {getBatteryDetailLabel(test.notes, formatTestTypeLabel(test.test_type))}
+                </TableCell>
+                <TableCell className="font-semibold text-primary">
+                  {test.result_value} {test.result_unit}
+                </TableCell>
+                <TableCell className="max-w-[150px] truncate text-muted-foreground text-sm">
+                  {test.notes || "-"}
+                </TableCell>
+                {!isViewer && (
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => onDelete(test.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+          </>
+        );
+      })}
+    </>
+  );
+}
+
 export function GenericTestsSection({ categoryId, sportType, defaultCategory }: GenericTestsSectionProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
