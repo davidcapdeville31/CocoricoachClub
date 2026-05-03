@@ -91,9 +91,10 @@ interface MatchCardProps {
   categoryId: string;
   isSubMatch?: boolean;
   compact?: boolean;
+  sportType?: string;
 }
 
-export function MatchCard({ match, categoryId, isSubMatch = false, compact = false }: MatchCardProps) {
+export function MatchCard({ match, categoryId, isSubMatch = false, compact = false, sportType: sportTypeProp }: MatchCardProps) {
   const [isExpanded, setIsExpanded] = useState(!compact);
   const [isLineupOpen, setIsLineupOpen] = useState(false);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
