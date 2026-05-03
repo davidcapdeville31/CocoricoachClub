@@ -200,9 +200,10 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
 
       const baseMaxPoints = enableScoring && scoringScale
         ? Math.max(
-            scoringScale.ranges.reduce((m, r) => Math.max(m, r.points), 0),
+            0,
+            (scoringScale.ranges ?? []).reduce((m, r) => Math.max(m, r.points ?? 0), 0),
             ...(scoringScale.variants ?? []).map(v =>
-              (v.ranges ?? []).reduce((m, r) => Math.max(m, r.points), 0)
+              (v.ranges ?? []).reduce((m, r) => Math.max(m, r.points ?? 0), 0)
             )
           )
         : null;
