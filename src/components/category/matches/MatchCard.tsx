@@ -91,9 +91,10 @@ interface MatchCardProps {
   categoryId: string;
   isSubMatch?: boolean;
   compact?: boolean;
+  sportType?: string;
 }
 
-export function MatchCard({ match, categoryId, isSubMatch = false, compact = false }: MatchCardProps) {
+export function MatchCard({ match, categoryId, isSubMatch = false, compact = false, sportType: sportTypeProp }: MatchCardProps) {
   const [isExpanded, setIsExpanded] = useState(!compact);
   const [isLineupOpen, setIsLineupOpen] = useState(false);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
@@ -222,7 +223,8 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   });
 
   const clubSport = (category?.clubs as any)?.sport?.toLowerCase();
-  const sportType = clubSport === "bowling" ? "bowling" : (category?.rugby_type || "XV");
+  const sportType = sportTypeProp
+    || (clubSport === "bowling" ? "bowling" : (category?.rugby_type || "XV"));
   const isIndividual = isIndividualSport(sportType);
   const isPadel = sportType.toLowerCase().includes("padel");
   const isTennis = sportType.toLowerCase().includes("tennis");
