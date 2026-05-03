@@ -359,7 +359,7 @@ export const ALL_TRAINING_TYPES: TrainingTypeOption[] = [
   { value: "test", label: "Test", hasExercises: false, forTeamSports: true, forIndividualSports: true, category: "common" },
   { value: "echauffement", label: "Échauffement", hasExercises: false, forTeamSports: true, forIndividualSports: true, category: "common" },
   { value: "recuperation", label: "Récupération Active", hasExercises: false, forTeamSports: true, forIndividualSports: true, category: "common" },
-  { value: "medical", label: "RDV Médical", hasExercises: false, forTeamSports: true, forIndividualSports: true, category: "common" },
+  { value: "medical", label: "Rendez-vous Médical", hasExercises: false, forTeamSports: true, forIndividualSports: true, category: "common" },
   { value: "video_analyse", label: "Analyse Vidéo", hasExercises: false, forTeamSports: true, forIndividualSports: true, category: "common" },
   { value: "reunion", label: "Réunion", hasExercises: false, forTeamSports: true, forIndividualSports: true, category: "common" },
 ];
@@ -452,7 +452,7 @@ export function getTrainingTypeLabel(value: string): string {
     competition_training: "Simulation Compétition",
     technique_individuelle: "Technique Individuelle",
     reunion: "Réunion",
-    medical: "Médical",
+    medical: "Rendez-vous Médical",
     individuel: "Individuel",
     autre: "Autre",
   };
@@ -681,7 +681,7 @@ export const TRAINING_TYPE_LABELS: Record<string, string> = {
   musculation: "Musculation",
   collectif_general: "Collectif Général",
   reunion: "Réunion",
-  medical: "Médical",
+  medical: "Rendez-vous Médical",
   repos: "Repos",
   precision: "Entraînement Précision",
   test: "Test",
