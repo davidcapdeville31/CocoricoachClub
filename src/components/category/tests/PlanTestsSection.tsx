@@ -304,8 +304,24 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
       const tests = Array.from(selected.values());
       if (tests.length === 0) throw new Error("Sélectionne au moins un test");
 
+      const computedEndDate = form.recurring
+        ? form.end_mode === "never"
+          ? null
+          : form.end_mode === "duration"
+            ? format(
+                addWeeks(
+                  new Date(form.start_date),
+                  form.duration_unit === "months"
+                    ? form.duration_count * 4
+                    : form.duration_count,
+                ),
+                "yyyy-MM-dd",
+              )
+            : form.end_date
+        : null;
+
       const dates = form.recurring
-        ? generateSessionDates(form.start_date, form.frequency_weeks)
+        ? generateSessionDates(form.start_date, form.frequency_weeks, computedEndDate)
         : [form.start_date];
       if (dates.length === 0) throw new Error("Aucune date à planifier");
 
@@ -319,13 +335,14 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
             test_metadata: tests as any,
             frequency_weeks: form.frequency_weeks,
             start_date: form.start_date,
+            end_date: computedEndDate,
             session_start_time: form.session_start_time || null,
             session_end_time: form.session_end_time || null,
             location: form.location || null,
             duration_minutes: form.duration_minutes,
             auto_assign_athletes: form.auto_assign_athletes,
             is_active: true,
-          })
+          } as any)
           .select("id")
           .single();
         if (error) throw error;
