@@ -249,6 +249,18 @@ export function SuperAdminClubs() {
                 <Play className="h-4 w-4 text-green-600" />
               )}
             </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Archiver le club"
+              onClick={() => {
+                if (confirm(`Archiver le club « ${club.name} » et toutes ses catégories ?`)) {
+                  archiveClub.mutate(club.id);
+                }
+              }}
+            >
+              <Archive className="h-4 w-4 text-orange-600" />
+            </Button>
           </div>
         </div>
 
