@@ -230,9 +230,21 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
     },
   });
 
+  const isV2EditableSession = (session: any) => {
+    const tt = session?.training_type;
+    const notes = session?.notes || "";
+    if (tt === "musculation" || tt === "course") return true;
+    if (/<!--\s*v2-(meta|fartlek|cluster|stato|intermittent)/i.test(notes)) return true;
+    return false;
+  };
+
   const handleEdit = (session: any) => {
     setEditingSession(session);
-    setFormOpen(true);
+    if (isV2EditableSession(session)) {
+      setV2EditorOpen(true);
+    } else {
+      setFormOpen(true);
+    }
   };
 
   const handleDeleteClick = (session: { id: string; session_date: string; training_type: string }) => {
@@ -354,8 +366,12 @@ export function SessionsTab({ categoryId }: SessionsTabProps) {
 
       <SessionEditorV2
         open={v2EditorOpen}
-        onClose={() => setV2EditorOpen(false)}
+        onClose={() => {
+          setV2EditorOpen(false);
+          setEditingSession(null);
+        }}
         categoryId={categoryId}
+        editSession={editingSession}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

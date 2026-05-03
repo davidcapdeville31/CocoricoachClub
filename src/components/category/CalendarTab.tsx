@@ -61,8 +61,14 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
   const navigate = useNavigate();
   const { isViewer } = useViewerModeContext();
   const calendarContentRef = useRef<HTMLDivElement>(null);
-  const isV2EditableSession = (trainingType?: string | null) =>
-    trainingType === "musculation" || trainingType === "course";
+  const isV2EditableSession = (session?: { training_type?: string | null; notes?: string | null } | null) => {
+    const trainingType = session?.training_type;
+    const notes = session?.notes || "";
+    if (trainingType === "musculation" || trainingType === "course") return true;
+    // Any session built with the V2 builder (contains v2 markers in notes)
+    if (/<!--\s*v2-(meta|fartlek|cluster|stato|intermittent)/i.test(notes)) return true;
+    return false;
+  };
 
   const handleExportPdf = async () => {
     if (sessions && matches) {
@@ -426,7 +432,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
 
       {/* Edit Session Dialog */}
       <SessionEditorV2
-        open={isEditDialogOpen && isV2EditableSession(editingSession?.training_type)}
+        open={isEditDialogOpen && isV2EditableSession(editingSession)}
         onClose={() => {
           setIsEditDialogOpen(false);
           setEditingSession(null);
@@ -436,7 +442,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       />
 
       <SessionFormDialog
-        open={isEditDialogOpen && !isV2EditableSession(editingSession?.training_type)}
+        open={isEditDialogOpen && !isV2EditableSession(editingSession)}
         onOpenChange={(open) => {
           setIsEditDialogOpen(open);
           if (!open) setEditingSession(null);
