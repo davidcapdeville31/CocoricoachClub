@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Target, Trash2, BarChart3, CalendarPlus, Info } from "lucide-react";
+import { Target, Trash2, BarChart3, CalendarPlus, Info, CheckCircle2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -187,6 +187,37 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
       toast.success("Entrée supprimée");
     },
   });
+
+  // Validate all today's entries for the currently selected player
+  const validateAndNext = useMutation({
+    mutationFn: async () => {
+      if (!selectedPlayerId) throw new Error("Sélectionnez un joueur");
+      if (!activeSessionId) throw new Error("Aucune séance aujourd'hui");
+      const { error, count } = await supabase
+        .from("precision_training")
+        .update({ validated: true, validated_at: new Date().toISOString() }, { count: "exact" })
+        .eq("training_session_id", activeSessionId)
+        .eq("player_id", selectedPlayerId)
+        .eq("validated", false);
+      if (error) throw error;
+      return count ?? 0;
+    },
+    onSuccess: (count) => {
+      queryClient.invalidateQueries({ queryKey: ["precision-field-entries"] });
+      queryClient.invalidateQueries({ queryKey: ["precision-training-stats"] });
+      toast.success(count > 0 ? `✅ ${count} stat(s) validée(s) — au suivant !` : "Aucune stat à valider");
+      // Move to next player automatically
+      const idx = players.findIndex(p => p.id === selectedPlayerId);
+      const next = players[(idx + 1) % Math.max(players.length, 1)];
+      if (next && players.length > 1) setSelectedPlayerId(next.id);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const playerPendingCount = useMemo(() => {
+    if (!selectedPlayerId) return 0;
+    return entries.filter((e: any) => e.player_id === selectedPlayerId && !e.validated && e.training_session_id === activeSessionId).length;
+  }, [entries, selectedPlayerId, activeSessionId]);
 
   // Buteur kick markers
   const kickMarkers = useMemo(() => {
@@ -390,6 +421,25 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
               <Button variant={kickingSide === "left" ? "default" : "outline"} size="sm" onClick={() => setKickingSide("left")} className="text-xs">← Gauche</Button>
               <Button variant={kickingSide === "right" ? "default" : "outline"} size="sm" onClick={() => setKickingSide("right")} className="text-xs">Droite →</Button>
             </div>
+          </div>
+        )}
+        {!isViewer && selectedPlayerId && (
+          <div className="ml-auto flex flex-col gap-1 items-end">
+            <Button
+              size="sm"
+              className="gap-1.5 bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => validateAndNext.mutate()}
+              disabled={validateAndNext.isPending}
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              Sauvegarder & valider
+              {playerPendingCount > 0 && (
+                <Badge variant="secondary" className="ml-1 h-5 bg-white/20 text-white">{playerPendingCount}</Badge>
+              )}
+            </Button>
+            <p className="text-[10px] text-muted-foreground">
+              Validation auto à 23h55 si oubli
+            </p>
           </div>
         )}
       </div>
@@ -650,7 +700,18 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
                     <div className="flex items-center gap-3">
                       <div className={`text-sm font-bold ${rateColor}`}>{rate}%</div>
                       <div>
-                        <p className="text-sm font-medium">{e.exercise_label}</p>
+                        <p className="text-sm font-medium flex items-center gap-1.5">
+                          {e.exercise_label}
+                          {e.validated ? (
+                            <Badge variant="outline" className="h-4 text-[9px] gap-0.5 border-green-500/50 text-green-600">
+                              <CheckCircle2 className="h-2.5 w-2.5" /> Validé
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="h-4 text-[9px] gap-0.5 border-amber-500/50 text-amber-600">
+                              <Save className="h-2.5 w-2.5" /> En attente
+                            </Badge>
+                          )}
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           {player ? [player.first_name, player.name].filter(Boolean).join(" ") : ""}
                           {` • ${e.successes}/${e.attempts}`}

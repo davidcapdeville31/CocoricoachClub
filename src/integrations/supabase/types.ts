@@ -9236,6 +9236,8 @@ export type Database = {
           success_rate: number | null
           successes: number
           training_session_id: string | null
+          validated: boolean
+          validated_at: string | null
           zone_x: number | null
           zone_y: number | null
         }
@@ -9257,6 +9259,8 @@ export type Database = {
           success_rate?: number | null
           successes?: number
           training_session_id?: string | null
+          validated?: boolean
+          validated_at?: string | null
           zone_x?: number | null
           zone_y?: number | null
         }
@@ -9278,6 +9282,8 @@ export type Database = {
           success_rate?: number | null
           successes?: number
           training_session_id?: string | null
+          validated?: boolean
+          validated_at?: string | null
           zone_x?: number | null
           zone_y?: number | null
         }
@@ -13938,6 +13944,7 @@ export type Database = {
         Args: { _club_id: string; _notes?: string }
         Returns: Json
       }
+      auto_validate_precision_training: { Args: never; Returns: number }
       can_access_category: {
         Args: { _category_id: string; _user_id: string }
         Returns: boolean
