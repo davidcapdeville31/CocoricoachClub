@@ -159,6 +159,37 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
     }));
   }, [sportType, isBowling, customThemes]);
 
+  // Grouped options by discipline category (sprint, lancers, ...) + generics + customs
+  const themeGroups = useMemo(() => {
+    const filterOut = (o: { value: string; label: string }) =>
+      !EXCLUDED_THEME_VALUES.has(o.value) && !EXCLUDED_THEME_LABELS.has(o.label);
+    const grouped = getTrainingTypesGrouped(sportType);
+    const seen = new Set<string>();
+    const groups: { label: string; options: { value: string; label: string }[] }[] = [];
+    // Sport-specific groups (skip "common" -> we replace with our curated generics)
+    grouped
+      .filter((g) => g.category.key !== "common")
+      .forEach((g) => {
+        const opts = g.types
+          .map((t) => ({ value: t.value, label: t.label }))
+          .filter(filterOut)
+          .filter((o) => (seen.has(o.value) ? false : (seen.add(o.value), true)));
+        if (opts.length) groups.push({ label: g.category.label, options: opts });
+      });
+    // Generics
+    const generics = GENERIC_THEMES.map((t) => ({ value: t, label: t }))
+      .filter(filterOut)
+      .filter((o) => (seen.has(o.value) ? false : (seen.add(o.value), true)));
+    if (generics.length) groups.push({ label: "Génériques", options: generics });
+    // Customs
+    const customs = customThemes
+      .map((t) => ({ value: t, label: t }))
+      .filter(filterOut)
+      .filter((o) => (seen.has(o.value) ? false : (seen.add(o.value), true)));
+    if (customs.length) groups.push({ label: "Personnalisées", options: customs });
+    return groups;
+  }, [sportType, customThemes]);
+
   const addCustomTheme = () => {
     const v = newCustomTheme.trim();
     if (!v) return;
