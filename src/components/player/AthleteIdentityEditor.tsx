@@ -154,6 +154,36 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
     enabled: !!playerId,
   });
 
+  const queryClient = useQueryClient();
+  const isRugby = isRugbyType(sportType);
+  const { data: kickingFlag } = useQuery({
+    queryKey: ["player-kicking-work", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("kicking_work_enabled")
+        .eq("id", playerId)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as any)?.kicking_work_enabled ?? false;
+    },
+    enabled: !!playerId && isRugby,
+  });
+  const toggleKicking = useMutation({
+    mutationFn: async (val: boolean) => {
+      const { error } = await supabase
+        .from("players")
+        .update({ kicking_work_enabled: val } as any)
+        .eq("id", playerId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["player-kicking-work", playerId] });
+      toast.success("Préférence enregistrée");
+    },
+    onError: (e: any) => toast.error("Erreur : " + e.message),
+  });
+
   const isAthletics = isAthletismeCategory(sportType);
 
   const age = computeAge(playerCore?.birth_date ?? null, playerCore?.birth_year ?? null);
