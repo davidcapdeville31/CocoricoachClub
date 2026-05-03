@@ -678,14 +678,21 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
      }
    };
  
-   const handleEditSession = (session: any) => {
-     if (ADMIN_EVENT_TYPES.includes(session.training_type)) {
-       setEditingAdminEvent(session);
-     } else {
-       setEditingSession(session);
-       setEditSessionOpen(true);
-     }
-   };
+    const handleEditSession = (session: any) => {
+      if (session.training_type === "test") {
+        setEditingTestSession({
+          id: session.id,
+          date: new Date(session.session_date),
+        });
+        return;
+      }
+      if (ADMIN_EVENT_TYPES.includes(session.training_type)) {
+        setEditingAdminEvent(session);
+      } else {
+        setEditingSession(session);
+        setEditSessionOpen(true);
+      }
+    };
 
    const deleteSessionMutation = useMutation({
      mutationFn: async (sessionId: string) => {
