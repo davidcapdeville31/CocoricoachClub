@@ -181,7 +181,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         formula_config: newTest.formula_config ?? null,
         image_url: newTest.image_url ?? null,
         video_url: newTest.video_url ?? null,
-        source: "custom",
+        bilateral: (newTest as any).bilateral ?? false,
       });
       setIsEditDialogOpen(true);
     },
