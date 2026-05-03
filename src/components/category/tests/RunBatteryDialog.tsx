@@ -27,8 +27,14 @@ interface RunBatteryDialogProps {
 }
 
 export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: RunBatteryDialogProps) {
-  const [playerId, setPlayerId] = useState<string>("");
-  const [results, setResults] = useState<Record<string, string>>({});
+  const [playerId, setPlayerIdState] = useState<string>("");
+  const [resultsByPlayer, setResultsByPlayer] = useState<Record<string, Record<string, string>>>({});
+  const results = resultsByPlayer[playerId] || {};
+  const setResults = (updater: (prev: Record<string, string>) => Record<string, string>) => {
+    if (!playerId) return;
+    setResultsByPlayer(prev => ({ ...prev, [playerId]: updater(prev[playerId] || {}) }));
+  };
+  const setPlayerId = (id: string) => setPlayerIdState(id);
   const [savedDate] = useState(() => new Date().toISOString().split("T")[0]);
 
   const { data: battery } = useQuery({
