@@ -69,7 +69,8 @@ const todayIso = () => format(new Date(), "yyyy-MM-dd");
  * Mirrors the program builder V2 experience but persists directly into
  * `training_sessions` + `gym_session_exercises` for one team-wide session.
  */
-export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSession }: SessionEditorV2Props) {
+export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSession, athletePlayerId }: SessionEditorV2Props) {
+  const isAthleteMode = !!athletePlayerId;
   const queryClient = useQueryClient();
 
   const [weekNumber] = useState(1);
