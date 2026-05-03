@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { ArrowLeft, LayoutDashboard, Shield, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Settings, FileCode, MapPin, Video, GraduationCap, CircleDot, BarChart3 } from "lucide-react";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { usePendingWeightLogsCount } from "@/lib/hooks/usePendingWeightLogsCount";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CategoryCoverUpload } from "@/components/category/CategoryCoverUpload";
@@ -145,6 +146,7 @@ function CategoryDetailsContent() {
   const { isViewer } = useViewerModeContext();
   const { isPublicAccess, token, clubName: publicClubName, categoryName: publicCategoryName } = usePublicAccess();
   const { total: unreadMessagesCount } = useUnreadMessages(categoryId || "");
+  const pendingWeightLogsCount = usePendingWeightLogsCount(categoryId);
 
   // Fetch category data - use edge function for public access, direct query for authenticated
   const { data: category, isLoading } = useQuery({
@@ -374,6 +376,7 @@ function CategoryDetailsContent() {
                   icon={<Zap className="h-5 w-5" />}
                   label="Workload"
                   shortLabel="Workload"
+                  badge={pendingWeightLogsCount}
                   tooltip="Monitoring de la charge (EWMA/AWCR), suivi HRV, préparation physique et évolution des tests"
                 />
               )}
