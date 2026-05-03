@@ -820,6 +820,28 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         sportType={sportType}
       />
 
+      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {isIndividual ? "Supprimer cette compétition ?" : "Supprimer ce match ?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Toutes les données associées (composition, statistiques, épreuves) seront également supprimées.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteMatch.mutate()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <MatchLineupDialog
         open={isLineupOpen}
         onOpenChange={setIsLineupOpen}
