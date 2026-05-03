@@ -116,6 +116,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   const [isNotifyOpen, setIsNotifyOpen] = useState(false);
   const [isMatchSheetOpen, setIsMatchSheetOpen] = useState(false);
   const [isMedalsOpen, setIsMedalsOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [scoreHome, setScoreHome] = useState(match.score_home?.toString() || "");
   const [scoreAway, setScoreAway] = useState(match.score_away?.toString() || "");
   const queryClient = useQueryClient();
