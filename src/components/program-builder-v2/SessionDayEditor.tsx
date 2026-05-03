@@ -261,11 +261,57 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
 
   const handleStartConfig = useCallback(
     (blockId: string, method: ConfigMethod) => {
+      // Fartlek a sa propre carte de configuration dédiée
+      if (method === "fartlek") {
+        setFartlekDrafts((p) => ({ ...p, [blockId]: { editing: true } }));
+        return;
+      }
       setPendingConfig((p) => ({ ...p, [blockId]: method }));
       toast.info(`Méthode « ${method} » — appliquée au prochain exercice ajouté.`);
     },
     [],
   );
+
+  const handleFartlekValidate = useCallback(
+    (blockId: string, config: FartlekConfig) => {
+      const summary = formatFartlekSummary(config);
+      const serialized = `<!--v2-fartlek:${JSON.stringify(config)}-->`;
+      const exercise: V2BlockExercise = {
+        id: `ex-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        exerciseId: undefined,
+        exerciseName: `Fartlek — ${summary}`,
+        sets: 1,
+        reps: String(config.totalDurationMinutes || 1),
+        restSeconds: 0,
+        method: "fartlek",
+        notes: serialized,
+        config: config as unknown as Record<string, unknown>,
+      };
+      onChange(
+        blocks.map((b) =>
+          b.id === blockId
+            ? { ...b, exercises: [...(b.exercises ?? []), exercise] }
+            : b,
+        ),
+      );
+      setFartlekDrafts((p) => {
+        const n = { ...p };
+        delete n[blockId];
+        return n;
+      });
+      toast.success("Fartlek ajouté à la séance");
+    },
+    [blocks, onChange],
+  );
+
+  const handleFartlekCancel = useCallback((blockId: string) => {
+    setFartlekDrafts((p) => {
+      const n = { ...p };
+      delete n[blockId];
+      return n;
+    });
+  }, []);
+
 
   // Slot management pour LinkedMethodSlots
   const handleSlotRemove = useCallback((blockId: string, slotIndex: number) => {
