@@ -34,6 +34,7 @@ export interface EditableTest {
   formula_config?: FormulaConfig | null;
   image_url?: string | null;
   video_url?: string | null;
+  bilateral?: boolean | null;
   source: "custom" | "seed";   // seed = test pré-existant du catalogue
   seedTestType?: string;       // test_type d'origine si seed (pour réf)
 }
@@ -60,6 +61,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [bilateral, setBilateral] = useState(false);
 
   // Initialise le formulaire quand un test est sélectionné
   useEffect(() => {
@@ -84,6 +86,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
     setFormulaConfig(test.formula_config?.enabled ? test.formula_config : null);
     setImageUrl(test.image_url || null);
     setVideoUrl(test.video_url || "");
+    setBilateral(!!test.bilateral);
   }, [open, test]);
 
   const handleImageUpload = async (file: File) => {
@@ -195,9 +198,10 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
       if (!unitKind) throw new Error("Choisissez une unité de mesure");
       if (unitKind === "custom" && !customUnit.trim()) throw new Error("Saisissez l'unité personnalisée");
 
-      const maxPoints = enableScoring && scoringScale
+      const baseMaxPoints = enableScoring && scoringScale
         ? scoringScale.ranges.reduce((m, r) => Math.max(m, r.points), 0)
         : null;
+      const maxPoints = baseMaxPoints != null ? baseMaxPoints * (bilateral ? 2 : 1) : null;
 
       const payload: any = {
         name: trimmedName,
@@ -212,6 +216,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
         image_url: imageUrl,
         video_url: videoUrl.trim() || null,
         formula_config: formulaConfig?.enabled ? (formulaConfig as any) : null,
+        bilateral,
       };
 
       if (test.source === "custom" && test.id) {
@@ -410,6 +415,16 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
               </p>
             </div>
             <Switch checked={enableScoring} onCheckedChange={setEnableScoring} />
+          </div>
+
+          <div className="flex items-center justify-between rounded-2xl border bg-muted/40 p-4">
+            <div>
+              <Label className="text-sm font-semibold cursor-pointer">Test bilatéral (côté droit + côté gauche)</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Saisissez deux résultats par athlète (D et G). Le score total est doublé{enableScoring && scoringScale ? ` (max ${(scoringScale.ranges.reduce((m, r) => Math.max(m, r.points), 0)) * 2} pts).` : "."}
+              </p>
+            </div>
+            <Switch checked={bilateral} onCheckedChange={setBilateral} />
           </div>
 
           {enableScoring && (

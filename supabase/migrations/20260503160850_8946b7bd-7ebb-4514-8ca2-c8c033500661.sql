@@ -1,0 +1,1 @@
+ALTER TABLE public.custom_tests ADD COLUMN IF NOT EXISTS bilateral boolean NOT NULL DEFAULT false;

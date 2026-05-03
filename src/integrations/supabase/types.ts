@@ -2837,6 +2837,7 @@ export type Database = {
       }
       custom_tests: {
         Row: {
+          bilateral: boolean
           club_id: string
           created_at: string | null
           created_by: string | null
@@ -2856,6 +2857,7 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          bilateral?: boolean
           club_id: string
           created_at?: string | null
           created_by?: string | null
@@ -2875,6 +2877,7 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          bilateral?: boolean
           club_id?: string
           created_at?: string | null
           created_by?: string | null
