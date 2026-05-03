@@ -653,10 +653,41 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
    };
  
    const handleEditSession = (session: any) => {
-     setEditingSession(session);
-     setEditSessionOpen(true);
+     if (ADMIN_EVENT_TYPES.includes(session.training_type)) {
+       setEditingAdminEvent(session);
+     } else {
+       setEditingSession(session);
+       setEditSessionOpen(true);
+     }
    };
- 
+
+   const deleteSessionMutation = useMutation({
+     mutationFn: async (sessionId: string) => {
+       const { error } = await supabase.from("training_sessions").delete().eq("id", sessionId);
+       if (error) throw error;
+       return sessionId;
+     },
+     onSuccess: () => {
+       toast.success("Séance supprimée");
+       queryClient.invalidateQueries({ queryKey: ["today_sessions_decision", categoryId] });
+       queryClient.invalidateQueries({ queryKey: ["tomorrow_sessions_decision", categoryId] });
+       queryClient.invalidateQueries({ queryKey: ["sessions", categoryId] });
+       queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
+     },
+     onError: () => toast.error("Erreur lors de la suppression"),
+   });
+
+   const handleNotifySession = async (session: any) => {
+     // Fetch participants to know who to notify
+     const { data: parts } = await supabase
+       .from("event_participants")
+       .select("player_id")
+       .eq("training_session_id", session.id);
+     const ids = new Set((parts || []).map((p: any) => p.player_id));
+     const targets = ids.size > 0 ? players.filter((p: any) => ids.has(p.id)) : players;
+     setNotifySession({ session, athletes: targets.map((p: any) => ({ id: p.id, name: getFullName(p) })) });
+   };
+
    return (
      <div className="space-y-4">
        {/* Header */}
