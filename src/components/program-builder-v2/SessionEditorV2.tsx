@@ -622,7 +622,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
             set_type: methodValue ?? "normal",
             group_id: ex.groupId || null,
             group_order: groupOrder,
-            notes: `${blockTag}${testTag}${userNote}`,
+            notes: `${blockTag}${testTag}${configTag}${userNote}`,
           };
         }),
       );
