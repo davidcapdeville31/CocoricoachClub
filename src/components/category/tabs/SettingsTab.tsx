@@ -1,13 +1,10 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { TutorialVideosSection } from "@/components/category/settings/TutorialVideosSection";
 import { NotificationManagementSection } from "@/components/category/settings/NotificationManagementSection";
 import { PersonalNotificationPreferences } from "@/components/notifications/PersonalNotificationPreferences";
 import { PushNotificationSettings } from "@/components/notifications/PushNotificationSettings";
-import { CategoryCoverUpload } from "@/components/category/CategoryCoverUpload";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Video, Bell, Settings, ChevronDown, Image as ImageIcon } from "lucide-react";
+import { Video, Bell, Settings, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SettingsTabProps {
@@ -18,56 +15,9 @@ export function SettingsTab({ categoryId }: SettingsTabProps) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [myNotifsOpen, setMyNotifsOpen] = useState(false);
   const [tutorialsOpen, setTutorialsOpen] = useState(false);
-  const [coverOpen, setCoverOpen] = useState(false);
-
-  const { data: category } = useQuery({
-    queryKey: ["category-cover", categoryId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("categories")
-        .select("cover_image_url")
-        .eq("id", categoryId)
-        .maybeSingle();
-      return data;
-    },
-  });
 
   return (
     <div className="space-y-4">
-      {/* Cover image */}
-      <Collapsible open={coverOpen} onOpenChange={setCoverOpen}>
-        <CollapsibleTrigger className="w-full">
-          <div className={cn(
-            "flex items-center justify-between w-full p-4 rounded-xl border bg-card shadow-sm transition-colors hover:bg-accent/50",
-            coverOpen && "rounded-b-none border-b-0"
-          )}>
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <ImageIcon className="h-5 w-5 text-primary" />
-              </div>
-              <div className="text-left">
-                <p className="font-semibold">Image de couverture</p>
-                <p className="text-sm text-muted-foreground">Modifier ou supprimer l'image affichée en en-tête</p>
-              </div>
-            </div>
-            <ChevronDown className={cn(
-              "h-5 w-5 text-muted-foreground transition-transform duration-200",
-              coverOpen && "rotate-180"
-            )} />
-          </div>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="border border-t-0 rounded-b-xl p-4 bg-card shadow-sm">
-            <div className="rounded-lg bg-slate-800 p-4 inline-flex">
-              <CategoryCoverUpload
-                categoryId={categoryId}
-                currentCoverUrl={category?.cover_image_url ?? null}
-              />
-            </div>
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-
       {/* Notifications Collapsible */}
       <Collapsible open={notificationsOpen} onOpenChange={setNotificationsOpen}>
         <CollapsibleTrigger className="w-full">
