@@ -1175,7 +1175,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
                           <div className="flex items-center gap-2">
                             <Activity className="h-4 w-4 text-primary" />
                             <div>
-                              <p className="font-medium text-sm">{session.training_type}</p>
+                              <p className="font-medium text-sm">{getTrainingTypeLabel(session.training_type)}</p>
                               <p className="text-xs text-muted-foreground">
                                 {session.session_start_time?.slice(0, 5)} • Charge cible: {session.planned_intensity || 5}/10
                               </p>
