@@ -115,7 +115,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("rugby_type")
+        .select("rugby_type, clubs(sport)")
         .eq("id", categoryId)
         .single();
       if (error) throw error;
