@@ -100,10 +100,18 @@ const LINKED_METHODS: LinkedMethodType[] = [
   "combine_haltero",
 ];
 
+type ConfigDraft = {
+  method: MethodConfigType;
+  droppedExercise: { exerciseId: string; exerciseName: string } | null;
+  droppedPhaseExercises: Record<number, { exerciseId: string; exerciseName: string } | null>;
+};
+
 export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEditorProps>(function SessionDayEditor({ blocks, onChange }, ref) {
   // Drafts en cours pour les méthodes liées (un par bloc max)
   const [linkedDrafts, setLinkedDrafts] = useState<Record<string, LinkedDraft>>({});
-  // Mode actif pour méthode "config" (drop_set, emom, etc.) — toast informatif en attendant le wiring complet
+  // Drafts en cours pour méthodes "config" (drop_set, emom, amrap, tabata, etc.)
+  const [configDrafts, setConfigDrafts] = useState<Record<string, ConfigDraft>>({});
+  // Legacy: pendingConfig pour méthodes encore non-câblées (fallback)
   const [pendingConfig, setPendingConfig] = useState<Record<string, ConfigMethod>>({});
   // Draft Fartlek actif par bloc — affiche FartlekConfigSlots
   const [fartlekDrafts, setFartlekDrafts] = useState<Record<string, { editing: boolean; initial?: FartlekConfig }>>({});
