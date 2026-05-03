@@ -162,6 +162,17 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
     [blocks, onChange],
   );
 
+  // Méthodes "config" qui acceptent plusieurs exercices (un par phase/slot)
+  const PHASE_METHODS: MethodConfigType[] = [
+    "amrap",
+    "for_time",
+    "death_by",
+    "circuit",
+    "tabata",
+    "emom",
+  ];
+  const methodHasPhases = (m: MethodConfigType) => PHASE_METHODS.includes(m);
+
   const addExerciseToBlock = useCallback(
     (blockId: string, picked: PickedExercise) => {
       // Si une méthode liée est en cours d'édition pour ce bloc → ajouter dans son prochain slot vide
@@ -182,6 +193,32 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
             slottedExercises: [...draft.slottedExercises, newSlotted],
           },
         }));
+        return;
+      }
+
+      // Si une méthode "config" (drop_set, amrap, emom, ...) est en cours,
+      // router l'exercice vers la carte de configuration au lieu de l'ajouter au bloc.
+      const cfg = configDrafts[blockId];
+      if (cfg) {
+        const newEx = { exerciseId: picked.id, exerciseName: picked.name };
+        if (methodHasPhases(cfg.method)) {
+          // Insère dans le prochain slot de phase vide (0, 1, 2, ...)
+          setConfigDrafts((p) => {
+            const cur = p[blockId];
+            if (!cur) return p;
+            const phases = { ...cur.droppedPhaseExercises };
+            let idx = 0;
+            while (phases[idx]) idx++;
+            phases[idx] = newEx;
+            return { ...p, [blockId]: { ...cur, droppedPhaseExercises: phases } };
+          });
+        } else {
+          setConfigDrafts((p) => {
+            const cur = p[blockId];
+            if (!cur) return p;
+            return { ...p, [blockId]: { ...cur, droppedExercise: newEx } };
+          });
+        }
         return;
       }
 
@@ -207,48 +244,63 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         return next;
       });
     },
-    [blocks, onChange, pendingConfig, linkedDrafts],
+    [blocks, onChange, pendingConfig, linkedDrafts, configDrafts],
   );
 
   // Expose une API impérative pour insérer un exercice depuis la bibliothèque externe
   useImperativeHandle(
     ref,
     () => ({
-      hasActiveLinkedDraft: (blockId: string) => !!linkedDrafts[blockId],
+      hasActiveLinkedDraft: (blockId: string) =>
+        !!linkedDrafts[blockId] || !!configDrafts[blockId],
       insertExternalExercise: (blockId, picked) => {
         addExerciseToBlock(blockId, { id: picked.id, name: picked.name } as PickedExercise);
         return true;
       },
       insertExternalExerciseAtSlot: (blockId, slotIndex, picked) => {
+        // Méthode liée active → comportement existant
         const draft = linkedDrafts[blockId];
-        if (!draft) {
-          addExerciseToBlock(blockId, { id: picked.id, name: picked.name } as PickedExercise);
+        if (draft) {
+          const existing = draft.slottedExercises.find((s) => s.slotIndex === slotIndex);
+          const newSlotted: SlottedExercise = {
+            id: existing?.id ?? `slot-${Date.now()}-${slotIndex}`,
+            exerciseId: picked.id,
+            exerciseName: picked.name,
+            stationName: picked.name,
+            slotIndex,
+          };
+          setLinkedDrafts((p) => {
+            const current = p[blockId];
+            if (!current) return p;
+            const others = current.slottedExercises.filter((s) => s.slotIndex !== slotIndex);
+            return {
+              ...p,
+              [blockId]: {
+                ...current,
+                slottedExercises: [...others, newSlotted].sort((a, b) => a.slotIndex - b.slotIndex),
+              },
+            };
+          });
           return true;
         }
-        const existing = draft.slottedExercises.find((s) => s.slotIndex === slotIndex);
-        const newSlotted: SlottedExercise = {
-          id: existing?.id ?? `slot-${Date.now()}-${slotIndex}`,
-          exerciseId: picked.id,
-          exerciseName: picked.name,
-          stationName: picked.name,
-          slotIndex,
-        };
-        setLinkedDrafts((p) => {
-          const current = p[blockId];
-          if (!current) return p;
-          const others = current.slottedExercises.filter((s) => s.slotIndex !== slotIndex);
-          return {
-            ...p,
-            [blockId]: {
-              ...current,
-              slottedExercises: [...others, newSlotted].sort((a, b) => a.slotIndex - b.slotIndex),
-            },
-          };
-        });
+        // Méthode "config" active avec phases → injecter dans le slot ciblé
+        const cfg = configDrafts[blockId];
+        if (cfg && methodHasPhases(cfg.method)) {
+          setConfigDrafts((p) => {
+            const cur = p[blockId];
+            if (!cur) return p;
+            const phases = { ...cur.droppedPhaseExercises };
+            phases[slotIndex] = { exerciseId: picked.id, exerciseName: picked.name };
+            return { ...p, [blockId]: { ...cur, droppedPhaseExercises: phases } };
+          });
+          return true;
+        }
+        // Sinon fallback : ajout normal
+        addExerciseToBlock(blockId, { id: picked.id, name: picked.name } as PickedExercise);
         return true;
       },
     }),
-    [linkedDrafts, addExerciseToBlock],
+    [linkedDrafts, configDrafts, addExerciseToBlock],
   );
 
   const removeExerciseFromBlock = useCallback(
