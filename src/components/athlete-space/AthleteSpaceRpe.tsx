@@ -586,6 +586,7 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
       setPrecisionExerciseId(null);
       setPrecisionExerciseLabel("");
       setWeightLogs({});
+      setTestResultsInput({});
       queryClient.invalidateQueries({ queryKey: ["athlete-weight-log-existing"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-exercise-logs"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-exercise-logs-dashboard"] });
