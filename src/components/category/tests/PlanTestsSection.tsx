@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CalendarPlus, Search, Star, Bell, Trash2, Pencil, RefreshCw, X } from "lucide-react";
+import { CalendarPlus, Search, Star, Bell, Trash2, Pencil, RefreshCw, X, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { format, addWeeks, isBefore, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
