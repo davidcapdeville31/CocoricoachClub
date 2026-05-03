@@ -42,6 +42,13 @@ interface GenericTestsSectionProps {
 export function GenericTestsSection({ categoryId, sportType, defaultCategory }: GenericTestsSectionProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+  const [scheduleTarget, setScheduleTarget] = useState<{
+    testCategory: string;
+    testType: string;
+    testCategoryLabel: string;
+    testTypeLabel: string;
+    testUnit: string;
+  } | null>(null);
   const [isCreateTestDialogOpen, setIsCreateTestDialogOpen] = useState(false);
   const [isCreateCategoryDialogOpen, setIsCreateCategoryDialogOpen] = useState(false);
   const [editingTest, setEditingTest] = useState<EditableTest | null>(null);
