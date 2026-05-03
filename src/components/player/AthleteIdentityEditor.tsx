@@ -381,6 +381,25 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
         </div>
       </div>
 
+      {isRugby && (
+        <div className="rounded-xl border bg-background/60 p-3 flex items-start gap-3">
+          <Checkbox
+            id="kicking-work"
+            checked={!!kickingFlag}
+            onCheckedChange={(v) => toggleKicking.mutate(!!v)}
+          />
+          <div className="space-y-0.5">
+            <label htmlFor="kicking-work" className="text-sm font-semibold flex items-center gap-1.5 cursor-pointer">
+              <Footprints className="h-4 w-4 text-primary" />
+              Travail du jeu au pied
+            </label>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Active un sous-onglet "Data d'entraînement" dans l'espace athlète permettant à ce joueur de saisir lui-même ses séances de jeu au pied (uniquement pour lui).
+            </p>
+          </div>
+        </div>
+      )}
+
       {dimensions.map((dim) => {
         const items = attributes.filter((a) => a.dimension === dim.dimension);
         const singleValue =
