@@ -327,7 +327,7 @@ function CategoryDetailsContent() {
               {canSeeMenu("academique") && isAcademy && (
                 <ColoredTabTrigger
                   value="academy" 
-                  colorKey="effectif"
+                  colorKey="academy"
                   icon={<GraduationCap className="h-5 w-5" />}
                   label="Académie"
                   shortLabel="Acad"
