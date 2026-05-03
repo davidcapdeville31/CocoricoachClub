@@ -228,46 +228,32 @@ export function PlayerTestsTab({ playerId, categoryId, sportType }: PlayerTestsT
     );
   };
 
-  // Render "Tous" tab with all tests
-  const renderAllTests = () => (
-    <Card className="bg-gradient-card shadow-md">
-      <CardHeader>
-        <CardTitle>Historique complet des tests</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {allGenericTests && allGenericTests.length > 0 ? (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Catégorie</TableHead>
-                  <TableHead>Test</TableHead>
-                  <TableHead>Résultat</TableHead>
-                  <TableHead>Notes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {allGenericTests.slice().reverse().map((test) => (
-                  <TableRow key={test.id}>
-                    <TableCell>{new Date(test.test_date).toLocaleDateString("fr-FR")}</TableCell>
-                    <TableCell>{categoryLabelMap[test.test_category] || test.test_category?.replace(/_/g, " ") || "-"}</TableCell>
-                    <TableCell>{getTestLabel(test.test_category, test.test_type)}</TableCell>
-                    <TableCell className="font-semibold text-primary">
-                      {test.result_value} {test.result_unit || ""}
-                    </TableCell>
-                    <TableCell className="max-w-[150px] truncate">{cleanNotes(test.notes)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        ) : (
-          <p className="text-muted-foreground text-center py-4">Aucun test enregistré</p>
-        )}
-      </CardContent>
-    </Card>
-  );
+  // Render "Tous" tab with battery radar charts (replaces full test data list)
+  const renderAllTests = () => {
+    const batteryTests = (allGenericTests || []).filter(t => /^\[Batterie:/i.test(t.notes || ""));
+    if (batteryTests.length === 0) {
+      return (
+        <Card className="bg-gradient-card shadow-md">
+          <CardHeader>
+            <CardTitle>Diagrammes de batteries</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground text-center py-4">
+              Aucun résultat de batterie disponible pour cet athlète.
+            </p>
+          </CardContent>
+        </Card>
+      );
+    }
+    return (
+      <BatteryRadarCharts
+        tests={batteryTests}
+        isViewer={true}
+        categoryId={categoryId}
+        onDelete={() => {}}
+      />
+    );
+  };
 
   // Render rehab tab with all rehab_ categories combined
   const renderRehabTests = () => {
