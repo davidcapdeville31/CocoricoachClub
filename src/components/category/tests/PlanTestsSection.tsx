@@ -831,6 +831,9 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
                           ? format(new Date(r.start_date), "dd MMMM yyyy", { locale: fr })
                           : "—"}{" "}
                         • Tous les {r.frequency_weeks} semaines
+                        {r.end_date && (
+                          <> • Jusqu'au {format(new Date(r.end_date), "dd MMM yyyy", { locale: fr })}</>
+                        )}
                         {(r.session_start_time || r.session_end_time) && (
                           <>
                             {" "}
