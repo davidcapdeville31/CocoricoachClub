@@ -87,10 +87,12 @@ interface LinkedMethodSlotsProps {
   slottedExercises: SlottedExercise[];
   onRemoveFromSlot: (slotIndex: number) => void;
   onUpdateParams: (slotIndex: number, params: SlottedExerciseParams) => void;
-  onConfirm: () => void;
-  onCancel: () => void;
+  onConfirm?: () => void;
+  onCancel?: () => void;
   dayId: string;
   defaultEditing?: boolean;
+  // Strict read-only: hide all edit/validate actions
+  readOnly?: boolean;
   // Method-level rest (between exercises in the method)
   methodRestSeconds?: number;
   onMethodRestChange?: (seconds: number | undefined) => void;
@@ -682,6 +684,7 @@ export const LinkedMethodSlots = ({
   onCancel,
   dayId,
   defaultEditing = true,
+  readOnly = false,
   methodRestSeconds,
   onMethodRestChange,
 }: LinkedMethodSlotsProps) => {
@@ -695,6 +698,7 @@ export const LinkedMethodSlots = ({
       onCancel={onCancel}
       dayId={dayId}
       defaultEditing={defaultEditing}
+      readOnly={readOnly}
       methodRestSeconds={methodRestSeconds}
       onMethodRestChange={onMethodRestChange}
     />
@@ -711,11 +715,12 @@ const LinkedMethodSlotsContent = ({
   onCancel,
   dayId,
   defaultEditing = true,
+  readOnly = false,
   methodRestSeconds,
   onMethodRestChange,
 }: LinkedMethodSlotsProps) => {
   const [isValidated, setIsValidated] = useState(!defaultEditing);
-  const [isEditing, setIsEditing] = useState(defaultEditing);
+  const [isEditing, setIsEditing] = useState(defaultEditing && !readOnly);
   
   const config = getMethodConfig(method);
   const isDynamic = config.slots > config.minSlots;
@@ -730,7 +735,7 @@ const LinkedMethodSlotsContent = ({
   const handleValidate = () => {
     setIsValidated(true);
     setIsEditing(false);
-    onConfirm();
+    onConfirm?.();
   };
   
   // Handler pour repasser en édition
@@ -744,7 +749,7 @@ const LinkedMethodSlotsContent = ({
       setIsEditing(false);
       return;
     }
-    onCancel();
+    onCancel?.();
   };
 
   // Sync visible params across all exercises
@@ -786,15 +791,17 @@ const LinkedMethodSlotsContent = ({
           </span>
         </div>
         {/* Actions centralisées */}
-        <MethodActionButtons
-          isEditing={isEditing}
-          onValidate={() => handleValidate()}
-          onEdit={enableEditing}
-          onCancel={handleCancel}
-          isValid={isComplete}
-          methodColor={cn(config.color, "hover:opacity-90")}
-          className="flex-row-reverse gap-2"
-        />
+        {!readOnly && (
+          <MethodActionButtons
+            isEditing={isEditing}
+            onValidate={() => handleValidate()}
+            onEdit={enableEditing}
+            onCancel={handleCancel}
+            isValid={isComplete}
+            methodColor={cn(config.color, "hover:opacity-90")}
+            className="flex-row-reverse gap-2"
+          />
+        )}
       </div>
 
       {/* Slots grid */}
@@ -852,17 +859,19 @@ const LinkedMethodSlotsContent = ({
       {/* Notes pour l'athlète supprimées ici — gérées au niveau parent via CreateTrainingProgram */}
 
       {/* Help text */}
-      <p className="text-[10px] text-muted-foreground mt-2 text-center">
-        {isComplete ? (
-          <span className={cn("font-medium", config.textColor)}>
-            ✓ Méthode complète ! {isEditing ? "Configurez les paramètres puis validez." : "Cliquez sur Modifier pour ajuster."}
-          </span>
-        ) : (
-          isDynamic 
-            ? <>Ajoutez au moins {minRequired} exercices (cliquez ou glissez)</>
-            : <>Glissez {config.slots} exercices depuis la bibliothèque</>
-        )}
-      </p>
+      {!readOnly && (
+        <p className="text-[10px] text-muted-foreground mt-2 text-center">
+          {isComplete ? (
+            <span className={cn("font-medium", config.textColor)}>
+              ✓ Méthode complète ! {isEditing ? "Configurez les paramètres puis validez." : "Cliquez sur Modifier pour ajuster."}
+            </span>
+          ) : (
+            isDynamic 
+              ? <>Ajoutez au moins {minRequired} exercices (cliquez ou glissez)</>
+              : <>Glissez {config.slots} exercices depuis la bibliothèque</>
+          )}
+        </p>
+      )}
     </div>
   );
 };
