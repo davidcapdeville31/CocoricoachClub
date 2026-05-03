@@ -273,9 +273,21 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
 
   const handleStartConfig = useCallback(
     (blockId: string, method: ConfigMethod) => {
-      // Fartlek a sa propre carte de configuration dédiée
+      // Méthodes avec carte de configuration dédiée
       if (method === "fartlek") {
         setFartlekDrafts((p) => ({ ...p, [blockId]: { editing: true } }));
+        return;
+      }
+      if (method === "cluster") {
+        setClusterDrafts((p) => ({ ...p, [blockId]: { editing: true } }));
+        return;
+      }
+      if (method === "stato_dynamique") {
+        setStatoDrafts((p) => ({ ...p, [blockId]: { editing: true } }));
+        return;
+      }
+      if (method === "intermittent_cardio") {
+        setIntermittentDrafts((p) => ({ ...p, [blockId]: { editing: true } }));
         return;
       }
       setPendingConfig((p) => ({ ...p, [blockId]: method }));
