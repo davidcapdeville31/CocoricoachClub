@@ -792,7 +792,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
         {/* 1.5️⃣ WELLNESS DU JOUR */}
         <Card className="border-2 border-green-500/20 bg-gradient-to-r from-green-500/5 to-transparent">
           <CardHeader className="pb-2">
