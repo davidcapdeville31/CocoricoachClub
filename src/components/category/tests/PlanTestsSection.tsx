@@ -54,13 +54,19 @@ interface PlanTestsSectionProps {
 }
 
 // ---------- Helpers ----------
-function generateSessionDates(startDate: string, frequencyWeeks: number): string[] {
+function generateSessionDates(
+  startDate: string,
+  frequencyWeeks: number,
+  endDate?: string | null,
+): string[] {
   const dates: string[] = [];
-  const today = startOfDay(new Date());
-  const maxDate = addWeeks(today, 26);
-  let current = new Date(startDate);
-  while (isBefore(current, today)) current = addWeeks(current, frequencyWeeks);
-  while (isBefore(current, maxDate)) {
+  const start = new Date(startDate);
+  // Hard cap: 2 years to avoid runaway loops
+  const hardCap = addWeeks(start, 104);
+  const limit = endDate ? new Date(endDate) : addWeeks(startOfDay(new Date()), 26);
+  const maxDate = isBefore(limit, hardCap) ? limit : hardCap;
+  let current = start;
+  while (!isBefore(maxDate, current)) {
     dates.push(format(current, "yyyy-MM-dd"));
     current = addWeeks(current, frequencyWeeks);
   }
@@ -76,6 +82,10 @@ const DEFAULT_FORM = {
   auto_assign_athletes: true,
   recurring: false,
   frequency_weeks: 4,
+  end_mode: "date" as "date" | "duration" | "never",
+  end_date: format(addWeeks(new Date(), 8), "yyyy-MM-dd"),
+  duration_count: 2,
+  duration_unit: "months" as "weeks" | "months",
 };
 
 // ---------- Component ----------
