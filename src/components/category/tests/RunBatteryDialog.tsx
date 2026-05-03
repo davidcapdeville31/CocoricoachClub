@@ -374,13 +374,22 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground cursor-pointer select-none">
+                      <button
+                        type="button"
+                        onClick={() => toggleInjured(it.id, !isInjured)}
+                        className={`flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors ${
+                          isInjured
+                            ? "bg-destructive text-destructive-foreground border-destructive"
+                            : "bg-background hover:bg-muted border-border text-muted-foreground"
+                        }`}
+                      >
                         <Checkbox
                           checked={isInjured}
                           onCheckedChange={(v) => toggleInjured(it.id, !!v)}
+                          className="h-3.5 w-3.5 pointer-events-none"
                         />
-                        Blessé
-                      </label>
+                        Blessé / Non réalisé
+                      </button>
                       <Badge variant={r?.points ? "default" : "secondary"}>
                         {r?.points ?? 0} / {it.max_points} pts
                       </Badge>
