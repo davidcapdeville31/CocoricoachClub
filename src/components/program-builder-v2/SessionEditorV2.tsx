@@ -448,7 +448,6 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
           .from("event_participants")
           .insert(
             selectedPlayers.map((pid) => ({
-              training_session_id: session.id,
               training_session_id: sessionId,
               player_id: pid,
             })),
