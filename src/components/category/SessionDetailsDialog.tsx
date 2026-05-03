@@ -696,7 +696,13 @@ export function SessionDetailsDialog({
                 Blocs thématiques
               </h4>
               <div className="grid gap-2">
-                {sessionBlocks.map((block: any, idx: number) => (
+                {sessionBlocks.map((block: any, idx: number) => {
+                  // Fallback to session-level times when block-level times are missing
+                  // (typically for single-block sessions where the user only filled session start/end)
+                  const isOnlyBlock = sessionBlocks.length === 1;
+                  const startTime = block.start_time || (isOnlyBlock ? session?.session_start_time : null);
+                  const endTime = block.end_time || (isOnlyBlock ? session?.session_end_time : null);
+                  return (
                   <div
                     key={block.id}
                     className="flex items-center gap-3 p-2 rounded-lg bg-muted/30 border-l-4"
@@ -708,9 +714,9 @@ export function SessionDetailsDialog({
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        {(block.start_time || block.end_time) && (
+                        {(startTime || endTime) && (
                           <Badge variant="outline" className="font-mono text-xs">
-                            {block.start_time?.slice(0,5) || "?"} - {block.end_time?.slice(0,5) || "?"}
+                            {startTime?.slice(0,5) || "?"} - {endTime?.slice(0,5) || "?"}
                           </Badge>
                         )}
                         <span className="font-medium text-sm">
