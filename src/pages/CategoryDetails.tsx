@@ -215,20 +215,14 @@ function CategoryDetailsContent() {
       <div className="relative py-12 px-4 bg-gradient-hero overflow-hidden">
         {category?.cover_image_url && (
           <>
-            {/* Blurred backdrop fill — only used to softly extend the image edges */}
+            {/* Image qui remplit tout le bloc proportionnellement */}
             <div
               aria-hidden
-              className="absolute inset-0 bg-center bg-cover scale-110 opacity-40 blur-2xl"
+              className="absolute inset-0 bg-center bg-no-repeat bg-cover"
               style={{ backgroundImage: `url(${category.cover_image_url})` }}
             />
-            {/* Sharp, centered, contained image at native ratio */}
-            <div
-              aria-hidden
-              className="absolute inset-0 bg-center bg-no-repeat bg-contain"
-              style={{ backgroundImage: `url(${category.cover_image_url})` }}
-            />
-            {/* Readability overlay */}
-            <div aria-hidden className="absolute inset-0 bg-black/55" />
+            {/* Overlay sombre pour la lisibilité du texte blanc */}
+            <div aria-hidden className="absolute inset-0 bg-black/60" />
           </>
         )}
         <div className="container mx-auto max-w-7xl relative">
