@@ -288,7 +288,7 @@ export function MatchesTab({ categoryId, sportType, view = "all" }: MatchesTabPr
                       {upcomingMatches.length > 0 ? (
                         <div className="space-y-2">
                           {upcomingMatches.map((match) => (
-                            <MatchCard key={match.id} match={match} categoryId={categoryId} compact />
+                            <MatchCard key={match.id} match={match} categoryId={categoryId} compact sportType={sportType} />
                           ))}
                         </div>
                       ) : (
@@ -335,7 +335,7 @@ export function MatchesTab({ categoryId, sportType, view = "all" }: MatchesTabPr
                               </div>
                               <div className="space-y-2">
                                 {group.matches.map((match) => (
-                                  <MatchCard key={match.id} match={match} categoryId={categoryId} compact />
+                                  <MatchCard key={match.id} match={match} categoryId={categoryId} compact sportType={sportType} />
                                 ))}
                               </div>
                             </div>
