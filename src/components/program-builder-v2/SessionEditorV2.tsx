@@ -424,12 +424,13 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">Type</Label>
-                <Select value={sessionKind} onValueChange={(v) => setSessionKind(v as "musculation" | "course")}>
-                  <SelectTrigger className="h-9 w-36"><SelectValue /></SelectTrigger>
+                <Label className="text-xs">Thématique</Label>
+                <Select value={sessionKind} onValueChange={setSessionKind}>
+                  <SelectTrigger className="h-9 w-40"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="musculation">Musculation</SelectItem>
-                    <SelectItem value="course">Course</SelectItem>
+                    {SESSION_KIND_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -454,6 +455,19 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="v2-planned-rpe" className="text-xs">RPE prévu (staff)</Label>
+                <Input
+                  id="v2-planned-rpe"
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={plannedRpe}
+                  onChange={(e) => setPlannedRpe(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+                  className="h-9 w-24"
+                  title="RPE prévu — non visible par l'athlète, alimente RPE prévu/réel"
+                />
               </div>
             </div>
 
