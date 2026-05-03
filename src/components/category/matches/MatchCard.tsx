@@ -221,7 +221,8 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
     enabled: isNotifyOpen,
   });
 
-  const sportType = category?.rugby_type || "XV";
+  const clubSport = (category?.clubs as any)?.sport?.toLowerCase();
+  const sportType = clubSport === "bowling" ? "bowling" : (category?.rugby_type || "XV");
   const isIndividual = isIndividualSport(sportType);
   const isPadel = sportType.toLowerCase().includes("padel");
   const isTennis = sportType.toLowerCase().includes("tennis");
