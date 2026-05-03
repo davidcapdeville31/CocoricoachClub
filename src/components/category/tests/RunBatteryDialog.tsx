@@ -31,13 +31,14 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
   const [playerId, setPlayerIdState] = useState<string>("");
   const [resultsByPlayer, setResultsByPlayer] = useState<Record<string, Record<string, string>>>({});
   const [savedPlayerIds, setSavedPlayerIds] = useState<Set<string>>(new Set());
-  const results = resultsByPlayer[playerId] || {};
   const setResults = (updater: (prev: Record<string, string>) => Record<string, string>) => {
     if (!playerId) return;
     setResultsByPlayer(prev => ({ ...prev, [playerId]: updater(prev[playerId] || {}) }));
   };
   const setPlayerId = (id: string) => setPlayerIdState(id);
   const [savedDate] = useState(() => new Date().toISOString().split("T")[0]);
+
+  const buildBaseTestType = (testName: string) => `custom_${testName?.toLowerCase().replace(/\s+/g, "_")}`;
 
   const { data: battery } = useQuery({
     queryKey: ["test-battery-full", batteryId],
@@ -82,6 +83,42 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     },
     enabled: open,
   });
+
+  const { data: savedRows = [] } = useQuery({
+    queryKey: ["battery-saved-results", batteryId, categoryId, playerId, savedDate],
+    queryFn: async () => {
+      if (!playerId || !battery?.battery?.name) return [];
+      const { data, error } = await supabase
+        .from("generic_tests")
+        .select("player_id, test_type, result_value, notes")
+        .eq("player_id", playerId)
+        .eq("category_id", categoryId)
+        .eq("test_date", savedDate)
+        .ilike("notes", `[Batterie: ${battery.battery.name}]%`);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!playerId && !!battery?.battery?.name,
+  });
+
+  const savedResults = useMemo(() => {
+    const mapped: Record<string, string> = {};
+    (battery?.items || []).forEach((it: any) => {
+      const baseTestType = buildBaseTestType(it.test_name);
+      if (it.bilateral) {
+        const right = savedRows.find((row: any) => row.test_type === `${baseTestType}__right` || row.notes?.includes(`${it.test_name} (Droit)`));
+        const left = savedRows.find((row: any) => row.test_type === `${baseTestType}__left` || row.notes?.includes(`${it.test_name} (Gauche)`));
+        if (right?.result_value !== null && right?.result_value !== undefined) mapped[`${it.id}__R`] = String(right.result_value);
+        if (left?.result_value !== null && left?.result_value !== undefined) mapped[`${it.id}__L`] = String(left.result_value);
+      } else {
+        const row = savedRows.find((saved: any) => saved.test_type === baseTestType || saved.notes?.includes(`Test: ${it.test_name} ·`));
+        if (row?.result_value !== null && row?.result_value !== undefined) mapped[it.id] = String(row.result_value);
+      }
+    });
+    return mapped;
+  }, [battery?.items, savedRows]);
+
+  const results = resultsByPlayer[playerId] ?? savedResults;
 
   const sportType = (categoryInfo as any)?.sport_type as string | undefined;
   const categoryGender = (categoryInfo as any)?.gender as string | undefined;
@@ -154,7 +191,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
 
     const rows: any[] = [];
     (battery.items as any[]).forEach((it) => {
-      const baseTestType = `custom_${it.test_name?.toLowerCase().replace(/\s+/g, "_")}`;
+      const baseTestType = buildBaseTestType(it.test_name);
       if (it.bilateral) {
         const rawR = results[`${it.id}__R`];
         const rawL = results[`${it.id}__L`];
@@ -198,6 +235,16 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
 
     if (rows.length === 0) return toast.error("Saisissez au moins un résultat");
 
+    const { error: deleteError } = await supabase
+      .from("generic_tests")
+      .delete()
+      .eq("player_id", playerId)
+      .eq("category_id", categoryId)
+      .eq("test_date", savedDate)
+      .ilike("notes", `[Batterie: ${battery.battery.name}]%`);
+
+    if (deleteError) return toast.error("Erreur : " + deleteError.message);
+
     const { error } = await supabase.from("generic_tests").insert(rows);
     if (error) return toast.error("Erreur : " + error.message);
 
@@ -205,15 +252,11 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     queryClient.invalidateQueries({ queryKey: ["generic_tests_discovery", categoryId] });
     queryClient.invalidateQueries({ queryKey: ["generic-tests-evolution", categoryId] });
     queryClient.invalidateQueries({ queryKey: ["generic-tests-multi-comparison", categoryId] });
+    queryClient.invalidateQueries({ queryKey: ["battery-saved-results", batteryId, categoryId, playerId, savedDate] });
 
     toast.success(`Batterie enregistrée pour cet athlète : ${totalPoints}/${totalMax} pts (${level.label})`);
     setSavedPlayerIds(prev => new Set(prev).add(playerId));
-    setResultsByPlayer(prev => {
-      const next = { ...prev };
-      delete next[playerId];
-      return next;
-    });
-    setPlayerIdState("");
+    setResultsByPlayer(prev => ({ ...prev, [playerId]: results }));
   };
 
   if (!battery) return null;
