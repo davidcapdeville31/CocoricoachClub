@@ -37,6 +37,7 @@ import { formatStatoDynamiqueSummary } from "@/lib/program-builder-v2/statoDynam
 import { IntermittentCardioConfigSlots } from "./IntermittentCardioConfigSlots";
 import type { IntermittentCardioConfig } from "@/lib/program-builder-v2/intermittentCardioTypes";
 import { formatIntermittentSummary } from "@/lib/program-builder-v2/intermittentCardioTypes";
+import { MethodConfigSlots, type MethodConfigType } from "./MethodConfigSlots";
 import { Trash2 } from "lucide-react";
 import { ExercisePicker, type PickedExercise } from "./ExercisePicker";
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
@@ -99,10 +100,18 @@ const LINKED_METHODS: LinkedMethodType[] = [
   "combine_haltero",
 ];
 
+type ConfigDraft = {
+  method: MethodConfigType;
+  droppedExercise: { exerciseId: string; exerciseName: string } | null;
+  droppedPhaseExercises: Record<number, { exerciseId: string; exerciseName: string } | null>;
+};
+
 export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEditorProps>(function SessionDayEditor({ blocks, onChange }, ref) {
   // Drafts en cours pour les méthodes liées (un par bloc max)
   const [linkedDrafts, setLinkedDrafts] = useState<Record<string, LinkedDraft>>({});
-  // Mode actif pour méthode "config" (drop_set, emom, etc.) — toast informatif en attendant le wiring complet
+  // Drafts en cours pour méthodes "config" (drop_set, emom, amrap, tabata, etc.)
+  const [configDrafts, setConfigDrafts] = useState<Record<string, ConfigDraft>>({});
+  // Legacy: pendingConfig pour méthodes encore non-câblées (fallback)
   const [pendingConfig, setPendingConfig] = useState<Record<string, ConfigMethod>>({});
   // Draft Fartlek actif par bloc — affiche FartlekConfigSlots
   const [fartlekDrafts, setFartlekDrafts] = useState<Record<string, { editing: boolean; initial?: FartlekConfig }>>({});
@@ -149,9 +158,25 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         delete n[id];
         return n;
       });
+      setConfigDrafts((prev) => {
+        const n = { ...prev };
+        delete n[id];
+        return n;
+      });
     },
     [blocks, onChange],
   );
+
+  // Méthodes "config" qui acceptent plusieurs exercices (un par phase/slot)
+  const PHASE_METHODS: MethodConfigType[] = [
+    "amrap",
+    "for_time",
+    "death_by",
+    "circuit",
+    "tabata",
+    "emom",
+  ];
+  const methodHasPhases = (m: MethodConfigType) => PHASE_METHODS.includes(m);
 
   const addExerciseToBlock = useCallback(
     (blockId: string, picked: PickedExercise) => {
@@ -173,6 +198,32 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
             slottedExercises: [...draft.slottedExercises, newSlotted],
           },
         }));
+        return;
+      }
+
+      // Si une méthode "config" (drop_set, amrap, emom, ...) est en cours,
+      // router l'exercice vers la carte de configuration au lieu de l'ajouter au bloc.
+      const cfg = configDrafts[blockId];
+      if (cfg) {
+        const newEx = { exerciseId: picked.id, exerciseName: picked.name };
+        if (methodHasPhases(cfg.method)) {
+          // Insère dans le prochain slot de phase vide (0, 1, 2, ...)
+          setConfigDrafts((p) => {
+            const cur = p[blockId];
+            if (!cur) return p;
+            const phases = { ...cur.droppedPhaseExercises };
+            let idx = 0;
+            while (phases[idx]) idx++;
+            phases[idx] = newEx;
+            return { ...p, [blockId]: { ...cur, droppedPhaseExercises: phases } };
+          });
+        } else {
+          setConfigDrafts((p) => {
+            const cur = p[blockId];
+            if (!cur) return p;
+            return { ...p, [blockId]: { ...cur, droppedExercise: newEx } };
+          });
+        }
         return;
       }
 
@@ -198,48 +249,63 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         return next;
       });
     },
-    [blocks, onChange, pendingConfig, linkedDrafts],
+    [blocks, onChange, pendingConfig, linkedDrafts, configDrafts],
   );
 
   // Expose une API impérative pour insérer un exercice depuis la bibliothèque externe
   useImperativeHandle(
     ref,
     () => ({
-      hasActiveLinkedDraft: (blockId: string) => !!linkedDrafts[blockId],
+      hasActiveLinkedDraft: (blockId: string) =>
+        !!linkedDrafts[blockId] || !!configDrafts[blockId],
       insertExternalExercise: (blockId, picked) => {
         addExerciseToBlock(blockId, { id: picked.id, name: picked.name } as PickedExercise);
         return true;
       },
       insertExternalExerciseAtSlot: (blockId, slotIndex, picked) => {
+        // Méthode liée active → comportement existant
         const draft = linkedDrafts[blockId];
-        if (!draft) {
-          addExerciseToBlock(blockId, { id: picked.id, name: picked.name } as PickedExercise);
+        if (draft) {
+          const existing = draft.slottedExercises.find((s) => s.slotIndex === slotIndex);
+          const newSlotted: SlottedExercise = {
+            id: existing?.id ?? `slot-${Date.now()}-${slotIndex}`,
+            exerciseId: picked.id,
+            exerciseName: picked.name,
+            stationName: picked.name,
+            slotIndex,
+          };
+          setLinkedDrafts((p) => {
+            const current = p[blockId];
+            if (!current) return p;
+            const others = current.slottedExercises.filter((s) => s.slotIndex !== slotIndex);
+            return {
+              ...p,
+              [blockId]: {
+                ...current,
+                slottedExercises: [...others, newSlotted].sort((a, b) => a.slotIndex - b.slotIndex),
+              },
+            };
+          });
           return true;
         }
-        const existing = draft.slottedExercises.find((s) => s.slotIndex === slotIndex);
-        const newSlotted: SlottedExercise = {
-          id: existing?.id ?? `slot-${Date.now()}-${slotIndex}`,
-          exerciseId: picked.id,
-          exerciseName: picked.name,
-          stationName: picked.name,
-          slotIndex,
-        };
-        setLinkedDrafts((p) => {
-          const current = p[blockId];
-          if (!current) return p;
-          const others = current.slottedExercises.filter((s) => s.slotIndex !== slotIndex);
-          return {
-            ...p,
-            [blockId]: {
-              ...current,
-              slottedExercises: [...others, newSlotted].sort((a, b) => a.slotIndex - b.slotIndex),
-            },
-          };
-        });
+        // Méthode "config" active avec phases → injecter dans le slot ciblé
+        const cfg = configDrafts[blockId];
+        if (cfg && methodHasPhases(cfg.method)) {
+          setConfigDrafts((p) => {
+            const cur = p[blockId];
+            if (!cur) return p;
+            const phases = { ...cur.droppedPhaseExercises };
+            phases[slotIndex] = { exerciseId: picked.id, exerciseName: picked.name };
+            return { ...p, [blockId]: { ...cur, droppedPhaseExercises: phases } };
+          });
+          return true;
+        }
+        // Sinon fallback : ajout normal
+        addExerciseToBlock(blockId, { id: picked.id, name: picked.name } as PickedExercise);
         return true;
       },
     }),
-    [linkedDrafts, addExerciseToBlock],
+    [linkedDrafts, configDrafts, addExerciseToBlock],
   );
 
   const removeExerciseFromBlock = useCallback(
@@ -290,8 +356,17 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         setIntermittentDrafts((p) => ({ ...p, [blockId]: { editing: true } }));
         return;
       }
-      setPendingConfig((p) => ({ ...p, [blockId]: method }));
-      toast.info(`Méthode « ${method} » — appliquée au prochain exercice ajouté.`);
+      // Toutes les autres méthodes (drop_set, rest_pause, pyramides, 5x5,
+      // isométries, amrap, for_time, death_by, circuit, tabata, emom)
+      // → MethodConfigSlots
+      setConfigDrafts((p) => ({
+        ...p,
+        [blockId]: {
+          method: method as MethodConfigType,
+          droppedExercise: null,
+          droppedPhaseExercises: {},
+        },
+      }));
     },
     [],
   );
@@ -448,6 +523,107 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
       const n = { ...p };
       delete n[blockId];
       return n;
+    });
+  }, []);
+
+  // ===== Méthodes "config" (drop_set, rest_pause, pyramides, 5x5, isos,
+  // amrap, for_time, death_by, circuit, tabata, emom) =====
+  const methodLabel: Record<MethodConfigType, string> = {
+    drop_set: "Drop Set",
+    rest_pause: "Rest-Pause",
+    pyramid_up: "Pyramide ↑",
+    pyramid_down: "Pyramide ↓",
+    pyramid_full: "Pyramide ↑↓",
+    five_by_five: "5x5",
+    isometric_overcoming: "Iso Overcoming",
+    isometric_yielding: "Iso Yielding",
+    amrap: "AMRAP",
+    for_time: "For Time",
+    death_by: "Death By",
+    circuit: "Circuit",
+    tabata: "Tabata",
+    emom: "EMOM",
+    intermittent_cardio: "Cardio intermittent",
+  };
+
+  const handleConfigValidate = useCallback(
+    (
+      blockId: string,
+      method: MethodConfigType,
+      payload: Parameters<
+        React.ComponentProps<typeof MethodConfigSlots>["onConfirm"]
+      >[0],
+    ) => {
+      const draft = configDrafts[blockId];
+      const label = methodLabel[method] ?? method;
+      let summary = label;
+      const setsCount = payload.setsCount ?? payload.series?.length ?? 1;
+      if (method === "drop_set") summary = `Drop Set — ${setsCount}× ${(payload.series ?? []).length} drops`;
+      else if (method === "tabata") summary = `Tabata 20/10 × ${payload.tabataConfig?.rounds ?? 8}`;
+      else if (method === "emom") {
+        const im = payload.emomConfig?.intervalMinutes ?? 1;
+        const tm = payload.emomConfig?.totalMinutes ?? 10;
+        summary = `${im === 1 ? "EMOM" : `E${im}MOM`} ${tm}'`;
+      } else if (method === "amrap") summary = `AMRAP ${payload.timeCap ?? 10}'`;
+      else if (method === "for_time") summary = `For Time ≤ ${payload.timeCap ?? 10}'`;
+      else if (method === "circuit") summary = `Circuit × ${payload.repsPerRound ?? 3} tours`;
+      else if (method === "death_by") summary = `Death By (+${payload.deathByConfig?.incrementReps ?? 1}/min)`;
+      else summary = `${label} — ${(payload.series ?? []).length} séries`;
+
+      const fullConfig = {
+        ...payload,
+        droppedExercise: draft?.droppedExercise ?? null,
+        droppedPhaseExercises: draft?.droppedPhaseExercises ?? {},
+      };
+      const phaseEntries = Object.values(draft?.droppedPhaseExercises ?? {}).filter(Boolean) as Array<{ exerciseId: string; exerciseName: string }>;
+      const exerciseName = draft?.droppedExercise?.exerciseName
+        ?? (phaseEntries.length > 0 ? `${label} — ${phaseEntries.map((e) => e.exerciseName).join(" + ")}` : summary);
+
+      appendMethodExercise(blockId, {
+        method,
+        name: exerciseName,
+        sets: setsCount,
+        reps: String(payload.series?.[0]?.reps ?? "1"),
+        notes: `${summary}\n<!--v2-${method}:${JSON.stringify(fullConfig)}-->`,
+        config: fullConfig as unknown as Record<string, unknown>,
+      });
+
+      setConfigDrafts((p) => {
+        const n = { ...p };
+        delete n[blockId];
+        return n;
+      });
+      toast.success(`${label} ajouté à la séance`);
+    },
+    [configDrafts, appendMethodExercise],
+  );
+
+  const handleConfigCancel = useCallback((blockId: string) => {
+    setConfigDrafts((p) => {
+      const n = { ...p };
+      delete n[blockId];
+      return n;
+    });
+  }, []);
+
+  const handleConfigPhaseRemove = useCallback(
+    (blockId: string, phaseIndex: number) => {
+      setConfigDrafts((p) => {
+        const cur = p[blockId];
+        if (!cur) return p;
+        const phases = { ...cur.droppedPhaseExercises };
+        delete phases[phaseIndex];
+        return { ...p, [blockId]: { ...cur, droppedPhaseExercises: phases } };
+      });
+    },
+    [],
+  );
+
+  const handleConfigExerciseRemove = useCallback((blockId: string) => {
+    setConfigDrafts((p) => {
+      const cur = p[blockId];
+      if (!cur) return p;
+      return { ...p, [blockId]: { ...cur, droppedExercise: null } };
     });
   }, []);
 
@@ -634,7 +810,8 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
           const clusterDraft = clusterDrafts[block.id];
           const statoDraft = statoDrafts[block.id];
           const intermittentDraft = intermittentDrafts[block.id];
-          const anyDraft = !!linkedDraft || !!pendingConfig[block.id] || !!fartlekDraft || !!clusterDraft || !!statoDraft || !!intermittentDraft;
+          const configDraft = configDrafts[block.id];
+          const anyDraft = !!linkedDraft || !!pendingConfig[block.id] || !!fartlekDraft || !!clusterDraft || !!statoDraft || !!intermittentDraft || !!configDraft;
           return (
             <TrainingBlockWrapper
               key={block.id}
@@ -710,6 +887,20 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                   initialConfig={intermittentDraft.initial}
                   onConfirm={(config) => handleIntermittentValidate(block.id, config)}
                   onCancel={() => handleIntermittentCancel(block.id)}
+                />
+              )}
+
+              {/* Carte de configuration des méthodes (Drop Set, AMRAP, EMOM, Tabata, …) */}
+              {configDraft && (
+                <MethodConfigSlots
+                  method={configDraft.method}
+                  dayId={block.id}
+                  droppedExercise={configDraft.droppedExercise}
+                  droppedPhaseExercises={configDraft.droppedPhaseExercises}
+                  onExerciseRemove={() => handleConfigExerciseRemove(block.id)}
+                  onPhaseExerciseRemove={(idx) => handleConfigPhaseRemove(block.id, idx)}
+                  onConfirm={(payload) => handleConfigValidate(block.id, configDraft.method, payload)}
+                  onCancel={() => handleConfigCancel(block.id)}
                 />
               )}
 

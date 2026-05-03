@@ -12,6 +12,8 @@ export const formatCategoryLabel = (value: string) =>
     .replace(/_/g, " ")
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
+export const formatTestTypeLabel = formatCategoryLabel;
+
 export const normalizeCustomTestType = (value: string) =>
   value
     .normalize("NFD")
