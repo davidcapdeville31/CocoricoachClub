@@ -36,6 +36,7 @@
  import { InviteMemberDialog } from "@/components/collaboration/InviteMemberDialog";
 import { TutorialVideosSection } from "@/components/category/settings/TutorialVideosSection";
 import { ClubPdfSettingsSection } from "@/components/club/ClubPdfSettingsSection";
+import { AutoBackupToggle } from "@/components/club/AutoBackupToggle";
 import { PWAInstallGuide } from "@/components/PWAInstallGuide";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { FileText, ChevronDown } from "lucide-react";
