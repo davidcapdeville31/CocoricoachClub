@@ -48,6 +48,7 @@ import {
 import { calculateEWMASeries, transformToDailyLoadData } from "@/lib/trainingLoadCalculations";
 import { SessionFormDialog } from "./sessions/SessionFormDialog";
 import { EditAdminEventDialog, ADMIN_EVENT_TYPES } from "./calendar/EditAdminEventDialog";
+import { ScheduleTestEventDialog } from "./calendar/ScheduleTestEventDialog";
 import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesDialog";
 import {
   AlertDialog,
@@ -110,6 +111,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
   const [editSessionOpen, setEditSessionOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<any>(null);
   const [editingAdminEvent, setEditingAdminEvent] = useState<any>(null);
+  const [editingTestSession, setEditingTestSession] = useState<{ id: string; date: Date } | null>(null);
   const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
   const [notifySession, setNotifySession] = useState<any>(null);
   const [notifyDialogOpen, setNotifyDialogOpen] = useState(false);
@@ -676,14 +678,21 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
      }
    };
  
-   const handleEditSession = (session: any) => {
-     if (ADMIN_EVENT_TYPES.includes(session.training_type)) {
-       setEditingAdminEvent(session);
-     } else {
-       setEditingSession(session);
-       setEditSessionOpen(true);
-     }
-   };
+    const handleEditSession = (session: any) => {
+      if (session.training_type === "test") {
+        setEditingTestSession({
+          id: session.id,
+          date: new Date(session.session_date),
+        });
+        return;
+      }
+      if (ADMIN_EVENT_TYPES.includes(session.training_type)) {
+        setEditingAdminEvent(session);
+      } else {
+        setEditingSession(session);
+        setEditSessionOpen(true);
+      }
+    };
 
    const deleteSessionMutation = useMutation({
      mutationFn: async (sessionId: string) => {
@@ -1475,6 +1484,17 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
            onOpenChange={(open) => { if (!open) setEditingAdminEvent(null); }}
            session={editingAdminEvent}
          />
+
+         {/* Edit Test Session Dialog (uses the same UI as creation) */}
+         {editingTestSession && (
+           <ScheduleTestEventDialog
+             open={true}
+             onOpenChange={(open) => { if (!open) setEditingTestSession(null); }}
+             date={editingTestSession.date}
+             categoryId={categoryId}
+             editSessionId={editingTestSession.id}
+           />
+         )}
 
          {/* Per-session notify dialog */}
          {notifySession && (
