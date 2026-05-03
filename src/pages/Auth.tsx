@@ -258,15 +258,15 @@ export default function Auth() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <div className="flex justify-center mb-2">
+        <CardHeader className="pb-2 space-y-1">
+          <div className="flex justify-center -mb-2">
             <BrandLogo className="h-40 sm:h-48 w-auto" />
           </div>
           <CardDescription className="text-center">
             Connectez-vous pour gérer vos clubs et athlètes
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-2">
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Connexion</TabsTrigger>
