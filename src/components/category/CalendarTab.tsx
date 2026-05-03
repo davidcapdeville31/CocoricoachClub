@@ -433,6 +433,13 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         editSession={editingSession}
       />
 
+      {/* Edit Admin Event Dialog (medical, video, meeting) */}
+      <EditAdminEventDialog
+        open={!!editingAdminEvent}
+        onOpenChange={(open) => !open && setEditingAdminEvent(null)}
+        session={editingAdminEvent}
+      />
+
       {/* Edit Test Session Dialog (uses the same UI as creation) */}
       {editingTestSession && (
         <ScheduleTestEventDialog
