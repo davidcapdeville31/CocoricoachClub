@@ -170,9 +170,20 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
       }
 
       const block = blocksMap.get(blockKey)!;
+      // Extract method-specific config (fartlek/cluster/stato/intermittent/drop_set/rest_pause/...)
+      let parsedConfig: Record<string, unknown> | undefined;
+      const cfgMatch = rawNotes.match(/<!--\s*v2-(fartlek|cluster|stato|intermittent|drop_set|rest_pause|pyramid_up|pyramid_down|pyramid_full|five_by_five|isometric_overcoming|isometric_yielding|amrap|for_time|death_by|circuit|tabata|emom):(.*?)-->/s);
+      if (cfgMatch) {
+        try {
+          parsedConfig = JSON.parse(cfgMatch[2]);
+        } catch {
+          parsedConfig = undefined;
+        }
+      }
       const cleanNotes = rawNotes
         .replace(/<!--\s*v2-block:[^>]+-->/g, "")
         .replace(/<!--\s*v2-test:[^>]+-->/g, "")
+        .replace(/<!--\s*v2-(fartlek|cluster|stato|intermittent|drop_set|rest_pause|pyramid_up|pyramid_down|pyramid_full|five_by_five|isometric_overcoming|isometric_yielding|amrap|for_time|death_by|circuit|tabata|emom):.*?-->/gs, "")
         .trim();
       const groupId = ex.group_id || undefined;
       const groupKey = `${blockKey}::${groupId || "single"}`;
@@ -191,6 +202,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
         method: ex.method ?? "normal",
         groupId,
         notes: cleanNotes || undefined,
+        config: parsedConfig,
         ...(typeof groupOrder === "number" ? { groupOrder } : {}),
       } as any);
     });
