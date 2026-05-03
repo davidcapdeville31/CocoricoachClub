@@ -43,7 +43,8 @@ export function AthletePortalWeightLog({ token, sessionId, onSubmitted }: Props)
 
   useEffect(() => {
     setLoading(true);
-    fetch(buildAthletePortalFunctionUrl(`session-exercises&session_id=${sessionId}`, token), {
+    const baseUrl = buildAthletePortalFunctionUrl("session-exercises", token);
+    fetch(`${baseUrl}&session_id=${encodeURIComponent(sessionId)}`, {
       headers: athletePortalHeaders(),
     })
       .then((r) => r.json())
