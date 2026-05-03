@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -602,7 +603,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
         
         return {
           sessionId: session.id,
-          sessionName: session.training_type,
+          sessionName: getTrainingTypeLabel(session.training_type),
           sessionTime: session.session_start_time?.slice(0, 5) || "",
           plannedIntensity: session.planned_intensity || 5,
           totalParticipants,
@@ -1174,7 +1175,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
                           <div className="flex items-center gap-2">
                             <Activity className="h-4 w-4 text-primary" />
                             <div>
-                              <p className="font-medium text-sm">{session.training_type}</p>
+                              <p className="font-medium text-sm">{getTrainingTypeLabel(session.training_type)}</p>
                               <p className="text-xs text-muted-foreground">
                                 {session.session_start_time?.slice(0, 5)} • Charge cible: {session.planned_intensity || 5}/10
                               </p>
@@ -1219,7 +1220,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
                           <div className="flex items-center gap-2">
                             <Activity className="h-4 w-4 text-muted-foreground" />
                             <div>
-                              <p className="font-medium text-sm">{session.training_type}</p>
+                              <p className="font-medium text-sm">{getTrainingTypeLabel(session.training_type)}</p>
                               <p className="text-xs text-muted-foreground">
                                 {session.session_start_time?.slice(0, 5)} • Charge cible: {session.planned_intensity || 5}/10
                               </p>
@@ -1513,7 +1514,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
                         <div className="flex items-center gap-2 pb-2 border-b">
                           <Activity className="h-4 w-4 text-blue-600" />
                           <h4 className="font-semibold text-sm">
-                            {session ? `${session.training_type}` : "Séance non définie"}
+                            {session ? getTrainingTypeLabel(session.training_type) : "Séance non définie"}
                           </h4>
                           {session?.session_start_time && (
                             <Badge variant="outline" className="text-xs ml-auto">
