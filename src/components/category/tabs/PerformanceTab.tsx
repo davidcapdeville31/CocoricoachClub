@@ -95,25 +95,7 @@ export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
         <EvolutionTestsMuscuTab categoryId={categoryId} />
       </TabsContent>
 
-      <TabsContent value="training-stats">
-        {isBowling ? (
-          <BowlingTrainingStats categoryId={categoryId} />
-        ) : isTennis ? (
-          <TennisTrainingStats categoryId={categoryId} />
-        ) : isAthletics ? (
-          <div className="space-y-6">
-            <AthleticsSprintStats categoryId={categoryId} />
-            <AthleticsThrowingStats categoryId={categoryId} />
-          </div>
-        ) : isRugby ? (
-          <div className="space-y-6">
-            <PrecisionFieldTracker categoryId={categoryId} />
-            <PrecisionTrainingStats categoryId={categoryId} />
-          </div>
-        ) : (
-          <PrecisionTrainingStats categoryId={categoryId} />
-        )}
-      </TabsContent>
     </Tabs>
   );
 }
+
