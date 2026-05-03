@@ -36,8 +36,15 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     queryFn: async () => {
       const { data: b } = await supabase.from("test_batteries").select("*").eq("id", batteryId).single();
       const { data: items } = await supabase
-        .from("test_battery_items").select("*").eq("battery_id", batteryId).order("position");
-      return { battery: b, items: items || [] };
+        .from("test_battery_items")
+        .select("*, custom_tests(bilateral)")
+        .eq("battery_id", batteryId)
+        .order("position");
+      const normalized = (items || []).map((it: any) => ({
+        ...it,
+        bilateral: it.custom_tests?.bilateral ?? false,
+      }));
+      return { battery: b, items: normalized };
     },
     enabled: open && !!batteryId,
   });
