@@ -290,11 +290,12 @@ function CategoryDetailsContent() {
                 />
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="icon"
                   onClick={() => handleTabChange("settings")}
+                  title="Paramètres"
+                  aria-label="Paramètres"
                 >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Paramètres
+                  <Settings className="h-4 w-4" />
                 </Button>
               </div>
             )}
