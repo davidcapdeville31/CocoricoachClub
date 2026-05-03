@@ -3,7 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { FlaskConical, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { FlaskConical, Clock, Send, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface TestRef {
   test_category: string;
@@ -19,6 +21,8 @@ interface Props {
   playerId: string;
   value: TestResultsState;
   onChange: (next: TestResultsState) => void;
+  categoryId?: string;
+  sessionDate?: string;
 }
 
 function parseTestsFromNotes(notes: string | null): TestRef[] {
@@ -37,9 +41,19 @@ function labelize(v: string) {
   return v.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onChange }: Props) {
+export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onChange, categoryId, sessionDate }: Props) {
   const tests = parseTestsFromNotes(notes);
   const [pending, setPending] = useState<any[]>([]);
+  const [submittingKey, setSubmittingKey] = useState<string | null>(null);
+
+  const reload = async () => {
+    const { data } = await supabase
+      .from("pending_test_results")
+      .select("test_category, test_type, result_value, result_unit, validation_status")
+      .eq("training_session_id", sessionId)
+      .eq("player_id", playerId);
+    setPending(data || []);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -53,6 +67,45 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
     })();
     return () => { cancelled = true; };
   }, [sessionId, playerId]);
+
+  const handleSendOne = async (t: TestRef) => {
+    const key = `${t.test_category}::${t.test_type}`;
+    const raw = value[key];
+    if (raw == null || raw === "") {
+      toast.error("Saisis d'abord un résultat");
+      return;
+    }
+    const v = parseFloat(raw);
+    if (!Number.isFinite(v)) {
+      toast.error("Résultat invalide");
+      return;
+    }
+    if (!categoryId) {
+      toast.error("Catégorie manquante");
+      return;
+    }
+    setSubmittingKey(key);
+    const { error } = await supabase.from("pending_test_results").insert({
+      player_id: playerId,
+      category_id: categoryId,
+      training_session_id: sessionId,
+      test_date: sessionDate || new Date().toISOString().slice(0, 10),
+      test_category: t.test_category,
+      test_type: t.test_type,
+      result_value: v,
+      result_unit: t.result_unit || null,
+      submitted_via: "athlete" as const,
+      validation_status: "pending" as const,
+    });
+    setSubmittingKey(null);
+    if (error) {
+      toast.error("Erreur d'envoi : " + error.message);
+      return;
+    }
+    toast.success("Résultat envoyé au staff pour validation");
+    onChange({ ...value, [key]: "" });
+    await reload();
+  };
 
   if (tests.length === 0) return null;
 
@@ -94,9 +147,28 @@ export function AthleteTestResultsInput({ sessionId, notes, playerId, value, onC
                     placeholder="Résultat"
                     value={value[key] ?? ""}
                     onChange={(e) => onChange({ ...value, [key]: e.target.value })}
-                    className="h-8 w-28 text-sm"
+                    className="h-8 w-24 text-sm"
                   />
-                  <span className="text-xs text-muted-foreground w-10">{t.result_unit || ""}</span>
+                  <span className="text-xs text-muted-foreground w-8">{t.result_unit || ""}</span>
+                  {categoryId && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="default"
+                      className="h-8 px-2"
+                      onClick={() => handleSendOne(t)}
+                      disabled={submittingKey === key}
+                    >
+                      {submittingKey === key ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <>
+                          <Send className="h-3.5 w-3.5 mr-1" />
+                          Envoyer
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </>
               )}
             </div>
