@@ -219,14 +219,20 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
       }
       if (!sessionDate) throw new Error("Choisis une date pour la séance.");
 
-      // 1. Load all athletes of this category
-      const { data: players, error: pErr } = await supabase
+      // 1. Load athletes of this category (filtered to selected ones if any)
+      const { data: allPlayers, error: pErr } = await supabase
         .from("players")
         .select("id")
         .eq("category_id", categoryId);
       if (pErr) throw pErr;
-      if (!players || players.length === 0) {
+      if (!allPlayers || allPlayers.length === 0) {
         throw new Error("Aucun athlète dans cette catégorie.");
+      }
+      const targetPlayers = selectedPlayers.length > 0
+        ? allPlayers.filter((p) => selectedPlayers.includes(p.id))
+        : allPlayers;
+      if (targetPlayers.length === 0) {
+        throw new Error("Aucun athlète sélectionné.");
       }
 
       // 2. Create the training_sessions shell
@@ -241,6 +247,8 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
         .insert({
           category_id: categoryId,
           session_date: sessionDate,
+          session_start_time: startTime || null,
+          session_end_time: endTime || null,
           training_type: "musculation",
           notes: `<!--v2-meta:${sessionMeta}-->${dayName}`,
         })
@@ -248,9 +256,22 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
         .single();
       if (sErr) throw sErr;
 
+      // 2b. If specific participants selected, persist them in event_participants
+      if (selectedPlayers.length > 0) {
+        const { error: epErr } = await supabase
+          .from("event_participants")
+          .insert(
+            selectedPlayers.map((pid) => ({
+              training_session_id: session.id,
+              player_id: pid,
+            })),
+          );
+        if (epErr) console.error("[SessionEditorV2] event_participants insert failed", epErr);
+      }
+
       // 3. Insert one gym_session_exercises row per (player × exercise),
       //    preserving block context inside `notes` via the agreed pattern.
-      const rows = players.flatMap((player) =>
+      const rows = targetPlayers.flatMap((player) =>
         flat.map(({ block, ex }, idx) => {
           const blockTag = `<!-- v2-block:${block.type}:${block.name} -->`;
           const isTestRef = typeof ex.exerciseId === "string" && ex.exerciseId.startsWith("test:");
