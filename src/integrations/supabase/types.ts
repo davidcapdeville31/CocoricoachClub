@@ -2190,6 +2190,7 @@ export type Database = {
         Row: {
           archived_at: string | null
           archived_by: string | null
+          auto_backup_enabled: boolean
           client_id: string | null
           created_at: string
           id: string
@@ -2204,6 +2205,7 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           archived_by?: string | null
+          auto_backup_enabled?: boolean
           client_id?: string | null
           created_at?: string
           id?: string
@@ -2218,6 +2220,7 @@ export type Database = {
         Update: {
           archived_at?: string | null
           archived_by?: string | null
+          auto_backup_enabled?: boolean
           client_id?: string | null
           created_at?: string
           id?: string
