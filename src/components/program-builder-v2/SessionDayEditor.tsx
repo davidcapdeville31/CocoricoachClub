@@ -28,7 +28,7 @@ import {
 import { FartlekConfigSlots } from "./FartlekConfigSlots";
 import type { FartlekConfig } from "@/lib/program-builder-v2/fartlekTypes";
 import { formatFartlekSummary } from "@/lib/program-builder-v2/fartlekTypes";
-import { Trash2, Wind } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { ExercisePicker, type PickedExercise } from "./ExercisePicker";
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
 
