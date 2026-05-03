@@ -182,6 +182,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         image_url: newTest.image_url ?? null,
         video_url: newTest.video_url ?? null,
         bilateral: (newTest as any).bilateral ?? false,
+        source: "custom",
       });
       setIsEditDialogOpen(true);
     },
@@ -439,6 +440,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                       formula_config: (customDef as any).formula_config ?? null,
                       image_url: (customDef as any).image_url ?? null,
                       video_url: (customDef as any).video_url ?? null,
+                      bilateral: (customDef as any).bilateral ?? false,
                       source: "custom",
                     });
                   } else {
@@ -491,6 +493,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                       formula_config: t.formula_config ?? null,
                       image_url: t.image_url ?? null,
                       video_url: t.video_url ?? null,
+                      bilateral: (t as any).bilateral ?? false,
                       source: "custom",
                     });
                     setIsEditDialogOpen(true);
