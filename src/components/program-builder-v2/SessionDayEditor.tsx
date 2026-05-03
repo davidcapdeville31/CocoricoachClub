@@ -890,6 +890,20 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                 />
               )}
 
+              {/* Carte de configuration des méthodes (Drop Set, AMRAP, EMOM, Tabata, …) */}
+              {configDraft && (
+                <MethodConfigSlots
+                  method={configDraft.method}
+                  dayId={block.id}
+                  droppedExercise={configDraft.droppedExercise}
+                  droppedPhaseExercises={configDraft.droppedPhaseExercises}
+                  onExerciseRemove={() => handleConfigExerciseRemove(block.id)}
+                  onPhaseExerciseRemove={(idx) => handleConfigPhaseRemove(block.id, idx)}
+                  onConfirm={(payload) => handleConfigValidate(block.id, configDraft.method, payload)}
+                  onCancel={() => handleConfigCancel(block.id)}
+                />
+              )}
+
               {pendingConfig[block.id] && (
                 <div className="rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary flex items-center justify-between gap-2">
                   <span>
