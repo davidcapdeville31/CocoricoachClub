@@ -735,7 +735,7 @@ const LinkedMethodSlotsContent = ({
   const handleValidate = () => {
     setIsValidated(true);
     setIsEditing(false);
-    onConfirm();
+    onConfirm?.();
   };
   
   // Handler pour repasser en édition
@@ -749,7 +749,7 @@ const LinkedMethodSlotsContent = ({
       setIsEditing(false);
       return;
     }
-    onCancel();
+    onCancel?.();
   };
 
   // Sync visible params across all exercises
