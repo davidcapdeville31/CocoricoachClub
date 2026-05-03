@@ -318,7 +318,8 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                         <span className="text-xs text-muted-foreground">RPE</span>
                       </div>
                     </div>
-                    {/* Intensité / Volume / Contact (alimente Workload → Répartition) */}
+                    {/* Intensité / Volume / Contact (alimente Workload → Répartition) — désactivé pour le bowling */}
+                    {!isBowling && (
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <div className="space-y-1">
                         <Label className="text-[11px] text-muted-foreground">Intensité</Label>
@@ -363,6 +364,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                         </Select>
                       </div>
                     </div>
+                    )}
                     {b.theme === "bowling_spare" && (
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">
