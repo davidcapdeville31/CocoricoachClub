@@ -159,7 +159,7 @@ function BatteryRadarCharts({
           resultValue: test.result_value,
           resultUnit: test.result_unit,
           rawIds: [test.id],
-          testCategory: test.test_category || null,
+          testCategory: batteryLookup?.categories?.[`${batteryName}::${baseTestName}`] || test.test_category || null,
         });
       }
       g.raw.push(test);
