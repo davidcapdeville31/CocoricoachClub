@@ -61,9 +61,9 @@ function BatteryRadarCharts({
 }) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
-  // Lookup max_points from battery definitions to recover when notes lack /max (legacy format)
-  const { data: batteryItemsLookup } = useQuery({
-    queryKey: ["battery_items_lookup", categoryId],
+  // Lookup max_points and levels from battery definitions
+  const { data: batteryLookup } = useQuery({
+    queryKey: ["battery_lookup", categoryId],
     queryFn: async () => {
       const { data: cat } = await supabase
         .from("categories")
@@ -71,20 +71,22 @@ function BatteryRadarCharts({
         .eq("id", categoryId)
         .single();
       const clubId = (cat as any)?.club_id;
-      if (!clubId) return {} as Record<string, number>;
+      if (!clubId) return { maxPoints: {} as Record<string, number>, levels: {} as Record<string, any[]> };
       const { data } = await supabase
         .from("test_batteries")
-        .select("name, items:test_battery_items(test_name, max_points)")
+        .select("name, levels, items:test_battery_items(test_name, max_points)")
         .eq("club_id", clubId);
-      const map: Record<string, number> = {};
+      const maxPoints: Record<string, number> = {};
+      const levels: Record<string, any[]> = {};
       (data || []).forEach((b: any) => {
+        if (Array.isArray(b.levels)) levels[b.name] = b.levels;
         (b.items || []).forEach((it: any) => {
           if (it.test_name && it.max_points != null) {
-            map[`${b.name}::${it.test_name}`] = Number(it.max_points);
+            maxPoints[`${b.name}::${it.test_name}`] = Number(it.max_points);
           }
         });
       });
-      return map;
+      return { maxPoints, levels };
     },
   });
 
@@ -117,7 +119,7 @@ function BatteryRadarCharts({
         ? Number(fullMatch[1].replace(",", "."))
         : legacyMatch ? Number(legacyMatch[1].replace(",", ".")) : 0;
       const maxFromNotes = fullMatch ? Number(fullMatch[2].replace(",", ".")) : 0;
-      const maxFromLookup = batteryItemsLookup?.[`${batteryName}::${baseTestName}`] ?? 0;
+      const maxFromLookup = batteryLookup?.maxPoints?.[`${batteryName}::${baseTestName}`] ?? 0;
       const maxPoints = maxFromNotes > 0 ? maxFromNotes : maxFromLookup;
 
       const playerName = test.players?.name || "Athlète";
@@ -148,19 +150,22 @@ function BatteryRadarCharts({
     }
 
     return Array.from(map.values()).sort((a, b) => (a.date < b.date ? 1 : -1));
-  }, [tests, batteryItemsLookup]);
+  }, [tests, batteryLookup]);
 
-  const getColor = (pct: number) => {
-    if (pct >= 75) return "hsl(142 71% 45%)"; // green
-    if (pct >= 50) return "hsl(38 92% 50%)"; // orange
-    return "hsl(0 84% 60%)"; // red
+  // Helper: pick color from battery levels by % (highest minPercent ≤ pct wins)
+  const getLevelInfo = (batteryName: string, pct: number): { color: string; label: string } => {
+    const levels = batteryLookup?.levels?.[batteryName];
+    if (Array.isArray(levels) && levels.length > 0) {
+      const sorted = [...levels].sort((a: any, b: any) => Number(b.minPercent) - Number(a.minPercent));
+      const match = sorted.find((l: any) => pct >= Number(l.minPercent));
+      if (match) return { color: match.color || "hsl(var(--primary))", label: match.label || "" };
+    }
+    // Fallback if no levels defined
+    if (pct >= 75) return { color: "hsl(142 71% 45%)", label: "Bon" };
+    if (pct >= 50) return { color: "hsl(38 92% 50%)", label: "Moyen" };
+    return { color: "hsl(0 84% 60%)", label: "Faible" };
   };
 
-  const getLabel = (pct: number) => {
-    if (pct >= 75) return "Bon";
-    if (pct >= 50) return "Moyen";
-    return "Faible";
-  };
 
   if (groups.length === 0) {
     return (
@@ -176,8 +181,7 @@ function BatteryRadarCharts({
         const totalPoints = g.items.reduce((s, i) => s + i.points, 0);
         const totalMax = g.items.reduce((s, i) => s + i.maxPoints, 0);
         const pct = totalMax > 0 ? Math.round((totalPoints / totalMax) * 100) : 0;
-        const color = getColor(pct);
-        const label = getLabel(pct);
+        const { color, label } = getLevelInfo(g.batteryName, pct);
         const radarData = g.items.map((it) => ({
           axis: it.testName,
           value: it.maxPoints > 0 ? Math.round((it.points / it.maxPoints) * 100) : 0,
@@ -217,7 +221,8 @@ function BatteryRadarCharts({
                   <PolarRadiusAxis
                     angle={90}
                     domain={[0, 100]}
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
+                    tick={false}
+                    axisLine={false}
                   />
                   <Radar
                     name={g.playerName}
@@ -255,7 +260,7 @@ function BatteryRadarCharts({
                 <div className="mt-3 space-y-1 border-t pt-3">
                   {g.items.map((it, idx) => {
                     const itemPct = it.maxPoints > 0 ? Math.round((it.points / it.maxPoints) * 100) : 0;
-                    const itemColor = getColor(itemPct);
+                    const itemColor = getLevelInfo(g.batteryName, itemPct).color;
                     const raw = g.raw[idx];
                     return (
                       <div key={it.id} className="flex items-center justify-between text-sm gap-2">
