@@ -106,6 +106,9 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
   const [pendingConfig, setPendingConfig] = useState<Record<string, ConfigMethod>>({});
   // Draft Fartlek actif par bloc — affiche FartlekConfigSlots
   const [fartlekDrafts, setFartlekDrafts] = useState<Record<string, { editing: boolean; initial?: FartlekConfig }>>({});
+  const [clusterDrafts, setClusterDrafts] = useState<Record<string, { editing: boolean; initial?: ClusterConfig }>>({});
+  const [statoDrafts, setStatoDrafts] = useState<Record<string, { editing: boolean; initial?: StatoDynamiqueConfig }>>({});
+  const [intermittentDrafts, setIntermittentDrafts] = useState<Record<string, { editing: boolean; initial?: IntermittentCardioConfig }>>({});
 
   // (useImperativeHandle is declared after addExerciseToBlock — see below)
 
