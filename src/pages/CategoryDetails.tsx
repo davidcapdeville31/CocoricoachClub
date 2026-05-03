@@ -507,11 +507,7 @@ function CategoryDetailsContent() {
 
           {canSeeMenu("competition") && (
             <TabsContent value="stats" className="space-y-4">
-              {isBowling ? (
-                <BowlingCumulativeStats categoryId={categoryId!} />
-              ) : (
-                <PlayerCumulativeStats categoryId={categoryId!} sportType={category?.rugby_type} />
-              )}
+              <DatasTab categoryId={categoryId!} sportType={category?.rugby_type} />
             </TabsContent>
           )}
 
