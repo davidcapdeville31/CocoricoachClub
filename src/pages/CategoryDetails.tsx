@@ -321,8 +321,8 @@ function CategoryDetailsContent() {
                 value="overview" 
                 colorKey="overview"
                 icon={<LayoutDashboard className="h-5 w-5" />}
-               label="Centre de décision"
-               shortLabel="Décision"
+                label="Accueil"
+                shortLabel="Accueil"
                tooltip="Vue d'ensemble : indicateurs clés, alertes, tâches prioritaires et résumé de l'activité récente"
               />
               {canSeeMenu("administratif") && (
