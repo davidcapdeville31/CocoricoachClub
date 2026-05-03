@@ -400,6 +400,38 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
                   className="h-9 w-28"
                 />
               </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Type</Label>
+                <Select value={sessionKind} onValueChange={(v) => setSessionKind(v as "musculation" | "course")}>
+                  <SelectTrigger className="h-9 w-36"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="musculation">Musculation</SelectItem>
+                    <SelectItem value="course">Course</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Intensité</Label>
+                <Select value={targetIntensity} onValueChange={setTargetIntensity}>
+                  <SelectTrigger className="h-9 w-36"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {TARGET_INTENSITIES.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Volume</Label>
+                <Select value={volume} onValueChange={setVolume}>
+                  <SelectTrigger className="h-9 w-32"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {VOLUME_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="rounded-2xl border bg-muted/40 p-3">
