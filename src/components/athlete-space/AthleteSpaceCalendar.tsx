@@ -352,6 +352,8 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                   prophylaxis: { boxShadow: `inset 0 -3px 0 0 ${PROPHYLAXIS_COLOR}` },
                   rehab: { boxShadow: `inset 3px 0 0 0 ${REHAB_COLOR}` },
                 }}
+                locale={fr}
+                weekStartsOn={1}
                 className="rounded-md border pointer-events-auto"
               />
             </div>
