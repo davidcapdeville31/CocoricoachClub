@@ -1,0 +1,1 @@
+ALTER TABLE public.clubs ADD COLUMN IF NOT EXISTS auto_backup_enabled boolean NOT NULL DEFAULT true;
