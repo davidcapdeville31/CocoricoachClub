@@ -9,6 +9,7 @@ import { TrendingUp, Clock, Trophy, FlaskConical, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
+import { BatteryRadarCharts } from "@/components/category/tests/GenericTestsSection";
 
 interface Props {
   playerId: string;
@@ -336,6 +337,20 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
           </CardContent>
         </Card>
       )}
+
+      {/* Battery radar charts */}
+      {(() => {
+        const batteryTests = genericTests.filter(t => /^\[Batterie:/i.test((t as any).notes || ""));
+        if (batteryTests.length === 0) return null;
+        return (
+          <BatteryRadarCharts
+            tests={batteryTests}
+            isViewer={true}
+            categoryId={categoryId}
+            onDelete={() => {}}
+          />
+        );
+      })()}
 
       {/* Comparatif test précédent → dernier test (format mobile-friendly) */}
       {(() => {
