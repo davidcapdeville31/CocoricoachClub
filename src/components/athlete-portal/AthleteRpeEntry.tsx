@@ -232,8 +232,18 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
     );
   }
 
-  const pendingSessions = sessions.filter(s => !completedSessionIds.has(s.id));
-  const completedSessions = sessions.filter(s => completedSessionIds.has(s.id));
+  // Types informatifs : pas de RPE, juste affichage
+  const NON_RPE_TYPES = new Set([
+    "medical",
+    "video",
+    "video_analyse",
+    "reunion",
+    "surf_video",
+  ]);
+  const isNonRpe = (s: Session) => NON_RPE_TYPES.has(s.training_type);
+  const pendingSessions = sessions.filter(s => !completedSessionIds.has(s.id) && !isNonRpe(s));
+  const infoSessions = sessions.filter(s => isNonRpe(s));
+  const completedSessions = sessions.filter(s => completedSessionIds.has(s.id) && !isNonRpe(s));
 
   return (
     <div className="space-y-6">
