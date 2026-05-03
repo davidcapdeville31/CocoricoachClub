@@ -567,7 +567,7 @@ export function ScheduleTestEventDialog({
                         setActiveTest("");
                       }}
                     >
-                      <SelectTrigger className="flex-1 bg-muted/40">
+                      <SelectTrigger className="flex-1 bg-white border-orange-200 dark:bg-zinc-900 dark:border-orange-900/40">
                         <SelectValue placeholder="Choisir une thématique" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[320px]">
