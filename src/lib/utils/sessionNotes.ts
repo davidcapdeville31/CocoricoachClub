@@ -5,6 +5,8 @@
 export function getDisplayNotes(notes: string | null | undefined): string {
   if (!notes) return "";
   return notes
+    .replace(/<!--v2-meta:.*?-->/g, "")
+    .replace(/<!--BLOCK:.*?-->/g, "")
     .replace(/\n?<!--TESTS:.*?-->/g, "")
     .replace(/\n?<!--PRECISION_EXERCISE:.*?-->/g, "")
     .replace(/\n?\[precision_exercise:.*?\]/g, "")
