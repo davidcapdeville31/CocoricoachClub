@@ -42,7 +42,7 @@ export function TestBatteriesManager({
   const { data: clubData } = useQuery({
     queryKey: ["category-club", categoryId],
     queryFn: async () => {
-      const { data } = await supabase.from("categories").select("club_id").eq("id", categoryId).single();
+      const { data } = await supabase.from("categories").select("club_id, name").eq("id", categoryId).single();
       return data;
     },
   });
@@ -143,7 +143,7 @@ export function TestBatteriesManager({
                           if (fullErr) throw fullErr;
                           const { data: rows, error: rowsErr } = await supabase
                             .from("generic_tests")
-                            .select("id, player_id, test_date, result_value, result_unit, notes, test_type, players(id, name, first_name)")
+                            .select("id, player_id, test_date, result_value, result_unit, notes, test_type, players(id, name, first_name, avatar_url)")
                             .eq("category_id", categoryId)
                             .ilike("notes", `[Batterie: ${b.name}]%`)
                             .order("test_date", { ascending: false });
@@ -156,6 +156,7 @@ export function TestBatteriesManager({
                           await exportBatteryReportPdf({
                             batteryName: full.name,
                             batteryDescription: full.description,
+                            categoryName: (clubData as any)?.name || null,
                             levels: (full.levels as any) || undefined,
                             items: (full.items as any) || [],
                             rows: rows as any,
