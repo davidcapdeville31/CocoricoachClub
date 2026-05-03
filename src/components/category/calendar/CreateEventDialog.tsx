@@ -384,7 +384,7 @@ export function CreateEventDialog({
         <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
           {step === "type" ? (
             <div className="grid grid-cols-2 gap-3">
-              {EVENT_TYPES.map((event) => {
+              {eventTypes.map((event) => {
                 const Icon = event.icon;
                 return (
                   <Card
