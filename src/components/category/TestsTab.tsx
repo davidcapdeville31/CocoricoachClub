@@ -17,6 +17,7 @@ import { FolderPlus, Plus, ClipboardList } from "lucide-react";
 import { CreateCustomTestDialog } from "./tests/CreateCustomTestDialog";
 import { CreateThemeCategoryDialog } from "./tests/CreateThemeCategoryDialog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
+import { PlanTestsSection } from "./tests/PlanTestsSection";
 
 interface TestsTabProps {
   categoryId: string;
