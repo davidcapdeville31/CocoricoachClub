@@ -347,6 +347,79 @@ serve(async (req) => {
       return json({ success: true });
     }
 
+    // ─── SESSION GYM EXERCISES (for weight logging) ───
+    if (action === "session-exercises") {
+      const sessionId = url.searchParams.get("session_id");
+      if (!sessionId) return json({ success: false, error: "session_id manquant" }, 400);
+
+      const { data: sess } = await supabase
+        .from("training_sessions")
+        .select("id, category_id")
+        .eq("id", sessionId)
+        .single();
+      if (!sess || sess.category_id !== category_id) {
+        return json({ success: false, error: "Séance introuvable" }, 404);
+      }
+
+      const { data: exercises } = await supabase
+        .from("gym_session_exercises")
+        .select("id, exercise_name, exercise_category, sets, reps, weight_kg, method, set_type, order_index, player_id")
+        .eq("training_session_id", sessionId)
+        .or(`player_id.eq.${player_id},player_id.is.null`)
+        .order("order_index");
+
+      const { data: existing } = await supabase
+        .from("athlete_exercise_logs")
+        .select("exercise_name, actual_weight_kg, actual_sets, actual_reps, validation_status")
+        .eq("training_session_id", sessionId)
+        .eq("player_id", player_id);
+
+      return json({ success: true, exercises: exercises || [], existing: existing || [] });
+    }
+
+    // ─── SUBMIT WEIGHT LOGS (pending validation) ───
+    if (action === "submit-weight-logs" && req.method === "POST") {
+      const body = await req.json();
+      const { session_id, logs } = body as {
+        session_id?: string;
+        logs?: Array<{ exercise_name: string; actual_weight_kg: number; actual_sets: number; actual_reps: number }>;
+      };
+      if (!session_id || !Array.isArray(logs) || logs.length === 0) {
+        return json({ success: false, error: "Données manquantes" }, 400);
+      }
+
+      const { data: sess } = await supabase
+        .from("training_sessions")
+        .select("id, category_id")
+        .eq("id", session_id)
+        .single();
+      if (!sess || sess.category_id !== category_id) {
+        return json({ success: false, error: "Séance introuvable" }, 404);
+      }
+
+      const records = logs
+        .filter((l) => l.exercise_name && l.actual_weight_kg > 0 && l.actual_sets > 0 && l.actual_reps > 0)
+        .map((l) => ({
+          player_id,
+          category_id,
+          training_session_id: session_id,
+          exercise_name: l.exercise_name,
+          actual_weight_kg: l.actual_weight_kg,
+          actual_sets: l.actual_sets,
+          actual_reps: l.actual_reps,
+          submitted_by: player_id,
+          submitted_via: "athlete",
+          validation_status: "pending",
+        }));
+      if (records.length === 0) return json({ success: true, inserted: 0 });
+
+      const { error } = await supabase
+        .from("athlete_exercise_logs")
+        .upsert(records, { onConflict: "training_session_id,player_id,exercise_name" });
+      if (error) throw error;
+      return json({ success: true, inserted: records.length });
+    }
+
     // ─── SUBMIT MATCH STATS ───
     if (action === "submit-stats" && req.method === "POST") {
       const body = await req.json();
