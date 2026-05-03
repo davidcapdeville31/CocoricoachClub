@@ -824,6 +824,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
             <BatteryRadarCharts
               tests={tests}
               isViewer={isViewer}
+              categoryId={categoryId}
               onDelete={(id) => {
                 if (confirm("Êtes-vous sûr de vouloir supprimer ce test ?")) {
                   deleteTest.mutate(id);
