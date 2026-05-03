@@ -47,7 +47,20 @@ import {
 } from "@/lib/wellnessCalculations";
 import { calculateEWMASeries, transformToDailyLoadData } from "@/lib/trainingLoadCalculations";
 import { SessionFormDialog } from "./sessions/SessionFormDialog";
+import { EditAdminEventDialog, ADMIN_EVENT_TYPES } from "./calendar/EditAdminEventDialog";
 import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { AddWellnessDialog } from "./AddWellnessDialog";
