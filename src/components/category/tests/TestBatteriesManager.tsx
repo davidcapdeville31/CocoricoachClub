@@ -128,6 +128,48 @@ export function TestBatteriesManager({
                     <Button size="sm" className="flex-1 gap-1.5" onClick={() => setRunId(b.id)}>
                       <Play className="h-3.5 w-3.5" /> Lancer / Saisir des résultats
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      title="Exporter le rapport complet en PDF"
+                      onClick={async () => {
+                        const t = toast.loading("Génération du PDF...");
+                        try {
+                          const { data: full, error: fullErr } = await supabase
+                            .from("test_batteries")
+                            .select("name, description, levels, items:test_battery_items(test_name, max_points, test_category)")
+                            .eq("id", b.id)
+                            .single();
+                          if (fullErr) throw fullErr;
+                          const { data: rows, error: rowsErr } = await supabase
+                            .from("generic_tests")
+                            .select("id, player_id, test_date, result_value, result_unit, notes, test_type, players(id, name, first_name)")
+                            .eq("category_id", categoryId)
+                            .ilike("notes", `[Batterie: ${b.name}]%`)
+                            .order("test_date", { ascending: false });
+                          if (rowsErr) throw rowsErr;
+                          if (!rows || rows.length === 0) {
+                            toast.dismiss(t);
+                            toast.error("Aucun résultat à exporter");
+                            return;
+                          }
+                          await exportBatteryReportPdf({
+                            batteryName: full.name,
+                            batteryDescription: full.description,
+                            levels: (full.levels as any) || undefined,
+                            items: (full.items as any) || [],
+                            rows: rows as any,
+                          });
+                          toast.dismiss(t);
+                          toast.success("PDF généré");
+                        } catch (e: any) {
+                          toast.dismiss(t);
+                          toast.error(e.message || "Erreur lors de l'export");
+                        }
+                      }}
+                    >
+                      <FileDown className="h-3.5 w-3.5" />
+                    </Button>
                     <Button size="sm" variant="outline" onClick={() => openEdit(b.id)}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
