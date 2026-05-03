@@ -81,8 +81,6 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // "team" = documents d'équipe, or a player id
-  const [selectedTab, setSelectedTab] = useState<string>("team");
   // Assignee for the new document dialog ("team" or player id)
   const [assignee, setAssignee] = useState<string>("team");
 
@@ -274,13 +272,7 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
     }
   };
 
-  // Filter documents for current tab
-  const tabDocuments = documents?.filter((doc) => {
-    if (selectedTab === "team") return doc.player_id === null;
-    return doc.player_id === selectedTab;
-  });
-
-  const filteredDocuments = tabDocuments?.filter((doc) => {
+  const filteredDocuments = documents?.filter((doc) => {
     const matchesType = typeFilter === "all" || doc.document_type === typeFilter;
     return matchesType;
   });
@@ -288,18 +280,8 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
   const expiredDocs = documents?.filter((d) => d.status === "expired") || [];
   const expiringSoonDocs = documents?.filter((d) => d.status === "expiring_soon") || [];
 
-  const selectedPlayerName = selectedTab === "team"
-    ? "Équipe"
-    : (() => {
-        const p = players?.find((pl) => pl.id === selectedTab);
-        return p ? [p.first_name, p.name].filter(Boolean).join(" ") : "";
-      })();
 
-  // Count docs per player/team for badges
-  const getDocCount = (id: string) => {
-    if (id === "team") return documents?.filter((d) => d.player_id === null).length || 0;
-    return documents?.filter((d) => d.player_id === id).length || 0;
-  };
+
 
   return (
     <div className="space-y-6">
@@ -357,39 +339,8 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
         </div>
       )}
 
-      {/* Onglets athlètes */}
+      {/* Liste & ajout */}
       <div className="space-y-4">
-        <div className="flex flex-wrap gap-2 pb-2">
-          <Button
-            variant={selectedTab === "team" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedTab("team")}
-          >
-            <Users className="h-4 w-4 mr-1.5" />
-            Équipe
-            {getDocCount("team") > 0 && (
-              <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-[10px]">
-                {getDocCount("team")}
-              </Badge>
-            )}
-          </Button>
-          {players?.map((player) => (
-            <Button
-              key={player.id}
-              variant={selectedTab === player.id ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedTab(player.id)}
-            >
-              <User className="h-4 w-4 mr-1.5" />
-              {[player.first_name, player.name].filter(Boolean).join(" ")}
-              {getDocCount(player.id) > 0 && (
-                <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-[10px]">
-                  {getDocCount(player.id)}
-                </Badge>
-              )}
-            </Button>
-          ))}
-        </div>
 
         {/* Header avec filtre et bouton ajouter */}
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
@@ -409,7 +360,7 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
             </Select>
           </div>
 
-          <Button onClick={() => { resetForm(); setAssignee(selectedTab); setShowAddDialog(true); }}>
+          <Button onClick={() => { resetForm(); setAssignee("team"); setShowAddDialog(true); }}>
             <Plus className="h-4 w-4 mr-2" />
             Ajouter un document
           </Button>
@@ -559,7 +510,7 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
                 <FileText className="h-12 w-12 mx-auto mb-4 opacity-30" />
-                <p>Aucun document pour {selectedPlayerName}</p>
+                <p>Aucun document</p>
               </CardContent>
             </Card>
           ) : (
@@ -576,6 +527,13 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="font-medium truncate">{doc.title}</h4>
+                        <Badge variant="outline" className="text-xs gap-1">
+                          {doc.player_id ? (
+                            <><User className="h-3 w-3" />{doc.players ? [doc.players.first_name, doc.players.name].filter(Boolean).join(" ") : "Joueur"}</>
+                          ) : (
+                            <><Users className="h-3 w-3" />Équipe</>
+                          )}
+                        </Badge>
                         <Badge className={STATUS_COLORS[doc.status]}>
                           {STATUS_LABELS[doc.status]}
                         </Badge>
