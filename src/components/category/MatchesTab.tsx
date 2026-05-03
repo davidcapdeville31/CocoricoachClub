@@ -26,9 +26,10 @@ import { toast } from "sonner";
 interface MatchesTabProps {
   categoryId: string;
   sportType?: string;
+  view?: "all" | "gestion" | "stats";
 }
 
-export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
+export function MatchesTab({ categoryId, sportType, view = "all" }: MatchesTabProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isStatPrefsOpen, setIsStatPrefsOpen] = useState(false);
   const [showUpcoming, setShowUpcoming] = useState(true);
