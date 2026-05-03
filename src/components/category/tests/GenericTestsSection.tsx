@@ -119,7 +119,7 @@ function BatteryRadarCharts({
         ? Number(fullMatch[1].replace(",", "."))
         : legacyMatch ? Number(legacyMatch[1].replace(",", ".")) : 0;
       const maxFromNotes = fullMatch ? Number(fullMatch[2].replace(",", ".")) : 0;
-      const maxFromLookup = batteryItemsLookup?.[`${batteryName}::${baseTestName}`] ?? 0;
+      const maxFromLookup = batteryLookup?.maxPoints?.[`${batteryName}::${baseTestName}`] ?? 0;
       const maxPoints = maxFromNotes > 0 ? maxFromNotes : maxFromLookup;
 
       const playerName = test.players?.name || "Athlète";
