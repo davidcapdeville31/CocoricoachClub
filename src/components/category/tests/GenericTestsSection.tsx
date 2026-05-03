@@ -22,6 +22,15 @@ import {
 } from "@/components/ui/select";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Plus, Trash2, Filter, ClipboardList, CalendarPlus, FolderPlus, Pencil, Star, Copy, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  ResponsiveContainer,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  Tooltip as RTooltip,
+} from "recharts";
 import { CreateCustomTestDialog } from "./CreateCustomTestDialog";
 import { CreateThemeCategoryDialog } from "./CreateThemeCategoryDialog";
 import { EditCustomTestDialog, type EditableTest } from "./EditCustomTestDialog";
