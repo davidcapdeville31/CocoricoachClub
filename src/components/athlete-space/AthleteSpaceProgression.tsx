@@ -287,68 +287,77 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
 
       {/* Card "Ta progression" supprimée à la demande utilisateur */}
 
-      {/* Latest generic test results summary */}
-      {Object.keys(filteredLatestGeneric).length > 0 && (
-        <Card className="bg-gradient-card shadow-md">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <FlaskConical className="h-4 w-4 text-primary" />
-              Derniers résultats de tests
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
-              {Object.entries(filteredLatestGeneric).map(([key, test]) => {
-                const series = filteredGenericByType[key] || [];
-                let progression: { pct: number; positive: boolean } | null = null;
-                if (series.length >= 2) {
-                  const latest = series[series.length - 1].value;
-                  const previous = series[series.length - 2].value;
-                  if (previous !== 0) {
-                    const isTimeTest = test.unit === "s" || test.unit === "min";
-                    const rawPct = ((latest - previous) / Math.abs(previous)) * 100;
-                    // For time tests, a decrease is positive progression
-                    const positive = isTimeTest ? rawPct < 0 : rawPct > 0;
-                    progression = { pct: Math.abs(rawPct), positive };
-                  }
-                }
-                return (
-                  <div key={key} className="p-2 sm:p-3 rounded-lg bg-muted/30 text-center relative min-w-0">
-                    {progression && (
-                      <Badge
-                        variant="secondary"
-                        className={`absolute top-1 right-1 text-[8px] sm:text-[9px] px-1 sm:px-1.5 py-0 ${
-                          progression.positive ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
-                        }`}
-                      >
-                        {progression.positive ? "▲" : "▼"} {progression.pct.toFixed(1)}%
-                      </Badge>
-                    )}
-                    <p className="text-[9px] sm:text-[10px] text-muted-foreground/70 uppercase tracking-wide truncate">{test.categoryLabel}</p>
-                    <p className="text-[11px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1 truncate">{test.label}</p>
-                    <p className="text-sm sm:text-lg font-bold leading-tight">{test.value} <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">{test.unit}</span></p>
-                    <p className="text-[9px] sm:text-[10px] text-muted-foreground">
-                      {format(new Date(test.date), "dd MMM yy", { locale: fr })}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Battery radar charts */}
+      {/* Latest results + radar side-by-side */}
       {(() => {
         const batteryTests = genericTests.filter(t => /^\[Batterie:/i.test((t as any).notes || ""));
-        if (batteryTests.length === 0) return null;
+        const hasResults = Object.keys(filteredLatestGeneric).length > 0;
+        const hasRadar = batteryTests.length > 0;
+        if (!hasResults && !hasRadar) return null;
         return (
-          <BatteryRadarCharts
-            tests={batteryTests}
-            isViewer={true}
-            categoryId={categoryId}
-            onDelete={() => {}}
-          />
+          <div className={`grid gap-4 ${hasResults && hasRadar ? "lg:grid-cols-2" : "grid-cols-1"}`}>
+            {hasResults && (
+              <Card className="bg-gradient-card shadow-md">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <FlaskConical className="h-4 w-4 text-primary" />
+                    Derniers résultats de tests
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                    {Object.entries(filteredLatestGeneric).map(([key, test]) => {
+                      const series = filteredGenericByType[key] || [];
+                      let progression: { pct: number; positive: boolean } | null = null;
+                      if (series.length >= 2) {
+                        const latest = series[series.length - 1].value;
+                        const previous = series[series.length - 2].value;
+                        if (previous !== 0) {
+                          const isTimeTest = test.unit === "s" || test.unit === "min";
+                          const rawPct = ((latest - previous) / Math.abs(previous)) * 100;
+                          const positive = isTimeTest ? rawPct < 0 : rawPct > 0;
+                          progression = { pct: Math.abs(rawPct), positive };
+                        }
+                      }
+                      return (
+                        <div key={key} className="p-1.5 rounded-md bg-muted/30 text-center relative min-w-0">
+                          {progression && (
+                            <Badge
+                              variant="secondary"
+                              className={`absolute top-0.5 right-0.5 text-[7px] px-1 py-0 leading-tight ${
+                                progression.positive ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
+                              }`}
+                            >
+                              {progression.positive ? "▲" : "▼"} {progression.pct.toFixed(0)}%
+                            </Badge>
+                          )}
+                          <p className="text-[7px] text-muted-foreground/70 uppercase tracking-wide truncate">{test.categoryLabel}</p>
+                          <p className="text-[9px] text-muted-foreground truncate leading-tight">{test.label}</p>
+                          <p className="text-xs font-bold leading-tight">
+                            {test.value}
+                            <span className="text-[8px] font-normal text-muted-foreground ml-0.5">{test.unit}</span>
+                          </p>
+                          <p className="text-[7px] text-muted-foreground">
+                            {format(new Date(test.date), "dd MMM yy", { locale: fr })}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {hasRadar && (
+              <div>
+                <BatteryRadarCharts
+                  tests={batteryTests}
+                  isViewer={true}
+                  categoryId={categoryId}
+                  onDelete={() => {}}
+                />
+              </div>
+            )}
+          </div>
         );
       })()}
 
