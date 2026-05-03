@@ -603,7 +603,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
         
         return {
           sessionId: session.id,
-          sessionName: session.training_type,
+          sessionName: getTrainingTypeLabel(session.training_type),
           sessionTime: session.session_start_time?.slice(0, 5) || "",
           plannedIntensity: session.planned_intensity || 5,
           totalParticipants,
