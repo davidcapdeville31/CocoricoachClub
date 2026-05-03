@@ -938,6 +938,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         playerId={playerId}
                         value={testResultsInput}
                         onChange={setTestResultsInput}
+                        categoryId={categoryId}
+                        sessionDate={selectedSessionData?.session_date}
                       />
                     )}
 
