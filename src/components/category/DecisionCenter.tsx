@@ -1443,7 +1443,53 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
           }}
           categoryId={categoryId}
           editSession={editingSession}
-        />
+         />
+
+         {/* Edit Admin Event Dialog (medical, video, meeting) */}
+         <EditAdminEventDialog
+           open={!!editingAdminEvent}
+           onOpenChange={(open) => { if (!open) setEditingAdminEvent(null); }}
+           session={editingAdminEvent}
+         />
+
+         {/* Per-session notify dialog */}
+         {notifySession && (
+           <NotifyAthletesDialog
+             open={true}
+             onOpenChange={(open) => { if (!open) setNotifySession(null); }}
+             athletes={notifySession.athletes}
+             eventType="session"
+             defaultSubject={`Mise à jour : ${getTrainingTypeLabel(notifySession.session.training_type)}`}
+             eventDetails={{
+               date: notifySession.session.session_date,
+               time: notifySession.session.session_start_time?.slice(0, 5),
+             }}
+           />
+         )}
+
+         {/* Delete confirmation */}
+         <AlertDialog open={!!deleteSessionId} onOpenChange={(open) => { if (!open) setDeleteSessionId(null); }}>
+           <AlertDialogContent>
+             <AlertDialogHeader>
+               <AlertDialogTitle>Supprimer cette séance ?</AlertDialogTitle>
+               <AlertDialogDescription>
+                 La séance sera également retirée du calendrier des athlètes assignés. Cette action est irréversible.
+               </AlertDialogDescription>
+             </AlertDialogHeader>
+             <AlertDialogFooter>
+               <AlertDialogCancel>Annuler</AlertDialogCancel>
+               <AlertDialogAction
+                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                 onClick={() => {
+                   if (deleteSessionId) deleteSessionMutation.mutate(deleteSessionId);
+                   setDeleteSessionId(null);
+                 }}
+               >
+                 Supprimer
+               </AlertDialogAction>
+             </AlertDialogFooter>
+           </AlertDialogContent>
+         </AlertDialog>
 
         {/* Notify Athletes Dialog */}
         <NotifyAthletesDialog
