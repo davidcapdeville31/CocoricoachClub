@@ -423,7 +423,7 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
                 category_label: "Tests",
               },
             ]) as TestRef[];
-        const dates = generateSessionDates(r.start_date, r.frequency_weeks);
+        const dates = generateSessionDates(r.start_date, r.frequency_weeks, r.end_date);
         await createSessionsForTests(
           tests,
           dates,
