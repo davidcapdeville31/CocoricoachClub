@@ -206,7 +206,7 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
       .catch(() => {
         setExistingTestResults([]);
       });
-  }, [selectedSession, selectedSessionData?.training_type, token]);
+  }, [selectedSession, selectedSessionData?.training_type, token, refreshKey]);
 
   const handleSubmitTestResults = async () => {
     if (!selectedSession || selectedSessionData?.training_type !== "test") return;
