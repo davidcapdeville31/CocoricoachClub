@@ -370,8 +370,8 @@ function CategoryDetailsContent() {
                   value="programmation" 
                   colorKey="programmation"
                   icon={<FileCode className="h-5 w-5" />}
-                  label="Programmation"
-                  shortLabel="Prog"
+                  label="Entraînement"
+                  shortLabel="Entr."
                   tooltip="Création et structuration des programmes d'entraînement : blocs, semaines et séances types"
                 />
               )}
