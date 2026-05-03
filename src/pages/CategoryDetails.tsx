@@ -432,16 +432,6 @@ function CategoryDetailsContent() {
                   tooltip="Messagerie interne : échanges avec le staff et les athlètes, discussions de groupe"
                 />
               )}
-              {canSeeMenu("parametres") && (
-                <ColoredTabTrigger 
-                  value="settings" 
-                  colorKey="settings"
-                  icon={<Settings className="h-5 w-5" />}
-                  label="Paramètres"
-                  shortLabel="Param"
-                  tooltip="Configuration de la catégorie : membres, invitations, préférences et gestion des accès"
-                />
-              )}
             </ColoredNavTabsList>
           </div>
 
