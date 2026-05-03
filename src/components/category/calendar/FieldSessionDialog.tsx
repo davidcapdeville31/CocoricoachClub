@@ -131,22 +131,54 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
   const isBowling = isBowlingSport(sportType);
   const isRugby = isRugbyType(sportType || "");
 
-  // Theme options (value + label). For bowling, include bowling-specific training types so we can store the exact training_type (e.g. "bowling_spare").
+  const [customThemes, setCustomThemes] = useState<string[]>(() => loadCustomThemes(categoryId));
+  const [newCustomTheme, setNewCustomTheme] = useState("");
+
+  // Theme options (value + label). For bowling, include bowling-specific training types.
   const themeOptions = useMemo(() => {
+    const filterOut = (o: { value: string; label: string }) =>
+      !EXCLUDED_THEME_VALUES.has(o.value) && !EXCLUDED_THEME_LABELS.has(o.label);
+
     if (isBowling) {
       const sportTypes = getTrainingTypesForSport(sportType);
       const bowlingTypes = sportTypes
         .filter((t) => t.value.startsWith("bowling_"))
         .map((t) => ({ value: t.value, label: t.label }));
       const generics = GENERIC_THEMES.map((t) => ({ value: t, label: t }));
-      // Bowling first
-      const all = [...bowlingTypes, ...generics];
+      const customs = customThemes.map((t) => ({ value: t, label: t }));
+      const all = [...bowlingTypes, ...generics, ...customs].filter(filterOut);
       const seen = new Set<string>();
       return all.filter((o) => (seen.has(o.value) ? false : (seen.add(o.value), true)));
     }
-    const sportLabels = getTrainingTypesForSport(sportType).map((t) => t.label);
-    return Array.from(new Set([...GENERIC_THEMES, ...sportLabels])).map((t) => ({ value: t, label: t }));
-  }, [sportType, isBowling]);
+    const sportLabels = getTrainingTypesForSport(sportType)
+      .filter((t) => filterOut({ value: t.value, label: t.label }))
+      .map((t) => t.label);
+    return Array.from(new Set([...GENERIC_THEMES, ...sportLabels, ...customThemes])).map((t) => ({
+      value: t,
+      label: t,
+    }));
+  }, [sportType, isBowling, customThemes]);
+
+  const addCustomTheme = () => {
+    const v = newCustomTheme.trim();
+    if (!v) return;
+    if (customThemes.includes(v) || GENERIC_THEMES.includes(v)) {
+      setNewCustomTheme("");
+      return;
+    }
+    const next = [...customThemes, v];
+    setCustomThemes(next);
+    saveCustomThemes(categoryId, next);
+    setNewCustomTheme("");
+    toast.success(`Thématique « ${v} » ajoutée`);
+  };
+
+  const removeCustomTheme = (t: string) => {
+    const next = customThemes.filter((x) => x !== t);
+    setCustomThemes(next);
+    saveCustomThemes(categoryId, next);
+  };
+
 
   const { data: players } = useQuery({
     queryKey: ["players-field-session", categoryId],
