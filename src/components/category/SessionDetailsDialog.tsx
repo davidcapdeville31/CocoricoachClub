@@ -218,6 +218,24 @@ export function SessionDetailsDialog({
     return groups;
   }, [exercises]);
 
+  // Group exercise groups by V2 builder block (echauffement, musculation, course, etc.)
+  const blocksGrouped = useMemo(() => {
+    if (!exerciseGroups.length) return [] as Array<{ key: string; type: string; name: string; groups: ExerciseGroup[] }>;
+    const order: string[] = [];
+    const map = new Map<string, { key: string; type: string; name: string; groups: ExerciseGroup[] }>();
+    exerciseGroups.forEach((g) => {
+      const firstEx = g.exercises[0]?.exercise;
+      const tag = parseV2BlockTag(firstEx?.notes);
+      const key = tag ? `${tag.type}|${tag.name}` : "__none__";
+      if (!map.has(key)) {
+        order.push(key);
+        map.set(key, { key, type: tag?.type || "", name: tag?.name || "", groups: [] });
+      }
+      map.get(key)!.groups.push(g);
+    });
+    return order.map((k) => map.get(k)!);
+  }, [exerciseGroups]);
+
   // Fetch players
   const { data: players } = useQuery({
     queryKey: ["players", categoryId],
