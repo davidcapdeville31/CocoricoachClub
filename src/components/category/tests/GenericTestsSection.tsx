@@ -61,9 +61,9 @@ function BatteryRadarCharts({
 }) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
-  // Lookup max_points from battery definitions to recover when notes lack /max (legacy format)
-  const { data: batteryItemsLookup } = useQuery({
-    queryKey: ["battery_items_lookup", categoryId],
+  // Lookup max_points and levels from battery definitions
+  const { data: batteryLookup } = useQuery({
+    queryKey: ["battery_lookup", categoryId],
     queryFn: async () => {
       const { data: cat } = await supabase
         .from("categories")
@@ -71,20 +71,22 @@ function BatteryRadarCharts({
         .eq("id", categoryId)
         .single();
       const clubId = (cat as any)?.club_id;
-      if (!clubId) return {} as Record<string, number>;
+      if (!clubId) return { maxPoints: {} as Record<string, number>, levels: {} as Record<string, any[]> };
       const { data } = await supabase
         .from("test_batteries")
-        .select("name, items:test_battery_items(test_name, max_points)")
+        .select("name, levels, items:test_battery_items(test_name, max_points)")
         .eq("club_id", clubId);
-      const map: Record<string, number> = {};
+      const maxPoints: Record<string, number> = {};
+      const levels: Record<string, any[]> = {};
       (data || []).forEach((b: any) => {
+        if (Array.isArray(b.levels)) levels[b.name] = b.levels;
         (b.items || []).forEach((it: any) => {
           if (it.test_name && it.max_points != null) {
-            map[`${b.name}::${it.test_name}`] = Number(it.max_points);
+            maxPoints[`${b.name}::${it.test_name}`] = Number(it.max_points);
           }
         });
       });
-      return map;
+      return { maxPoints, levels };
     },
   });
 
