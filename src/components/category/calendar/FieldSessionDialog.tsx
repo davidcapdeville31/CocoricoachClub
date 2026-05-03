@@ -364,6 +364,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                         </Select>
                       </div>
                     </div>
+                    )}
                     {b.theme === "bowling_spare" && (
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">
