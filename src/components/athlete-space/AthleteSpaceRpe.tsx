@@ -1043,8 +1043,13 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
               </div>
             ))}
           </CardContent>
-        </Card>
-      ) : (
+            </Card>
+          )}
+        </div>
+      )}
+
+      {pendingSessions.length === 0 && (
+
         <div className={cn(
           "grid gap-4",
           Object.keys(upcomingByDate).length > 0 ? "md:grid-cols-2" : "grid-cols-1"
