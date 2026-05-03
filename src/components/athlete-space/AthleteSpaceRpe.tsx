@@ -645,6 +645,36 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* Informational sessions (no RPE possible) */}
+      {infoTodaySessions.length > 0 && (
+        <Card className="bg-sky-50/50 dark:bg-sky-950/20 border-sky-200 dark:border-sky-900/40">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2 text-sky-800 dark:text-sky-300">
+              <Activity className="h-4 w-4" />
+              À ton agenda aujourd'hui (informatif)
+            </CardTitle>
+            <CardDescription>Ces évènements n'ont pas de RPE à saisir.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {infoTodaySessions.map((s) => (
+                <div key={s.id} className="p-3 rounded-lg border bg-background/60 flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-sm">{getTrainingTypeLabel(s.training_type)}</span>
+                    {s.session_start_time && (
+                      <span className="text-xs text-muted-foreground">
+                        • {s.session_start_time.slice(0,5)}{s.session_end_time ? ` – ${s.session_end_time.slice(0,5)}` : ""}
+                      </span>
+                    )}
+                  </div>
+                  {renderSessionNotes(s.notes)}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Today: Pending sessions */}
       {pendingSessions.length > 0 ? (
         <Card className="bg-gradient-card shadow-md border-accent/30">
