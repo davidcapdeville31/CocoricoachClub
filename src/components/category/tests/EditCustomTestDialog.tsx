@@ -426,7 +426,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
             <div>
               <Label className="text-sm font-semibold cursor-pointer">Test bilatéral (côté droit + côté gauche)</Label>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Saisissez deux résultats par athlète (D et G). Le score total est doublé{enableScoring && scoringScale ? ` (max ${(scoringScale.ranges.reduce((m, r) => Math.max(m, r.points), 0)) * 2} pts).` : "."}
+                Saisissez deux résultats par athlète (D et G). Le score total est l'addition des deux côtés{enableScoring && scoringScale ? ` (max ${Math.max(scoringScale.ranges.reduce((m, r) => Math.max(m, r.points), 0), ...(scoringScale.variants ?? []).map(v => (v.ranges ?? []).reduce((m, r) => Math.max(m, r.points), 0))) * 2} pts au total).` : "."}
               </p>
             </div>
             <Switch checked={bilateral} onCheckedChange={setBilateral} />
