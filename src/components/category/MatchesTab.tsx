@@ -347,19 +347,8 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="stats">
-          {isBowling ? (
-            <BowlingCumulativeStats categoryId={categoryId} />
-          ) : (
-            <PlayerCumulativeStats categoryId={categoryId} sportType={sportType} />
-          )}
-        </TabsContent>
-
-
-
-      </Tabs>
+        </div>
+      </div>
 
       <AddMatchCalendarDialog
         open={isAddDialogOpen}
