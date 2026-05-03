@@ -198,9 +198,10 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
       if (!unitKind) throw new Error("Choisissez une unité de mesure");
       if (unitKind === "custom" && !customUnit.trim()) throw new Error("Saisissez l'unité personnalisée");
 
-      const maxPoints = enableScoring && scoringScale
+      const baseMaxPoints = enableScoring && scoringScale
         ? scoringScale.ranges.reduce((m, r) => Math.max(m, r.points), 0)
         : null;
+      const maxPoints = baseMaxPoints != null ? baseMaxPoints * (bilateral ? 2 : 1) : null;
 
       const payload: any = {
         name: trimmedName,
@@ -215,6 +216,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
         image_url: imageUrl,
         video_url: videoUrl.trim() || null,
         formula_config: formulaConfig?.enabled ? (formulaConfig as any) : null,
+        bilateral,
       };
 
       if (test.source === "custom" && test.id) {
