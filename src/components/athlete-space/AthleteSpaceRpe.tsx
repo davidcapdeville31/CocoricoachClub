@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { GroupedExerciseList } from "@/components/category/GroupedExerciseList";
 import { PrecisionExerciseSelector } from "@/components/precision/PrecisionExerciseSelector";
 import { AthletePrecisionFieldInput } from "./AthletePrecisionFieldInput";
+import { AthleteFieldBlocksRpe } from "./AthleteFieldBlocksRpe";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { RUGBY_PRECISION_EXERCISES, EXERCISE_CATEGORIES } from "@/lib/constants/rugbyPrecisionExercises";
 import { resolveSessionExerciseRows } from "@/lib/utils/sessionExercises";
@@ -662,6 +663,15 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
 
                 {selectedSession === session.id && (
                   <div className="mt-3 p-4 rounded-lg bg-muted/30 space-y-4">
+                    {session.training_type === "terrain" ? (
+                      <AthleteFieldBlocksRpe
+                        sessionId={session.id}
+                        playerId={playerId}
+                        categoryId={categoryId}
+                        onAllSubmitted={() => setSelectedSession(null)}
+                      />
+                    ) : (
+                    <>
                     <div>
                       <Label className="text-sm">Ressenti (RPE)</Label>
                       <div className="mt-2">
@@ -968,6 +978,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                       <CheckCircle2 className="h-4 w-4 mr-2" />
                       {isPrecisionSession ? "Valider mon RPE et mes stats" : "Valider mon RPE"}
                     </Button>
+                    </>
+                    )}
                   </div>
                 )}
               </div>

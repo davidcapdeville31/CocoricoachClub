@@ -34,7 +34,7 @@ interface CreateEventDialogProps {
   categoryId: string;
   onAddSession: () => void;
   onAddMatch: () => void;
-  onSelectExternalType?: (type: "session" | "match" | "test") => void;
+  onSelectExternalType?: (type: "session" | "match" | "test" | "field_session") => void;
 }
 
 const EVENT_TYPES = [
@@ -58,7 +58,7 @@ const EVENT_TYPES = [
     iconBgColor: "bg-lime-100 dark:bg-lime-500/15",
     accentBorderColor: "border-l-lime-500",
     hoverBorderColor: "hover:border-lime-400 dark:hover:border-lime-500",
-    useExistingDialog: false,
+    useExistingDialog: true,
   },
   {
     id: "match",
@@ -175,8 +175,11 @@ export function CreateEventDialog({
     const eventType = EVENT_TYPES.find(t => t.id === typeId);
 
     if (eventType?.useExistingDialog && onSelectExternalType) {
-      const action: "session" | "match" | "test" =
-        typeId === "test" ? "test" : typeId === "match" ? "match" : "session";
+      const action: "session" | "match" | "test" | "field_session" =
+        typeId === "test" ? "test"
+          : typeId === "match" ? "match"
+          : typeId === "field_session" ? "field_session"
+          : "session";
       resetForm();
       onSelectExternalType(action);
     } else if (eventType?.useExistingDialog) {
