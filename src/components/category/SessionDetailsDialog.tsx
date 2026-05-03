@@ -34,6 +34,7 @@ import { TennisDrillTraining } from "@/components/tennis/TennisDrillTraining";
 import { PrecisionFieldTracker } from "@/components/rugby/PrecisionFieldTracker";
 import { RUGBY_PRECISION_EXERCISES, EXERCISE_CATEGORIES } from "@/lib/constants/rugbyPrecisionExercises";
 import { isRugbyType } from "@/lib/constants/sportTypes";
+import { LinkedMethodSlots, type LinkedMethodType } from "@/components/program-builder-v2/LinkedMethodSlots";
 interface SessionDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -523,10 +524,43 @@ export function SessionDetailsDialog({
       return renderExerciseCard(exercise, index, false);
     }
 
-    // Grouped exercises (superset, circuit, etc.)
+    // Grouped linked methods (Superset, Biset, Triset, Giant Set, Bulgarian, Combiné Haltéro)
+    // → reuse the same visual as the session builder, in read-only mode.
+    const linkedMethods = ["superset", "biset", "triset", "giant_set", "bulgarian", "combine_haltero"];
+    if (linkedMethods.includes(group.method)) {
+      const slotted = group.exercises.map(({ exercise: ex }, idx) => ({
+        id: ex.id || `ro-${groupIdx}-${idx}`,
+        exerciseId: ex.library_exercise_id || ex.id || `ro-${groupIdx}-${idx}`,
+        exerciseName: ex.exercise_name,
+        stationName: ex.exercise_name,
+        slotIndex: idx,
+        params: {
+          sets: ex.sets,
+          reps: ex.reps,
+          percentage: ex.percentage_1rm,
+          tempo: ex.tempo,
+          rest: ex.rest_seconds,
+        },
+      }));
+      const restSeconds = group.exercises[0]?.exercise?.rest_seconds ?? undefined;
+      return (
+        <LinkedMethodSlots
+          key={group.groupId}
+          method={group.method as LinkedMethodType}
+          slottedExercises={slotted}
+          onRemoveFromSlot={() => undefined}
+          onUpdateParams={() => undefined}
+          onConfirm={() => undefined}
+          onCancel={() => undefined}
+          dayId={`preview-${group.groupId}`}
+          defaultEditing={false}
+          methodRestSeconds={restSeconds}
+        />
+      );
+    }
+
+    // Other grouped exercises (circuit, drop_set, etc.) → keep the previous compact card.
     const styleConfig = getTrainingStyleConfig(group.method);
-    const isLinkable = isLinkableMethod(group.method) || isCardioBlockMethod(group.method);
-    
     return (
       <div
         key={group.groupId}
@@ -536,7 +570,6 @@ export function SessionDetailsDialog({
           styleConfig.bgColor
         )}
       >
-        {/* Group header */}
         <div className="flex items-center gap-2 mb-2">
           <Badge className={cn("text-white", styleConfig.color || "bg-primary")}>
             {setTypeLabels[group.method] || styleConfig.label || group.method}
@@ -545,10 +578,8 @@ export function SessionDetailsDialog({
             {group.exercises.length} exercices liés
           </span>
         </div>
-        
-        {/* Exercises in the group */}
         <div className="space-y-2">
-          {group.exercises.map(({ exercise, index }, exIdx) => 
+          {group.exercises.map(({ exercise, index }, exIdx) =>
             renderExerciseCard(exercise, index, true, exIdx + 1)
           )}
         </div>
