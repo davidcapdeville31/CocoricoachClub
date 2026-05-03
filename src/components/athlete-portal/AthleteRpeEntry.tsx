@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { Activity, Calendar, Clock, CheckCircle2, Loader2, Target } from "lucide-react";
+import { Activity, Calendar, Clock, CheckCircle2, Loader2, Target, Info } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -232,11 +232,62 @@ export function AthleteRpeEntry({ token, playerId, categoryId, sportType, onRefr
     );
   }
 
-  const pendingSessions = sessions.filter(s => !completedSessionIds.has(s.id));
-  const completedSessions = sessions.filter(s => completedSessionIds.has(s.id));
+  // Types informatifs : pas de RPE, juste affichage
+  const NON_RPE_TYPES = new Set([
+    "medical",
+    "video",
+    "video_analyse",
+    "reunion",
+    "surf_video",
+  ]);
+  const isNonRpe = (s: Session) => NON_RPE_TYPES.has(s.training_type);
+  const pendingSessions = sessions.filter(s => !completedSessionIds.has(s.id) && !isNonRpe(s));
+  const infoSessions = sessions.filter(s => isNonRpe(s));
+  const completedSessions = sessions.filter(s => completedSessionIds.has(s.id) && !isNonRpe(s));
 
   return (
     <div className="space-y-6">
+      {/* Informational sessions (no RPE) */}
+      {infoSessions.length > 0 && (
+        <Card className="border-sky-200 dark:border-sky-900/40 bg-sky-50/50 dark:bg-sky-950/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base text-sky-800 dark:text-sky-300">
+              <Info className="h-4 w-4" />
+              À ton agenda (informatif)
+            </CardTitle>
+            <CardDescription>
+              Ces évènements n'ont pas de RPE à saisir.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {infoSessions.map((s) => (
+                <div
+                  key={s.id}
+                  className="p-3 rounded-lg bg-background/60 border flex items-center justify-between flex-wrap gap-2"
+                >
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium text-sm">
+                        {format(parseISO(s.session_date), "EEEE d MMMM", { locale: fr })}
+                      </p>
+                      {s.session_start_time && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {s.session_start_time}{s.session_end_time ? ` - ${s.session_end_time}` : ""}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Badge variant="outline">{getTrainingTypeLabel(s.training_type)}</Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Pending Sessions */}
       <Card>
         <CardHeader>
