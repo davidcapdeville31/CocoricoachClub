@@ -8,6 +8,7 @@ export interface SessionBlock {
   block_order: number;
   start_time?: string;
   end_time?: string;
+  duration_minutes?: number | null;
   training_type: string;
   intensity?: number | null;
   notes?: string;
