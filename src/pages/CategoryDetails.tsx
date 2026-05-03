@@ -369,8 +369,8 @@ function CategoryDetailsContent() {
                   value="performance" 
                   colorKey="performance"
                   icon={<Zap className="h-5 w-5" />}
-                  label="Data"
-                  shortLabel="Data"
+                  label="Workload"
+                  shortLabel="Workload"
                   tooltip="Monitoring de la charge (EWMA/AWCR), suivi HRV, préparation physique et évolution des tests"
                 />
               )}
