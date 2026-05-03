@@ -533,6 +533,20 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                       <CalendarPlus className="h-3 w-3" /> Planifier
                     </span>
                   )}
+                  {!isViewer && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        duplicateTest.mutate(t);
+                      }}
+                      className="inline-flex items-center gap-1 rounded-lg border border-muted-foreground/30 bg-muted hover:bg-muted/70 px-2 py-0.5 text-[11px] text-foreground"
+                      title="Dupliquer ce test"
+                    >
+                      <Copy className="h-3 w-3" /> Dupliquer
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
