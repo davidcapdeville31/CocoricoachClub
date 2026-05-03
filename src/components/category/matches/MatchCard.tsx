@@ -801,7 +801,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
           onOpenChange={setIsStatsOpen}
           matchId={match.id}
           categoryId={categoryId}
-          sportType={category?.rugby_type || "XV"}
+          sportType={sportType}
         />
       )}
 
