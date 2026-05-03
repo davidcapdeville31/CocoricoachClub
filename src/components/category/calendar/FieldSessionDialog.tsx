@@ -264,7 +264,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                         <Trash2 className="h-3.5 w-3.5 text-destructive" />
                       </Button>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px] gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-[1fr_110px_120px] gap-2">
                       <Select
                         value={b.theme}
                         onValueChange={(v) => {
@@ -285,8 +285,23 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                           min={1}
                           value={b.duration_minutes}
                           onChange={(e) => updateBlock(b.id, { duration_minutes: parseInt(e.target.value) || 0 })}
+                          title="Durée en minutes"
                         />
                         <span className="text-xs text-muted-foreground">min</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type="number"
+                          min={1}
+                          max={10}
+                          value={b.intensity}
+                          onChange={(e) => {
+                            const v = parseInt(e.target.value) || 0;
+                            updateBlock(b.id, { intensity: Math.max(0, Math.min(10, v)) });
+                          }}
+                          title="RPE prévu (1-10)"
+                        />
+                        <span className="text-xs text-muted-foreground">RPE</span>
                       </div>
                     </div>
                     {b.theme === "bowling_spare" && (
