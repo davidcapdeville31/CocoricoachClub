@@ -28,6 +28,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
     Brain,
     FileWarning,
     Pencil,
+    Trash2,
     Bell,
     User,
     ChevronRight,
