@@ -646,7 +646,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                     {`Épreuves (${roundsCount || 0})`}
                   </Button>
                 ) : (
-                  <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onClick={() => setIsRoundsOpen(true)}>
+                  <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start relative z-10" onClick={(e) => { e.stopPropagation(); e.preventDefault(); setIsRoundsOpen(true); }}>
                     <Swords className="h-3.5 w-3.5" />
                     {sportType.toLowerCase().includes("judo") ? `Combats (${roundsCount || 0})` : 
                      sportType.toLowerCase().includes("bowling") ? `Parties (${roundsCount || 0})` : 
@@ -655,13 +655,13 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                      `Épreuves (${roundsCount || 0})`}
                   </Button>
                 )}
-                <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onClick={() => setIsAggregatedStatsOpen(true)}>
+                <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start relative z-10" onClick={(e) => { e.stopPropagation(); e.preventDefault(); setIsAggregatedStatsOpen(true); }}>
                   <BarChart3 className="h-3.5 w-3.5" />
                   Statistiques
                 </Button>
               </>
             ) : (
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onClick={() => setIsStatsOpen(true)}>
+              <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start relative z-10" onClick={(e) => { e.stopPropagation(); e.preventDefault(); setIsStatsOpen(true); }}>
                 <BarChart3 className="h-3.5 w-3.5" />
                 Statistiques
               </Button>
