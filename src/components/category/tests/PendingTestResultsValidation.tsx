@@ -55,6 +55,7 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
       qc.invalidateQueries({ queryKey: ["pending-test-results", categoryId] });
       qc.invalidateQueries({ queryKey: ["pending-test-results-count", categoryId] });
       qc.invalidateQueries({ queryKey: ["generic_tests"] });
+      qc.invalidateQueries({ queryKey: ["generic-tests-evolution", categoryId] });
     },
     onError: (e: any) => toast.error(e?.message || "Erreur"),
   });
