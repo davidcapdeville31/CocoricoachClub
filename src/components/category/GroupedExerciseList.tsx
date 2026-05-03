@@ -102,6 +102,9 @@ export function GroupedExerciseList({
     const processedGroupIds = new Set<string>();
 
     exercises.forEach((exercise, index) => {
+      const resolvedMethod =
+        (exercise.method && exercise.method !== "normal" ? exercise.method : null) ||
+        (exercise.set_type && !["normal", "standard"].includes(exercise.set_type) ? exercise.set_type : null);
       if (exercise.group_id) {
         if (!processedGroupIds.has(exercise.group_id)) {
           processedGroupIds.add(exercise.group_id);
@@ -113,14 +116,14 @@ export function GroupedExerciseList({
           groups.push({
             groupId: exercise.group_id,
             exercises: groupExercises,
-            method: exercise.set_type || exercise.method || "superset",
+            method: resolvedMethod || "superset",
           });
         }
       } else {
         groups.push({
           groupId: null,
           exercises: [{ exercise, index }],
-          method: exercise.set_type || exercise.method || "normal",
+          method: resolvedMethod || "normal",
         });
       }
     });
