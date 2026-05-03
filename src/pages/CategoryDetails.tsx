@@ -238,7 +238,7 @@ function CategoryDetailsContent() {
               <span className="hidden sm:inline text-white">
                 {isPublicAccess ? "Retour" : "Retour aux catégories"}
               </span>
-              <span className="sm:hidden">Retour</span>
+              <span className="sm:hidden text-white">Retour</span>
             </Button>
             {!isViewer && (
               <div className="flex items-center gap-2 self-end sm:self-auto">
