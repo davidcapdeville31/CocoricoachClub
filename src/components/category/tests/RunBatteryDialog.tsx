@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -30,10 +31,28 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
   const queryClient = useQueryClient();
   const [playerId, setPlayerIdState] = useState<string>("");
   const [resultsByPlayer, setResultsByPlayer] = useState<Record<string, Record<string, string>>>({});
+  const [injuredByPlayer, setInjuredByPlayer] = useState<Record<string, Record<string, boolean>>>({});
   const [savedPlayerIds, setSavedPlayerIds] = useState<Set<string>>(new Set());
   const setResults = (updater: (prev: Record<string, string>) => Record<string, string>) => {
     if (!playerId) return;
     setResultsByPlayer(prev => ({ ...prev, [playerId]: updater(prev[playerId] || {}) }));
+  };
+  const toggleInjured = (itemId: string, value: boolean) => {
+    if (!playerId) return;
+    setInjuredByPlayer(prev => ({
+      ...prev,
+      [playerId]: { ...(prev[playerId] || {}), [itemId]: value },
+    }));
+    if (value) {
+      // Clear any entered values for this item when marking as injured
+      setResultsByPlayer(prev => {
+        const cur = { ...(prev[playerId] || {}) };
+        delete cur[itemId];
+        delete cur[`${itemId}__R`];
+        delete cur[`${itemId}__L`];
+        return { ...prev, [playerId]: cur };
+      });
+    }
   };
   const setPlayerId = (id: string) => setPlayerIdState(id);
   const [savedDate] = useState(() => new Date().toISOString().split("T")[0]);
@@ -134,7 +153,21 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     return mapped;
   }, [battery?.items, savedRows]);
 
+  const savedInjured = useMemo(() => {
+    const mapped: Record<string, boolean> = {};
+    (battery?.items || []).forEach((it: any) => {
+      const baseTestType = buildBaseTestType(it.test_name);
+      const found = savedRows.find((row: any) =>
+        (row.test_type === baseTestType || row.test_type === `${baseTestType}__right` || row.test_type === `${baseTestType}__left`) &&
+        typeof row.notes === "string" && row.notes.includes("[BLESSÉ]")
+      );
+      if (found) mapped[it.id] = true;
+    });
+    return mapped;
+  }, [battery?.items, savedRows]);
+
   const results = resultsByPlayer[playerId] ?? savedResults;
+  const injured = injuredByPlayer[playerId] ?? savedInjured;
 
   const sportType = (categoryInfo as any)?.sport_type as string | undefined;
   const categoryGender = (categoryInfo as any)?.gender as string | undefined;
@@ -208,6 +241,19 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     const rows: any[] = [];
     (battery.items as any[]).forEach((it) => {
       const baseTestType = buildBaseTestType(it.test_name);
+      if (injured[it.id]) {
+        rows.push({
+          player_id: playerId,
+          category_id: categoryId,
+          test_category: it.test_category,
+          test_type: baseTestType,
+          result_value: null,
+          result_unit: it.unit || null,
+          test_date: savedDate,
+          notes: `[Batterie: ${battery.battery.name}] [BLESSÉ] Test: ${it.test_name} · Non réalisé (blessure) · Score 0/${it.max_points} pts`,
+        });
+        return;
+      }
       if (it.bilateral) {
         const rawR = results[`${it.id}__R`];
         const rawL = results[`${it.id}__L`];
@@ -309,24 +355,43 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
           <div className="space-y-2 py-2">
             {(battery.items as any[]).map((it, idx) => {
               const r = perItem[it.id];
+              const isInjured = !!injured[it.id];
               return (
-                <div key={it.id} className="rounded-2xl border bg-muted/30 p-3 space-y-2">
+                <div key={it.id} className={`rounded-2xl border bg-muted/30 p-3 space-y-2 ${isInjured ? "opacity-70 border-destructive/40" : ""}`}>
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-semibold truncate">
-                        {idx + 1}. {it.test_name}
+                      <div className="text-sm font-semibold truncate flex items-center gap-2">
+                        <span>{idx + 1}. {it.test_name}</span>
                         {it.bilateral && (
-                          <Badge variant="outline" className="ml-2 text-[10px]">Bilatéral</Badge>
+                          <Badge variant="outline" className="text-[10px]">Bilatéral</Badge>
+                        )}
+                        {isInjured && (
+                          <Badge variant="destructive" className="text-[10px]">Blessé</Badge>
                         )}
                       </div>
                       <div className="text-xs text-muted-foreground truncate">
                         {it.test_category} • Max {it.max_points} pts
                       </div>
                     </div>
-                    <Badge variant={r?.points ? "default" : "secondary"}>
-                      {r?.points ?? 0} / {it.max_points} pts
-                    </Badge>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground cursor-pointer select-none">
+                        <Checkbox
+                          checked={isInjured}
+                          onCheckedChange={(v) => toggleInjured(it.id, !!v)}
+                        />
+                        Blessé
+                      </label>
+                      <Badge variant={r?.points ? "default" : "secondary"}>
+                        {r?.points ?? 0} / {it.max_points} pts
+                      </Badge>
+                    </div>
                   </div>
+                  {isInjured ? (
+                    <div className="text-xs italic text-muted-foreground px-1">
+                      Test non réalisé (blessure). Aucun score comptabilisé.
+                    </div>
+                  ) : (
+                  <>
                   {it.bilateral ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div className="space-y-1">
@@ -378,6 +443,8 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
                         <Badge variant="outline" className="shrink-0">{r.matchedLabel}</Badge>
                       )}
                     </div>
+                  )}
+                  </>
                   )}
                 </div>
               );
