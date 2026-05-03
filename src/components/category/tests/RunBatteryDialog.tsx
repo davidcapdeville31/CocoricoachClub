@@ -220,7 +220,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
             result_value: parseFloat(rawR),
             result_unit: it.unit || null,
             test_date: savedDate,
-            notes: `[Batterie: ${battery.battery.name}] Test: ${it.test_name} (Droit) · Score ${perItem[it.id]?.pointsR ?? 0} pts`,
+            notes: `[Batterie: ${battery.battery.name}] Test: ${it.test_name} (Droit) · Score ${perItem[it.id]?.pointsR ?? 0}/${it.max_points} pts`,
           });
         }
         if (rawL !== undefined && rawL !== "") {
@@ -232,7 +232,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
             result_value: parseFloat(rawL),
             result_unit: it.unit || null,
             test_date: savedDate,
-            notes: `[Batterie: ${battery.battery.name}] Test: ${it.test_name} (Gauche) · Score ${perItem[it.id]?.pointsL ?? 0} pts`,
+            notes: `[Batterie: ${battery.battery.name}] Test: ${it.test_name} (Gauche) · Score ${perItem[it.id]?.pointsL ?? 0}/${it.max_points} pts`,
           });
         }
       } else if (results[it.id] !== undefined && results[it.id] !== "") {

@@ -51,13 +51,42 @@ interface GenericTestsSectionProps {
 function BatteryRadarCharts({
   tests,
   isViewer,
+  categoryId,
   onDelete,
 }: {
   tests: any[];
   isViewer: boolean;
+  categoryId: string;
   onDelete: (id: string) => void;
 }) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
+  // Lookup max_points from battery definitions to recover when notes lack /max (legacy format)
+  const { data: batteryItemsLookup } = useQuery({
+    queryKey: ["battery_items_lookup", categoryId],
+    queryFn: async () => {
+      const { data: cat } = await supabase
+        .from("categories")
+        .select("club_id")
+        .eq("id", categoryId)
+        .single();
+      const clubId = (cat as any)?.club_id;
+      if (!clubId) return {} as Record<string, number>;
+      const { data } = await supabase
+        .from("test_batteries")
+        .select("name, items:test_battery_items(test_name, max_points)")
+        .eq("club_id", clubId);
+      const map: Record<string, number> = {};
+      (data || []).forEach((b: any) => {
+        (b.items || []).forEach((it: any) => {
+          if (it.test_name && it.max_points != null) {
+            map[`${b.name}::${it.test_name}`] = Number(it.max_points);
+          }
+        });
+      });
+      return map;
+    },
+  });
 
   const groups = useMemo(() => {
     type Item = { id: string; testName: string; points: number; maxPoints: number; resultValue: any; resultUnit: any };
@@ -77,9 +106,20 @@ function BatteryRadarCharts({
       if (!battMatch) continue;
       const batteryName = battMatch[1].trim();
       const testNameMatch = notes.match(/Test:\s*(.+?)\s*·/i);
-      const scoreMatch = notes.match(/Score\s+(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)/i);
-      const points = scoreMatch ? Number(scoreMatch[1].replace(",", ".")) : 0;
-      const maxPoints = scoreMatch ? Number(scoreMatch[2].replace(",", ".")) : 0;
+      const testNameFull = (testNameMatch?.[1] || "Test").trim();
+      // Strip "(Droit)" or "(Gauche)" suffix to align with battery item name
+      const baseTestName = testNameFull.replace(/\s*\((Droit|Gauche)\)\s*$/i, "").trim();
+
+      // Try full format "Score N/M pts", else legacy "Score N pts"
+      const fullMatch = notes.match(/Score\s+(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)/i);
+      const legacyMatch = !fullMatch ? notes.match(/Score\s+(\d+(?:[.,]\d+)?)\s*pts/i) : null;
+      const points = fullMatch
+        ? Number(fullMatch[1].replace(",", "."))
+        : legacyMatch ? Number(legacyMatch[1].replace(",", ".")) : 0;
+      const maxFromNotes = fullMatch ? Number(fullMatch[2].replace(",", ".")) : 0;
+      const maxFromLookup = batteryItemsLookup?.[`${batteryName}::${baseTestName}`] ?? 0;
+      const maxPoints = maxFromNotes > 0 ? maxFromNotes : maxFromLookup;
+
       const playerName = test.players?.name || "Athlète";
       const playerId = test.player_id || null;
       const key = `${playerId || playerName}__${test.test_date}__${batteryName}`;
@@ -108,7 +148,7 @@ function BatteryRadarCharts({
     }
 
     return Array.from(map.values()).sort((a, b) => (a.date < b.date ? 1 : -1));
-  }, [tests]);
+  }, [tests, batteryItemsLookup]);
 
   const getColor = (pct: number) => {
     if (pct >= 75) return "hsl(142 71% 45%)"; // green
@@ -784,6 +824,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
             <BatteryRadarCharts
               tests={tests}
               isViewer={isViewer}
+              categoryId={categoryId}
               onDelete={(id) => {
                 if (confirm("Êtes-vous sûr de vouloir supprimer ce test ?")) {
                   deleteTest.mutate(id);
