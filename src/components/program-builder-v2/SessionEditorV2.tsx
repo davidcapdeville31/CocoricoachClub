@@ -388,6 +388,71 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
 
       if (!sessionDate) throw new Error("Choisis une date pour la séance.");
 
+      // --- ATHLETE MODE: edge function (RLS bypass + own player only) ---
+      if (isAthleteMode && !editSession?.id) {
+        const { data: authData } = await supabase.auth.getSession();
+        const accessToken = authData.session?.access_token;
+        if (!accessToken) throw new Error("Session expirée. Reconnecte-toi.");
+
+        const sessionMetaAthlete = JSON.stringify({ v2: true, dayName, dayOfWeek: dayOfWeek || null, weekNumber });
+        const finalNotes = `<!--v2-meta:${sessionMetaAthlete}-->${dayName}`;
+
+        const athleteBlocks = [{
+          block_order: 0,
+          start_time: startTime || null,
+          end_time: endTime || null,
+          training_type: sessionKind,
+          intensity: plannedRpe || null,
+          target_intensity: targetIntensity || null,
+          volume: volume || null,
+          contact_charge: "aucun",
+        }];
+
+        const flatEx = blocks.flatMap((b) =>
+          (b.exercises ?? []).map((ex, idx) => {
+            const blockTag = `<!-- v2-block:${b.type}:${b.name} -->`;
+            const isTestRef = typeof ex.exerciseId === "string" && ex.exerciseId.startsWith("test:");
+            const testTag = isTestRef ? `<!-- v2-test:${ex.exerciseId.slice(5)} -->` : "";
+            const userNote = ex.notes ? `\n${ex.notes}` : "";
+            const repsNum = ex.reps ? Number(String(ex.reps).replace(/[^0-9]/g, "")) : null;
+            const methodValue = ex.method && ex.method !== "normal" ? ex.method : null;
+            return {
+              exercise_name: ex.exerciseName,
+              exercise_category: "autre",
+              sets: ex.sets ?? 1,
+              reps: repsNum && !Number.isNaN(repsNum) ? repsNum : null,
+              rest_seconds: ex.restSeconds ?? null,
+              tempo: ex.tempo ?? null,
+              order_index: idx,
+              library_exercise_id: isTestRef ? null : (ex.exerciseId || null),
+              set_type: methodValue ?? "normal",
+              method: methodValue,
+              group_id: ex.groupId || null,
+              notes: `${blockTag}${testTag}${userNote}`,
+            };
+          }),
+        );
+
+        const { data: payload, error } = await supabase.functions.invoke("athlete-create-session", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+          body: {
+            category_id: categoryId,
+            player_id: athletePlayerId,
+            session_date: sessionDate,
+            session_start_time: startTime || null,
+            session_end_time: endTime || null,
+            training_type: sessionKind || "autre",
+            intensity: plannedRpe ? Math.max(1, Math.min(10, plannedRpe)) : null,
+            notes: finalNotes,
+            session_blocks: athleteBlocks,
+            exercises: flatEx,
+          },
+        });
+        if (error) throw new Error(error.message || "Erreur lors de la création");
+        if (!payload?.success) throw new Error(payload?.error || "Erreur lors de la création");
+        return payload.session_id;
+      }
+
       // 1. Determine target athletes
       let targetPlayers: { id: string }[];
       if (selectedPlayers.length > 0) {
