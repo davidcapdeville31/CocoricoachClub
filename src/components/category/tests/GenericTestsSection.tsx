@@ -202,12 +202,16 @@ function BatteryRadarCharts({
         const totalMax = g.items.reduce((s, i) => s + i.maxPoints, 0);
         const pct = totalMax > 0 ? Math.round((totalPoints / totalMax) * 100) : 0;
         const { color, label } = getLevelInfo(g.batteryName, pct);
-        const radarData = g.items.map((it) => ({
-          axis: it.testName,
-          value: it.maxPoints > 0 ? Math.round((it.points / it.maxPoints) * 100) : 0,
-          points: it.points,
-          maxPoints: it.maxPoints,
-        }));
+        const radarData = g.items.map((it) => {
+          const v = it.maxPoints > 0 ? Math.round((it.points / it.maxPoints) * 100) : 0;
+          return {
+            axis: it.testName,
+            value: v,
+            points: it.points,
+            maxPoints: it.maxPoints,
+            color: getLevelInfo(g.batteryName, v).color,
+          };
+        });
         const isOpen = !!openGroups[g.key];
 
         return (
@@ -236,7 +240,21 @@ function BatteryRadarCharts({
                   <PolarGrid stroke="hsl(var(--border))" />
                   <PolarAngleAxis
                     dataKey="axis"
-                    tick={{ fill: "hsl(var(--foreground))", fontSize: 11 }}
+                    tick={({ payload, x, y, textAnchor }: any) => {
+                      const item = radarData.find((d) => d.axis === payload.value);
+                      return (
+                        <text
+                          x={x}
+                          y={y}
+                          textAnchor={textAnchor}
+                          fill={item?.color || "hsl(var(--foreground))"}
+                          fontSize={11}
+                          fontWeight={600}
+                        >
+                          {payload.value}
+                        </text>
+                      );
+                    }}
                   />
                   <PolarRadiusAxis
                     angle={90}
@@ -249,8 +267,22 @@ function BatteryRadarCharts({
                     dataKey="value"
                     stroke={color}
                     fill={color}
-                    fillOpacity={0.35}
+                    fillOpacity={0.2}
                     strokeWidth={2}
+                    dot={(props: any) => {
+                      const { cx, cy, payload } = props;
+                      return (
+                        <circle
+                          key={`dot-${payload.axis}`}
+                          cx={cx}
+                          cy={cy}
+                          r={5}
+                          fill={payload.color}
+                          stroke="hsl(var(--background))"
+                          strokeWidth={2}
+                        />
+                      );
+                    }}
                   />
                   <RTooltip
                     contentStyle={{
