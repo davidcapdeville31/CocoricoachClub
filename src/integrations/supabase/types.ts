@@ -8842,6 +8842,7 @@ export type Database = {
           fis_ranking: number | null
           gender: string | null
           id: string
+          kicking_work_enabled: boolean
           medical_notes: string | null
           name: string
           parent_contact_1_email: string | null
@@ -8881,6 +8882,7 @@ export type Database = {
           fis_ranking?: number | null
           gender?: string | null
           id?: string
+          kicking_work_enabled?: boolean
           medical_notes?: string | null
           name: string
           parent_contact_1_email?: string | null
@@ -8920,6 +8922,7 @@ export type Database = {
           fis_ranking?: number | null
           gender?: string | null
           id?: string
+          kicking_work_enabled?: boolean
           medical_notes?: string | null
           name?: string
           parent_contact_1_email?: string | null
