@@ -14,7 +14,7 @@ export function PhysicalPreparationTab({ categoryId }: PhysicalPreparationTabPro
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
-            Disponibilité
+            Disponibilité & Alertes
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-8">

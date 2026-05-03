@@ -57,7 +57,7 @@ export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
             icon={<Dumbbell className="h-4 w-4" />}
             tooltip="Disponibilité des athlètes, alertes de risque de blessure et analyses prédictives par IA"
           >
-            <span className="hidden sm:inline">Disponibilité</span>
+            <span className="hidden sm:inline">Disponibilité & Alertes</span>
             <span className="sm:hidden">Dispo</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger 
