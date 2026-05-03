@@ -1,8 +1,7 @@
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { FolderOpen, ClipboardCheck, Bell, Library } from "lucide-react";
+import { FolderOpen, ClipboardCheck, Library } from "lucide-react";
 import { TestsTab } from "@/components/category/TestsTab";
 import { ProgramsTab } from "@/components/category/programs/ProgramsTab";
-import { TestRemindersTab } from "@/components/category/TestRemindersTab";
 import ExerciseLibraryRemix from "@/components/library/ExerciseLibraryRemix";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,18 +44,9 @@ export function ProgrammationTab({ categoryId }: ProgrammationTabProps) {
             value="tests"
             colorKey="programmation"
             icon={<ClipboardCheck className="h-4 w-4" />}
-            tooltip="Bibliothèque de tests physiques : barèmes, saisie des résultats et évaluation des athlètes"
+            tooltip="Bibliothèque de tests, planification ponctuelle ou récurrente, et gestion des rappels"
           >
             Tests
-          </ColoredSubTabsTrigger>
-          <ColoredSubTabsTrigger
-            value="test-reminders"
-            colorKey="programmation"
-            icon={<Bell className="h-4 w-4" />}
-            tooltip="Planifier des rappels automatiques pour les tests à venir et suivre les échéances"
-          >
-            <span className="hidden sm:inline">Rappels tests</span>
-            <span className="sm:hidden">Rappels</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger
             value="exercise-library"
@@ -76,10 +66,6 @@ export function ProgrammationTab({ categoryId }: ProgrammationTabProps) {
 
       <TabsContent value="tests">
         <TestsTab categoryId={categoryId} sportType={sportType} />
-      </TabsContent>
-
-      <TabsContent value="test-reminders">
-        <TestRemindersTab categoryId={categoryId} />
       </TabsContent>
 
       <TabsContent value="exercise-library">
