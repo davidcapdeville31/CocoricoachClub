@@ -25,6 +25,9 @@ import {
   type SlottedExercise,
   type SlottedExerciseParams,
 } from "./LinkedMethodSlots";
+import { FartlekConfigSlots } from "./FartlekConfigSlots";
+import type { FartlekConfig } from "@/lib/program-builder-v2/fartlekTypes";
+import { formatFartlekSummary } from "@/lib/program-builder-v2/fartlekTypes";
 import { Trash2 } from "lucide-react";
 import { ExercisePicker, type PickedExercise } from "./ExercisePicker";
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
@@ -92,6 +95,8 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
   const [linkedDrafts, setLinkedDrafts] = useState<Record<string, LinkedDraft>>({});
   // Mode actif pour méthode "config" (drop_set, emom, etc.) — toast informatif en attendant le wiring complet
   const [pendingConfig, setPendingConfig] = useState<Record<string, ConfigMethod>>({});
+  // Draft Fartlek actif par bloc — affiche FartlekConfigSlots
+  const [fartlekDrafts, setFartlekDrafts] = useState<Record<string, { editing: boolean; initial?: FartlekConfig }>>({});
 
   // (useImperativeHandle is declared after addExerciseToBlock — see below)
 
@@ -256,11 +261,57 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
 
   const handleStartConfig = useCallback(
     (blockId: string, method: ConfigMethod) => {
+      // Fartlek a sa propre carte de configuration dédiée
+      if (method === "fartlek") {
+        setFartlekDrafts((p) => ({ ...p, [blockId]: { editing: true } }));
+        return;
+      }
       setPendingConfig((p) => ({ ...p, [blockId]: method }));
       toast.info(`Méthode « ${method} » — appliquée au prochain exercice ajouté.`);
     },
     [],
   );
+
+  const handleFartlekValidate = useCallback(
+    (blockId: string, config: FartlekConfig) => {
+      const summary = formatFartlekSummary(config);
+      const serialized = `<!--v2-fartlek:${JSON.stringify(config)}-->`;
+      const exercise: V2BlockExercise = {
+        id: `ex-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        exerciseId: undefined,
+        exerciseName: `Fartlek — ${summary}`,
+        sets: 1,
+        reps: String(config.totalDurationMinutes || 1),
+        restSeconds: 0,
+        method: "fartlek",
+        notes: serialized,
+        config: config as unknown as Record<string, unknown>,
+      };
+      onChange(
+        blocks.map((b) =>
+          b.id === blockId
+            ? { ...b, exercises: [...(b.exercises ?? []), exercise] }
+            : b,
+        ),
+      );
+      setFartlekDrafts((p) => {
+        const n = { ...p };
+        delete n[blockId];
+        return n;
+      });
+      toast.success("Fartlek ajouté à la séance");
+    },
+    [blocks, onChange],
+  );
+
+  const handleFartlekCancel = useCallback((blockId: string) => {
+    setFartlekDrafts((p) => {
+      const n = { ...p };
+      delete n[blockId];
+      return n;
+    });
+  }, []);
+
 
   // Slot management pour LinkedMethodSlots
   const handleSlotRemove = useCallback((blockId: string, slotIndex: number) => {
@@ -440,6 +491,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
       <div className="space-y-2">
         {blocks.map((block) => {
           const linkedDraft = linkedDrafts[block.id];
+          const fartlekDraft = fartlekDrafts[block.id];
           return (
             <TrainingBlockWrapper
               key={block.id}
@@ -459,7 +511,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
             >
               {block.type !== "tests" && (
                 <TrainingMethodButtons
-                  isBuilding={!!linkedDraft || !!pendingConfig[block.id]}
+                  isBuilding={!!linkedDraft || !!pendingConfig[block.id] || !!fartlekDraft}
                   blockType={block.type === "custom" ? "musculation" : block.type}
                   onStartLinkedMethod={(m) => handleStartLinked(block.id, m)}
                   onStartConfigMethod={(m) => handleStartConfig(block.id, m)}
@@ -479,6 +531,15 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                   dayId={block.id}
                   methodRestSeconds={linkedDraft.methodRestSeconds}
                   onMethodRestChange={(s) => handleMethodRestChange(block.id, s)}
+                />
+              )}
+
+              {/* Carte de configuration Fartlek */}
+              {fartlekDraft && (
+                <FartlekConfigSlots
+                  initialConfig={fartlekDraft.initial}
+                  onValidate={(config) => handleFartlekValidate(block.id, config)}
+                  onCancel={() => handleFartlekCancel(block.id)}
                 />
               )}
 
