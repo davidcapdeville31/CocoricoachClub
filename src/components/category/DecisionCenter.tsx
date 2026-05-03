@@ -1514,7 +1514,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
                         <div className="flex items-center gap-2 pb-2 border-b">
                           <Activity className="h-4 w-4 text-blue-600" />
                           <h4 className="font-semibold text-sm">
-                            {session ? `${session.training_type}` : "Séance non définie"}
+                            {session ? getTrainingTypeLabel(session.training_type) : "Séance non définie"}
                           </h4>
                           {session?.session_start_time && (
                             <Badge variant="outline" className="text-xs ml-auto">
