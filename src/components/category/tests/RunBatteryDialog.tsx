@@ -381,7 +381,11 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
           <div className="space-y-2 py-2">
             {(battery.items as any[]).map((it, idx) => {
               const r = perItem[it.id];
-              const isInjured = !!injured[it.id];
+              const injR = !!injured[`${it.id}__R`];
+              const injL = !!injured[`${it.id}__L`];
+              const injSingle = !!injured[it.id];
+              const isInjured = it.bilateral ? (injR && injL) : injSingle;
+              const partialInjured = it.bilateral && (injR || injL) && !isInjured;
               return (
                 <div key={it.id} className={`rounded-2xl border bg-muted/30 p-3 space-y-2 ${isInjured ? "opacity-70 border-destructive/40" : ""}`}>
                   <div className="flex items-center justify-between gap-2">
@@ -391,8 +395,10 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
                         {it.bilateral && (
                           <Badge variant="outline" className="text-[10px]">Bilatéral</Badge>
                         )}
-                        {isInjured && (
-                          <Badge variant="destructive" className="text-[10px]">Blessé</Badge>
+                        {(isInjured || partialInjured) && (
+                          <Badge variant="destructive" className="text-[10px]">
+                            {isInjured ? "Blessé" : `Blessé ${injR ? "(D)" : ""}${injL ? "(G)" : ""}`}
+                          </Badge>
                         )}
                       </div>
                       <div className="text-xs text-muted-foreground truncate">
@@ -400,28 +406,30 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => toggleInjured(it.id, !isInjured)}
-                        className={`flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors ${
-                          isInjured
-                            ? "bg-destructive text-destructive-foreground border-destructive"
-                            : "bg-background hover:bg-muted border-border text-muted-foreground"
-                        }`}
-                      >
-                        <Checkbox
-                          checked={isInjured}
-                          onCheckedChange={(v) => toggleInjured(it.id, !!v)}
-                          className="h-3.5 w-3.5 pointer-events-none"
-                        />
-                        Blessé / Non réalisé
-                      </button>
+                      {!it.bilateral && (
+                        <button
+                          type="button"
+                          onClick={() => toggleInjured(it.id, !injSingle)}
+                          className={`flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors ${
+                            injSingle
+                              ? "bg-destructive text-destructive-foreground border-destructive"
+                              : "bg-background hover:bg-muted border-border text-muted-foreground"
+                          }`}
+                        >
+                          <Checkbox
+                            checked={injSingle}
+                            onCheckedChange={(v) => toggleInjured(it.id, !!v)}
+                            className="h-3.5 w-3.5 pointer-events-none"
+                          />
+                          Blessé / Non réalisé
+                        </button>
+                      )}
                       <Badge variant={r?.points ? "default" : "secondary"}>
                         {r?.points ?? 0} / {it.max_points} pts
                       </Badge>
                     </div>
                   </div>
-                  {isInjured ? (
+                  {(!it.bilateral && injSingle) ? (
                     <div className="text-xs italic text-muted-foreground px-1">
                       Test non réalisé (blessure). Aucun score comptabilisé.
                     </div>
@@ -430,37 +438,89 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
                   {it.bilateral ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Côté droit</Label>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            placeholder={`Droit (${it.unit || "valeur"})`}
-                            value={results[`${it.id}__R`] ?? ""}
-                            onChange={e => setResults(prev => ({ ...prev, [`${it.id}__R`]: e.target.value }))}
-                            className="flex-1"
-                          />
-                          <Badge variant="secondary" className="shrink-0">{r?.pointsR ?? 0} pts</Badge>
+                        <div className="flex items-center justify-between gap-2">
+                          <Label className="text-xs text-muted-foreground">Côté droit</Label>
+                          <button
+                            type="button"
+                            onClick={() => toggleInjured(`${it.id}__R`, !injR)}
+                            className={`flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border transition-colors ${
+                              injR
+                                ? "bg-destructive text-destructive-foreground border-destructive"
+                                : "bg-background hover:bg-muted border-border text-muted-foreground"
+                            }`}
+                          >
+                            <Checkbox
+                              checked={injR}
+                              onCheckedChange={(v) => toggleInjured(`${it.id}__R`, !!v)}
+                              className="h-3 w-3 pointer-events-none"
+                            />
+                            Blessé
+                          </button>
                         </div>
-                        {r?.matchedLabelR && (
-                          <Badge variant="outline" className="text-[10px]">{r.matchedLabelR}</Badge>
+                        {injR ? (
+                          <div className="text-[11px] italic text-muted-foreground px-1 py-2 rounded-md border border-dashed border-destructive/40 bg-destructive/5">
+                            Côté droit non réalisé (blessure).
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder={`Droit (${it.unit || "valeur"})`}
+                                value={results[`${it.id}__R`] ?? ""}
+                                onChange={e => setResults(prev => ({ ...prev, [`${it.id}__R`]: e.target.value }))}
+                                className="flex-1"
+                              />
+                              <Badge variant="secondary" className="shrink-0">{r?.pointsR ?? 0} pts</Badge>
+                            </div>
+                            {r?.matchedLabelR && (
+                              <Badge variant="outline" className="text-[10px]">{r.matchedLabelR}</Badge>
+                            )}
+                          </>
                         )}
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Côté gauche</Label>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            placeholder={`Gauche (${it.unit || "valeur"})`}
-                            value={results[`${it.id}__L`] ?? ""}
-                            onChange={e => setResults(prev => ({ ...prev, [`${it.id}__L`]: e.target.value }))}
-                            className="flex-1"
-                          />
-                          <Badge variant="secondary" className="shrink-0">{r?.pointsL ?? 0} pts</Badge>
+                        <div className="flex items-center justify-between gap-2">
+                          <Label className="text-xs text-muted-foreground">Côté gauche</Label>
+                          <button
+                            type="button"
+                            onClick={() => toggleInjured(`${it.id}__L`, !injL)}
+                            className={`flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border transition-colors ${
+                              injL
+                                ? "bg-destructive text-destructive-foreground border-destructive"
+                                : "bg-background hover:bg-muted border-border text-muted-foreground"
+                            }`}
+                          >
+                            <Checkbox
+                              checked={injL}
+                              onCheckedChange={(v) => toggleInjured(`${it.id}__L`, !!v)}
+                              className="h-3 w-3 pointer-events-none"
+                            />
+                            Blessé
+                          </button>
                         </div>
-                        {r?.matchedLabelL && (
-                          <Badge variant="outline" className="text-[10px]">{r.matchedLabelL}</Badge>
+                        {injL ? (
+                          <div className="text-[11px] italic text-muted-foreground px-1 py-2 rounded-md border border-dashed border-destructive/40 bg-destructive/5">
+                            Côté gauche non réalisé (blessure).
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder={`Gauche (${it.unit || "valeur"})`}
+                                value={results[`${it.id}__L`] ?? ""}
+                                onChange={e => setResults(prev => ({ ...prev, [`${it.id}__L`]: e.target.value }))}
+                                className="flex-1"
+                              />
+                              <Badge variant="secondary" className="shrink-0">{r?.pointsL ?? 0} pts</Badge>
+                            </div>
+                            {r?.matchedLabelL && (
+                              <Badge variant="outline" className="text-[10px]">{r.matchedLabelL}</Badge>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
