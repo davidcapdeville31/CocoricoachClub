@@ -1,0 +1,1 @@
+ALTER TABLE public.test_reminders ADD COLUMN IF NOT EXISTS end_date date;

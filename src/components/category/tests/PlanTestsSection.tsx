@@ -41,6 +41,7 @@ interface TestReminder {
   frequency_weeks: number;
   is_active: boolean;
   start_date: string | null;
+  end_date: string | null;
   session_start_time: string | null;
   session_end_time: string | null;
   location: string | null;
@@ -54,13 +55,19 @@ interface PlanTestsSectionProps {
 }
 
 // ---------- Helpers ----------
-function generateSessionDates(startDate: string, frequencyWeeks: number): string[] {
+function generateSessionDates(
+  startDate: string,
+  frequencyWeeks: number,
+  endDate?: string | null,
+): string[] {
   const dates: string[] = [];
-  const today = startOfDay(new Date());
-  const maxDate = addWeeks(today, 26);
-  let current = new Date(startDate);
-  while (isBefore(current, today)) current = addWeeks(current, frequencyWeeks);
-  while (isBefore(current, maxDate)) {
+  const start = new Date(startDate);
+  // Hard cap: 2 years to avoid runaway loops
+  const hardCap = addWeeks(start, 104);
+  const limit = endDate ? new Date(endDate) : addWeeks(startOfDay(new Date()), 26);
+  const maxDate = isBefore(limit, hardCap) ? limit : hardCap;
+  let current = start;
+  while (!isBefore(maxDate, current)) {
     dates.push(format(current, "yyyy-MM-dd"));
     current = addWeeks(current, frequencyWeeks);
   }
@@ -76,6 +83,10 @@ const DEFAULT_FORM = {
   auto_assign_athletes: true,
   recurring: false,
   frequency_weeks: 4,
+  end_mode: "date" as "date" | "duration" | "never",
+  end_date: format(addWeeks(new Date(), 8), "yyyy-MM-dd"),
+  duration_count: 2,
+  duration_unit: "months" as "weeks" | "months",
 };
 
 // ---------- Component ----------
@@ -293,8 +304,24 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
       const tests = Array.from(selected.values());
       if (tests.length === 0) throw new Error("Sélectionne au moins un test");
 
+      const computedEndDate = form.recurring
+        ? form.end_mode === "never"
+          ? null
+          : form.end_mode === "duration"
+            ? format(
+                addWeeks(
+                  new Date(form.start_date),
+                  form.duration_unit === "months"
+                    ? form.duration_count * 4
+                    : form.duration_count,
+                ),
+                "yyyy-MM-dd",
+              )
+            : form.end_date
+        : null;
+
       const dates = form.recurring
-        ? generateSessionDates(form.start_date, form.frequency_weeks)
+        ? generateSessionDates(form.start_date, form.frequency_weeks, computedEndDate)
         : [form.start_date];
       if (dates.length === 0) throw new Error("Aucune date à planifier");
 
@@ -308,13 +335,14 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
             test_metadata: tests as any,
             frequency_weeks: form.frequency_weeks,
             start_date: form.start_date,
+            end_date: computedEndDate,
             session_start_time: form.session_start_time || null,
             session_end_time: form.session_end_time || null,
             location: form.location || null,
             duration_minutes: form.duration_minutes,
             auto_assign_athletes: form.auto_assign_athletes,
             is_active: true,
-          })
+          } as any)
           .select("id")
           .single();
         if (error) throw error;
@@ -395,7 +423,7 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
                 category_label: "Tests",
               },
             ]) as TestRef[];
-        const dates = generateSessionDates(r.start_date, r.frequency_weeks);
+        const dates = generateSessionDates(r.start_date, r.frequency_weeks, r.end_date);
         await createSessionsForTests(
           tests,
           dates,
@@ -445,9 +473,23 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
     onError: () => toast.error("Suppression impossible"),
   });
 
-  const previewDates = form.recurring
-    ? generateSessionDates(form.start_date, form.frequency_weeks).slice(0, 4)
+  const computedEndDatePreview = form.recurring
+    ? form.end_mode === "never"
+      ? null
+      : form.end_mode === "duration"
+        ? format(
+            addWeeks(
+              new Date(form.start_date),
+              form.duration_unit === "months" ? form.duration_count * 4 : form.duration_count,
+            ),
+            "yyyy-MM-dd",
+          )
+        : form.end_date
+    : null;
+  const allPreviewDates = form.recurring
+    ? generateSessionDates(form.start_date, form.frequency_weeks, computedEndDatePreview)
     : [];
+  const previewDates = allPreviewDates.slice(0, 4);
 
   return (
     <div className="space-y-6">
@@ -605,7 +647,7 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
               <div>
                 <Label className="text-sm font-semibold">Récurrence</Label>
                 <p className="text-xs text-muted-foreground">
-                  Crée automatiquement les séances suivantes pendant ~6 mois.
+                  Crée automatiquement les séances suivantes selon la fréquence et la durée choisies.
                 </p>
               </div>
               <Switch
@@ -614,28 +656,94 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
               />
             </div>
             {form.recurring && (
-              <div className="space-y-2">
-                <Label className="text-xs">Fréquence</Label>
-                <Select
-                  value={String(form.frequency_weeks)}
-                  onValueChange={(v) => setForm({ ...form, frequency_weeks: parseInt(v) })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">Toutes les semaines</SelectItem>
-                    <SelectItem value="2">Toutes les 2 semaines</SelectItem>
-                    <SelectItem value="3">Toutes les 3 semaines</SelectItem>
-                    <SelectItem value="4">Toutes les 4 semaines</SelectItem>
-                    <SelectItem value="6">Toutes les 6 semaines</SelectItem>
-                    <SelectItem value="8">Toutes les 8 semaines</SelectItem>
-                    <SelectItem value="12">Toutes les 12 semaines</SelectItem>
-                  </SelectContent>
-                </Select>
-                {previewDates.length > 0 && (
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Fréquence</Label>
+                  <Select
+                    value={String(form.frequency_weeks)}
+                    onValueChange={(v) => setForm({ ...form, frequency_weeks: parseInt(v) })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Toutes les semaines</SelectItem>
+                      <SelectItem value="2">Toutes les 2 semaines</SelectItem>
+                      <SelectItem value="3">Toutes les 3 semaines</SelectItem>
+                      <SelectItem value="4">Toutes les 4 semaines</SelectItem>
+                      <SelectItem value="6">Toutes les 6 semaines</SelectItem>
+                      <SelectItem value="8">Toutes les 8 semaines</SelectItem>
+                      <SelectItem value="12">Toutes les 12 semaines</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Fin de la récurrence</Label>
+                  <Select
+                    value={form.end_mode}
+                    onValueChange={(v) => setForm({ ...form, end_mode: v as any })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="date">Jusqu'à une date</SelectItem>
+                      <SelectItem value="duration">Pendant une durée</SelectItem>
+                      <SelectItem value="never">Sans fin (max 2 ans)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {form.end_mode === "date" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Jusqu'au</Label>
+                    <Input
+                      type="date"
+                      value={form.end_date}
+                      min={form.start_date}
+                      onChange={(e) => setForm({ ...form, end_date: e.target.value })}
+                    />
+                  </div>
+                )}
+
+                {form.end_mode === "duration" && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Pendant</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        value={form.duration_count}
+                        onChange={(e) =>
+                          setForm({ ...form, duration_count: parseInt(e.target.value) || 1 })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Unité</Label>
+                      <Select
+                        value={form.duration_unit}
+                        onValueChange={(v) => setForm({ ...form, duration_unit: v as any })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="weeks">Semaines</SelectItem>
+                          <SelectItem value="months">Mois</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+
+                {allPreviewDates.length > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    Aperçu : {previewDates.map((d) => format(new Date(d), "dd MMM", { locale: fr })).join(", ")}…
+                    {allPreviewDates.length} séance{allPreviewDates.length > 1 ? "s" : ""} prévue
+                    {allPreviewDates.length > 1 ? "s" : ""} • Aperçu :{" "}
+                    {previewDates.map((d) => format(new Date(d), "dd MMM", { locale: fr })).join(", ")}
+                    {allPreviewDates.length > previewDates.length ? "…" : ""}
                   </p>
                 )}
               </div>
@@ -659,7 +767,7 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
           <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
             <p className="text-xs text-muted-foreground">
               {selected.size} test{selected.size > 1 ? "s" : ""} sélectionné{selected.size > 1 ? "s" : ""}
-              {form.recurring ? ` • ${previewDates.length || 0} séances prévues` : " • 1 séance"}
+              {form.recurring ? ` • ${allPreviewDates.length || 0} séances prévues` : " • 1 séance"}
             </p>
             <Button
               onClick={handlePlan}
@@ -723,6 +831,9 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
                           ? format(new Date(r.start_date), "dd MMMM yyyy", { locale: fr })
                           : "—"}{" "}
                         • Tous les {r.frequency_weeks} semaines
+                        {r.end_date && (
+                          <> • Jusqu'au {format(new Date(r.end_date), "dd MMM yyyy", { locale: fr })}</>
+                        )}
                         {(r.session_start_time || r.session_end_time) && (
                           <>
                             {" "}
