@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus, Trash2, ChevronRight, Users } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ChevronRight, Users, RotateCcw, Archive } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddCategoryDialog } from "@/components/categories/AddCategoryDialog";
@@ -40,7 +40,22 @@ function ClubDetailsContent() {
         .from("categories")
         .select("*")
         .eq("club_id", clubId)
+        .is("deleted_at", null)
         .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: archivedCategories } = useQuery({
+    queryKey: ["categories-archived", clubId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("club_id", clubId)
+        .not("deleted_at", "is", null)
+        .order("deleted_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -50,17 +65,46 @@ function ClubDetailsContent() {
     mutationFn: async (categoryId: string) => {
       const { error } = await supabase
         .from("categories")
-        .delete()
+        .update({ deleted_at: new Date().toISOString() } as any)
         .eq("id", categoryId);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories", clubId] });
-      toast.success("Catégorie supprimée avec succès");
+      queryClient.invalidateQueries({ queryKey: ["categories-archived", clubId] });
+      toast.success("Catégorie archivée (récupérable)");
     },
     onError: () => {
-      toast.error("Erreur lors de la suppression de la catégorie");
+      toast.error("Erreur lors de l'archivage");
     },
+  });
+
+  const restoreCategory = useMutation({
+    mutationFn: async (categoryId: string) => {
+      const { error } = await supabase
+        .from("categories")
+        .update({ deleted_at: null } as any)
+        .eq("id", categoryId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories", clubId] });
+      queryClient.invalidateQueries({ queryKey: ["categories-archived", clubId] });
+      toast.success("Catégorie restaurée");
+    },
+    onError: () => toast.error("Erreur lors de la restauration"),
+  });
+
+  const permanentDelete = useMutation({
+    mutationFn: async (categoryId: string) => {
+      const { error } = await supabase.from("categories").delete().eq("id", categoryId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories-archived", clubId] });
+      toast.success("Catégorie supprimée définitivement");
+    },
+    onError: () => toast.error("Erreur lors de la suppression"),
   });
 
   if (isLoading) {
@@ -181,7 +225,7 @@ function ClubDetailsContent() {
                       className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (confirm(`Êtes-vous sûr de vouloir supprimer ${category.name} ?`)) {
+                        if (confirm(`Archiver ${category.name} ? (Récupérable depuis "Catégories archivées")`)) {
                           deleteCategory.mutate(category.id);
                         }
                       }}
@@ -190,6 +234,54 @@ function ClubDetailsContent() {
                     </Button>
                   )}
                   <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!isViewer && archivedCategories && archivedCategories.length > 0 && (
+          <div className="space-y-2 pt-6">
+            <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+              <Archive className="h-4 w-4" /> Catégories archivées ({archivedCategories.length})
+            </h3>
+            {archivedCategories.map((category: any) => (
+              <div
+                key={category.id}
+                className="flex items-center gap-4 p-3 rounded-lg border bg-muted/40 opacity-75"
+              >
+                <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center border flex-shrink-0">
+                  <Archive className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="font-medium text-foreground truncate">{category.name}</span>
+                  <p className="text-xs text-muted-foreground">
+                    Archivée le {new Date(category.deleted_at).toLocaleDateString("fr-FR")}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    title="Restaurer"
+                    onClick={() => restoreCategory.mutate(category.id)}
+                  >
+                    <RotateCcw className="h-4 w-4 text-primary" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    title="Supprimer définitivement"
+                    onClick={() => {
+                      if (confirm(`Supprimer DÉFINITIVEMENT ${category.name} ? Cette action est irréversible.`)) {
+                        permanentDelete.mutate(category.id);
+                      }
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
                 </div>
               </div>
             ))}
