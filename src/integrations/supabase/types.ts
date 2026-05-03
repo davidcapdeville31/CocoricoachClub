@@ -1609,6 +1609,7 @@ export type Database = {
           club_id: string
           cover_image_url: string | null
           created_at: string
+          deleted_at: string | null
           gender: string
           gps_enabled: boolean | null
           id: string
@@ -1621,6 +1622,7 @@ export type Database = {
           club_id: string
           cover_image_url?: string | null
           created_at?: string
+          deleted_at?: string | null
           gender?: string
           gps_enabled?: boolean | null
           id?: string
@@ -1633,6 +1635,7 @@ export type Database = {
           club_id?: string
           cover_image_url?: string | null
           created_at?: string
+          deleted_at?: string | null
           gender?: string
           gps_enabled?: boolean | null
           id?: string

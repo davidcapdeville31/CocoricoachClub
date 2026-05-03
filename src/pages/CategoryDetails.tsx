@@ -288,9 +288,14 @@ function CategoryDetailsContent() {
                   categoryId={categoryId} 
                   currentCoverUrl={category?.cover_image_url}
                 />
-                {category?.clubs?.id && (
-                  <CustomizeBrandingButton clubId={category.clubs.id} />
-                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleTabChange("settings")}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Paramètres
+                </Button>
               </div>
             )}
           </div>
