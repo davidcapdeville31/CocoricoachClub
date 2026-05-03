@@ -640,10 +640,22 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
 
           <div className="relative z-20 flex shrink-0 flex-col gap-1.5 items-end pointer-events-auto">
             {/* Direct action buttons */}
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsEditOpen(true); }}>
-              <Edit2 className="h-3.5 w-3.5" />
-              Modifier
-            </Button>
+            <div className="flex items-center gap-1.5 w-full">
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs flex-1 justify-start" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsEditOpen(true); }}>
+                <Edit2 className="h-3.5 w-3.5" />
+                Modifier
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+                onPointerDown={stopCardAction}
+                onClick={(e) => { stopCardAction(e); setIsDeleteOpen(true); }}
+                title={isIndividual ? "Supprimer la compétition" : "Supprimer le match"}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
             <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsLineupOpen(true); }}>
               <Users className="h-3.5 w-3.5" />
               {isDoublesMatch ? `Paire (${lineupCount || 0}/2)` : isIndividual ? `Participants (${lineupCount || 0})` : `Composition (${lineupCount || 0})`}
