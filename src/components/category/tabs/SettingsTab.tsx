@@ -137,6 +137,34 @@ export function SettingsTab({ categoryId }: SettingsTabProps) {
           </div>
         </CollapsibleContent>
       </Collapsible>
+
+      {isSuperAdmin && (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-destructive/10 flex items-center justify-center">
+              <Archive className="h-5 w-5 text-destructive" />
+            </div>
+            <div>
+              <p className="font-semibold">Archiver cette catégorie</p>
+              <p className="text-sm text-muted-foreground">
+                Sauvegarde un instantané et masque la catégorie. Restauration possible depuis Super Admin → Archives.
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              if (confirm("Archiver cette catégorie ? Toutes les données restent conservées et peuvent être restaurées.")) {
+                archiveCategory.mutate();
+              }
+            }}
+          >
+            <Archive className="h-4 w-4 mr-2" />
+            Archiver la catégorie
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
