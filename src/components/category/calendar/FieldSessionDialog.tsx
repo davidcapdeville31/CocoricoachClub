@@ -178,6 +178,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         training_type: b.theme,
         theme: b.themeLabel || b.theme,
         duration_minutes: b.duration_minutes,
+        intensity: b.intensity && b.intensity >= 1 && b.intensity <= 10 ? b.intensity : null,
         notes: b.notes || null,
         bowling_exercise_type: b.theme === "bowling_spare" ? (b.bowling_exercise_type || null) : null,
       }));
