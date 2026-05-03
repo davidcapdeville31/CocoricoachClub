@@ -505,8 +505,19 @@ export function SessionDetailsDialog({
           {ex.rest_seconds && <span>- {ex.rest_seconds}s repos</span>}
           {ex.tempo && <span>Tempo: {ex.tempo}</span>}
         </div>
+        {(() => {
+          const parsed = parseV2MethodConfig(ex.notes);
+          if (parsed?.kind === "fartlek") {
+            return (
+              <div className="mt-2">
+                <FartlekCard config={parsed.config} />
+              </div>
+            );
+          }
+          return null;
+        })()}
         {ex.notes && (() => {
-          const cleanNotes = ex.notes.replace(/<!--[\s\S]*?-->/g, "").trim();
+          const cleanNotes = stripV2MethodTags(ex.notes).replace(/<!--[\s\S]*?-->/g, "").trim();
           if (!cleanNotes) return null;
           return (
             <p className="text-xs text-muted-foreground mt-2 italic">
