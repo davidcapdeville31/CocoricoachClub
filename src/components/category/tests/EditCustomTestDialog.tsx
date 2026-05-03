@@ -188,6 +188,17 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
     },
   });
 
+  const scoringBaseMaxPoints = useMemo(() => {
+    if (!enableScoring || !scoringScale) return 0;
+    return Math.max(
+      0,
+      (scoringScale.ranges ?? []).reduce((m, r) => Math.max(m, r.points ?? 0), 0),
+      ...((scoringScale.variants ?? []).map((variant) =>
+        (variant.ranges ?? []).reduce((m, r) => Math.max(m, r.points ?? 0), 0)
+      ))
+    );
+  }, [enableScoring, scoringScale]);
+
   const saveTest = useMutation({
     mutationFn: async () => {
       if (!test) throw new Error("Aucun test sélectionné");
@@ -198,16 +209,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
       if (!unitKind) throw new Error("Choisissez une unité de mesure");
       if (unitKind === "custom" && !customUnit.trim()) throw new Error("Saisissez l'unité personnalisée");
 
-      const baseMaxPoints = enableScoring && scoringScale
-        ? Math.max(
-            0,
-            (scoringScale.ranges ?? []).reduce((m, r) => Math.max(m, r.points ?? 0), 0),
-            ...(scoringScale.variants ?? []).map(v =>
-              (v.ranges ?? []).reduce((m, r) => Math.max(m, r.points ?? 0), 0)
-            )
-          )
-        : null;
-      const maxPoints = baseMaxPoints != null ? baseMaxPoints * (bilateral ? 2 : 1) : null;
+      const maxPoints = enableScoring ? scoringBaseMaxPoints * (bilateral ? 2 : 1) : null;
 
       const payload: any = {
         name: trimmedName,
@@ -295,8 +297,8 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle>{isSeed ? "Personnaliser le test" : "Modifier le test"}</DialogTitle>
           <DialogDescription>
             {isSeed
@@ -305,7 +307,8 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="overflow-y-auto px-6 pb-4">
+          <div className="space-y-4">
           <div className="space-y-1.5">
             <Label>Catégorie <span className="text-destructive">*</span></Label>
             <Select value={testCategory} onValueChange={setTestCategory}>
@@ -427,7 +430,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
             <div>
               <Label className="text-sm font-semibold cursor-pointer">Test bilatéral (côté droit + côté gauche)</Label>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Saisissez deux résultats par athlète (D et G). Le score total est l'addition des deux côtés{enableScoring && scoringScale ? ` (max ${Math.max(scoringScale.ranges.reduce((m, r) => Math.max(m, r.points), 0), ...(scoringScale.variants ?? []).map(v => (v.ranges ?? []).reduce((m, r) => Math.max(m, r.points), 0))) * 2} pts au total).` : "."}
+                Saisissez deux résultats par athlète (D et G). Le score total est l'addition des deux côtés{enableScoring && scoringScale ? ` (max ${scoringBaseMaxPoints * 2} pts au total).` : "."}
               </p>
             </div>
             <Switch checked={bilateral} onCheckedChange={setBilateral} />
@@ -448,12 +451,14 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
             resultUnit={effectiveUnit}
             scoringScale={enableScoring ? scoringScale : null}
           />
+          </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:justify-between">
+        <DialogFooter className="sticky bottom-0 z-20 gap-2 border-t border-border/60 bg-card px-6 py-4 sm:justify-between">
           <div>
             {!isSeed && test?.id && (
               <Button
+                type="button"
                 variant="ghost"
                 className="text-destructive hover:text-destructive"
                 onClick={() => {
@@ -465,8 +470,8 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
             )}
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
-            <Button onClick={handleSubmit}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
+            <Button type="button" onClick={handleSubmit}>
               {saveTest.isPending ? "Enregistrement..." : (isSeed ? "Créer la version personnalisée" : "Enregistrer")}
             </Button>
           </div>
