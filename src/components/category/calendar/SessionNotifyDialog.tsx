@@ -105,8 +105,31 @@ export function SessionNotifyDialog({
         return { players: players || [], fromSession: true };
       }
 
+      // Secondary source: event_participants (explicit assignments at creation)
+      const { data: participants, error: participantsError } = await supabase
+        .from("event_participants")
+        .select("player_id")
+        .eq("training_session_id", session.id);
+
+      if (participantsError) {
+        console.warn("[SessionNotification] event_participants error:", participantsError.message);
+      }
+
+      if (participants && participants.length > 0) {
+        const playerIds = participants.map(p => p.player_id).filter(Boolean);
+        console.log(`[SessionNotification] Step 1 — Retrieved ${playerIds.length} participant(s) from event_participants`);
+
+        const { data: players, error: playersError } = await supabase
+          .from("players")
+          .select("id, name, email, phone, user_id")
+          .in("id", playerIds);
+
+        if (playersError) throw playersError;
+        return { players: players || [], fromSession: true };
+      }
+
       // Fallback: all category players
-      console.log("[SessionNotification] Step 1 — No attendance records found, falling back to all category players");
+      console.log("[SessionNotification] Step 1 — No attendance/participants found, falling back to all category players");
       const { data: allPlayers, error: playersError } = await supabase
         .from("players")
         .select("id, name, email, phone, user_id")
