@@ -294,9 +294,9 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
         const hasRadar = batteryTests.length > 0;
         if (!hasResults && !hasRadar) return null;
         return (
-          <div className={`grid gap-4 ${hasResults && hasRadar ? "lg:grid-cols-2" : "grid-cols-1"}`}>
+          <div className={`grid gap-4 items-start ${hasResults && hasRadar ? "lg:grid-cols-5" : "grid-cols-1"}`}>
             {hasResults && (
-              <Card className="bg-gradient-card shadow-md">
+              <Card className="bg-gradient-card shadow-md lg:col-span-2 h-fit">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <FlaskConical className="h-4 w-4 text-primary" />
@@ -304,7 +304,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                  <div className="grid grid-cols-2 gap-1.5">
                     {Object.entries(filteredLatestGeneric).map(([key, test]) => {
                       const series = filteredGenericByType[key] || [];
                       let progression: { pct: number; positive: boolean } | null = null;
@@ -348,7 +348,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
             )}
 
             {hasRadar && (
-              <div>
+              <div className="lg:col-span-3 min-w-0">
                 <BatteryRadarCharts
                   tests={batteryTests}
                   isViewer={true}
