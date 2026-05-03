@@ -35,6 +35,8 @@ import { PrecisionFieldTracker } from "@/components/rugby/PrecisionFieldTracker"
 import { RUGBY_PRECISION_EXERCISES, EXERCISE_CATEGORIES } from "@/lib/constants/rugbyPrecisionExercises";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { LinkedMethodSlots, type LinkedMethodType } from "@/components/program-builder-v2/LinkedMethodSlots";
+import { FartlekCard } from "@/components/program-builder-v2/FartlekCard";
+import { parseV2MethodConfig, stripV2MethodTags } from "@/lib/program-builder-v2/parseV2MethodConfig";
 interface SessionDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -503,8 +505,19 @@ export function SessionDetailsDialog({
           {ex.rest_seconds && <span>- {ex.rest_seconds}s repos</span>}
           {ex.tempo && <span>Tempo: {ex.tempo}</span>}
         </div>
+        {(() => {
+          const parsed = parseV2MethodConfig(ex.notes);
+          if (parsed?.kind === "fartlek") {
+            return (
+              <div className="mt-2">
+                <FartlekCard config={parsed.config} />
+              </div>
+            );
+          }
+          return null;
+        })()}
         {ex.notes && (() => {
-          const cleanNotes = ex.notes.replace(/<!--[\s\S]*?-->/g, "").trim();
+          const cleanNotes = stripV2MethodTags(ex.notes).replace(/<!--[\s\S]*?-->/g, "").trim();
           if (!cleanNotes) return null;
           return (
             <p className="text-xs text-muted-foreground mt-2 italic">

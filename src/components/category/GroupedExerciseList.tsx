@@ -7,6 +7,8 @@ import { getTrainingStyleConfig } from "@/lib/constants/trainingStyles";
 import { ExerciseMediaViewer } from "@/components/library/ExerciseMediaViewer";
 import { useExerciseMedia } from "@/lib/hooks/useExerciseMedia";
 import { LinkedMethodSlots, type LinkedMethodType } from "@/components/program-builder-v2/LinkedMethodSlots";
+import { FartlekCard } from "@/components/program-builder-v2/FartlekCard";
+import { parseV2MethodConfig, stripV2MethodTags } from "@/lib/program-builder-v2/parseV2MethodConfig";
 import {
   Tooltip,
   TooltipContent,
@@ -267,8 +269,19 @@ export function GroupedExerciseList({
             {media.description}
           </p>
         )}
+        {(() => {
+          const parsed = parseV2MethodConfig(ex.notes);
+          if (parsed?.kind === "fartlek") {
+            return (
+              <div className="mt-2">
+                <FartlekCard config={parsed.config} />
+              </div>
+            );
+          }
+          return null;
+        })()}
         {!compact && ex.notes && (() => {
-          const cleanNotes = ex.notes.replace(/<!--[\s\S]*?-->/g, "").trim();
+          const cleanNotes = stripV2MethodTags(ex.notes).replace(/<!--[\s\S]*?-->/g, "").trim();
           if (!cleanNotes) return null;
           return (
             <p className={cn(
