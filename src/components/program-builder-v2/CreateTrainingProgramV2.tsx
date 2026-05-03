@@ -554,27 +554,52 @@ export function CreateTrainingProgramV2({
               </Button>
             </div>
 
-            {/* Day tabs */}
+            {/* Day tabs — chaque onglet a un sélecteur de jour de la semaine */}
             {currentWeek && (
-              <div className="flex items-center gap-1 px-4 md:px-6 pb-3 overflow-x-auto">
+              <div className="flex items-center gap-1.5 px-4 md:px-6 pb-3 overflow-x-auto">
                 {currentWeek.days.map((d, idx) => {
                   const isActive = currentDay?.id === d.id;
                   return (
-                    <Button
+                    <div
                       key={d.id}
-                      size="sm"
-                      variant={isActive ? "default" : "outline"}
-                      onClick={() => setActiveDayId(d.id)}
                       className={cn(
-                        "rounded-2xl shrink-0 h-8",
-                        isActive && "shadow-md",
+                        "flex items-center gap-0.5 rounded-2xl border shrink-0 h-8 pr-1",
+                        isActive
+                          ? "bg-primary text-primary-foreground border-primary shadow-md"
+                          : "bg-background border-input",
                       )}
                     >
-                      J{idx + 1}
-                      <span className="ml-1.5 text-[10px] opacity-70 uppercase">
-                        {DAYS_OF_WEEK.find((dd) => dd.id === d.dayOfWeek)?.shortLabel}
-                      </span>
-                    </Button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveDayId(d.id)}
+                        className="px-3 h-full text-xs font-semibold"
+                      >
+                        J{idx + 1}
+                      </button>
+                      <Select
+                        value={d.dayOfWeek}
+                        onValueChange={(val) => {
+                          setDayOfWeek(activeWeek, d.id, val);
+                          setActiveDayId(d.id);
+                        }}
+                      >
+                        <SelectTrigger
+                          className={cn(
+                            "h-6 min-h-6 w-[68px] rounded-xl border-0 bg-transparent px-1.5 text-[10px] uppercase opacity-80 hover:opacity-100 focus:ring-0",
+                            isActive && "text-primary-foreground",
+                          )}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {DAYS_OF_WEEK.map((dd) => (
+                            <SelectItem key={dd.id} value={dd.id} className="text-xs">
+                              {dd.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   );
                 })}
               </div>
