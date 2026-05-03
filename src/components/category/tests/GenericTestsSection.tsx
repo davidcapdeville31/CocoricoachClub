@@ -42,6 +42,13 @@ interface GenericTestsSectionProps {
 export function GenericTestsSection({ categoryId, sportType, defaultCategory }: GenericTestsSectionProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+  const [scheduleTarget, setScheduleTarget] = useState<{
+    testCategory: string;
+    testType: string;
+    testCategoryLabel: string;
+    testTypeLabel: string;
+    testUnit: string;
+  } | null>(null);
   const [isCreateTestDialogOpen, setIsCreateTestDialogOpen] = useState(false);
   const [isCreateCategoryDialogOpen, setIsCreateCategoryDialogOpen] = useState(false);
   const [editingTest, setEditingTest] = useState<EditableTest | null>(null);
@@ -445,6 +452,27 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                   <span className="font-medium">{t.name}</span>
                   {t.unit && <span className="text-muted-foreground">({t.unit})</span>}
                   {!isViewer && <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />}
+                  {!isViewer && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setScheduleTarget({
+                          testCategory: t.test_category,
+                          testType: `custom:${t.id}`,
+                          testCategoryLabel: formatCategoryLabel(t.test_category),
+                          testTypeLabel: t.name,
+                          testUnit: t.unit || "",
+                        });
+                        setIsScheduleDialogOpen(true);
+                      }}
+                      className="ml-1 inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 hover:bg-primary/20 px-2 py-0.5 text-[11px] text-primary"
+                      title="Planifier ce test dans le calendrier"
+                    >
+                      <CalendarPlus className="h-3 w-3" /> Planifier
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -530,20 +558,35 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         allowCustomTest={!defaultCategory || defaultCategory === "all"}
       />
 
-      {filterTestType !== "all" && selectedCategory && (() => {
-        const cat = filteredTestCategories.find(c => c.value === filterCategory);
-        const test = cat?.tests.find(t => t.value === filterTestType);
-        if (!cat || !test) return null;
+      {(() => {
+        let target = scheduleTarget;
+        if (!target && filterTestType !== "all" && selectedCategory) {
+          const cat = filteredTestCategories.find(c => c.value === filterCategory);
+          const test = cat?.tests.find(t => t.value === filterTestType);
+          if (cat && test) {
+            target = {
+              testCategory: cat.value,
+              testType: test.value,
+              testCategoryLabel: cat.label,
+              testTypeLabel: test.label,
+              testUnit: test.unit || "",
+            };
+          }
+        }
+        if (!target) return null;
         return (
           <ScheduleTestDialog
             open={isScheduleDialogOpen}
-            onOpenChange={setIsScheduleDialogOpen}
+            onOpenChange={(o) => {
+              setIsScheduleDialogOpen(o);
+              if (!o) setScheduleTarget(null);
+            }}
             categoryId={categoryId}
-            testCategoryLabel={cat.label}
-            testTypeLabel={test.label}
-            testCategory={cat.value}
-            testType={test.value}
-            testUnit={test.unit || ""}
+            testCategoryLabel={target.testCategoryLabel}
+            testTypeLabel={target.testTypeLabel}
+            testCategory={target.testCategory}
+            testType={target.testType}
+            testUnit={target.testUnit}
           />
         );
       })()}
