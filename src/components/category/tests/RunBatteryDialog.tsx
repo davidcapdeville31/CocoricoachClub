@@ -231,6 +231,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
               {(players || []).map((p: any) => (
                 <SelectItem key={p.id} value={p.id}>
                   {p.first_name ? `${p.first_name} ${p.name}` : p.name}
+                  {savedPlayerIds.has(p.id) ? " ✓" : ""}
                 </SelectItem>
               ))}
             </SelectContent>
