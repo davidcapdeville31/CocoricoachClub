@@ -122,6 +122,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         theme: first?.value || "Collectif",
         themeLabel: first?.label || "Collectif",
         duration_minutes: 30,
+        intensity: 6,
         notes: "",
       },
     ]);
