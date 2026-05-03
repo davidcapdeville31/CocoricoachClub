@@ -521,6 +521,107 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
     });
   }, []);
 
+  // ===== Méthodes "config" (drop_set, rest_pause, pyramides, 5x5, isos,
+  // amrap, for_time, death_by, circuit, tabata, emom) =====
+  const methodLabel: Record<MethodConfigType, string> = {
+    drop_set: "Drop Set",
+    rest_pause: "Rest-Pause",
+    pyramid_up: "Pyramide ↑",
+    pyramid_down: "Pyramide ↓",
+    pyramid_full: "Pyramide ↑↓",
+    five_by_five: "5x5",
+    isometric_overcoming: "Iso Overcoming",
+    isometric_yielding: "Iso Yielding",
+    amrap: "AMRAP",
+    for_time: "For Time",
+    death_by: "Death By",
+    circuit: "Circuit",
+    tabata: "Tabata",
+    emom: "EMOM",
+    intermittent_cardio: "Cardio intermittent",
+  };
+
+  const handleConfigValidate = useCallback(
+    (
+      blockId: string,
+      method: MethodConfigType,
+      payload: Parameters<
+        React.ComponentProps<typeof MethodConfigSlots>["onConfirm"]
+      >[0],
+    ) => {
+      const draft = configDrafts[blockId];
+      const label = methodLabel[method] ?? method;
+      let summary = label;
+      const setsCount = payload.setsCount ?? payload.series?.length ?? 1;
+      if (method === "drop_set") summary = `Drop Set — ${setsCount}× ${(payload.series ?? []).length} drops`;
+      else if (method === "tabata") summary = `Tabata 20/10 × ${payload.tabataConfig?.rounds ?? 8}`;
+      else if (method === "emom") {
+        const im = payload.emomConfig?.intervalMinutes ?? 1;
+        const tm = payload.emomConfig?.totalMinutes ?? 10;
+        summary = `${im === 1 ? "EMOM" : `E${im}MOM`} ${tm}'`;
+      } else if (method === "amrap") summary = `AMRAP ${payload.timeCap ?? 10}'`;
+      else if (method === "for_time") summary = `For Time ≤ ${payload.timeCap ?? 10}'`;
+      else if (method === "circuit") summary = `Circuit × ${payload.repsPerRound ?? 3} tours`;
+      else if (method === "death_by") summary = `Death By (+${payload.deathByConfig?.incrementReps ?? 1}/min)`;
+      else summary = `${label} — ${(payload.series ?? []).length} séries`;
+
+      const fullConfig = {
+        ...payload,
+        droppedExercise: draft?.droppedExercise ?? null,
+        droppedPhaseExercises: draft?.droppedPhaseExercises ?? {},
+      };
+      const phaseEntries = Object.values(draft?.droppedPhaseExercises ?? {}).filter(Boolean) as Array<{ exerciseId: string; exerciseName: string }>;
+      const exerciseName = draft?.droppedExercise?.exerciseName
+        ?? (phaseEntries.length > 0 ? `${label} — ${phaseEntries.map((e) => e.exerciseName).join(" + ")}` : summary);
+
+      appendMethodExercise(blockId, {
+        method,
+        name: exerciseName,
+        sets: setsCount,
+        reps: String(payload.series?.[0]?.reps ?? "1"),
+        notes: `${summary}\n<!--v2-${method}:${JSON.stringify(fullConfig)}-->`,
+        config: fullConfig as unknown as Record<string, unknown>,
+      });
+
+      setConfigDrafts((p) => {
+        const n = { ...p };
+        delete n[blockId];
+        return n;
+      });
+      toast.success(`${label} ajouté à la séance`);
+    },
+    [configDrafts, appendMethodExercise],
+  );
+
+  const handleConfigCancel = useCallback((blockId: string) => {
+    setConfigDrafts((p) => {
+      const n = { ...p };
+      delete n[blockId];
+      return n;
+    });
+  }, []);
+
+  const handleConfigPhaseRemove = useCallback(
+    (blockId: string, phaseIndex: number) => {
+      setConfigDrafts((p) => {
+        const cur = p[blockId];
+        if (!cur) return p;
+        const phases = { ...cur.droppedPhaseExercises };
+        delete phases[phaseIndex];
+        return { ...p, [blockId]: { ...cur, droppedPhaseExercises: phases } };
+      });
+    },
+    [],
+  );
+
+  const handleConfigExerciseRemove = useCallback((blockId: string) => {
+    setConfigDrafts((p) => {
+      const cur = p[blockId];
+      if (!cur) return p;
+      return { ...p, [blockId]: { ...cur, droppedExercise: null } };
+    });
+  }, []);
+
 
   // Slot management pour LinkedMethodSlots
   const handleSlotRemove = useCallback((blockId: string, slotIndex: number) => {
