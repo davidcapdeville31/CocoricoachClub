@@ -80,15 +80,6 @@ export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
             <span className="hidden sm:inline">Évolution Tests / Muscu</span>
             <span className="sm:hidden">Tests</span>
           </ColoredSubTabsTrigger>
-          <ColoredSubTabsTrigger 
-            value="training-stats" 
-            colorKey="performance"
-            icon={<Target className="h-4 w-4" />}
-            tooltip="Statistiques détaillées des entraînements : précision, drills et exercices spécifiques au sport"
-          >
-            <span className="hidden sm:inline">Stats entraînement</span>
-            <span className="sm:hidden">Stats entr.</span>
-          </ColoredSubTabsTrigger>
         </ColoredSubTabsList>
       </div>
 
