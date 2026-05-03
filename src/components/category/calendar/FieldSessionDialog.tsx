@@ -66,19 +66,28 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(true);
   const [blocks, setBlocks] = useState<BlockDraft[]>([
-    { id: crypto.randomUUID(), theme: "Échauffement", duration_minutes: 15, notes: "" },
-    { id: crypto.randomUUID(), theme: "Collectif", duration_minutes: 45, notes: "" },
+    { id: crypto.randomUUID(), theme: "Échauffement", themeLabel: "Échauffement", duration_minutes: 15, notes: "" },
+    { id: crypto.randomUUID(), theme: "Collectif", themeLabel: "Collectif", duration_minutes: 45, notes: "" },
   ]);
 
-  // Sport-specific themes (e.g., rugby, foot, athlétisme: lancers/sprint…)
-  const sportThemes = useMemo(() => {
-    const types = getTrainingTypesForSport(sportType);
-    return types.map((t) => t.label).filter((v, i, a) => a.indexOf(v) === i);
-  }, [sportType]);
+  const isBowling = isBowlingSport(sportType);
 
-  const allThemes = useMemo(() => {
-    return Array.from(new Set([...GENERIC_THEMES, ...sportThemes]));
-  }, [sportThemes]);
+  // Theme options (value + label). For bowling, include bowling-specific training types so we can store the exact training_type (e.g. "bowling_spare").
+  const themeOptions = useMemo(() => {
+    if (isBowling) {
+      const sportTypes = getTrainingTypesForSport(sportType);
+      const bowlingTypes = sportTypes
+        .filter((t) => t.value.startsWith("bowling_"))
+        .map((t) => ({ value: t.value, label: t.label }));
+      const generics = GENERIC_THEMES.map((t) => ({ value: t, label: t }));
+      // Bowling first
+      const all = [...bowlingTypes, ...generics];
+      const seen = new Set<string>();
+      return all.filter((o) => (seen.has(o.value) ? false : (seen.add(o.value), true)));
+    }
+    const sportLabels = getTrainingTypesForSport(sportType).map((t) => t.label);
+    return Array.from(new Set([...GENERIC_THEMES, ...sportLabels])).map((t) => ({ value: t, label: t }));
+  }, [sportType, isBowling]);
 
   const { data: players } = useQuery({
     queryKey: ["players-field-session", categoryId],
@@ -103,8 +112,19 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
     [blocks],
   );
 
-  const addBlock = () =>
-    setBlocks((b) => [...b, { id: crypto.randomUUID(), theme: allThemes[0] || "Collectif", duration_minutes: 30, notes: "" }]);
+  const addBlock = () => {
+    const first = themeOptions[0];
+    setBlocks((b) => [
+      ...b,
+      {
+        id: crypto.randomUUID(),
+        theme: first?.value || "Collectif",
+        themeLabel: first?.label || "Collectif",
+        duration_minutes: 30,
+        notes: "",
+      },
+    ]);
+  };
 
   const updateBlock = (id: string, patch: Partial<BlockDraft>) =>
     setBlocks((b) => b.map((bl) => (bl.id === id ? { ...bl, ...patch } : bl)));
