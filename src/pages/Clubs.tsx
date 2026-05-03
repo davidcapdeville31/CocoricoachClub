@@ -13,7 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { SuperAdminShieldButton } from "@/components/notifications/SuperAdminShieldButton";
 import { InjuryReturnAlerts } from "@/components/injuries/InjuryReturnAlerts";
-import logoCoq from "@/assets/logo-cocoricoach-v3.png";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export default function Clubs() {
   const navigate = useNavigate();
@@ -220,7 +220,7 @@ export default function Clubs() {
           {/* Header: title + actions on the same row */}
           <div className="flex items-center justify-between gap-3 sm:gap-4 min-w-0">
             <div className="flex items-center min-w-0 flex-1">
-              <img src={logoCoq} alt="CocoriCoach Club" className="h-32 sm:h-44 md:h-56 lg:h-64 w-auto shrink-0 -my-6 sm:-my-8" />
+              <BrandLogo className="h-32 sm:h-44 md:h-56 lg:h-64 w-auto shrink-0 -my-6 sm:-my-8" />
             </div>
             <div className="flex items-center gap-0.5 sm:gap-2 shrink-0 [&_button]:text-[#ED2939] [&_button:hover]:bg-[#ED2939]/10">
               <NotificationBell variant="default" />
