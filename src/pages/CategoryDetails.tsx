@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { ArrowLeft, LayoutDashboard, Shield, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Settings, FileCode, MapPin, Video, GraduationCap, CircleDot, BarChart3 } from "lucide-react";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { usePendingWeightLogsCount } from "@/lib/hooks/usePendingWeightLogsCount";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CategoryCoverUpload } from "@/components/category/CategoryCoverUpload";
