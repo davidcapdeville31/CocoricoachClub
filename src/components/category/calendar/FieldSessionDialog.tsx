@@ -174,9 +174,10 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         training_session_id: session.id,
         block_order: idx,
         training_type: b.theme,
-        theme: b.theme,
+        theme: b.themeLabel || b.theme,
         duration_minutes: b.duration_minutes,
         notes: b.notes || null,
+        bowling_exercise_type: b.theme === "bowling_spare" ? (b.bowling_exercise_type || null) : null,
       }));
       const { error: bErr } = await supabase.from("training_session_blocks").insert(blockRows);
       if (bErr) throw bErr;
