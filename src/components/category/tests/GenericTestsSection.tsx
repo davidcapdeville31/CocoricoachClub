@@ -166,17 +166,6 @@ function BatteryRadarCharts({
     return { color: "hsl(0 84% 60%)", label: "Faible" };
   };
 
-  const getColor = (pct: number) => {
-    if (pct >= 75) return "hsl(142 71% 45%)"; // green
-    if (pct >= 50) return "hsl(38 92% 50%)"; // orange
-    return "hsl(0 84% 60%)"; // red
-  };
-
-  const getLabel = (pct: number) => {
-    if (pct >= 75) return "Bon";
-    if (pct >= 50) return "Moyen";
-    return "Faible";
-  };
 
   if (groups.length === 0) {
     return (
