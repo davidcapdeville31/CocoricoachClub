@@ -272,11 +272,21 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
               <Badge variant="secondary">Total : {totalDuration} min</Badge>
             </div>
             <div className="space-y-2">
-              {blocks.map((b, idx) => (
-                <Card key={b.id} className="border-l-4 border-l-primary/60">
+              {blocks.map((b, idx) => {
+                const colors = getThemeColorTokens(b.themeLabel || b.theme);
+                return (
+                <Card key={b.id} className={cn("border-l-4 transition-colors", colors.border, colors.bg)}>
                   <CardContent className="p-3 space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-semibold text-muted-foreground">Bloc {idx + 1}</p>
+                      <div className="flex items-center gap-2">
+                        <span className={cn("inline-block h-2.5 w-2.5 rounded-full")} style={{ backgroundColor: colors.hex }} />
+                        <p className={cn("text-xs font-semibold", colors.text)}>Bloc {idx + 1}</p>
+                        {b.themeLabel && (
+                          <Badge variant="outline" className={cn("text-[10px] py-0", colors.badge)}>
+                            {b.themeLabel}
+                          </Badge>
+                        )}
+                      </div>
                       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeBlock(b.id)}>
                         <Trash2 className="h-3.5 w-3.5 text-destructive" />
                       </Button>
@@ -316,14 +326,14 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                             const v = parseInt(e.target.value) || 0;
                             updateBlock(b.id, { intensity: Math.max(0, Math.min(10, v)) });
                           }}
-                          title="RPE prévu (1-10)"
+                          title="RPE prévu (1-10) — alimente le sous-menu RPE prévu/réel"
                         />
                         <span className="text-xs text-muted-foreground">RPE</span>
                       </div>
                     </div>
-                    {/* Intensité / Volume / Contact (alimente Workload → Répartition) — désactivé pour le bowling */}
+                    {/* Intensité / Volume (tous sports sauf bowling) + Charge contact (rugby uniquement) — alimente Workload → Répartition */}
                     {!isBowling && (
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div className={cn("grid grid-cols-1 gap-2", isRugby ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
                       <div className="space-y-1">
                         <Label className="text-[11px] text-muted-foreground">Intensité</Label>
                         <Select
@@ -352,20 +362,22 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="space-y-1">
-                        <Label className="text-[11px] text-muted-foreground">Charge contact</Label>
-                        <Select
-                          value={b.contact_charge || ""}
-                          onValueChange={(v) => updateBlock(b.id, { contact_charge: v })}
-                        >
-                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Contact" /></SelectTrigger>
-                          <SelectContent>
-                            {CONTACT_CHARGE_OPTIONS.map((o) => (
-                              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                      {isRugby && (
+                        <div className="space-y-1">
+                          <Label className="text-[11px] text-muted-foreground">Charge contact</Label>
+                          <Select
+                            value={b.contact_charge || ""}
+                            onValueChange={(v) => updateBlock(b.id, { contact_charge: v })}
+                          >
+                            <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Contact" /></SelectTrigger>
+                            <SelectContent>
+                              {CONTACT_CHARGE_OPTIONS.map((o) => (
+                                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                     </div>
                     )}
                     {b.theme === "bowling_spare" && (
