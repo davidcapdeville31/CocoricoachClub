@@ -392,9 +392,19 @@ function CategoryDetailsContent() {
                   value="competition" 
                   colorKey="competition"
                   icon={<Trophy className="h-5 w-5" />}
-                  label="Compétition & Stats"
+                  label="Compétition"
                   shortLabel="Compét"
-                  tooltip="Gestion des matchs/compétitions, saisie des résultats, statistiques individuelles et collectives"
+                  tooltip="Gestion des matchs/compétitions, saisie des résultats et gestion des rencontres"
+                />
+              )}
+              {canSeeMenu("competition") && (
+                <ColoredTabTrigger 
+                  value="stats" 
+                  colorKey="competition"
+                  icon={<BarChart3 className="h-5 w-5" />}
+                  label="Stats"
+                  shortLabel="Stats"
+                  tooltip="Statistiques individuelles et collectives cumulées"
                 />
               )}
               {isBowling && (
