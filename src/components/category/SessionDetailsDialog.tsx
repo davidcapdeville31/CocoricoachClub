@@ -760,7 +760,8 @@ export function SessionDetailsDialog({
                       )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
               
               {/* Weighted RPE Summary */}
