@@ -344,6 +344,45 @@ export type Database = {
         }
         Relationships: []
       }
+      archived_snapshots: {
+        Row: {
+          club_id: string | null
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_name: string | null
+          entity_type: string
+          id: string
+          notes: string | null
+          snapshot: Json
+          version: number
+        }
+        Insert: {
+          club_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_name?: string | null
+          entity_type: string
+          id?: string
+          notes?: string | null
+          snapshot?: Json
+          version?: number
+        }
+        Update: {
+          club_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_name?: string | null
+          entity_type?: string
+          id?: string
+          notes?: string | null
+          snapshot?: Json
+          version?: number
+        }
+        Relationships: []
+      }
       athlete_access_tokens: {
         Row: {
           category_id: string
@@ -1606,6 +1645,8 @@ export type Database = {
       categories: {
         Row: {
           academy_enabled: boolean | null
+          archived_at: string | null
+          archived_by: string | null
           club_id: string
           cover_image_url: string | null
           created_at: string
@@ -1613,12 +1654,15 @@ export type Database = {
           gender: string
           gps_enabled: boolean | null
           id: string
+          is_archived: boolean
           name: string
           rugby_type: string
           video_enabled: boolean | null
         }
         Insert: {
           academy_enabled?: boolean | null
+          archived_at?: string | null
+          archived_by?: string | null
           club_id: string
           cover_image_url?: string | null
           created_at?: string
@@ -1626,12 +1670,15 @@ export type Database = {
           gender?: string
           gps_enabled?: boolean | null
           id?: string
+          is_archived?: boolean
           name: string
           rugby_type?: string
           video_enabled?: boolean | null
         }
         Update: {
           academy_enabled?: boolean | null
+          archived_at?: string | null
+          archived_by?: string | null
           club_id?: string
           cover_image_url?: string | null
           created_at?: string
@@ -1639,6 +1686,7 @@ export type Database = {
           gender?: string
           gps_enabled?: boolean | null
           id?: string
+          is_archived?: boolean
           name?: string
           rugby_type?: string
           video_enabled?: boolean | null
@@ -2140,10 +2188,13 @@ export type Database = {
       }
       clubs: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           client_id: string | null
           created_at: string
           id: string
           is_active: boolean
+          is_archived: boolean
           logo_url: string | null
           name: string
           sport: string
@@ -2151,10 +2202,13 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           client_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
+          is_archived?: boolean
           logo_url?: string | null
           name: string
           sport?: string
@@ -2162,10 +2216,13 @@ export type Database = {
           user_id: string
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           client_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
+          is_archived?: boolean
           logo_url?: string | null
           name?: string
           sport?: string
@@ -13665,6 +13722,14 @@ export type Database = {
       }
       accept_category_invitation: { Args: { _token: string }; Returns: Json }
       accept_club_invitation: { Args: { _token: string }; Returns: Json }
+      archive_category: {
+        Args: { _category_id: string; _notes?: string }
+        Returns: Json
+      }
+      archive_club: {
+        Args: { _club_id: string; _notes?: string }
+        Returns: Json
+      }
       can_access_category: {
         Args: { _category_id: string; _user_id: string }
         Returns: boolean
@@ -13715,6 +13780,11 @@ export type Database = {
         }
         Returns: string
       }
+      delete_archived_category: {
+        Args: { _category_id: string }
+        Returns: Json
+      }
+      delete_archived_club: { Args: { _club_id: string }; Returns: Json }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -13830,6 +13900,21 @@ export type Database = {
         Args: { _category_id: string }
         Returns: boolean
       }
+      list_archived_entities: {
+        Args: never
+        Returns: {
+          archived_at: string
+          archived_by: string
+          archiver_email: string
+          club_id: string
+          club_name: string
+          entity_id: string
+          entity_name: string
+          entity_type: string
+          latest_snapshot_id: string
+          snapshot_count: number
+        }[]
+      }
       log_audit_event: {
         Args: {
           _action: string
@@ -13897,6 +13982,8 @@ export type Database = {
         Args: { _player_category_id: string; _response: string }
         Returns: Json
       }
+      restore_category: { Args: { _category_id: string }; Returns: Json }
+      restore_club: { Args: { _club_id: string }; Returns: Json }
       seed_default_program_themes: {
         Args: { p_club_id: string }
         Returns: undefined
