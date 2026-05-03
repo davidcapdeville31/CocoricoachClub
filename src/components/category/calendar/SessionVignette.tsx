@@ -128,7 +128,7 @@ export function SessionVignette({
       {/* Main Session Block */}
       <div
         className={cn(
-          "rounded-lg px-2 py-1.5 text-white text-[11px] font-medium transition-all relative overflow-hidden",
+          "rounded-lg px-2 py-1.5 text-white text-[11px] font-medium transition-all relative",
           !hasBlocks && !isAthleteCreated && bgColor,
           isDragging && "shadow-lg ring-2 ring-primary/50",
           isAthleteCreated && !hasBlocks && "ring-2 ring-violet-400"
