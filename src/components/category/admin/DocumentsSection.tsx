@@ -83,6 +83,8 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   // "team" = documents d'équipe, or a player id
   const [selectedTab, setSelectedTab] = useState<string>("team");
+  // Assignee for the new document dialog ("team" or player id)
+  const [assignee, setAssignee] = useState<string>("team");
 
   const [customDocumentType, setCustomDocumentType] = useState("");
   const [formData, setFormData] = useState({
