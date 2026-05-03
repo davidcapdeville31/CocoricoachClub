@@ -350,7 +350,43 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
               <Label className="flex items-center gap-1"><Layers className="h-3 w-3" /> Blocs / Thématiques</Label>
               <Badge variant="secondary">Total : {totalDuration} min</Badge>
             </div>
+
+            {/* Thématiques personnalisées */}
+            <div className="rounded-md border border-dashed border-border/60 p-2 space-y-2 bg-muted/30">
+              <Label className="text-[11px] text-muted-foreground">Thématiques personnalisées</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={newCustomTheme}
+                  onChange={(e) => setNewCustomTheme(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustomTheme(); } }}
+                  placeholder="Ex : Skills handling, Set-piece, Travail blocs..."
+                  className="h-8 text-xs"
+                />
+                <Button type="button" size="sm" variant="outline" onClick={addCustomTheme} className="h-8">
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Ajouter
+                </Button>
+              </div>
+              {customThemes.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {customThemes.map((t) => (
+                    <Badge key={t} variant="secondary" className="text-[10px] gap-1">
+                      {t}
+                      <button
+                        type="button"
+                        className="ml-1 opacity-60 hover:opacity-100"
+                        onClick={() => removeCustomTheme(t)}
+                        aria-label={`Retirer ${t}`}
+                      >
+                        ×
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
+
               {blocks.map((b, idx) => {
                 const colors = getThemeColorTokens(b.themeLabel || b.theme);
                 return (
