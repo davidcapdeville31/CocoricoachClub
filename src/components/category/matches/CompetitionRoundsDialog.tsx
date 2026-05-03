@@ -575,14 +575,23 @@ export function CompetitionRoundsDialog({
       // player, otherwise the second pass wipes the rounds we just inserted in the first.
       // We also only delete for player_ids that have at least one entry with rounds —
       // otherwise an empty entry can wipe rounds saved earlier in another event.
-      const playerIdsWithRounds = Array.from(
-        new Set(
-          playerRoundsData
-            .filter((p) => p.rounds.length > 0)
-            .map((p) => p.playerId),
-        ),
+      // Players with rounds in the current state (will be re-inserted).
+      const playerIdsWithRounds = new Set(
+        playerRoundsData.filter((p) => p.rounds.length > 0).map((p) => p.playerId),
       );
-      for (const pid of playerIdsWithRounds) {
+      // Players who had existing rounds loaded but now have none (user deleted them all).
+      // We must also delete those, otherwise the removed rounds stay in DB.
+      const playerIdsWithExistingRounds = new Set(
+        (existingRounds || []).map((r: any) => r.player_id),
+      );
+      const playerIdsInDialog = new Set(playerRoundsData.map((p) => p.playerId));
+      const playerIdsToDelete = new Set<string>([
+        ...playerIdsWithRounds,
+        ...Array.from(playerIdsWithExistingRounds).filter(
+          (pid) => playerIdsInDialog.has(pid as string),
+        ),
+      ]);
+      for (const pid of playerIdsToDelete) {
         const { error: delError } = await supabase
           .from("competition_rounds")
           .delete()
