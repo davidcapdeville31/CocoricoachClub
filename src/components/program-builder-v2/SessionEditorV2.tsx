@@ -331,7 +331,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
         isSavedUpToDate={isSavedUpToDate}
         renderSessionContent={() => (
           <div className="space-y-4">
-            <div className="flex items-end gap-3 rounded-2xl border bg-muted/40 p-3">
+            <div className="flex flex-wrap items-end gap-3 rounded-2xl border bg-muted/40 p-3">
               <div className="space-y-1">
                 <Label htmlFor="v2-session-date" className="text-xs">Date de la séance</Label>
                 <Input
@@ -342,8 +342,82 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
                   className="h-9 w-44"
                 />
               </div>
-              <p className="text-xs text-muted-foreground pb-2">
-                La séance sera créée pour tous les athlètes de la catégorie.
+              <div className="space-y-1">
+                <Label htmlFor="v2-session-start" className="text-xs">Heure de début</Label>
+                <Input
+                  id="v2-session-start"
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="h-9 w-28"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="v2-session-end" className="text-xs">Heure de fin</Label>
+                <Input
+                  id="v2-session-end"
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="h-9 w-28"
+                />
+              </div>
+            </div>
+
+            <div className="rounded-2xl border bg-muted/40 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <Label className="flex items-center gap-1.5 text-xs">
+                  <Users className="h-3.5 w-3.5" />
+                  Participants
+                  <span className="ml-1 text-[11px] font-normal text-muted-foreground">
+                    {selectedPlayers.length === 0
+                      ? "(toute la catégorie)"
+                      : `(${selectedPlayers.length} sélectionné${selectedPlayers.length > 1 ? "s" : ""})`}
+                  </span>
+                </Label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className="text-[11px] text-primary hover:underline"
+                    onClick={() => setSelectedPlayers((categoryPlayers || []).map((p) => p.id))}
+                  >
+                    Tout sélectionner
+                  </button>
+                  <button
+                    type="button"
+                    className="text-[11px] text-muted-foreground hover:underline"
+                    onClick={() => setSelectedPlayers([])}
+                  >
+                    Tout désélectionner
+                  </button>
+                </div>
+              </div>
+              <ScrollArea className="h-32 pr-2">
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                  {(categoryPlayers || []).map((p) => {
+                    const checked = selectedPlayers.includes(p.id);
+                    const label = p.first_name ? `${p.first_name} ${p.name}` : p.name;
+                    return (
+                      <label
+                        key={p.id}
+                        className="flex cursor-pointer items-center gap-2 rounded-md border bg-background px-2 py-1.5 text-xs hover:bg-accent/50"
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(v) => {
+                            setSelectedPlayers((prev) =>
+                              v ? [...prev, p.id] : prev.filter((id) => id !== p.id),
+                            );
+                          }}
+                        />
+                        <span className="truncate">{label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Si aucun athlète n'est sélectionné, la séance est créée pour toute la catégorie.
               </p>
             </div>
 
