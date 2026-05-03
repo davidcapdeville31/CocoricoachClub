@@ -167,7 +167,7 @@ function CategoryDetailsContent() {
       } else {
         const { data, error } = await supabase
           .from("categories")
-          .select("*, clubs(name, id), rugby_type")
+          .select("*, clubs(name, id, sport), rugby_type")
           .eq("id", categoryId)
           .single();
         if (error) throw error;
@@ -183,7 +183,7 @@ function CategoryDetailsContent() {
   // Check if GPS/Video/Academy should be visible (category-level flags)
   const showGpsTab = isGpsSportType(category?.rugby_type) && (category?.gps_enabled === true);
   const showVideoTab = hasVideoAnalysis(category?.rugby_type) && (category?.video_enabled === true);
-  const isBowling = category?.rugby_type?.toLowerCase().includes("bowling");
+  const isBowling = category?.rugby_type?.toLowerCase().includes("bowling") || (category?.clubs as any)?.sport?.toLowerCase() === "bowling";
 
   // Menu permissions based on role_menu_permissions matrix
   const { canSeeMenu } = useMenuPermissions(category?.clubs?.id, categoryId);
