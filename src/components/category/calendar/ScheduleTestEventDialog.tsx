@@ -501,13 +501,13 @@ export function ScheduleTestEventDialog({
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[92vh] flex flex-col overflow-hidden border-border/70 bg-background/95 p-0 shadow-2xl backdrop-blur-md">
-        <DialogHeader className="shrink-0 border-b border-border/60 px-6 pt-6 pb-4">
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <ClipboardList className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+      <DialogContent className="max-w-2xl max-h-[92vh] flex flex-col overflow-hidden border-orange-200 dark:border-orange-900/40 bg-white dark:bg-zinc-950 p-0 shadow-2xl">
+        <DialogHeader className="shrink-0 border-b border-orange-200 dark:border-orange-900/40 bg-gradient-to-r from-orange-500 to-amber-500 px-6 pt-6 pb-4">
+          <DialogTitle className="flex items-center gap-2 text-xl text-white">
+            <ClipboardList className="h-5 w-5 text-white" />
             {isEditMode ? "Modifier le test physique" : "Planifier un test physique"}
           </DialogTitle>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-orange-50/90">
             {format(date, "EEEE d MMMM yyyy", { locale: fr })}
           </p>
         </DialogHeader>
@@ -535,21 +535,21 @@ export function ScheduleTestEventDialog({
 
           {/* Test selection */}
           <Tabs value={mode} onValueChange={(v) => setMode(v as "individual" | "battery")}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="individual" className="gap-2">
+            <TabsList className="grid w-full grid-cols-2 bg-orange-50 dark:bg-orange-950/30">
+              <TabsTrigger value="individual" className="gap-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white">
                 <ClipboardList className="h-4 w-4" />
                 Tests à la carte
                 {selectedTestsList.length > 0 && (
-                  <Badge variant="secondary" className="ml-1">
+                  <Badge variant="secondary" className="ml-1 bg-white text-orange-600">
                     {selectedTestsList.length}
                   </Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="battery" className="gap-2">
+              <TabsTrigger value="battery" className="gap-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white">
                 <Layers className="h-4 w-4" />
                 Batterie de tests
                 {selectedBatteryId && (
-                  <Badge variant="secondary" className="ml-1">1</Badge>
+                  <Badge variant="secondary" className="ml-1 bg-white text-orange-600">1</Badge>
                 )}
               </TabsTrigger>
             </TabsList>
@@ -567,7 +567,7 @@ export function ScheduleTestEventDialog({
                         setActiveTest("");
                       }}
                     >
-                      <SelectTrigger className="flex-1 bg-muted/40">
+                      <SelectTrigger className="flex-1 bg-white border-orange-200 dark:bg-zinc-900 dark:border-orange-900/40">
                         <SelectValue placeholder="Choisir une thématique" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[320px]">
@@ -615,11 +615,11 @@ export function ScheduleTestEventDialog({
 
               {/* Tests list for selected category */}
               {!selectedCategory ? (
-                <div className="rounded-2xl border-2 border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                <div className="rounded-2xl border-2 border-dashed border-orange-200 bg-orange-50/50 dark:bg-orange-950/10 p-6 text-center text-sm text-orange-700 dark:text-orange-300">
                   Sélectionnez d'abord une thématique pour afficher les tests disponibles.
                 </div>
               ) : (selectedCategory.tests || []).length === 0 ? (
-                <div className="rounded-2xl border-2 border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                <div className="rounded-2xl border-2 border-dashed border-orange-200 bg-orange-50/50 dark:bg-orange-950/10 p-6 text-center text-sm text-orange-700 dark:text-orange-300">
                   Aucun test dans cette thématique.
                 </div>
               ) : (
@@ -643,7 +643,7 @@ export function ScheduleTestEventDialog({
                       </Button>
                     )}
                   </div>
-                  <ScrollArea className="h-[260px] rounded-2xl border bg-muted/20 p-2">
+                  <ScrollArea className="h-[260px] rounded-2xl border border-orange-200 dark:border-orange-900/40 bg-white dark:bg-zinc-900 p-2">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                       {selectedCategory.tests.map((test) => {
                         const key = `${selectedCategory.value}::${test.value}`;
@@ -670,8 +670,8 @@ export function ScheduleTestEventDialog({
                             className={cn(
                               "flex items-center gap-2 p-2 rounded-lg border transition-all text-sm",
                               isSel
-                                ? "bg-primary/15 border-primary ring-1 ring-primary/40"
-                                : "bg-background hover:bg-muted/50 border-border/60",
+                                ? "bg-orange-100 dark:bg-orange-950/30 border-orange-500 ring-1 ring-orange-400"
+                                : "bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-950/20 border-orange-100 dark:border-orange-900/30",
                             )}
                           >
                             {meta?.image_url ? (
@@ -760,13 +760,13 @@ export function ScheduleTestEventDialog({
 
             <TabsContent value="battery" className="space-y-3">
               {(batteries?.length ?? 0) === 0 ? (
-                <div className="text-center py-10 text-sm text-muted-foreground border-2 border-dashed rounded-2xl">
-                  <Layers className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                <div className="text-center py-10 text-sm text-orange-700 dark:text-orange-300 border-2 border-dashed border-orange-200 rounded-2xl bg-orange-50/50 dark:bg-orange-950/10">
+                  <Layers className="h-8 w-8 mx-auto mb-2 opacity-60 text-orange-500" />
                   Aucune batterie disponible.<br />
                   Créez-en une dans <strong>Programmation → Tests</strong>.
                 </div>
               ) : (
-                <ScrollArea className="h-[260px] rounded-2xl border bg-muted/20 p-2">
+                <ScrollArea className="h-[260px] rounded-2xl border border-orange-200 dark:border-orange-900/40 bg-white dark:bg-zinc-900 p-2">
                   <div className="space-y-2">
                     {batteries!.map((b: any) => {
                       const isSel = selectedBatteryId === b.id;
@@ -777,8 +777,8 @@ export function ScheduleTestEventDialog({
                           className={cn(
                             "p-3 rounded-xl border cursor-pointer transition-all",
                             isSel
-                              ? "bg-primary/10 border-primary"
-                              : "bg-background hover:bg-muted/50 border-border/60",
+                              ? "bg-orange-100 dark:bg-orange-950/30 border-orange-500"
+                              : "bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-950/20 border-orange-100 dark:border-orange-900/30",
                           )}
                         >
                           <div className="flex items-center gap-3">
@@ -820,7 +820,7 @@ export function ScheduleTestEventDialog({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-primary" />
+                <Users className="h-4 w-4 text-orange-500" />
                 Athlètes concernés
                 <Badge variant="secondary">
                   {selectedPlayers.length}/{players?.length || 0}
@@ -837,7 +837,7 @@ export function ScheduleTestEventDialog({
                 </Label>
               </div>
             </div>
-            <ScrollArea className="h-[160px] rounded-2xl border bg-muted/20 p-2">
+            <ScrollArea className="h-[160px] rounded-2xl border border-orange-200 dark:border-orange-900/40 bg-white dark:bg-zinc-900 p-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                 {(players || []).map((p) => {
                   const isSel = selectedPlayers.includes(p.id);
@@ -848,8 +848,8 @@ export function ScheduleTestEventDialog({
                       className={cn(
                         "flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all text-sm",
                         isSel
-                          ? "bg-primary/10 border-primary"
-                          : "bg-background hover:bg-muted/50 border-border/60",
+                          ? "bg-orange-100 dark:bg-orange-950/30 border-orange-500"
+                          : "bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-950/20 border-orange-100 dark:border-orange-900/30",
                       )}
                     >
                       <Checkbox checked={isSel} onCheckedChange={() => togglePlayer(p.id)} />
@@ -874,11 +874,15 @@ export function ScheduleTestEventDialog({
           </div>
         </div>
 
-        <DialogFooter className="shrink-0 border-t border-border/60 px-6 py-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="shrink-0 border-t border-orange-200 dark:border-orange-900/40 bg-orange-50/50 dark:bg-orange-950/10 px-6 py-4">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="border-orange-200 hover:bg-orange-50">
             Annuler
           </Button>
-          <Button onClick={() => schedule.mutate()} disabled={schedule.isPending}>
+          <Button
+            onClick={() => schedule.mutate()}
+            disabled={schedule.isPending}
+            className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md"
+          >
             {schedule.isPending
               ? (isEditMode ? "Mise à jour..." : "Planification...")
               : (isEditMode ? "Enregistrer les modifications" : "Planifier au calendrier")}
