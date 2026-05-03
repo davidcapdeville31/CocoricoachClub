@@ -294,17 +294,17 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
         const hasRadar = batteryTests.length > 0;
         if (!hasResults && !hasRadar) return null;
         return (
-          <div className={`grid gap-4 items-start ${hasResults && hasRadar ? "lg:grid-cols-5" : "grid-cols-1"}`}>
+          <div className="space-y-4">
             {hasResults && (
-              <Card className="bg-gradient-card shadow-md lg:col-span-2 h-fit">
+              <Card className="bg-gradient-card shadow-md">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-2">
+                  <CardTitle className="text-base flex items-center gap-2">
                     <FlaskConical className="h-4 w-4 text-primary" />
                     Derniers résultats de tests
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-1.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                     {Object.entries(filteredLatestGeneric).map(([key, test]) => {
                       const series = filteredGenericByType[key] || [];
                       let progression: { pct: number; positive: boolean } | null = null;
@@ -319,24 +319,24 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
                         }
                       }
                       return (
-                        <div key={key} className="p-1.5 rounded-md bg-muted/30 text-center relative min-w-0">
+                        <div key={key} className="p-3 rounded-lg bg-muted/30 text-center relative min-w-0">
                           {progression && (
                             <Badge
                               variant="secondary"
-                              className={`absolute top-0.5 right-0.5 text-[7px] px-1 py-0 leading-tight ${
+                              className={`absolute top-1 right-1 text-[10px] px-1.5 py-0 leading-tight ${
                                 progression.positive ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
                               }`}
                             >
                               {progression.positive ? "▲" : "▼"} {progression.pct.toFixed(0)}%
                             </Badge>
                           )}
-                          <p className="text-[7px] text-muted-foreground/70 uppercase tracking-wide truncate">{test.categoryLabel}</p>
-                          <p className="text-[9px] text-muted-foreground truncate leading-tight">{test.label}</p>
-                          <p className="text-xs font-bold leading-tight">
+                          <p className="text-[10px] text-muted-foreground/70 uppercase tracking-wide truncate">{test.categoryLabel}</p>
+                          <p className="text-xs text-muted-foreground truncate">{test.label}</p>
+                          <p className="text-lg font-bold leading-tight mt-1">
                             {test.value}
-                            <span className="text-[8px] font-normal text-muted-foreground ml-0.5">{test.unit}</span>
+                            <span className="text-xs font-normal text-muted-foreground ml-1">{test.unit}</span>
                           </p>
-                          <p className="text-[7px] text-muted-foreground">
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
                             {format(new Date(test.date), "dd MMM yy", { locale: fr })}
                           </p>
                         </div>
@@ -348,7 +348,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
             )}
 
             {hasRadar && (
-              <div className="lg:col-span-3 min-w-0">
+              <div>
                 <BatteryRadarCharts
                   tests={batteryTests}
                   isViewer={true}
