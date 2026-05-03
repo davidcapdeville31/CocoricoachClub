@@ -158,6 +158,11 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         delete n[id];
         return n;
       });
+      setConfigDrafts((prev) => {
+        const n = { ...prev };
+        delete n[id];
+        return n;
+      });
     },
     [blocks, onChange],
   );
