@@ -432,7 +432,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
 
       {/* Edit Session Dialog */}
       <SessionEditorV2
-        open={isEditDialogOpen && isV2EditableSession(editingSession?.training_type)}
+        open={isEditDialogOpen && isV2EditableSession(editingSession)}
         onClose={() => {
           setIsEditDialogOpen(false);
           setEditingSession(null);
@@ -442,7 +442,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       />
 
       <SessionFormDialog
-        open={isEditDialogOpen && !isV2EditableSession(editingSession?.training_type)}
+        open={isEditDialogOpen && !isV2EditableSession(editingSession)}
         onOpenChange={(open) => {
           setIsEditDialogOpen(open);
           if (!open) setEditingSession(null);
