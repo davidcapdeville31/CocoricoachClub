@@ -423,6 +423,25 @@ export function CreateTrainingProgramV2({
     });
   }, []);
 
+  const setDayOfWeek = useCallback(
+    (weekNumber: number, dayId: string, newDow: string) => {
+      setDraft((prev) => ({
+        ...prev,
+        weeks: prev.weeks.map((w) =>
+          w.weekNumber !== weekNumber
+            ? w
+            : {
+                ...w,
+                days: w.days.map((d) =>
+                  d.id === dayId ? { ...d, dayOfWeek: newDow } : d,
+                ),
+              },
+        ),
+      }));
+    },
+    [],
+  );
+
   const setDayBlocks = useCallback(
     (weekNumber: number, dayId: string, blocks: V2BlockWithExercises[]) => {
       setDraft((prev) => ({
