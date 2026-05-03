@@ -578,6 +578,28 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
           const blockTag = `<!-- v2-block:${block.type}:${block.name} -->`;
           const isTestRef = typeof ex.exerciseId === "string" && ex.exerciseId.startsWith("test:");
           const testTag = isTestRef ? `<!-- v2-test:${ex.exerciseId.slice(5)} -->` : "";
+          // Re-serialize method-specific config (fartlek/cluster/stato/intermittent/...) so
+          // the read-only previews (SessionDetailsDialog, athlete calendar) can re-render
+          // the dedicated summary cards (e.g. FartlekCard).
+          const CONFIG_METHODS = new Set([
+            "fartlek","cluster","stato","stato_dynamique","intermittent","intermittent_cardio",
+            "drop_set","rest_pause","pyramid_up","pyramid_down","pyramid_full","five_by_five",
+            "isometric_overcoming","isometric_yielding","amrap","for_time","death_by",
+            "circuit","tabata","emom",
+          ]);
+          let configTag = "";
+          if (ex.method && ex.config && CONFIG_METHODS.has(ex.method)) {
+            const tagKey = ex.method === "stato_dynamique"
+              ? "stato"
+              : ex.method === "intermittent_cardio"
+                ? "intermittent"
+                : ex.method;
+            try {
+              configTag = `<!--v2-${tagKey}:${JSON.stringify(ex.config)}-->`;
+            } catch {
+              configTag = "";
+            }
+          }
           const userNote = ex.notes ? `\n${ex.notes}` : "";
           const repsNum = ex.reps ? Number(String(ex.reps).replace(/[^0-9]/g, "")) : null;
           const groupOrder = ex.groupId
@@ -600,7 +622,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
             set_type: methodValue ?? "normal",
             group_id: ex.groupId || null,
             group_order: groupOrder,
-            notes: `${blockTag}${testTag}${userNote}`,
+            notes: `${blockTag}${testTag}${configTag}${userNote}`,
           };
         }),
       );
