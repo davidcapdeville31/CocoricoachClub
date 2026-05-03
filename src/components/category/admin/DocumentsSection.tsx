@@ -274,13 +274,7 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
     }
   };
 
-  // Filter documents for current tab
-  const tabDocuments = documents?.filter((doc) => {
-    if (selectedTab === "team") return doc.player_id === null;
-    return doc.player_id === selectedTab;
-  });
-
-  const filteredDocuments = tabDocuments?.filter((doc) => {
+  const filteredDocuments = documents?.filter((doc) => {
     const matchesType = typeFilter === "all" || doc.document_type === typeFilter;
     return matchesType;
   });
