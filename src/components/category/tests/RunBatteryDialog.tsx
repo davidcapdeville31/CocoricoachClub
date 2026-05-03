@@ -241,6 +241,19 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     const rows: any[] = [];
     (battery.items as any[]).forEach((it) => {
       const baseTestType = buildBaseTestType(it.test_name);
+      if (injured[it.id]) {
+        rows.push({
+          player_id: playerId,
+          category_id: categoryId,
+          test_category: it.test_category,
+          test_type: baseTestType,
+          result_value: null,
+          result_unit: it.unit || null,
+          test_date: savedDate,
+          notes: `[Batterie: ${battery.battery.name}] [BLESSÉ] Test: ${it.test_name} · Non réalisé (blessure) · Score 0/${it.max_points} pts`,
+        });
+        return;
+      }
       if (it.bilateral) {
         const rawR = results[`${it.id}__R`];
         const rawL = results[`${it.id}__L`];
