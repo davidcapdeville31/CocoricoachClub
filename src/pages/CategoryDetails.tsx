@@ -531,6 +531,20 @@ function CategoryDetailsContent() {
             </TabsContent>
           )}
 
+          {canSeeMenu("competition") && (
+            <TabsContent value="stats" className="space-y-4">
+              <NavThemedSection colorKey="competition">
+                <CompetitionTab 
+                  categoryId={categoryId!} 
+                  isRugby7={isRugby7} 
+                  isNationalTeam={isNationalTeam}
+                  sportType={category?.rugby_type}
+                  view="stats"
+                />
+              </NavThemedSection>
+            </TabsContent>
+          )}
+
           {isBowling && (
             <TabsContent value="arsenal" className="space-y-4">
               <NavThemedSection colorKey="performance">
