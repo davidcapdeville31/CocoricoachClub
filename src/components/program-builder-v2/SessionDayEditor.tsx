@@ -336,6 +336,121 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
     });
   }, []);
 
+  // Helper générique pour ajouter un exercice "méthode dédiée" au bloc
+  const appendMethodExercise = useCallback(
+    (
+      blockId: string,
+      params: {
+        method: V2BlockExercise["method"];
+        name: string;
+        sets?: number;
+        reps?: string;
+        restSeconds?: number;
+        notes?: string;
+        config?: Record<string, unknown>;
+      },
+    ) => {
+      const exercise: V2BlockExercise = {
+        id: `ex-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        exerciseId: undefined,
+        exerciseName: params.name,
+        sets: params.sets ?? 1,
+        reps: params.reps ?? "1",
+        restSeconds: params.restSeconds ?? 0,
+        method: params.method,
+        notes: params.notes,
+        config: params.config,
+      };
+      onChange(
+        blocks.map((b) =>
+          b.id === blockId
+            ? { ...b, exercises: [...(b.exercises ?? []), exercise] }
+            : b,
+        ),
+      );
+    },
+    [blocks, onChange],
+  );
+
+  const handleClusterValidate = useCallback(
+    (blockId: string, config: ClusterConfig) => {
+      const summary = formatClusterSummary(config);
+      appendMethodExercise(blockId, {
+        method: "cluster",
+        name: `Cluster — ${summary}`,
+        sets: config.sets ?? 1,
+        notes: `<!--v2-cluster:${JSON.stringify(config)}-->`,
+        config: config as unknown as Record<string, unknown>,
+      });
+      setClusterDrafts((p) => {
+        const n = { ...p };
+        delete n[blockId];
+        return n;
+      });
+      toast.success("Cluster ajouté à la séance");
+    },
+    [appendMethodExercise],
+  );
+  const handleClusterCancel = useCallback((blockId: string) => {
+    setClusterDrafts((p) => {
+      const n = { ...p };
+      delete n[blockId];
+      return n;
+    });
+  }, []);
+
+  const handleStatoValidate = useCallback(
+    (blockId: string, config: StatoDynamiqueConfig) => {
+      const summary = formatStatoDynamiqueSummary(config);
+      appendMethodExercise(blockId, {
+        method: "stato_dynamique",
+        name: `Stato-Dynamique — ${summary}`,
+        notes: `<!--v2-stato:${JSON.stringify(config)}-->`,
+        config: config as unknown as Record<string, unknown>,
+      });
+      setStatoDrafts((p) => {
+        const n = { ...p };
+        delete n[blockId];
+        return n;
+      });
+      toast.success("Stato-Dynamique ajouté à la séance");
+    },
+    [appendMethodExercise],
+  );
+  const handleStatoCancel = useCallback((blockId: string) => {
+    setStatoDrafts((p) => {
+      const n = { ...p };
+      delete n[blockId];
+      return n;
+    });
+  }, []);
+
+  const handleIntermittentValidate = useCallback(
+    (blockId: string, config: IntermittentCardioConfig) => {
+      const summary = formatIntermittentSummary(config);
+      appendMethodExercise(blockId, {
+        method: "intermittent_cardio",
+        name: `Cardio intermittent — ${summary}`,
+        notes: `<!--v2-intermittent:${JSON.stringify(config)}-->`,
+        config: config as unknown as Record<string, unknown>,
+      });
+      setIntermittentDrafts((p) => {
+        const n = { ...p };
+        delete n[blockId];
+        return n;
+      });
+      toast.success("Cardio intermittent ajouté à la séance");
+    },
+    [appendMethodExercise],
+  );
+  const handleIntermittentCancel = useCallback((blockId: string) => {
+    setIntermittentDrafts((p) => {
+      const n = { ...p };
+      delete n[blockId];
+      return n;
+    });
+  }, []);
+
 
   // Slot management pour LinkedMethodSlots
   const handleSlotRemove = useCallback((blockId: string, slotIndex: number) => {
