@@ -204,7 +204,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
     }
   };
 
-  const currentSnapshot = JSON.stringify({ dayName, dayOfWeek, sessionDate, blocks });
+  const currentSnapshot = JSON.stringify({ dayName, dayOfWeek, sessionDate, startTime, endTime, selectedPlayers, blocks });
   const isSavedUpToDate = savedSnapshot !== null && savedSnapshot === currentSnapshot;
 
   const saveMutation = useMutation({
