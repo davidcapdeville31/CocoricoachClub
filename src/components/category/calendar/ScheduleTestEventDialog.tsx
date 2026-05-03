@@ -760,8 +760,8 @@ export function ScheduleTestEventDialog({
 
             <TabsContent value="battery" className="space-y-3">
               {(batteries?.length ?? 0) === 0 ? (
-                <div className="text-center py-10 text-sm text-muted-foreground border-2 border-dashed rounded-2xl">
-                  <Layers className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                <div className="text-center py-10 text-sm text-orange-700 dark:text-orange-300 border-2 border-dashed border-orange-200 rounded-2xl bg-orange-50/50 dark:bg-orange-950/10">
+                  <Layers className="h-8 w-8 mx-auto mb-2 opacity-60 text-orange-500" />
                   Aucune batterie disponible.<br />
                   Créez-en une dans <strong>Programmation → Tests</strong>.
                 </div>
