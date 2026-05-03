@@ -454,7 +454,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
           </div>
         </div>
 
-        <DialogFooter className="sticky bottom-0 z-20 gap-2 border-t border-border/60 bg-card px-6 py-4 sm:justify-between">
+        <DialogFooter className="shrink-0 gap-2 border-t border-border/60 bg-card px-6 py-4 sm:justify-between">
           <div>
             {!isSeed && test?.id && (
               <Button
