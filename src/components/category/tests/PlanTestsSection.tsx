@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CalendarPlus, Search, Star, Bell, Trash2, Pencil, RefreshCw, X } from "lucide-react";
+import { CalendarPlus, Search, Star, Bell, Trash2, Pencil, RefreshCw, X, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { format, addWeeks, isBefore, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -142,6 +142,7 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
   const [selected, setSelected] = useState<Map<string, TestRef>>(new Map());
   const [search, setSearch] = useState("");
   const [showFavorites, setShowFavorites] = useState(false);
+  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
 
   // Favorites (per category) - shared with TestsTab
   const favStorageKey = `tests-fav-categories:${categoryId}`;
@@ -557,35 +558,60 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
                   Aucun test trouvé.
                 </p>
               )}
-              {filteredCatalog.map((cat) => (
-                <div key={cat.value} className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      {cat.label}
-                    </span>
-                    <span className="text-xs text-muted-foreground/70">({cat.tests.length})</span>
+              {filteredCatalog.map((cat) => {
+                const isOpen = expandedCats.has(cat.value) || !!search.trim();
+                const selectedCount = cat.tests.filter((t) => isSelected(cat, t)).length;
+                return (
+                  <div key={cat.value} className="rounded-xl border border-border/60 bg-background/40 overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedCats((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(cat.value)) next.delete(cat.value);
+                          else next.add(cat.value);
+                          return next;
+                        })
+                      }
+                      className="w-full flex items-center gap-2 px-3 py-2 hover:bg-background/70 transition-colors"
+                    >
+                      <ChevronDown
+                        className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "" : "-rotate-90"}`}
+                      />
+                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        {cat.label}
+                      </span>
+                      <span className="text-xs text-muted-foreground/70">({cat.tests.length})</span>
+                      {selectedCount > 0 && (
+                        <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-[10px]">
+                          {selectedCount} sélectionné{selectedCount > 1 ? "s" : ""}
+                        </Badge>
+                      )}
+                    </button>
+                    {isOpen && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 p-2 pt-0">
+                        {cat.tests.map((t) => (
+                          <label
+                            key={t.value}
+                            className="flex items-center gap-2 rounded-xl bg-background/60 hover:bg-background border border-border/60 px-2.5 py-2 cursor-pointer transition-colors"
+                          >
+                            <Checkbox
+                              checked={isSelected(cat, t)}
+                              onCheckedChange={() => toggleTest(cat, t)}
+                            />
+                            <span className="text-sm truncate">{t.label}</span>
+                            {t.unit && (
+                              <span className="text-[11px] text-muted-foreground ml-auto shrink-0">
+                                ({t.unit})
+                              </span>
+                            )}
+                          </label>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                    {cat.tests.map((t) => (
-                      <label
-                        key={t.value}
-                        className="flex items-center gap-2 rounded-xl bg-background/60 hover:bg-background border border-border/60 px-2.5 py-2 cursor-pointer transition-colors"
-                      >
-                        <Checkbox
-                          checked={isSelected(cat, t)}
-                          onCheckedChange={() => toggleTest(cat, t)}
-                        />
-                        <span className="text-sm truncate">{t.label}</span>
-                        {t.unit && (
-                          <span className="text-[11px] text-muted-foreground ml-auto shrink-0">
-                            ({t.unit})
-                          </span>
-                        )}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
