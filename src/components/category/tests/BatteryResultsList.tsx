@@ -34,6 +34,14 @@ function parsePoints(notes: string | null): number {
   return parseFloat(m[1].replace(",", "."));
 }
 
+/** Extract max points from note if in full format `Score N/M pts`. */
+function parseMaxPoints(notes: string | null): number | null {
+  if (!notes) return null;
+  const m = notes.match(/Score\s+\d+(?:[.,]\d+)?\s*\/\s*(\d+(?:[.,]\d+)?)/i);
+  if (!m) return null;
+  return parseFloat(m[1].replace(",", "."));
+}
+
 /** Extract the test name from the note (`Test: 10m sprint (Droit) · Score ...`). */
 function parseTestName(notes: string | null): string {
   if (!notes) return "Test";
