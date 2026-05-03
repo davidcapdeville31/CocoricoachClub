@@ -650,11 +650,12 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         </CardContent>
       </Card>
 
-      <SessionFormDialog
+      <SessionEditorV2
         open={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
         categoryId={categoryId}
         athletePlayerId={playerId}
+        defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}
       />
     </div>
   );
