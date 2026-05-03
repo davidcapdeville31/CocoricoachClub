@@ -429,7 +429,7 @@ function CategoryDetailsContent() {
                   value="video" 
                   colorKey="video"
                   icon={<Video className="h-5 w-5" />}
-                  label="Analyse Vidéo"
+                  label="Vidéo"
                   shortLabel="Vidéo"
                   tooltip="Import et découpage de vidéos de matchs et entraînements, clips et annotations"
                 />
