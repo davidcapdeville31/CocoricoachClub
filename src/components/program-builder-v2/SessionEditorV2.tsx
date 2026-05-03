@@ -529,6 +529,8 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
       queryClient.invalidateQueries({ queryKey: ["gym-session-exercises"] });
       queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_session_exercises"] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-calendar-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-calendar-exercises-v3"] });
       onClose();
     },
     onError: (e: Error) => {
