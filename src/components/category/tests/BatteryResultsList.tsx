@@ -190,6 +190,11 @@ export function BatteryResultsList({
                   {g.rows.map((r) => {
                     const pts = parsePoints(r.notes);
                     const testName = parseTestName(r.notes);
+                    const maxFromNote = parseMaxPoints(r.notes);
+                    const maxFromLookup = maxByTest[testName.trim().toLowerCase()] || 0;
+                    const max = maxFromNote ?? maxFromLookup;
+                    const itemPct = max > 0 ? Math.round((pts / max) * 100) : 0;
+                    const itemLevel = getLevelForPercent(itemPct, batteryLevels);
                     return (
                       <div
                         key={r.id}
@@ -199,8 +204,11 @@ export function BatteryResultsList({
                         <span className="font-medium text-primary tabular-nums shrink-0">
                           {r.result_value} {r.result_unit || ""}
                         </span>
-                        <Badge variant="secondary" className="text-[10px] shrink-0">
-                          {Math.round(pts)} pts
+                        <Badge
+                          className="text-[10px] shrink-0"
+                          style={{ backgroundColor: itemLevel.color, color: "white" }}
+                        >
+                          {Math.round(pts)}{max > 0 ? `/${max}` : ""} pts
                         </Badge>
                       </div>
                     );
