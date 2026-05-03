@@ -337,6 +337,7 @@ export function SessionDetailsDialog({
   };
 
   const isTestSession = session?.training_type === "test";
+  const isInfoOnlySession = session?.training_type === "medical" || session?.training_type === "video_analyse";
 
   const getTestLabel = (cat: string, type: string) => {
     const c = TEST_CATEGORIES.find((x: any) => x.value === cat);
