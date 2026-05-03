@@ -874,11 +874,15 @@ export function ScheduleTestEventDialog({
           </div>
         </div>
 
-        <DialogFooter className="shrink-0 border-t border-border/60 px-6 py-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="shrink-0 border-t border-orange-200 dark:border-orange-900/40 bg-orange-50/50 dark:bg-orange-950/10 px-6 py-4">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="border-orange-200 hover:bg-orange-50">
             Annuler
           </Button>
-          <Button onClick={() => schedule.mutate()} disabled={schedule.isPending}>
+          <Button
+            onClick={() => schedule.mutate()}
+            disabled={schedule.isPending}
+            className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md"
+          >
             {schedule.isPending
               ? (isEditMode ? "Mise à jour..." : "Planification...")
               : (isEditMode ? "Enregistrer les modifications" : "Planifier au calendrier")}
