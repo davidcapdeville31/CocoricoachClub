@@ -128,19 +128,9 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="matches" className="w-full">
-        <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
-          <ColoredSubTabsList colorKey="competition" className="inline-flex w-max p-0.5">
-            <ColoredSubTabsTrigger value="matches" colorKey="competition" icon={<Calendar className="h-3 w-3" />} className="text-[11px] px-2 py-1">
-              Gestion
-            </ColoredSubTabsTrigger>
-            <ColoredSubTabsTrigger value="stats" colorKey="competition" icon={<BarChart3 className="h-3 w-3" />} className="text-[11px] px-2 py-1">
-              Stats
-            </ColoredSubTabsTrigger>
-          </ColoredSubTabsList>
-        </div>
+      <div className="w-full">
+        <div>
 
-        <TabsContent value="matches">
           <Card className="overflow-hidden border-0 shadow-2xl rounded-2xl bg-gradient-to-br from-amber-50/80 via-background to-orange-50/40 dark:from-amber-950/30 dark:via-background dark:to-orange-950/20">
             {/* Premium gradient header */}
             <div className="relative overflow-hidden bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 px-5 py-4">
