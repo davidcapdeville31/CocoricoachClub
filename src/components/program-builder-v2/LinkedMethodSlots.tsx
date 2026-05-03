@@ -684,6 +684,7 @@ export const LinkedMethodSlots = ({
   onCancel,
   dayId,
   defaultEditing = true,
+  readOnly = false,
   methodRestSeconds,
   onMethodRestChange,
 }: LinkedMethodSlotsProps) => {
@@ -697,6 +698,7 @@ export const LinkedMethodSlots = ({
       onCancel={onCancel}
       dayId={dayId}
       defaultEditing={defaultEditing}
+      readOnly={readOnly}
       methodRestSeconds={methodRestSeconds}
       onMethodRestChange={onMethodRestChange}
     />
