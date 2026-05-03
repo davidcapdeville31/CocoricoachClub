@@ -497,8 +497,7 @@ export default function AthleteSpace() {
                 }}
               >
                 <BarChart3 className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Tableau de bord</span>
-                <span className="sm:hidden">Accueil</span>
+                Accueil
               </TabsTrigger>
               <TabsTrigger 
                 value="rpe"
@@ -563,7 +562,7 @@ export default function AthleteSpace() {
                 }}
               >
                 <Trophy className="h-3.5 w-3.5" />
-                Stats
+                Datas
               </TabsTrigger>
               {/* Onglet Santé fusionné en sous-menu de Wellness */}
                {isBowling && (
@@ -651,7 +650,7 @@ export default function AthleteSpace() {
                     }}
                   >
                     <MessageSquare className="h-3.5 w-3.5" />
-                    Messagerie
+                    Chat
                     {unreadCount > 0 && (
                       <span className="absolute -top-1 -right-1 h-4 min-w-[16px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">
                         {unreadCount > 9 ? "9+" : unreadCount}
