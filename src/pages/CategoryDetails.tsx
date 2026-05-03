@@ -6,7 +6,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredNavTabsList, NAV_COLORS, NavColorKey } from "@/components/ui/colored-nav-tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
-import { ArrowLeft, LayoutDashboard, Shield, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Settings, FileCode, MapPin, Video, GraduationCap, CircleDot } from "lucide-react";
+import { ArrowLeft, LayoutDashboard, Shield, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Settings, FileCode, MapPin, Video, GraduationCap, CircleDot, BarChart3 } from "lucide-react";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -40,6 +40,8 @@ import { GpsDataTab } from "@/components/category/gps/GpsDataTab";
 import { VideoAnalysisTab } from "@/components/category/video/VideoAnalysisTab";
 import { AdminTab } from "@/components/category/tabs/AdminTab";
 import { BowlingArsenalCatalogTab } from "@/components/bowling/BowlingArsenalCatalogTab";
+import { PlayerCumulativeStats } from "@/components/category/matches/PlayerCumulativeStats";
+import { BowlingCumulativeStats } from "@/components/bowling/BowlingCumulativeStats";
 
 
 // Colored Tab Trigger Component - Large icons with labels below
@@ -390,9 +392,19 @@ function CategoryDetailsContent() {
                   value="competition" 
                   colorKey="competition"
                   icon={<Trophy className="h-5 w-5" />}
-                  label="Compétition & Stats"
+                  label="Compétition"
                   shortLabel="Compét"
-                  tooltip="Gestion des matchs/compétitions, saisie des résultats, statistiques individuelles et collectives"
+                  tooltip="Gestion des matchs/compétitions, saisie des résultats et gestion des rencontres"
+                />
+              )}
+              {canSeeMenu("competition") && (
+                <ColoredTabTrigger 
+                  value="stats" 
+                  colorKey="competition"
+                  icon={<BarChart3 className="h-5 w-5" />}
+                  label="Stats"
+                  shortLabel="Stats"
+                  tooltip="Statistiques individuelles et collectives cumulées"
                 />
               )}
               {isBowling && (
@@ -491,6 +503,16 @@ function CategoryDetailsContent() {
                 isNationalTeam={isNationalTeam}
                 sportType={category?.rugby_type}
               />
+            </TabsContent>
+          )}
+
+          {canSeeMenu("competition") && (
+            <TabsContent value="stats" className="space-y-4">
+              {isBowling ? (
+                <BowlingCumulativeStats categoryId={categoryId!} />
+              ) : (
+                <PlayerCumulativeStats categoryId={categoryId!} sportType={category?.rugby_type} />
+              )}
             </TabsContent>
           )}
 

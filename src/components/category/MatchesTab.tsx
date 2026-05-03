@@ -2,19 +2,15 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Calendar, BarChart3, Settings2, Camera, CalendarClock, History, Dumbbell } from "lucide-react";
+import { Plus, Calendar, Settings2, Camera, CalendarClock, History, Dumbbell } from "lucide-react";
 import { AddMatchCalendarDialog } from "./matches/AddMatchCalendarDialog";
 import { MatchCard } from "./matches/MatchCard";
-import { PlayerCumulativeStats } from "./matches/PlayerCumulativeStats";
-import { BowlingCumulativeStats } from "@/components/bowling/BowlingCumulativeStats";
 
 import { CategoryPhotosTab } from "./photos/CategoryPhotosTab";
 import { startOfDay, format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { useViewerMatches } from "@/hooks/use-viewer-data";
@@ -128,19 +124,9 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="matches" className="w-full">
-        <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
-          <ColoredSubTabsList colorKey="competition" className="inline-flex w-max p-0.5">
-            <ColoredSubTabsTrigger value="matches" colorKey="competition" icon={<Calendar className="h-3 w-3" />} className="text-[11px] px-2 py-1">
-              Gestion
-            </ColoredSubTabsTrigger>
-            <ColoredSubTabsTrigger value="stats" colorKey="competition" icon={<BarChart3 className="h-3 w-3" />} className="text-[11px] px-2 py-1">
-              Stats
-            </ColoredSubTabsTrigger>
-          </ColoredSubTabsList>
-        </div>
+      <div className="w-full">
+        <div>
 
-        <TabsContent value="matches">
           <Card className="overflow-hidden border-0 shadow-2xl rounded-2xl bg-gradient-to-br from-amber-50/80 via-background to-orange-50/40 dark:from-amber-950/30 dark:via-background dark:to-orange-950/20">
             {/* Premium gradient header */}
             <div className="relative overflow-hidden bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 px-5 py-4">
@@ -357,19 +343,8 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="stats">
-          {isBowling ? (
-            <BowlingCumulativeStats categoryId={categoryId} />
-          ) : (
-            <PlayerCumulativeStats categoryId={categoryId} sportType={sportType} />
-          )}
-        </TabsContent>
-
-
-
-      </Tabs>
+        </div>
+      </div>
 
       <AddMatchCalendarDialog
         open={isAddDialogOpen}
