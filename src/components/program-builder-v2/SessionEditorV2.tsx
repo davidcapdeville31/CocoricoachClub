@@ -87,6 +87,9 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
       setSessionDate(defaultDate || todayIso());
       setStartTime("");
       setEndTime("");
+      setSessionKind("musculation");
+      setTargetIntensity("moderee");
+      setVolume("moyen");
       setSelectedPlayers([]);
       setBlocks([]);
       setSavedSnapshot(null);
