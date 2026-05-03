@@ -218,10 +218,10 @@ export function SessionVignette({
             {!isViewer && onNotify && (
               <button
                 onClick={(e) => handleActionClick(e, onNotify)}
-                className="p-1.5 rounded-md hover:bg-primary/10 transition-colors group/btn"
+                className="p-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary/15 transition-colors group/btn"
                 title="Notifier les athlètes"
               >
-                <Bell className="h-4 w-4 text-muted-foreground group-hover/btn:text-primary" />
+                <Bell className="h-4 w-4 text-current" />
               </button>
             )}
             
@@ -229,10 +229,10 @@ export function SessionVignette({
             {!isViewer && (
               <button
                 onClick={(e) => handleActionClick(e, onDelete)}
-                className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors group/btn"
+                className="p-1.5 rounded-md bg-destructive/10 text-destructive hover:bg-destructive/15 transition-colors group/btn"
                 title="Supprimer"
               >
-                <Trash2 className="h-4 w-4 text-muted-foreground group-hover/btn:text-destructive" />
+                <Trash2 className="h-4 w-4 text-current" />
               </button>
             )}
           </div>
