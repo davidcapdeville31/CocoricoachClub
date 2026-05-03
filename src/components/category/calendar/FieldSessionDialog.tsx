@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Clock, MapPin, Users, Layers, ShieldCheck } from "lucide-react";
@@ -15,7 +15,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { getTrainingTypesForSport } from "@/lib/constants/trainingTypes";
+import { getTrainingTypesForSport, getTrainingTypesGrouped } from "@/lib/constants/trainingTypes";
 import {
   TARGET_INTENSITIES,
   VOLUME_OPTIONS,
@@ -158,6 +158,37 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
       label: t,
     }));
   }, [sportType, isBowling, customThemes]);
+
+  // Grouped options by discipline category (sprint, lancers, ...) + generics + customs
+  const themeGroups = useMemo(() => {
+    const filterOut = (o: { value: string; label: string }) =>
+      !EXCLUDED_THEME_VALUES.has(o.value) && !EXCLUDED_THEME_LABELS.has(o.label);
+    const grouped = getTrainingTypesGrouped(sportType);
+    const seen = new Set<string>();
+    const groups: { label: string; options: { value: string; label: string }[] }[] = [];
+    // Sport-specific groups (skip "common" -> we replace with our curated generics)
+    grouped
+      .filter((g) => g.category.key !== "common")
+      .forEach((g) => {
+        const opts = g.types
+          .map((t) => ({ value: t.value, label: t.label }))
+          .filter(filterOut)
+          .filter((o) => (seen.has(o.value) ? false : (seen.add(o.value), true)));
+        if (opts.length) groups.push({ label: g.category.label, options: opts });
+      });
+    // Generics
+    const generics = GENERIC_THEMES.map((t) => ({ value: t, label: t }))
+      .filter(filterOut)
+      .filter((o) => (seen.has(o.value) ? false : (seen.add(o.value), true)));
+    if (generics.length) groups.push({ label: "Génériques", options: generics });
+    // Customs
+    const customs = customThemes
+      .map((t) => ({ value: t, label: t }))
+      .filter(filterOut)
+      .filter((o) => (seen.has(o.value) ? false : (seen.add(o.value), true)));
+    if (customs.length) groups.push({ label: "Personnalisées", options: customs });
+    return groups;
+  }, [sportType, customThemes]);
 
   const addCustomTheme = () => {
     const v = newCustomTheme.trim();
@@ -416,8 +447,15 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                       >
                         <SelectTrigger><SelectValue placeholder="Choisir un thème" /></SelectTrigger>
                         <SelectContent className="max-h-72">
-                          {themeOptions.map((t) => (
-                            <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                          {themeGroups.map((g) => (
+                            <SelectGroup key={g.label}>
+                              <SelectLabel className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                                {g.label}
+                              </SelectLabel>
+                              {g.options.map((t) => (
+                                <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                              ))}
+                            </SelectGroup>
                           ))}
                         </SelectContent>
                       </Select>
