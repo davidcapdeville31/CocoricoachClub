@@ -105,6 +105,7 @@ type ConfigDraft = {
   method: MethodConfigType;
   droppedExercise: { exerciseId: string; exerciseName: string } | null;
   droppedPhaseExercises: Record<number, { exerciseId: string; exerciseName: string } | null>;
+  initialPayload?: Record<string, unknown>;
 };
 
 export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEditorProps>(function SessionDayEditor({ blocks, onChange }, ref) {
