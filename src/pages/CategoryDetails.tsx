@@ -167,7 +167,7 @@ function CategoryDetailsContent() {
       } else {
         const { data, error } = await supabase
           .from("categories")
-          .select("*, clubs(name, id), rugby_type")
+          .select("*, clubs(name, id, sport), rugby_type")
           .eq("id", categoryId)
           .single();
         if (error) throw error;
