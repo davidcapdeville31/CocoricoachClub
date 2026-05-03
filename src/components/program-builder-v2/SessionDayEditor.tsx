@@ -810,7 +810,8 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
           const clusterDraft = clusterDrafts[block.id];
           const statoDraft = statoDrafts[block.id];
           const intermittentDraft = intermittentDrafts[block.id];
-          const anyDraft = !!linkedDraft || !!pendingConfig[block.id] || !!fartlekDraft || !!clusterDraft || !!statoDraft || !!intermittentDraft;
+          const configDraft = configDrafts[block.id];
+          const anyDraft = !!linkedDraft || !!pendingConfig[block.id] || !!fartlekDraft || !!clusterDraft || !!statoDraft || !!intermittentDraft || !!configDraft;
           return (
             <TrainingBlockWrapper
               key={block.id}
