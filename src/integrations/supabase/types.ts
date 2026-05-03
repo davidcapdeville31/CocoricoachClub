@@ -6642,6 +6642,96 @@ export type Database = {
           },
         ]
       }
+      pending_test_results: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          player_id: string
+          result_unit: string | null
+          result_value: number
+          submitted_via: string
+          test_category: string
+          test_date: string
+          test_type: string
+          training_session_id: string | null
+          updated_at: string
+          validated_at: string | null
+          validation_status: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          player_id: string
+          result_unit?: string | null
+          result_value: number
+          submitted_via?: string
+          test_category: string
+          test_date?: string
+          test_type: string
+          training_session_id?: string | null
+          updated_at?: string
+          validated_at?: string | null
+          validation_status?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          player_id?: string
+          result_unit?: string | null
+          result_value?: number
+          submitted_via?: string
+          test_category?: string
+          test_date?: string
+          test_type?: string
+          training_session_id?: string | null
+          updated_at?: string
+          validated_at?: string | null
+          validation_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_test_results_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_test_results_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "player_tags"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "pending_test_results_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_test_results_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_test_results_training_session_id_fkey"
+            columns: ["training_session_id"]
+            isOneToOne: false
+            referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       periodization_categories: {
         Row: {
           category_id: string
