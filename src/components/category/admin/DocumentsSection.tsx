@@ -357,39 +357,8 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
         </div>
       )}
 
-      {/* Onglets athlètes */}
+      {/* Liste & ajout */}
       <div className="space-y-4">
-        <div className="flex flex-wrap gap-2 pb-2">
-          <Button
-            variant={selectedTab === "team" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedTab("team")}
-          >
-            <Users className="h-4 w-4 mr-1.5" />
-            Équipe
-            {getDocCount("team") > 0 && (
-              <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-[10px]">
-                {getDocCount("team")}
-              </Badge>
-            )}
-          </Button>
-          {players?.map((player) => (
-            <Button
-              key={player.id}
-              variant={selectedTab === player.id ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedTab(player.id)}
-            >
-              <User className="h-4 w-4 mr-1.5" />
-              {[player.first_name, player.name].filter(Boolean).join(" ")}
-              {getDocCount(player.id) > 0 && (
-                <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-[10px]">
-                  {getDocCount(player.id)}
-                </Badge>
-              )}
-            </Button>
-          ))}
-        </div>
 
         {/* Header avec filtre et bouton ajouter */}
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
