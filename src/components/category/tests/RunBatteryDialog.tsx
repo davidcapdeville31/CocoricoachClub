@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
@@ -27,6 +27,7 @@ interface RunBatteryDialogProps {
 }
 
 export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: RunBatteryDialogProps) {
+  const queryClient = useQueryClient();
   const [playerId, setPlayerIdState] = useState<string>("");
   const [resultsByPlayer, setResultsByPlayer] = useState<Record<string, Record<string, string>>>({});
   const [savedPlayerIds, setSavedPlayerIds] = useState<Set<string>>(new Set());
@@ -162,12 +163,11 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
             player_id: playerId,
             category_id: categoryId,
             test_category: it.test_category,
-            test_type: baseTestType,
-            test_name: `${it.test_name} (Droit)`,
+            test_type: `${baseTestType}__right`,
             result_value: parseFloat(rawR),
             result_unit: it.unit || null,
             test_date: savedDate,
-            notes: `[Batterie: ${battery.battery.name}] Côté droit · Score ${perItem[it.id]?.pointsR ?? 0} pts`,
+            notes: `[Batterie: ${battery.battery.name}] Test: ${it.test_name} (Droit) · Score ${perItem[it.id]?.pointsR ?? 0} pts`,
           });
         }
         if (rawL !== undefined && rawL !== "") {
@@ -175,12 +175,11 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
             player_id: playerId,
             category_id: categoryId,
             test_category: it.test_category,
-            test_type: baseTestType,
-            test_name: `${it.test_name} (Gauche)`,
+            test_type: `${baseTestType}__left`,
             result_value: parseFloat(rawL),
             result_unit: it.unit || null,
             test_date: savedDate,
-            notes: `[Batterie: ${battery.battery.name}] Côté gauche · Score ${perItem[it.id]?.pointsL ?? 0} pts`,
+            notes: `[Batterie: ${battery.battery.name}] Test: ${it.test_name} (Gauche) · Score ${perItem[it.id]?.pointsL ?? 0} pts`,
           });
         }
       } else if (results[it.id] !== undefined && results[it.id] !== "") {
@@ -189,11 +188,10 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
           category_id: categoryId,
           test_category: it.test_category,
           test_type: baseTestType,
-          test_name: it.test_name,
           result_value: parseFloat(results[it.id]),
           result_unit: it.unit || null,
           test_date: savedDate,
-          notes: `[Batterie: ${battery.battery.name}] Score ${perItem[it.id]?.points ?? 0}/${it.max_points} pts`,
+          notes: `[Batterie: ${battery.battery.name}] Test: ${it.test_name} · Score ${perItem[it.id]?.points ?? 0}/${it.max_points} pts`,
         });
       }
     });
@@ -202,6 +200,11 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
 
     const { error } = await supabase.from("generic_tests").insert(rows);
     if (error) return toast.error("Erreur : " + error.message);
+
+    queryClient.invalidateQueries({ queryKey: ["generic_tests", categoryId] });
+    queryClient.invalidateQueries({ queryKey: ["generic_tests_discovery", categoryId] });
+    queryClient.invalidateQueries({ queryKey: ["generic-tests-evolution", categoryId] });
+    queryClient.invalidateQueries({ queryKey: ["generic-tests-multi-comparison", categoryId] });
 
     toast.success(`Batterie enregistrée pour cet athlète : ${totalPoints}/${totalMax} pts (${level.label})`);
     setSavedPlayerIds(prev => new Set(prev).add(playerId));
@@ -236,6 +239,9 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
               ))}
             </SelectContent>
           </Select>
+          <p className="text-xs text-muted-foreground">
+            Le bouton d’enregistrement sauvegarde uniquement les résultats de l’athlète sélectionné.
+          </p>
         </div>
 
         <ScrollArea className="min-h-0 pr-3">
@@ -332,7 +338,9 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
-          <Button onClick={handleSave}>Enregistrer la batterie</Button>
+          <Button onClick={handleSave}>
+            {playerId ? "Enregistrer cet athlète" : "Sélectionner puis enregistrer l’athlète"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
