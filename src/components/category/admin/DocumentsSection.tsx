@@ -83,6 +83,8 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   // "team" = documents d'équipe, or a player id
   const [selectedTab, setSelectedTab] = useState<string>("team");
+  // Assignee for the new document dialog ("team" or player id)
+  const [assignee, setAssignee] = useState<string>("team");
 
   const [customDocumentType, setCustomDocumentType] = useState("");
   const [formData, setFormData] = useState({
@@ -154,7 +156,7 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
         fileUrl = await uploadFile(selectedFile);
       }
 
-      const playerId = selectedTab === "team" ? null : selectedTab;
+      const playerId = assignee === "team" ? null : assignee;
 
       const { error } = await supabase.from("admin_documents" as any).insert({
         category_id: categoryId,
@@ -357,42 +359,37 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
 
       {/* Onglets athlètes */}
       <div className="space-y-4">
-        <ScrollArea className="w-full">
-          <div className="flex gap-2 pb-2">
+        <div className="flex flex-wrap gap-2 pb-2">
+          <Button
+            variant={selectedTab === "team" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedTab("team")}
+          >
+            <Users className="h-4 w-4 mr-1.5" />
+            Équipe
+            {getDocCount("team") > 0 && (
+              <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-[10px]">
+                {getDocCount("team")}
+              </Badge>
+            )}
+          </Button>
+          {players?.map((player) => (
             <Button
-              variant={selectedTab === "team" ? "default" : "outline"}
+              key={player.id}
+              variant={selectedTab === player.id ? "default" : "outline"}
               size="sm"
-              onClick={() => setSelectedTab("team")}
-              className="shrink-0"
+              onClick={() => setSelectedTab(player.id)}
             >
-              <Users className="h-4 w-4 mr-1.5" />
-              Équipe
-              {getDocCount("team") > 0 && (
+              <User className="h-4 w-4 mr-1.5" />
+              {[player.first_name, player.name].filter(Boolean).join(" ")}
+              {getDocCount(player.id) > 0 && (
                 <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-[10px]">
-                  {getDocCount("team")}
+                  {getDocCount(player.id)}
                 </Badge>
               )}
             </Button>
-            {players?.map((player) => (
-              <Button
-                key={player.id}
-                variant={selectedTab === player.id ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedTab(player.id)}
-                className="shrink-0"
-              >
-                <User className="h-4 w-4 mr-1.5" />
-                {[player.first_name, player.name].filter(Boolean).join(" ")}
-                {getDocCount(player.id) > 0 && (
-                  <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-[10px]">
-                    {getDocCount(player.id)}
-                  </Badge>
-                )}
-              </Button>
-            ))}
-          </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+          ))}
+        </div>
 
         {/* Header avec filtre et bouton ajouter */}
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
@@ -412,9 +409,9 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
             </Select>
           </div>
 
-          <Button onClick={() => { resetForm(); setShowAddDialog(true); }}>
+          <Button onClick={() => { resetForm(); setAssignee(selectedTab); setShowAddDialog(true); }}>
             <Plus className="h-4 w-4 mr-2" />
-            Ajouter un document {selectedTab !== "team" ? `pour ${selectedPlayerName}` : "d'équipe"}
+            Ajouter un document
           </Button>
         </div>
 
@@ -422,11 +419,27 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
         <Dialog open={showAddDialog} onOpenChange={(open) => { setShowAddDialog(open); if (!open) resetForm(); }}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                Nouveau document {selectedTab !== "team" ? `— ${selectedPlayerName}` : "— Équipe"}
-              </DialogTitle>
+              <DialogTitle>Nouveau document</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
+              {/* Assignee selection */}
+              <div>
+                <Label>Assigner à *</Label>
+                <Select value={assignee} onValueChange={setAssignee}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="team">
+                      <span className="flex items-center gap-2"><Users className="h-4 w-4" />Équipe entière</span>
+                    </SelectItem>
+                    {players?.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {[p.first_name, p.name].filter(Boolean).join(" ")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* File Upload */}
               <div>
                 <Label>Fichier (PDF, Image) *</Label>
