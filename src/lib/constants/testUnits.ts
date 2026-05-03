@@ -19,6 +19,7 @@ export const TEST_UNIT_OPTIONS: TestUnitOption[] = [
   { value: "speed_kmh", label: "Vitesse (km/h)", unit: "km/h", group: "Vitesse" },
   { value: "speed_ms", label: "Vitesse (m/s)", unit: "m/s", group: "Vitesse" },
   { value: "reps", label: "Répétitions", unit: "reps", group: "Quantité" },
+  { value: "stage", label: "Palier", unit: "palier", group: "Quantité" },
   { value: "count", label: "Nombre / Comptage", unit: "", group: "Quantité" },
   { value: "percent", label: "Pourcentage (%)", unit: "%", group: "Quantité" },
   { value: "score", label: "Score / Points", unit: "pts", group: "Quantité" },
