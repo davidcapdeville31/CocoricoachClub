@@ -708,9 +708,11 @@ export function SessionDetailsDialog({
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant="outline" className="font-mono text-xs">
-                          {block.start_time || "?"} - {block.end_time || "?"}
-                        </Badge>
+                        {(block.start_time || block.end_time) && (
+                          <Badge variant="outline" className="font-mono text-xs">
+                            {block.start_time?.slice(0,5) || "?"} - {block.end_time?.slice(0,5) || "?"}
+                          </Badge>
+                        )}
                         <span className="font-medium text-sm">
                           {getTrainingTypeLabel(block.training_type)}
                         </span>
