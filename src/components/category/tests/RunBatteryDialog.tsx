@@ -155,11 +155,17 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     const mapped: Record<string, boolean> = {};
     (battery?.items || []).forEach((it: any) => {
       const baseTestType = buildBaseTestType(it.test_name);
-      const found = savedRows.find((row: any) =>
-        (row.test_type === baseTestType || row.test_type === `${baseTestType}__right` || row.test_type === `${baseTestType}__left`) &&
-        typeof row.notes === "string" && row.notes.includes("[BLESSÉ]")
-      );
-      if (found) mapped[it.id] = true;
+      if (it.bilateral) {
+        const r = savedRows.find((row: any) => row.test_type === `${baseTestType}__right` && typeof row.notes === "string" && row.notes.includes("[BLESSÉ]"));
+        const l = savedRows.find((row: any) => row.test_type === `${baseTestType}__left` && typeof row.notes === "string" && row.notes.includes("[BLESSÉ]"));
+        if (r) mapped[`${it.id}__R`] = true;
+        if (l) mapped[`${it.id}__L`] = true;
+      } else {
+        const found = savedRows.find((row: any) =>
+          row.test_type === baseTestType && typeof row.notes === "string" && row.notes.includes("[BLESSÉ]")
+        );
+        if (found) mapped[it.id] = true;
+      }
     });
     return mapped;
   }, [battery?.items, savedRows]);
