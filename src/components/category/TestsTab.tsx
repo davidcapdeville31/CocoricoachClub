@@ -283,6 +283,10 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
             hideCreateButton
           />
         </div>
+
+        <div className="mt-8">
+          <PlanTestsSection categoryId={categoryId} sportType={sportType} />
+        </div>
       </CardContent>
 
       <CreateThemeCategoryDialog
