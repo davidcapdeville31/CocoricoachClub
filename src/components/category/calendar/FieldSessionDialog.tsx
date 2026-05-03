@@ -318,6 +318,51 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                         <span className="text-xs text-muted-foreground">RPE</span>
                       </div>
                     </div>
+                    {/* Intensité / Volume / Contact (alimente Workload → Répartition) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-muted-foreground">Intensité</Label>
+                        <Select
+                          value={b.target_intensity || ""}
+                          onValueChange={(v) => updateBlock(b.id, { target_intensity: v })}
+                        >
+                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Intensité" /></SelectTrigger>
+                          <SelectContent>
+                            {TARGET_INTENSITIES.map((o) => (
+                              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-muted-foreground">Volume</Label>
+                        <Select
+                          value={b.volume || ""}
+                          onValueChange={(v) => updateBlock(b.id, { volume: v })}
+                        >
+                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Volume" /></SelectTrigger>
+                          <SelectContent>
+                            {VOLUME_OPTIONS.map((o) => (
+                              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-muted-foreground">Charge contact</Label>
+                        <Select
+                          value={b.contact_charge || ""}
+                          onValueChange={(v) => updateBlock(b.id, { contact_charge: v })}
+                        >
+                          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Contact" /></SelectTrigger>
+                          <SelectContent>
+                            {CONTACT_CHARGE_OPTIONS.map((o) => (
+                              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                     {b.theme === "bowling_spare" && (
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">
