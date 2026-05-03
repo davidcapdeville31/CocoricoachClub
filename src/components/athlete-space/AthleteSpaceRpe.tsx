@@ -537,6 +537,28 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
           toast.error("RPE enregistré mais erreur lors de la sauvegarde des charges");
         }
       }
+
+      // Persist test results into pending_test_results (staff must validate)
+      const testRecords = buildPendingTestRecords(testResultsInput, selectedSessionData?.notes || null);
+      if (testRecords.length > 0 && selectedSession) {
+        const stamped = testRecords.map((r) => ({
+          player_id: playerId,
+          category_id: categoryId,
+          training_session_id: selectedSession,
+          test_date: selectedSessionData?.session_date || new Date().toISOString().slice(0, 10),
+          test_category: r.test_category,
+          test_type: r.test_type,
+          result_value: r.result_value,
+          result_unit: r.result_unit || null,
+          submitted_via: "athlete" as const,
+          validation_status: "pending" as const,
+        }));
+        const { error: testErr } = await supabase.from("pending_test_results").insert(stamped);
+        if (testErr) {
+          console.error("Pending test results error:", testErr);
+          toast.error("RPE enregistré mais erreur lors de l'envoi des résultats de test");
+        }
+      }
     },
     onSuccess: () => {
       toast.success(isPrecisionSession ? "RPE et statistiques enregistrés !" : "RPE enregistré !");
