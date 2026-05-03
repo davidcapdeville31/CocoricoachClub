@@ -394,22 +394,89 @@ export const FartlekConfigSlots = ({
                 Phase de récupération
               </Label>
               
-              <div className="space-y-1">
-                <Label className="text-xs">Durée récupération</Label>
-                <TimeInput
-                  value={config.recoveryPhases[0]?.durationSeconds || 0}
-                  onChange={(seconds) => setConfig(prev => ({
-                    ...prev,
-                    recoveryPhases: [{
-                      ...prev.recoveryPhases[0],
-                      durationSeconds: seconds
-                    }]
-                  }))}
-                  min={0}
-                  max={600}
-                  compact
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Durée récupération</Label>
+                  <TimeInput
+                    value={config.recoveryPhases[0]?.durationSeconds || 0}
+                    onChange={(seconds) => setConfig(prev => ({
+                      ...prev,
+                      recoveryPhases: [{
+                        ...prev.recoveryPhases[0],
+                        durationSeconds: seconds
+                      }]
+                    }))}
+                    min={0}
+                    max={600}
+                    compact
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Type d'intensité</Label>
+                  <Select
+                    value={config.recoveryPhases[0]?.intensityType || 'rpe'}
+                    onValueChange={(v) => setConfig(prev => ({
+                      ...prev,
+                      recoveryPhases: [{
+                        ...prev.recoveryPhases[0],
+                        intensityType: v as FartlekIntensityType,
+                        intensityValue: undefined,
+                        intensityLabel: undefined,
+                      }]
+                    }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(INTENSITY_TYPES) as FartlekIntensityType[]).map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {INTENSITY_TYPES[type].label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+
+              {/* Intensity value input for recovery */}
+              {config.recoveryPhases[0]?.intensityType !== 'qualitative' ? (
+                <div className="space-y-1">
+                  <Label className="text-xs">
+                    Intensité ({INTENSITY_TYPES[config.recoveryPhases[0]?.intensityType || 'rpe'].unit})
+                  </Label>
+                  <Input
+                    type="number"
+                    placeholder={INTENSITY_TYPES[config.recoveryPhases[0]?.intensityType || 'rpe'].placeholder}
+                    value={config.recoveryPhases[0]?.intensityValue ?? ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setConfig(prev => ({
+                        ...prev,
+                        recoveryPhases: [{
+                          ...prev.recoveryPhases[0],
+                          intensityValue: val === '' ? undefined : parseFloat(val) || undefined
+                        }]
+                      }));
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <Label className="text-xs">Consigne qualitative</Label>
+                  <Input
+                    placeholder="Ex: Marche, trot très léger..."
+                    value={config.recoveryPhases[0]?.intensityLabel || ''}
+                    onChange={(e) => setConfig(prev => ({
+                      ...prev,
+                      recoveryPhases: [{
+                        ...prev.recoveryPhases[0],
+                        intensityLabel: e.target.value
+                      }]
+                    }))}
+                  />
+                </div>
+              )}
 
               {/* Target Speed and Heart Rate for recovery */}
               <div className="grid grid-cols-2 gap-3 pt-2 border-t border-blue-500/20">
