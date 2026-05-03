@@ -1363,56 +1363,6 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
  
         </div>
  
-        {/* 4️⃣ RACCOURCIS ACTION */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Actions rapides</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <Button 
-                variant="outline" 
-                className="h-auto py-3 flex flex-col items-center gap-1"
-                onClick={() => todaySessions[0] && handleEditSession(todaySessions[0])}
-                disabled={todaySessions.length === 0}
-              >
-                <Pencil className="h-5 w-5 text-primary" />
-                <span className="text-xs">Modifier séance</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-auto py-3 flex flex-col items-center gap-1"
-                onClick={() => setAdaptChargeOpen(true)}
-                disabled={playersToAdapt.length === 0}
-              >
-                <Activity className="h-5 w-5 text-orange-500" />
-                <span className="text-xs">Adapter charge</span>
-                {playersToAdapt.length > 0 && (
-                  <Badge variant="destructive" className="text-[10px] h-4 px-1">
-                    {playersToAdapt.length}
-                  </Badge>
-                )}
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-auto py-3 flex flex-col items-center gap-1"
-                onClick={() => setNotifyDialogOpen(true)}
-              >
-                <Bell className="h-5 w-5 text-blue-500" />
-                <span className="text-xs">Notification</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-auto py-3 flex flex-col items-center gap-1"
-                onClick={() => setAthleteSelectOpen(true)}
-              >
-                <User className="h-5 w-5 text-green-500" />
-                <span className="text-xs">Fiche athlète</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Edit Session Dialog - Using SessionFormDialog for full editing */}
         <SessionFormDialog
           open={editSessionOpen}
