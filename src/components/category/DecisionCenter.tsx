@@ -874,7 +874,8 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
             )}
           </CardContent>
         </Card>
-        {/* 1.6️⃣ PRÉSENCES DU JOUR */}
+        {/* 1.6️⃣ PRÉSENCES + RPE DU JOUR (colonne empilée) */}
+        <div className="space-y-4">
           <Card className="border-2 border-blue-500/20 bg-gradient-to-r from-blue-500/5 to-transparent">
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
