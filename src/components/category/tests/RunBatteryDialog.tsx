@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type MouseEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -51,6 +51,11 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
         return { ...prev, [playerId]: cur };
       });
     }
+  };
+  const handleInjuredPillClick = (event: MouseEvent<HTMLButtonElement>, key: string, currentValue: boolean) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleInjured(key, !currentValue);
   };
   const setPlayerId = (id: string) => setPlayerIdState(id);
   const [savedDate] = useState(() => new Date().toISOString().split("T")[0]);
@@ -407,9 +412,9 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {!it.bilateral && (
-                        <button
-                          type="button"
-                          onClick={() => toggleInjured(it.id, !injSingle)}
+                          <button
+                            type="button"
+                            onClick={(event) => handleInjuredPillClick(event, it.id, injSingle)}
                           className={`flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors ${
                             injSingle
                               ? "bg-destructive text-destructive-foreground border-destructive"
@@ -418,7 +423,9 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
                         >
                           <Checkbox
                             checked={injSingle}
-                            onCheckedChange={(v) => toggleInjured(it.id, !!v)}
+                              onCheckedChange={() => undefined}
+                              aria-hidden="true"
+                              tabIndex={-1}
                             className="h-3.5 w-3.5 pointer-events-none"
                           />
                           Blessé / Non réalisé
@@ -442,7 +449,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
                           <Label className="text-xs text-muted-foreground">Côté droit</Label>
                           <button
                             type="button"
-                            onClick={() => toggleInjured(`${it.id}__R`, !injR)}
+                            onClick={(event) => handleInjuredPillClick(event, `${it.id}__R`, injR)}
                             className={`flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border transition-colors ${
                               injR
                                 ? "bg-destructive text-destructive-foreground border-destructive"
@@ -451,7 +458,9 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
                           >
                             <Checkbox
                               checked={injR}
-                              onCheckedChange={(v) => toggleInjured(`${it.id}__R`, !!v)}
+                              onCheckedChange={() => undefined}
+                              aria-hidden="true"
+                              tabIndex={-1}
                               className="h-3 w-3 pointer-events-none"
                             />
                             Blessé
@@ -485,7 +494,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
                           <Label className="text-xs text-muted-foreground">Côté gauche</Label>
                           <button
                             type="button"
-                            onClick={() => toggleInjured(`${it.id}__L`, !injL)}
+                            onClick={(event) => handleInjuredPillClick(event, `${it.id}__L`, injL)}
                             className={`flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border transition-colors ${
                               injL
                                 ? "bg-destructive text-destructive-foreground border-destructive"
@@ -494,7 +503,9 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
                           >
                             <Checkbox
                               checked={injL}
-                              onCheckedChange={(v) => toggleInjured(`${it.id}__L`, !!v)}
+                              onCheckedChange={() => undefined}
+                              aria-hidden="true"
+                              tabIndex={-1}
                               className="h-3 w-3 pointer-events-none"
                             />
                             Blessé
