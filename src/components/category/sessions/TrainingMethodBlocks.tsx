@@ -1599,8 +1599,8 @@ function IsometricOvercomingBlock({
             </div>
 
             {/* Isometric specific config */}
-            <div className="border rounded-lg p-3 bg-muted/40 dark:bg-foreground/20">
-              <p className="text-xs font-medium text-foreground/80 dark:text-muted-foreground mb-2">📐 Configuration isométrique</p>
+            <div className="border rounded-lg p-3 bg-stone-50 dark:bg-stone-900/20">
+              <p className="text-xs font-medium text-stone-700 dark:text-stone-400 mb-2">📐 Configuration isométrique</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs text-muted-foreground">Angle articulaire (°)</Label>
@@ -1615,8 +1615,8 @@ function IsometricOvercomingBlock({
               </div>
             </div>
 
-            <div className="border rounded-lg p-2 bg-muted dark:bg-foreground/90/30">
-              <p className="text-[11px] text-muted-foreground dark:text-muted-foreground">💪 Effort maximal contre résistance immobile — pas de mouvement, contraction à 100%. Pas de charge mobile.</p>
+            <div className="border rounded-lg p-2 bg-stone-100 dark:bg-stone-800/30">
+              <p className="text-[11px] text-stone-600 dark:text-stone-400">💪 Effort maximal contre résistance immobile — pas de mouvement, contraction à 100%. Pas de charge mobile.</p>
             </div>
           </div>
         )}
@@ -1687,8 +1687,8 @@ function IsometricYieldingBlock({
             </div>
 
             {/* Yielding specific: angle and position */}
-            <div className="border rounded-lg p-3 bg-muted/40 dark:bg-foreground/20">
-              <p className="text-xs font-medium text-foreground/80 dark:text-muted-foreground mb-2">📐 Position de maintien</p>
+            <div className="border rounded-lg p-3 bg-slate-50 dark:bg-slate-900/20">
+              <p className="text-xs font-medium text-slate-700 dark:text-slate-400 mb-2">📐 Position de maintien</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs text-muted-foreground">Angle articulaire (°)</Label>
@@ -1708,8 +1708,8 @@ function IsometricYieldingBlock({
               </div>
             </div>
 
-            <div className="border rounded-lg p-2 bg-muted dark:bg-foreground/90/30">
-              <p className="text-[11px] text-muted-foreground dark:text-muted-foreground">⏱ Maintenez la charge à l'angle prescrit — le temps sous tension est la variable clé</p>
+            <div className="border rounded-lg p-2 bg-slate-100 dark:bg-slate-800/30">
+              <p className="text-[11px] text-slate-600 dark:text-slate-400">⏱ Maintenez la charge à l'angle prescrit — le temps sous tension est la variable clé</p>
             </div>
           </div>
         )}
@@ -1780,8 +1780,8 @@ function IsoMaxBlock({
             </div>
 
             {/* Iso Max specific: angle and position */}
-            <div className="border rounded-lg p-3 bg-muted/40 dark:bg-foreground/20">
-              <p className="text-xs font-medium text-foreground/80 dark:text-muted-foreground mb-2">📐 Position isométrique</p>
+            <div className="border rounded-lg p-3 bg-zinc-50 dark:bg-zinc-900/20">
+              <p className="text-xs font-medium text-zinc-700 dark:text-zinc-400 mb-2">📐 Position isométrique</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs text-muted-foreground">Angle articulaire (°)</Label>
@@ -1801,8 +1801,8 @@ function IsoMaxBlock({
               </div>
             </div>
 
-            <div className="border rounded-lg p-2 bg-muted dark:bg-foreground/90/30">
-              <p className="text-[11px] text-muted-foreground dark:text-muted-foreground">🔥 Charge lourde (85-100% 1RM) — maintenez la contraction maximale le plus longtemps possible</p>
+            <div className="border rounded-lg p-2 bg-zinc-100 dark:bg-zinc-800/30">
+              <p className="text-[11px] text-zinc-600 dark:text-zinc-400">🔥 Charge lourde (85-100% 1RM) — maintenez la contraction maximale le plus longtemps possible</p>
             </div>
           </div>
         )}

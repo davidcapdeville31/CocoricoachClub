@@ -106,7 +106,7 @@ export function CategoryCoverUpload({ categoryId, currentCoverUrl }: CategoryCov
         size="sm"
         disabled={uploading}
         onClick={() => document.getElementById("cover-upload")?.click()}
-        className="gap-2 bg-white/90 text-slate-900 border-white/40 hover:bg-white hover:text-slate-900 backdrop-blur-sm shadow-sm"
+        className="gap-2"
       >
         {uploading ? (
           <>
@@ -131,14 +131,13 @@ export function CategoryCoverUpload({ categoryId, currentCoverUrl }: CategoryCov
       {currentCoverUrl && (
         <Button
           variant="outline"
-          size="icon"
+          size="sm"
           onClick={() => deleteCover.mutate()}
           disabled={deleteCover.isPending}
-          aria-label="Supprimer l'image"
-          title="Supprimer l'image"
-          className="bg-white/90 text-red-600 border-white/40 hover:bg-white hover:text-red-700 backdrop-blur-sm shadow-sm"
+          className="gap-2 text-destructive hover:text-destructive"
         >
           <Trash2 className="h-4 w-4" />
+          Supprimer
         </Button>
       )}
     </div>

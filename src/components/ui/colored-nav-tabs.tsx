@@ -6,79 +6,79 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 // Define navigation color mappings
 export const NAV_COLORS = {
   overview: {
-    base: "hsl(222 78% 56%)",
-    text: "text-[hsl(222_78%_56%)]",
-    bg: "bg-[hsl(222_78%_56%)]",
-    hover: "hover:bg-[hsl(222_78%_56%)/10]",
+    base: "hsl(220 80% 55%)",
+    text: "text-[hsl(220_80%_55%)]",
+    bg: "bg-[hsl(220_80%_55%)]",
+    hover: "hover:bg-[hsl(220_80%_55%)/10]",
   },
   admin: {
-    base: "hsl(286 70% 56%)",
-    text: "text-[hsl(286_70%_56%)]",
-    bg: "bg-[hsl(286_70%_56%)]",
-    hover: "hover:bg-[hsl(286_70%_56%)/10]",
+    base: "hsl(280 70% 55%)",
+    text: "text-[hsl(280_70%_55%)]",
+    bg: "bg-[hsl(280_70%_55%)]",
+    hover: "hover:bg-[hsl(280_70%_55%)/10]",
   },
   effectif: {
-    base: "hsl(198 82% 48%)",
-    text: "text-[hsl(198_82%_48%)]",
-    bg: "bg-[hsl(198_82%_48%)]",
-    hover: "hover:bg-[hsl(198_82%_48%)/10]",
+    base: "hsl(200 85% 50%)",
+    text: "text-[hsl(200_85%_50%)]",
+    bg: "bg-[hsl(200_85%_50%)]",
+    hover: "hover:bg-[hsl(200_85%_50%)/10]",
   },
   planification: {
-    base: "hsl(28 88% 56%)",
-    text: "text-[hsl(28_88%_56%)]",
-    bg: "bg-[hsl(28_88%_56%)]",
-    hover: "hover:bg-[hsl(28_88%_56%)/10]",
+    base: "hsl(35 90% 55%)",
+    text: "text-[hsl(35_90%_55%)]",
+    bg: "bg-[hsl(35_90%_55%)]",
+    hover: "hover:bg-[hsl(35_90%_55%)/10]",
   },
   programmation: {
-    base: "hsl(258 74% 60%)",
-    text: "text-[hsl(258_74%_60%)]",
-    bg: "bg-[hsl(258_74%_60%)]",
-    hover: "hover:bg-[hsl(258_74%_60%)/10]",
+    base: "hsl(260 70% 60%)",
+    text: "text-[hsl(260_70%_60%)]",
+    bg: "bg-[hsl(260_70%_60%)]",
+    hover: "hover:bg-[hsl(260_70%_60%)/10]",
   },
   performance: {
-    base: "hsl(332 78% 54%)",
-    text: "text-[hsl(332_78%_54%)]",
-    bg: "bg-[hsl(332_78%_54%)]",
-    hover: "hover:bg-[hsl(332_78%_54%)/10]",
+    base: "hsl(320 75% 55%)",
+    text: "text-[hsl(320_75%_55%)]",
+    bg: "bg-[hsl(320_75%_55%)]",
+    hover: "hover:bg-[hsl(320_75%_55%)/10]",
   },
   sante: {
-    base: "hsl(148 68% 42%)",
-    text: "text-[hsl(148_68%_42%)]",
-    bg: "bg-[hsl(148_68%_42%)]",
-    hover: "hover:bg-[hsl(148_68%_42%)/10]",
+    base: "hsl(160 65% 45%)",
+    text: "text-[hsl(160_65%_45%)]",
+    bg: "bg-[hsl(160_65%_45%)]",
+    hover: "hover:bg-[hsl(160_65%_45%)/10]",
   },
   competition: {
-    base: "hsl(46 96% 50%)",
-    text: "text-[hsl(46_96%_48%)]",
-    bg: "bg-[hsl(46_96%_50%)]",
-    hover: "hover:bg-[hsl(46_96%_50%)/10]",
+    base: "hsl(45 95% 50%)",
+    text: "text-[hsl(45_95%_48%)]",
+    bg: "bg-[hsl(45_95%_50%)]",
+    hover: "hover:bg-[hsl(45_95%_50%)/10]",
   },
   gps: {
-    base: "hsl(178 72% 40%)",
-    text: "text-[hsl(178_72%_40%)]",
-    bg: "bg-[hsl(178_72%_40%)]",
-    hover: "hover:bg-[hsl(178_72%_40%)/10]",
+    base: "hsl(190 80% 45%)",
+    text: "text-[hsl(190_80%_45%)]",
+    bg: "bg-[hsl(190_80%_45%)]",
+    hover: "hover:bg-[hsl(190_80%_45%)/10]",
   },
   video: {
-    base: "hsl(2 78% 58%)",
-    text: "text-[hsl(2_78%_58%)]",
-    bg: "bg-[hsl(2_78%_58%)]",
-    hover: "hover:bg-[hsl(2_78%_58%)/10]",
+    base: "hsl(350 80% 60%)",
+    text: "text-[hsl(350_80%_60%)]",
+    bg: "bg-[hsl(350_80%_60%)]",
+    hover: "hover:bg-[hsl(350_80%_60%)/10]",
   },
   communication: {
-    base: "hsl(14 72% 56%)",
-    text: "text-[hsl(14_72%_56%)]",
-    bg: "bg-[hsl(14_72%_56%)]",
-    hover: "hover:bg-[hsl(14_72%_56%)/10]",
+    base: "hsl(210 80% 55%)",
+    text: "text-[hsl(210_80%_55%)]",
+    bg: "bg-[hsl(210_80%_55%)]",
+    hover: "hover:bg-[hsl(210_80%_55%)/10]",
   },
   academy: {
-    base: "hsl(86 62% 44%)",
-    text: "text-[hsl(86_62%_44%)]",
-    bg: "bg-[hsl(86_62%_44%)]",
-    hover: "hover:bg-[hsl(86_62%_44%)/10]",
+    base: "hsl(210 75% 55%)",
+    text: "text-[hsl(210_75%_55%)]",
+    bg: "bg-[hsl(210_75%_55%)]",
+    hover: "hover:bg-[hsl(210_75%_55%)/10]",
   },
   settings: {
-    base: "hsl(220 20% 64%)",
+    base: "hsl(220 15% 50%)",
     text: "text-[hsl(220_15%_50%)]",
     bg: "bg-[hsl(220_15%_50%)]",
     hover: "hover:bg-[hsl(220_15%_50%)/10]",
@@ -99,7 +99,7 @@ const ColoredNavTabsList = React.forwardRef<
     ref={ref}
     className={cn(
       "inline-flex items-center gap-2 p-2 rounded-xl shadow-sm border border-border/50",
-      "bg-card",
+      "bg-white",
       "field-mode:bg-[hsl(215_25%_14%)] field-mode:border-[hsl(215_25%_25%)]",
       className
     )}
@@ -166,10 +166,6 @@ const ColoredTabTrigger = React.forwardRef<
   ColoredTabTriggerProps
 >(({ colorKey, icon, children, className, value, badge, label, shortLabel, tooltip, ...props }, ref) => {
   const colors = NAV_COLORS[colorKey];
-  const tabHex = colors.base.match(/hsl\((\d+)\s+(\d+)%\s+(\d+)%\)/);
-  const tabHsl = tabHex ? { h: Number(tabHex[1]), s: Number(tabHex[2]), l: Number(tabHex[3]) } : { h: 280, s: 70, l: 55 };
-  const prefersDarkForeground = tabHsl.l > 64 || ((tabHsl.h >= 32 && tabHsl.h <= 84) && tabHsl.l > 44);
-  const activeForeground = prefersDarkForeground ? "hsl(var(--foreground))" : "white";
   
   const trigger = (
     <TabsPrimitive.Trigger
@@ -183,10 +179,6 @@ const ColoredTabTrigger = React.forwardRef<
       )}
       style={{
         ["--tab-color" as string]: colors.base,
-        ["--tab-ink" as string]: `color-mix(in srgb, ${colors.base} 86%, white 14%)`,
-        ["--tab-ink-dark" as string]: `color-mix(in srgb, ${colors.base} 22%, white 78%)`,
-        ["--tab-soft-bg-dark" as string]: `color-mix(in srgb, ${colors.base} 16%, hsl(var(--surface-elevated)) 84%)`,
-        ["--tab-active-foreground" as string]: activeForeground,
       }}
       {...props}
     >

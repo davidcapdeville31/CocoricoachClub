@@ -434,130 +434,23 @@ export function ClubBrandingDialog({ open, onOpenChange, clubId }: Props) {
                 <Separator />
 
                 <div>
-                  <Label className="text-sm text-muted-foreground mb-3 block">
-                    Aperçu modes clair et sombre — rendu final dans l'app
-                  </Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* === LIGHT PREVIEW === */}
-                    <div
-                      className="rounded-xl border overflow-hidden shadow-sm"
-                      style={{ borderColor: '#e2e8f0', backgroundColor: '#f4f6fb' }}
-                    >
-                      <div
-                        className="px-3 py-2 flex items-center gap-2 border-b"
-                        style={{ borderColor: '#e2e8f0', backgroundColor: '#ffffff' }}
-                      >
-                        <div
-                          className="h-6 w-6 rounded-md flex items-center justify-center"
-                          style={{ backgroundColor: primaryColor }}
-                        >
-                          <Sparkles className="h-3.5 w-3.5" style={{ color: palette.primaryForeground }} />
-                        </div>
-                        <span className="text-xs font-semibold" style={{ color: '#0f172a' }}>
-                          ☀️ Mode clair
-                        </span>
+                  <Label className="text-sm text-muted-foreground mb-3 block">Aperçu modes clair et sombre</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 rounded-lg border" style={{ backgroundColor: palette.background, borderColor: palette.border }}>
+                      <p className="text-xs mb-2 font-medium" style={{ color: palette.mutedForeground }}>☀️ Mode clair</p>
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        <span className="px-2 py-1 rounded text-xs font-medium" style={{ backgroundColor: palette.primary, color: palette.primaryForeground }}>Principal</span>
+                        <span className="px-2 py-1 rounded text-xs font-medium" style={{ backgroundColor: palette.accent, color: palette.accentForeground }}>Accent</span>
                       </div>
-                      <div className="p-3 space-y-2">
-                        <div
-                          className="rounded-lg p-2.5 border"
-                          style={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0' }}
-                        >
-                          <p className="text-[10px] uppercase tracking-wide font-semibold mb-1" style={{ color: '#64748b' }}>
-                            Carte
-                          </p>
-                          <p className="text-sm font-medium mb-2" style={{ color: '#0f172a' }}>
-                            Texte de carte
-                          </p>
-                          <div className="flex gap-1.5 flex-wrap">
-                            <span
-                              className="px-2 py-0.5 rounded text-[10px] font-semibold"
-                              style={{ backgroundColor: primaryColor, color: palette.primaryForeground }}
-                            >
-                              Principal
-                            </span>
-                            <span
-                              className="px-2 py-0.5 rounded text-[10px] font-semibold"
-                              style={{ backgroundColor: accentColor, color: palette.accentForeground }}
-                            >
-                              Accent
-                            </span>
-                            <span
-                              className="px-2 py-0.5 rounded text-[10px] font-semibold border"
-                              style={{ color: '#475569', borderColor: '#cbd5e1' }}
-                            >
-                              Outline
-                            </span>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          className="w-full rounded-md py-1.5 text-xs font-semibold shadow-sm"
-                          style={{ backgroundColor: primaryColor, color: palette.primaryForeground }}
-                        >
-                          CTA Principal
-                        </button>
-                      </div>
+                      <p className="text-sm" style={{ color: palette.foreground }}>Texte sur fond clair</p>
                     </div>
-
-                    {/* === DARK PREVIEW === */}
-                    <div
-                      className="rounded-xl border overflow-hidden shadow-sm"
-                      style={{ borderColor: '#27303f', backgroundColor: '#0e1117' }}
-                    >
-                      <div
-                        className="px-3 py-2 flex items-center gap-2 border-b"
-                        style={{ borderColor: '#27303f', backgroundColor: '#161a22' }}
-                      >
-                        <div
-                          className="h-6 w-6 rounded-md flex items-center justify-center"
-                          style={{ backgroundColor: darkPalette.primary }}
-                        >
-                          <Sparkles className="h-3.5 w-3.5" style={{ color: darkPalette.primaryForeground }} />
-                        </div>
-                        <span className="text-xs font-semibold" style={{ color: '#f1f5f9' }}>
-                          🌙 Mode sombre
-                        </span>
+                    <div className="p-4 rounded-lg border" style={{ backgroundColor: darkPalette.background, borderColor: darkPalette.border }}>
+                      <p className="text-xs mb-2 font-medium" style={{ color: darkPalette.mutedForeground }}>🌙 Mode sombre</p>
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        <span className="px-2 py-1 rounded text-xs font-medium" style={{ backgroundColor: darkPalette.primary, color: darkPalette.primaryForeground }}>Principal</span>
+                        <span className="px-2 py-1 rounded text-xs font-medium" style={{ backgroundColor: darkPalette.accent, color: darkPalette.accentForeground }}>Accent</span>
                       </div>
-                      <div className="p-3 space-y-2">
-                        <div
-                          className="rounded-lg p-2.5 border"
-                          style={{ backgroundColor: '#161a22', borderColor: '#27303f' }}
-                        >
-                          <p className="text-[10px] uppercase tracking-wide font-semibold mb-1" style={{ color: '#94a3b8' }}>
-                            Carte
-                          </p>
-                          <p className="text-sm font-medium mb-2" style={{ color: '#f1f5f9' }}>
-                            Texte de carte
-                          </p>
-                          <div className="flex gap-1.5 flex-wrap">
-                            <span
-                              className="px-2 py-0.5 rounded text-[10px] font-semibold"
-                              style={{ backgroundColor: darkPalette.primary, color: darkPalette.primaryForeground }}
-                            >
-                              Principal
-                            </span>
-                            <span
-                              className="px-2 py-0.5 rounded text-[10px] font-semibold"
-                              style={{ backgroundColor: darkPalette.accent, color: darkPalette.accentForeground }}
-                            >
-                              Accent
-                            </span>
-                            <span
-                              className="px-2 py-0.5 rounded text-[10px] font-semibold border"
-                              style={{ color: '#cbd5e1', borderColor: '#3a4456' }}
-                            >
-                              Outline
-                            </span>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          className="w-full rounded-md py-1.5 text-xs font-semibold shadow-sm"
-                          style={{ backgroundColor: darkPalette.primary, color: darkPalette.primaryForeground }}
-                        >
-                          CTA Principal
-                        </button>
-                      </div>
+                      <p className="text-sm" style={{ color: darkPalette.foreground }}>Texte sur fond sombre</p>
                     </div>
                   </div>
                 </div>

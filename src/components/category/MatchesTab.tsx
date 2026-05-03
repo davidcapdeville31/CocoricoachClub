@@ -187,7 +187,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                     <Button
                       size="sm"
                       onClick={() => setIsAddDialogOpen(true)}
-                      className="gap-2 bg-card text-amber-700 hover:bg-amber-50 shadow-lg font-semibold"
+                      className="gap-2 bg-white text-amber-700 hover:bg-amber-50 shadow-lg font-semibold"
                     >
                       <Plus className="h-4 w-4" />
                       Ajouter {isIndividual ? "une" : "un"} {itemLabel}
@@ -298,17 +298,17 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
 
                   {/* === PAST SECTION === */}
                   {showPast && (
-                    <section className="rounded-2xl border border-border/40 dark:border-border/40 bg-gradient-to-br from-slate-50 via-slate-100/30 to-transparent dark:from-slate-900/40 dark:via-slate-800/20 dark:to-transparent p-4 shadow-sm">
+                    <section className="rounded-2xl border border-slate-300/40 dark:border-slate-700/40 bg-gradient-to-br from-slate-50 via-slate-100/30 to-transparent dark:from-slate-900/40 dark:via-slate-800/20 dark:to-transparent p-4 shadow-sm">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2.5">
                           <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-slate-500 to-slate-700 flex items-center justify-center shadow-md shadow-slate-500/30">
                             <History className="h-4 w-4 text-white" />
                           </div>
                           <div>
-                            <h3 className="text-sm font-bold text-foreground dark:text-slate-100">
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
                               {itemLabelPluralCapital} passé{isIndividual ? "e" : ""}s
                             </h3>
-                            <p className="text-[10px] text-foreground/80/70 dark:text-slate-300/70 uppercase tracking-wider font-semibold">
+                            <p className="text-[10px] text-slate-700/70 dark:text-slate-300/70 uppercase tracking-wider font-semibold">
                               Historique & résultats
                             </p>
                           </div>
@@ -322,11 +322,11 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                           {pastMatchesByMonth.map((group) => (
                             <div key={group.key}>
                               <div className="flex items-center gap-2 mb-2">
-                                <h4 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground dark:text-muted-foreground capitalize">
+                                <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 capitalize">
                                   {group.label}
                                 </h4>
                                 <div className="flex-1 h-px bg-gradient-to-r from-slate-300 to-transparent dark:from-slate-700" />
-                                <span className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground px-2 py-0.5 rounded-full bg-muted/60 dark:bg-foreground/90/60">
+                                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full bg-slate-200/60 dark:bg-slate-800/60">
                                   {group.matches.length}
                                 </span>
                               </div>

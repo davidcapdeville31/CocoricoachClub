@@ -16,9 +16,9 @@ export function CustomizeBrandingButton({ clubId, className }: Props) {
         variant="outline"
         size="sm"
         onClick={() => setOpen(true)}
-        className={`gap-2 bg-white/90 text-slate-900 border-white/40 hover:bg-white hover:text-slate-900 backdrop-blur-sm shadow-sm ${className || ''}`}
+        className={className}
       >
-        <Palette className="h-4 w-4" />
+        <Palette className="h-4 w-4 mr-2" />
         Personnaliser
       </Button>
       <ClubBrandingDialog open={open} onOpenChange={setOpen} clubId={clubId} />

@@ -195,7 +195,7 @@ const getMethodConfig = (method: string) => {
         color: "bg-gray-500",
         borderColor: "border-gray-500",
         bgActive: "bg-gray-500/20",
-        textColor: "text-muted-foreground",
+        textColor: "text-gray-500",
         slots: 2,
         minSlots: 2,
         slotLabels: ["Exercice 1", "Exercice 2"],

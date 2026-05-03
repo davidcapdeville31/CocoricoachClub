@@ -214,7 +214,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-40 bg-surface text-foreground [color-scheme:light] dark:[color-scheme:dark]"
+                className="w-40"
               />
               <span className="text-muted-foreground">au</span>
               <Input
@@ -222,7 +222,7 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
                 value={endDate}
                 min={startDate || undefined}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-40 bg-surface text-foreground [color-scheme:light] dark:[color-scheme:dark]"
+                className="w-40"
               />
             </div>
             <div className="flex gap-2">
@@ -380,20 +380,20 @@ export function AttendanceTab({ categoryId }: AttendanceTabProps) {
 
         return (
           <Tabs defaultValue="today" className="space-y-4">
-            <TabsList className="bg-surface-elevated border-border/70 shadow-none">
-              <TabsTrigger value="today" className="gap-2 bg-transparent data-[state=active]:bg-surface data-[state=active]:text-foreground dark:data-[state=active]:bg-surface-elevated dark:data-[state=active]:text-foreground">
+            <TabsList>
+              <TabsTrigger value="today" className="gap-2">
                 <ClipboardCheck className="h-4 w-4" />
                 Aujourd'hui ({todaySessions.length})
               </TabsTrigger>
-              <TabsTrigger value="upcoming" className="gap-2 bg-transparent data-[state=active]:bg-surface data-[state=active]:text-foreground dark:data-[state=active]:bg-surface-elevated dark:data-[state=active]:text-foreground">
+              <TabsTrigger value="upcoming" className="gap-2">
                 <Calendar className="h-4 w-4" />
                 À venir ({upcomingSessions.length})
               </TabsTrigger>
-              <TabsTrigger value="past" className="gap-2 bg-transparent data-[state=active]:bg-surface data-[state=active]:text-foreground dark:data-[state=active]:bg-surface-elevated dark:data-[state=active]:text-foreground">
+              <TabsTrigger value="past" className="gap-2">
                 <Clock className="h-4 w-4" />
                 Passées ({pastSessions.length})
               </TabsTrigger>
-              <TabsTrigger value="players" className="gap-2 bg-transparent data-[state=active]:bg-surface data-[state=active]:text-foreground dark:data-[state=active]:bg-surface-elevated dark:data-[state=active]:text-foreground">
+              <TabsTrigger value="players" className="gap-2">
                 <Users className="h-4 w-4" />
                 Par joueur
               </TabsTrigger>

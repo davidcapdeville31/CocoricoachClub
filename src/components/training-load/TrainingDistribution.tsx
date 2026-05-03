@@ -222,7 +222,7 @@ export function TrainingDistribution({ categoryId }: TrainingDistributionProps) 
           items={CONTACT_CHARGE_OPTIONS.map(c => ({
             value: c.value,
             label: c.label,
-            colorClass: c.numericValue === 0 ? "bg-muted text-foreground dark:bg-foreground/30 dark:text-muted-foreground" :
+            colorClass: c.numericValue === 0 ? "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400" :
                          c.numericValue === 1 ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" :
                          c.numericValue === 2 ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400" :
                          "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",

@@ -46,153 +46,153 @@ interface TrainingMethodButtonsProps {
 export const getTooltipColors = (method: string) => {
   const colorMap: Record<string, { bg: string; border: string; header: string; text: string }> = {
     "superset": { 
-      bg: "bg-blue-50 dark:bg-foreground", 
+      bg: "bg-blue-50 dark:bg-slate-900", 
       border: "border-blue-500", 
       header: "bg-gradient-to-r from-blue-500 to-blue-600",
       text: "text-blue-700 dark:text-blue-300"
     },
     "biset": { 
-      bg: "bg-cyan-50 dark:bg-foreground", 
+      bg: "bg-cyan-50 dark:bg-slate-900", 
       border: "border-cyan-600", 
       header: "bg-gradient-to-r from-cyan-600 to-cyan-700",
       text: "text-cyan-700 dark:text-cyan-300"
     },
     "triset": { 
-      bg: "bg-purple-50 dark:bg-foreground", 
+      bg: "bg-purple-50 dark:bg-slate-900", 
       border: "border-purple-500", 
       header: "bg-gradient-to-r from-purple-500 to-purple-600",
       text: "text-purple-700 dark:text-purple-300"
     },
     "giant_set": { 
-      bg: "bg-pink-50 dark:bg-foreground", 
+      bg: "bg-pink-50 dark:bg-slate-900", 
       border: "border-pink-500", 
       header: "bg-gradient-to-r from-pink-500 to-pink-600",
       text: "text-pink-700 dark:text-pink-300"
     },
     "bulgarian": { 
-      bg: "bg-fuchsia-50 dark:bg-foreground", 
+      bg: "bg-fuchsia-50 dark:bg-slate-900", 
       border: "border-fuchsia-500", 
       header: "bg-gradient-to-r from-fuchsia-500 to-fuchsia-600",
       text: "text-fuchsia-700 dark:text-fuchsia-300"
     },
     "drop_set": { 
-      bg: "bg-red-50 dark:bg-foreground", 
+      bg: "bg-red-50 dark:bg-slate-900", 
       border: "border-red-500", 
       header: "bg-gradient-to-r from-red-500 to-red-600",
       text: "text-red-700 dark:text-red-300"
     },
     "rest_pause": { 
-      bg: "bg-amber-50 dark:bg-foreground", 
+      bg: "bg-amber-50 dark:bg-slate-900", 
       border: "border-amber-500", 
       header: "bg-gradient-to-r from-amber-500 to-amber-600",
       text: "text-amber-700 dark:text-amber-300"
     },
     "pyramid_up": { 
-      bg: "bg-emerald-50 dark:bg-foreground", 
+      bg: "bg-emerald-50 dark:bg-slate-900", 
       border: "border-emerald-500", 
       header: "bg-gradient-to-r from-emerald-500 to-emerald-600",
       text: "text-emerald-700 dark:text-emerald-300"
     },
     "pyramid_down": { 
-      bg: "bg-teal-50 dark:bg-foreground", 
+      bg: "bg-teal-50 dark:bg-slate-900", 
       border: "border-teal-500", 
       header: "bg-gradient-to-r from-teal-500 to-teal-600",
       text: "text-teal-700 dark:text-teal-300"
     },
     "pyramid_full": { 
-      bg: "bg-cyan-50 dark:bg-foreground", 
+      bg: "bg-cyan-50 dark:bg-slate-900", 
       border: "border-cyan-500", 
       header: "bg-gradient-to-r from-cyan-500 to-cyan-600",
       text: "text-cyan-700 dark:text-cyan-300"
     },
     "five_by_five": { 
-      bg: "bg-sky-50 dark:bg-foreground", 
+      bg: "bg-sky-50 dark:bg-slate-900", 
       border: "border-sky-500", 
       header: "bg-gradient-to-r from-sky-500 to-sky-600",
       text: "text-sky-700 dark:text-sky-300"
     },
     "isometric_overcoming": {
-      bg: "bg-rose-50 dark:bg-foreground", 
+      bg: "bg-rose-50 dark:bg-slate-900", 
       border: "border-rose-500", 
       header: "bg-gradient-to-r from-rose-500 to-rose-600",
       text: "text-rose-700 dark:text-rose-300"
     },
     "isometric_yielding": { 
-      bg: "bg-emerald-50 dark:bg-foreground", 
+      bg: "bg-emerald-50 dark:bg-slate-900", 
       border: "border-emerald-500", 
       header: "bg-gradient-to-r from-emerald-500 to-emerald-600",
       text: "text-emerald-700 dark:text-emerald-300"
     },
     // CrossFit methods
     "amrap": { 
-      bg: "bg-rose-50 dark:bg-foreground", 
+      bg: "bg-rose-50 dark:bg-slate-900", 
       border: "border-rose-500", 
       header: "bg-gradient-to-r from-rose-500 to-rose-600",
       text: "text-rose-700 dark:text-rose-300"
     },
     "for_time": { 
-      bg: "bg-orange-50 dark:bg-foreground", 
+      bg: "bg-orange-50 dark:bg-slate-900", 
       border: "border-orange-500", 
       header: "bg-gradient-to-r from-orange-500 to-orange-600",
       text: "text-orange-700 dark:text-orange-300"
     },
     "death_by": { 
-      bg: "bg-red-50 dark:bg-foreground", 
+      bg: "bg-red-50 dark:bg-slate-900", 
       border: "border-red-600", 
       header: "bg-gradient-to-r from-red-600 to-red-700",
       text: "text-red-700 dark:text-red-300"
     },
     "circuit": { 
-      bg: "bg-lime-50 dark:bg-foreground", 
+      bg: "bg-lime-50 dark:bg-slate-900", 
       border: "border-lime-500", 
       header: "bg-gradient-to-r from-lime-500 to-lime-600",
       text: "text-lime-700 dark:text-lime-300"
     },
     "tabata": { 
-      bg: "bg-yellow-50 dark:bg-foreground", 
+      bg: "bg-yellow-50 dark:bg-slate-900", 
       border: "border-yellow-500", 
       header: "bg-gradient-to-r from-yellow-500 to-yellow-600",
       text: "text-yellow-700 dark:text-yellow-300"
     },
     "emom": { 
-      bg: "bg-indigo-50 dark:bg-foreground", 
+      bg: "bg-indigo-50 dark:bg-slate-900", 
       border: "border-indigo-500", 
       header: "bg-gradient-to-r from-indigo-500 to-indigo-600",
       text: "text-indigo-700 dark:text-indigo-300"
     },
     // Cardio methods
     "intermittent_cardio": { 
-      bg: "bg-sky-50 dark:bg-foreground", 
+      bg: "bg-sky-50 dark:bg-slate-900", 
       border: "border-sky-500", 
       header: "bg-gradient-to-r from-sky-500 to-sky-600",
       text: "text-sky-700 dark:text-sky-300"
     },
     "fartlek": { 
-      bg: "bg-green-50 dark:bg-foreground", 
+      bg: "bg-green-50 dark:bg-slate-900", 
       border: "border-green-500", 
       header: "bg-gradient-to-r from-green-500 to-green-600",
       text: "text-green-700 dark:text-green-300"
     },
     "stato_dynamique": { 
-      bg: "bg-violet-50 dark:bg-foreground", 
+      bg: "bg-violet-50 dark:bg-slate-900", 
       border: "border-violet-500", 
       header: "bg-gradient-to-r from-violet-500 to-violet-600",
       text: "text-violet-700 dark:text-violet-300"
     },
     "combine_haltero": { 
-      bg: "bg-fuchsia-50 dark:bg-foreground", 
+      bg: "bg-fuchsia-50 dark:bg-slate-900", 
       border: "border-fuchsia-600", 
       header: "bg-gradient-to-r from-fuchsia-600 to-fuchsia-700",
       text: "text-fuchsia-700 dark:text-fuchsia-300"
     },
     "cluster": { 
-      bg: "bg-orange-50 dark:bg-foreground", 
+      bg: "bg-orange-50 dark:bg-slate-900", 
       border: "border-orange-500", 
       header: "bg-gradient-to-r from-orange-500 to-orange-600",
       text: "text-orange-700 dark:text-orange-300"
     },
   };
-  return colorMap[method] || { bg: "bg-muted/40 dark:bg-foreground", border: "border-gray-500", header: "bg-gray-500", text: "text-foreground/80" };
+  return colorMap[method] || { bg: "bg-gray-50 dark:bg-slate-900", border: "border-gray-500", header: "bg-gray-500", text: "text-gray-700" };
 };
 
 // Method objectives with icons, descriptions, references and coach tips
@@ -511,8 +511,8 @@ export const TrainingMethodButtons = ({
       "bg-violet-500": "border-violet-500/50 text-violet-600 hover:bg-violet-500/10",
       "bg-fuchsia-500": "border-fuchsia-500/50 text-fuchsia-600 hover:bg-fuchsia-500/10",
       "bg-fuchsia-600": "border-fuchsia-600/50 text-fuchsia-600 hover:bg-fuchsia-600/10",
-      "bg-stone-500": "border-stone-500/50 text-muted-foreground hover:bg-stone-500/10",
-      "bg-slate-500": "border-slate-500/50 text-muted-foreground hover:bg-slate-500/10",
+      "bg-stone-500": "border-stone-500/50 text-stone-600 hover:bg-stone-500/10",
+      "bg-slate-500": "border-slate-500/50 text-slate-600 hover:bg-slate-500/10",
       // CrossFit methods
       "bg-rose-500": "border-rose-500/50 text-rose-600 hover:bg-rose-500/10",
       "bg-orange-500": "border-orange-500/50 text-orange-600 hover:bg-orange-500/10",

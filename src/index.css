@@ -20,102 +20,57 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* ============================================================
-       PRIMITIVES — never used directly in components
-       ============================================================ */
-    /* Brand primary — Modern indigo (Linear/Stripe inspired) */
-    --brand-50:  232 70% 97%;
-    --brand-100: 232 70% 92%;
-    --brand-200: 232 70% 84%;
-    --brand-300: 232 70% 72%;
-    --brand-400: 232 70% 64%;
-    --brand-500: 232 70% 56%;
-    --brand-600: 232 65% 48%;
-    --brand-700: 232 60% 40%;
-    --brand-800: 232 55% 30%;
-    --brand-900: 232 50% 20%;
-
-    /* Accent — Cyan signature (CocoriCoach heritage) */
-    --accent-50:  188 76% 95%;
-    --accent-500: 188 76% 45%;
-    --accent-600: 188 76% 38%;
-
-    /* Neutral — Slate-tinted */
-    --neutral-50:  220 30% 98%;
-    --neutral-100: 220 25% 95%;
-    --neutral-200: 220 20% 90%;
-    --neutral-300: 220 18% 82%;
-    --neutral-400: 220 15% 64%;
-    --neutral-500: 220 13% 48%;
-    --neutral-600: 220 14% 36%;
-    --neutral-700: 220 16% 26%;
-    --neutral-800: 222 20% 16%;
-    --neutral-900: 222 24% 10%;
-    --neutral-950: 222 28% 6%;
-
-    /* ============================================================
-       SEMANTIC — Light theme — 3-level surface hierarchy
-       background < surface < surface-elevated
-       ============================================================ */
-    --background: 224 32% 92%;            /* page bg — much cooler/darker, makes cards pop */
-    --foreground: 222 28% 10%;
-
-    --surface: 0 0% 100%;
-    --surface-foreground: 222 28% 10%;
-    --surface-elevated: 220 40% 99%;
-    --surface-elevated-foreground: 222 28% 10%;
-    --surface-sunken: 222 26% 88%;
+    /* Pure White Background - Clean & Modern */
+    --background: 0 0% 100%;
+    --foreground: 220 20% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 28% 10%;
+    --card-foreground: 220 20% 15%;
 
-    --popover: 220 40% 99%;
-    --popover-foreground: 222 28% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 15%;
 
-    --primary: 232 70% 56%;
+    /* Deep Blue Primary #0B1F3A */
+    --primary: 214 70% 14%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 232 65% 48%;
 
-    --secondary: 220 25% 94%;
-    --secondary-foreground: 222 24% 18%;
-    --secondary-hover: 220 22% 90%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 214 70% 14%;
 
-    --muted: 220 22% 95%;
-    --muted-foreground: 220 13% 42%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 45%;
 
-    --accent: 188 76% 45%;
+    /* Cyan Performance #17A2B8 - Progression & Validation */
+    --accent: 188 76% 40%;
     --accent-foreground: 0 0% 100%;
-    --accent-hover: 188 76% 38%;
 
-    --destructive: 0 78% 55%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --warning: 32 92% 50%;
+    /* Controlled Orange #F28C28 - Alerts & Attention */
+    --warning: 32 89% 55%;
     --warning-foreground: 0 0% 100%;
 
-    --success: 152 60% 38%;
+    /* Status colors - Performance indicators */
+    --status-optimal: 160 65% 45%;
+    --status-attention: 32 89% 55%;
+    --status-critical: 0 84% 60%;
+    
+    /* Risk gradient colors */
+    --risk-low: 160 60% 42%;
+    --risk-medium: 32 89% 55%;
+    --risk-high: 0 84% 60%;
+
+    /* Success/Positive states */
+    --success: 160 65% 45%;
     --success-foreground: 0 0% 100%;
 
-    --info: 210 85% 50%;
-    --info-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 188 76% 40%;
 
-    --status-optimal: 152 60% 40%;
-    --status-attention: 32 92% 50%;
-    --status-critical: 0 78% 55%;
-
-    --risk-low: 152 60% 40%;
-    --risk-medium: 32 92% 50%;
-    --risk-high: 0 78% 55%;
-
-    --border: 222 18% 80%;
-    --border-strong: 222 16% 64%;
-    --input: 222 20% 86%;
-    --ring: 232 70% 56%;
-
-    --radius: 1rem;
-    --radius-sm: 0.625rem;
-    --radius-lg: 1.5rem;
-
+    --radius: 0.75rem;
+    
     /* Tab/Navigation Colors - Vivid palette */
     --nav-overview: 220 80% 55%;
     --nav-admin: 280 70% 55%;
@@ -129,30 +84,20 @@ All colors MUST be HSL.
     --nav-video: 350 80% 60%;
     --nav-communication: 210 80% 55%;
     --nav-settings: 220 15% 50%;
-
-    /* Gradients — réservés aux hero / accents (usage limité) */
-    --gradient-hero: linear-gradient(135deg, hsl(232 75% 42%) 0%, hsl(232 70% 56%) 50%, hsl(188 76% 48%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 0% 100%));
-    --gradient-performance: linear-gradient(135deg, hsl(188 80% 48%), hsl(232 72% 58%));
-    --gradient-subtle: linear-gradient(180deg, hsl(220 30% 98%), hsl(220 25% 96%));
-    /* Mesh très atténué — profondeur sans distraction */
-    --gradient-mesh: radial-gradient(at 15% 0%, hsl(232 70% 56% / 0.025) 0px, transparent 45%),
-                     radial-gradient(at 85% 100%, hsl(188 76% 48% / 0.025) 0px, transparent 45%);
-
-    /* Shadows — sobres, type Stripe / Linear */
-    --shadow-xs: 0 1px 2px 0 hsl(222 24% 12% / 0.04);
-    --shadow-sm: 0 1px 2px 0 hsl(222 24% 12% / 0.05);
-    --shadow-md: 0 2px 4px -1px hsl(222 24% 12% / 0.06), 0 1px 2px -1px hsl(222 24% 12% / 0.04);
-    --shadow-lg: 0 8px 16px -4px hsl(222 24% 12% / 0.08), 0 2px 4px -2px hsl(222 24% 12% / 0.05);
-    --shadow-xl: 0 16px 32px -8px hsl(222 24% 12% / 0.12);
-    /* Glow conservés mais à n'utiliser que sur variantes "premium" exceptionnelles */
-    --shadow-glow: 0 0 0 1px hsl(232 70% 56% / 0.18), 0 6px 16px -6px hsl(232 70% 56% / 0.25);
-    --shadow-glow-accent: 0 0 0 1px hsl(188 76% 45% / 0.18), 0 6px 16px -6px hsl(188 76% 45% / 0.25);
-
+    
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(214 70% 14%), hsl(214 60% 22%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 14% 98%));
+    --gradient-performance: linear-gradient(135deg, hsl(188 76% 40%), hsl(188 70% 48%));
+    
+    /* Shadows - Modern elevated style */
+    --shadow-sm: 0 1px 2px hsl(220 20% 15% / 0.05);
+    --shadow-md: 0 4px 12px hsl(220 20% 15% / 0.08);
+    --shadow-lg: 0 12px 32px hsl(220 20% 15% / 0.12);
+    
     --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-snappy: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* Training type colors */
+    /* Training type colors - professional palette */
     --training-collectif: 214 70% 50%;
     --training-technique: 188 76% 40%;
     --training-physique: 160 60% 42%;
@@ -160,130 +105,109 @@ All colors MUST be HSL.
     --training-repos: 214 15% 55%;
     --training-test: 45 93% 47%;
 
-    /* Sidebar - Premium deep brand */
-    --sidebar-background: 222 30% 10%;
-    --sidebar-foreground: 220 18% 92%;
-    --sidebar-primary: 188 76% 45%;
+    /* Sidebar - Deep blue theme */
+    --sidebar-background: 214 70% 14%;
+    --sidebar-foreground: 214 20% 95%;
+    --sidebar-primary: 188 76% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 25% 16%;
-    --sidebar-accent-foreground: 220 18% 96%;
-    --sidebar-border: 222 22% 18%;
-    --sidebar-ring: 188 76% 45%;
+    --sidebar-accent: 214 60% 22%;
+    --sidebar-accent-foreground: 214 20% 95%;
+    --sidebar-border: 214 50% 25%;
+    --sidebar-ring: 188 76% 40%;
 
     /* Chart colors */
-    --chart-1: 232 70% 56%;
-    --chart-2: 188 76% 45%;
-    --chart-3: 152 60% 42%;
-    --chart-4: 32 92% 55%;
-    --chart-5: 280 65% 58%;
+    --chart-1: 188 76% 40%;
+    --chart-2: 214 70% 50%;
+    --chart-3: 160 60% 42%;
+    --chart-4: 32 89% 55%;
+    --chart-5: 280 55% 55%;
   }
 
   .dark {
-    /* ============================================================
-       SEMANTIC — Dark theme — no pure black, 3-level hierarchy
-       bg #0E1117 < surface #161A22 < elevated #1E232E
-       ============================================================ */
-    --background: 224 30% 6%;
-    --foreground: 220 20% 96%;
+    /* Dark mode - improved contrast hierarchy
+       background (deepest) < card/popover < muted < secondary < border */
+    --background: 220 25% 7%;
+    --foreground: 210 20% 96%;
 
-    --surface: 224 22% 11%;
-    --surface-foreground: 220 20% 96%;
-    --surface-elevated: 224 20% 17%;
-    --surface-elevated-foreground: 220 20% 97%;
-    --surface-sunken: 224 30% 4%;
+    --card: 220 22% 12%;
+    --card-foreground: 210 20% 96%;
 
-    --card: 224 22% 11%;
-    --card-foreground: 220 20% 96%;
+    --popover: 220 22% 13%;
+    --popover-foreground: 210 20% 96%;
 
-    --popover: 224 20% 15%;
-    --popover-foreground: 220 20% 97%;
+    --primary: 188 76% 50%;
+    --primary-foreground: 220 30% 8%;
 
-    --primary: 232 80% 70%;
-    --primary-foreground: 224 30% 5%;
-    --primary-hover: 232 85% 76%;
+    --secondary: 220 20% 20%;
+    --secondary-foreground: 210 20% 96%;
 
-    --secondary: 224 18% 18%;
-    --secondary-foreground: 220 20% 96%;
-    --secondary-hover: 224 18% 22%;
+    --muted: 220 18% 16%;
+    --muted-foreground: 215 18% 70%;
 
-    --muted: 224 20% 14%;
-    --muted-foreground: 220 14% 76%;
+    --accent: 188 76% 52%;
+    --accent-foreground: 220 30% 8%;
 
-    --accent: 188 85% 58%;
-    --accent-foreground: 224 30% 5%;
-    --accent-hover: 188 85% 65%;
-
-    --destructive: 0 78% 64%;
+    --destructive: 0 75% 58%;
     --destructive-foreground: 0 0% 100%;
 
-    --warning: 32 95% 62%;
-    --warning-foreground: 224 30% 5%;
+    --warning: 32 92% 58%;
+    --warning-foreground: 220 30% 8%;
 
-    --success: 152 65% 52%;
-    --success-foreground: 224 30% 5%;
+    /* Status colors */
+    --status-optimal: 160 60% 50%;
+    --status-attention: 32 92% 60%;
+    --status-critical: 0 75% 58%;
+    
+    /* Risk gradient colors */
+    --risk-low: 160 60% 50%;
+    --risk-medium: 32 92% 60%;
+    --risk-high: 0 75% 58%;
 
-    --info: 210 88% 64%;
-    --info-foreground: 224 30% 5%;
+    --success: 160 60% 50%;
+    --success-foreground: 220 30% 8%;
 
-    --status-optimal: 152 65% 52%;
-    --status-attention: 32 95% 62%;
-    --status-critical: 0 78% 64%;
+    --border: 220 18% 28%;
+    --input: 220 18% 24%;
+    --ring: 188 76% 52%;
+    
+    --gradient-hero: linear-gradient(135deg, hsl(214 50% 18%), hsl(214 45% 25%));
+    --gradient-card: linear-gradient(180deg, hsl(214 35% 14%), hsl(214 35% 16%));
+    --gradient-performance: linear-gradient(135deg, hsl(188 76% 45%), hsl(188 70% 52%));
+    
+    --shadow-sm: 0 1px 3px hsl(0 0% 0% / 0.2);
+    --shadow-md: 0 4px 6px hsl(0 0% 0% / 0.25);
+    --shadow-lg: 0 10px 15px hsl(0 0% 0% / 0.3);
 
-    --risk-low: 152 65% 52%;
-    --risk-medium: 32 95% 62%;
-    --risk-high: 0 78% 64%;
+    /* Sidebar - Dark theme */
+    --sidebar-background: 214 45% 8%;
+    --sidebar-foreground: 214 15% 92%;
+    --sidebar-primary: 188 76% 50%;
+    --sidebar-primary-foreground: 214 70% 10%;
+    --sidebar-accent: 214 40% 16%;
+    --sidebar-accent-foreground: 214 15% 92%;
+    --sidebar-border: 214 35% 18%;
+    --sidebar-ring: 188 76% 50%;
 
-    --border: 224 16% 24%;
-    --border-strong: 224 14% 36%;
-    --input: 224 18% 20%;
-    --ring: 232 80% 70%;
-
-    --gradient-hero: linear-gradient(135deg, hsl(232 70% 22%) 0%, hsl(232 65% 38%) 50%, hsl(188 75% 35%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(224 24% 9%), hsl(224 24% 9%));
-    --gradient-performance: linear-gradient(135deg, hsl(188 85% 50%), hsl(232 80% 65%));
-    --gradient-subtle: linear-gradient(180deg, hsl(224 24% 10%), hsl(224 24% 9%));
-    --gradient-mesh: radial-gradient(at 15% 0%, hsl(232 80% 70% / 0.04) 0px, transparent 45%),
-                     radial-gradient(at 85% 100%, hsl(188 85% 58% / 0.04) 0px, transparent 45%);
-
-    /* Dark shadows — sobres */
-    --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
-    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.4);
-    --shadow-md: 0 2px 4px -1px hsl(0 0% 0% / 0.45), 0 1px 2px -1px hsl(0 0% 0% / 0.35);
-    --shadow-lg: 0 8px 16px -4px hsl(0 0% 0% / 0.55), 0 2px 4px -2px hsl(0 0% 0% / 0.4);
-    --shadow-xl: 0 16px 32px -8px hsl(0 0% 0% / 0.65);
-    --shadow-glow: 0 0 0 1px hsl(232 80% 70% / 0.3), 0 6px 16px -6px hsl(232 80% 70% / 0.4);
-    --shadow-glow-accent: 0 0 0 1px hsl(188 85% 58% / 0.3), 0 6px 16px -6px hsl(188 85% 58% / 0.4);
-
-    /* Sidebar - Deeper for dark theme */
-    --sidebar-background: 222 28% 5%;
-    --sidebar-foreground: 220 16% 90%;
-    --sidebar-primary: 188 80% 55%;
-    --sidebar-primary-foreground: 222 28% 8%;
-    --sidebar-accent: 222 22% 14%;
-    --sidebar-accent-foreground: 220 16% 94%;
-    --sidebar-border: 222 18% 18%;
-    --sidebar-ring: 188 80% 55%;
-
-    /* Chart colors - brighter for dark */
-    --chart-1: 232 75% 68%;
-    --chart-2: 188 80% 55%;
-    --chart-3: 152 60% 52%;
-    --chart-4: 32 92% 62%;
-    --chart-5: 280 70% 68%;
-
-    /* Nav colors */
-    --nav-overview: 220 80% 65%;
-    --nav-admin: 280 70% 65%;
-    --nav-effectif: 200 85% 60%;
-    --nav-planification: 35 90% 62%;
-    --nav-programmation: 260 70% 70%;
-    --nav-performance: 320 75% 65%;
-    --nav-sante: 160 65% 55%;
-    --nav-competition: 45 95% 58%;
-    --nav-gps: 190 80% 55%;
-    --nav-video: 350 80% 68%;
-    --nav-communication: 210 80% 65%;
-    --nav-settings: 220 15% 60%;
+    /* Chart colors - slightly brighter for dark mode */
+    --chart-1: 188 76% 50%;
+    --chart-2: 214 65% 55%;
+    --chart-3: 160 60% 48%;
+    --chart-4: 32 89% 60%;
+    --chart-5: 280 55% 60%;
+    
+    /* Nav colors - same in dark mode */
+    --nav-overview: 220 80% 60%;
+    --nav-admin: 280 70% 60%;
+    --nav-effectif: 200 85% 55%;
+    --nav-planification: 35 90% 60%;
+    --nav-programmation: 260 70% 65%;
+    --nav-performance: 320 75% 60%;
+    --nav-sante: 160 65% 50%;
+    --nav-competition: 45 95% 55%;
+    --nav-gps: 190 80% 50%;
+    --nav-video: 350 80% 65%;
+    --nav-communication: 210 80% 60%;
+    --nav-settings: 220 15% 55%;
   }
 
   /* Field Mode - High contrast dark theme for outdoor use */
@@ -379,9 +303,6 @@ All colors MUST be HSL.
     /* Honour the iOS safe-areas so notch / home-indicator never crop content */
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
-    background-image: var(--gradient-mesh);
-    background-attachment: fixed;
-    min-height: 100vh;
   }
 
   /* Improve readability for data-heavy interfaces */
@@ -573,104 +494,20 @@ All colors MUST be HSL.
   border-bottom-color: transparent !important;
 }
 
-.athlete-tab:not([data-state="active"]) {
-  color: color-mix(in srgb, var(--tab-color) 90%, white 10%) !important;
-}
-
-.athlete-tab:not([data-state="active"]) svg {
-  color: inherit !important;
-}
-
-.athlete-tab:not([data-state="active"]):hover {
-  color: white !important;
-  background-color: color-mix(in srgb, var(--tab-color) 22%, transparent) !important;
-}
-
 /* Colored tab trigger active state */
 .colored-tab-trigger[data-state="active"] {
   background-color: var(--tab-color) !important;
-  color: var(--tab-active-foreground, white) !important;
+  color: white !important;
   box-shadow: 0 4px 8px -2px rgb(0 0 0 / 0.2);
 }
-
-.colored-tab-trigger {
-  color: var(--tab-ink, color-mix(in srgb, var(--tab-color) 88%, white 12%)) !important;
-}
-
-.colored-tab-trigger .colored-tab-text,
-.colored-tab-trigger svg {
-  color: inherit !important;
-}
-
-.colored-tab-trigger:not([data-state="active"]) {
-  background-color: color-mix(in srgb, var(--tab-color) 12%, hsl(var(--surface)) 88%) !important;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tab-color) 28%, transparent) !important;
-}
-
 .colored-tab-trigger[data-state="active"] .colored-tab-text {
-  color: var(--tab-active-foreground, white) !important;
+  color: white !important;
 }
 .colored-tab-trigger[data-state="active"] svg {
-  color: var(--tab-active-foreground, white) !important;
+  color: white !important;
 }
 .colored-tab-trigger:not([data-state="active"]):hover {
-  color: var(--tab-ink, color-mix(in srgb, var(--tab-color) 88%, white 12%)) !important;
-  background-color: color-mix(in srgb, var(--tab-color) 18%, hsl(var(--surface)) 82%) !important;
-}
-
-.dark .colored-tab-trigger {
-  color: var(--tab-ink-dark, color-mix(in srgb, var(--tab-color) 22%, white 78%)) !important;
-  background-color: var(--tab-soft-bg-dark, color-mix(in srgb, var(--tab-color) 16%, hsl(var(--surface-elevated)) 84%)) !important;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tab-color) 34%, transparent) !important;
-}
-
-.dark .athlete-tab:not([data-state="active"]) {
-  color: color-mix(in srgb, var(--tab-color) 22%, white 78%) !important;
-  background-color: color-mix(in srgb, var(--tab-color) 16%, hsl(var(--surface-elevated)) 84%) !important;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tab-color) 34%, transparent) !important;
-  border-bottom-color: transparent !important;
-}
-
-.dark .colored-tab-trigger:not([data-state="active"]):hover,
-.dark .athlete-tab:not([data-state="active"]):hover {
-  color: white !important;
-  background-color: color-mix(in srgb, var(--tab-color) 24%, hsl(var(--surface-elevated)) 76%) !important;
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--tab-color) 48%, transparent),
-    0 10px 24px -18px color-mix(in srgb, var(--tab-color) 55%, transparent) !important;
-}
-
-.dark .colored-tab-trigger[data-state="active"],
-.dark .athlete-tab[data-state="active"] {
-  box-shadow:
-    0 16px 34px -22px color-mix(in srgb, var(--tab-color) 70%, transparent),
-    inset 0 1px 0 rgb(255 255 255 / 0.14) !important;
-}
-
-.dark [role="tab"]:not([data-state="active"])[style*="--tab-accent"] {
-  color: hsl(var(--foreground)) !important;
-  background-color: hsl(var(--surface-elevated)) !important;
-  box-shadow: inset 0 0 0 1px hsl(var(--border) / 0.8) !important;
-}
-
-.dark .colored-tab-trigger .colored-tab-text,
-.dark .colored-tab-trigger .colored-tab-text span,
-.dark .colored-tab-trigger svg,
-.dark .athlete-tab span,
-.dark .athlete-tab svg {
-  color: inherit !important;
-}
-
-.dark [role="tab"][data-state="active"][style*="--tab-accent"] {
-  color: var(--tab-active-foreground, hsl(var(--primary-foreground))) !important;
-  box-shadow:
-    0 14px 30px -20px color-mix(in srgb, var(--tab-accent) 70%, transparent),
-    inset 0 1px 0 rgb(255 255 255 / 0.14) !important;
-}
-
-.dark [role="tab"]:not([data-state="active"])[style*="--tab-accent"] svg,
-.dark [role="tab"][data-state="active"][style*="--tab-accent"] svg {
-  color: inherit !important;
+  background-color: color-mix(in srgb, var(--tab-color) 15%, transparent);
 }
 
 /* ============================================================
@@ -764,324 +601,3 @@ All colors MUST be HSL.
 
 /* Subtle sheen / overlays bg-white/5..30 stay translucent (they layer over
    colored backdrops and remain visually correct in dark mode). */
-
-/* ============================================================
-   PREMIUM SURFACE UTILITIES
-   3-level visual hierarchy reusable everywhere
-   ============================================================ */
-@layer utilities {
-  .surface-base       { background-color: hsl(var(--background)); }
-  .surface-card       { background-color: hsl(var(--surface)); border: 1px solid hsl(var(--border) / 0.7); }
-  .surface-elevated   { background-color: hsl(var(--surface-elevated)); border: 1px solid hsl(var(--border) / 0.7); box-shadow: var(--shadow-md); }
-  .surface-sunken     { background-color: hsl(var(--surface-sunken)); border: 1px solid hsl(var(--border) / 0.5); }
-
-  /* Premium card preset — drop-in for "hero" KPI cards */
-  .card-premium {
-    background-image: linear-gradient(180deg, hsl(var(--surface)), hsl(var(--surface-elevated)));
-    border: 1px solid hsl(var(--border) / 0.7);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-md);
-    transition: var(--transition-smooth);
-  }
-  .card-premium:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
-
-  /* Branded tinted surface — for highlight sections */
-  .surface-brand {
-    background-image: linear-gradient(135deg, hsl(var(--brand-50)), hsl(var(--surface)));
-    border: 1px solid hsl(var(--brand-200) / 0.6);
-  }
-  .dark .surface-brand {
-    background-image: linear-gradient(135deg, hsl(var(--brand-900) / 0.4), hsl(var(--surface)));
-    border-color: hsl(var(--primary) / 0.25);
-  }
-
-  /* Section dividers for visual hierarchy in long pages */
-  .section-divider {
-    background-image: linear-gradient(90deg, transparent, hsl(var(--border)), transparent);
-    height: 1px;
-  }
-}
-
-/* ============================================================
-   LIGHT MODE — give depth to flat areas
-   Prevent the "all-white" feeling by softening pure white
-   container backgrounds inside the page (NOT inside cards).
-   ============================================================ */
-:root body { background-color: hsl(var(--background)); }
-
-/* Anchor "main" section to background, never pure white */
-main, [role="main"] { background-color: transparent; }
-
-/* ============================================================
-   DARK MODE EXTRA SAFETY
-   ============================================================ */
-.dark .bg-gray-50,
-.dark .bg-gray-100,
-.dark .bg-slate-50,
-.dark .bg-slate-100,
-.dark .bg-neutral-50,
-.dark .bg-neutral-100,
-.dark .bg-zinc-50,
-.dark .bg-zinc-100 {
-  background-color: hsl(var(--surface-elevated)) !important;
-}
-
-/* Pure black text inside dark mode → readable foreground */
-.dark .text-black:not([class*="text-black/"]) { color: hsl(var(--foreground)) !important; }
-
-/* Generic gray text often used on dark sections — boost readability */
-.dark .text-gray-500,
-.dark .text-gray-600,
-.dark .text-slate-500,
-.dark .text-slate-600,
-.dark .text-neutral-500,
-.dark .text-neutral-600,
-.dark .text-zinc-500,
-.dark .text-zinc-600 {
-  color: hsl(var(--muted-foreground)) !important;
-}
-
-/* Common border combinations that lose contrast in dark */
-.dark .border-gray-100,
-.dark .border-gray-200,
-.dark .border-slate-100,
-.dark .border-slate-200,
-.dark .border-neutral-100,
-.dark .border-neutral-200 {
-  border-color: hsl(var(--border)) !important;
-}
-
-/* ============================================================
-   CONTRAST SAFETY NET — both modes
-   Prevents low-contrast text/bg combinations regardless of theme
-   ============================================================ */
-
-/* LIGHT MODE: text-white that lands on a card / surface (white bg) → flip to foreground.
-   We keep text-white when it's intentionally on a colored background:
-   - inside elements with bg-primary / bg-accent / bg-destructive / bg-* color
-   - inside gradient hero sections
-   - inside buttons (handled by button variants)
-   So we only override when the parent is a known light surface.        */
-:root .bg-card .text-white:not([class*="bg-"]):not([class*="from-"]),
-:root .bg-background .text-white:not([class*="bg-"]):not([class*="from-"]),
-:root .bg-surface .text-white:not([class*="bg-"]):not([class*="from-"]),
-:root .bg-popover .text-white:not([class*="bg-"]):not([class*="from-"]),
-:root .bg-muted .text-white:not([class*="bg-"]):not([class*="from-"]),
-:root .bg-secondary .text-white:not([class*="bg-"]):not([class*="from-"]) {
-  color: hsl(var(--foreground)) !important;
-}
-
-/* DARK MODE: text-black that lands anywhere → always flip (already handled, reinforce) */
-.dark .text-black,
-.dark [class*="text-black/"] {
-  color: hsl(var(--foreground)) !important;
-}
-
-/* DARK MODE: light gray text (300/400) used as body copy on dark bg = ok,
-   but on a white/light pastel bg becomes invisible → flip to dark fg */
-.dark .bg-white .text-gray-300,
-.dark .bg-white .text-gray-400,
-.dark .bg-white .text-slate-300,
-.dark .bg-white .text-slate-400,
-.dark .bg-white .text-neutral-300,
-.dark .bg-white .text-neutral-400 {
-  color: hsl(var(--foreground)) !important;
-}
-
-/* DARK MODE: very light text used on light pastel backgrounds */
-.dark .text-white\/50,
-.dark .text-white\/60,
-.dark .text-white\/70 { color: hsl(var(--muted-foreground)) !important; }
-
-/* DARK MODE: solid bg-white with opacity utilities on dark surface = white veil OK,
-   but plain bg-white inside a dark card = blinding. Flip to elevated surface. */
-.dark .bg-card .bg-white:not([class*="bg-white/"]),
-.dark .bg-background .bg-white:not([class*="bg-white/"]),
-.dark .bg-surface .bg-white:not([class*="bg-white/"]),
-.dark .bg-popover .bg-white:not([class*="bg-white/"]) {
-  background-color: hsl(var(--surface-elevated)) !important;
-  color: hsl(var(--foreground)) !important;
-}
-
-/* LIGHT MODE: pitch-dark text on dark backgrounds */
-:root .bg-primary .text-black:not([class*="text-black/"]),
-:root .bg-accent .text-black:not([class*="text-black/"]),
-:root .bg-destructive .text-black:not([class*="text-black/"]),
-:root .bg-foreground .text-black:not([class*="text-black/"]) {
-  color: hsl(var(--primary-foreground)) !important;
-}
-
-/* ============================================================
-   TABS — guaranteed contrast for inactive vs active state
-   ============================================================ */
-
-/* Inactive trigger — secondary, low emphasis but readable */
-[role="tab"][data-state="inactive"] {
-  color: hsl(var(--muted-foreground)) !important;
-  opacity: 1 !important;
-}
-
-/* Active trigger — strong contrast, brand emphasis */
-[role="tab"][data-state="active"] {
-  color: hsl(var(--foreground)) !important;
-  font-weight: 600 !important;
-}
-
-/* Hover on inactive */
-[role="tab"][data-state="inactive"]:hover {
-  color: hsl(var(--foreground)) !important;
-}
-
-/* If a tab uses a colored bg in active state, ensure text is the right contrast */
-[role="tab"][data-state="active"][class*="bg-primary"],
-[role="tab"][data-state="active"][class*="bg-accent"],
-[role="tab"][data-state="active"][style*="background"] {
-  color: hsl(var(--primary-foreground)) !important;
-}
-
-/* ============================================================
-   ICONS — same logic as text (inherit by default)
-   Force lucide icons to use currentColor strictly so they follow text rules
-   ============================================================ */
-.lucide { color: currentColor; }
-
-/* In dark mode, low-contrast standalone icon utilities → boost */
-.dark .text-gray-300:not(svg ~ *):not(p):not(span),
-.dark .text-gray-400:not(svg ~ *):not(p):not(span),
-.dark .text-slate-300,
-.dark .text-slate-400,
-.dark .text-neutral-300,
-.dark .text-neutral-400 {
-  color: hsl(var(--muted-foreground)) !important;
-}
-
-/* ============================================================
-   BUTTONS — final contrast guarantee
-   ============================================================ */
-button[class*="bg-primary"],
-a[class*="bg-primary"] { color: hsl(var(--primary-foreground)); }
-
-button[class*="bg-accent"],
-a[class*="bg-accent"] { color: hsl(var(--accent-foreground)); }
-
-button[class*="bg-destructive"],
-a[class*="bg-destructive"] { color: hsl(var(--destructive-foreground)); }
-
-/* Ghost / outline buttons must always have readable text */
-button[class*="variant-ghost"],
-button[class*="variant-outline"] { color: hsl(var(--foreground)); }
-
-
-/* ============================================================
-   NAV-THEMED SECTIONS
-   When a tab content is wrapped in <NavThemedSection colorKey="...">,
-   its primary / destructive / red-ish action buttons adopt the active
-   tab's colour for visual coherence.
-   --nav-color, --nav-color-hover, --nav-color-fg are set by the wrapper.
-   ============================================================ */
-
-/* Repaint shadcn primary / destructive button variants */
-.nav-themed button[class*="bg-primary"]:not([class*="bg-primary/"]),
-.nav-themed a[class*="bg-primary"]:not([class*="bg-primary/"]),
-.nav-themed button[class*="bg-destructive"]:not([class*="bg-destructive/"]),
-.nav-themed a[class*="bg-destructive"]:not([class*="bg-destructive/"]) {
-  background-color: hsl(var(--nav-color)) !important;
-  color: hsl(var(--nav-color-fg)) !important;
-  border-color: transparent !important;
-}
-.nav-themed button[class*="bg-primary"]:hover,
-.nav-themed a[class*="bg-primary"]:hover,
-.nav-themed button[class*="bg-destructive"]:hover,
-.nav-themed a[class*="bg-destructive"]:hover {
-  background-color: hsl(var(--nav-color-hover)) !important;
-}
-
-/* Repaint hardcoded red / brand action buttons (legacy) */
-.nav-themed button[class*="bg-red-5"],
-.nav-themed button[class*="bg-red-6"],
-.nav-themed button[class*="bg-red-7"],
-.nav-themed a[class*="bg-red-5"],
-.nav-themed a[class*="bg-red-6"],
-.nav-themed a[class*="bg-red-7"],
-.nav-themed button[class*="bg-rose-5"],
-.nav-themed button[class*="bg-rose-6"],
-.nav-themed a[class*="bg-rose-5"],
-.nav-themed a[class*="bg-rose-6"] {
-  background-color: hsl(var(--nav-color)) !important;
-  color: hsl(var(--nav-color-fg)) !important;
-}
-
-/* Icons inside repainted buttons follow the foreground colour */
-.nav-themed button[class*="bg-primary"] svg,
-.nav-themed button[class*="bg-destructive"] svg,
-.nav-themed a[class*="bg-primary"] svg,
-.nav-themed a[class*="bg-destructive"] svg,
-.nav-themed button[class*="bg-red-"] svg,
-.nav-themed button[class*="bg-rose-"] svg {
-  color: hsl(var(--nav-color-fg)) !important;
-}
-
-/* Sub-tab triggers (active state) — adopt nav colour as accent */
-.nav-themed [role="tab"][data-state="active"] {
-  color: hsl(var(--nav-color-fg)) !important;
-}
-.nav-themed [role="tab"][data-state="active"]::before,
-.nav-themed [role="tab"][data-state="active"] > span:first-child {
-  background-color: hsl(var(--nav-color)) !important;
-}
-
-/* Focus rings inside themed sections use the nav colour */
-.nav-themed *:focus-visible {
-  outline-color: hsl(var(--nav-color)) !important;
-}
-
-/* Links / accent text within themed area */
-.nav-themed .text-primary:not([class*="bg-"]) {
-  color: hsl(var(--nav-color)) !important;
-}
-
-/* Exception: keep semantic warning/success buttons untouched.
-   We only target primary + destructive + raw red, NOT bg-warning / bg-success / bg-yellow / bg-green. */
-
-/* ============================================================
-   FINAL CONTRAST GUARANTEES — both modes
-   Last-line defense against remaining low-contrast combinations.
-   ============================================================ */
-
-/* Outline / ghost / link buttons must always inherit foreground in both themes */
-button[class*="border-input"]:not([class*="bg-"]),
-button[data-variant="outline"]:not([class*="bg-"]) {
-  color: hsl(var(--foreground));
-}
-
-/* Tabs lists — guarantee inactive triggers are never invisible on a sunken bar */
-[role="tablist"] [role="tab"]:not([data-state="active"]) {
-  color: hsl(var(--muted-foreground));
-}
-[role="tablist"] [role="tab"]:not([data-state="active"]):hover {
-  color: hsl(var(--foreground));
-}
-
-/* Icons inside muted/secondary surfaces should never disappear */
-.bg-muted svg:not([class*="text-"]),
-.bg-secondary svg:not([class*="text-"]) {
-  color: hsl(var(--muted-foreground));
-}
-
-/* Inputs / textareas — explicit foreground for both themes */
-input, textarea, select {
-  color: hsl(var(--foreground));
-}
-input::placeholder, textarea::placeholder {
-  color: hsl(var(--muted-foreground));
-}
-
-/* Cards always maintain a visible separation from background */
-.bg-card, [class*="bg-card"]:not([class*="bg-card/"]) {
-  border-color: hsl(var(--border));
-}
-
-/* Sober mode: kill heavy permanent glows on standard buttons (keep on .premium variant only) */
-button[class*="shadow-glow"]:not([class*="premium"]):not(:hover):not(:focus) {
-  box-shadow: var(--shadow-sm);
-}

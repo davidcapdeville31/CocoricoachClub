@@ -28,7 +28,7 @@ const MEDAL_LABELS: Record<string, string> = {
 
 const MEDAL_COLORS: Record<string, string> = {
   gold: "bg-yellow-500/10 border-yellow-500/30 text-yellow-700 dark:text-yellow-400",
-  silver: "bg-gray-400/10 border-gray-400/30 text-foreground/80 dark:text-gray-300",
+  silver: "bg-gray-400/10 border-gray-400/30 text-gray-700 dark:text-gray-300",
   bronze: "bg-orange-600/10 border-orange-600/30 text-orange-700 dark:text-orange-400",
   ranking: "bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-400",
   title: "bg-primary/10 border-primary/30 text-primary",

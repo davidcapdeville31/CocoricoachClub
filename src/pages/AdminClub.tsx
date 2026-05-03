@@ -407,11 +407,11 @@ import { SeasonManager } from "@/components/club/SeasonManager";
                    "p-2 rounded-lg",
                    alertsCount > 0 
                      ? "bg-orange-100 dark:bg-orange-900/30" 
-                     : "bg-muted dark:bg-foreground/90"
+                     : "bg-gray-100 dark:bg-gray-800"
                  )}>
                    <AlertTriangle className={cn(
                      "h-5 w-5",
-                     alertsCount > 0 ? "text-orange-600" : "text-muted-foreground"
+                     alertsCount > 0 ? "text-orange-600" : "text-gray-400"
                    )} />
                  </div>
                  <div>

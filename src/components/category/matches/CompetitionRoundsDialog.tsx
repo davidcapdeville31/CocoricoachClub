@@ -2469,7 +2469,7 @@ export function CompetitionRoundsDialog({
                                   <p className="text-2xl font-bold text-destructive">{losses}</p>
                                   <p className="text-xs text-muted-foreground">Défaites</p>
                                 </div>
-                                <div className="p-3 rounded-lg bg-muted dark:bg-foreground/20">
+                                <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-900/20">
                                   <p className="text-2xl font-bold text-muted-foreground">{draws}</p>
                                   <p className="text-xs text-muted-foreground">Égalités</p>
                                 </div>

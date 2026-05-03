@@ -387,12 +387,12 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
   return (
     <div className={cn(
       "space-y-4 transition-all duration-300",
-      fieldMode && "bg-foreground text-white p-4 rounded-xl -m-4"
+      fieldMode && "bg-slate-900 text-white p-4 rounded-xl -m-4"
     )}>
       {/* Header with toggles */}
       <div className={cn(
         "flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg",
-        fieldMode ? "bg-foreground/90" : "bg-muted"
+        fieldMode ? "bg-slate-800" : "bg-muted"
       )}>
         <div className="flex items-center gap-3">
           <Calendar className={cn("h-6 w-6", fieldMode ? "text-blue-400" : "text-primary")} />
@@ -400,7 +400,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
             <h2 className={cn("text-xl font-bold", fieldMode && "text-white")}>
               Vue du Jour
             </h2>
-            <p className={cn("text-sm", fieldMode ? "text-muted-foreground" : "text-muted-foreground")}>
+            <p className={cn("text-sm", fieldMode ? "text-slate-400" : "text-muted-foreground")}>
               {format(new Date(), "EEEE d MMMM yyyy", { locale: fr })}
             </p>
           </div>
@@ -437,7 +437,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
       <div className={cn(
         "flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg border-2",
         fieldMode 
-          ? "bg-foreground/90 border-blue-500/50" 
+          ? "bg-slate-800 border-blue-500/50" 
           : "bg-primary/5 border-primary/20"
       )}>
         <div className="flex items-center gap-3">
@@ -451,7 +451,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
             <h3 className={cn("font-semibold", fieldMode && "text-white")}>
               Wellness du jour
             </h3>
-            <p className={cn("text-sm", fieldMode ? "text-muted-foreground" : "text-muted-foreground")}>
+            <p className={cn("text-sm", fieldMode ? "text-slate-400" : "text-muted-foreground")}>
               Saisir rapidement l'état d'un athlète
             </p>
           </div>
@@ -481,7 +481,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
             <p className={cn("font-bold text-lg", fieldMode ? "text-red-300" : "text-destructive")}>
               {criticalCount + highCount} athlète(s) à surveiller
             </p>
-            <p className={cn("text-sm", fieldMode ? "text-muted-foreground" : "text-muted-foreground")}>
+            <p className={cn("text-sm", fieldMode ? "text-slate-400" : "text-muted-foreground")}>
               {criticalCount > 0 && `${criticalCount} critique${criticalCount > 1 ? "s" : ""}`}
               {criticalCount > 0 && highCount > 0 && " • "}
               {highCount > 0 && `${highCount} élevé${highCount > 1 ? "s" : ""}`}
@@ -492,7 +492,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4" ref={printRef}>
         {/* Today's Sessions - Grouped by Training Type */}
-        <Card className={cn(fieldMode && "bg-foreground/90 border-border")}>
+        <Card className={cn(fieldMode && "bg-slate-800 border-slate-700")}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className={cn("flex items-center gap-2", fieldMode && "text-white")}>
@@ -504,7 +504,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                   variant="outline" 
                   size="sm" 
                   onClick={handlePrint}
-                  className={cn(fieldMode && "border-slate-600 hover:bg-secondary")}
+                  className={cn(fieldMode && "border-slate-600 hover:bg-slate-700")}
                 >
                   <Printer className="h-4 w-4 mr-1" />
                   Imprimer
@@ -517,7 +517,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
               {!todaySessions || todaySessions.length === 0 ? (
                 <div className={cn(
                   "text-center py-8",
-                  fieldMode ? "text-muted-foreground" : "text-muted-foreground"
+                  fieldMode ? "text-slate-400" : "text-muted-foreground"
                 )}>
                   <Calendar className="h-12 w-12 mx-auto mb-2 opacity-50" />
                   <p>Aucune séance programmée aujourd'hui</p>
@@ -535,7 +535,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                         className={cn(
                           "rounded-lg border-2 print-session overflow-hidden",
                           fieldMode 
-                            ? "bg-secondary border-slate-600" 
+                            ? "bg-slate-700 border-slate-600" 
                             : "bg-muted/50 border-border"
                         )}
                       >
@@ -578,7 +578,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                                   }}
                                   className={cn(
                                     "inline-flex items-center justify-center h-6 w-6 rounded-md cursor-pointer opacity-60 hover:opacity-100 transition-opacity",
-                                    fieldMode ? "text-slate-300 hover:text-white hover:bg-secondary" : "hover:bg-muted"
+                                    fieldMode ? "text-slate-300 hover:text-white hover:bg-slate-700" : "hover:bg-muted"
                                   )}
                                   title="Modifier la séance"
                                 >
@@ -588,7 +588,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                               {session.session_start_time && (
                                 <p className={cn(
                                   "text-xs",
-                                  fieldMode ? "text-muted-foreground" : "text-muted-foreground"
+                                  fieldMode ? "text-slate-400" : "text-muted-foreground"
                                 )}>
                                   {session.session_start_time.slice(0, 5)}
                                   {session.session_end_time && ` - ${session.session_end_time.slice(0, 5)}`}
@@ -628,7 +628,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                               className={cn(
                                 "h-5 w-5 transition-transform",
                                 isExpanded && "rotate-180",
-                                fieldMode ? "text-muted-foreground" : "text-muted-foreground"
+                                fieldMode ? "text-slate-400" : "text-muted-foreground"
                               )}
                               fill="none" 
                               viewBox="0 0 24 24" 
@@ -656,7 +656,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                                 }}
                                 className={cn(
                                   "gap-1.5",
-                                  fieldMode && "border-slate-600 hover:bg-secondary"
+                                  fieldMode && "border-slate-600 hover:bg-slate-700"
                                 )}
                               >
                                 <ClipboardCheck className="h-3.5 w-3.5" />
@@ -671,7 +671,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                                 }}
                                 className={cn(
                                   "gap-1.5",
-                                  fieldMode && "border-slate-600 hover:bg-secondary"
+                                  fieldMode && "border-slate-600 hover:bg-slate-700"
                                 )}
                               >
                                 <Printer className="h-3.5 w-3.5" />
@@ -682,7 +682,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                             {session.notes && getDisplayNotes(session.notes) && (
                               <p className={cn(
                                 "text-sm mb-3 italic",
-                                fieldMode ? "text-muted-foreground" : "text-muted-foreground"
+                                fieldMode ? "text-slate-400" : "text-muted-foreground"
                               )}>
                                 {getDisplayNotes(session.notes)}
                               </p>
@@ -691,7 +691,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                             {exercises.length > 0 ? (
                               <div className="mt-3">
                                 <div className="flex items-center gap-2 mb-2">
-                                  <Dumbbell className={cn("h-4 w-4", fieldMode ? "text-muted-foreground" : "text-muted-foreground")} />
+                                  <Dumbbell className={cn("h-4 w-4", fieldMode ? "text-slate-400" : "text-muted-foreground")} />
                                   <span className={cn(
                                     "text-xs font-medium",
                                     fieldMode ? "text-slate-300" : "text-muted-foreground"
@@ -711,7 +711,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                             ) : (
                               <p className={cn(
                                 "text-sm",
-                                fieldMode ? "text-muted-foreground" : "text-muted-foreground"
+                                fieldMode ? "text-slate-500" : "text-muted-foreground"
                               )}>
                                 Aucun exercice détaillé
                               </p>
@@ -782,7 +782,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
         </Card>
 
         {/* At Risk Players */}
-        <Card className={cn(fieldMode && "bg-foreground/90 border-border")}>
+        <Card className={cn(fieldMode && "bg-slate-800 border-slate-700")}>
           <CardHeader className="pb-3">
             <CardTitle className={cn("flex items-center gap-2", fieldMode && "text-white")}>
               <Users className={cn("h-5 w-5", fieldMode ? "text-blue-400" : "text-primary")} />
@@ -798,8 +798,8 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                     "flex items-center justify-between p-3 rounded-lg transition-colors",
                     fieldMode 
                       ? player.risk !== "low" 
-                        ? "bg-secondary border border-slate-600" 
-                        : "bg-foreground/90/50" 
+                        ? "bg-slate-700 border border-slate-600" 
+                        : "bg-slate-800/50" 
                       : player.risk !== "low"
                         ? "bg-destructive/5 border border-destructive/20"
                         : "hover:bg-muted/50"
@@ -814,7 +814,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                       {player.factors.length > 0 && (
                         <p className={cn(
                           "text-xs",
-                          fieldMode ? "text-muted-foreground" : "text-muted-foreground"
+                          fieldMode ? "text-slate-400" : "text-muted-foreground"
                         )}>
                           {player.factors.slice(0, 2).join(" • ")}
                         </p>
@@ -826,7 +826,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
                     {player.awcr && (
                       <span className={cn(
                         "text-xs px-2 py-1 rounded",
-                        fieldMode ? "bg-secondary" : "bg-muted"
+                        fieldMode ? "bg-slate-700" : "bg-muted"
                       )}>
                         {player.awcr.toFixed(2)}
                       </span>
@@ -839,7 +839,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
               {displayPlayers.length === 0 && (
                 <div className={cn(
                   "text-center py-8",
-                  fieldMode ? "text-muted-foreground" : "text-muted-foreground"
+                  fieldMode ? "text-slate-400" : "text-muted-foreground"
                 )}>
                   <CheckCircle className="h-12 w-12 mx-auto mb-2 text-green-500" />
                   <p>Aucun athlète à risque</p>

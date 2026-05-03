@@ -14,7 +14,7 @@ export function FieldModeToggle() {
       className={cn(
         "fixed bottom-4 right-4 z-50 gap-2 shadow-lg transition-all duration-300",
         fieldMode 
-          ? "bg-foreground/90 border-slate-600 text-white hover:bg-secondary" 
+          ? "bg-slate-800 border-slate-600 text-white hover:bg-slate-700" 
           : "bg-background border-border hover:bg-accent"
       )}
       title={fieldMode ? "Désactiver le Mode Terrain" : "Activer le Mode Terrain"}

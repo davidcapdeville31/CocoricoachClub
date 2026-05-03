@@ -1317,7 +1317,7 @@ const ExerciseLibrary = () => {
           <DialogHeader className="p-4 pb-0">
             <DialogTitle>Vidéo de démonstration</DialogTitle>
           </DialogHeader>
-          <div className="aspect-video bg-foreground flex items-center justify-center">
+          <div className="aspect-video bg-black flex items-center justify-center">
             {!selectedVideoUrl && (
               <div className="text-white/50 text-sm">Chargement...</div>
             )}

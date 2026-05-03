@@ -131,7 +131,7 @@ export function AuditLogsTab() {
     : logs;
 
   const renderActionBadge = (action: string) => {
-    const config = ACTION_LABELS[action] || { label: action, icon: FileText, color: "bg-muted text-foreground" };
+    const config = ACTION_LABELS[action] || { label: action, icon: FileText, color: "bg-gray-100 text-gray-800" };
     const Icon = config.icon;
     return (
       <Badge className={`${config.color} gap-1`}>
