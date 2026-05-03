@@ -27,9 +27,11 @@ interface FieldSessionDialogProps {
 
 interface BlockDraft {
   id: string;
-  theme: string;
+  theme: string;          // training_type value (e.g. "bowling_spare", "Collectif")
+  themeLabel: string;     // display label
   duration_minutes: number;
   notes: string;
+  bowling_exercise_type?: string;
 }
 
 const GENERIC_THEMES = [
@@ -43,6 +45,16 @@ const GENERIC_THEMES = [
   "Récupération",
 ];
 
+const BOWLING_PRECISION_EXERCISES = [
+  { value: "quille_7", label: "Quille 7" },
+  { value: "quille_10", label: "Quille 10" },
+  { value: "spares", label: "Spares (général)" },
+  { value: "poche", label: "Poche" },
+];
+
+const isBowlingSport = (sport?: string) =>
+  !!sport && sport.toLowerCase().startsWith("bowling");
+
 export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sportType }: FieldSessionDialogProps) {
   const qc = useQueryClient();
 
@@ -54,19 +66,28 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(true);
   const [blocks, setBlocks] = useState<BlockDraft[]>([
-    { id: crypto.randomUUID(), theme: "Échauffement", duration_minutes: 15, notes: "" },
-    { id: crypto.randomUUID(), theme: "Collectif", duration_minutes: 45, notes: "" },
+    { id: crypto.randomUUID(), theme: "Échauffement", themeLabel: "Échauffement", duration_minutes: 15, notes: "" },
+    { id: crypto.randomUUID(), theme: "Collectif", themeLabel: "Collectif", duration_minutes: 45, notes: "" },
   ]);
 
-  // Sport-specific themes (e.g., rugby, foot, athlétisme: lancers/sprint…)
-  const sportThemes = useMemo(() => {
-    const types = getTrainingTypesForSport(sportType);
-    return types.map((t) => t.label).filter((v, i, a) => a.indexOf(v) === i);
-  }, [sportType]);
+  const isBowling = isBowlingSport(sportType);
 
-  const allThemes = useMemo(() => {
-    return Array.from(new Set([...GENERIC_THEMES, ...sportThemes]));
-  }, [sportThemes]);
+  // Theme options (value + label). For bowling, include bowling-specific training types so we can store the exact training_type (e.g. "bowling_spare").
+  const themeOptions = useMemo(() => {
+    if (isBowling) {
+      const sportTypes = getTrainingTypesForSport(sportType);
+      const bowlingTypes = sportTypes
+        .filter((t) => t.value.startsWith("bowling_"))
+        .map((t) => ({ value: t.value, label: t.label }));
+      const generics = GENERIC_THEMES.map((t) => ({ value: t, label: t }));
+      // Bowling first
+      const all = [...bowlingTypes, ...generics];
+      const seen = new Set<string>();
+      return all.filter((o) => (seen.has(o.value) ? false : (seen.add(o.value), true)));
+    }
+    const sportLabels = getTrainingTypesForSport(sportType).map((t) => t.label);
+    return Array.from(new Set([...GENERIC_THEMES, ...sportLabels])).map((t) => ({ value: t, label: t }));
+  }, [sportType, isBowling]);
 
   const { data: players } = useQuery({
     queryKey: ["players-field-session", categoryId],
@@ -91,8 +112,19 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
     [blocks],
   );
 
-  const addBlock = () =>
-    setBlocks((b) => [...b, { id: crypto.randomUUID(), theme: allThemes[0] || "Collectif", duration_minutes: 30, notes: "" }]);
+  const addBlock = () => {
+    const first = themeOptions[0];
+    setBlocks((b) => [
+      ...b,
+      {
+        id: crypto.randomUUID(),
+        theme: first?.value || "Collectif",
+        themeLabel: first?.label || "Collectif",
+        duration_minutes: 30,
+        notes: "",
+      },
+    ]);
+  };
 
   const updateBlock = (id: string, patch: Partial<BlockDraft>) =>
     setBlocks((b) => b.map((bl) => (bl.id === id ? { ...bl, ...patch } : bl)));
@@ -142,9 +174,10 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         training_session_id: session.id,
         block_order: idx,
         training_type: b.theme,
-        theme: b.theme,
+        theme: b.themeLabel || b.theme,
         duration_minutes: b.duration_minutes,
         notes: b.notes || null,
+        bowling_exercise_type: b.theme === "bowling_spare" ? (b.bowling_exercise_type || null) : null,
       }));
       const { error: bErr } = await supabase.from("training_session_blocks").insert(blockRows);
       if (bErr) throw bErr;
@@ -219,11 +252,17 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                       </Button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px] gap-2">
-                      <Select value={b.theme} onValueChange={(v) => updateBlock(b.id, { theme: v })}>
+                      <Select
+                        value={b.theme}
+                        onValueChange={(v) => {
+                          const opt = themeOptions.find((o) => o.value === v);
+                          updateBlock(b.id, { theme: v, themeLabel: opt?.label || v });
+                        }}
+                      >
                         <SelectTrigger><SelectValue placeholder="Choisir un thème" /></SelectTrigger>
                         <SelectContent className="max-h-72">
-                          {allThemes.map((t) => (
-                            <SelectItem key={t} value={t}>{t}</SelectItem>
+                          {themeOptions.map((t) => (
+                            <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -237,6 +276,26 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                         <span className="text-xs text-muted-foreground">min</span>
                       </div>
                     </div>
+                    {b.theme === "bowling_spare" && (
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">
+                          Exercice précision (les athlètes saisiront boules lancées / réussies)
+                        </Label>
+                        <Select
+                          value={b.bowling_exercise_type || ""}
+                          onValueChange={(v) => updateBlock(b.id, { bowling_exercise_type: v })}
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue placeholder="Sélectionner l'exercice..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {BOWLING_PRECISION_EXERCISES.map((ex) => (
+                              <SelectItem key={ex.value} value={ex.value}>{ex.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                     <Textarea
                       rows={2}
                       placeholder="Détail / consignes (optionnel)"
