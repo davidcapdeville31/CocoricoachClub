@@ -42,7 +42,7 @@ export function TestBatteriesManager({
   const { data: clubData } = useQuery({
     queryKey: ["category-club", categoryId],
     queryFn: async () => {
-      const { data } = await supabase.from("categories").select("club_id").eq("id", categoryId).single();
+      const { data } = await supabase.from("categories").select("club_id, name").eq("id", categoryId).single();
       return data;
     },
   });
