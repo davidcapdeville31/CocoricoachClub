@@ -537,8 +537,14 @@ export type Database = {
           prescribed_percentage_1rm: number | null
           prescribed_reps: number | null
           prescribed_sets: number | null
+          rejection_reason: string | null
+          submitted_by: string | null
+          submitted_via: string
           tonnage: number | null
           training_session_id: string
+          validated_at: string | null
+          validated_by: string | null
+          validation_status: string
         }
         Insert: {
           actual_reps?: number | null
@@ -555,8 +561,14 @@ export type Database = {
           prescribed_percentage_1rm?: number | null
           prescribed_reps?: number | null
           prescribed_sets?: number | null
+          rejection_reason?: string | null
+          submitted_by?: string | null
+          submitted_via?: string
           tonnage?: number | null
           training_session_id: string
+          validated_at?: string | null
+          validated_by?: string | null
+          validation_status?: string
         }
         Update: {
           actual_reps?: number | null
@@ -573,8 +585,14 @@ export type Database = {
           prescribed_percentage_1rm?: number | null
           prescribed_reps?: number | null
           prescribed_sets?: number | null
+          rejection_reason?: string | null
+          submitted_by?: string | null
+          submitted_via?: string
           tonnage?: number | null
           training_session_id?: string
+          validated_at?: string | null
+          validated_by?: string | null
+          validation_status?: string
         }
         Relationships: [
           {

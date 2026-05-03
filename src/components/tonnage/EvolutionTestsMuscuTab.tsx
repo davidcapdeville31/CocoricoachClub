@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TonnageDashboard } from "./TonnageDashboard";
+import { PendingWeightLogsValidation } from "./PendingWeightLogsValidation";
 import { PerformanceEvolution } from "@/components/analytics/PerformanceEvolution";
 import { Weight, TrendingUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -48,7 +49,8 @@ export function EvolutionTestsMuscuTab({ categoryId }: EvolutionTestsMuscuTabPro
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="tonnage">
+          <TabsContent value="tonnage" className="space-y-4">
+            <PendingWeightLogsValidation categoryId={categoryId} />
             <TonnageDashboard categoryId={categoryId} />
           </TabsContent>
 
