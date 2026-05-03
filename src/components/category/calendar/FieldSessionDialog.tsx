@@ -408,7 +408,8 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                     />
                   </CardContent>
                 </Card>
-              ))}
+                );
+              })}
             </div>
             <Button variant="outline" size="sm" onClick={addBlock} className="gap-1">
               <Plus className="h-3.5 w-3.5" /> Ajouter un bloc
