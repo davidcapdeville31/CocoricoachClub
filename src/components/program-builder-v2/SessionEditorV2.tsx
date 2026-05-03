@@ -375,20 +375,21 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
 
       if (!sessionDate) throw new Error("Choisis une date pour la séance.");
 
-      // 1. Load athletes of this category (filtered to selected ones if any)
-      const { data: allPlayers, error: pErr } = await supabase
-        .from("players")
-        .select("id")
-        .eq("category_id", categoryId);
-      if (pErr) throw pErr;
-      if (!allPlayers || allPlayers.length === 0) {
-        throw new Error("Aucun athlète dans cette catégorie.");
-      }
-      const targetPlayers = selectedPlayers.length > 0
-        ? allPlayers.filter((p) => selectedPlayers.includes(p.id))
-        : allPlayers;
-      if (targetPlayers.length === 0) {
-        throw new Error("Aucun athlète sélectionné.");
+      // 1. Determine target athletes
+      let targetPlayers: { id: string }[];
+      if (selectedPlayers.length > 0) {
+        // Use exactly the selected players (works across multi-category)
+        targetPlayers = selectedPlayers.map((id) => ({ id }));
+      } else {
+        const { data: allPlayers, error: pErr } = await supabase
+          .from("players")
+          .select("id")
+          .eq("category_id", categoryId);
+        if (pErr) throw pErr;
+        if (!allPlayers || allPlayers.length === 0) {
+          throw new Error("Aucun athlète dans cette catégorie.");
+        }
+        targetPlayers = allPlayers;
       }
 
       // 2. Create or update the training session shell
@@ -528,6 +529,8 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
       queryClient.invalidateQueries({ queryKey: ["gym-session-exercises"] });
       queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_session_exercises"] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-calendar-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-calendar-exercises-v3"] });
       onClose();
     },
     onError: (e: Error) => {
