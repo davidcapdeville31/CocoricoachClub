@@ -14,6 +14,7 @@ import { ColoredNavTabsList } from "@/components/ui/colored-nav-tabs";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
 import { getTestCategoriesForSport, TestCategory } from "@/lib/constants/testCategories";
+import { BatteryRadarCharts } from "@/components/category/tests/GenericTestsSection";
 
 /** Strip technical metadata (Session ID, HTML comments) from notes for display */
 function cleanNotes(notes: string | null): string {
