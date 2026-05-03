@@ -7,6 +7,7 @@ import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { usePendingWeightLogsCount } from "@/lib/hooks/usePendingWeightLogsCount";
+import { usePendingTestResultsCount } from "@/lib/hooks/usePendingTestResultsCount";
 
 interface PerformanceTabProps {
   categoryId: string;
