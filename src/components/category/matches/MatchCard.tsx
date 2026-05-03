@@ -110,6 +110,11 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   const [scoreAway, setScoreAway] = useState(match.score_away?.toString() || "");
   const queryClient = useQueryClient();
 
+  const stopCardAction = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   const { data: category } = useQuery({
     queryKey: ["category-sport", categoryId],
     queryFn: async () => {
@@ -413,7 +418,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         {isExpanded && (
         <div className={compact ? 'mt-3' : ''}>
         <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               {isTrainingMatch && (
                 <Badge variant="outline" className="text-xs border-muted-foreground/50 text-muted-foreground">
@@ -622,18 +627,18 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
 
           </div>
 
-          <div className="flex flex-col gap-1.5 items-end">
+          <div className="relative z-20 flex shrink-0 flex-col gap-1.5 items-end pointer-events-auto">
             {/* Direct action buttons */}
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onClick={() => setIsEditOpen(true)}>
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsEditOpen(true); }}>
               <Edit2 className="h-3.5 w-3.5" />
               Modifier
             </Button>
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onClick={() => setIsLineupOpen(true)}>
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsLineupOpen(true); }}>
               <Users className="h-3.5 w-3.5" />
               {isDoublesMatch ? `Paire (${lineupCount || 0}/2)` : isIndividual ? `Participants (${lineupCount || 0})` : `Composition (${lineupCount || 0})`}
             </Button>
             {isTeamSport && (
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onClick={() => setIsMatchSheetOpen(true)}>
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsMatchSheetOpen(true); }}>
                 <FileSpreadsheet className="h-3.5 w-3.5" />
                 Feuille de match
               </Button>
@@ -646,7 +651,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                     {`Épreuves (${roundsCount || 0})`}
                   </Button>
                 ) : (
-                  <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start relative z-10" onClick={(e) => { e.stopPropagation(); e.preventDefault(); setIsRoundsOpen(true); }}>
+                  <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start relative z-20" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsRoundsOpen(true); }}>
                     <Swords className="h-3.5 w-3.5" />
                     {sportType.toLowerCase().includes("judo") ? `Combats (${roundsCount || 0})` : 
                      sportType.toLowerCase().includes("bowling") ? `Parties (${roundsCount || 0})` : 
@@ -655,19 +660,19 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                      `Épreuves (${roundsCount || 0})`}
                   </Button>
                 )}
-                <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start relative z-10" onClick={(e) => { e.stopPropagation(); e.preventDefault(); setIsAggregatedStatsOpen(true); }}>
+                <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start relative z-20" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsAggregatedStatsOpen(true); }}>
                   <BarChart3 className="h-3.5 w-3.5" />
                   Statistiques
                 </Button>
               </>
             ) : (
-              <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start relative z-10" onClick={(e) => { e.stopPropagation(); e.preventDefault(); setIsStatsOpen(true); }}>
+              <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start relative z-20" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsStatsOpen(true); }}>
                 <BarChart3 className="h-3.5 w-3.5" />
                 Statistiques
               </Button>
             )}
             {canHaveSubMatches && (
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onClick={() => setIsAddSubMatchOpen(true)}>
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsAddSubMatchOpen(true); }}>
                 <Plus className="h-3.5 w-3.5" />
                 Ajouter un match
               </Button>
