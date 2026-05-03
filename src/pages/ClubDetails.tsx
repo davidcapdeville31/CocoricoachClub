@@ -239,6 +239,54 @@ function ClubDetailsContent() {
             ))}
           </div>
         )}
+
+        {!isViewer && archivedCategories && archivedCategories.length > 0 && (
+          <div className="space-y-2 pt-6">
+            <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+              <Archive className="h-4 w-4" /> Catégories archivées ({archivedCategories.length})
+            </h3>
+            {archivedCategories.map((category: any) => (
+              <div
+                key={category.id}
+                className="flex items-center gap-4 p-3 rounded-lg border bg-muted/40 opacity-75"
+              >
+                <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center border flex-shrink-0">
+                  <Archive className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="font-medium text-foreground truncate">{category.name}</span>
+                  <p className="text-xs text-muted-foreground">
+                    Archivée le {new Date(category.deleted_at).toLocaleDateString("fr-FR")}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    title="Restaurer"
+                    onClick={() => restoreCategory.mutate(category.id)}
+                  >
+                    <RotateCcw className="h-4 w-4 text-primary" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    title="Supprimer définitivement"
+                    onClick={() => {
+                      if (confirm(`Supprimer DÉFINITIVEMENT ${category.name} ? Cette action est irréversible.`)) {
+                        permanentDelete.mutate(category.id);
+                      }
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </TabsContent>
 
       {!isViewer && (
