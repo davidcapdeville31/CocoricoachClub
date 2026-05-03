@@ -1,18 +1,11 @@
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Dumbbell, Zap, Lock, BarChart3, Target } from "lucide-react";
+import { Dumbbell, Zap, Lock, BarChart3 } from "lucide-react";
 import { PhysicalPreparationTab } from "@/components/category/PhysicalPreparationTab";
 import { TrainingLoadTab } from "@/components/training-load/TrainingLoadTab";
 import { EvolutionTestsMuscuTab } from "@/components/tonnage/EvolutionTestsMuscuTab";
-import { BowlingTrainingStats } from "@/components/bowling/BowlingTrainingStats";
-import { TennisTrainingStats } from "@/components/tennis/TennisTrainingStats";
-import { PrecisionTrainingStats } from "@/components/training/PrecisionTrainingStats";
-import { PrecisionFieldTracker } from "@/components/rugby/PrecisionFieldTracker";
-import { AthleticsThrowingStats } from "@/components/athletics/AthleticsThrowingStats";
-import { AthleticsSprintStats } from "@/components/athletics/AthleticsSprintStats";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
-import { isRugbyType, isAthletismeCategory } from "@/lib/constants/sportTypes";
 
 interface PerformanceTabProps {
   categoryId: string;
