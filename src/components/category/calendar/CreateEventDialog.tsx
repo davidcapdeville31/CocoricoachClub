@@ -387,31 +387,31 @@ export function CreateEventDialog({
           </p>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
           {step === "type" ? (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {eventTypes.map((event) => {
                 const Icon = event.icon;
                 return (
                   <Card
                     key={event.id}
                     className={cn(
-                      "cursor-pointer border border-border/70 border-l-4 bg-card/95 transition-all duration-200 hover:scale-[1.02] hover:bg-accent/50 hover:shadow-lg dark:bg-card dark:hover:bg-muted/70",
+                      "cursor-pointer border border-border/70 border-l-4 bg-card/95 transition-all duration-200 hover:scale-[1.02] hover:bg-accent/50 hover:shadow-md dark:bg-card dark:hover:bg-muted/70",
                       event.accentBorderColor,
                       event.hoverBorderColor,
                     )}
                     onClick={() => handleTypeSelect(event.id)}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className={cn("rounded-lg p-2", event.iconBgColor)}>
-                          <Icon className={cn("h-5 w-5", event.iconColor)} />
+                    <CardContent className="p-2.5">
+                      <div className="flex items-center gap-2">
+                        <div className={cn("rounded-md p-1.5 shrink-0", event.iconBgColor)}>
+                          <Icon className={cn("h-4 w-4", event.iconColor)} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold leading-tight text-foreground">
+                          <p className="text-xs font-semibold leading-tight text-foreground line-clamp-1">
                             {event.label}
                           </p>
-                          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground dark:text-foreground/80">
+                          <p className="mt-0.5 line-clamp-1 text-[11px] leading-snug text-muted-foreground dark:text-foreground/80">
                             {event.description}
                           </p>
                         </div>
