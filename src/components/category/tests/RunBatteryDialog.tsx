@@ -103,14 +103,33 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
 
   const { totalPoints, perItem } = useMemo(() => {
     let total = 0;
-    const per: Record<string, { points: number; matchedLabel?: string }> = {};
+    const per: Record<string, { points: number; matchedLabel?: string; pointsR?: number; pointsL?: number; matchedLabelR?: string; matchedLabelL?: string }> = {};
     (battery?.items || []).forEach((it: any) => {
-      const raw = results[it.id];
-      const v = raw === undefined || raw === "" ? null : parseFloat(raw);
-      const pts = computePoints(v, it.scoring_scale as ScoringScale, selectedPlayer);
-      const matched = findMatchingRange(v, it.scoring_scale as ScoringScale, selectedPlayer);
-      per[it.id] = { points: pts, matchedLabel: matched?.label };
-      total += pts;
+      if (it.bilateral) {
+        const rawR = results[`${it.id}__R`];
+        const rawL = results[`${it.id}__L`];
+        const vR = rawR === undefined || rawR === "" ? null : parseFloat(rawR);
+        const vL = rawL === undefined || rawL === "" ? null : parseFloat(rawL);
+        const ptsR = computePoints(vR, it.scoring_scale as ScoringScale, selectedPlayer);
+        const ptsL = computePoints(vL, it.scoring_scale as ScoringScale, selectedPlayer);
+        const mR = findMatchingRange(vR, it.scoring_scale as ScoringScale, selectedPlayer);
+        const mL = findMatchingRange(vL, it.scoring_scale as ScoringScale, selectedPlayer);
+        per[it.id] = {
+          points: ptsR + ptsL,
+          pointsR: ptsR,
+          pointsL: ptsL,
+          matchedLabelR: mR?.label,
+          matchedLabelL: mL?.label,
+        };
+        total += ptsR + ptsL;
+      } else {
+        const raw = results[it.id];
+        const v = raw === undefined || raw === "" ? null : parseFloat(raw);
+        const pts = computePoints(v, it.scoring_scale as ScoringScale, selectedPlayer);
+        const matched = findMatchingRange(v, it.scoring_scale as ScoringScale, selectedPlayer);
+        per[it.id] = { points: pts, matchedLabel: matched?.label };
+        total += pts;
+      }
     });
     return { totalPoints: total, perItem: per };
   }, [battery, results, selectedPlayer]);
@@ -125,20 +144,52 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     if (!playerId) return toast.error("Sélectionnez un athlète");
     if (!battery) return;
 
-    // Persist as generic_tests entries (one per item with a value)
-    const rows = (battery.items as any[])
-      .filter(it => results[it.id] !== undefined && results[it.id] !== "")
-      .map(it => ({
-        player_id: playerId,
-        category_id: categoryId,
-        test_category: it.test_category,
-        test_type: `custom_${it.test_name?.toLowerCase().replace(/\s+/g, "_")}`,
-        test_name: it.test_name,
-        result_value: parseFloat(results[it.id]),
-        result_unit: it.unit || null,
-        test_date: savedDate,
-        notes: `[Batterie: ${battery.battery.name}] Score ${perItem[it.id]?.points ?? 0}/${it.max_points} pts`,
-      }));
+    const rows: any[] = [];
+    (battery.items as any[]).forEach((it) => {
+      const baseTestType = `custom_${it.test_name?.toLowerCase().replace(/\s+/g, "_")}`;
+      if (it.bilateral) {
+        const rawR = results[`${it.id}__R`];
+        const rawL = results[`${it.id}__L`];
+        if (rawR !== undefined && rawR !== "") {
+          rows.push({
+            player_id: playerId,
+            category_id: categoryId,
+            test_category: it.test_category,
+            test_type: baseTestType,
+            test_name: `${it.test_name} (Droit)`,
+            result_value: parseFloat(rawR),
+            result_unit: it.unit || null,
+            test_date: savedDate,
+            notes: `[Batterie: ${battery.battery.name}] Côté droit · Score ${perItem[it.id]?.pointsR ?? 0} pts`,
+          });
+        }
+        if (rawL !== undefined && rawL !== "") {
+          rows.push({
+            player_id: playerId,
+            category_id: categoryId,
+            test_category: it.test_category,
+            test_type: baseTestType,
+            test_name: `${it.test_name} (Gauche)`,
+            result_value: parseFloat(rawL),
+            result_unit: it.unit || null,
+            test_date: savedDate,
+            notes: `[Batterie: ${battery.battery.name}] Côté gauche · Score ${perItem[it.id]?.pointsL ?? 0} pts`,
+          });
+        }
+      } else if (results[it.id] !== undefined && results[it.id] !== "") {
+        rows.push({
+          player_id: playerId,
+          category_id: categoryId,
+          test_category: it.test_category,
+          test_type: baseTestType,
+          test_name: it.test_name,
+          result_value: parseFloat(results[it.id]),
+          result_unit: it.unit || null,
+          test_date: savedDate,
+          notes: `[Batterie: ${battery.battery.name}] Score ${perItem[it.id]?.points ?? 0}/${it.max_points} pts`,
+        });
+      }
+    });
 
     if (rows.length === 0) return toast.error("Saisissez au moins un résultat");
 
@@ -185,6 +236,9 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-semibold truncate">
                         {idx + 1}. {it.test_name}
+                        {it.bilateral && (
+                          <Badge variant="outline" className="ml-2 text-[10px]">Bilatéral</Badge>
+                        )}
                       </div>
                       <div className="text-xs text-muted-foreground truncate">
                         {it.test_category} • Max {it.max_points} pts
@@ -194,19 +248,58 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
                       {r?.points ?? 0} / {it.max_points} pts
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder={`Résultat (${it.unit || "valeur"})`}
-                      value={results[it.id] ?? ""}
-                      onChange={e => setResults(prev => ({ ...prev, [it.id]: e.target.value }))}
-                      className="flex-1"
-                    />
-                    {r?.matchedLabel && (
-                      <Badge variant="outline" className="shrink-0">{r.matchedLabel}</Badge>
-                    )}
-                  </div>
+                  {it.bilateral ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Côté droit</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            placeholder={`Droit (${it.unit || "valeur"})`}
+                            value={results[`${it.id}__R`] ?? ""}
+                            onChange={e => setResults(prev => ({ ...prev, [`${it.id}__R`]: e.target.value }))}
+                            className="flex-1"
+                          />
+                          <Badge variant="secondary" className="shrink-0">{r?.pointsR ?? 0} pts</Badge>
+                        </div>
+                        {r?.matchedLabelR && (
+                          <Badge variant="outline" className="text-[10px]">{r.matchedLabelR}</Badge>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Côté gauche</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            placeholder={`Gauche (${it.unit || "valeur"})`}
+                            value={results[`${it.id}__L`] ?? ""}
+                            onChange={e => setResults(prev => ({ ...prev, [`${it.id}__L`]: e.target.value }))}
+                            className="flex-1"
+                          />
+                          <Badge variant="secondary" className="shrink-0">{r?.pointsL ?? 0} pts</Badge>
+                        </div>
+                        {r?.matchedLabelL && (
+                          <Badge variant="outline" className="text-[10px]">{r.matchedLabelL}</Badge>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder={`Résultat (${it.unit || "valeur"})`}
+                        value={results[it.id] ?? ""}
+                        onChange={e => setResults(prev => ({ ...prev, [it.id]: e.target.value }))}
+                        className="flex-1"
+                      />
+                      {r?.matchedLabel && (
+                        <Badge variant="outline" className="shrink-0">{r.matchedLabel}</Badge>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
