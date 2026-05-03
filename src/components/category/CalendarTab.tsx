@@ -27,6 +27,7 @@ import { getTrainingTypesForSport, TRAINING_TYPE_COLORS } from "@/lib/constants/
 import { DisabledTabTrigger } from "@/components/ui/disabled-tab-trigger";
 import { useViewerSessions, useViewerMatches } from "@/hooks/use-viewer-data";
 import { ImprovedCalendarView } from "./calendar/ImprovedCalendarView";
+import { EditAdminEventDialog, ADMIN_EVENT_TYPES } from "./calendar/EditAdminEventDialog";
 import { AnnualPlanningView } from "@/components/planning/AnnualPlanningView";
 
 interface CalendarTabProps {
@@ -40,6 +41,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
   const [addMatchDate, setAddMatchDate] = useState<Date | undefined>();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<any | null>(null);
+  const [editingAdminEvent, setEditingAdminEvent] = useState<any | null>(null);
   const [editingTestSession, setEditingTestSession] = useState<{ id: string; date: Date } | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [isDailyDialogOpen, setIsDailyDialogOpen] = useState(false);
@@ -353,7 +355,10 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
                 .eq("id", session.id)
                 .single()
                 .then(({ data }) => {
-                  if (data) {
+                  if (!data) return;
+                  if (ADMIN_EVENT_TYPES.includes(data.training_type)) {
+                    setEditingAdminEvent(data);
+                  } else {
                     setEditingSession(data);
                     setIsEditDialogOpen(true);
                   }
@@ -426,6 +431,13 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         }}
         categoryId={categoryId}
         editSession={editingSession}
+      />
+
+      {/* Edit Admin Event Dialog (medical, video, meeting) */}
+      <EditAdminEventDialog
+        open={!!editingAdminEvent}
+        onOpenChange={(open) => !open && setEditingAdminEvent(null)}
+        session={editingAdminEvent}
       />
 
       {/* Edit Test Session Dialog (uses the same UI as creation) */}

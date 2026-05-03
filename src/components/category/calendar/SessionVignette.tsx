@@ -103,6 +103,7 @@ export function SessionVignette({
   const startTime = formatTime(session.session_start_time);
   const hasBlocks = blocks && blocks.length > 0;
   const isAthleteCreated = !!session.created_by_player_id;
+  const isAdminEvent = ["medical", "video_analyse", "reunion"].includes(session.training_type);
 
   const handleActionClick = (e: React.MouseEvent, action: () => void) => {
     e.stopPropagation();
@@ -204,7 +205,7 @@ export function SessionVignette({
             )}
             
             {/* Feedback */}
-            {!isViewer && (
+            {!isViewer && !isAdminEvent && (
               <button
                 onClick={(e) => handleActionClick(e, onFeedback)}
                 className="p-1.5 rounded-md hover:bg-muted transition-colors group/btn"
