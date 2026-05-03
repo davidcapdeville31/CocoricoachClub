@@ -91,7 +91,7 @@ function BatteryRadarCharts({
   });
 
   const groups = useMemo(() => {
-    type Item = { id: string; testName: string; points: number; maxPoints: number; resultValue: any; resultUnit: any; rawIds: string[] };
+    type Item = { id: string; testName: string; points: number; maxPoints: number; resultValue: any; resultUnit: any; rawIds: string[]; testCategory: string | null };
     const map = new Map<string, {
       key: string;
       playerName: string;
