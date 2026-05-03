@@ -156,7 +156,7 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
         fileUrl = await uploadFile(selectedFile);
       }
 
-      const playerId = selectedTab === "team" ? null : selectedTab;
+      const playerId = assignee === "team" ? null : assignee;
 
       const { error } = await supabase.from("admin_documents" as any).insert({
         category_id: categoryId,
