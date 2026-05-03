@@ -41,6 +41,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
   const [addMatchDate, setAddMatchDate] = useState<Date | undefined>();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<any | null>(null);
+  const [editingAdminEvent, setEditingAdminEvent] = useState<any | null>(null);
   const [editingTestSession, setEditingTestSession] = useState<{ id: string; date: Date } | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [isDailyDialogOpen, setIsDailyDialogOpen] = useState(false);
