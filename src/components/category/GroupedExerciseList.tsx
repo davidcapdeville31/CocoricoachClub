@@ -238,14 +238,18 @@ export function GroupedExerciseList({
             </Badge>
           )}
         </div>
-        {!compact && ex.notes && (
-          <p className={cn(
-            "text-xs mt-2 italic",
-            fieldMode ? "text-slate-500" : "text-muted-foreground"
-          )}>
-            {ex.notes}
-          </p>
-        )}
+        {!compact && ex.notes && (() => {
+          const cleanNotes = ex.notes.replace(/<!--[\s\S]*?-->/g, "").trim();
+          if (!cleanNotes) return null;
+          return (
+            <p className={cn(
+              "text-xs mt-2 italic",
+              fieldMode ? "text-slate-500" : "text-muted-foreground"
+            )}>
+              {cleanNotes}
+            </p>
+          );
+        })()}
       </div>
     );
   };
