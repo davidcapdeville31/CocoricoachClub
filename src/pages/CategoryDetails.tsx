@@ -146,6 +146,7 @@ function CategoryDetailsContent() {
   const { isViewer } = useViewerModeContext();
   const { isPublicAccess, token, clubName: publicClubName, categoryName: publicCategoryName } = usePublicAccess();
   const { total: unreadMessagesCount } = useUnreadMessages(categoryId || "");
+  const pendingWeightLogsCount = usePendingWeightLogsCount(categoryId);
 
   // Fetch category data - use edge function for public access, direct query for authenticated
   const { data: category, isLoading } = useQuery({
