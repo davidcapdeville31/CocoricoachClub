@@ -194,6 +194,7 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
   const [isCreateTestOpen, setIsCreateTestOpen] = useState(false);
   const [isCreateBatteryOpen, setIsCreateBatteryOpen] = useState(false);
+  const [isPlanTestOpen, setIsPlanTestOpen] = useState(false);
 
   return (
     <Card className="bg-gradient-card shadow-md">
