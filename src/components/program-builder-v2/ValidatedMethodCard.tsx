@@ -85,7 +85,9 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit }: Props) => {
           {dropName}
         </span>
         <span className="text-[11px] text-muted-foreground whitespace-nowrap">
-          {exercise.sets} × {series.length || exercise.reps || 1}
+          {isRestPause
+            ? `${restPauseConfig!.series.length} série${restPauseConfig!.series.length > 1 ? "s" : ""}`
+            : `${exercise.sets} × ${series.length || exercise.reps || 1}`}
         </span>
         {onEdit && (
           <Button
