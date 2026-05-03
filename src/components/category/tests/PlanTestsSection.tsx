@@ -647,7 +647,7 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
               <div>
                 <Label className="text-sm font-semibold">Récurrence</Label>
                 <p className="text-xs text-muted-foreground">
-                  Crée automatiquement les séances suivantes pendant ~6 mois.
+                  Crée automatiquement les séances suivantes selon la fréquence et la durée choisies.
                 </p>
               </div>
               <Switch
@@ -656,28 +656,94 @@ export function PlanTestsSection({ categoryId, sportType }: PlanTestsSectionProp
               />
             </div>
             {form.recurring && (
-              <div className="space-y-2">
-                <Label className="text-xs">Fréquence</Label>
-                <Select
-                  value={String(form.frequency_weeks)}
-                  onValueChange={(v) => setForm({ ...form, frequency_weeks: parseInt(v) })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">Toutes les semaines</SelectItem>
-                    <SelectItem value="2">Toutes les 2 semaines</SelectItem>
-                    <SelectItem value="3">Toutes les 3 semaines</SelectItem>
-                    <SelectItem value="4">Toutes les 4 semaines</SelectItem>
-                    <SelectItem value="6">Toutes les 6 semaines</SelectItem>
-                    <SelectItem value="8">Toutes les 8 semaines</SelectItem>
-                    <SelectItem value="12">Toutes les 12 semaines</SelectItem>
-                  </SelectContent>
-                </Select>
-                {previewDates.length > 0 && (
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Fréquence</Label>
+                  <Select
+                    value={String(form.frequency_weeks)}
+                    onValueChange={(v) => setForm({ ...form, frequency_weeks: parseInt(v) })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Toutes les semaines</SelectItem>
+                      <SelectItem value="2">Toutes les 2 semaines</SelectItem>
+                      <SelectItem value="3">Toutes les 3 semaines</SelectItem>
+                      <SelectItem value="4">Toutes les 4 semaines</SelectItem>
+                      <SelectItem value="6">Toutes les 6 semaines</SelectItem>
+                      <SelectItem value="8">Toutes les 8 semaines</SelectItem>
+                      <SelectItem value="12">Toutes les 12 semaines</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Fin de la récurrence</Label>
+                  <Select
+                    value={form.end_mode}
+                    onValueChange={(v) => setForm({ ...form, end_mode: v as any })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="date">Jusqu'à une date</SelectItem>
+                      <SelectItem value="duration">Pendant une durée</SelectItem>
+                      <SelectItem value="never">Sans fin (max 2 ans)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {form.end_mode === "date" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Jusqu'au</Label>
+                    <Input
+                      type="date"
+                      value={form.end_date}
+                      min={form.start_date}
+                      onChange={(e) => setForm({ ...form, end_date: e.target.value })}
+                    />
+                  </div>
+                )}
+
+                {form.end_mode === "duration" && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Pendant</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        value={form.duration_count}
+                        onChange={(e) =>
+                          setForm({ ...form, duration_count: parseInt(e.target.value) || 1 })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Unité</Label>
+                      <Select
+                        value={form.duration_unit}
+                        onValueChange={(v) => setForm({ ...form, duration_unit: v as any })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="weeks">Semaines</SelectItem>
+                          <SelectItem value="months">Mois</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+
+                {allPreviewDates.length > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    Aperçu : {previewDates.map((d) => format(new Date(d), "dd MMM", { locale: fr })).join(", ")}…
+                    {allPreviewDates.length} séance{allPreviewDates.length > 1 ? "s" : ""} prévue
+                    {allPreviewDates.length > 1 ? "s" : ""} • Aperçu :{" "}
+                    {previewDates.map((d) => format(new Date(d), "dd MMM", { locale: fr })).join(", ")}
+                    {allPreviewDates.length > previewDates.length ? "…" : ""}
                   </p>
                 )}
               </div>
