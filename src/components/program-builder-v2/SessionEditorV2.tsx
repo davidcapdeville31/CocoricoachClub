@@ -136,10 +136,20 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
   const parsedExistingBlocks = useMemo<V2BlockWithExercises[]>(() => {
     if (!existingExercises?.length) return [];
 
+    // Dedupe: same session has 1 row per (player × exercise). Keep one logical
+    // exercise per (block, group_id, group_order, order_index, exercise_name).
+    const seen = new Set<string>();
+    const dedupedExercises = existingExercises.filter((ex) => {
+      const key = `${ex.notes || ""}::${ex.group_id || "single"}::${ex.group_order ?? "_"}::${ex.order_index ?? "_"}::${ex.exercise_name}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
     const blocksMap = new Map<string, V2BlockWithExercises>();
     const groupedIndexes = new Map<string, number>();
 
-    existingExercises.forEach((ex, idx) => {
+    dedupedExercises.forEach((ex, idx) => {
       const rawNotes = ex.notes || "";
       const blockMatch = rawNotes.match(/<!--\s*v2-block:([^:]+):([^>]+?)\s*-->/);
       const blockType = (blockMatch?.[1]?.trim() || "musculation") as V2BlockWithExercises["type"];
