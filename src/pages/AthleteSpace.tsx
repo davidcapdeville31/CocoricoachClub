@@ -83,6 +83,20 @@ export default function AthleteSpace() {
     enabled: showPlayerSelector && !!user?.id,
   });
 
+  const { data: kickingWorkEnabled } = useQuery({
+    queryKey: ["athlete-kicking-work", athleteInfo?.player_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("kicking_work_enabled")
+        .eq("id", athleteInfo!.player_id)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as any)?.kicking_work_enabled ?? false;
+    },
+    enabled: !!athleteInfo?.player_id,
+  });
+
   const queryCategoryId = searchParams.get("categoryId");
 
   useEffect(() => {
