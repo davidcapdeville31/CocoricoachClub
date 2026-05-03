@@ -14,9 +14,10 @@ interface CompetitionTabProps {
   isRugby7: boolean;
   isNationalTeam: boolean;
   sportType?: string;
+  view?: "all" | "gestion" | "stats";
 }
 
-export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType }: CompetitionTabProps) {
+export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType, view = "all" }: CompetitionTabProps) {
   const isIndividual = isIndividualSport(sportType || "");
   const isSkiSport = sportType ? getMainSportFromType(sportType) === "ski" : false;
   const isAthletics = sportType ? isAthletismeCategory(sportType) : false;
