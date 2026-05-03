@@ -37,6 +37,13 @@ export function parseV2Meta(notes: string | null | undefined): {
   }
 }
 
+export function parseV2BlockTag(notes: string | null | undefined): { type: string; name: string } | null {
+  if (!notes) return null;
+  const m = notes.match(/<!--\s*v2-block:([^:]+):([^>]+?)\s*-->/);
+  if (!m) return null;
+  return { type: (m[1] || "").trim(), name: (m[2] || "").trim() };
+}
+
 /**
  * Parses test config from session notes metadata.
  */

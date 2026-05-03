@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo } from "react";
 import { getObjectiveLabel } from "@/lib/constants/sessionBlockOptions";
-import { getDisplayNotes, parsePrecisionExerciseFromNotes } from "@/lib/utils/sessionNotes";
+import { getDisplayNotes, parsePrecisionExerciseFromNotes, parseV2BlockTag } from "@/lib/utils/sessionNotes";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -217,6 +217,24 @@ export function SessionDetailsDialog({
 
     return groups;
   }, [exercises]);
+
+  // Group exercise groups by V2 builder block (echauffement, musculation, course, etc.)
+  const blocksGrouped = useMemo(() => {
+    if (!exerciseGroups.length) return [] as Array<{ key: string; type: string; name: string; groups: ExerciseGroup[] }>;
+    const order: string[] = [];
+    const map = new Map<string, { key: string; type: string; name: string; groups: ExerciseGroup[] }>();
+    exerciseGroups.forEach((g) => {
+      const firstEx = g.exercises[0]?.exercise;
+      const tag = parseV2BlockTag(firstEx?.notes);
+      const key = tag ? `${tag.type}|${tag.name}` : "__none__";
+      if (!map.has(key)) {
+        order.push(key);
+        map.set(key, { key, type: tag?.type || "", name: tag?.name || "", groups: [] });
+      }
+      map.get(key)!.groups.push(g);
+    });
+    return order.map((k) => map.get(k)!);
+  }, [exerciseGroups]);
 
   // Fetch players
   const { data: players } = useQuery({
@@ -1024,6 +1042,35 @@ export function SessionDetailsDialog({
                   <div className="text-center py-8 text-muted-foreground">
                     <Dumbbell className="h-12 w-12 mx-auto mb-3 opacity-30" />
                     <p>Aucun exercice détaillé pour cette séance</p>
+                  </div>
+                ) : blocksGrouped.length > 1 || (blocksGrouped[0]?.name) ? (
+                  <div className="space-y-5 pr-4">
+                    {blocksGrouped.map((blk, bIdx) => (
+                      <div key={blk.key} className="space-y-2">
+                        {blk.name && (
+                          <div className="flex items-center gap-2 pb-1 border-b">
+                            <Badge className="bg-primary/10 text-primary border border-primary/30 capitalize">
+                              {blk.name}
+                            </Badge>
+                            {blk.type && blk.type !== blk.name && (
+                              <span className="text-xs text-muted-foreground capitalize">
+                                {blk.type.replace(/_/g, " ")}
+                              </span>
+                            )}
+                            <span className="text-xs text-muted-foreground ml-auto">
+                              {blk.groups.reduce((sum, g) => sum + g.exercises.length, 0)} exercice(s)
+                            </span>
+                          </div>
+                        )}
+                        <div className="space-y-3">
+                          {blk.groups.map((group, idx) => (
+                            <div key={group.groupId || `${bIdx}-${idx}`}>
+                              {renderExerciseGroup(group, idx)}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="space-y-3 pr-4">
