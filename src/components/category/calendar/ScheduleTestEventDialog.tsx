@@ -615,11 +615,11 @@ export function ScheduleTestEventDialog({
 
               {/* Tests list for selected category */}
               {!selectedCategory ? (
-                <div className="rounded-2xl border-2 border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                <div className="rounded-2xl border-2 border-dashed border-orange-200 bg-orange-50/50 dark:bg-orange-950/10 p-6 text-center text-sm text-orange-700 dark:text-orange-300">
                   Sélectionnez d'abord une thématique pour afficher les tests disponibles.
                 </div>
               ) : (selectedCategory.tests || []).length === 0 ? (
-                <div className="rounded-2xl border-2 border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                <div className="rounded-2xl border-2 border-dashed border-orange-200 bg-orange-50/50 dark:bg-orange-950/10 p-6 text-center text-sm text-orange-700 dark:text-orange-300">
                   Aucun test dans cette thématique.
                 </div>
               ) : (
