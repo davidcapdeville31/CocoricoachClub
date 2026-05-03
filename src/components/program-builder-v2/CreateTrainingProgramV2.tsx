@@ -423,6 +423,25 @@ export function CreateTrainingProgramV2({
     });
   }, []);
 
+  const setDayOfWeek = useCallback(
+    (weekNumber: number, dayId: string, newDow: string) => {
+      setDraft((prev) => ({
+        ...prev,
+        weeks: prev.weeks.map((w) =>
+          w.weekNumber !== weekNumber
+            ? w
+            : {
+                ...w,
+                days: w.days.map((d) =>
+                  d.id === dayId ? { ...d, dayOfWeek: newDow } : d,
+                ),
+              },
+        ),
+      }));
+    },
+    [],
+  );
+
   const setDayBlocks = useCallback(
     (weekNumber: number, dayId: string, blocks: V2BlockWithExercises[]) => {
       setDraft((prev) => ({
@@ -698,11 +717,25 @@ export function CreateTrainingProgramV2({
               {currentDay ? (
                 <Card className="rounded-2xl shadow-lg border-border/60 bg-card/95 backdrop-blur">
                   <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                      <p className="text-xs text-muted-foreground">
-                        Semaine {activeWeek} ·{" "}
-                        {DAYS_OF_WEEK.find((d) => d.id === currentDay.dayOfWeek)?.label}
-                      </p>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">Semaine {activeWeek} ·</span>
+                        <Select
+                          value={currentDay.dayOfWeek}
+                          onValueChange={(val) => setDayOfWeek(activeWeek, currentDay.id, val)}
+                        >
+                          <SelectTrigger className="h-7 w-auto min-w-[110px] rounded-xl text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {DAYS_OF_WEEK.map((d) => (
+                              <SelectItem key={d.id} value={d.id} className="text-xs">
+                                {d.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                       <CardTitle className="text-base mt-0.5">{currentDay.name}</CardTitle>
                     </div>
                     <div className="flex items-center gap-1">
