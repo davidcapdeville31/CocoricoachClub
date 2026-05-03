@@ -51,6 +51,7 @@ export default function Clubs() {
         .from("clubs")
         .select("*")
         .eq("user_id", user.id)
+        .eq("is_archived", false)
         .is("client_id", null);
       if (ownedError) throw ownedError;
 
@@ -106,6 +107,7 @@ export default function Clubs() {
       const { data, error } = await supabase
         .from("clubs")
         .select("*, clients(id, name, email)")
+        .eq("is_archived", false)
         .order("name");
       if (error) throw error;
       return data || [];
