@@ -36,6 +36,8 @@ function PerformanceDisabledMessage() {
 export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
   const { isViewer } = useViewerModeContext();
   const pendingCount = usePendingWeightLogsCount(categoryId);
+  const pendingTestsCount = usePendingTestResultsCount(categoryId);
+  const totalPending = pendingCount + pendingTestsCount;
 
   if (isViewer) {
     return <PerformanceDisabledMessage />;
