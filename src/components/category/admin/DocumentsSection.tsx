@@ -422,6 +422,24 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
               <DialogTitle>Nouveau document</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
+              {/* Assignee selection */}
+              <div>
+                <Label>Assigner à *</Label>
+                <Select value={assignee} onValueChange={setAssignee}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="team">
+                      <span className="flex items-center gap-2"><Users className="h-4 w-4" />Équipe entière</span>
+                    </SelectItem>
+                    {players?.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {[p.first_name, p.name].filter(Boolean).join(" ")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* File Upload */}
               <div>
                 <Label>Fichier (PDF, Image) *</Label>
