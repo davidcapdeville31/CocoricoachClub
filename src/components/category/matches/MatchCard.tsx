@@ -371,10 +371,17 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
     <>
       <div className={`${compact ? 'p-2.5' : 'p-4'} rounded-lg border transition-colors ${isTrainingMatch ? 'bg-muted/50 border-muted opacity-75' : resultClass ? resultClass : isFinalized ? 'border-primary/50 bg-primary/5' : 'bg-card hover:bg-accent/5'}`}>
         {compact && (
-          <button
-            type="button"
+          <div
+            role="button"
+            tabIndex={0}
             onClick={() => setIsExpanded((v) => !v)}
-            className="w-full flex items-center justify-between gap-3 text-left"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setIsExpanded((v) => !v);
+              }
+            }}
+            className="w-full flex items-center justify-between gap-3 text-left cursor-pointer"
           >
             <div className="flex items-center gap-2 min-w-0 flex-1">
               {isFinalized && <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />}
@@ -401,7 +408,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
               )}
               {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
             </div>
-          </button>
+          </div>
         )}
         {isExpanded && (
         <div className={compact ? 'mt-3' : ''}>
