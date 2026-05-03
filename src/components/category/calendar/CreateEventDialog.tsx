@@ -273,6 +273,10 @@ export function CreateEventDialog({
   // Create event mutation (for custom events not using existing dialogs)
   const createEvent = useMutation({
     mutationFn: async () => {
+      // Événements administratifs (rdv médical, analyse vidéo, réunion) :
+      // PAS de RPE, PAS d'intensité — simple ajout au calendrier des athlètes assignés.
+      const isAdminEvent =
+        selectedType === "medical" || selectedType === "video" || selectedType === "team_meeting";
       const { data: session, error } = await supabase
         .from("training_sessions")
         .insert({
@@ -284,11 +288,13 @@ export function CreateEventDialog({
                          selectedType === "video" ? "video_analyse" :
                          selectedType === "team_meeting" ? "reunion" : "autre",
           notes: `${title}${location ? ` - ${location}` : ""}${notes ? `\n${notes}` : ""}`,
-          intensity: 1,
+          intensity: isAdminEvent ? null : 1,
+          planned_intensity: isAdminEvent ? null : null,
         })
         .select("id")
         .single();
       if (error) throw error;
+
 
       // Save participants
       if (selectedPlayers.length > 0 && session) {
