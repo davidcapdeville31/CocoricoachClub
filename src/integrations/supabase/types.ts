@@ -12311,6 +12311,7 @@ export type Database = {
           category_id: string
           created_at: string | null
           duration_minutes: number | null
+          end_date: string | null
           frequency_weeks: number
           id: string
           is_active: boolean
@@ -12328,6 +12329,7 @@ export type Database = {
           category_id: string
           created_at?: string | null
           duration_minutes?: number | null
+          end_date?: string | null
           frequency_weeks?: number
           id?: string
           is_active?: boolean
@@ -12345,6 +12347,7 @@ export type Database = {
           category_id?: string
           created_at?: string | null
           duration_minutes?: number | null
+          end_date?: string | null
           frequency_weeks?: number
           id?: string
           is_active?: boolean
