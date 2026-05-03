@@ -244,6 +244,15 @@ export function GroupedExerciseList({
             </Badge>
           )}
         </div>
+        {!compact && media?.description && (
+          <p className={cn(
+            "text-xs mt-2",
+            fieldMode ? "text-slate-300" : "text-muted-foreground"
+          )}>
+            <span className="font-semibold uppercase tracking-wide text-[10px] mr-1">Consignes :</span>
+            {media.description}
+          </p>
+        )}
         {!compact && ex.notes && (() => {
           const cleanNotes = ex.notes.replace(/<!--[\s\S]*?-->/g, "").trim();
           if (!cleanNotes) return null;
