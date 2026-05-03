@@ -205,7 +205,7 @@ export function SessionVignette({
             )}
             
             {/* Feedback */}
-            {!isViewer && (
+            {!isViewer && !isAdminEvent && (
               <button
                 onClick={(e) => handleActionClick(e, onFeedback)}
                 className="p-1.5 rounded-md hover:bg-muted transition-colors group/btn"
