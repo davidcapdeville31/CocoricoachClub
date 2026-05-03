@@ -574,7 +574,11 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
     const getTodayRpeStatus = () => {
       if (todaySessions.length === 0) return [];
       
-      return todaySessions.map(session => {
+      // Exclure les types qui ne nécessitent pas de RPE (médical, analyse vidéo, etc.)
+      const NO_RPE_TYPES = new Set(["medical", "video_analyse", "video_analysis", "rdv_medical", "meeting", "reunion"]);
+      const sessionsRequiringRpe = todaySessions.filter(s => !NO_RPE_TYPES.has((s.training_type || "").toLowerCase()));
+      
+      return sessionsRequiringRpe.map(session => {
         // Get participants for this session (from attendance or all players)
         const sessionAttendance = todayAttendance.filter(
           a => a.training_session_id === session.id && (a.status === "present" || a.status === "late")
