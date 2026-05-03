@@ -269,8 +269,19 @@ export function GroupedExerciseList({
             {media.description}
           </p>
         )}
+        {(() => {
+          const parsed = parseV2MethodConfig(ex.notes);
+          if (parsed?.kind === "fartlek") {
+            return (
+              <div className="mt-2">
+                <FartlekCard config={parsed.config} />
+              </div>
+            );
+          }
+          return null;
+        })()}
         {!compact && ex.notes && (() => {
-          const cleanNotes = ex.notes.replace(/<!--[\s\S]*?-->/g, "").trim();
+          const cleanNotes = stripV2MethodTags(ex.notes).replace(/<!--[\s\S]*?-->/g, "").trim();
           if (!cleanNotes) return null;
           return (
             <p className={cn(
