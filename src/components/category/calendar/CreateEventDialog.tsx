@@ -40,14 +40,25 @@ interface CreateEventDialogProps {
 const EVENT_TYPES = [
   {
     id: "session",
-    label: "Séance d'entraînement",
-    description: "Planifier un entraînement collectif ou individuel",
+    label: "Séance musculation",
+    description: "Programme d'exercices avec charges et séries",
     icon: Dumbbell,
     iconColor: "text-emerald-700 dark:text-emerald-300",
     iconBgColor: "bg-emerald-100 dark:bg-emerald-500/15",
     accentBorderColor: "border-l-emerald-500",
     hoverBorderColor: "hover:border-emerald-400 dark:hover:border-emerald-500",
     useExistingDialog: true,
+  },
+  {
+    id: "field_session",
+    label: "Séance terrain",
+    description: "Blocs thématiques (collectif, technique, fitness game...)",
+    icon: Dumbbell,
+    iconColor: "text-lime-700 dark:text-lime-300",
+    iconBgColor: "bg-lime-100 dark:bg-lime-500/15",
+    accentBorderColor: "border-l-lime-500",
+    hoverBorderColor: "hover:border-lime-400 dark:hover:border-lime-500",
+    useExistingDialog: false,
   },
   {
     id: "match",

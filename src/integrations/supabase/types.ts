@@ -10967,6 +10967,85 @@ export type Database = {
           },
         ]
       }
+      session_block_athlete_rpe: {
+        Row: {
+          block_id: string
+          category_id: string
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          player_id: string
+          rpe: number
+          training_session_id: string
+          updated_at: string
+        }
+        Insert: {
+          block_id: string
+          category_id: string
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          player_id: string
+          rpe: number
+          training_session_id: string
+          updated_at?: string
+        }
+        Update: {
+          block_id?: string
+          category_id?: string
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          player_id?: string
+          rpe?: number
+          training_session_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_block_athlete_rpe_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "training_session_blocks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_block_athlete_rpe_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_block_athlete_rpe_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "player_tags"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "session_block_athlete_rpe_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_block_athlete_rpe_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_block_athlete_rpe_training_session_id_fkey"
+            columns: ["training_session_id"]
+            isOneToOne: false
+            referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       session_templates: {
         Row: {
           category_id: string | null
@@ -12652,6 +12731,7 @@ export type Database = {
           bowling_exercise_type: string | null
           contact_charge: string | null
           created_at: string
+          duration_minutes: number | null
           end_time: string | null
           id: string
           implement_weight_g: number | null
@@ -12661,6 +12741,7 @@ export type Database = {
           session_type: string | null
           start_time: string | null
           target_intensity: string | null
+          theme: string | null
           throwing_implement: string | null
           training_session_id: string
           training_type: string
@@ -12671,6 +12752,7 @@ export type Database = {
           bowling_exercise_type?: string | null
           contact_charge?: string | null
           created_at?: string
+          duration_minutes?: number | null
           end_time?: string | null
           id?: string
           implement_weight_g?: number | null
@@ -12680,6 +12762,7 @@ export type Database = {
           session_type?: string | null
           start_time?: string | null
           target_intensity?: string | null
+          theme?: string | null
           throwing_implement?: string | null
           training_session_id: string
           training_type: string
@@ -12690,6 +12773,7 @@ export type Database = {
           bowling_exercise_type?: string | null
           contact_charge?: string | null
           created_at?: string
+          duration_minutes?: number | null
           end_time?: string | null
           id?: string
           implement_weight_g?: number | null
@@ -12699,6 +12783,7 @@ export type Database = {
           session_type?: string | null
           start_time?: string | null
           target_intensity?: string | null
+          theme?: string | null
           throwing_implement?: string | null
           training_session_id?: string
           training_type?: string
@@ -12721,6 +12806,7 @@ export type Database = {
           created_by_player_id: string | null
           id: string
           intensity: number | null
+          location: string | null
           notes: string | null
           periodization_cycle_id: string | null
           planned_intensity: number | null
@@ -12736,6 +12822,7 @@ export type Database = {
           created_by_player_id?: string | null
           id?: string
           intensity?: number | null
+          location?: string | null
           notes?: string | null
           periodization_cycle_id?: string | null
           planned_intensity?: number | null
@@ -12751,6 +12838,7 @@ export type Database = {
           created_by_player_id?: string | null
           id?: string
           intensity?: number | null
+          location?: string | null
           notes?: string | null
           periodization_cycle_id?: string | null
           planned_intensity?: number | null
