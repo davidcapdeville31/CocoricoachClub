@@ -15,6 +15,11 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Users } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  TARGET_INTENSITIES,
+  VOLUME_OPTIONS,
+} from "@/lib/constants/sessionBlockOptions";
 import { SessionEditorSheet } from "./SessionEditorSheet";
 import { SessionDayEditor, type SessionDayEditorHandle } from "./SessionDayEditor";
 import { V2ExerciseBankSidebar, type PickedExerciseRich } from "./V2ExerciseBankSidebar";
