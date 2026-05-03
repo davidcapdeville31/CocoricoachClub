@@ -348,7 +348,7 @@ export function AthleteSpaceProgression({ playerId, categoryId, sportType }: Pro
             )}
 
             {hasRadar && (
-              <div>
+              <div className="lg:col-span-3 min-w-0">
                 <BatteryRadarCharts
                   tests={batteryTests}
                   isViewer={true}
