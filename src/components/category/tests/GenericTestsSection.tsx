@@ -148,7 +148,7 @@ function BatteryRadarCharts({
     }
 
     return Array.from(map.values()).sort((a, b) => (a.date < b.date ? 1 : -1));
-  }, [tests]);
+  }, [tests, batteryItemsLookup]);
 
   const getColor = (pct: number) => {
     if (pct >= 75) return "hsl(142 71% 45%)"; // green
