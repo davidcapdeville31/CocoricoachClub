@@ -155,7 +155,8 @@ export const getMethodColors = (trainingStyle?: string) => {
       text: "text-fuchsia-700 dark:text-fuchsia-300",
       iconBg: "bg-fuchsia-500",
     },
-  
+  };
+
   return colorMap[trainingStyle || ""] || { 
     bg: "bg-gradient-to-r from-gray-500/10 to-gray-400/5", 
     border: "border-gray-400", 
