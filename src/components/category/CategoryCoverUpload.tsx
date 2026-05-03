@@ -134,11 +134,11 @@ export function CategoryCoverUpload({ categoryId, currentCoverUrl }: CategoryCov
           size="icon"
           onClick={() => deleteCover.mutate()}
           disabled={deleteCover.isPending}
-          className="text-destructive hover:text-destructive"
+          className="h-8 w-8 text-destructive hover:text-destructive"
           title="Supprimer l'image"
           aria-label="Supprimer l'image"
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-3.5 w-3.5" />
         </Button>
       )}
     </div>
