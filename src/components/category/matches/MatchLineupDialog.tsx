@@ -31,6 +31,7 @@ interface MatchLineupDialogProps {
   matchId: string;
   categoryId: string;
   matchFormat?: string | null;
+  sportType?: string;
 }
 
 interface LineupPlayer {
@@ -48,6 +49,7 @@ export function MatchLineupDialog({
   matchId,
   categoryId,
   matchFormat,
+  sportType: sportTypeProp,
 }: MatchLineupDialogProps) {
   const [lineupData, setLineupData] = useState<LineupPlayer[]>([]);
   const [athleticsEntries, setAthleticsEntries] = useState<AthleticsLineupEntry[]>([]);
@@ -68,7 +70,7 @@ export function MatchLineupDialog({
   });
 
   const clubSport = (category?.clubs as any)?.sport?.toLowerCase();
-  const sportType = clubSport === "bowling" ? "bowling" : (category?.rugby_type || "XV");
+  const sportType = sportTypeProp || (clubSport === "bowling" ? "bowling" : (category?.rugby_type || "XV"));
   const fieldConfig = getSportFieldConfig(sportType);
   const isIndividual = isIndividualSport(sportType);
   const isAthletics = isAthletismeCategory(sportType);

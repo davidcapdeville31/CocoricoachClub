@@ -519,6 +519,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
           onOpenChange={(open) => !open && setLineupMatchId(null)}
           matchId={lineupMatchId}
           categoryId={categoryId}
+          sportType={sportType}
         />
       )}
     </div>
