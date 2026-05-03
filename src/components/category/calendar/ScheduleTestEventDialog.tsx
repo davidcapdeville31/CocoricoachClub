@@ -643,7 +643,7 @@ export function ScheduleTestEventDialog({
                       </Button>
                     )}
                   </div>
-                  <ScrollArea className="h-[260px] rounded-2xl border bg-muted/20 p-2">
+                  <ScrollArea className="h-[260px] rounded-2xl border border-orange-200 dark:border-orange-900/40 bg-white dark:bg-zinc-900 p-2">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                       {selectedCategory.tests.map((test) => {
                         const key = `${selectedCategory.value}::${test.value}`;
@@ -766,7 +766,7 @@ export function ScheduleTestEventDialog({
                   Créez-en une dans <strong>Programmation → Tests</strong>.
                 </div>
               ) : (
-                <ScrollArea className="h-[260px] rounded-2xl border bg-muted/20 p-2">
+                <ScrollArea className="h-[260px] rounded-2xl border border-orange-200 dark:border-orange-900/40 bg-white dark:bg-zinc-900 p-2">
                   <div className="space-y-2">
                     {batteries!.map((b: any) => {
                       const isSel = selectedBatteryId === b.id;
@@ -837,7 +837,7 @@ export function ScheduleTestEventDialog({
                 </Label>
               </div>
             </div>
-            <ScrollArea className="h-[160px] rounded-2xl border bg-muted/20 p-2">
+            <ScrollArea className="h-[160px] rounded-2xl border border-orange-200 dark:border-orange-900/40 bg-white dark:bg-zinc-900 p-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                 {(players || []).map((p) => {
                   const isSel = selectedPlayers.includes(p.id);
