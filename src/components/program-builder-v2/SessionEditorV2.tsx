@@ -280,6 +280,33 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
         if (epErr) console.error("[SessionEditorV2] event_participants insert failed", epErr);
       }
 
+      // 2c. Insert a training_session_blocks row to feed Workload "Répartition".
+      try {
+        const dur =
+          startTime && endTime
+            ? Math.max(
+                0,
+                Math.round(
+                  (new Date(`1970-01-01T${endTime}:00`).getTime() -
+                    new Date(`1970-01-01T${startTime}:00`).getTime()) /
+                    60000,
+                ),
+              )
+            : null;
+        await supabase.from("training_session_blocks").insert({
+          training_session_id: session.id,
+          block_order: 0,
+          training_type: sessionKind,
+          theme: dayName || (sessionKind === "course" ? "Course" : "Musculation"),
+          duration_minutes: dur,
+          target_intensity: targetIntensity || null,
+          volume: volume || null,
+          contact_charge: "aucun",
+        });
+      } catch (e) {
+        console.error("[SessionEditorV2] training_session_blocks insert failed", e);
+      }
+
       // 3. Insert one gym_session_exercises row per (player × exercise),
       //    preserving block context inside `notes` via the agreed pattern.
       const rows = targetPlayers.flatMap((player) =>
