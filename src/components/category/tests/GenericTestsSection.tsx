@@ -780,34 +780,69 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-8"></TableHead>
-                  <TableHead>Joueur</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Test</TableHead>
-                  <TableHead>Résultat</TableHead>
-                  <TableHead>Notes</TableHead>
-                  {!isViewer && <TableHead className="text-right">Actions</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TestsTableRows
-                  tests={tests}
-                  isViewer={isViewer}
-                  filteredTestCategories={filteredTestCategories}
-                  formatCategoryLabel={formatCategoryLabel}
-                  formatTestTypeLabel={formatTestTypeLabel}
-                  onDelete={(id) => {
-                    if (confirm("Êtes-vous sûr de vouloir supprimer ce test ?")) {
-                      deleteTest.mutate(id);
-                    }
-                  }}
-                />
-              </TableBody>
-            </Table>
+          <div className="space-y-6">
+            <BatteryRadarCharts
+              tests={tests}
+              isViewer={isViewer}
+              onDelete={(id) => {
+                if (confirm("Êtes-vous sûr de vouloir supprimer ce test ?")) {
+                  deleteTest.mutate(id);
+                }
+              }}
+            />
+
+            {(() => {
+              const singles = (tests || []).filter((t: any) => !/^\[Batterie:/i.test(t.notes || ""));
+              if (singles.length === 0) return null;
+              return (
+                <div className="overflow-x-auto">
+                  <h3 className="text-sm font-semibold mb-2 text-muted-foreground">Tests isolés</h3>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Joueur</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Test</TableHead>
+                        <TableHead>Résultat</TableHead>
+                        <TableHead>Notes</TableHead>
+                        {!isViewer && <TableHead className="text-right">Actions</TableHead>}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {singles.map((test: any) => (
+                        <TableRow key={test.id} className="animate-fade-in">
+                          <TableCell className="font-medium">{test.players?.name}</TableCell>
+                          <TableCell>{format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}</TableCell>
+                          <TableCell>
+                            <span className="text-xs text-muted-foreground block">
+                              {filteredTestCategories.find(c => c.value === test.test_category)?.label || formatCategoryLabel(test.test_category)}
+                            </span>
+                            {filteredTestCategories.find(c => c.value === test.test_category)?.tests.find(t => t.value === test.test_type)?.label || formatTestTypeLabel(test.test_type)}
+                          </TableCell>
+                          <TableCell className="font-semibold text-primary">
+                            {test.result_value} {test.result_unit}
+                          </TableCell>
+                          <TableCell className="max-w-[150px] truncate text-muted-foreground text-sm">
+                            {test.notes || "-"}
+                          </TableCell>
+                          {!isViewer && (
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="icon" onClick={() => {
+                                if (confirm("Êtes-vous sûr de vouloir supprimer ce test ?")) {
+                                  deleteTest.mutate(test.id);
+                                }
+                              }}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              );
+            })()}
           </div>
         )}
       </CardContent>
