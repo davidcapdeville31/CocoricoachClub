@@ -113,8 +113,15 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit }: Props) => {
         </Button>
       </div>
 
+      {/* Rest-Pause structured rendering */}
+      {isRestPause && (
+        <div className={cn("p-2", colors.bg)}>
+          <RestPauseReadOnlyUI config={restPauseConfig!} />
+        </div>
+      )}
+
       {/* Series structure (drop set / pyramid / 5x5 / iso) */}
-      {series.length > 0 && (
+      {!isRestPause && series.length > 0 && (
         <div className={cn("p-2 space-y-1", colors.bg)}>
           {series.map((s, idx) => {
             const isStart = method === "drop_set" && idx === 0;
