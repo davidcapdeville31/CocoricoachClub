@@ -163,12 +163,11 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
             player_id: playerId,
             category_id: categoryId,
             test_category: it.test_category,
-            test_type: baseTestType,
-            test_name: `${it.test_name} (Droit)`,
+            test_type: `${baseTestType}__right`,
             result_value: parseFloat(rawR),
             result_unit: it.unit || null,
             test_date: savedDate,
-            notes: `[Batterie: ${battery.battery.name}] Côté droit · Score ${perItem[it.id]?.pointsR ?? 0} pts`,
+            notes: `[Batterie: ${battery.battery.name}] Test: ${it.test_name} (Droit) · Score ${perItem[it.id]?.pointsR ?? 0} pts`,
           });
         }
         if (rawL !== undefined && rawL !== "") {
@@ -176,12 +175,11 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
             player_id: playerId,
             category_id: categoryId,
             test_category: it.test_category,
-            test_type: baseTestType,
-            test_name: `${it.test_name} (Gauche)`,
+            test_type: `${baseTestType}__left`,
             result_value: parseFloat(rawL),
             result_unit: it.unit || null,
             test_date: savedDate,
-            notes: `[Batterie: ${battery.battery.name}] Côté gauche · Score ${perItem[it.id]?.pointsL ?? 0} pts`,
+            notes: `[Batterie: ${battery.battery.name}] Test: ${it.test_name} (Gauche) · Score ${perItem[it.id]?.pointsL ?? 0} pts`,
           });
         }
       } else if (results[it.id] !== undefined && results[it.id] !== "") {
@@ -190,11 +188,10 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
           category_id: categoryId,
           test_category: it.test_category,
           test_type: baseTestType,
-          test_name: it.test_name,
           result_value: parseFloat(results[it.id]),
           result_unit: it.unit || null,
           test_date: savedDate,
-          notes: `[Batterie: ${battery.battery.name}] Score ${perItem[it.id]?.points ?? 0}/${it.max_points} pts`,
+          notes: `[Batterie: ${battery.battery.name}] Test: ${it.test_name} · Score ${perItem[it.id]?.points ?? 0}/${it.max_points} pts`,
         });
       }
     });
