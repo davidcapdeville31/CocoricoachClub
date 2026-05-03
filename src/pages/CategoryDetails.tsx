@@ -376,6 +376,7 @@ function CategoryDetailsContent() {
                   icon={<Zap className="h-5 w-5" />}
                   label="Workload"
                   shortLabel="Workload"
+                  badge={pendingWeightLogsCount}
                   tooltip="Monitoring de la charge (EWMA/AWCR), suivi HRV, préparation physique et évolution des tests"
                 />
               )}
