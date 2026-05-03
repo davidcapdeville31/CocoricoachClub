@@ -34,6 +34,7 @@ import { TennisDrillTraining } from "@/components/tennis/TennisDrillTraining";
 import { PrecisionFieldTracker } from "@/components/rugby/PrecisionFieldTracker";
 import { RUGBY_PRECISION_EXERCISES, EXERCISE_CATEGORIES } from "@/lib/constants/rugbyPrecisionExercises";
 import { isRugbyType } from "@/lib/constants/sportTypes";
+import { LinkedMethodSlots, type LinkedMethodType } from "@/components/program-builder-v2/LinkedMethodSlots";
 interface SessionDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
