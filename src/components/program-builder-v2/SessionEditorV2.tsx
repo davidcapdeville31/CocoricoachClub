@@ -32,6 +32,24 @@ interface SessionEditorV2Props {
   defaultDate?: string;
 }
 
+const SESSION_KIND_OPTIONS = [
+  { value: "musculation", label: "Musculation" },
+  { value: "course", label: "Course" },
+  { value: "fractionne", label: "Fractionné" },
+  { value: "endurance", label: "Endurance" },
+  { value: "vitesse", label: "Vitesse" },
+  { value: "puissance", label: "Puissance" },
+  { value: "mobilite", label: "Mobilité" },
+  { value: "recuperation", label: "Récupération" },
+  { value: "cardio", label: "Cardio" },
+  { value: "crossfit", label: "CrossFit" },
+] as const;
+
+const SESSION_THEME_LABEL: Record<string, string> = SESSION_KIND_OPTIONS.reduce(
+  (acc, o) => ({ ...acc, [o.value]: o.label }),
+  {} as Record<string, string>,
+);
+
 const todayIso = () => format(new Date(), "yyyy-MM-dd");
 
 /**
@@ -48,9 +66,10 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
   const [sessionDate, setSessionDate] = useState<string>(todayIso());
   const [startTime, setStartTime] = useState<string>("");
   const [endTime, setEndTime] = useState<string>("");
-  const [sessionKind, setSessionKind] = useState<"musculation" | "course">("musculation");
+  const [sessionKind, setSessionKind] = useState<string>("musculation");
   const [targetIntensity, setTargetIntensity] = useState<string>("moderee");
   const [volume, setVolume] = useState<string>("moyen");
+  const [plannedRpe, setPlannedRpe] = useState<number>(6);
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [blocks, setBlocks] = useState<V2BlockWithExercises[]>([]);
   const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
@@ -90,6 +109,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
       setSessionKind("musculation");
       setTargetIntensity("moderee");
       setVolume("moyen");
+      setPlannedRpe(6);
       setSelectedPlayers([]);
       setBlocks([]);
       setSavedSnapshot(null);
@@ -215,7 +235,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
     }
   };
 
-  const currentSnapshot = JSON.stringify({ dayName, dayOfWeek, sessionDate, startTime, endTime, sessionKind, targetIntensity, volume, selectedPlayers, blocks });
+  const currentSnapshot = JSON.stringify({ dayName, dayOfWeek, sessionDate, startTime, endTime, sessionKind, targetIntensity, volume, plannedRpe, selectedPlayers, blocks });
   const isSavedUpToDate = savedSnapshot !== null && savedSnapshot === currentSnapshot;
 
   const saveMutation = useMutation({
@@ -261,6 +281,8 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
           session_start_time: startTime || null,
           session_end_time: endTime || null,
           training_type: sessionKind,
+          intensity: plannedRpe ? Math.max(1, Math.min(10, plannedRpe)) : 1,
+          planned_intensity: plannedRpe || null,
           notes: `<!--v2-meta:${sessionMeta}-->${dayName}`,
         })
         .select("id")
@@ -297,8 +319,9 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
           training_session_id: session.id,
           block_order: 0,
           training_type: sessionKind,
-          theme: dayName || (sessionKind === "course" ? "Course" : "Musculation"),
+          theme: SESSION_THEME_LABEL[sessionKind] || dayName || "Séance",
           duration_minutes: dur,
+          intensity: plannedRpe || null,
           target_intensity: targetIntensity || null,
           volume: volume || null,
           contact_charge: "aucun",
@@ -401,12 +424,13 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs">Type</Label>
-                <Select value={sessionKind} onValueChange={(v) => setSessionKind(v as "musculation" | "course")}>
-                  <SelectTrigger className="h-9 w-36"><SelectValue /></SelectTrigger>
+                <Label className="text-xs">Thématique</Label>
+                <Select value={sessionKind} onValueChange={setSessionKind}>
+                  <SelectTrigger className="h-9 w-40"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="musculation">Musculation</SelectItem>
-                    <SelectItem value="course">Course</SelectItem>
+                    {SESSION_KIND_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -431,6 +455,19 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="v2-planned-rpe" className="text-xs">RPE prévu (staff)</Label>
+                <Input
+                  id="v2-planned-rpe"
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={plannedRpe}
+                  onChange={(e) => setPlannedRpe(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+                  className="h-9 w-24"
+                  title="RPE prévu — non visible par l'athlète, alimente RPE prévu/réel"
+                />
               </div>
             </div>
 
