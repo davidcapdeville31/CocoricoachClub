@@ -316,7 +316,7 @@ function CategoryDetailsContent() {
       <div className="container mx-auto max-w-7xl px-4 py-8">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <div className="px-0 pb-2">
-            <ColoredNavTabsList className="flex flex-nowrap justify-start gap-1.5 p-2 w-full [&_.colored-tab-trigger]:flex-1 [&_.colored-tab-trigger]:flex-col [&_.colored-tab-trigger]:gap-1 [&_.colored-tab-trigger]:px-1 [&_.colored-tab-trigger]:py-2.5 [&_.colored-tab-trigger]:rounded-xl [&_.colored-tab-trigger]:text-[11px] [&_.colored-tab-trigger]:min-w-0 [&_.colored-tab-trigger_svg]:h-5 [&_.colored-tab-trigger_svg]:w-5 [&_.colored-tab-trigger_.colored-tab-text]:flex-col [&_.colored-tab-trigger_.colored-tab-text]:gap-1 [&_.colored-tab-trigger]:bg-[var(--tab-color)]/12 dark:[&_.colored-tab-trigger]:bg-[var(--tab-color)]/15">
+            <ColoredNavTabsList className="flex flex-wrap justify-center gap-1 p-2 w-full bg-transparent border-0 shadow-none [&_.colored-tab-trigger]:flex-col [&_.colored-tab-trigger]:gap-1.5 [&_.colored-tab-trigger]:px-3 [&_.colored-tab-trigger]:py-2 [&_.colored-tab-trigger]:rounded-xl [&_.colored-tab-trigger]:text-xs [&_.colored-tab-trigger]:min-w-[88px] [&_.colored-tab-trigger_svg]:h-5 [&_.colored-tab-trigger_svg]:w-5 [&_.colored-tab-trigger_.colored-tab-text]:flex-col [&_.colored-tab-trigger_.colored-tab-text]:gap-1.5">
               <ColoredTabTrigger 
                 value="overview" 
                 colorKey="overview"
