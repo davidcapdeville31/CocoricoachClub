@@ -21,6 +21,8 @@ import {
   VOLUME_OPTIONS,
   CONTACT_CHARGE_OPTIONS,
 } from "@/lib/constants/sessionBlockOptions";
+import { getThemeColorTokens } from "@/lib/constants/themeColors";
+import { isRugbyType } from "@/lib/constants/sportTypes";
 
 interface FieldSessionDialogProps {
   open: boolean;
