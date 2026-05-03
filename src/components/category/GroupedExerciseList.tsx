@@ -222,11 +222,17 @@ export function GroupedExerciseList({
                       Aucune consigne renseignée pour cet exercice.
                     </p>
                   )}
-                  {ex.notes && (
-                    <p className="pt-1 border-t border-border/40 italic">
-                      Note coach : {ex.notes}
-                    </p>
-                  )}
+                  {(() => {
+                    const cleanCoachNote = ex.notes
+                      ? stripV2MethodTags(ex.notes).replace(/<!--[\s\S]*?-->/g, "").trim()
+                      : "";
+                    if (!cleanCoachNote) return null;
+                    return (
+                      <p className="pt-1 border-t border-border/40 italic">
+                        Note coach : {cleanCoachNote}
+                      </p>
+                    );
+                  })()}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
