@@ -16,6 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getMethodColors } from "./shared/MethodGroupWrapper";
+import { RestPauseReadOnlyUI } from "./RestPauseReadOnlyUI";
+import type { RestPauseConfig } from "./RestPauseTypes";
 import type { V2BlockExercise } from "./hooks/useSaveProgramV2";
 
 const METHOD_LABELS: Record<string, string> = {
