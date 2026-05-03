@@ -59,7 +59,7 @@ export function MatchLineupDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("rugby_type")
+        .select("rugby_type, clubs(sport)")
         .eq("id", categoryId)
         .single();
       if (error) throw error;
@@ -67,7 +67,8 @@ export function MatchLineupDialog({
     },
   });
 
-  const sportType = category?.rugby_type || "XV";
+  const clubSport = (category?.clubs as any)?.sport?.toLowerCase();
+  const sportType = clubSport === "bowling" ? "bowling" : (category?.rugby_type || "XV");
   const fieldConfig = getSportFieldConfig(sportType);
   const isIndividual = isIndividualSport(sportType);
   const isAthletics = isAthletismeCategory(sportType);
