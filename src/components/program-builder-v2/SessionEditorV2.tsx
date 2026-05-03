@@ -263,6 +263,8 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
           session_start_time: startTime || null,
           session_end_time: endTime || null,
           training_type: sessionKind,
+          intensity: plannedRpe ? Math.max(1, Math.min(10, plannedRpe)) : 1,
+          planned_intensity: plannedRpe || null,
           notes: `<!--v2-meta:${sessionMeta}-->${dayName}`,
         })
         .select("id")
