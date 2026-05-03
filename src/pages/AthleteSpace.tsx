@@ -765,6 +765,41 @@ export default function AthleteSpace() {
                 categoryId={athleteInfo.category_id}
                 playerId={athleteInfo.player_id}
               />
+            ) : isRugby && kickingWorkEnabled ? (
+              <Tabs defaultValue="competition" className="space-y-4">
+                <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-muted/40 rounded-xl p-1">
+                  <TabsTrigger
+                    value="competition"
+                    style={{ ["--tab-accent" as any]: NAV_COLORS.performance.base } as React.CSSProperties}
+                    className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
+                    <Trophy className="h-3.5 w-3.5" />
+                    Datas de compétition
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="training"
+                    style={{ ["--tab-accent" as any]: NAV_COLORS.performance.base } as React.CSSProperties}
+                    className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
+                    <Target className="h-3.5 w-3.5" />
+                    Datas d'entraînement
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="competition">
+                  <PlayerCumulativeStats
+                    categoryId={athleteInfo.category_id}
+                    sportType={athleteInfo.sport_type}
+                    playerId={athleteInfo.player_id}
+                    showTeamView={!isSurf && !isSki && !isPadel}
+                  />
+                </TabsContent>
+                <TabsContent value="training">
+                  <AthletePrecisionTracker
+                    categoryId={athleteInfo.category_id}
+                    playerId={athleteInfo.player_id}
+                  />
+                </TabsContent>
+              </Tabs>
             ) : (
               <PlayerCumulativeStats
                 categoryId={athleteInfo.category_id}
