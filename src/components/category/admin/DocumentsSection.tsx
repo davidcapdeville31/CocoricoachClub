@@ -360,7 +360,7 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
             </Select>
           </div>
 
-          <Button onClick={() => { resetForm(); setAssignee(selectedTab); setShowAddDialog(true); }}>
+          <Button onClick={() => { resetForm(); setAssignee("team"); setShowAddDialog(true); }}>
             <Plus className="h-4 w-4 mr-2" />
             Ajouter un document
           </Button>
