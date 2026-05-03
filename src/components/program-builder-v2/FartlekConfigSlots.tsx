@@ -582,32 +582,56 @@ export const FartlekConfigSlots = ({
           {config.structureType === 'structure' && (
             <div className="mt-3 pt-2 border-t border-green-500/20 grid grid-cols-2 gap-2 text-xs">
               {/* Effort targets */}
-              <div className="space-y-1">
-                <span className="font-medium text-red-600 dark:text-red-400">Effort:</span>
-                {config.effortPhases[0]?.targetSpeed && (
-                  <div className="text-muted-foreground">Vitesse: {config.effortPhases[0].targetSpeed} km/h</div>
-                )}
-                {config.effortPhases[0]?.targetHeartRate && (
-                  <div className="text-muted-foreground">FC: {config.effortPhases[0].targetHeartRate} bpm</div>
-                )}
-                {!config.effortPhases[0]?.targetSpeed && !config.effortPhases[0]?.targetHeartRate && (
-                  <div className="text-muted-foreground italic">Non défini</div>
-                )}
-              </div>
-              
+              {(() => {
+                const p = config.effortPhases[0];
+                const lines: string[] = [];
+                if (p) {
+                  if (p.intensityType === 'qualitative') {
+                    if (p.intensityLabel) lines.push(p.intensityLabel);
+                  } else if (p.intensityValue != null) {
+                    const t = INTENSITY_TYPES[p.intensityType];
+                    lines.push(`${t.label}: ${p.intensityValue}${t.unit}`);
+                  }
+                  if (p.targetSpeed) lines.push(`Vitesse: ${p.targetSpeed} km/h`);
+                  if (p.targetHeartRate) lines.push(`FC: ${p.targetHeartRate} bpm`);
+                }
+                return (
+                  <div className="space-y-1">
+                    <span className="font-medium text-red-600 dark:text-red-400">Effort:</span>
+                    {lines.length > 0 ? (
+                      lines.map((l, i) => <div key={i} className="text-muted-foreground">{l}</div>)
+                    ) : (
+                      <div className="text-muted-foreground italic">Non défini</div>
+                    )}
+                  </div>
+                );
+              })()}
+
               {/* Recovery targets */}
-              <div className="space-y-1">
-                <span className="font-medium text-blue-600 dark:text-blue-400">Récup:</span>
-                {config.recoveryPhases[0]?.targetSpeed && (
-                  <div className="text-muted-foreground">Vitesse: {config.recoveryPhases[0].targetSpeed} km/h</div>
-                )}
-                {config.recoveryPhases[0]?.targetHeartRate && (
-                  <div className="text-muted-foreground">FC: {config.recoveryPhases[0].targetHeartRate} bpm</div>
-                )}
-                {!config.recoveryPhases[0]?.targetSpeed && !config.recoveryPhases[0]?.targetHeartRate && (
-                  <div className="text-muted-foreground italic">Non défini</div>
-                )}
-              </div>
+              {(() => {
+                const p = config.recoveryPhases[0];
+                const lines: string[] = [];
+                if (p) {
+                  if (p.intensityType === 'qualitative') {
+                    if (p.intensityLabel) lines.push(p.intensityLabel);
+                  } else if (p.intensityValue != null) {
+                    const t = INTENSITY_TYPES[p.intensityType];
+                    lines.push(`${t.label}: ${p.intensityValue}${t.unit}`);
+                  }
+                  if (p.targetSpeed) lines.push(`Vitesse: ${p.targetSpeed} km/h`);
+                  if (p.targetHeartRate) lines.push(`FC: ${p.targetHeartRate} bpm`);
+                }
+                return (
+                  <div className="space-y-1">
+                    <span className="font-medium text-blue-600 dark:text-blue-400">Récup:</span>
+                    {lines.length > 0 ? (
+                      lines.map((l, i) => <div key={i} className="text-muted-foreground">{l}</div>)
+                    ) : (
+                      <div className="text-muted-foreground italic">Non défini</div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>
