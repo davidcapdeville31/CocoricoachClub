@@ -77,6 +77,9 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
       setDayName("Séance 1");
       setDayOfWeek("");
       setSessionDate(defaultDate || todayIso());
+      setStartTime("");
+      setEndTime("");
+      setSelectedPlayers([]);
       setBlocks([]);
       setSavedSnapshot(null);
       setActiveBlock(null);
