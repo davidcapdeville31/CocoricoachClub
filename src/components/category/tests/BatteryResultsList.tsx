@@ -34,6 +34,14 @@ function parsePoints(notes: string | null): number {
   return parseFloat(m[1].replace(",", "."));
 }
 
+/** Extract max points from note if in full format `Score N/M pts`. */
+function parseMaxPoints(notes: string | null): number | null {
+  if (!notes) return null;
+  const m = notes.match(/Score\s+\d+(?:[.,]\d+)?\s*\/\s*(\d+(?:[.,]\d+)?)/i);
+  if (!m) return null;
+  return parseFloat(m[1].replace(",", "."));
+}
+
 /** Extract the test name from the note (`Test: 10m sprint (Droit) · Score ...`). */
 function parseTestName(notes: string | null): string {
   if (!notes) return "Test";
@@ -61,6 +69,27 @@ export function BatteryResultsList({
         .order("test_date", { ascending: false });
       if (error) throw error;
       return (data || []) as unknown as GenericTestRow[];
+    },
+    enabled: !!categoryId && !!batteryName,
+  });
+
+  // Lookup max_points per test_name for this battery (to compute % per test → color)
+  const { data: maxByTest = {} } = useQuery({
+    queryKey: ["battery-items-max", categoryId, batteryName],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("test_batteries")
+        .select("items:test_battery_items(test_name, max_points)")
+        .eq("category_id", categoryId)
+        .eq("name", batteryName)
+        .maybeSingle();
+      if (error) throw error;
+      const map: Record<string, number> = {};
+      const items = (data as any)?.items || [];
+      for (const it of items) {
+        if (it?.test_name) map[String(it.test_name).trim().toLowerCase()] = Number(it.max_points) || 0;
+      }
+      return map;
     },
     enabled: !!categoryId && !!batteryName,
   });
@@ -161,6 +190,11 @@ export function BatteryResultsList({
                   {g.rows.map((r) => {
                     const pts = parsePoints(r.notes);
                     const testName = parseTestName(r.notes);
+                    const maxFromNote = parseMaxPoints(r.notes);
+                    const maxFromLookup = maxByTest[testName.trim().toLowerCase()] || 0;
+                    const max = maxFromNote ?? maxFromLookup;
+                    const itemPct = max > 0 ? Math.round((pts / max) * 100) : 0;
+                    const itemLevel = getLevelForPercent(itemPct, batteryLevels);
                     return (
                       <div
                         key={r.id}
@@ -170,8 +204,11 @@ export function BatteryResultsList({
                         <span className="font-medium text-primary tabular-nums shrink-0">
                           {r.result_value} {r.result_unit || ""}
                         </span>
-                        <Badge variant="secondary" className="text-[10px] shrink-0">
-                          {Math.round(pts)} pts
+                        <Badge
+                          className="text-[10px] shrink-0"
+                          style={{ backgroundColor: itemLevel.color, color: "white" }}
+                        >
+                          {Math.round(pts)}{max > 0 ? `/${max}` : ""} pts
                         </Badge>
                       </div>
                     );
