@@ -82,6 +82,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
   ]);
 
   const isBowling = isBowlingSport(sportType);
+  const isRugby = isRugbyType(sportType || "");
 
   // Theme options (value + label). For bowling, include bowling-specific training types so we can store the exact training_type (e.g. "bowling_spare").
   const themeOptions = useMemo(() => {
