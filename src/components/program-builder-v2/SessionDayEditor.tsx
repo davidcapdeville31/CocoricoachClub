@@ -957,6 +957,30 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                       key={item.exercise.id}
                       exercise={item.exercise}
                       onRemove={() => removeExerciseFromBlock(block.id, item.exercise.id)}
+                      onEdit={() => {
+                        const m = item.exercise.method as string;
+                        const cfg = (item.exercise.config ?? {}) as any;
+                        if (m === "fartlek") {
+                          setFartlekDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg } }));
+                        } else if (m === "cluster") {
+                          setClusterDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg } }));
+                        } else if (m === "stato_dynamique") {
+                          setStatoDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg } }));
+                        } else if (m === "intermittent_cardio") {
+                          setIntermittentDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg } }));
+                        } else {
+                          setConfigDrafts((p) => ({
+                            ...p,
+                            [block.id]: {
+                              method: m as MethodConfigType,
+                              droppedExercise: cfg.droppedExercise ?? null,
+                              droppedPhaseExercises: cfg.droppedPhaseExercises ?? {},
+                              initialPayload: cfg,
+                            } as any,
+                          }));
+                        }
+                        removeExerciseFromBlock(block.id, item.exercise.id);
+                      }}
                     />
                   ) : (
                     <div
