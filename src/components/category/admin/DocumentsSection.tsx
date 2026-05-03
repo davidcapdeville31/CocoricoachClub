@@ -539,6 +539,13 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="font-medium truncate">{doc.title}</h4>
+                        <Badge variant="outline" className="text-xs gap-1">
+                          {doc.player_id ? (
+                            <><User className="h-3 w-3" />{doc.players ? [doc.players.first_name, doc.players.name].filter(Boolean).join(" ") : "Joueur"}</>
+                          ) : (
+                            <><Users className="h-3 w-3" />Équipe</>
+                          )}
+                        </Badge>
                         <Badge className={STATUS_COLORS[doc.status]}>
                           {STATUS_LABELS[doc.status]}
                         </Badge>
