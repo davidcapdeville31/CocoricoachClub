@@ -40,6 +40,7 @@ function ClubDetailsContent() {
         .from("categories")
         .select("*")
         .eq("club_id", clubId)
+        .eq("is_archived", false)
         .order("name");
       if (error) throw error;
       return data;

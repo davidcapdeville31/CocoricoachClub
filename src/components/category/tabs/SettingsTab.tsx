@@ -1,20 +1,52 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { TutorialVideosSection } from "@/components/category/settings/TutorialVideosSection";
 import { NotificationManagementSection } from "@/components/category/settings/NotificationManagementSection";
 import { PersonalNotificationPreferences } from "@/components/notifications/PersonalNotificationPreferences";
 import { PushNotificationSettings } from "@/components/notifications/PushNotificationSettings";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Video, Bell, Settings, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Video, Bell, Settings, ChevronDown, Archive } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface SettingsTabProps {
   categoryId: string;
 }
 
 export function SettingsTab({ categoryId }: SettingsTabProps) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [myNotifsOpen, setMyNotifsOpen] = useState(false);
   const [tutorialsOpen, setTutorialsOpen] = useState(false);
+
+  const { data: isSuperAdmin } = useQuery({
+    queryKey: ["is-super-admin", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+      const { data } = await supabase.rpc("is_super_admin", { _user_id: user.id });
+      return data === true;
+    },
+    enabled: !!user?.id,
+  });
+
+  const archiveCategory = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.rpc("archive_category", { _category_id: categoryId });
+      if (error) throw error;
+      const r = data as { success: boolean; error?: string };
+      if (!r?.success) throw new Error(r?.error || "Échec");
+    },
+    onSuccess: () => {
+      toast.success("Catégorie archivée");
+      navigate("/");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
     <div className="space-y-4">
@@ -105,6 +137,34 @@ export function SettingsTab({ categoryId }: SettingsTabProps) {
           </div>
         </CollapsibleContent>
       </Collapsible>
+
+      {isSuperAdmin && (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-destructive/10 flex items-center justify-center">
+              <Archive className="h-5 w-5 text-destructive" />
+            </div>
+            <div>
+              <p className="font-semibold">Archiver cette catégorie</p>
+              <p className="text-sm text-muted-foreground">
+                Sauvegarde un instantané et masque la catégorie. Restauration possible depuis Super Admin → Archives.
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              if (confirm("Archiver cette catégorie ? Toutes les données restent conservées et peuvent être restaurées.")) {
+                archiveCategory.mutate();
+              }
+            }}
+          >
+            <Archive className="h-4 w-4 mr-2" />
+            Archiver la catégorie
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

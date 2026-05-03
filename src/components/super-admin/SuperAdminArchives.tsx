@@ -1,0 +1,187 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Archive, RotateCcw, Trash2, Download, Building2, Users, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+interface ArchivedRow {
+  entity_type: "club" | "category";
+  entity_id: string;
+  entity_name: string;
+  club_id: string | null;
+  club_name: string | null;
+  archived_at: string;
+  archived_by: string | null;
+  archiver_email: string | null;
+  snapshot_count: number;
+  latest_snapshot_id: string | null;
+}
+
+export function SuperAdminArchives() {
+  const queryClient = useQueryClient();
+  const [confirmDelete, setConfirmDelete] = useState<ArchivedRow | null>(null);
+
+  const { data: archives, isLoading } = useQuery({
+    queryKey: ["super-admin-archives"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("list_archived_entities");
+      if (error) throw error;
+      return (data || []) as ArchivedRow[];
+    },
+  });
+
+  const restore = useMutation({
+    mutationFn: async (row: ArchivedRow) => {
+      const fn = row.entity_type === "club" ? "restore_club" : "restore_category";
+      const arg = row.entity_type === "club" ? { _club_id: row.entity_id } : { _category_id: row.entity_id };
+      const { data, error } = await supabase.rpc(fn as any, arg as any);
+      if (error) throw error;
+      const result = data as { success: boolean; error?: string };
+      if (!result?.success) throw new Error(result?.error || "Échec de la restauration");
+    },
+    onSuccess: () => {
+      toast.success("Élément restauré");
+      queryClient.invalidateQueries({ queryKey: ["super-admin-archives"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const permanentDelete = useMutation({
+    mutationFn: async (row: ArchivedRow) => {
+      const fn = row.entity_type === "club" ? "delete_archived_club" : "delete_archived_category";
+      const arg = row.entity_type === "club" ? { _club_id: row.entity_id } : { _category_id: row.entity_id };
+      const { data, error } = await supabase.rpc(fn as any, arg as any);
+      if (error) throw error;
+      const result = data as { success: boolean; error?: string };
+      if (!result?.success) throw new Error(result?.error || "Échec de la suppression");
+    },
+    onSuccess: () => {
+      toast.success("Suppression définitive effectuée");
+      setConfirmDelete(null);
+      queryClient.invalidateQueries({ queryKey: ["super-admin-archives"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const downloadSnapshot = async (row: ArchivedRow) => {
+    if (!row.latest_snapshot_id) {
+      toast.error("Aucun instantané disponible");
+      return;
+    }
+    const { data, error } = await supabase
+      .from("archived_snapshots")
+      .select("snapshot, entity_name, version, created_at")
+      .eq("id", row.latest_snapshot_id)
+      .single();
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `archive_${row.entity_type}_${row.entity_name}_v${(data as any).version}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="py-12 flex justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Archive className="h-5 w-5" />
+          Archives — Clubs &amp; Catégories
+        </CardTitle>
+        <CardDescription>
+          Consulter les éléments archivés. Restaurer pour réactiver, exporter l'instantané ou supprimer définitivement.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {(!archives || archives.length === 0) ? (
+          <div className="text-center py-8 text-muted-foreground">Aucune archive pour l'instant.</div>
+        ) : (
+          archives.map((row) => (
+            <div
+              key={`${row.entity_type}-${row.entity_id}`}
+              className="flex flex-wrap items-center gap-3 rounded-2xl border bg-surface p-4"
+            >
+              <div className="flex items-center gap-2">
+                {row.entity_type === "club" ? (
+                  <Building2 className="h-5 w-5 text-primary" />
+                ) : (
+                  <Users className="h-5 w-5 text-accent" />
+                )}
+                <Badge variant="outline" className="capitalize">{row.entity_type === "club" ? "Club" : "Catégorie"}</Badge>
+              </div>
+              <div className="flex-1 min-w-[200px]">
+                <div className="font-semibold">{row.entity_name}</div>
+                <div className="text-xs text-muted-foreground">
+                  {row.entity_type === "category" && row.club_name && <span>Club : {row.club_name} • </span>}
+                  Archivé le {new Date(row.archived_at).toLocaleString("fr-FR")}
+                  {row.archiver_email && <> par {row.archiver_email}</>}
+                  {" • "}{row.snapshot_count} version{row.snapshot_count > 1 ? "s" : ""}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => downloadSnapshot(row)}>
+                  <Download className="h-4 w-4 mr-1" /> Exporter
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => restore.mutate(row)}
+                  disabled={restore.isPending}
+                >
+                  <RotateCcw className="h-4 w-4 mr-1" /> Restaurer
+                </Button>
+                <Button variant="destructive" size="sm" onClick={() => setConfirmDelete(row)}>
+                  <Trash2 className="h-4 w-4 mr-1" /> Supprimer
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
+      </CardContent>
+
+      <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Suppression définitive</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action supprime <strong>définitivement</strong> {confirmDelete?.entity_type === "club" ? "le club" : "la catégorie"}{" "}
+              <strong>{confirmDelete?.entity_name}</strong> et toutes ses données associées. L'instantané d'archive est conservé.
+              Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => confirmDelete && permanentDelete.mutate(confirmDelete)}
+            >
+              Supprimer définitivement
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Card>
+  );
+}

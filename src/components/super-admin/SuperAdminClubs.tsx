@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/sonner";
-import { Building2, Pause, Play, ChevronDown, ChevronRight, FolderOpen, Gift, User, DollarSign } from "lucide-react";
+import { Building2, Pause, Play, ChevronDown, ChevronRight, FolderOpen, Gift, User, DollarSign, Archive } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -20,6 +20,7 @@ export function SuperAdminClubs() {
       const { data, error } = await supabase
         .from("clubs")
         .select(`*, clients(id, name)`)
+        .eq("is_archived", false)
         .order("created_at", { ascending: false });
       if (error) throw error;
 
@@ -47,6 +48,7 @@ export function SuperAdminClubs() {
       const { data, error } = await supabase
         .from("categories")
         .select("*")
+        .eq("is_archived", false)
         .order("name");
       if (error) throw error;
       return data;
@@ -91,6 +93,21 @@ export function SuperAdminClubs() {
       toast.success("Statut mis à jour");
       queryClient.invalidateQueries({ queryKey: ["super-admin-all-clubs"] });
     },
+  });
+
+  const archiveClub = useMutation({
+    mutationFn: async (clubId: string) => {
+      const { data, error } = await supabase.rpc("archive_club", { _club_id: clubId });
+      if (error) throw error;
+      const r = data as { success: boolean; error?: string };
+      if (!r?.success) throw new Error(r?.error || "Échec");
+    },
+    onSuccess: () => {
+      toast.success("Club archivé");
+      queryClient.invalidateQueries({ queryKey: ["super-admin-all-clubs"] });
+      queryClient.invalidateQueries({ queryKey: ["super-admin-archives"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   // Toggle free/paid status for a club owner
@@ -231,6 +248,18 @@ export function SuperAdminClubs() {
               ) : (
                 <Play className="h-4 w-4 text-green-600" />
               )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Archiver le club"
+              onClick={() => {
+                if (confirm(`Archiver le club « ${club.name} » et toutes ses catégories ?`)) {
+                  archiveClub.mutate(club.id);
+                }
+              }}
+            >
+              <Archive className="h-4 w-4 text-orange-600" />
             </Button>
           </div>
         </div>
