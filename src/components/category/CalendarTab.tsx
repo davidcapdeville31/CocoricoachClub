@@ -27,6 +27,7 @@ import { getTrainingTypesForSport, TRAINING_TYPE_COLORS } from "@/lib/constants/
 import { DisabledTabTrigger } from "@/components/ui/disabled-tab-trigger";
 import { useViewerSessions, useViewerMatches } from "@/hooks/use-viewer-data";
 import { ImprovedCalendarView } from "./calendar/ImprovedCalendarView";
+import { EditAdminEventDialog, ADMIN_EVENT_TYPES } from "./calendar/EditAdminEventDialog";
 import { AnnualPlanningView } from "@/components/planning/AnnualPlanningView";
 
 interface CalendarTabProps {
