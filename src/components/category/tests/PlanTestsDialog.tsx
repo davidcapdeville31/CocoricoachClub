@@ -172,16 +172,6 @@ export function PlanTestsDialog({
   };
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [previewVideo, setPreviewVideo] = useState<string | null>(null);
-
-  const getYoutubeEmbed = (url: string) => {
-    const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?\/\s]+)/);
-    return m ? `https://www.youtube.com/embed/${m[1]}` : null;
-  };
-  const getVimeoEmbed = (url: string) => {
-    const m = url.match(/vimeo\.com\/(\d+)/);
-    return m ? `https://player.vimeo.com/video/${m[1]}` : null;
-  };
 
   const filteredPlayers = useMemo(() => {
     const q = playerSearch.trim().toLowerCase();
@@ -376,8 +366,8 @@ export function PlanTestsDialog({
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl h-[90vh] flex flex-col p-0 overflow-hidden">
-        <DialogHeader className="shrink-0 px-6 pt-6 pb-3 border-b">
+      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-3 border-b">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <CalendarPlus className="h-5 w-5 text-primary" />
             Planifier des tests dans le calendrier
@@ -387,7 +377,7 @@ export function PlanTestsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
+        <ScrollArea className="flex-1 px-6 py-4">
           <div className="space-y-6">
             {/* === TESTS SELECTION (Accordion) === */}
             <section className="space-y-3">
@@ -546,13 +536,14 @@ export function PlanTestsDialog({
                                       </div>
                                     )}
                                     {meta?.video_url && (
-                                      <button
-                                        type="button"
-                                        onClick={() => setPreviewVideo(meta.video_url)}
+                                      <a
+                                        href={meta.video_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         className="text-xs text-primary hover:underline inline-block"
                                       >
                                         Voir la vidéo →
-                                      </button>
+                                      </a>
                                     )}
                                   </PopoverContent>
                                 </Popover>
@@ -600,22 +591,6 @@ export function PlanTestsDialog({
                 <Repeat className="h-4 w-4 text-primary" />
                 Récurrence
               </Label>
-
-              <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 space-y-1.5">
-                <Label className="text-xs font-semibold text-primary">
-                  📅 Date du premier test (point de départ de la récurrence)
-                </Label>
-                <Input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="bg-background"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Toutes les séances suivantes sont calculées à partir de cette date selon la récurrence choisie ci-dessous.
-                </p>
-              </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {RECURRENCE_OPTIONS.map((opt) => (
                   <button
@@ -792,9 +767,9 @@ export function PlanTestsDialog({
               />
             </section>
           </div>
-        </div>
+        </ScrollArea>
 
-        <DialogFooter className="shrink-0 px-6 py-4 border-t bg-[hsl(var(--surface-sunken))]">
+        <DialogFooter className="px-6 py-4 border-t bg-[hsl(var(--surface-sunken))]">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
@@ -815,33 +790,6 @@ export function PlanTestsDialog({
       <Dialog open onOpenChange={() => setPreviewImage(null)}>
         <DialogContent className="max-w-2xl p-2">
           <img src={previewImage} alt="Aperçu" className="w-full h-auto rounded-lg" />
-        </DialogContent>
-      </Dialog>
-    )}
-    {previewVideo && (
-      <Dialog open onOpenChange={() => setPreviewVideo(null)}>
-        <DialogContent className="max-w-3xl p-2">
-          {(() => {
-            const yt = getYoutubeEmbed(previewVideo);
-            const vm = getVimeoEmbed(previewVideo);
-            const embed = yt || vm;
-            if (embed) {
-              return (
-                <div className="aspect-video w-full">
-                  <iframe
-                    src={embed}
-                    className="w-full h-full rounded-lg"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    title="Vidéo du test"
-                  />
-                </div>
-              );
-            }
-            return (
-              <video src={previewVideo} controls className="w-full h-auto rounded-lg" />
-            );
-          })()}
         </DialogContent>
       </Dialog>
     )}

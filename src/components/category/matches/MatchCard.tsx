@@ -91,10 +91,9 @@ interface MatchCardProps {
   categoryId: string;
   isSubMatch?: boolean;
   compact?: boolean;
-  sportType?: string;
 }
 
-export function MatchCard({ match, categoryId, isSubMatch = false, compact = false, sportType: sportTypeProp }: MatchCardProps) {
+export function MatchCard({ match, categoryId, isSubMatch = false, compact = false }: MatchCardProps) {
   const [isExpanded, setIsExpanded] = useState(!compact);
   const [isLineupOpen, setIsLineupOpen] = useState(false);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
@@ -116,7 +115,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("rugby_type, clubs(sport)")
+        .select("rugby_type")
         .eq("id", categoryId)
         .single();
       if (error) throw error;
@@ -222,9 +221,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
     enabled: isNotifyOpen,
   });
 
-  const clubSport = (category?.clubs as any)?.sport?.toLowerCase();
-  const sportType = sportTypeProp
-    || (clubSport === "bowling" ? "bowling" : (category?.rugby_type || "XV"));
+  const sportType = category?.rugby_type || "XV";
   const isIndividual = isIndividualSport(sportType);
   const isPadel = sportType.toLowerCase().includes("padel");
   const isTennis = sportType.toLowerCase().includes("tennis");
@@ -794,7 +791,6 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         matchId={match.id}
         categoryId={categoryId}
         matchFormat={match.match_format}
-        sportType={sportType}
       />
 
       {/* For non-round-based sports, use SportMatchStatsDialog */}
@@ -804,7 +800,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
           onOpenChange={setIsStatsOpen}
           matchId={match.id}
           categoryId={categoryId}
-          sportType={sportType}
+          sportType={category?.rugby_type || "XV"}
         />
       )}
 

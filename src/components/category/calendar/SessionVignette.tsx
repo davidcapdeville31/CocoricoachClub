@@ -128,7 +128,7 @@ export function SessionVignette({
       {/* Main Session Block */}
       <div
         className={cn(
-          "rounded-lg px-2 py-1.5 text-white text-[11px] font-medium transition-all relative",
+          "rounded-lg px-2 py-1.5 text-white text-[11px] font-medium transition-all relative overflow-hidden",
           !hasBlocks && !isAthleteCreated && bgColor,
           isDragging && "shadow-lg ring-2 ring-primary/50",
           isAthleteCreated && !hasBlocks && "ring-2 ring-violet-400"
@@ -182,7 +182,7 @@ export function SessionVignette({
 
         {/* Hover Actions Overlay - displayed ON the session */}
         {isHovered && !isDragging && (
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 min-w-full w-max flex items-center justify-center gap-0.5 bg-card/95 border border-border rounded-lg shadow-lg px-1 py-1 z-[100] animate-fade-in">
+          <div className="absolute inset-0 flex items-center justify-center bg-card/95 rounded-lg z-[100] animate-fade-in">
             {/* Preview */}
             <button
               onClick={(e) => handleActionClick(e, onPreview)}
@@ -218,10 +218,10 @@ export function SessionVignette({
             {!isViewer && onNotify && (
               <button
                 onClick={(e) => handleActionClick(e, onNotify)}
-                className="p-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary/15 transition-colors group/btn"
+                className="p-1.5 rounded-md hover:bg-primary/10 transition-colors group/btn"
                 title="Notifier les athlètes"
               >
-                <Bell className="h-4 w-4 text-current" />
+                <Bell className="h-4 w-4 text-muted-foreground group-hover/btn:text-primary" />
               </button>
             )}
             
@@ -229,10 +229,10 @@ export function SessionVignette({
             {!isViewer && (
               <button
                 onClick={(e) => handleActionClick(e, onDelete)}
-                className="p-1.5 rounded-md bg-destructive/10 text-destructive hover:bg-destructive/15 transition-colors group/btn"
+                className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors group/btn"
                 title="Supprimer"
               >
-                <Trash2 className="h-4 w-4 text-current" />
+                <Trash2 className="h-4 w-4 text-muted-foreground group-hover/btn:text-destructive" />
               </button>
             )}
           </div>

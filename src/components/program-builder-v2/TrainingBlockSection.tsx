@@ -168,6 +168,18 @@ export const TRAINING_BLOCK_TYPES: {
       iconBg: "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
     }
   },
+  {
+    type: "tests",
+    label: "Tests",
+    icon: ClipboardList,
+    colors: {
+      bg: "bg-cyan-500/5 dark:bg-cyan-500/10",
+      border: "border-cyan-500/30",
+      header: "bg-gradient-to-r from-cyan-600 to-cyan-700",
+      badge: "bg-cyan-500",
+      iconBg: "bg-cyan-500/20 text-cyan-600 dark:text-cyan-400"
+    }
+  },
 ];
 export const getBlockTypeConfig = (type: TrainingBlockType, block?: TrainingBlock) => {
   // If custom block with custom color/emoji, generate config dynamically

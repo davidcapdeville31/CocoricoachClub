@@ -31,7 +31,6 @@ interface MatchLineupDialogProps {
   matchId: string;
   categoryId: string;
   matchFormat?: string | null;
-  sportType?: string;
 }
 
 interface LineupPlayer {
@@ -49,7 +48,6 @@ export function MatchLineupDialog({
   matchId,
   categoryId,
   matchFormat,
-  sportType: sportTypeProp,
 }: MatchLineupDialogProps) {
   const [lineupData, setLineupData] = useState<LineupPlayer[]>([]);
   const [athleticsEntries, setAthleticsEntries] = useState<AthleticsLineupEntry[]>([]);
@@ -61,7 +59,7 @@ export function MatchLineupDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("rugby_type, clubs(sport)")
+        .select("rugby_type")
         .eq("id", categoryId)
         .single();
       if (error) throw error;
@@ -69,8 +67,7 @@ export function MatchLineupDialog({
     },
   });
 
-  const clubSport = (category?.clubs as any)?.sport?.toLowerCase();
-  const sportType = sportTypeProp || (clubSport === "bowling" ? "bowling" : (category?.rugby_type || "XV"));
+  const sportType = category?.rugby_type || "XV";
   const fieldConfig = getSportFieldConfig(sportType);
   const isIndividual = isIndividualSport(sportType);
   const isAthletics = isAthletismeCategory(sportType);

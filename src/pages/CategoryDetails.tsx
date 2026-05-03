@@ -6,7 +6,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredNavTabsList, NAV_COLORS, NavColorKey } from "@/components/ui/colored-nav-tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
-import { ArrowLeft, LayoutDashboard, Shield, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Settings, FileCode, MapPin, Video, GraduationCap, CircleDot, BarChart3 } from "lucide-react";
+import { ArrowLeft, LayoutDashboard, Shield, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Settings, FileCode, MapPin, Video, GraduationCap, CircleDot } from "lucide-react";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -167,7 +167,7 @@ function CategoryDetailsContent() {
       } else {
         const { data, error } = await supabase
           .from("categories")
-          .select("*, clubs(name, id, sport), rugby_type")
+          .select("*, clubs(name, id), rugby_type")
           .eq("id", categoryId)
           .single();
         if (error) throw error;
@@ -183,7 +183,7 @@ function CategoryDetailsContent() {
   // Check if GPS/Video/Academy should be visible (category-level flags)
   const showGpsTab = isGpsSportType(category?.rugby_type) && (category?.gps_enabled === true);
   const showVideoTab = hasVideoAnalysis(category?.rugby_type) && (category?.video_enabled === true);
-  const isBowling = category?.rugby_type?.toLowerCase().includes("bowling") || (category?.clubs as any)?.sport?.toLowerCase() === "bowling";
+  const isBowling = category?.rugby_type?.toLowerCase().includes("bowling");
 
   // Menu permissions based on role_menu_permissions matrix
   const { canSeeMenu } = useMenuPermissions(category?.clubs?.id, categoryId);
@@ -296,17 +296,6 @@ function CategoryDetailsContent() {
                   categoryId={categoryId} 
                   currentCoverUrl={category?.cover_image_url}
                 />
-                {canSeeMenu("parametres") && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleTabChange("settings")}
-                    className="gap-2 bg-white/90 text-slate-900 border-white/40 hover:bg-white hover:text-slate-900 backdrop-blur-sm shadow-sm"
-                  >
-                    <Settings className="h-4 w-4" />
-                    Paramètres
-                  </Button>
-                )}
               </div>
             )}
           </div>
@@ -316,13 +305,13 @@ function CategoryDetailsContent() {
       <div className="container mx-auto max-w-7xl px-4 py-8">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <div className="px-0 pb-2">
-            <ColoredNavTabsList className="flex flex-wrap justify-center gap-1 p-2 w-full bg-transparent border-0 shadow-none [&_.colored-tab-trigger]:flex-col [&_.colored-tab-trigger]:gap-1.5 [&_.colored-tab-trigger]:px-3 [&_.colored-tab-trigger]:py-2 [&_.colored-tab-trigger]:rounded-xl [&_.colored-tab-trigger]:text-xs [&_.colored-tab-trigger]:min-w-[88px] [&_.colored-tab-trigger_svg]:h-5 [&_.colored-tab-trigger_svg]:w-5 [&_.colored-tab-trigger_.colored-tab-text]:flex-col [&_.colored-tab-trigger_.colored-tab-text]:gap-1.5">
+            <ColoredNavTabsList className="flex flex-wrap justify-center gap-1 p-2">
               <ColoredTabTrigger 
                 value="overview" 
                 colorKey="overview"
                 icon={<LayoutDashboard className="h-5 w-5" />}
-                label="Accueil"
-                shortLabel="Accueil"
+               label="Centre de décision"
+               shortLabel="Décision"
                tooltip="Vue d'ensemble : indicateurs clés, alertes, tâches prioritaires et résumé de l'activité récente"
               />
               {canSeeMenu("administratif") && (
@@ -338,7 +327,7 @@ function CategoryDetailsContent() {
               {canSeeMenu("academique") && isAcademy && (
                 <ColoredTabTrigger
                   value="academy" 
-                  colorKey="academy"
+                  colorKey="effectif"
                   icon={<GraduationCap className="h-5 w-5" />}
                   label="Académie"
                   shortLabel="Acad"
@@ -370,8 +359,8 @@ function CategoryDetailsContent() {
                   value="programmation" 
                   colorKey="programmation"
                   icon={<FileCode className="h-5 w-5" />}
-                  label="Entraînement"
-                  shortLabel="Entr."
+                  label="Programmation"
+                  shortLabel="Prog"
                   tooltip="Création et structuration des programmes d'entraînement : blocs, semaines et séances types"
                 />
               )}
@@ -399,19 +388,9 @@ function CategoryDetailsContent() {
                   value="competition" 
                   colorKey="competition"
                   icon={<Trophy className="h-5 w-5" />}
-                  label="Compétitions"
+                  label="Compétition & Stats"
                   shortLabel="Compét"
-                  tooltip="Gestion des matchs / compétitions, calendrier, résultats et compositions"
-                />
-              )}
-              {canSeeMenu("competition") && (
-                <ColoredTabTrigger 
-                  value="stats" 
-                  colorKey="competition"
-                  icon={<BarChart3 className="h-5 w-5" />}
-                  label="Stats"
-                  shortLabel="Stats"
-                  tooltip="Statistiques cumulées individuelles et collectives issues des compétitions"
+                  tooltip="Gestion des matchs/compétitions, saisie des résultats, statistiques individuelles et collectives"
                 />
               )}
               {isBowling && (
@@ -451,6 +430,16 @@ function CategoryDetailsContent() {
                   shortLabel="Com"
                   badge={unreadMessagesCount}
                   tooltip="Messagerie interne : échanges avec le staff et les athlètes, discussions de groupe"
+                />
+              )}
+              {canSeeMenu("parametres") && (
+                <ColoredTabTrigger 
+                  value="settings" 
+                  colorKey="settings"
+                  icon={<Settings className="h-5 w-5" />}
+                  label="Paramètres"
+                  shortLabel="Param"
+                  tooltip="Configuration de la catégorie : membres, invitations, préférences et gestion des accès"
                 />
               )}
             </ColoredNavTabsList>
@@ -525,21 +514,7 @@ function CategoryDetailsContent() {
                   categoryId={categoryId!} 
                   isRugby7={isRugby7} 
                   isNationalTeam={isNationalTeam}
-                  sportType={isBowling ? "bowling" : category?.rugby_type}
-                />
-              </NavThemedSection>
-            </TabsContent>
-          )}
-
-          {canSeeMenu("competition") && (
-            <TabsContent value="stats" className="space-y-4">
-              <NavThemedSection colorKey="competition">
-                <CompetitionTab 
-                  categoryId={categoryId!} 
-                  isRugby7={isRugby7} 
-                  isNationalTeam={isNationalTeam}
-                  sportType={isBowling ? "bowling" : category?.rugby_type}
-                  view="stats"
+                  sportType={category?.rugby_type}
                 />
               </NavThemedSection>
             </TabsContent>
