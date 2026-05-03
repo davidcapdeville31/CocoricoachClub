@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { TonnageDashboard } from "./TonnageDashboard";
 import { PendingWeightLogsValidation } from "./PendingWeightLogsValidation";
 import { PendingTestResultsValidation } from "@/components/category/tests/PendingTestResultsValidation";
