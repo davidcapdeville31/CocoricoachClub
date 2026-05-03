@@ -30,6 +30,8 @@ interface Exercise {
   group_id?: string | null;
   group_order?: number | null;
   order_index?: number | null;
+  library_exercise_id?: string | null;
+  percentage_1rm?: number | null;
 }
 
 const contractionLabels: Record<string, string> = {
