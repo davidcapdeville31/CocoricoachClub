@@ -188,6 +188,37 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
     },
   });
 
+  // Validate all today's entries for the currently selected player
+  const validateAndNext = useMutation({
+    mutationFn: async () => {
+      if (!selectedPlayerId) throw new Error("Sélectionnez un joueur");
+      if (!activeSessionId) throw new Error("Aucune séance aujourd'hui");
+      const { error, count } = await supabase
+        .from("precision_training")
+        .update({ validated: true, validated_at: new Date().toISOString() }, { count: "exact" })
+        .eq("training_session_id", activeSessionId)
+        .eq("player_id", selectedPlayerId)
+        .eq("validated", false);
+      if (error) throw error;
+      return count ?? 0;
+    },
+    onSuccess: (count) => {
+      queryClient.invalidateQueries({ queryKey: ["precision-field-entries"] });
+      queryClient.invalidateQueries({ queryKey: ["precision-training-stats"] });
+      toast.success(count > 0 ? `✅ ${count} stat(s) validée(s) — au suivant !` : "Aucune stat à valider");
+      // Move to next player automatically
+      const idx = players.findIndex(p => p.id === selectedPlayerId);
+      const next = players[(idx + 1) % Math.max(players.length, 1)];
+      if (next && players.length > 1) setSelectedPlayerId(next.id);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const playerPendingCount = useMemo(() => {
+    if (!selectedPlayerId) return 0;
+    return entries.filter((e: any) => e.player_id === selectedPlayerId && !e.validated && e.training_session_id === activeSessionId).length;
+  }, [entries, selectedPlayerId, activeSessionId]);
+
   // Buteur kick markers
   const kickMarkers = useMemo(() => {
     return entries
