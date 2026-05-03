@@ -852,10 +852,8 @@ export function SessionDetailsDialog({
           <TabsList className={cn(
             "shrink-0",
             session?.training_type === "precision" && isRugby
-              ? "grid w-full grid-cols-3"
-              : isTestSession || isInfoOnlySession
-                ? "inline-flex w-auto self-start"
-                : "grid w-full grid-cols-2",
+              ? "grid w-full grid-cols-2"
+              : "inline-flex w-auto self-start",
           )}>
             <TabsTrigger value="exercises" className="flex items-center gap-1">
               {isTestSession ? (
@@ -888,12 +886,6 @@ export function SessionDetailsDialog({
               <TabsTrigger value="precision_stats" className="flex items-center gap-1">
                 <Target className="h-4 w-4" />
                 Saisie stats
-              </TabsTrigger>
-            )}
-            {!isTestSession && !isInfoOnlySession && (
-              <TabsTrigger value="rpe" className="flex items-center gap-1">
-                <Activity className="h-4 w-4" />
-                Saisie RPE
               </TabsTrigger>
             )}
           </TabsList>
