@@ -65,8 +65,9 @@ export default function Clubs() {
       const ownedIds = new Set((ownedClubs || []).map(c => c.id));
       const joinedClubs: any[] = [];
       for (const mc of memberClubs || []) {
-        if (mc.clubs && !ownedIds.has((mc.clubs as any).id)) {
-          joinedClubs.push(mc.clubs as any);
+        const club: any = mc.clubs;
+        if (club && !ownedIds.has(club.id) && !club.is_archived) {
+          joinedClubs.push(club);
         }
       }
 
