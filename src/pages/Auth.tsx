@@ -260,7 +260,7 @@ export default function Auth() {
       <Card className="w-full max-w-md">
         <CardHeader className="pb-2 space-y-1">
           <div className="flex justify-center -mb-2">
-            <BrandLogo className="h-40 sm:h-48 w-auto" />
+            <BrandLogo className="h-56 sm:h-64 w-auto" />
           </div>
           <CardDescription className="text-center">
             Connectez-vous pour gérer vos clubs et athlètes
