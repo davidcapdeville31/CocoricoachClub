@@ -41,6 +41,7 @@ interface TestReminder {
   frequency_weeks: number;
   is_active: boolean;
   start_date: string | null;
+  end_date: string | null;
   session_start_time: string | null;
   session_end_time: string | null;
   location: string | null;
