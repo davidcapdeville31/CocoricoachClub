@@ -315,8 +315,8 @@ function CategoryDetailsContent() {
 
       <div className="container mx-auto max-w-7xl px-4 py-8">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <div className="px-0 pb-2 -mx-4 px-4 overflow-x-auto scrollbar-thin">
-            <ColoredNavTabsList className="flex flex-nowrap justify-start gap-0.5 p-1.5 w-max min-w-full [&_.colored-tab-trigger]:px-2.5 [&_.colored-tab-trigger]:py-2 [&_.colored-tab-trigger]:text-[13px] [&_.colored-tab-trigger_svg]:h-4 [&_.colored-tab-trigger_svg]:w-4">
+          <div className="px-0 pb-2">
+            <ColoredNavTabsList className="flex flex-nowrap justify-between gap-0.5 p-1 w-full [&_.colored-tab-trigger]:px-1.5 [&_.colored-tab-trigger]:py-1.5 [&_.colored-tab-trigger]:text-[11px] [&_.colored-tab-trigger]:gap-1 [&_.colored-tab-trigger_svg]:h-3.5 [&_.colored-tab-trigger_svg]:w-3.5">
               <ColoredTabTrigger 
                 value="overview" 
                 colorKey="overview"
