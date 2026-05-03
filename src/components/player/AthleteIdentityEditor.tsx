@@ -19,7 +19,11 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, Star, Loader2, User, Cake } from "lucide-react";
+import { Plus, X, Star, Loader2, User, Cake, Footprints } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { isRugbyType } from "@/lib/constants/sportTypes";
+import { toast } from "sonner";
 import {
   ATHLETISME_DISCIPLINES,
   ATHLETISME_SPECIALTIES,
