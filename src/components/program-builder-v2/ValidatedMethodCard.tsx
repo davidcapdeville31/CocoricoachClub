@@ -17,6 +17,10 @@ import { Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getMethodColors } from "./shared/MethodGroupWrapper";
 import { RestPauseReadOnlyUI } from "./RestPauseReadOnlyUI";
+import { FartlekCard } from "./FartlekCard";
+import { ClusterCard } from "./ClusterCard";
+import { StatoDynamiqueCard } from "./StatoDynamiqueCard";
+import { IntermittentCardioCard } from "./IntermittentCardioCard";
 import type { RestPauseConfig } from "./RestPauseTypes";
 import type { V2BlockExercise } from "./hooks/useSaveProgramV2";
 
