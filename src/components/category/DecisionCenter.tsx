@@ -611,14 +611,23 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
       const NO_RPE_TYPES = new Set(["medical", "video_analyse", "video_analysis", "rdv_medical", "meeting", "reunion"]);
       const sessionsRequiringRpe = todaySessions.filter(s => !NO_RPE_TYPES.has((s.training_type || "").toLowerCase()));
       
-      return sessionsRequiringRpe.map(session => {
-        // Get participants for this session (from attendance or all players)
-        const sessionAttendance = todayAttendance.filter(
-          a => a.training_session_id === session.id && (a.status === "present" || a.status === "late")
-        );
-        const participantIds = sessionAttendance.length > 0 
-          ? sessionAttendance.map(a => a.player_id)
-          : players.map(p => p.id);
+       return sessionsRequiringRpe.map(session => {
+         // Priority: attendance (present/late) > assigned participants > all players (last resort)
+         const sessionAttendance = todayAttendance.filter(
+           a => a.training_session_id === session.id && (a.status === "present" || a.status === "late")
+         );
+         const assignedIds = todaySessionParticipants
+           .filter(p => p.training_session_id === session.id)
+           .map(p => p.player_id);
+
+         let participantIds: string[];
+         if (sessionAttendance.length > 0) {
+           participantIds = sessionAttendance.map(a => a.player_id);
+         } else if (assignedIds.length > 0) {
+           participantIds = assignedIds;
+         } else {
+           participantIds = players.map(p => p.id);
+         }
         
         const totalParticipants = participantIds.length;
         const sessionRpe = todayRpeData.filter(r => r.training_session_id === session.id);
