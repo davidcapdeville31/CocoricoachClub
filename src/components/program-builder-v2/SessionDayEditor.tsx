@@ -105,6 +105,7 @@ type ConfigDraft = {
   method: MethodConfigType;
   droppedExercise: { exerciseId: string; exerciseName: string } | null;
   droppedPhaseExercises: Record<number, { exerciseId: string; exerciseName: string } | null>;
+  initialPayload?: Record<string, unknown>;
 };
 
 export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEditorProps>(function SessionDayEditor({ blocks, onChange }, ref) {
@@ -898,6 +899,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                   dayId={block.id}
                   droppedExercise={configDraft.droppedExercise}
                   droppedPhaseExercises={configDraft.droppedPhaseExercises}
+                  initialData={configDraft.initialPayload as any}
                   onExerciseRemove={() => handleConfigExerciseRemove(block.id)}
                   onPhaseExerciseRemove={(idx) => handleConfigPhaseRemove(block.id, idx)}
                   onConfirm={(payload) => handleConfigValidate(block.id, configDraft.method, payload)}
@@ -957,6 +959,30 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                       key={item.exercise.id}
                       exercise={item.exercise}
                       onRemove={() => removeExerciseFromBlock(block.id, item.exercise.id)}
+                      onEdit={() => {
+                        const m = item.exercise.method as string;
+                        const cfg = (item.exercise.config ?? {}) as any;
+                        if (m === "fartlek") {
+                          setFartlekDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg } }));
+                        } else if (m === "cluster") {
+                          setClusterDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg } }));
+                        } else if (m === "stato_dynamique") {
+                          setStatoDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg } }));
+                        } else if (m === "intermittent_cardio") {
+                          setIntermittentDrafts((p) => ({ ...p, [block.id]: { editing: true, initial: cfg } }));
+                        } else {
+                          setConfigDrafts((p) => ({
+                            ...p,
+                            [block.id]: {
+                              method: m as MethodConfigType,
+                              droppedExercise: cfg.droppedExercise ?? null,
+                              droppedPhaseExercises: cfg.droppedPhaseExercises ?? {},
+                              initialPayload: cfg,
+                            } as any,
+                          }));
+                        }
+                        removeExerciseFromBlock(block.id, item.exercise.id);
+                      }}
                     />
                   ) : (
                     <div
