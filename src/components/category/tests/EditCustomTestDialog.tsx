@@ -297,8 +297,8 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0">
-        <DialogHeader className="px-6 pt-6 pb-2">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0 flex flex-col">
+        <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
           <DialogTitle>{isSeed ? "Personnaliser le test" : "Modifier le test"}</DialogTitle>
           <DialogDescription>
             {isSeed
@@ -307,7 +307,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
           </DialogDescription>
         </DialogHeader>
 
-        <div className="overflow-y-auto px-6 pb-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4">
           <div className="space-y-4">
           <div className="space-y-1.5">
             <Label>Catégorie <span className="text-destructive">*</span></Label>
