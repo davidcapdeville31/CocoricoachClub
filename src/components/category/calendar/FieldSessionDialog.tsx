@@ -30,6 +30,7 @@ interface BlockDraft {
   theme: string;          // training_type value (e.g. "bowling_spare", "Collectif")
   themeLabel: string;     // display label
   duration_minutes: number;
+  intensity: number;      // Planned RPE 1-10 (chosen by staff for this block)
   notes: string;
   bowling_exercise_type?: string;
 }
@@ -66,8 +67,8 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(true);
   const [blocks, setBlocks] = useState<BlockDraft[]>([
-    { id: crypto.randomUUID(), theme: "Échauffement", themeLabel: "Échauffement", duration_minutes: 15, notes: "" },
-    { id: crypto.randomUUID(), theme: "Collectif", themeLabel: "Collectif", duration_minutes: 45, notes: "" },
+    { id: crypto.randomUUID(), theme: "Échauffement", themeLabel: "Échauffement", duration_minutes: 15, intensity: 4, notes: "" },
+    { id: crypto.randomUUID(), theme: "Collectif", themeLabel: "Collectif", duration_minutes: 45, intensity: 7, notes: "" },
   ]);
 
   const isBowling = isBowlingSport(sportType);
@@ -121,6 +122,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         theme: first?.value || "Collectif",
         themeLabel: first?.label || "Collectif",
         duration_minutes: 30,
+        intensity: 6,
         notes: "",
       },
     ]);
@@ -153,6 +155,15 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
       if (blocks.length === 0) throw new Error("Ajoutez au moins un bloc");
       if (blocks.some((b) => !b.theme)) throw new Error("Chaque bloc doit avoir un thème");
 
+      // Compute weighted planned RPE from blocks (for workload "RPE prévu")
+      const totalDur = blocks.reduce((s, b) => s + (Number(b.duration_minutes) || 0), 0);
+      const weightedSum = blocks.reduce(
+        (s, b) => s + (Number(b.duration_minutes) || 0) * (Number(b.intensity) || 0),
+        0,
+      );
+      const plannedIntensity =
+        totalDur > 0 && weightedSum > 0 ? Math.round((weightedSum / totalDur) * 10) / 10 : null;
+
       const { data: session, error: sErr } = await supabase
         .from("training_sessions")
         .insert({
@@ -163,7 +174,8 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
           training_type: "terrain",
           location: location || null,
           notes: `${title}${notes ? `\n${notes}` : ""}`,
-          intensity: 1,
+          intensity: plannedIntensity ? Math.round(plannedIntensity) : 1,
+          planned_intensity: plannedIntensity,
         })
         .select("id")
         .single();
@@ -176,6 +188,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         training_type: b.theme,
         theme: b.themeLabel || b.theme,
         duration_minutes: b.duration_minutes,
+        intensity: b.intensity && b.intensity >= 1 && b.intensity <= 10 ? b.intensity : null,
         notes: b.notes || null,
         bowling_exercise_type: b.theme === "bowling_spare" ? (b.bowling_exercise_type || null) : null,
       }));
@@ -251,7 +264,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                         <Trash2 className="h-3.5 w-3.5 text-destructive" />
                       </Button>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px] gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-[1fr_110px_120px] gap-2">
                       <Select
                         value={b.theme}
                         onValueChange={(v) => {
@@ -272,8 +285,23 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                           min={1}
                           value={b.duration_minutes}
                           onChange={(e) => updateBlock(b.id, { duration_minutes: parseInt(e.target.value) || 0 })}
+                          title="Durée en minutes"
                         />
                         <span className="text-xs text-muted-foreground">min</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type="number"
+                          min={1}
+                          max={10}
+                          value={b.intensity}
+                          onChange={(e) => {
+                            const v = parseInt(e.target.value) || 0;
+                            updateBlock(b.id, { intensity: Math.max(0, Math.min(10, v)) });
+                          }}
+                          title="RPE prévu (1-10)"
+                        />
+                        <span className="text-xs text-muted-foreground">RPE</span>
                       </div>
                     </div>
                     {b.theme === "bowling_spare" && (

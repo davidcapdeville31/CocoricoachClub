@@ -8,6 +8,7 @@ export interface SessionBlock {
   block_order: number;
   start_time?: string;
   end_time?: string;
+  duration_minutes?: number | null;
   training_type: string;
   intensity?: number | null;
   notes?: string;
@@ -53,9 +54,13 @@ function calculateDurationMinutes(startTime?: string, endTime?: string): number 
  * Formula: Σ(duration × intensity) / Σ(duration)
  */
 export function calculateWeightedRpe(blocks: SessionBlock[]): WeightedRpeResult {
-  const validBlocks = blocks.filter(
-    block => block.intensity != null && block.intensity > 0 && block.start_time && block.end_time
-  );
+  // A block is valid if it has an intensity AND either explicit duration_minutes
+  // or a start/end time pair we can derive a duration from.
+  const validBlocks = blocks.filter((block) => {
+    if (block.intensity == null || block.intensity <= 0) return false;
+    if (block.duration_minutes != null && block.duration_minutes > 0) return true;
+    return !!(block.start_time && block.end_time);
+  });
 
   if (validBlocks.length === 0) {
     return {
@@ -71,9 +76,12 @@ export function calculateWeightedRpe(blocks: SessionBlock[]): WeightedRpeResult 
   const blockDetails: WeightedRpeResult["blockDetails"] = [];
 
   validBlocks.forEach(block => {
-    const duration = calculateDurationMinutes(block.start_time, block.end_time);
+    const duration =
+      block.duration_minutes != null && block.duration_minutes > 0
+        ? block.duration_minutes
+        : calculateDurationMinutes(block.start_time, block.end_time);
     const intensity = block.intensity || 0;
-    
+
     if (duration > 0) {
       totalWeightedIntensity += duration * intensity;
       totalDuration += duration;
