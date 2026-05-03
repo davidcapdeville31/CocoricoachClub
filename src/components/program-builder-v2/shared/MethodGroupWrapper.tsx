@@ -107,8 +107,56 @@ export const getMethodColors = (trainingStyle?: string) => {
       text: "text-fuchsia-700 dark:text-fuchsia-300",
       iconBg: "bg-fuchsia-600"
     },
+    pyramid_up: {
+      bg: "bg-gradient-to-r from-emerald-500/10 to-emerald-400/5",
+      border: "border-emerald-500",
+      text: "text-emerald-700 dark:text-emerald-300",
+      iconBg: "bg-emerald-500",
+    },
+    pyramid_down: {
+      bg: "bg-gradient-to-r from-teal-500/10 to-teal-400/5",
+      border: "border-teal-500",
+      text: "text-teal-700 dark:text-teal-300",
+      iconBg: "bg-teal-500",
+    },
+    pyramid_full: {
+      bg: "bg-gradient-to-r from-cyan-500/10 to-cyan-400/5",
+      border: "border-cyan-500",
+      text: "text-cyan-700 dark:text-cyan-300",
+      iconBg: "bg-cyan-500",
+    },
+    five_by_five: {
+      bg: "bg-gradient-to-r from-sky-500/10 to-sky-400/5",
+      border: "border-sky-500",
+      text: "text-sky-700 dark:text-sky-300",
+      iconBg: "bg-sky-500",
+    },
+    fartlek: {
+      bg: "bg-gradient-to-r from-green-500/10 to-green-400/5",
+      border: "border-green-500",
+      text: "text-green-700 dark:text-green-300",
+      iconBg: "bg-green-500",
+    },
+    stato_dynamique: {
+      bg: "bg-gradient-to-r from-violet-500/10 to-violet-400/5",
+      border: "border-violet-500",
+      text: "text-violet-700 dark:text-violet-300",
+      iconBg: "bg-violet-500",
+    },
+    intermittent_cardio: {
+      bg: "bg-gradient-to-r from-sky-500/10 to-sky-400/5",
+      border: "border-sky-500",
+      text: "text-sky-700 dark:text-sky-300",
+      iconBg: "bg-sky-500",
+    },
+    bulgarian: {
+      bg: "bg-gradient-to-r from-fuchsia-500/10 to-fuchsia-400/5",
+      border: "border-fuchsia-500",
+      text: "text-fuchsia-700 dark:text-fuchsia-300",
+      iconBg: "bg-fuchsia-500",
+    },
   };
-  
+
   return colorMap[trainingStyle || ""] || { 
     bg: "bg-gradient-to-r from-gray-500/10 to-gray-400/5", 
     border: "border-gray-400", 

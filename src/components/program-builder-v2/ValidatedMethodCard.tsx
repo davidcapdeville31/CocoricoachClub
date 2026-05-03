@@ -17,6 +17,10 @@ import { Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getMethodColors } from "./shared/MethodGroupWrapper";
 import { RestPauseReadOnlyUI } from "./RestPauseReadOnlyUI";
+import { FartlekCard } from "./FartlekCard";
+import { ClusterCard } from "./ClusterCard";
+import { StatoDynamiqueCard } from "./StatoDynamiqueCard";
+import { IntermittentCardioCard } from "./IntermittentCardioCard";
 import type { RestPauseConfig } from "./RestPauseTypes";
 import type { V2BlockExercise } from "./hooks/useSaveProgramV2";
 
@@ -57,6 +61,36 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit }: Props) => {
   const isRestPause = method === "rest_pause" && restPauseConfig?.series?.length;
   const dropName: string =
     config.droppedExercise?.exerciseName ?? exercise.exerciseName ?? "—";
+
+  // Specialized cards keep their full creation UI after validation
+  if (method === "fartlek" && config.effortPhases) {
+    return <FartlekCard config={config as any} onEdit={onEdit} onRemove={onRemove} />;
+  }
+  if (method === "cluster" && config.sets != null) {
+    return (
+      <div className="relative group">
+        <ClusterCard config={config as any} exerciseName={dropName} onRemove={onRemove} />
+        {onEdit && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-10 h-7 w-7 rounded-2xl bg-background/80 hover:text-primary z-10"
+            onClick={onEdit}
+            title="Modifier"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
+    );
+  }
+  if (method === "stato_dynamique" && (config.phases || config.amplitudeType)) {
+    return <StatoDynamiqueCard config={config as any} exerciseName={dropName} onEdit={onEdit} onRemove={onRemove} />;
+  }
+  if (method === "intermittent_cardio" && config.workSeconds != null) {
+    return <IntermittentCardioCard config={config as any} onEdit={onEdit} onRemove={onRemove} />;
+  }
 
   return (
     <div
