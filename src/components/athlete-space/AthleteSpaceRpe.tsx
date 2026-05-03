@@ -580,8 +580,12 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     return "Maximal";
   };
 
-  const pendingSessions = todaySessions.filter(s => !completedSessionIds.has(s.id));
-  const doneSessions = todaySessions.filter(s => completedSessionIds.has(s.id));
+  // Types informatifs : pas de RPE
+  const NON_RPE_TYPES = new Set(["medical", "video", "video_analyse", "reunion", "surf_video"]);
+  const isNonRpe = (s: typeof todaySessions[0]) => NON_RPE_TYPES.has(s.training_type);
+  const pendingSessions = todaySessions.filter(s => !completedSessionIds.has(s.id) && !isNonRpe(s));
+  const doneSessions = todaySessions.filter(s => completedSessionIds.has(s.id) && !isNonRpe(s));
+  const infoTodaySessions = todaySessions.filter(s => isNonRpe(s));
 
   // Group upcoming sessions by date
   const upcomingByDate = upcomingSessions.reduce<Record<string, typeof upcomingSessions>>((acc, s) => {
