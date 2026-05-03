@@ -40,6 +40,7 @@ import { formatIntermittentSummary } from "@/lib/program-builder-v2/intermittent
 import { MethodConfigSlots, type MethodConfigType } from "./MethodConfigSlots";
 import { Trash2 } from "lucide-react";
 import { ExercisePicker, type PickedExercise } from "./ExercisePicker";
+import { ValidatedMethodCard } from "./ValidatedMethodCard";
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
 
 export interface SessionDayEditorProps {
@@ -951,6 +952,12 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                         handlePersistedGroupRestChange(block.id, item.groupId, seconds)
                       }
                     />
+                  ) : item.exercise.method && item.exercise.method !== "normal" ? (
+                    <ValidatedMethodCard
+                      key={item.exercise.id}
+                      exercise={item.exercise}
+                      onRemove={() => removeExerciseFromBlock(block.id, item.exercise.id)}
+                    />
                   ) : (
                     <div
                       key={item.exercise.id}
@@ -962,12 +969,6 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                         </p>
                         <p className="text-[11px] text-muted-foreground">
                           {item.exercise.sets} × {item.exercise.reps}
-                          {item.exercise.method && item.exercise.method !== "normal" && (
-                            <>
-                              {" · "}
-                              <span className="text-primary">{item.exercise.method}</span>
-                            </>
-                          )}
                         </p>
                       </div>
                       <Button
