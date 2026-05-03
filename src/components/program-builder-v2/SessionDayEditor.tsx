@@ -491,6 +491,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
       <div className="space-y-2">
         {blocks.map((block) => {
           const linkedDraft = linkedDrafts[block.id];
+          const fartlekDraft = fartlekDrafts[block.id];
           return (
             <TrainingBlockWrapper
               key={block.id}
@@ -510,7 +511,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
             >
               {block.type !== "tests" && (
                 <TrainingMethodButtons
-                  isBuilding={!!linkedDraft || !!pendingConfig[block.id]}
+                  isBuilding={!!linkedDraft || !!pendingConfig[block.id] || !!fartlekDraft}
                   blockType={block.type === "custom" ? "musculation" : block.type}
                   onStartLinkedMethod={(m) => handleStartLinked(block.id, m)}
                   onStartConfigMethod={(m) => handleStartConfig(block.id, m)}
@@ -530,6 +531,15 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                   dayId={block.id}
                   methodRestSeconds={linkedDraft.methodRestSeconds}
                   onMethodRestChange={(s) => handleMethodRestChange(block.id, s)}
+                />
+              )}
+
+              {/* Carte de configuration Fartlek */}
+              {fartlekDraft && (
+                <FartlekConfigSlots
+                  initialConfig={fartlekDraft.initial}
+                  onValidate={(config) => handleFartlekValidate(block.id, config)}
+                  onCancel={() => handleFartlekCancel(block.id)}
                 />
               )}
 
