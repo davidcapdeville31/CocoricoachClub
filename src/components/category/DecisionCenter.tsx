@@ -111,6 +111,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
   const [editSessionOpen, setEditSessionOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<any>(null);
   const [editingAdminEvent, setEditingAdminEvent] = useState<any>(null);
+  const [editingTestSession, setEditingTestSession] = useState<{ id: string; date: Date } | null>(null);
   const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
   const [notifySession, setNotifySession] = useState<any>(null);
   const [notifyDialogOpen, setNotifyDialogOpen] = useState(false);
