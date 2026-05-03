@@ -41,11 +41,29 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
   const [dayName, setDayName] = useState("Séance 1");
   const [dayOfWeek, setDayOfWeek] = useState<string>("");
   const [sessionDate, setSessionDate] = useState<string>(todayIso());
+  const [startTime, setStartTime] = useState<string>("");
+  const [endTime, setEndTime] = useState<string>("");
+  const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [blocks, setBlocks] = useState<V2BlockWithExercises[]>([]);
   const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const activeBlockIdRef = useRef<string | null>(null);
   const dayEditorRef = useRef<SessionDayEditorHandle | null>(null);
+
+  // Fetch players for participant selection
+  const { data: categoryPlayers } = useQuery({
+    queryKey: ["players-list", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("id, name, first_name")
+        .eq("category_id", categoryId)
+        .order("name");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!categoryId,
+  });
 
   const setActiveBlock = (id: string | null) => {
     activeBlockIdRef.current = id;
