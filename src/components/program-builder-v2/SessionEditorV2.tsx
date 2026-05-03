@@ -714,7 +714,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
               </div>
             </div>
 
-            <div className="rounded-2xl border bg-muted/40 p-3">
+            {!isAthleteMode && <div className="rounded-2xl border bg-muted/40 p-3">
               <div className="mb-2 flex items-center justify-between">
                 <Label className="flex items-center gap-1.5 text-xs">
                   <Users className="h-3.5 w-3.5" />
