@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -30,6 +30,16 @@ interface SessionEditorV2Props {
   onClose: () => void;
   categoryId: string;
   defaultDate?: string;
+  editSession?: {
+    id: string;
+    session_date: string;
+    session_start_time: string | null;
+    session_end_time: string | null;
+    training_type: string;
+    intensity?: number | null;
+    planned_intensity?: number | null;
+    notes?: string | null;
+  } | null;
 }
 
 const SESSION_KIND_OPTIONS = [
@@ -57,7 +67,7 @@ const todayIso = () => format(new Date(), "yyyy-MM-dd");
  * Mirrors the program builder V2 experience but persists directly into
  * `training_sessions` + `gym_session_exercises` for one team-wide session.
  */
-export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: SessionEditorV2Props) {
+export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSession }: SessionEditorV2Props) {
   const queryClient = useQueryClient();
 
   const [weekNumber] = useState(1);
@@ -76,6 +86,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate }: Sess
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const activeBlockIdRef = useRef<string | null>(null);
   const dayEditorRef = useRef<SessionDayEditorHandle | null>(null);
+  const isEditing = !!editSession;
 
   // Fetch players for participant selection
   const { data: categoryPlayers } = useQuery({
