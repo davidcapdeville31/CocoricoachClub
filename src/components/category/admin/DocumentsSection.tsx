@@ -409,9 +409,9 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
             </Select>
           </div>
 
-          <Button onClick={() => { resetForm(); setShowAddDialog(true); }}>
+          <Button onClick={() => { resetForm(); setAssignee(selectedTab); setShowAddDialog(true); }}>
             <Plus className="h-4 w-4 mr-2" />
-            Ajouter un document {selectedTab !== "team" ? `pour ${selectedPlayerName}` : "d'équipe"}
+            Ajouter un document
           </Button>
         </div>
 
@@ -419,9 +419,7 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
         <Dialog open={showAddDialog} onOpenChange={(open) => { setShowAddDialog(open); if (!open) resetForm(); }}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                Nouveau document {selectedTab !== "team" ? `— ${selectedPlayerName}` : "— Équipe"}
-              </DialogTitle>
+              <DialogTitle>Nouveau document</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               {/* File Upload */}
