@@ -91,14 +91,14 @@ function BatteryRadarCharts({
   });
 
   const groups = useMemo(() => {
-    type Item = { id: string; testName: string; points: number; maxPoints: number; resultValue: any; resultUnit: any };
+    type Item = { id: string; testName: string; points: number; maxPoints: number; resultValue: any; resultUnit: any; rawIds: string[] };
     const map = new Map<string, {
       key: string;
       playerName: string;
       playerId: string | null;
       batteryName: string;
       date: string;
-      items: Item[];
+      itemsByBase: Map<string, Item>; // merge bilateral pairs by base test name
       raw: any[];
     }>();
 
@@ -109,7 +109,7 @@ function BatteryRadarCharts({
       const batteryName = battMatch[1].trim();
       const testNameMatch = notes.match(/Test:\s*(.+?)\s*·/i);
       const testNameFull = (testNameMatch?.[1] || "Test").trim();
-      // Strip "(Droit)" or "(Gauche)" suffix to align with battery item name
+      const sideMatch = testNameFull.match(/\((Droit|Gauche)\)\s*$/i);
       const baseTestName = testNameFull.replace(/\s*\((Droit|Gauche)\)\s*$/i, "").trim();
 
       // Try full format "Score N/M pts", else legacy "Score N pts"
@@ -133,23 +133,43 @@ function BatteryRadarCharts({
           playerId,
           batteryName,
           date: test.test_date,
-          items: [],
+          itemsByBase: new Map(),
           raw: [],
         });
       }
       const g = map.get(key)!;
-      g.items.push({
-        id: test.id,
-        testName: testNameMatch?.[1] || "Test",
-        points,
-        maxPoints,
-        resultValue: test.result_value,
-        resultUnit: test.result_unit,
-      });
+      const existing = g.itemsByBase.get(baseTestName);
+      if (existing) {
+        // Bilateral pair → sum points, keep max once, label as base name
+        existing.points += points;
+        existing.testName = baseTestName;
+        existing.rawIds.push(test.id);
+        existing.resultValue = `${existing.resultValue} / ${test.result_value}`;
+      } else {
+        g.itemsByBase.set(baseTestName, {
+          id: test.id,
+          testName: sideMatch ? baseTestName : (testNameMatch?.[1] || "Test"),
+          points,
+          maxPoints,
+          resultValue: test.result_value,
+          resultUnit: test.result_unit,
+          rawIds: [test.id],
+        });
+      }
       g.raw.push(test);
     }
 
-    return Array.from(map.values()).sort((a, b) => (a.date < b.date ? 1 : -1));
+    return Array.from(map.values())
+      .map((g) => ({
+        key: g.key,
+        playerName: g.playerName,
+        playerId: g.playerId,
+        batteryName: g.batteryName,
+        date: g.date,
+        items: Array.from(g.itemsByBase.values()),
+        raw: g.raw,
+      }))
+      .sort((a, b) => (a.date < b.date ? 1 : -1));
   }, [tests, batteryLookup]);
 
   // Helper: pick color from battery levels by % (highest minPercent ≤ pct wins)
