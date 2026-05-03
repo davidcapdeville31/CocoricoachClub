@@ -260,7 +260,7 @@ function BatteryRadarCharts({
                 <div className="mt-3 space-y-1 border-t pt-3">
                   {g.items.map((it, idx) => {
                     const itemPct = it.maxPoints > 0 ? Math.round((it.points / it.maxPoints) * 100) : 0;
-                    const itemColor = getColor(itemPct);
+                    const itemColor = getLevelInfo(g.batteryName, itemPct).color;
                     const raw = g.raw[idx];
                     return (
                       <div key={it.id} className="flex items-center justify-between text-sm gap-2">
