@@ -408,7 +408,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
               )}
               {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
             </div>
-          </button>
+          </div>
         )}
         {isExpanded && (
         <div className={compact ? 'mt-3' : ''}>
