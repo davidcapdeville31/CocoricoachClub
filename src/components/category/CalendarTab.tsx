@@ -355,7 +355,10 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
                 .eq("id", session.id)
                 .single()
                 .then(({ data }) => {
-                  if (data) {
+                  if (!data) return;
+                  if (ADMIN_EVENT_TYPES.includes(data.training_type)) {
+                    setEditingAdminEvent(data);
+                  } else {
                     setEditingSession(data);
                     setIsEditDialogOpen(true);
                   }
