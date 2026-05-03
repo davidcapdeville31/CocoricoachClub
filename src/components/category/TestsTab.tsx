@@ -13,11 +13,12 @@ import { TestBatteriesManager } from "./tests/TestBatteriesManager";
 import { formatCategoryLabel } from "./tests/customTestCatalog";
 import { CategoryVisibilityManager } from "./tests/CategoryVisibilityManager";
 import { Button } from "@/components/ui/button";
-import { FolderPlus, Plus, ClipboardList } from "lucide-react";
+import { FolderPlus, Plus, ClipboardList, CalendarPlus } from "lucide-react";
 import { CreateCustomTestDialog } from "./tests/CreateCustomTestDialog";
 import { CreateThemeCategoryDialog } from "./tests/CreateThemeCategoryDialog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { PlanTestsSection } from "./tests/PlanTestsSection";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface TestsTabProps {
   categoryId: string;
@@ -193,6 +194,7 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
   const [isCreateTestOpen, setIsCreateTestOpen] = useState(false);
   const [isCreateBatteryOpen, setIsCreateBatteryOpen] = useState(false);
+  const [isPlanTestOpen, setIsPlanTestOpen] = useState(false);
 
   return (
     <Card className="bg-gradient-card shadow-md">
@@ -206,6 +208,14 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
               </Button>
               <Button size="sm" variant="outline" onClick={() => setIsCreateTestOpen(true)}>
                 <Plus className="h-4 w-4 mr-1" /> Créer un test
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setIsPlanTestOpen(true)}
+                className="border-primary/40 text-primary hover:bg-primary/10"
+              >
+                <CalendarPlus className="h-4 w-4 mr-1" /> Planifier un test
               </Button>
               <Button
                 size="sm"
@@ -300,6 +310,18 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
         categoryId={categoryId}
         sportType={sportType}
       />
+
+      <Dialog open={isPlanTestOpen} onOpenChange={setIsPlanTestOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarPlus className="h-5 w-5 text-primary" />
+              Planifier un test
+            </DialogTitle>
+          </DialogHeader>
+          <PlanTestsSection categoryId={categoryId} sportType={sportType} />
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
