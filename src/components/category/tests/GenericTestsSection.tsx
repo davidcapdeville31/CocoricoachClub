@@ -60,6 +60,7 @@ function BatteryRadarCharts({
   onDelete: (id: string) => void;
 }) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const [radarMode, setRadarMode] = useState<Record<string, "tests" | "qualities">>({});
 
   // Lookup max_points and levels from battery definitions
   const { data: batteryLookup } = useQuery({
@@ -91,7 +92,7 @@ function BatteryRadarCharts({
   });
 
   const groups = useMemo(() => {
-    type Item = { id: string; testName: string; points: number; maxPoints: number; resultValue: any; resultUnit: any; rawIds: string[] };
+    type Item = { id: string; testName: string; points: number; maxPoints: number; resultValue: any; resultUnit: any; rawIds: string[]; testCategory: string | null };
     const map = new Map<string, {
       key: string;
       playerName: string;
@@ -154,6 +155,7 @@ function BatteryRadarCharts({
           resultValue: test.result_value,
           resultUnit: test.result_unit,
           rawIds: [test.id],
+          testCategory: test.test_category || null,
         });
       }
       g.raw.push(test);
@@ -202,7 +204,10 @@ function BatteryRadarCharts({
         const totalMax = g.items.reduce((s, i) => s + i.maxPoints, 0);
         const pct = totalMax > 0 ? Math.round((totalPoints / totalMax) * 100) : 0;
         const { color, label } = getLevelInfo(g.batteryName, pct);
-        const radarData = g.items.map((it) => {
+        const mode = radarMode[g.key] || "tests";
+
+        // Per-test radar data
+        const testsRadarData = g.items.map((it) => {
           const v = it.maxPoints > 0 ? Math.round((it.points / it.maxPoints) * 100) : 0;
           return {
             axis: it.testName,
@@ -212,6 +217,28 @@ function BatteryRadarCharts({
             color: getLevelInfo(g.batteryName, v).color,
           };
         });
+
+        // Per physical-quality radar (aggregate items by test_category)
+        const byCat = new Map<string, { points: number; max: number }>();
+        g.items.forEach((it) => {
+          const cat = it.testCategory || "autre";
+          const cur = byCat.get(cat) || { points: 0, max: 0 };
+          cur.points += it.points;
+          cur.max += it.maxPoints;
+          byCat.set(cat, cur);
+        });
+        const qualitiesRadarData = Array.from(byCat.entries()).map(([cat, v]) => {
+          const pctv = v.max > 0 ? Math.round((v.points / v.max) * 100) : 0;
+          return {
+            axis: formatCategoryLabel(cat),
+            value: pctv,
+            points: v.points,
+            maxPoints: v.max,
+            color: getLevelInfo(g.batteryName, pctv).color,
+          };
+        });
+
+        const radarData = mode === "qualities" ? qualitiesRadarData : testsRadarData;
         const isOpen = !!openGroups[g.key];
 
         return (
@@ -299,14 +326,28 @@ function BatteryRadarCharts({
                 </RadarChart>
               </ResponsiveContainer>
 
-              <button
-                type="button"
-                onClick={() => setOpenGroups((prev) => ({ ...prev, [g.key]: !prev[g.key] }))}
-                className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-              >
-                {isOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                {isOpen ? "Masquer le détail" : "Voir le détail"}
-              </button>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setOpenGroups((prev) => ({ ...prev, [g.key]: !prev[g.key] }))}
+                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  {isOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                  {isOpen ? "Masquer le détail" : "Voir le détail"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setRadarMode((prev) => ({
+                      ...prev,
+                      [g.key]: (prev[g.key] || "tests") === "tests" ? "qualities" : "tests",
+                    }))
+                  }
+                  className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md border bg-muted/40 hover:bg-muted text-foreground"
+                >
+                  {mode === "tests" ? "Voir par qualité physique" : "Voir par test"}
+                </button>
+              </div>
 
               {isOpen && (
                 <div className="mt-3 space-y-1 border-t pt-3">
