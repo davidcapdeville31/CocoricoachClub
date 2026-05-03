@@ -13,11 +13,12 @@ import { TestBatteriesManager } from "./tests/TestBatteriesManager";
 import { formatCategoryLabel } from "./tests/customTestCatalog";
 import { CategoryVisibilityManager } from "./tests/CategoryVisibilityManager";
 import { Button } from "@/components/ui/button";
-import { FolderPlus, Plus, ClipboardList } from "lucide-react";
+import { FolderPlus, Plus, ClipboardList, CalendarPlus } from "lucide-react";
 import { CreateCustomTestDialog } from "./tests/CreateCustomTestDialog";
 import { CreateThemeCategoryDialog } from "./tests/CreateThemeCategoryDialog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { PlanTestsSection } from "./tests/PlanTestsSection";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface TestsTabProps {
   categoryId: string;
