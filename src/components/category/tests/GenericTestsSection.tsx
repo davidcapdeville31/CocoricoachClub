@@ -296,20 +296,7 @@ function BatteryRadarCharts({
                     fill={color}
                     fillOpacity={0.2}
                     strokeWidth={2}
-                    dot={(props: any) => {
-                      const { cx, cy, payload } = props;
-                      return (
-                        <circle
-                          key={`dot-${payload.axis}`}
-                          cx={cx}
-                          cy={cy}
-                          r={5}
-                          fill={payload.color}
-                          stroke="hsl(var(--background))"
-                          strokeWidth={2}
-                        />
-                      );
-                    }}
+                    dot={false}
                   />
                   <RTooltip
                     contentStyle={{
