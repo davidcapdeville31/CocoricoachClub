@@ -859,17 +859,19 @@ const LinkedMethodSlotsContent = ({
       {/* Notes pour l'athlète supprimées ici — gérées au niveau parent via CreateTrainingProgram */}
 
       {/* Help text */}
-      <p className="text-[10px] text-muted-foreground mt-2 text-center">
-        {isComplete ? (
-          <span className={cn("font-medium", config.textColor)}>
-            ✓ Méthode complète ! {isEditing ? "Configurez les paramètres puis validez." : "Cliquez sur Modifier pour ajuster."}
-          </span>
-        ) : (
-          isDynamic 
-            ? <>Ajoutez au moins {minRequired} exercices (cliquez ou glissez)</>
-            : <>Glissez {config.slots} exercices depuis la bibliothèque</>
-        )}
-      </p>
+      {!readOnly && (
+        <p className="text-[10px] text-muted-foreground mt-2 text-center">
+          {isComplete ? (
+            <span className={cn("font-medium", config.textColor)}>
+              ✓ Méthode complète ! {isEditing ? "Configurez les paramètres puis validez." : "Cliquez sur Modifier pour ajuster."}
+            </span>
+          ) : (
+            isDynamic 
+              ? <>Ajoutez au moins {minRequired} exercices (cliquez ou glissez)</>
+              : <>Glissez {config.slots} exercices depuis la bibliothèque</>
+          )}
+        </p>
+      )}
     </div>
   );
 };
