@@ -1043,6 +1043,35 @@ export function SessionDetailsDialog({
                     <Dumbbell className="h-12 w-12 mx-auto mb-3 opacity-30" />
                     <p>Aucun exercice détaillé pour cette séance</p>
                   </div>
+                ) : blocksGrouped.length > 1 || (blocksGrouped[0]?.name) ? (
+                  <div className="space-y-5 pr-4">
+                    {blocksGrouped.map((blk, bIdx) => (
+                      <div key={blk.key} className="space-y-2">
+                        {blk.name && (
+                          <div className="flex items-center gap-2 pb-1 border-b">
+                            <Badge className="bg-primary/10 text-primary border border-primary/30 capitalize">
+                              {blk.name}
+                            </Badge>
+                            {blk.type && blk.type !== blk.name && (
+                              <span className="text-xs text-muted-foreground capitalize">
+                                {blk.type.replace(/_/g, " ")}
+                              </span>
+                            )}
+                            <span className="text-xs text-muted-foreground ml-auto">
+                              {blk.groups.reduce((sum, g) => sum + g.exercises.length, 0)} exercice(s)
+                            </span>
+                          </div>
+                        )}
+                        <div className="space-y-3">
+                          {blk.groups.map((group, idx) => (
+                            <div key={group.groupId || `${bIdx}-${idx}`}>
+                              {renderExerciseGroup(group, idx)}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 ) : (
                   <div className="space-y-3 pr-4">
                     {exerciseGroups.map((group, idx) => (
