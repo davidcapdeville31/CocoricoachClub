@@ -355,24 +355,42 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
           <div className="space-y-2 py-2">
             {(battery.items as any[]).map((it, idx) => {
               const r = perItem[it.id];
+              const isInjured = !!injured[it.id];
               return (
-                <div key={it.id} className="rounded-2xl border bg-muted/30 p-3 space-y-2">
+                <div key={it.id} className={`rounded-2xl border bg-muted/30 p-3 space-y-2 ${isInjured ? "opacity-70 border-destructive/40" : ""}`}>
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-semibold truncate">
-                        {idx + 1}. {it.test_name}
+                      <div className="text-sm font-semibold truncate flex items-center gap-2">
+                        <span>{idx + 1}. {it.test_name}</span>
                         {it.bilateral && (
-                          <Badge variant="outline" className="ml-2 text-[10px]">Bilatéral</Badge>
+                          <Badge variant="outline" className="text-[10px]">Bilatéral</Badge>
+                        )}
+                        {isInjured && (
+                          <Badge variant="destructive" className="text-[10px]">Blessé</Badge>
                         )}
                       </div>
                       <div className="text-xs text-muted-foreground truncate">
                         {it.test_category} • Max {it.max_points} pts
                       </div>
                     </div>
-                    <Badge variant={r?.points ? "default" : "secondary"}>
-                      {r?.points ?? 0} / {it.max_points} pts
-                    </Badge>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground cursor-pointer select-none">
+                        <Checkbox
+                          checked={isInjured}
+                          onCheckedChange={(v) => toggleInjured(it.id, !!v)}
+                        />
+                        Blessé
+                      </label>
+                      <Badge variant={r?.points ? "default" : "secondary"}>
+                        {r?.points ?? 0} / {it.max_points} pts
+                      </Badge>
+                    </div>
                   </div>
+                  {isInjured ? (
+                    <div className="text-xs italic text-muted-foreground px-1">
+                      Test non réalisé (blessure). Aucun score comptabilisé.
+                    </div>
+                  ) : (
                   {it.bilateral ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div className="space-y-1">
