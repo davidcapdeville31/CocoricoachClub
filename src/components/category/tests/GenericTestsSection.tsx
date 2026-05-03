@@ -150,7 +150,21 @@ function BatteryRadarCharts({
     }
 
     return Array.from(map.values()).sort((a, b) => (a.date < b.date ? 1 : -1));
-  }, [tests, batteryItemsLookup]);
+  }, [tests, batteryLookup]);
+
+  // Helper: pick color from battery levels by % (highest minPercent ≤ pct wins)
+  const getLevelInfo = (batteryName: string, pct: number): { color: string; label: string } => {
+    const levels = batteryLookup?.levels?.[batteryName];
+    if (Array.isArray(levels) && levels.length > 0) {
+      const sorted = [...levels].sort((a: any, b: any) => Number(b.minPercent) - Number(a.minPercent));
+      const match = sorted.find((l: any) => pct >= Number(l.minPercent));
+      if (match) return { color: match.color || "hsl(var(--primary))", label: match.label || "" };
+    }
+    // Fallback if no levels defined
+    if (pct >= 75) return { color: "hsl(142 71% 45%)", label: "Bon" };
+    if (pct >= 50) return { color: "hsl(38 92% 50%)", label: "Moyen" };
+    return { color: "hsl(0 84% 60%)", label: "Faible" };
+  };
 
   const getColor = (pct: number) => {
     if (pct >= 75) return "hsl(142 71% 45%)"; // green
