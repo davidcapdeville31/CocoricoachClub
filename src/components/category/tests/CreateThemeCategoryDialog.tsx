@@ -26,8 +26,15 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<"create" | "edit">("create");
   const [label, setLabel] = useState("");
+  const [color, setColor] = useState<string>("#6366f1");
   const [editingId, setEditingId] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const PRESET_COLORS = [
+    "#6366f1", "#8b5cf6", "#ec4899", "#ef4444", "#f97316",
+    "#eab308", "#22c55e", "#14b8a6", "#06b6d4", "#3b82f6",
+    "#a855f7", "#64748b",
+  ];
 
   const { data: categoryData } = useQuery({
     queryKey: ["category-club-id", categoryId],
