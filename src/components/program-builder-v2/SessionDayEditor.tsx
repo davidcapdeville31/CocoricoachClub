@@ -992,7 +992,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                 {(() => {
                   const items = groupBlockExercises(block.exercises ?? []);
                   return items.map((item, itemIdx) => {
-                    const reorderControls = items.length > 1 ? (
+                    const reorderControls = (
                       <div className="flex flex-col gap-0.5 pt-1 shrink-0">
                         <Button
                           type="button"
