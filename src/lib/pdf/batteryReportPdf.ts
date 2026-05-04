@@ -329,13 +329,10 @@ function tokenizeHtml(html: string, base: RtStyle): RtToken[] {
   };
 
   root.childNodes.forEach((n) => walk(n, base));
-  // Compact consecutive paras
-  const out: RtToken[] = [];
-  for (const t of tokens) {
-    if (t.type === "para" && out.length && out[out.length - 1].type === "para" && !t.bullet) continue;
-    out.push(t);
-  }
-  return out;
+  // Note : on ne compacte PAS les paragraphes vides consécutifs afin de
+  // préserver les sauts de paragraphe (espaces) que l'utilisateur a créés
+  // dans l'éditeur riche (tiptap génère <p></p> pour les lignes vides).
+  return tokens;
 }
 
 function setRunFont(pdf: jsPDF, s: RtStyle) {
