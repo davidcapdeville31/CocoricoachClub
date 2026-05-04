@@ -1017,7 +1017,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                           <ChevronDown className="h-3.5 w-3.5" />
                         </Button>
                       </div>
-                    ) : null;
+                    );
 
                     const card = item.type === "group" ? (
                     <LinkedMethodSlots
