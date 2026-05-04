@@ -110,7 +110,12 @@ export function TestBatteriesManager({
                 <div key={b.id} className="rounded-2xl border bg-muted/30 p-4 space-y-3 hover:shadow-md transition-shadow">
                   <div>
                     <div className="font-semibold">{b.name}</div>
-                    {b.description && <div className="text-xs text-muted-foreground mt-0.5 whitespace-pre-wrap">{b.description}</div>}
+                    {b.description && (
+                      <div
+                        className="prose prose-xs dark:prose-invert max-w-none text-xs text-muted-foreground mt-0.5 [&_p]:my-0.5"
+                        dangerouslySetInnerHTML={{ __html: b.description }}
+                      />
+                    )}
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant="secondary">{b.items?.length || 0} tests</Badge>

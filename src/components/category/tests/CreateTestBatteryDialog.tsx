@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Search, Plus } from "lucide-react";
@@ -216,12 +217,11 @@ export function CreateTestBatteryDialog({ open, onOpenChange, categoryId, clubId
             </div>
             <div className="space-y-1.5">
               <Label>Description</Label>
-              <Textarea
+              <RichTextEditor
                 value={description}
-                onChange={e => setDescription(e.target.value)}
+                onChange={setDescription}
                 placeholder="Optionnel"
-                rows={3}
-                className="min-h-[80px] resize-y"
+                minHeight={100}
               />
             </div>
           </div>
