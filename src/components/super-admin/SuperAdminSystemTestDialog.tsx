@@ -230,6 +230,7 @@ export function SuperAdminSystemTestDialog({ open, onOpenChange, test }: Props) 
         scoring_scale: enableScoring ? (scoringScale as any) : null,
         max_points: maxPoints,
         image_url: imageUrl,
+        icon: icon.trim() || null,
         video_url: videoUrl.trim() || null,
         formula_config: formulaConfig?.enabled ? (formulaConfig as any) : null,
         bilateral,
