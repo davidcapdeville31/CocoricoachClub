@@ -7,6 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dumbbell, Lock, Plus, Trash2, Zap } from "lucide-react";
 import { resolveSessionExerciseRows } from "@/lib/utils/sessionExercises";
+import { cn } from "@/lib/utils";
+import { ReadOnlyMethodCard } from "@/components/program-builder-v2/ReadOnlyMethodCard";
+import { parseV2MethodConfig } from "@/lib/program-builder-v2/parseV2MethodConfig";
+import { getMethodColors } from "@/components/program-builder-v2/shared/MethodGroupWrapper";
 
 export type WeightLogQuickEntry = {
   mode: "quick";
@@ -275,26 +279,52 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
 
         if (!entry) return null;
 
+        const colors = getMethodColors(method);
+        const hasV2Config = !!parseV2MethodConfig(ex.notes ?? null);
+
         return (
-          <div key={ex.exercise_name} className="rounded-md border border-border bg-card p-2.5 space-y-2">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-2 min-w-0">
-                <Dumbbell className="h-3.5 w-3.5 text-primary shrink-0" />
-                <span className="text-xs font-medium truncate">{ex.exercise_name}</span>
+          <div
+            key={ex.exercise_name}
+            className={cn(
+              "rounded-xl border-2 overflow-hidden shadow-sm",
+              colors.border,
+            )}
+          >
+            {/* Aperçu visuel identique au calendrier (couleurs + détails de la méthode) */}
+            {hasV2Config && (
+              <div className={cn("p-2", colors.bg)}>
+                <ReadOnlyMethodCard exercise={ex as any} />
+              </div>
+            )}
+
+            {/* Bandeau d'identification (si pas de carte v2 au-dessus) */}
+            {!hasV2Config && (
+              <div className={cn("flex items-center gap-2 px-3 py-2 border-b", colors.bg, colors.border)}>
+                <Dumbbell className={cn("h-3.5 w-3.5 shrink-0", colors.text)} />
+                <span className={cn("text-sm font-medium truncate flex-1", colors.text)}>
+                  {ex.exercise_name}
+                </span>
                 {isSpecial && (
-                  <Badge variant="outline" className="text-[10px] gap-1 border-warning/50 text-warning">
+                  <Badge className={cn("text-white border-0 text-[10px] h-5 px-2 gap-1", colors.iconBg)}>
                     <Zap className="h-2.5 w-2.5" />
                     {METHOD_LABELS[method] || method}
                   </Badge>
                 )}
-              </div>
-              <div className="flex items-center gap-2">
                 {ex.sets && ex.reps && !isSpecial && (
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">
                     Prescrit : {ex.sets}×{ex.reps}
                     {ex.weight_kg ? ` @${ex.weight_kg}kg` : ""}
                   </span>
                 )}
+              </div>
+            )}
+
+            {/* Saisie des charges réelles */}
+            <div className="p-2.5 space-y-2 bg-card">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Mes charges réelles
+                </Label>
                 {!isSpecial && (
                   <Button
                     type="button"
@@ -307,28 +337,28 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
                   </Button>
                 )}
               </div>
+
+              {entry.mode === "quick" && (
+                <QuickModeRow
+                  entry={entry}
+                  onChange={(e) => updateEntry(ex.exercise_name, e)}
+                />
+              )}
+
+              {entry.mode === "detailed" && (
+                <DetailedModeRows
+                  entry={entry}
+                  onChange={(e) => updateEntry(ex.exercise_name, e)}
+                />
+              )}
+
+              {entry.mode === "special" && (
+                <SpecialModeRows
+                  entry={entry}
+                  onChange={(e) => updateEntry(ex.exercise_name, e)}
+                />
+              )}
             </div>
-
-            {entry.mode === "quick" && (
-              <QuickModeRow
-                entry={entry}
-                onChange={(e) => updateEntry(ex.exercise_name, e)}
-              />
-            )}
-
-            {entry.mode === "detailed" && (
-              <DetailedModeRows
-                entry={entry}
-                onChange={(e) => updateEntry(ex.exercise_name, e)}
-              />
-            )}
-
-            {entry.mode === "special" && (
-              <SpecialModeRows
-                entry={entry}
-                onChange={(e) => updateEntry(ex.exercise_name, e)}
-              />
-            )}
           </div>
         );
       })}
