@@ -18,6 +18,7 @@ import { getPositionLabel } from "@/lib/utils/kickingFieldZones";
 import { RUGBY_PRECISION_EXERCISES, EXERCISE_CATEGORIES, BUTEUR_EXERCISES, ZONE_KICK_EXERCISES, type RugbyPrecisionExerciseMode } from "@/lib/constants/rugbyPrecisionExercises";
 import { cn } from "@/lib/utils";
 import { LineoutFieldSVG, aggregateLineoutStats, type LineoutZone } from "@/components/rugby/LineoutFieldSVG";
+import { PrecisionTrainingStats } from "@/components/training/PrecisionTrainingStats";
 
 interface PrecisionFieldTrackerProps {
   categoryId: string;
@@ -220,9 +221,17 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
     return entries.filter((e: any) => e.player_id === selectedPlayerId && !e.validated && e.training_session_id === activeSessionId).length;
   }, [entries, selectedPlayerId, activeSessionId]);
 
-  // Buteur kick markers
+  // Carto + stats du jour : on ne montre que les entrées de la séance active
+  // (cartographie vierge chaque jour). L'historique cumulé est affiché à part
+  // dans le panneau "Statistiques cumulées".
+  const dayEntries = useMemo(
+    () => entries.filter((e: any) => e.training_session_id === activeSessionId),
+    [entries, activeSessionId],
+  );
+
+  // Buteur kick markers (séance du jour uniquement)
   const kickMarkers = useMemo(() => {
-    return entries
+    return dayEntries
       .filter((e: any) => e.zone_x != null && e.zone_y != null && BUTEUR_EXERCISES.some(b => e.exercise_label?.startsWith(b.label)))
       .map((e: any) => ({
         x: e.zone_x,
@@ -230,12 +239,12 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
         success: (e.successes || 0) > 0,
         kickType: BUTEUR_EXERCISES.find(b => e.exercise_label?.startsWith(b.label))?.value || "penalty",
       }));
-  }, [entries]);
+  }, [dayEntries]);
 
-  // Zone stats for non-buteur
+  // Zone stats (séance du jour uniquement)
   const zoneStats = useMemo(() => {
     const map = new Map<string, { attempts: number; successes: number; x: number; y: number }>();
-    entries
+    dayEntries
       .filter((e: any) => e.zone_x != null && e.zone_y != null && !BUTEUR_EXERCISES.some(b => e.exercise_label?.startsWith(b.label)))
       .forEach((e: any) => {
         const zoneKey = `${Math.round(e.zone_x / 15) * 15}-${Math.round(e.zone_y / 15) * 15}`;
@@ -245,14 +254,14 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
         map.set(zoneKey, prev);
       });
     return Array.from(map.values());
-  }, [entries]);
+  }, [dayEntries]);
 
   const lineoutZoneStats = useMemo(() => {
-    return aggregateLineoutStats(entries as any[]);
-  }, [entries]);
+    return aggregateLineoutStats(dayEntries as any[]);
+  }, [dayEntries]);
 
-  const totalAttempts = entries.reduce((s: number, e: any) => s + (e.attempts || 0), 0);
-  const totalSuccesses = entries.reduce((s: number, e: any) => s + (e.successes || 0), 0);
+  const totalAttempts = dayEntries.reduce((s: number, e: any) => s + (e.attempts || 0), 0);
+  const totalSuccesses = dayEntries.reduce((s: number, e: any) => s + (e.successes || 0), 0);
   const globalRate = totalAttempts > 0 ? Math.round((totalSuccesses / totalAttempts) * 100) : 0;
 
   const handleButeurClick = (xPct: number, yPct: number) => {
@@ -471,26 +480,31 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
         </div>
       )}
 
-      {/* Stats summary */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
-          <CardContent className="pt-4 text-center">
-            <p className="text-3xl font-bold text-primary">{globalRate}%</p>
-            <p className="text-sm text-muted-foreground">Réussite globale</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
-          <CardContent className="pt-4 text-center">
-            <p className="text-3xl font-bold text-primary">{totalSuccesses}/{totalAttempts}</p>
-            <p className="text-sm text-muted-foreground">Réussites / Tentatives</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
-          <CardContent className="pt-4 text-center">
-            <p className="text-3xl font-bold text-primary">{entries.length}</p>
-            <p className="text-sm text-muted-foreground">Exercices enregistrés</p>
-          </CardContent>
-        </Card>
+      {/* Stats du jour */}
+      <div className="space-y-1">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">
+          Séance du {format(new Date(activeSessionDate), "dd/MM/yyyy", { locale: fr })}
+        </p>
+        <div className="grid grid-cols-3 gap-4">
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
+            <CardContent className="pt-4 text-center">
+              <p className="text-3xl font-bold text-primary">{globalRate}%</p>
+              <p className="text-sm text-muted-foreground">Réussite (jour)</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
+            <CardContent className="pt-4 text-center">
+              <p className="text-3xl font-bold text-primary">{totalSuccesses}/{totalAttempts}</p>
+              <p className="text-sm text-muted-foreground">Réussites / Tentatives</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
+            <CardContent className="pt-4 text-center">
+              <p className="text-3xl font-bold text-primary">{dayEntries.length}</p>
+              <p className="text-sm text-muted-foreground">Coups de pied du jour</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* ====== BUTEUR MODE ====== */}
@@ -735,7 +749,18 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
         </Card>
       )}
 
-      {/* Dialog: Buteur - success/fail */}
+      {/* Statistiques cumulées (par thème + période) — vue d'ensemble historique */}
+      <div className="space-y-2 pt-2">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold">Statistiques cumulées</h3>
+          <span className="text-[11px] text-muted-foreground">
+            (filtre par thème, exercice et période)
+          </span>
+        </div>
+        <PrecisionTrainingStats categoryId={categoryId} />
+      </div>
+
       {pendingKickType && (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="sm:max-w-[350px]">
