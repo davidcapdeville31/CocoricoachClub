@@ -89,7 +89,7 @@ function genLinked(methodType: string, exercises: LinkedExerciseData[], restSeco
 // ─── REST-PAUSE ─────────────────────────────────────────────────────────────
 
 function genRestPause(_exerciseName: string | undefined, config: {
-  series: Array<{ miniSets: Array<{ reps: string; pauseSeconds: number }>;
+  series: Array<{ miniSets: Array<{ reps: string | number; pauseSeconds: number }>;
     recoverySeconds?: number; percentage?: number; load?: number; tempo?: string; rpe?: number; }>;
   visibleVariables?: string[];
 }): string {
