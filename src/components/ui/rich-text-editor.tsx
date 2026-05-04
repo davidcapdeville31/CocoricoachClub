@@ -1,9 +1,7 @@
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
-import { TextStyle, FontSize } from "@tiptap/extension-text-style";
-import FontFamily from "@tiptap/extension-font-family";
-import { Color } from "@tiptap/extension-color";
+import { TextStyle, FontSize, FontFamily, Color } from "@tiptap/extension-text-style";
 import { useEffect } from "react";
 import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Strikethrough } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
