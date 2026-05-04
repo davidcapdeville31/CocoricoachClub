@@ -402,9 +402,10 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
                   {seriesLabel}
                 </Badge>
                 {isPhaseMethod && exName && (
-                  <span className={cn("text-xs font-medium truncate max-w-[180px]", colors.text)}>
-                    {exName}
-                  </span>
+                  <ExerciseNameWithMedia
+                    name={exName}
+                    className={cn("text-xs font-medium max-w-[180px]", colors.text)}
+                  />
                 )}
                 <Badge
                   variant="secondary"
