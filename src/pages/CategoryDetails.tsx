@@ -12,7 +12,7 @@ import { usePendingWeightLogsCount } from "@/lib/hooks/usePendingWeightLogsCount
 import { usePendingTestResultsCount } from "@/lib/hooks/usePendingTestResultsCount";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { CategoryCoverUpload } from "@/components/category/CategoryCoverUpload";
+import { CategoryCoverUpload, LogoHoverActions } from "@/components/category/CategoryCoverUpload";
 import { CustomizeBrandingButton } from "@/components/branding/CustomizeBrandingButton";
 import { ClubBrandingProvider } from "@/contexts/ClubBrandingContext";
 import { GlobalPlayerSearch } from "@/components/search/GlobalPlayerSearch";
