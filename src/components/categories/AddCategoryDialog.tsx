@@ -479,9 +479,17 @@ export function AddCategoryDialog({
             </Button>
             <Button
               type="submit"
-              disabled={!categoryName.trim() || addCategory.isPending || isCategoryLimitReached}
+              disabled={
+                !categoryName.trim() ||
+                addCategory.isPending ||
+                updateCategory.isPending ||
+                (mode === "create" && isCategoryLimitReached) ||
+                (mode === "edit" && !editingCategoryId)
+              }
             >
-              {addCategory.isPending ? "Ajout..." : "Ajouter"}
+              {mode === "edit"
+                ? (updateCategory.isPending ? "Modification..." : "Enregistrer les modifications")
+                : (addCategory.isPending ? "Ajout..." : "Ajouter")}
             </Button>
           </DialogFooter>
         </form>
