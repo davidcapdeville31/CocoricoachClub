@@ -185,6 +185,55 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
         )}
       </div>
 
+      {/* Protocol summary (timing, repos, consigne) for CrossFit-style methods */}
+      {(() => {
+        const lines: string[] = [];
+        if (method === "tabata") {
+          const t = config.tabataConfig ?? { workSeconds: 20, restSeconds: 10, rounds: 8 };
+          lines.push(`${t.workSeconds}'' effort / ${t.restSeconds}'' repos × ${t.rounds} rounds`);
+        }
+        if (method === "emom") {
+          const e = config.emomConfig;
+          if (e) {
+            const label = e.intervalMinutes === 1 ? "EMOM" : `E${e.intervalMinutes}MOM`;
+            lines.push(`${label} — ${e.totalMinutes} min total (1 exercice toutes les ${e.intervalMinutes} min)`);
+          }
+        }
+        if (method === "death_by") {
+          const d = config.deathByConfig ?? { startReps: 1, incrementReps: 1 };
+          lines.push(
+            `${d.startReps} rep${d.startReps > 1 ? "s" : ""} à la 1re minute, +${d.incrementReps} rep${d.incrementReps > 1 ? "s" : ""} chaque minute jusqu'à l'échec`
+          );
+        }
+        if (method === "amrap" && config.timeCap != null) {
+          lines.push(`AMRAP — ${config.timeCap} min (un max de tours)`);
+        }
+        if (method === "for_time" && config.timeCap != null) {
+          lines.push(`For Time — Time cap ${config.timeCap} min`);
+        }
+        if (method === "circuit") {
+          if (config.repsPerRound != null) lines.push(`${config.repsPerRound} tour${config.repsPerRound > 1 ? "s" : ""}`);
+          const r = config.circuitRecovery;
+          if (r) {
+            if (r.strategy === "after_circuit" && r.globalRestSeconds != null) {
+              lines.push(`Repos ${r.globalRestSeconds}s entre les tours`);
+            } else if (r.strategy === "between_exercises") {
+              lines.push("Repos entre chaque exercice (voir détails)");
+            } else if (r.strategy === "no_rest") {
+              lines.push("Sans repos");
+            }
+          }
+        }
+        if (lines.length === 0) return null;
+        return (
+          <div className={cn("px-3 py-2 text-[11px] font-medium border-b", colors.bg, colors.text, colors.border)}>
+            {lines.map((l, i) => (
+              <div key={i}>{l}</div>
+            ))}
+          </div>
+        );
+      })()}
+
       {/* Rest-Pause structured rendering */}
       {isRestPause && (
         <div className={cn("p-2", colors.bg)}>
