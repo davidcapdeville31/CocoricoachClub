@@ -144,7 +144,20 @@ export function AddCategoryDialog({
   useEffect(() => {
     if (!open) return;
     setSelectedMembers((prev) => (prev.length === 0 ? prev : []));
+    setMode("create");
+    setEditingCategoryId("");
   }, [open]);
+
+  // When user picks a category to edit, prefill the form fields with its values
+  useEffect(() => {
+    if (mode !== "edit" || !editingCategoryId) return;
+    const cat = existingCategories.find((c: any) => c.id === editingCategoryId);
+    if (!cat) return;
+    setCategoryName(cat.name || "");
+    setGender((cat.gender as any) || "masculine");
+    if (cat.rugby_type) setSportSubType(cat.rugby_type as SportType);
+    setValidationError("");
+  }, [mode, editingCategoryId, existingCategories]);
 
   const addCategory = useMutation({
     mutationFn: async (data: { name: string; rugby_type: SportType; gender: "masculine" | "feminine" | "mixed"; memberIds: string[] }) => {
