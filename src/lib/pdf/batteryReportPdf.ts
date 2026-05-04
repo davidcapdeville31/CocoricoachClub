@@ -746,7 +746,7 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
         pdf.setFontSize(8);
         pdf.setTextColor(80);
         st(pdf, "Description", curTextX, ty);
-        ty += 11;
+        ty += 14;
         ty = renderRichHtml(pdf, String(it.description), curTextX, ty, curTextW,
           { size: 9, color: [60, 60, 60], align: "left" },
           { pageH, bottomMargin: margin, onNewPage },
