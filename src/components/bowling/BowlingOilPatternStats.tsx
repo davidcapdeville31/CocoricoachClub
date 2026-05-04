@@ -39,6 +39,7 @@ interface BowlingGameData {
 interface BowlingOilPatternStatsProps {
   games: BowlingGameData[];
   categoryId: string;
+  playerId?: string;
 }
 
 function ColoredStatRow({ label, value, statType, percentage }: { label: string; value: string; statType?: "pocket" | "strike" | "spare" | "singlePin" | "firstBallGte8"; percentage?: number }) {
