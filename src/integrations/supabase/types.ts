@@ -1666,11 +1666,13 @@ export type Database = {
           archived_at: string | null
           archived_by: string | null
           club_id: string
+          cover_image_position: string
           cover_image_url: string | null
           created_at: string
           deleted_at: string | null
           gender: string
           gps_enabled: boolean | null
+          header_background_url: string | null
           id: string
           is_archived: boolean
           name: string
@@ -1682,11 +1684,13 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           club_id: string
+          cover_image_position?: string
           cover_image_url?: string | null
           created_at?: string
           deleted_at?: string | null
           gender?: string
           gps_enabled?: boolean | null
+          header_background_url?: string | null
           id?: string
           is_archived?: boolean
           name: string
@@ -1698,11 +1702,13 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           club_id?: string
+          cover_image_position?: string
           cover_image_url?: string | null
           created_at?: string
           deleted_at?: string | null
           gender?: string
           gps_enabled?: boolean | null
+          header_background_url?: string | null
           id?: string
           is_archived?: boolean
           name?: string
