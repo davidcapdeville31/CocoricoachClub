@@ -41,6 +41,7 @@ import { MethodConfigSlots, type MethodConfigType } from "./MethodConfigSlots";
 import { Trash2 } from "lucide-react";
 import { ExercisePicker, type PickedExercise } from "./ExercisePicker";
 import { ValidatedMethodCard } from "./ValidatedMethodCard";
+import { NormalExerciseEditor } from "./NormalExerciseEditor";
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
 
 export interface SessionDayEditorProps {
