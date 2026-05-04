@@ -2751,21 +2751,30 @@ export const MethodConfigSlots = ({
                               type="button"
                               variant="outline"
                               size="sm"
-                              onPointerDown={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setAddVarPopoverOpen((o) => !o);
+                              }}
                               className="h-7 px-2 text-xs border-dashed hover:border-primary hover:bg-primary/5"
                             >
                               <Plus className="h-3 w-3 mr-1" />
                               Variable
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-48 p-2" align="start">
+                          <PopoverContent className="w-48 p-2 z-[60]" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
                             <div className="space-y-1">
                               <p className="text-xs font-medium text-muted-foreground px-2 py-1">Ajouter une variable</p>
                               {hiddenVariables.map((variable) => (
                                 <button
                                   key={variable.key}
                                   type="button"
-                                  onClick={() => addVariable(variable.key)}
+                                  onPointerDown={(e) => e.stopPropagation()}
+                                  onMouseDown={(e) => e.stopPropagation()}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    addVariable(variable.key);
+                                    setAddVarPopoverOpen(false);
+                                  }}
                                   className="w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded hover:bg-accent transition-colors text-left"
                                 >
                                   <span>{variable.label}</span>
