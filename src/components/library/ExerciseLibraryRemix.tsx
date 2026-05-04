@@ -895,26 +895,25 @@ const ExerciseLibrary = () => {
                       id="image-upload"
                     />
                     <label htmlFor="image-upload" className="cursor-pointer">
-                      {imagePreview ? (
-                        <div className="relative">
+                     {imagePreview ? (
+                        <div className="group relative">
                           <img 
                             src={imagePreview} 
                             alt="Preview"
                             className="max-h-32 mx-auto rounded object-cover"
                           />
-                          <Button
+                          <button
                             type="button"
-                            variant="destructive"
-                            size="icon"
-                            className="absolute top-0 right-0 h-6 w-6"
+                            className="absolute top-1 right-1 h-4 w-4 rounded-full bg-destructive/60 hover:bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
                             onClick={(e) => {
                               e.preventDefault();
                               setFormData({ ...formData, image_file: null });
                               setImagePreview(null);
                             }}
+                            aria-label="Retirer l'image"
                           >
-                            <X className="h-3 w-3" />
-                          </Button>
+                            <X className="h-2.5 w-2.5" />
+                          </button>
                         </div>
                       ) : (
                         <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -1455,25 +1454,24 @@ const ExerciseLibrary = () => {
                   id="edit-image-upload"
                 />
                 <label htmlFor="edit-image-upload" className="cursor-pointer">
-                  {editFormData.imagePreview ? (
-                    <div className="relative">
+                 {editFormData.imagePreview ? (
+                    <div className="group relative">
                       <img 
                         src={editFormData.imagePreview} 
                         alt="Preview"
                         className="max-h-32 mx-auto rounded object-cover"
                       />
-                      <Button
+                      <button
                         type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-0 right-0 h-6 w-6"
+                        className="absolute top-1 right-1 h-4 w-4 rounded-full bg-destructive/60 hover:bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
                         onClick={(e) => {
                           e.preventDefault();
                           setEditFormData({ ...editFormData, image_file: null, imagePreview: null });
                         }}
+                        aria-label="Retirer l'image"
                       >
-                        <X className="h-3 w-3" />
-                      </Button>
+                        <X className="h-2.5 w-2.5" />
+                      </button>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
