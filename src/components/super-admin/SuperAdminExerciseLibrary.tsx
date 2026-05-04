@@ -544,12 +544,17 @@ function ExerciseFormDialog({
             <Label className="flex items-center gap-2">
               <ImageIcon className="h-4 w-4" /> Image (max 2 Mo)
             </Label>
-            {imageUrl ? (
-              <div className="relative w-full max-w-xs">
+             {imageUrl ? (
+              <div className="group relative w-full max-w-xs">
                 <img src={imageUrl} alt="Preview" className="rounded-lg border max-h-40 w-full object-cover" />
-                <Button variant="destructive" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => setImageUrl("")}>
-                  <X className="h-3 w-3" />
-                </Button>
+                <button
+                  type="button"
+                  className="absolute top-1 right-1 h-4 w-4 rounded-full bg-destructive/60 hover:bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                  onClick={() => setImageUrl("")}
+                  aria-label="Retirer l'image"
+                >
+                  <X className="h-2.5 w-2.5" />
+                </button>
               </div>
             ) : (
               <div className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"

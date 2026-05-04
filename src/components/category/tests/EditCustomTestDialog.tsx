@@ -352,18 +352,16 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
           <div className="space-y-1.5">
             <Label>Image du test (optionnel)</Label>
             {imageUrl ? (
-              <div className="relative inline-block rounded-2xl overflow-hidden border bg-muted/40">
+             <div className="group relative inline-block rounded-2xl overflow-hidden border bg-muted/40">
                 <img src={imageUrl} alt="Aperçu du test" className="max-h-48 object-contain" />
-                <Button
+                <button
                   type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2 h-7 w-7 rounded-full"
+                  className="absolute top-1 right-1 h-4 w-4 rounded-full bg-destructive/60 hover:bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
                   onClick={() => setImageUrl(null)}
                   aria-label="Retirer l'image"
                 >
-                  <X className="h-3.5 w-3.5" />
-                </Button>
+                  <X className="h-2.5 w-2.5" />
+                </button>
               </div>
             ) : (
               <label className="flex items-center justify-center gap-2 h-28 rounded-2xl border-2 border-dashed bg-muted/40 cursor-pointer hover:bg-muted/60 transition-colors">
