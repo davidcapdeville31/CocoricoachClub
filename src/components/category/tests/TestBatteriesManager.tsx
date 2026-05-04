@@ -155,15 +155,15 @@ export function TestBatteriesManager({
                           }
                           // Récupérer descriptions et objectifs depuis custom_tests pour enrichir le rapport
                           const itemNames = ((full.items as any) || []).map((it: any) => it.test_name).filter(Boolean);
-                          let testMeta: Record<string, { description?: string | null; objectives?: string | null }> = {};
+                          let testMeta: Record<string, { description?: string | null; objectives?: string | null; image_url?: string | null }> = {};
                           if (itemNames.length > 0 && (clubData as any)?.club_id) {
                             const { data: customTests } = await supabase
                               .from("custom_tests")
-                              .select("name, description, objectives")
+                              .select("name, description, objectives, image_url")
                               .eq("club_id", (clubData as any).club_id)
                               .in("name", itemNames);
                             (customTests || []).forEach((ct: any) => {
-                              testMeta[ct.name.trim().toLowerCase()] = { description: ct.description, objectives: ct.objectives };
+                              testMeta[ct.name.trim().toLowerCase()] = { description: ct.description, objectives: ct.objectives, image_url: ct.image_url };
                             });
                           }
                           await exportBatteryReportPdf({
