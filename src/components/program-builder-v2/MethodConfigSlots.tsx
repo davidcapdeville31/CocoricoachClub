@@ -2980,6 +2980,27 @@ export const MethodConfigSlots = ({
       </div>
       )}
 
+      {/* Repos entre les séries — méthodes classiques (5x5, drop set, pyramides, iso, rest-pause) */}
+      {!isCircuitMethod && !isEmom && !isTabata && !isDeathBy && (
+        <div className="mt-2 p-2 rounded-lg bg-muted/30 border border-border/50">
+          <div className="flex flex-wrap items-center gap-2">
+            <Label className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5" />
+              Repos entre les séries
+            </Label>
+            <TimeInput
+              value={restSeconds || 0}
+              onChange={(seconds) => setRestSeconds(seconds)}
+              min={0}
+              max={600}
+            />
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1.5">
+            Temps de récupération à prendre entre chaque série
+          </p>
+        </div>
+      )}
+
       </div> {/* fin du wrapper pointer-events-none */}
 
       {/* Note auto-générée pour l'athlète — dynamique, toujours visible */}
