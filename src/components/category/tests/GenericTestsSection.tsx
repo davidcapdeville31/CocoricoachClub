@@ -784,7 +784,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                         });
                         setIsScheduleDialogOpen(true);
                       }}
-                      className="ml-1 inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 hover:bg-primary/20 px-2 py-0.5 text-[11px] text-primary"
+                      className="ml-1 inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 hover:bg-primary/20 px-2 py-0.5 text-[11px] text-primary cursor-pointer"
                       title="Planifier ce test dans le calendrier"
                     >
                       <CalendarPlus className="h-3 w-3" /> Planifier
