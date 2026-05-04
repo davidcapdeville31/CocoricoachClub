@@ -3030,6 +3030,7 @@ export const MethodConfigSlots = ({
             globalRestSeconds: circuitRecovery.globalRestSeconds,
             perExerciseRestSeconds: circuitRecovery.perExerciseRestSeconds,
           } : undefined,
+          methodRestSeconds: (!isCircuitMethod && !isEmom && !isTabata && !isDeathBy) ? restSeconds : undefined,
         })}
       />
 
