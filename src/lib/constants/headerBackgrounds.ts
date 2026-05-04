@@ -4,6 +4,14 @@ import stadiumNight from "@/assets/banner-bg/stadium-night.jpg";
 import grassField from "@/assets/banner-bg/grass-field.jpg";
 import mountains from "@/assets/banner-bg/mountains.jpg";
 import carbon from "@/assets/banner-bg/carbon.jpg";
+import basketballCourt from "@/assets/banner-bg/basketball-court.jpg";
+import stadiumSeats from "@/assets/banner-bg/stadium-seats.jpg";
+import runningTrack from "@/assets/banner-bg/running-track.jpg";
+import swimmingPool from "@/assets/banner-bg/swimming-pool.jpg";
+import tennisCourt from "@/assets/banner-bg/tennis-court.jpg";
+import bowlingAlley from "@/assets/banner-bg/bowling-alley.jpg";
+import boxingGym from "@/assets/banner-bg/boxing-gym.jpg";
+import weightRoom from "@/assets/banner-bg/weight-room.jpg";
 
 export interface HeaderBackgroundPreset {
   id: string;
@@ -21,7 +29,15 @@ export const HEADER_BACKGROUND_PRESETS: HeaderBackgroundPreset[] = [
   { id: "flag-fr", label: "Drapeau France", url: flagFr },
   { id: "gradient-indigo", label: "Vague indigo", url: gradientIndigo },
   { id: "stadium-night", label: "Stade de nuit", url: stadiumNight },
+  { id: "stadium-seats", label: "Tribunes", url: stadiumSeats },
   { id: "grass-field", label: "Pelouse sportive", url: grassField },
+  { id: "basketball-court", label: "Parquet basketball", url: basketballCourt },
+  { id: "tennis-court", label: "Terre battue tennis", url: tennisCourt },
+  { id: "running-track", label: "Piste d'athlétisme", url: runningTrack },
+  { id: "swimming-pool", label: "Bassin de natation", url: swimmingPool },
+  { id: "bowling-alley", label: "Pistes de bowling", url: bowlingAlley },
+  { id: "boxing-gym", label: "Salle de boxe", url: boxingGym },
+  { id: "weight-room", label: "Salle de musculation", url: weightRoom },
   { id: "mountains", label: "Montagne enneigée", url: mountains },
   { id: "carbon", label: "Carbone sombre", url: carbon },
 ];
