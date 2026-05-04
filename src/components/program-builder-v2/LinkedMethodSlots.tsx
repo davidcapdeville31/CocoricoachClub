@@ -113,11 +113,10 @@ const ALL_LINKED_PARAMS = [
 // Default visible params per method type
 const getDefaultVisibleParams = (method: LinkedMethodType, slotIndex: number): string[] => {
   if (method === 'bulgarian') {
-    // Heavy slot (0): sets, reps, percentage, tempo, rpe
-    // Light slot (1): sets, reps, load, tempo
-    return slotIndex === 0 
-      ? ['sets', 'reps', 'percentage', 'tempo', 'rpe']
-      : ['sets', 'reps', 'load', 'tempo'];
+    // Both slots expose %1RM AND Kg by default so the coach can pick either
+    return slotIndex === 0
+      ? ['sets', 'reps', 'percentage', 'load', 'tempo', 'rpe']
+      : ['sets', 'reps', 'percentage', 'load', 'tempo'];
   }
   // Default for all other linked methods
   return ['sets', 'reps', 'percentage', 'tempo'];
@@ -403,19 +402,28 @@ const AddParamButton = ({
           type="button"
           variant="outline"
           size="sm"
+          onPointerDown={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpen((o) => !o);
+          }}
           className="h-7 px-2 text-[10px] border-dashed hover:border-primary hover:bg-primary/5 self-end"
         >
           <Plus className="h-3 w-3" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-36 p-2" align="start">
+      <PopoverContent className="w-36 p-2 z-[60]" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
         <div className="space-y-1">
           <p className="text-[10px] font-medium text-muted-foreground px-1">Ajouter</p>
           {availableParams.map((param) => (
             <button
               key={param.key}
               type="button"
-              onClick={() => {
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
                 onAdd(param.key);
                 setOpen(false);
               }}
