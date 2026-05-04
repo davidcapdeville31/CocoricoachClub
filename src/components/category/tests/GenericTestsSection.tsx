@@ -382,7 +382,7 @@ export function BatteryRadarCharts({
   );
 }
 
-export function GenericTestsSection({ categoryId, sportType, defaultCategory }: GenericTestsSectionProps) {
+export function GenericTestsSection({ categoryId, sportType, defaultCategory, hideTestCatalog }: GenericTestsSectionProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [scheduleTarget, setScheduleTarget] = useState<{
