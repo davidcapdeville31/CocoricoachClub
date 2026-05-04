@@ -750,7 +750,6 @@ const CircuitExerciseSlot = ({
                     onMouseDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
                       e.stopPropagation();
-                      setVarPopoverOpen((o) => !o);
                     }}
                     className="h-5 text-[10px] border-dashed px-1.5 gap-0.5"
                     title="Ajouter une variable (Charge, %1RM, RPE, RIR, Tempo...)"
