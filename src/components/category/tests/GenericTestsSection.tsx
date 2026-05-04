@@ -757,50 +757,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
             </Select>
           )}
 
-          {/* Edit/customize the currently selected test */}
-          {!isViewer && filterCategory !== "all" && filterTestType !== "all" && selectedCategory && (() => {
-            const selectedTest = selectedCategory.tests.find(t => t.value === filterTestType);
-            if (!selectedTest) return null;
-            const isCustom = filterTestType.startsWith("custom:");
-            const customId = isCustom ? filterTestType.replace("custom:", "") : undefined;
-            const customDef = isCustom ? customTestsList?.find((t: any) => t.id === customId) : null;
-            return (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  if (isCustom && customDef) {
-                    setEditingTest({
-                      id: customDef.id,
-                      name: customDef.name,
-                      test_category: customDef.test_category,
-                      unit: customDef.unit,
-                      description: customDef.description,
-                      objectives: customDef.objectives,
-                      scoring_scale: (customDef as any).scoring_scale ?? null,
-                      formula_config: (customDef as any).formula_config ?? null,
-                      image_url: (customDef as any).image_url ?? null,
-                      video_url: (customDef as any).video_url ?? null,
-                      bilateral: (customDef as any).bilateral ?? false,
-                      source: "custom",
-                    });
-                  } else {
-                    setEditingTest({
-                      name: selectedTest.label,
-                      test_category: filterCategory,
-                      unit: selectedTest.unit || null,
-                      source: "seed",
-                      seedTestType: filterTestType,
-                    });
-                  }
-                  setIsEditDialogOpen(true);
-                }}
-              >
-                <Pencil className="h-4 w-4 mr-1" />
-                {isCustom ? "Modifier le test" : "Personnaliser"}
-              </Button>
-            );
-          })()}
+          {/* Personnaliser button removed per user request */}
         </div>
 
         {/* Tests disponibles dans cette catégorie (custom_tests définis) */}
