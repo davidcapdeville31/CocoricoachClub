@@ -869,6 +869,11 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                   )}
                   <span className="font-medium">{t.name}</span>
                   {t.unit && <span className="text-muted-foreground">({t.unit})</span>}
+                  {t.is_system && (
+                    <span className="inline-flex items-center rounded-md bg-primary/10 text-primary border border-primary/30 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                      Système
+                    </span>
+                  )}
                   {!isViewer && <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />}
                   {!isViewer && (
                     <span
