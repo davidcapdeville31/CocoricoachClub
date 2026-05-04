@@ -989,8 +989,37 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
 
               {/* Exercises list */}
               <div className="space-y-1.5">
-                {groupBlockExercises(block.exercises ?? []).map((item) =>
-                  item.type === "group" ? (
+                {(() => {
+                  const items = groupBlockExercises(block.exercises ?? []);
+                  return items.map((item, itemIdx) => {
+                    const reorderControls = items.length > 1 ? (
+                      <div className="flex flex-col gap-0.5 pt-1 shrink-0">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5 text-muted-foreground hover:text-primary"
+                          disabled={itemIdx === 0}
+                          onClick={() => moveItemInBlock(block.id, itemIdx, -1)}
+                          title="Monter"
+                        >
+                          <ChevronUp className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5 text-muted-foreground hover:text-primary"
+                          disabled={itemIdx === items.length - 1}
+                          onClick={() => moveItemInBlock(block.id, itemIdx, 1)}
+                          title="Descendre"
+                        >
+                          <ChevronDown className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ) : null;
+
+                    const card = item.type === "group" ? (
                     <LinkedMethodSlots
                       key={item.groupId}
                       method={item.method}
@@ -1065,8 +1094,19 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                       }
                       onRemove={() => removeExerciseFromBlock(block.id, item.exercise.id)}
                     />
-                  ),
-                )}
+                  );
+
+                    const itemKey = item.type === "group" ? item.groupId : item.exercise.id;
+                    return reorderControls ? (
+                      <div key={itemKey} className="flex items-start gap-1">
+                        {reorderControls}
+                        <div className="flex-1 min-w-0">{card}</div>
+                      </div>
+                    ) : (
+                      <div key={itemKey}>{card}</div>
+                    );
+                  });
+                })()}
                 {!linkedDraft && (
                   <ExercisePicker
                     onPick={(picked) => addExerciseToBlock(block.id, picked)}
