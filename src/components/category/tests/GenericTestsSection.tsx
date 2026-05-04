@@ -46,6 +46,7 @@ interface GenericTestsSectionProps {
   categoryId: string;
   sportType?: string;
   defaultCategory?: string;
+  hideTestCatalog?: boolean;
 }
 
 export function BatteryRadarCharts({
@@ -381,7 +382,7 @@ export function BatteryRadarCharts({
   );
 }
 
-export function GenericTestsSection({ categoryId, sportType, defaultCategory }: GenericTestsSectionProps) {
+export function GenericTestsSection({ categoryId, sportType, defaultCategory, hideTestCatalog }: GenericTestsSectionProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [scheduleTarget, setScheduleTarget] = useState<{
@@ -707,7 +708,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         {/* Filtres retirés — les onglets colorés en haut pilotent la catégorie */}
 
         {/* Tests disponibles dans cette catégorie (custom_tests définis) */}
-        {(() => {
+        {!hideTestCatalog && (() => {
           const visibleCustomTests = (customTestsList || []).filter((t: any) => {
             if (filterCategory === "all") return true;
             if (filterCategory === "__custom__") return true;
