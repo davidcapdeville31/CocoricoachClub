@@ -38,8 +38,13 @@ const FIELD_W = FIELD_RIGHT - FIELD_LEFT; // 560
 const FIELD_H = FIELD_BOTTOM - FIELD_TOP; // 380
 
 // Real dimensions in meters
-const FIELD_LENGTH_M = 100; // in-play length
+const FIELD_LENGTH_M = 100; // in-play length (try-line to try-line)
 const FIELD_WIDTH_M = 70;
+
+// Try-lines are at 5% and 95% of FIELD_W → in-play width = 90% of FIELD_W
+const IN_PLAY_W = FIELD_W * 0.9; // SVG px representing the 100m of play
+const TRY_LINE_LEFT_X = FIELD_LEFT + FIELD_W * 0.05; // 48
+const TRY_LINE_RIGHT_X = FIELD_LEFT + FIELD_W * 0.95; // 552
 
 /**
  * Convert a kick's (x%, y%) to real-world distances.
@@ -54,12 +59,12 @@ export function getKickDistances(
   const svgX = (xPct / 100) * 600;
   const svgY = (yPct / 100) * 400;
 
-  // Try-line SVG x
-  const tryLineX = goalsOnRight ? 540 : 60;
+  // Try-line SVG x (aligned with the rendered field lines at pct 0.05/0.95)
+  const tryLineX = goalsOnRight ? TRY_LINE_RIGHT_X : TRY_LINE_LEFT_X;
 
-  // Distance from posts (horizontal) in SVG units relative to field width
+  // Distance from posts (horizontal) — based on the in-play 100m span
   const rawDist = Math.abs(svgX - tryLineX);
-  const distFromPosts = Math.round((rawDist / FIELD_W) * FIELD_LENGTH_M);
+  const distFromPosts = Math.max(0, Math.round((rawDist / IN_PLAY_W) * FIELD_LENGTH_M));
 
   // Lateral position: centre of field is SVG y=200
   const centreY = (FIELD_TOP + FIELD_BOTTOM) / 2; // 200
@@ -148,8 +153,8 @@ function computeZoneSvgRect(
   goalsOnRight: boolean
 ): { x: number; y: number; w: number; h: number } {
   // Convert distance meters to SVG x positions
-  const tryLineX = goalsOnRight ? 540 : 60;
-  const mToSvg = FIELD_W / FIELD_LENGTH_M;
+  const tryLineX = goalsOnRight ? TRY_LINE_RIGHT_X : TRY_LINE_LEFT_X;
+  const mToSvg = IN_PLAY_W / FIELD_LENGTH_M;
 
   let x1: number, x2: number;
   if (goalsOnRight) {
