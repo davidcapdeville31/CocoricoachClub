@@ -41,6 +41,7 @@ import { MethodConfigSlots, type MethodConfigType } from "./MethodConfigSlots";
 import { Trash2 } from "lucide-react";
 import { ExercisePicker, type PickedExercise } from "./ExercisePicker";
 import { ValidatedMethodCard } from "./ValidatedMethodCard";
+import { NormalExerciseEditor } from "./NormalExerciseEditor";
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
 
 export interface SessionDayEditorProps {
@@ -316,6 +317,24 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         blocks.map((b) =>
           b.id === blockId
             ? { ...b, exercises: (b.exercises ?? []).filter((e) => e.id !== exerciseId) }
+            : b,
+        ),
+      );
+    },
+    [blocks, onChange],
+  );
+
+  const updateExerciseField = useCallback(
+    (blockId: string, exerciseId: string, key: string, value: any) => {
+      onChange(
+        blocks.map((b) =>
+          b.id === blockId
+            ? {
+                ...b,
+                exercises: (b.exercises ?? []).map((e) =>
+                  e.id === exerciseId ? { ...e, [key]: value } : e,
+                ),
+              }
             : b,
         ),
       );
@@ -985,27 +1004,14 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                       }}
                     />
                   ) : (
-                    <div
+                    <NormalExerciseEditor
                       key={item.exercise.id}
-                      className="flex items-center justify-between gap-2 rounded-xl bg-muted/40 border border-border/60 px-3 py-2"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {item.exercise.exerciseName}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {item.exercise.sets} × {item.exercise.reps}
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 rounded-2xl text-muted-foreground hover:text-destructive"
-                        onClick={() => removeExerciseFromBlock(block.id, item.exercise.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
+                      exercise={item.exercise}
+                      onUpdate={(key, value) =>
+                        updateExerciseField(block.id, item.exercise.id, key, value)
+                      }
+                      onRemove={() => removeExerciseFromBlock(block.id, item.exercise.id)}
+                    />
                   ),
                 )}
                 {!linkedDraft && (

@@ -23,6 +23,11 @@ export interface V2BlockExercise {
   percentage?: number;
   tempo?: string;
   restSeconds?: number;
+  weight_kg?: number;
+  rpe?: number;
+  rir?: number;
+  visibleVariables?: string[];
+  variableSets?: any[];
   method?: string; // ConfigMethod | LinkedMethod | "normal"
   groupId?: string;
   notes?: string;
