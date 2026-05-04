@@ -199,9 +199,75 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
     return m;
   }, [themeCategories]);
 
+  // Map value -> id (only existing rows in test_theme_categories) and value -> overridden label
+  const themeIdMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (themeCategories || []).forEach((tc) => m.set(tc.value, tc.id));
+    return m;
+  }, [themeCategories]);
+
+  const themeLabelMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (themeCategories || []).forEach((tc) => {
+      if (tc.label) m.set(tc.value, tc.label);
+    });
+    return m;
+  }, [themeCategories]);
+
+  // Fetch club_id once for renames/inserts
+  const { data: clubData } = useQuery({
+    queryKey: ["category-club", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("club_id")
+        .eq("id", categoryId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const queryClient = useQueryClient();
+
+  const handleRenameCategory = async (value: string, newLabel: string) => {
+    try {
+      const existingId = themeIdMap.get(value);
+      if (existingId) {
+        const { error } = await supabase
+          .from("test_theme_categories" as any)
+          .update({ label: newLabel })
+          .eq("id", existingId);
+        if (error) throw error;
+      } else {
+        if (!clubData?.club_id) {
+          toast.error("Club introuvable");
+          throw new Error("club_id missing");
+        }
+        const { error } = await supabase
+          .from("test_theme_categories" as any)
+          .insert({
+            category_id: categoryId,
+            club_id: clubData.club_id,
+            value,
+            label: newLabel,
+          });
+        if (error) throw error;
+      }
+      await queryClient.invalidateQueries({ queryKey: ["test-theme-categories", categoryId] });
+      toast.success("Titre mis à jour");
+    } catch (e: any) {
+      toast.error(e.message || "Erreur lors du renommage");
+      throw e;
+    }
+  };
+
   const testCategories = useMemo(() => {
     const all = getTestCategoriesForSport(sportType || "");
-    const nonRehab = all.filter(c => !c.value.startsWith("rehab_"));
+    // Apply label overrides from test_theme_categories on default sport categories
+    const nonRehab = all
+      .filter(c => !c.value.startsWith("rehab_"))
+      .map(c => ({ ...c, label: themeLabelMap.get(c.value) || c.label }));
     const hasRehab = all.some(c => c.value.startsWith("rehab_"));
 
     const existingValues = new Set(nonRehab.map(c => c.value));
@@ -222,7 +288,7 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
     });
 
     return { nonRehab: [...nonRehab, ...extras], hasRehab };
-  }, [sportType, customCategoryValues, themeCategories]);
+  }, [sportType, customCategoryValues, themeCategories, themeLabelMap]);
 
   // Visibility persisted in localStorage per category
   const storageKey = `tests-visible-categories:${categoryId}`;
