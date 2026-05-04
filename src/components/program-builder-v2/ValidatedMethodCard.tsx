@@ -188,8 +188,18 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
               : method === "drop_set"
               ? `Drop ${idx}`
               : `Série ${idx + 1}`;
+            // Resolve exercise name with multiple fallbacks (series, methodExercises, droppedPhaseExercises)
+            const phaseList: any[] = Array.isArray(config.methodExercises) ? config.methodExercises : [];
+            const droppedPhase = config.droppedPhaseExercises ?? {};
+            const fallbackPhase =
+              phaseList[idx]?.exerciseName ??
+              droppedPhase?.[idx]?.exerciseName ??
+              (phaseList.length > 0 ? phaseList[idx % phaseList.length]?.exerciseName : undefined) ??
+              (Object.keys(droppedPhase).length > 0
+                ? droppedPhase[idx % Object.keys(droppedPhase).length]?.exerciseName
+                : undefined);
             const exName: string | undefined =
-              s.exerciseName || s.phaseExerciseName;
+              s.exerciseName || s.phaseExerciseName || fallbackPhase;
             return (
               <div
                 key={idx}
