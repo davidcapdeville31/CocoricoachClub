@@ -409,7 +409,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     queryClient.invalidateQueries({ queryKey: ["generic_tests_discovery", categoryId] });
     queryClient.invalidateQueries({ queryKey: ["generic-tests-evolution", categoryId] });
     queryClient.invalidateQueries({ queryKey: ["generic-tests-multi-comparison", categoryId] });
-    queryClient.invalidateQueries({ queryKey: ["battery-saved-results", batteryId, categoryId, playerId, savedDate] });
+    queryClient.invalidateQueries({ queryKey: ["battery-saved-results", batteryId, categoryId, playerId] });
     queryClient.invalidateQueries({ queryKey: ["battery-saved-players", batteryId, categoryId, battery?.battery?.name] });
     queryClient.invalidateQueries({ queryKey: ["battery-latest-date-per-player", batteryId, categoryId, battery?.battery?.name] });
     queryClient.invalidateQueries({ queryKey: ["battery-results-list", categoryId, battery?.battery?.name] });
