@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useDroppable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
-import { Dumbbell, X, Plus, SlidersHorizontal, Copy, CheckCheck, Trash2, Pencil, Hash } from "lucide-react";
+import { Dumbbell, X, Plus, SlidersHorizontal, Copy, CheckCheck, Trash2, Pencil, Hash, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MethodActionButtons } from "./shared/MethodActionButtons";
@@ -139,6 +139,8 @@ export interface MethodConfigInitialData {
   }>;
   // Rest-Pause dedicated config
   restPauseConfig?: RestPauseConfig;
+  // Rest between series (for non-crossfit methods)
+  restSeconds?: number;
 }
 
 interface MethodConfigSlotsProps {
@@ -164,6 +166,8 @@ interface MethodConfigSlotsProps {
     visibleVariables?: string[];
     // Rest-Pause dedicated config
     restPauseConfig?: RestPauseConfig;
+    // Rest between series for non-crossfit methods
+    restSeconds?: number;
   }) => void;
   onCancel: () => void;
   droppedExercise?: { exerciseId: string; exerciseName: string } | null;
@@ -1222,7 +1226,9 @@ export const MethodConfigSlots = ({
     }
     return { series: [] };
   });
-  
+
+  // Rest between series (for classic methods: 5x5, drop set, pyramids, iso, etc.)
+  const [restSeconds, setRestSeconds] = useState<number>(initialData?.restSeconds ?? 90);
   // Helper functions for dynamic variables
   const removeVariable = (varKey: string) => {
     setVisibleVariables(prev => prev.filter(v => v !== varKey));
@@ -1382,6 +1388,8 @@ export const MethodConfigSlots = ({
       visibleVariables: visibleVariables,
       // Rest-Pause: pass the ACTUAL config built by the user
       restPauseConfig: isRestPause ? restPauseConfig : undefined,
+      // Rest between series for classic strength methods
+      restSeconds: (!isCircuitMethod && !isEmom && !isTabata && !isDeathBy) ? restSeconds : undefined,
     });
     
     // Passer en mode lecture seule après validation
@@ -2970,6 +2978,27 @@ export const MethodConfigSlots = ({
           </div>
         )}
       </div>
+      )}
+
+      {/* Repos entre les séries — méthodes classiques (5x5, drop set, pyramides, iso, rest-pause) */}
+      {!isCircuitMethod && !isEmom && !isTabata && !isDeathBy && (
+        <div className="mt-2 p-2 rounded-lg bg-muted/30 border border-border/50">
+          <div className="flex flex-wrap items-center gap-2">
+            <Label className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5" />
+              Repos entre les séries
+            </Label>
+            <TimeInput
+              value={restSeconds || 0}
+              onChange={(seconds) => setRestSeconds(seconds)}
+              min={0}
+              max={600}
+            />
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1.5">
+            Temps de récupération à prendre entre chaque série
+          </p>
+        </div>
       )}
 
       </div> {/* fin du wrapper pointer-events-none */}

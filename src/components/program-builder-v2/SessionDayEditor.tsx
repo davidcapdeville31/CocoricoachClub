@@ -627,6 +627,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         name: exerciseName,
         sets: setsCount,
         reps: String(payload.series?.[0]?.reps ?? "1"),
+        restSeconds: (payload as any).restSeconds,
         notes: `${summary}\n<!--v2-${method}:${JSON.stringify(fullConfig)}-->`,
         config: fullConfig as unknown as Record<string, unknown>,
       });
