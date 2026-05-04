@@ -2,7 +2,7 @@ import jsPDF from "jspdf";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getLevelForPercent, type BatteryLevel } from "@/lib/constants/testUnits";
-import logoLight from "@/assets/logo-light.png";
+import { getReportLogoDataUrl } from "@/lib/pdf/clubLogo";
 
 interface TestRow {
   id: string;
@@ -29,6 +29,8 @@ interface ExportOptions {
   items: BatteryItemDef[];
   rows: TestRow[];
   testMeta?: Record<string, { description?: string | null; objectives?: string | null }>;
+  categoryId?: string | null;
+  clubId?: string | null;
 }
 
 /** Replace non-Latin1 characters that break Helvetica (e.g. ≥, ≤, →, …) */
@@ -254,8 +256,8 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
   const pageH = pdf.internal.pageSize.getHeight();
   const margin = 32;
 
-  // Preload logo
-  const logoData = await loadImageAsDataUrl(logoLight);
+  // Preload logo (club logo > PDF settings logo > app default)
+  const logoData = await getReportLogoDataUrl({ categoryId: opts.categoryId, clubId: opts.clubId });
 
   // ===== Cover page =====
   const contentW = pageW - margin * 2;

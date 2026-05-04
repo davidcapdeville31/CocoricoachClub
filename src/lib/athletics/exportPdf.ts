@@ -5,6 +5,7 @@ import type { AthleticsMinima, AthleticsRecord } from "./recordsHelpers";
 import { computeDelta } from "./recordsHelpers";
 import { getMinimaLevel } from "./minimaLevels";
 import { ATHLETISME_DISCIPLINES } from "@/lib/constants/sportTypes";
+import { getReportLogoDataUrl } from "@/lib/pdf/clubLogo";
 
 export interface MatrixExportPlayer {
   id: string;
@@ -20,6 +21,8 @@ export interface MatrixExportData {
   players: MatrixExportPlayer[];
   minimas: AthleticsMinima[];
   records: AthleticsRecord[];
+  categoryId?: string | null;
+  clubId?: string | null;
 }
 
 const PRIMARY: [number, number, number] = [37, 99, 235]; // blue-600
@@ -32,7 +35,7 @@ const MUTED: [number, number, number] = [100, 116, 139]; // slate-500
  * Generates a PDF report comparing each athlete's best season performance
  * against their personal records and federation minimas (grouped by discipline).
  */
-export function exportAthleticsMinimasReport(data: MatrixExportData) {
+export async function exportAthleticsMinimasReport(data: MatrixExportData) {
   const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
@@ -61,6 +64,17 @@ export function exportAthleticsMinimasReport(data: MatrixExportData) {
   // ============ HEADER ============
   pdf.setFillColor(...PRIMARY);
   pdf.rect(0, 0, pageW, 24, "F");
+
+  // Logo club (en haut à droite, dans la barre header)
+  const logoData = await getReportLogoDataUrl({ categoryId: data.categoryId, clubId: data.clubId });
+  if (logoData) {
+    try {
+      const logoH = 18;
+      const logoW = 24;
+      pdf.addImage(logoData, "PNG", pageW - margin - logoW, 3, logoW, logoH);
+    } catch {/* ignore */}
+  }
+
   pdf.setTextColor(255, 255, 255);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(16);
@@ -71,7 +85,7 @@ export function exportAthleticsMinimasReport(data: MatrixExportData) {
   pdf.setFontSize(8);
   pdf.text(
     `Généré le ${format(new Date(), "dd MMMM yyyy 'à' HH:mm", { locale: fr })}`,
-    pageW - margin,
+    pageW - margin - 28,
     19,
     { align: "right" }
   );
