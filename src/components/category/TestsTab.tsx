@@ -403,7 +403,7 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
           <ScrollArea className="w-full">
             <ColoredNavTabsList className="flex flex-wrap w-full gap-1 p-1.5">
               <TestCategoryTrigger
-                value={activeTab === "all" ? "all" : "none-toggle"}
+                value={activeTab === "none" ? "none" : "all"}
                 label={activeTab === "all" ? "Aucun" : "Tous"}
                 colorIndex={0}
                 onClickOverride={() => {
