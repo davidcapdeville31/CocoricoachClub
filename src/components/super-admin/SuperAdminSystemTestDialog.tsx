@@ -50,6 +50,7 @@ interface SystemTestEditing {
   scoring_scale?: ScoringScale | null;
   formula_config?: FormulaConfig | null;
   image_url?: string | null;
+  icon?: string | null;
   video_url?: string | null;
   bilateral?: boolean | null;
   max_points?: number | null;
@@ -75,6 +76,7 @@ export function SuperAdminSystemTestDialog({ open, onOpenChange, test }: Props) 
   const [scoringScale, setScoringScale] = useState<ScoringScale | null>(null);
   const [formulaConfig, setFormulaConfig] = useState<FormulaConfig | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [icon, setIcon] = useState<string>("");
   const [videoUrl, setVideoUrl] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
   const [bilateral, setBilateral] = useState(false);
@@ -98,6 +100,7 @@ export function SuperAdminSystemTestDialog({ open, onOpenChange, test }: Props) 
       setScoringScale((test.scoring_scale as any) ?? null);
       setFormulaConfig((test.formula_config as any) ?? null);
       setImageUrl(test.image_url ?? null);
+      setIcon(test.icon ?? "");
       setVideoUrl(test.video_url ?? "");
       setBilateral(!!test.bilateral);
     } else {
@@ -111,6 +114,7 @@ export function SuperAdminSystemTestDialog({ open, onOpenChange, test }: Props) 
       setScoringScale(null);
       setFormulaConfig(null);
       setImageUrl(null);
+      setIcon("");
       setVideoUrl("");
       setBilateral(false);
     }
@@ -226,6 +230,7 @@ export function SuperAdminSystemTestDialog({ open, onOpenChange, test }: Props) 
         scoring_scale: enableScoring ? (scoringScale as any) : null,
         max_points: maxPoints,
         image_url: imageUrl,
+        icon: icon.trim() || null,
         video_url: videoUrl.trim() || null,
         formula_config: formulaConfig?.enabled ? (formulaConfig as any) : null,
         bilateral,
@@ -341,6 +346,17 @@ export function SuperAdminSystemTestDialog({ open, onOpenChange, test }: Props) 
                   )}
                 </button>
               )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Icône (emoji, affichée si pas d'image)</Label>
+              <Input
+                value={icon}
+                onChange={(e) => setIcon(e.target.value)}
+                placeholder="Ex: 🏋️ ❤️ 🧘 ⚡"
+                maxLength={4}
+                className="w-32 text-center text-2xl"
+              />
             </div>
 
             <div className="space-y-1.5">
