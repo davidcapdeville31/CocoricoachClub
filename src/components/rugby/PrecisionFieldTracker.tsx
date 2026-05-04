@@ -643,7 +643,7 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
                   return (
                     <g>
                       {isFixed && (
-                        <line x1={ox} y1={10} x2={ox} y2={390} stroke="#f59e0b" strokeWidth={2} strokeDasharray="6 3" opacity={0.6} />
+                        <line x1={ox} y1={14} x2={ox} y2={386} stroke="#f59e0b" strokeWidth={2} strokeDasharray="6 3" opacity={0.6} />
                       )}
                       <circle cx={ox} cy={oy} r={12} fill="none" stroke="#f59e0b" strokeWidth={2.5} strokeDasharray="4 2" opacity={0.9} />
                       <circle cx={ox} cy={oy} r={3} fill="#f59e0b" opacity={0.9} />

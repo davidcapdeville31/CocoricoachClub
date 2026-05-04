@@ -1,7 +1,7 @@
 /**
  * Kicking field zone logic: computes distances & zone-based stats.
- * Field SVG is 600×400, play area 20–580 x 10–390.
- * Real field: ~100m long, ~70m wide.
+ * Field SVG is 600×400, play area 20–580 x 14–386.
+ * Real field: 100m in-play long, 70m wide.
  */
 
 export interface KickAttempt {
@@ -29,13 +29,19 @@ const LATERAL_BANDS = [
   { key: "right", label: "Droite", min: 10, max: 35 },
 ] as const;
 
-// Field constants (SVG coordinates)
-const FIELD_LEFT = 20;
-const FIELD_RIGHT = 580;
-const FIELD_TOP = 10;
-const FIELD_BOTTOM = 390;
+// Shared field constants (must match RugbyFieldSVG exactly)
+export const RUGBY_FIELD_SVG_W = 600;
+export const RUGBY_FIELD_SVG_H = 400;
+export const RUGBY_FIELD_LEFT = 20;
+export const RUGBY_FIELD_RIGHT = 580;
+export const RUGBY_FIELD_TOP = 14;
+export const RUGBY_FIELD_BOTTOM = 386;
+const FIELD_LEFT = RUGBY_FIELD_LEFT;
+const FIELD_RIGHT = RUGBY_FIELD_RIGHT;
+const FIELD_TOP = RUGBY_FIELD_TOP;
+const FIELD_BOTTOM = RUGBY_FIELD_BOTTOM;
 const FIELD_W = FIELD_RIGHT - FIELD_LEFT; // 560
-const FIELD_H = FIELD_BOTTOM - FIELD_TOP; // 380
+const FIELD_H = FIELD_BOTTOM - FIELD_TOP; // 372
 
 // Real dimensions in meters
 const FIELD_LENGTH_M = 100; // in-play length (try-line to try-line)
@@ -56,8 +62,8 @@ export function getKickDistances(
   goalsOnRight: boolean
 ): { distFromPosts: number; lateralOffset: number; touchLeft: number; touchRight: number } {
   // Convert % to SVG coords
-  const svgX = (xPct / 100) * 600;
-  const svgY = (yPct / 100) * 400;
+  const svgX = (xPct / 100) * RUGBY_FIELD_SVG_W;
+  const svgY = (yPct / 100) * RUGBY_FIELD_SVG_H;
 
   // Try-line SVG x (aligned with the rendered field lines at pct 0.05/0.95)
   const tryLineX = goalsOnRight ? TRY_LINE_RIGHT_X : TRY_LINE_LEFT_X;

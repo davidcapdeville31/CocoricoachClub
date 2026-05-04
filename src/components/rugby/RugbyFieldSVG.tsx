@@ -1,5 +1,14 @@
-import { useState, useCallback, useMemo, useRef } from "react";
-import { getKickDistances, type ZoneStat } from "@/lib/utils/kickingFieldZones";
+import { useState, useCallback, useRef } from "react";
+import {
+  getKickDistances,
+  type ZoneStat,
+  RUGBY_FIELD_SVG_W,
+  RUGBY_FIELD_SVG_H,
+  RUGBY_FIELD_LEFT,
+  RUGBY_FIELD_RIGHT,
+  RUGBY_FIELD_TOP,
+  RUGBY_FIELD_BOTTOM,
+} from "@/lib/utils/kickingFieldZones";
 
 interface RugbyFieldSVGProps {
   goalsOnRight: boolean;
@@ -14,14 +23,12 @@ interface RugbyFieldSVGProps {
 }
 
 // Field SVG constants
-const SVG_W = 600;
-const SVG_H = 400;
-const MARGIN_X = 20;
-const MARGIN_Y = 14;
-const FIELD_LEFT = MARGIN_X;
-const FIELD_RIGHT = SVG_W - MARGIN_X;
-const FIELD_TOP = MARGIN_Y;
-const FIELD_BOTTOM = SVG_H - MARGIN_Y;
+const SVG_W = RUGBY_FIELD_SVG_W;
+const SVG_H = RUGBY_FIELD_SVG_H;
+const FIELD_LEFT = RUGBY_FIELD_LEFT;
+const FIELD_RIGHT = RUGBY_FIELD_RIGHT;
+const FIELD_TOP = RUGBY_FIELD_TOP;
+const FIELD_BOTTOM = RUGBY_FIELD_BOTTOM;
 const FIELD_W = FIELD_RIGHT - FIELD_LEFT;
 const FIELD_H = FIELD_BOTTOM - FIELD_TOP;
 const FIELD_LENGTH_M = 100;
