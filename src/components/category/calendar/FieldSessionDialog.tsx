@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -30,6 +30,7 @@ interface FieldSessionDialogProps {
   date: Date;
   categoryId: string;
   sportType?: string;
+  editSession?: any | null;
 }
 
 interface BlockDraft {
@@ -113,8 +114,9 @@ const BOWLING_PRECISION_EXERCISES = [
 const isBowlingSport = (sport?: string) =>
   !!sport && sport.toLowerCase().startsWith("bowling");
 
-export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sportType }: FieldSessionDialogProps) {
+export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sportType, editSession }: FieldSessionDialogProps) {
   const qc = useQueryClient();
+  const isEdit = !!editSession?.id;
 
   const [title, setTitle] = useState("Séance terrain");
   const [startTime, setStartTime] = useState("17:00");
