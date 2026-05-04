@@ -132,7 +132,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
 
   // Pre-load: which athletes already have results saved for this battery (any date)
   // We also fetch the most recent test_date per player so editing pre-selects the existing date.
-  const { data: alreadySavedPlayerIds = [], data: existingDatesByPlayer } = useQuery({
+  const { data: alreadySavedPlayerIds = [] } = useQuery({
     queryKey: ["battery-saved-players", batteryId, categoryId, battery?.battery?.name],
     queryFn: async () => {
       if (!battery?.battery?.name) return [];
