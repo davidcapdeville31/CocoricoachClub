@@ -728,7 +728,7 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
         pdf.setTextColor(110);
         st(pdf, `${it.max} pts max`, pageW - margin, blockTop + 10, { align: "right" });
       }
-      let ty = blockTop + 18;
+      let ty = blockTop + 24;
       let curTextX = textX;
       let curTextW = textW;
 
