@@ -131,17 +131,40 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
   });
 
   // Pre-load: which athletes already have results saved for this battery (any date)
-  const { data: alreadySavedPlayerIds = [] } = useQuery({
+  // We also fetch the most recent test_date per player so editing pre-selects the existing date.
+  const { data: alreadySavedPlayerIds = [], data: existingDatesByPlayer } = useQuery({
     queryKey: ["battery-saved-players", batteryId, categoryId, battery?.battery?.name],
     queryFn: async () => {
       if (!battery?.battery?.name) return [];
       const { data, error } = await supabase
         .from("generic_tests")
-        .select("player_id")
+        .select("player_id, test_date")
         .eq("category_id", categoryId)
-        .ilike("notes", `[Batterie: ${battery.battery.name}]%`);
+        .ilike("notes", `[Batterie: ${battery.battery.name}]%`)
+        .order("test_date", { ascending: false });
       if (error) throw error;
       return Array.from(new Set((data || []).map((r: any) => r.player_id))) as string[];
+    },
+    enabled: open && !!battery?.battery?.name,
+  });
+
+  // Map player_id -> most recent existing test_date for this battery
+  const { data: latestDatePerPlayer = {} } = useQuery<Record<string, string>>({
+    queryKey: ["battery-latest-date-per-player", batteryId, categoryId, battery?.battery?.name],
+    queryFn: async () => {
+      if (!battery?.battery?.name) return {};
+      const { data, error } = await supabase
+        .from("generic_tests")
+        .select("player_id, test_date")
+        .eq("category_id", categoryId)
+        .ilike("notes", `[Batterie: ${battery.battery.name}]%`)
+        .order("test_date", { ascending: false });
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      (data || []).forEach((r: any) => {
+        if (!map[r.player_id]) map[r.player_id] = r.test_date;
+      });
+      return map;
     },
     enabled: open && !!battery?.battery?.name,
   });
