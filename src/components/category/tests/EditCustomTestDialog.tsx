@@ -313,16 +313,21 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
   };
 
   const isSeed = test?.source === "seed";
+  const isSystem = test?.source === "system";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0 flex flex-col">
         <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
-          <DialogTitle>{isSeed ? "Personnaliser le test" : "Modifier le test"}</DialogTitle>
+          <DialogTitle>
+            {isSeed ? "Personnaliser le test" : isSystem ? "Personnaliser ce test système" : "Modifier le test"}
+          </DialogTitle>
           <DialogDescription>
             {isSeed
               ? "Ce test fait partie du catalogue. Vos modifications créeront une version personnalisée pour cette catégorie."
-              : "Modifiez le nom, la catégorie, l'unité, la description, les objectifs et le barème de notation."}
+              : isSystem
+                ? "Ce test provient de la banque système (partagée). Vos modifications créeront automatiquement une copie locale pour votre club, sans impacter les autres comptes."
+                : "Modifiez le nom, la catégorie, l'unité, la description, les objectifs et le barème de notation."}
           </DialogDescription>
         </DialogHeader>
 
