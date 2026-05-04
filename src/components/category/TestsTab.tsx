@@ -184,10 +184,10 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("test_theme_categories" as any)
-        .select("value, label, color")
+        .select("id, value, label, color")
         .eq("category_id", categoryId);
       if (error) throw error;
-      return (data || []) as unknown as Array<{ value: string; label: string; color: string | null }>;
+      return (data || []) as unknown as Array<{ id: string; value: string; label: string; color: string | null }>;
     },
   });
 
