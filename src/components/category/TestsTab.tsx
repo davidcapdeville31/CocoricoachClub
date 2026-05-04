@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -19,6 +19,7 @@ import { CreateThemeCategoryDialog } from "./tests/CreateThemeCategoryDialog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { PlanTestsSection } from "./tests/PlanTestsSection";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface TestsTabProps {
   categoryId: string;
@@ -41,18 +42,99 @@ const TEST_TAB_COLORS = [
   "hsl(10 80% 55%)",    // coral
 ] as const;
 
-function TestCategoryTrigger({ value, label, colorIndex, customColor }: { value: string; label: string; colorIndex: number; customColor?: string | null }) {
+function TestCategoryTrigger({
+  value,
+  label,
+  colorIndex,
+  customColor,
+  editable = false,
+  onRename,
+}: {
+  value: string;
+  label: string;
+  colorIndex: number;
+  customColor?: string | null;
+  editable?: boolean;
+  onRename?: (newLabel: string) => Promise<void> | void;
+}) {
   const color = customColor || TEST_TAB_COLORS[colorIndex % TEST_TAB_COLORS.length];
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState(label);
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isEditing) setDraft(label);
+  }, [label, isEditing]);
+
+  useEffect(() => {
+    if (isEditing) {
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      });
+    }
+  }, [isEditing]);
+
+  const commit = async () => {
+    const trimmed = draft.trim();
+    if (!trimmed || trimmed === label || !onRename) {
+      setIsEditing(false);
+      setDraft(label);
+      return;
+    }
+    setSaving(true);
+    try {
+      await onRename(trimmed);
+      setIsEditing(false);
+    } catch {
+      setDraft(label);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <span
+        className="inline-flex items-center px-2.5 py-1 rounded-md border-[1.5px]"
+        style={{ borderColor: color }}
+      >
+        <input
+          ref={inputRef}
+          value={draft}
+          disabled={saving}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commit();
+            } else if (e.key === "Escape") {
+              e.preventDefault();
+              setIsEditing(false);
+              setDraft(label);
+            }
+          }}
+          className="bg-transparent outline-none text-xs font-medium min-w-[60px] max-w-[180px]"
+          style={{ color }}
+        />
+      </span>
+    );
+  }
 
   return (
     <TabsPrimitive.Trigger
       value={value}
+      onDoubleClick={editable ? () => setIsEditing(true) : undefined}
+      title={editable ? "Double-cliquez pour renommer" : undefined}
       className={cn(
         "group relative inline-flex items-center px-2.5 py-1 rounded-md font-medium text-xs",
         "transition-all duration-200 ease-out whitespace-nowrap",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         "hover:opacity-80",
         "data-[state=active]:shadow-sm data-[state=active]:scale-105",
+        editable && "cursor-text",
       )}
       style={{
         borderWidth: "1.5px",
@@ -102,10 +184,10 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("test_theme_categories" as any)
-        .select("value, label, color")
+        .select("id, value, label, color")
         .eq("category_id", categoryId);
       if (error) throw error;
-      return (data || []) as unknown as Array<{ value: string; label: string; color: string | null }>;
+      return (data || []) as unknown as Array<{ id: string; value: string; label: string; color: string | null }>;
     },
   });
 
@@ -117,9 +199,75 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
     return m;
   }, [themeCategories]);
 
+  // Map value -> id (only existing rows in test_theme_categories) and value -> overridden label
+  const themeIdMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (themeCategories || []).forEach((tc) => m.set(tc.value, tc.id));
+    return m;
+  }, [themeCategories]);
+
+  const themeLabelMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (themeCategories || []).forEach((tc) => {
+      if (tc.label) m.set(tc.value, tc.label);
+    });
+    return m;
+  }, [themeCategories]);
+
+  // Fetch club_id once for renames/inserts
+  const { data: clubData } = useQuery({
+    queryKey: ["category-club", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("club_id")
+        .eq("id", categoryId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const queryClient = useQueryClient();
+
+  const handleRenameCategory = async (value: string, newLabel: string) => {
+    try {
+      const existingId = themeIdMap.get(value);
+      if (existingId) {
+        const { error } = await supabase
+          .from("test_theme_categories" as any)
+          .update({ label: newLabel })
+          .eq("id", existingId);
+        if (error) throw error;
+      } else {
+        if (!clubData?.club_id) {
+          toast.error("Club introuvable");
+          throw new Error("club_id missing");
+        }
+        const { error } = await supabase
+          .from("test_theme_categories" as any)
+          .insert({
+            category_id: categoryId,
+            club_id: clubData.club_id,
+            value,
+            label: newLabel,
+          });
+        if (error) throw error;
+      }
+      await queryClient.invalidateQueries({ queryKey: ["test-theme-categories", categoryId] });
+      toast.success("Titre mis à jour");
+    } catch (e: any) {
+      toast.error(e.message || "Erreur lors du renommage");
+      throw e;
+    }
+  };
+
   const testCategories = useMemo(() => {
     const all = getTestCategoriesForSport(sportType || "");
-    const nonRehab = all.filter(c => !c.value.startsWith("rehab_"));
+    // Apply label overrides from test_theme_categories on default sport categories
+    const nonRehab = all
+      .filter(c => !c.value.startsWith("rehab_"))
+      .map(c => ({ ...c, label: themeLabelMap.get(c.value) || c.label }));
     const hasRehab = all.some(c => c.value.startsWith("rehab_"));
 
     const existingValues = new Set(nonRehab.map(c => c.value));
@@ -140,7 +288,7 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
     });
 
     return { nonRehab: [...nonRehab, ...extras], hasRehab };
-  }, [sportType, customCategoryValues, themeCategories]);
+  }, [sportType, customCategoryValues, themeCategories, themeLabelMap]);
 
   // Visibility persisted in localStorage per category
   const storageKey = `tests-visible-categories:${categoryId}`;
@@ -255,6 +403,8 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
                   label={cat.label}
                   colorIndex={i + 1}
                   customColor={themeColorMap.get(cat.value)}
+                  editable={!isViewer}
+                  onRename={(newLabel) => handleRenameCategory(cat.value, newLabel)}
                 />
               ))}
               {showRehab && (
