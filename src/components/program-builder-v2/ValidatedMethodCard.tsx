@@ -238,9 +238,10 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
           {label}
         </Badge>
         {!isPhaseMethod && (
-          <span className={cn("text-sm font-medium truncate flex-1", colors.text)}>
-            {headerName}
-          </span>
+          <ExerciseNameWithMedia
+            name={headerName}
+            className={cn("text-sm font-medium", colors.text)}
+          />
         )}
         {isPhaseMethod && <div className="flex-1" />}
         <span className="text-[11px] text-muted-foreground whitespace-nowrap">
