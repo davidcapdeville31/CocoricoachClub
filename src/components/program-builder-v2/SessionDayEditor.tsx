@@ -483,13 +483,22 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
 
   const handleClusterValidate = useCallback(
     (blockId: string, config: ClusterConfig) => {
-      const summary = formatClusterSummary(config);
+      const draft = clusterDrafts[blockId];
+      const enriched: ClusterConfig = {
+        ...config,
+        exerciseId: config.exerciseId ?? draft?.exerciseId,
+        exerciseName: config.exerciseName ?? draft?.exerciseName,
+      };
+      const summary = formatClusterSummary(enriched);
+      const exName = enriched.exerciseName
+        ? `${enriched.exerciseName} — Cluster ${summary}`
+        : `Cluster — ${summary}`;
       appendMethodExercise(blockId, {
         method: "cluster",
-        name: `Cluster — ${summary}`,
-        sets: config.sets ?? 1,
-        notes: `<!--v2-cluster:${JSON.stringify(config)}-->`,
-        config: config as unknown as Record<string, unknown>,
+        name: exName,
+        sets: enriched.sets ?? 1,
+        notes: `<!--v2-cluster:${JSON.stringify(enriched)}-->`,
+        config: enriched as unknown as Record<string, unknown>,
       });
       setClusterDrafts((p) => {
         const n = { ...p };
@@ -498,7 +507,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
       });
       toast.success("Cluster ajouté à la séance");
     },
-    [appendMethodExercise],
+    [appendMethodExercise, clusterDrafts],
   );
   const handleClusterCancel = useCallback((blockId: string) => {
     setClusterDrafts((p) => {
