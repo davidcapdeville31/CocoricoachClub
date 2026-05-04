@@ -131,8 +131,8 @@ function ClubDetailsContent() {
               {!isViewer && (
                 <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="gap-2 shrink-0">
                   <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">Ajouter une catégorie</span>
-                  <span className="sm:hidden">Ajouter</span>
+                  <span className="hidden sm:inline">Créer / Modifier une catégorie</span>
+                  <span className="sm:hidden">Créer / Modifier</span>
                 </Button>
               )}
             </div>
