@@ -391,10 +391,20 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="all" className="space-y-4">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v)}
+          className="space-y-4"
+        >
           <ScrollArea className="w-full">
             <ColoredNavTabsList className="flex flex-wrap w-full gap-1 p-1.5">
-              <TestCategoryTrigger value="all" label="Tous" colorIndex={0} />
+              <TestCategoryTrigger
+                value={activeTab === "all" ? "none" : "all"}
+                displayValue="all"
+                label={activeTab === "all" ? "Aucun" : "Tous"}
+                colorIndex={0}
+                forceActive={activeTab === "all"}
+              />
               {filteredNonRehab.map((cat, i) => (
                 <TestCategoryTrigger
                   key={cat.value}
