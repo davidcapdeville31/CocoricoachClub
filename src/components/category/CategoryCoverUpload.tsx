@@ -219,7 +219,7 @@ export function LogoHoverActions({
             saving={updatePosition.isPending}
           />
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setRecenterOpen(false)}>Fermer</Button>
+            <Button onClick={() => setRecenterOpen(false)}>Enregistrer et fermer</Button>
             <Button
               variant="outline"
               onClick={() => updatePosition.mutate("50% 50%")}
