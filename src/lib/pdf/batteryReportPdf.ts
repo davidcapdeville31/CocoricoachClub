@@ -256,8 +256,8 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
   const pageH = pdf.internal.pageSize.getHeight();
   const margin = 32;
 
-  // Preload logo
-  const logoData = await loadImageAsDataUrl(logoLight);
+  // Preload logo (club logo > PDF settings logo > app default)
+  const logoData = await getReportLogoDataUrl({ categoryId: opts.categoryId, clubId: opts.clubId });
 
   // ===== Cover page =====
   const contentW = pageW - margin * 2;
