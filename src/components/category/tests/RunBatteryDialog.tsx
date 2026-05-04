@@ -268,7 +268,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
             result_value: null,
             result_unit: it.unit || null,
             test_date: savedDate,
-            notes: `[Batterie: ${battery.battery.name}] [BLESSÉ] Test: ${it.test_name} (Droit) · Non réalisé (blessure) · Score 0/${it.max_points} pts`,
+            notes: `[Batterie: ${battery.battery.name}] [Heure: ${savedTime}] [BLESSÉ] Test: ${it.test_name} (Droit) · Non réalisé (blessure) · Score 0/${it.max_points} pts`,
           });
         } else if (rawR !== undefined && rawR !== "") {
           rows.push({
@@ -279,7 +279,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
             result_value: parseFloat(rawR),
             result_unit: it.unit || null,
             test_date: savedDate,
-            notes: `[Batterie: ${battery.battery.name}] Test: ${it.test_name} (Droit) · Score ${perItem[it.id]?.pointsR ?? 0}/${it.max_points} pts`,
+            notes: `[Batterie: ${battery.battery.name}] [Heure: ${savedTime}] Test: ${it.test_name} (Droit) · Score ${perItem[it.id]?.pointsR ?? 0}/${it.max_points} pts`,
           });
         }
         if (injL) {
@@ -291,7 +291,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
             result_value: null,
             result_unit: it.unit || null,
             test_date: savedDate,
-            notes: `[Batterie: ${battery.battery.name}] [BLESSÉ] Test: ${it.test_name} (Gauche) · Non réalisé (blessure) · Score 0/${it.max_points} pts`,
+            notes: `[Batterie: ${battery.battery.name}] [Heure: ${savedTime}] [BLESSÉ] Test: ${it.test_name} (Gauche) · Non réalisé (blessure) · Score 0/${it.max_points} pts`,
           });
         } else if (rawL !== undefined && rawL !== "") {
           rows.push({
@@ -302,7 +302,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
             result_value: parseFloat(rawL),
             result_unit: it.unit || null,
             test_date: savedDate,
-            notes: `[Batterie: ${battery.battery.name}] Test: ${it.test_name} (Gauche) · Score ${perItem[it.id]?.pointsL ?? 0}/${it.max_points} pts`,
+            notes: `[Batterie: ${battery.battery.name}] [Heure: ${savedTime}] Test: ${it.test_name} (Gauche) · Score ${perItem[it.id]?.pointsL ?? 0}/${it.max_points} pts`,
           });
         }
       } else if (injured[it.id]) {
@@ -314,7 +314,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
           result_value: null,
           result_unit: it.unit || null,
           test_date: savedDate,
-          notes: `[Batterie: ${battery.battery.name}] [BLESSÉ] Test: ${it.test_name} · Non réalisé (blessure) · Score 0/${it.max_points} pts`,
+          notes: `[Batterie: ${battery.battery.name}] [Heure: ${savedTime}] [BLESSÉ] Test: ${it.test_name} · Non réalisé (blessure) · Score 0/${it.max_points} pts`,
         });
       } else if (results[it.id] !== undefined && results[it.id] !== "") {
         rows.push({
@@ -325,7 +325,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
           result_value: parseFloat(results[it.id]),
           result_unit: it.unit || null,
           test_date: savedDate,
-          notes: `[Batterie: ${battery.battery.name}] Test: ${it.test_name} · Score ${perItem[it.id]?.points ?? 0}/${it.max_points} pts`,
+          notes: `[Batterie: ${battery.battery.name}] [Heure: ${savedTime}] Test: ${it.test_name} · Score ${perItem[it.id]?.points ?? 0}/${it.max_points} pts`,
         });
       }
     });
