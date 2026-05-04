@@ -495,11 +495,11 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
     });
   }
 
-  // ===== One page per athlete =====
+  // ===== Multiple athletes per page (2-3 selon l'espace) =====
+  let y = pageH; // force new page on first iteration
+
   for (let idx = 0; idx < groups.length; idx++) {
     const g = groups[idx];
-    pdf.addPage();
-    let y = margin;
 
     // Build per-test data (merge bilateral by baseName) - max counted ONCE per item
     type ItemAgg = { name: string; points: number; max: number; results: string[]; injured: boolean };
@@ -511,7 +511,6 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
       const inj = isInjured(r.notes);
       const cur = aggMap.get(baseName) || { name: baseName, points: 0, max: 0, results: [], injured: false };
       cur.points += points;
-      // Single source of truth: battery item def
       cur.max = maxByName[baseName.toLowerCase()] ?? maxByName[fullName.toLowerCase()] ?? cur.max;
       if (r.result_value != null) cur.results.push(`${r.result_value}${r.result_unit ? " " + r.result_unit : ""}`);
       cur.injured = cur.injured || inj;
@@ -523,6 +522,15 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
     const finalMax = totalMaxBattery > 0 ? totalMaxBattery : aggItems.reduce((s, it) => s + it.max, 0);
     const pct = finalMax > 0 ? Math.round((totalPoints / finalMax) * 100) : 0;
     const level = getLevelForPercent(pct, levels);
+
+    // Hauteur estimée du bloc athlète
+    const linesH = 14 + aggItems.length * 24;
+    const blockH = 64 + Math.max(240, linesH) + 18;
+
+    if (y + blockH > pageH - margin) {
+      pdf.addPage();
+      y = margin;
+    }
 
     // Avatar (left)
     let headerX = margin;
@@ -580,10 +588,6 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
     pdf.setFontSize(9);
 
     aggItems.forEach((it) => {
-      if (ty > pageH - 40) {
-        pdf.addPage();
-        ty = margin;
-      }
       const itemPct = it.max > 0 ? Math.round((it.points / it.max) * 100) : 0;
       const itemLevel = getLevelForPercent(itemPct, levels);
       const c = hexToRgb(itemLevel.color || "#3b82f6");
@@ -613,6 +617,16 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
       ty += 13;
     });
 
+    const blockEnd = Math.max(ty, y + radarSize);
+
+    // Séparateur visuel si un autre athlète tient sur la page
+    if (idx < groups.length - 1) {
+      pdf.setDrawColor(220);
+      pdf.setLineWidth(0.5);
+      pdf.line(margin, blockEnd + 8, pageW - margin, blockEnd + 8);
+    }
+
+    y = blockEnd + 18;
   }
 
   // Numérotation finale de toutes les pages (générique)
