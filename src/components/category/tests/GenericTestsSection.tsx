@@ -743,7 +743,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                     });
                     setIsEditDialogOpen(true);
                   }}
-                   className={`group inline-flex items-center gap-2 rounded-2xl bg-background border hover:border-primary hover:bg-accent transition-colors text-sm ${(t.image_url || t.icon) ? "p-1.5 pr-3" : "px-2.5 py-1 text-xs"}`}
+                   className={`group inline-flex items-center gap-2 rounded-2xl bg-background border hover:border-primary hover:bg-accent transition-colors text-sm cursor-pointer ${(t.image_url || t.icon) ? "p-1.5 pr-3" : "px-2.5 py-1 text-xs"}`}
                    title={isViewer ? (t.description || "") : (t.is_system ? "Test système (modifier crée une copie locale)" : "Cliquer pour modifier ce test")}
                  >
                    {t.image_url ? (
@@ -784,7 +784,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                         });
                         setIsScheduleDialogOpen(true);
                       }}
-                      className="ml-1 inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 hover:bg-primary/20 px-2 py-0.5 text-[11px] text-primary"
+                      className="ml-1 inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 hover:bg-primary/20 px-2 py-0.5 text-[11px] text-primary cursor-pointer"
                       title="Planifier ce test dans le calendrier"
                     >
                       <CalendarPlus className="h-3 w-3" /> Planifier
@@ -798,7 +798,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                         e.stopPropagation();
                         duplicateTest.mutate(t);
                       }}
-                      className="inline-flex items-center gap-1 rounded-lg border border-muted-foreground/30 bg-muted hover:bg-muted/70 px-2 py-0.5 text-[11px] text-foreground"
+                      className="inline-flex items-center gap-1 rounded-lg border border-muted-foreground/30 bg-muted hover:bg-muted/70 px-2 py-0.5 text-[11px] text-foreground cursor-pointer"
                       title="Dupliquer ce test"
                     >
                       <Copy className="h-3 w-3" /> Dupliquer
