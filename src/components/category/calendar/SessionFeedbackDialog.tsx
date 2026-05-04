@@ -636,8 +636,8 @@ export function SessionFeedbackDialog({
               <Activity className="h-4 w-4" />
               RPE
               {hasNewRpeValues && (
-                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
-                  {Object.entries(rpeValues).filter(([id, v]) => v.rpe && !playersWithRpe.has(id)).length}
+                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs" title="Joueurs renseignés">
+                  {Object.entries(rpeValues).filter(([id, v]) => v.rpe && !playersWithRpe.has(id)).length} joueur(s)
                 </Badge>
               )}
             </TabsTrigger>
