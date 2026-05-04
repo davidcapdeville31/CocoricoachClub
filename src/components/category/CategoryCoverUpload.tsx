@@ -280,15 +280,18 @@ export function CategoryCoverUpload({
           </DialogHeader>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto pr-2 p-1">
             {HEADER_BACKGROUND_PRESETS.map((preset) => {
+              const resolvedCurrent = resolveHeaderBackgroundUrl(currentHeaderBackgroundUrl);
               const isSelected =
-                (preset.url === "" && !currentHeaderBackgroundUrl) ||
-                (preset.url !== "" && currentHeaderBackgroundUrl === preset.url);
+                (preset.url === "" && !resolvedCurrent) ||
+                (preset.url !== "" && resolvedCurrent === preset.url);
               return (
                 <button
                   key={preset.id}
                   type="button"
                   onClick={() => {
-                    updateBackground.mutate(preset.url || null, {
+                    // On stocke l'identifiant stable du preset (pas l'URL bundlée
+                    // qui change à chaque rebuild). "" = retour au dégradé par défaut.
+                    updateBackground.mutate(preset.url ? preset.id : null, {
                       onSuccess: () => setBgOpen(false),
                     });
                   }}
