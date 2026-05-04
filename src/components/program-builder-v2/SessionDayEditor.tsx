@@ -118,7 +118,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
   const [pendingConfig, setPendingConfig] = useState<Record<string, ConfigMethod>>({});
   // Draft Fartlek actif par bloc — affiche FartlekConfigSlots
   const [fartlekDrafts, setFartlekDrafts] = useState<Record<string, { editing: boolean; initial?: FartlekConfig }>>({});
-  const [clusterDrafts, setClusterDrafts] = useState<Record<string, { editing: boolean; initial?: ClusterConfig }>>({});
+  const [clusterDrafts, setClusterDrafts] = useState<Record<string, { editing: boolean; initial?: ClusterConfig; exerciseId?: string; exerciseName?: string }>>({});
   const [statoDrafts, setStatoDrafts] = useState<Record<string, { editing: boolean; initial?: StatoDynamiqueConfig }>>({});
   const [intermittentDrafts, setIntermittentDrafts] = useState<Record<string, { editing: boolean; initial?: IntermittentCardioConfig }>>({});
 
@@ -204,6 +204,19 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         return;
       }
 
+      // Si un draft Cluster est actif → injecter l'exercice dans la carte de configuration
+      if (clusterDrafts[blockId]) {
+        setClusterDrafts((p) => ({
+          ...p,
+          [blockId]: {
+            ...p[blockId],
+            exerciseId: picked.id,
+            exerciseName: picked.name,
+          },
+        }));
+        return;
+      }
+
       // Si une méthode "config" (drop_set, amrap, emom, ...) est en cours,
       // router l'exercice vers la carte de configuration au lieu de l'ajouter au bloc.
       const cfg = configDrafts[blockId];
@@ -252,7 +265,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         return next;
       });
     },
-    [blocks, onChange, pendingConfig, linkedDrafts, configDrafts],
+    [blocks, onChange, pendingConfig, linkedDrafts, configDrafts, clusterDrafts],
   );
 
   // Expose une API impérative pour insérer un exercice depuis la bibliothèque externe
@@ -260,7 +273,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
     ref,
     () => ({
       hasActiveLinkedDraft: (blockId: string) =>
-        !!linkedDrafts[blockId] || !!configDrafts[blockId],
+        !!linkedDrafts[blockId] || !!configDrafts[blockId] || !!clusterDrafts[blockId],
       insertExternalExercise: (blockId, picked) => {
         addExerciseToBlock(blockId, { id: picked.id, name: picked.name } as PickedExercise);
         return true;
@@ -308,7 +321,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         return true;
       },
     }),
-    [linkedDrafts, configDrafts, addExerciseToBlock],
+    [linkedDrafts, configDrafts, clusterDrafts, addExerciseToBlock],
   );
 
   const removeExerciseFromBlock = useCallback(
@@ -470,13 +483,22 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
 
   const handleClusterValidate = useCallback(
     (blockId: string, config: ClusterConfig) => {
-      const summary = formatClusterSummary(config);
+      const draft = clusterDrafts[blockId];
+      const enriched: ClusterConfig = {
+        ...config,
+        exerciseId: config.exerciseId ?? draft?.exerciseId,
+        exerciseName: config.exerciseName ?? draft?.exerciseName,
+      };
+      const summary = formatClusterSummary(enriched);
+      const exName = enriched.exerciseName
+        ? `${enriched.exerciseName} — Cluster ${summary}`
+        : `Cluster — ${summary}`;
       appendMethodExercise(blockId, {
         method: "cluster",
-        name: `Cluster — ${summary}`,
-        sets: config.sets ?? 1,
-        notes: `<!--v2-cluster:${JSON.stringify(config)}-->`,
-        config: config as unknown as Record<string, unknown>,
+        name: exName,
+        sets: enriched.sets ?? 1,
+        notes: `<!--v2-cluster:${JSON.stringify(enriched)}-->`,
+        config: enriched as unknown as Record<string, unknown>,
       });
       setClusterDrafts((p) => {
         const n = { ...p };
@@ -485,7 +507,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
       });
       toast.success("Cluster ajouté à la séance");
     },
-    [appendMethodExercise],
+    [appendMethodExercise, clusterDrafts],
   );
   const handleClusterCancel = useCallback((blockId: string) => {
     setClusterDrafts((p) => {
@@ -888,6 +910,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
               {clusterDraft && (
                 <ClusterConfigSlots
                   initialConfig={clusterDraft.initial}
+                  exerciseName={clusterDraft.exerciseName}
                   onValidate={(config) => handleClusterValidate(block.id, config)}
                   onCancel={() => handleClusterCancel(block.id)}
                 />
