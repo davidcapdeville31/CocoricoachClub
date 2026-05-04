@@ -41,6 +41,8 @@ export function AddCategoryDialog({
   onOpenChange,
   clubId,
 }: AddCategoryDialogProps) {
+  const [mode, setMode] = useState<"create" | "edit">("create");
+  const [editingCategoryId, setEditingCategoryId] = useState<string>("");
   const [categoryName, setCategoryName] = useState("");
   const [gender, setGender] = useState<"masculine" | "feminine" | "mixed">("masculine");
   const [sportSubType, setSportSubType] = useState<SportType>("XV");
@@ -76,6 +78,21 @@ export function AddCategoryDialog({
     },
     enabled: open && !!clubId,
     staleTime: 0,
+  });
+
+  // Fetch existing categories (for edit mode)
+  const { data: existingCategories = [] } = useQuery({
+    queryKey: ["categories-for-edit", clubId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name, gender, rugby_type")
+        .eq("club_id", clubId)
+        .order("name");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!clubId,
   });
 
   const maxCategories = (club?.clients as any)?.max_categories_per_club ?? null;
@@ -127,7 +144,20 @@ export function AddCategoryDialog({
   useEffect(() => {
     if (!open) return;
     setSelectedMembers((prev) => (prev.length === 0 ? prev : []));
+    setMode("create");
+    setEditingCategoryId("");
   }, [open]);
+
+  // When user picks a category to edit, prefill the form fields with its values
+  useEffect(() => {
+    if (mode !== "edit" || !editingCategoryId) return;
+    const cat = existingCategories.find((c: any) => c.id === editingCategoryId);
+    if (!cat) return;
+    setCategoryName(cat.name || "");
+    setGender((cat.gender as any) || "masculine");
+    if (cat.rugby_type) setSportSubType(cat.rugby_type as SportType);
+    setValidationError("");
+  }, [mode, editingCategoryId, existingCategories]);
 
   const addCategory = useMutation({
     mutationFn: async (data: { name: string; rugby_type: SportType; gender: "masculine" | "feminine" | "mixed"; memberIds: string[] }) => {
@@ -168,19 +198,56 @@ export function AddCategoryDialog({
     },
   });
 
+  const updateCategory = useMutation({
+    mutationFn: async (data: { id: string; name: string; rugby_type: SportType; gender: "masculine" | "feminine" | "mixed" }) => {
+      const { error } = await supabase
+        .from("categories")
+        .update({
+          name: data.name,
+          rugby_type: data.rugby_type,
+          gender: data.gender,
+        })
+        .eq("id", data.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories", clubId] });
+      queryClient.invalidateQueries({ queryKey: ["categories-for-edit", clubId] });
+      queryClient.invalidateQueries({ queryKey: ["category", editingCategoryId] });
+      toast.success("Catégorie modifiée avec succès");
+      onOpenChange(false);
+    },
+    onError: (error: any) => {
+      toast.error(`Erreur lors de la modification: ${error?.message || "Erreur inconnue"}`);
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setValidationError("");
 
-    if (isCategoryLimitReached) {
-      setValidationError(`Limite de catégories atteinte (${currentCategoryCount}/${maxCategories}). Contactez votre administrateur.`);
+    const result = categorySchema.safeParse({ name: categoryName });
+    if (!result.success) {
+      setValidationError(result.error.errors[0].message);
       return;
     }
 
-    const result = categorySchema.safeParse({ name: categoryName });
-    
-    if (!result.success) {
-      setValidationError(result.error.errors[0].message);
+    if (mode === "edit") {
+      if (!editingCategoryId) {
+        setValidationError("Sélectionnez une catégorie à modifier");
+        return;
+      }
+      updateCategory.mutate({
+        id: editingCategoryId,
+        name: result.data.name,
+        rugby_type: sportSubType,
+        gender,
+      });
+      return;
+    }
+
+    if (isCategoryLimitReached) {
+      setValidationError(`Limite de catégories atteinte (${currentCategoryCount}/${maxCategories}). Contactez votre administrateur.`);
       return;
     }
 
@@ -229,14 +296,53 @@ export function AddCategoryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Ajouter une nouvelle catégorie</DialogTitle>
+          <DialogTitle>Créer / Modifier une catégorie</DialogTitle>
           {club?.sport && (
             <p className="text-sm text-muted-foreground">
               Sport : {getSportLabel(club.sport)}
             </p>
           )}
         </DialogHeader>
-        {isCategoryLimitReached && (
+
+        {/* Mode toggle */}
+        <div className="grid grid-cols-2 gap-2 rounded-lg border p-1 bg-muted/30">
+          <button
+            type="button"
+            onClick={() => { setMode("create"); setCategoryName(""); setEditingCategoryId(""); setValidationError(""); }}
+            className={`text-sm font-medium py-2 rounded-md transition-colors ${
+              mode === "create" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Créer
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMode("edit"); setCategoryName(""); setValidationError(""); }}
+            className={`text-sm font-medium py-2 rounded-md transition-colors ${
+              mode === "edit" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Modifier
+          </button>
+        </div>
+
+        {mode === "edit" && (
+          <div className="space-y-2">
+            <Label>Catégorie à modifier</Label>
+            <Select value={editingCategoryId} onValueChange={setEditingCategoryId}>
+              <SelectTrigger className="w-full bg-background">
+                <SelectValue placeholder="Choisir une catégorie..." />
+              </SelectTrigger>
+              <SelectContent className="bg-background border z-50">
+                {existingCategories.map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {mode === "create" && isCategoryLimitReached && (
           <div className="bg-destructive/10 border border-destructive/30 p-3 rounded-lg">
             <p className="text-sm text-destructive font-medium">
               Limite de catégories atteinte ({currentCategoryCount}/{maxCategories})
@@ -244,7 +350,7 @@ export function AddCategoryDialog({
             <p className="text-xs text-muted-foreground mt-1">Contactez votre administrateur pour augmenter cette limite.</p>
           </div>
         )}
-        {maxCategories !== null && !isCategoryLimitReached && (
+        {mode === "create" && maxCategories !== null && !isCategoryLimitReached && (
           <p className="text-xs text-muted-foreground">
             Catégories : {currentCategoryCount}/{maxCategories}
           </p>
@@ -307,7 +413,7 @@ export function AddCategoryDialog({
           </div>
 
           {/* Section d'assignation des membres */}
-          {clubMembers.length > 0 && (
+          {mode === "create" && clubMembers.length > 0 && (
             <div className="space-y-3 py-4 border-t">
               <div className="flex items-center justify-between">
                 <Label className="flex items-center gap-2">
@@ -373,9 +479,17 @@ export function AddCategoryDialog({
             </Button>
             <Button
               type="submit"
-              disabled={!categoryName.trim() || addCategory.isPending || isCategoryLimitReached}
+              disabled={
+                !categoryName.trim() ||
+                addCategory.isPending ||
+                updateCategory.isPending ||
+                (mode === "create" && isCategoryLimitReached) ||
+                (mode === "edit" && !editingCategoryId)
+              }
             >
-              {addCategory.isPending ? "Ajout..." : "Ajouter"}
+              {mode === "edit"
+                ? (updateCategory.isPending ? "Modification..." : "Enregistrer les modifications")
+                : (addCategory.isPending ? "Ajout..." : "Ajouter")}
             </Button>
           </DialogFooter>
         </form>
