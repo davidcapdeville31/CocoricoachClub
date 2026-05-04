@@ -694,15 +694,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
 
   return (
     <Card className="bg-gradient-card">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg">
-          {isRehabMode 
-            ? "Tests de Réathlétisation" 
-            : isSingleCategoryMode 
-              ? (filteredTestCategories.find(c => c.value === defaultCategory)?.label || formatCategoryLabel(defaultCategory || ""))
-              : "Tous les Tests de Performance"
-          }
-        </CardTitle>
+      <CardHeader className="flex flex-row items-center justify-end">
         {!isViewer && filterTestType !== "all" && selectedCategory && (
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => setIsScheduleDialogOpen(true)}>
@@ -714,11 +706,6 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
       <CardContent>
         {/* Filtres */}
         <div className="flex flex-wrap gap-3 mb-4">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Filtrer:</span>
-          </div>
-
           {/* Category dropdown - hidden in single category mode */}
           {!isSingleCategoryMode && (
             <Select value={filterCategory} onValueChange={handleCategoryFilterChange}>
