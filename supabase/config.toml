@@ -35,3 +35,5 @@ project_id = "env(SUPABASE_PROJECT_ID)"
     verify_jwt = false
   [functions.voice-assistant]
     verify_jwt = true
+  [functions.seed-system-tests-meta]
+    verify_jwt = false
