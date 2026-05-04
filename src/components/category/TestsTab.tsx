@@ -254,6 +254,7 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
                   value={cat.value}
                   label={cat.label}
                   colorIndex={i + 1}
+                  customColor={themeColorMap.get(cat.value)}
                 />
               ))}
               {showRehab && (
