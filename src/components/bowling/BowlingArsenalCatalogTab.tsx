@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { resolveBallCatalogImages } from "@/lib/bowling/bowlingBallImageResolver";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface BowlingArsenalCatalogTabProps {
   categoryId: string;
