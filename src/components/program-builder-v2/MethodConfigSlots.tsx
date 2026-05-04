@@ -139,6 +139,8 @@ export interface MethodConfigInitialData {
   }>;
   // Rest-Pause dedicated config
   restPauseConfig?: RestPauseConfig;
+  // Rest between series (for non-crossfit methods)
+  restSeconds?: number;
 }
 
 interface MethodConfigSlotsProps {
