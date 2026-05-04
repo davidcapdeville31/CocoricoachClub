@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
-import { Shield, ArrowLeft, LayoutDashboard, Users, Building2, CreditCard, Video, Bell, Settings, FileText, Lock, Clock, Dumbbell, Archive } from "lucide-react";
+import { Shield, ArrowLeft, LayoutDashboard, Users, Building2, CreditCard, Video, Bell, Settings, FileText, Lock, Clock, Dumbbell, Archive, ClipboardList } from "lucide-react";
 
 // Import tab components
 import { SuperAdminDashboard } from "@/components/super-admin/SuperAdminDashboard";
@@ -24,6 +24,7 @@ import { RoleMenuPermissions } from "@/components/super-admin/RoleMenuPermission
 import { SuperAdminUsage } from "@/components/super-admin/SuperAdminUsage";
 import { SuperAdminExerciseLibrary } from "@/components/super-admin/SuperAdminExerciseLibrary";
 import { SuperAdminArchives } from "@/components/super-admin/SuperAdminArchives";
+import { SuperAdminTestBank } from "@/components/super-admin/SuperAdminTestBank";
  
  export default function SuperAdmin() {
    const { user, loading: authLoading } = useAuth();
@@ -138,10 +139,14 @@ import { SuperAdminArchives } from "@/components/super-admin/SuperAdminArchives"
                  <Clock className="h-4 w-4" />
                  Utilisation
                </TabsTrigger>
-                <TabsTrigger value="exercises" className="flex items-center gap-2">
-                  <Dumbbell className="h-4 w-4" />
-                  Exercices
-                </TabsTrigger>
+                 <TabsTrigger value="exercises" className="flex items-center gap-2">
+                   <Dumbbell className="h-4 w-4" />
+                   Exercices
+                 </TabsTrigger>
+                 <TabsTrigger value="test-bank" className="flex items-center gap-2">
+                   <ClipboardList className="h-4 w-4" />
+                   Banque de tests
+                 </TabsTrigger>
                   <TabsTrigger value="audit" className="flex items-center gap-2">
                     <Shield className="h-4 w-4" />
                     Sécurité &amp; Audit
@@ -196,9 +201,13 @@ import { SuperAdminArchives } from "@/components/super-admin/SuperAdminArchives"
                <SuperAdminUsage />
              </TabsContent>
 
-              <TabsContent value="exercises">
-                <SuperAdminExerciseLibrary />
-              </TabsContent>
+               <TabsContent value="exercises">
+                 <SuperAdminExerciseLibrary />
+               </TabsContent>
+
+               <TabsContent value="test-bank">
+                 <SuperAdminTestBank />
+               </TabsContent>
 
                 <TabsContent value="audit">
                   <SecurityCenter />
