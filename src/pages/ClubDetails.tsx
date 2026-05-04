@@ -67,6 +67,24 @@ function ClubDetailsContent() {
     },
   });
 
+  const renameCategory = useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const { error } = await supabase
+        .from("categories")
+        .update({ name })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories", clubId] });
+      toast.success("Nom de la catégorie mis à jour");
+      setEditingId(null);
+    },
+    onError: () => {
+      toast.error("Erreur lors du renommage");
+    },
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
