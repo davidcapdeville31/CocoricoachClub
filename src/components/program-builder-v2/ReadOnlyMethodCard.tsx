@@ -33,11 +33,13 @@ export function ReadOnlyMethodCard({ exercise }: Props) {
   if (!parsed) return null;
 
   const method = v2KindToMethod(parsed.kind);
+  const cfg = parsed.config as any;
   const v2Exercise: V2BlockExercise = {
     id: exercise.id ?? `ro-${Math.random()}`,
     exerciseName: exercise.exercise_name,
     sets: Number(exercise.sets) || 1,
     reps: String(exercise.reps ?? ""),
+    restSeconds: typeof cfg?.restSeconds === "number" ? cfg.restSeconds : undefined,
     method,
     config: parsed.config,
     notes: exercise.notes ?? undefined,
