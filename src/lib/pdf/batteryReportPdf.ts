@@ -570,17 +570,16 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
   );
   let coverY = headerBottom + 24;
 
-  // Description (paragraphe respecté)
-  pdf.setFontSize(11);
-  pdf.setTextColor(110);
-  if (batteryDescription) {
-    const paragraphs = String(batteryDescription).split(/\n\s*\n/);
-    paragraphs.forEach((p, idx) => {
-      const lines = pdf.splitTextToSize(safe(p.replace(/\n/g, " ")), contentW);
-      pdf.text(lines, margin, coverY);
-      coverY += lines.length * 14;
-      if (idx < paragraphs.length - 1) coverY += 6;
-    });
+  // Description (HTML rich text supporté : gras, souligné, taille, etc.)
+  if (!htmlIsEmpty(batteryDescription)) {
+    coverY = renderRichHtml(pdf, String(batteryDescription), margin, coverY, contentW,
+      { size: 11, color: [110, 110, 110], align: "left" },
+      {
+        pageH,
+        bottomMargin: margin,
+        onNewPage: () => { pdf.addPage(); return { x: margin, y: margin, width: contentW }; },
+      },
+    );
     coverY += 10;
   }
 
