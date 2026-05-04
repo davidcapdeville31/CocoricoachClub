@@ -141,7 +141,25 @@ export function GroupedExerciseList({
   const renderExerciseCard = (ex: Exercise, idx: number, isGrouped: boolean, exerciseNumber?: number) => {
     const styleConfig = getTrainingStyleConfig(ex.set_type || ex.method || "normal");
     const media = getMedia(ex.exercise_name);
-    
+
+    // V2 method-config exercise (Drop Set, Pyramide, Rest-Pause, AMRAP, EMOM,
+    // Tabata, Cluster, Fartlek, Stato, Intermittent…) → render the same colored
+    // card the coach saw in the session builder.
+    const parsedV2 = parseV2MethodConfig(ex.notes);
+    if (parsedV2 && !isGrouped) {
+      return (
+        <div key={ex.id || idx} className="space-y-1">
+          <div className={cn(
+            "flex items-center gap-1 text-xs",
+            fieldMode ? "text-slate-400" : "text-muted-foreground"
+          )}>
+            <span className="font-medium">{idx + 1}.</span>
+          </div>
+          <ReadOnlyMethodCard exercise={ex as any} />
+        </div>
+      );
+    }
+
     return (
       <div 
         key={ex.id || idx} 
