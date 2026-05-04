@@ -704,61 +704,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
         )}
       </CardHeader>
       <CardContent>
-        {/* Filtres */}
-        <div className="flex flex-wrap gap-3 mb-4">
-          {/* Category dropdown - hidden in single category mode */}
-          {!isSingleCategoryMode && (
-            <Select value={filterCategory} onValueChange={handleCategoryFilterChange}>
-              <SelectTrigger className="w-[260px]">
-                <SelectValue placeholder="Toutes catégories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Toutes catégories</SelectItem>
-                <SelectItem value="__custom__">
-                  <span className="flex items-center gap-2">
-                    <Star className="h-3.5 w-3.5 fill-primary text-primary" />
-                    Mes tests personnalisés
-                  </span>
-                </SelectItem>
-                {(() => {
-                  const favs = filteredTestCategories.filter(c => favoriteCategories.has(c.value));
-                  const others = filteredTestCategories.filter(c => !favoriteCategories.has(c.value));
-                  const ordered = [...favs, ...others];
-                  return ordered.map((category) => {
-                    const isFav = favoriteCategories.has(category.value);
-                    return (
-                      <SelectItem key={category.value} value={category.value}>
-                        <span className="flex items-center gap-2">
-                          {isFav && <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />}
-                          {category.label}
-                        </span>
-                      </SelectItem>
-                    );
-                  });
-                })()}
-              </SelectContent>
-            </Select>
-          )}
-
-          {/* Test type dropdown - always visible when a category is selected */}
-          {filterCategory !== "all" && selectedCategory && (
-            <Select value={filterTestType} onValueChange={setFilterTestType}>
-              <SelectTrigger className="w-[250px]">
-                <SelectValue placeholder="Tous les tests" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les tests</SelectItem>
-                {selectedCategory.tests.map((test) => (
-                  <SelectItem key={test.value} value={test.value}>
-                    {test.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-
-          {/* Personnaliser button removed per user request */}
-        </div>
+        {/* Filtres retirés — les onglets colorés en haut pilotent la catégorie */}
 
         {/* Tests disponibles dans cette catégorie (custom_tests définis) */}
         {(() => {
