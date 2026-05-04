@@ -743,7 +743,7 @@ export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: 
         </TabsContent>
 
         <TabsContent value="oil-stats">
-          <BowlingOilPatternStats games={playerGames} categoryId={categoryId} />
+          <BowlingOilPatternStats games={playerGames} categoryId={categoryId} playerId={activePlayerId} />
         </TabsContent>
 
         <TabsContent value="frames">
