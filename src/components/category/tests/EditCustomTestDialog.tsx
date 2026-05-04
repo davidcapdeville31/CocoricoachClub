@@ -36,8 +36,9 @@ export interface EditableTest {
   image_url?: string | null;
   video_url?: string | null;
   bilateral?: boolean | null;
-  source: "custom" | "seed";   // seed = test pré-existant du catalogue
+  source: "custom" | "seed" | "system";   // seed = test pré-existant du catalogue ; system = banque super-admin
   seedTestType?: string;       // test_type d'origine si seed (pour réf)
+  systemTestId?: string;       // id source si source === "system" (pour clone-on-edit)
 }
 
 interface EditCustomTestDialogProps {
@@ -235,6 +236,23 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
           .update(payload)
           .eq("id", test.id);
         if (error) throw error;
+      } else if (test.source === "system" && test.systemTestId) {
+        // SYSTEM: clone via RPC puis update du clone (override personnel)
+        const { data: clonedId, error: cloneErr } = await supabase.rpc(
+          "clone_system_test_to_club" as any,
+          { _system_test_id: test.systemTestId, _club_id: categoryData.club_id } as any,
+        );
+        if (cloneErr) throw cloneErr;
+        const newId = clonedId as unknown as string;
+        const { error: upErr } = await supabase
+          .from("custom_tests")
+          .update(payload)
+          .eq("id", newId);
+        if (upErr) throw upErr;
+        // S'assurer du lien à la catégorie courante
+        await supabase
+          .from("custom_test_categories")
+          .insert({ custom_test_id: newId, category_id: categoryId } as any);
       } else {
         // SEED: crée un nouveau custom_test (override) lié à la catégorie courante
         const { data: user } = await supabase.auth.getUser();
@@ -295,16 +313,21 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
   };
 
   const isSeed = test?.source === "seed";
+  const isSystem = test?.source === "system";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden p-0 flex flex-col">
         <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
-          <DialogTitle>{isSeed ? "Personnaliser le test" : "Modifier le test"}</DialogTitle>
+          <DialogTitle>
+            {isSeed ? "Personnaliser le test" : isSystem ? "Personnaliser ce test système" : "Modifier le test"}
+          </DialogTitle>
           <DialogDescription>
             {isSeed
               ? "Ce test fait partie du catalogue. Vos modifications créeront une version personnalisée pour cette catégorie."
-              : "Modifiez le nom, la catégorie, l'unité, la description, les objectifs et le barème de notation."}
+              : isSystem
+                ? "Ce test provient de la banque système (partagée). Vos modifications créeront automatiquement une copie locale pour votre club, sans impacter les autres comptes."
+                : "Modifiez le nom, la catégorie, l'unité, la description, les objectifs et le barème de notation."}
           </DialogDescription>
         </DialogHeader>
 
@@ -463,7 +486,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
 
         <DialogFooter className="shrink-0 gap-2 border-t border-border/60 bg-card px-6 py-4 sm:justify-between">
           <div>
-            {!isSeed && test?.id && (
+            {!isSeed && !isSystem && test?.id && (
               <Button
                 type="button"
                 variant="ghost"
@@ -479,7 +502,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
           <div className="flex gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
             <Button type="button" onClick={handleSubmit}>
-              {saveTest.isPending ? "Enregistrement..." : (isSeed ? "Créer la version personnalisée" : "Enregistrer")}
+              {saveTest.isPending ? "Enregistrement..." : (isSeed || isSystem ? "Créer la version personnalisée" : "Enregistrer")}
             </Button>
           </div>
         </DialogFooter>

@@ -2844,13 +2844,15 @@ export type Database = {
       custom_tests: {
         Row: {
           bilateral: boolean
-          club_id: string
+          cloned_from_system_id: string | null
+          club_id: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
           formula_config: Json | null
           id: string
           image_url: string | null
+          is_system: boolean
           is_time: boolean | null
           max_points: number | null
           name: string
@@ -2864,13 +2866,15 @@ export type Database = {
         }
         Insert: {
           bilateral?: boolean
-          club_id: string
+          cloned_from_system_id?: string | null
+          club_id?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           formula_config?: Json | null
           id?: string
           image_url?: string | null
+          is_system?: boolean
           is_time?: boolean | null
           max_points?: number | null
           name: string
@@ -2884,13 +2888,15 @@ export type Database = {
         }
         Update: {
           bilateral?: boolean
-          club_id?: string
+          cloned_from_system_id?: string | null
+          club_id?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           formula_config?: Json | null
           id?: string
           image_url?: string | null
+          is_system?: boolean
           is_time?: boolean | null
           max_points?: number | null
           name?: string
@@ -2903,6 +2909,13 @@ export type Database = {
           video_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "custom_tests_cloned_from_system_id_fkey"
+            columns: ["cloned_from_system_id"]
+            isOneToOne: false
+            referencedRelation: "custom_tests"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "custom_tests_club_id_fkey"
             columns: ["club_id"]
@@ -13977,6 +13990,10 @@ export type Database = {
         Returns: boolean
       }
       cleanup_old_invitation_attempts: { Args: never; Returns: undefined }
+      clone_system_test_to_club: {
+        Args: { _club_id: string; _system_test_id: string }
+        Returns: string
+      }
       close_athletics_season: {
         Args: {
           _category_id: string

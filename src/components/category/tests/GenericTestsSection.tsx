@@ -450,18 +450,29 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
     },
   });
 
-  // Fetch custom tests defined in this category (so they show even without results yet)
+  // Fetch custom tests defined in this category + global system tests (so they show even without results yet)
   const { data: customTestsList } = useQuery({
     queryKey: ["custom_tests_list", categoryId, defaultCategory],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const COLS = "id, name, test_category, unit, unit_kind, is_time, description, objectives, scoring_scale, max_points, image_url, video_url, formula_config, bilateral, is_system, cloned_from_system_id";
+      // 1) Tests custom liés à la catégorie
+      const { data: linked, error } = await supabase
         .from("custom_test_categories")
-        .select("custom_tests(id, name, test_category, unit, unit_kind, is_time, description, objectives, scoring_scale, max_points, image_url, video_url, formula_config, bilateral)")
+        .select(`custom_tests(${COLS})`)
         .eq("category_id", categoryId);
       if (error) throw error;
-      const tests = (data || [])
-        .map((row: any) => row.custom_tests)
-        .filter(Boolean);
+      const customTests = (linked || []).map((row: any) => row.custom_tests).filter(Boolean);
+      // 2) Tests système globaux (visibles par tous)
+      const { data: systemTests } = await supabase
+        .from("custom_tests")
+        .select(COLS)
+        .eq("is_system", true);
+      // 3) Fusion : on masque un test système si déjà cloné en local dans ce club
+      const overriddenSystemIds = new Set(
+        customTests.map((t: any) => t.cloned_from_system_id).filter(Boolean)
+      );
+      const systemFiltered = (systemTests || []).filter((t: any) => !overriddenSystemIds.has(t.id));
+      const tests = [...customTests, ...systemFiltered];
       if (defaultCategory && defaultCategory !== "all" && defaultCategory !== "rehab") {
         return tests.filter((t: any) => t.test_category === defaultCategory);
       }
@@ -826,7 +837,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                   onClick={() => {
                     if (isViewer) return;
                     setEditingTest({
-                      id: t.id,
+                      id: t.is_system ? undefined : t.id,
                       name: t.name,
                       test_category: t.test_category,
                       unit: t.unit,
@@ -837,12 +848,13 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                       image_url: t.image_url ?? null,
                       video_url: t.video_url ?? null,
                       bilateral: (t as any).bilateral ?? false,
-                      source: "custom",
+                      source: t.is_system ? "system" : "custom",
+                      systemTestId: t.is_system ? t.id : undefined,
                     });
                     setIsEditDialogOpen(true);
                   }}
                   className={`group inline-flex items-center gap-2 rounded-2xl bg-background border hover:border-primary hover:bg-accent transition-colors text-sm ${t.image_url ? "p-1.5 pr-3" : "px-2.5 py-1 text-xs"}`}
-                  title={isViewer ? (t.description || "") : "Cliquer pour modifier ce test"}
+                  title={isViewer ? (t.description || "") : (t.is_system ? "Test système (modifier crée une copie locale)" : "Cliquer pour modifier ce test")}
                 >
                   {t.image_url && (
                     <img
@@ -857,6 +869,11 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                   )}
                   <span className="font-medium">{t.name}</span>
                   {t.unit && <span className="text-muted-foreground">({t.unit})</span>}
+                  {t.is_system && (
+                    <span className="inline-flex items-center rounded-md bg-primary/10 text-primary border border-primary/30 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                      Système
+                    </span>
+                  )}
                   {!isViewer && <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />}
                   {!isViewer && (
                     <span
