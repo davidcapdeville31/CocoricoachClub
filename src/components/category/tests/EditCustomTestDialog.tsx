@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Switch } from "@/components/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel,
@@ -406,14 +407,22 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
 
           <div className="space-y-1.5">
             <Label>Description (optionnel)</Label>
-            <Textarea value={description} onChange={e => setDescription(e.target.value)}
-              placeholder="Comment se déroule le test, protocole..." rows={2} />
+            <RichTextEditor
+              value={description}
+              onChange={setDescription}
+              placeholder="Comment se déroule le test, protocole..."
+              minHeight="100px"
+            />
           </div>
 
           <div className="space-y-1.5">
             <Label>Objectifs (optionnel)</Label>
-            <Textarea value={objectives} onChange={e => setObjectives(e.target.value)}
-              placeholder="Ce que ce test cherche à évaluer ou améliorer..." rows={2} />
+            <RichTextEditor
+              value={objectives}
+              onChange={setObjectives}
+              placeholder="Ce que ce test cherche à évaluer ou améliorer..."
+              minHeight="100px"
+            />
           </div>
 
           <div className="flex items-center justify-between rounded-2xl border bg-muted/40 p-4">
