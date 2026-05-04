@@ -756,6 +756,20 @@ export function SessionFeedbackDialog({
             </div>
           </TabsContent>
 
+          {sessionType === "musculation" && (
+            <TabsContent value="weights" className="flex-1 flex flex-col min-h-0 mt-4">
+              <div className="flex-1 min-h-0 overflow-y-auto pr-2" style={{ maxHeight: "calc(90vh - 240px)" }}>
+                <SessionWeightLogTab
+                  sessionId={sessionId}
+                  categoryId={categoryId}
+                  playersToShow={players ?? []}
+                  weightLogs={weightLogs}
+                  onWeightLogChange={handleWeightLogChange}
+                />
+              </div>
+            </TabsContent>
+          )}
+
         </Tabs>
 
         <div className="flex justify-end gap-2 pt-4 border-t">
