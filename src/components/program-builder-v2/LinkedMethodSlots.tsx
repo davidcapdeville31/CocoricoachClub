@@ -14,6 +14,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
 import { VariableSetsTable } from "./VariableSetsTable";
 import { SetData, createInitialSets, formatTempo, STRENGTH_SET_COLUMNS } from "@/lib/program-builder-v2/variableSetsTypes";
 import { createSyncedParamsUpdate } from "@/lib/program-builder-v2/variableSetsSync";
