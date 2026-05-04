@@ -708,7 +708,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory, hi
         {/* Filtres retirés — les onglets colorés en haut pilotent la catégorie */}
 
         {/* Tests disponibles dans cette catégorie (custom_tests définis) */}
-        {(() => {
+        {!hideTestCatalog && (() => {
           const visibleCustomTests = (customTestsList || []).filter((t: any) => {
             if (filterCategory === "all") return true;
             if (filterCategory === "__custom__") return true;
