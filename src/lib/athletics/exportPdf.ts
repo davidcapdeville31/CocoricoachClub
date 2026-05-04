@@ -21,6 +21,8 @@ export interface MatrixExportData {
   players: MatrixExportPlayer[];
   minimas: AthleticsMinima[];
   records: AthleticsRecord[];
+  categoryId?: string | null;
+  clubId?: string | null;
 }
 
 const PRIMARY: [number, number, number] = [37, 99, 235]; // blue-600
@@ -33,7 +35,7 @@ const MUTED: [number, number, number] = [100, 116, 139]; // slate-500
  * Generates a PDF report comparing each athlete's best season performance
  * against their personal records and federation minimas (grouped by discipline).
  */
-export function exportAthleticsMinimasReport(data: MatrixExportData) {
+export async function exportAthleticsMinimasReport(data: MatrixExportData) {
   const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
