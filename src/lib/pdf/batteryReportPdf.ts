@@ -433,9 +433,14 @@ function renderRichHtml(
 
   const pushTextRun = (rawText: string, style: RtStyle) => {
     if (!rawText) return;
+    // Garde-fou : si jamais des balises HTML résiduelles arrivent jusqu'ici
+    // (par ex. via une chaîne pré-échappée puis ré-injectée), on les retire
+    // pour éviter de voir "<p>" / "</strong>" en clair dans le PDF.
+    const cleaned = rawText.replace(/<\/?[a-z][^>]*>/gi, "");
+    if (!cleaned) return;
     setRunFont(pdf, style);
     // Split on spaces but keep them with the previous word for natural wrapping
-    const words = rawText.split(/(\s+)/);
+    const words = cleaned.split(/(\s+)/);
     for (const w of words) {
       if (!w) continue;
       const ww = pdf.getTextWidth(safe(w));
