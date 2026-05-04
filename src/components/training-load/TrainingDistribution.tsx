@@ -84,9 +84,11 @@ export function TrainingDistribution({ categoryId }: TrainingDistributionProps) 
     if (noContact > 0) contactCounts.set("aucun", noContact);
 
     // Session type (thématique) distribution
+    // Prefer the human-readable `theme` label (custom themes saisies par le coach),
+    // sinon retomber sur training_type / session_type (codes techniques).
     const typeCounts = new Map<string, number>();
     blocks.forEach(b => {
-      const type = b.training_type || b.session_type;
+      const type = (b.theme && String(b.theme).trim()) || b.training_type || b.session_type;
       if (type) {
         typeCounts.set(type, (typeCounts.get(type) || 0) + 1);
       }
