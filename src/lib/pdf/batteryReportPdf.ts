@@ -688,24 +688,13 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
       const textX = imgInfo ? margin + IMG_BOX_W + TEXT_GAP : margin + 10;
       const textW = imgInfo ? contentW - IMG_BOX_W - TEXT_GAP : contentW - 12;
 
-      // Pré-calcul de la hauteur du bloc texte
-      pdf.setFontSize(10);
-      const descLines = it.description
-        ? pdf.splitTextToSize(safe(String(it.description)), textW)
-        : [];
-      const objLines = it.objectives
-        ? pdf.splitTextToSize(safe(String(it.objectives)), textW)
-        : [];
-      const textBlockH =
-        18 + // titre
-        (descLines.length > 0 ? 12 + descLines.length * 12 + 4 : 0) +
-        (objLines.length > 0 ? 12 + objLines.length * 12 + 4 : 0);
-      const blockH = Math.max(textBlockH, imgInfo ? IMG_BOX_H : 0) + 10;
+      const hasDesc = !htmlIsEmpty(it.description);
+      const hasObj = !htmlIsEmpty(it.objectives);
 
       // Saut de page seulement si pas la place pour titre + ~3 lignes
       const minNeeded = 60;
       const remaining = pageH - margin - py;
-      if (remaining < minNeeded || (blockH > remaining && remaining < pageH * 0.4)) {
+      if (remaining < minNeeded) {
         pdf.addPage();
         py = margin;
       }
@@ -735,38 +724,49 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
         st(pdf, `${it.max} pts max`, pageW - margin, blockTop + 10, { align: "right" });
       }
       let ty = blockTop + 18;
+      let curTextX = textX;
+      let curTextW = textW;
 
-      if (descLines.length > 0) {
+      const onNewPage = () => {
+        pdf.addPage();
+        py = margin;
+        // After page break, drop the image column constraint
+        curTextX = margin;
+        curTextW = contentW;
+        return { x: curTextX, y: margin, width: curTextW };
+      };
+
+      if (hasDesc) {
         pdf.setFont("helvetica", "bold");
         pdf.setFontSize(8);
         pdf.setTextColor(80);
-        st(pdf, "Description", textX, ty);
+        st(pdf, "Description", curTextX, ty);
         ty += 11;
-        pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(9);
-        pdf.setTextColor(60);
-        pdf.text(descLines, textX, ty);
-        ty += descLines.length * 12 + 4;
+        ty = renderRichHtml(pdf, String(it.description), curTextX, ty, curTextW,
+          { size: 9, color: [60, 60, 60], align: "left" },
+          { pageH, bottomMargin: margin, onNewPage },
+        );
+        ty += 4;
       }
 
-      if (objLines.length > 0) {
+      if (hasObj) {
         pdf.setFont("helvetica", "bold");
         pdf.setFontSize(8);
         pdf.setTextColor(80);
-        st(pdf, "Objectifs", textX, ty);
+        st(pdf, "Objectifs", curTextX, ty);
         ty += 11;
-        pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(9);
-        pdf.setTextColor(60);
-        pdf.text(objLines, textX, ty);
-        ty += objLines.length * 12 + 4;
+        ty = renderRichHtml(pdf, String(it.objectives), curTextX, ty, curTextW,
+          { size: 9, color: [60, 60, 60], align: "left" },
+          { pageH, bottomMargin: margin, onNewPage },
+        );
+        ty += 4;
       }
 
-      if (descLines.length === 0 && objLines.length === 0) {
+      if (!hasDesc && !hasObj) {
         pdf.setFont("helvetica", "italic");
         pdf.setFontSize(9);
         pdf.setTextColor(150);
-        st(pdf, "Aucune description renseignee.", textX, ty);
+        st(pdf, "Aucune description renseignee.", curTextX, ty);
         ty += 12;
       }
 
