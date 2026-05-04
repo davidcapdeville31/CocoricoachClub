@@ -734,6 +734,9 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         restSeconds: draft.methodRestSeconds ?? 90,
         tempo: s.params?.tempo,
         percentage: s.params?.percentage ? Number(s.params.percentage) : undefined,
+        weight_kg: s.params?.load != null ? Number(s.params.load) : undefined,
+        rpe: s.params?.rpe != null ? Number(s.params.rpe) : undefined,
+        rir: s.params?.rir != null ? Number(s.params.rir) : undefined,
         method: draft.method,
         groupId,
       }));
