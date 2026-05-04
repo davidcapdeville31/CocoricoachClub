@@ -305,7 +305,11 @@ const AddVariableButton = ({ availableVariables, onAdd }: AddVariableButtonProps
           type="button"
           variant="outline"
           size="sm"
+          onPointerDown={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
           className="h-7 px-2 text-xs border-dashed hover:border-primary hover:bg-primary/5"
+          title="Ajouter une variable (Charge, %1RM, RPE, RIR, Repos, Tempo...)"
         >
           <Plus className="h-3 w-3 mr-1" />
           Variable
