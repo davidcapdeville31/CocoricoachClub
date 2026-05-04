@@ -38,6 +38,7 @@ export function TestBatteriesManager({
   };
   const [editId, setEditId] = useState<string | null>(null);
   const [runId, setRunId] = useState<string | null>(null);
+  const [scheduleBattery, setScheduleBattery] = useState<{ id: string; name: string } | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: clubData } = useQuery({
