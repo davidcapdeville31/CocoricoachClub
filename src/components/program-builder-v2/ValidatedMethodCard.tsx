@@ -49,9 +49,10 @@ interface Props {
   exercise: V2BlockExercise;
   onRemove: () => void;
   onEdit?: () => void;
+  readOnly?: boolean;
 }
 
-export const ValidatedMethodCard = ({ exercise, onRemove, onEdit }: Props) => {
+export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Props) => {
   const method = exercise.method ?? "normal";
   const colors = getMethodColors(method);
   const label = METHOD_LABELS[method] ?? method;
@@ -149,16 +150,18 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit }: Props) => {
             <Pencil className="h-3.5 w-3.5" />
           </Button>
         )}
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 rounded-2xl text-muted-foreground hover:text-destructive"
-          onClick={onRemove}
-          title="Supprimer"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
+        {!readOnly && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 rounded-2xl text-muted-foreground hover:text-destructive"
+            onClick={onRemove}
+            title="Supprimer"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
       </div>
 
       {/* Rest-Pause structured rendering */}

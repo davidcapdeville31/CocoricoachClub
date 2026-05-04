@@ -36,6 +36,7 @@ import { RUGBY_PRECISION_EXERCISES, EXERCISE_CATEGORIES } from "@/lib/constants/
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { LinkedMethodSlots, type LinkedMethodType } from "@/components/program-builder-v2/LinkedMethodSlots";
 import { FartlekCard } from "@/components/program-builder-v2/FartlekCard";
+import { ReadOnlyMethodCard } from "@/components/program-builder-v2/ReadOnlyMethodCard";
 import { parseV2MethodConfig, stripV2MethodTags } from "@/lib/program-builder-v2/parseV2MethodConfig";
 interface SessionDetailsDialogProps {
   open: boolean;
@@ -467,7 +468,25 @@ export function SessionDetailsDialog({
   // Render a single exercise card
   const renderExerciseCard = (ex: any, idx: number, isGrouped: boolean, exerciseNumber?: number) => {
     const styleConfig = getTrainingStyleConfig(ex.set_type || ex.method || "normal");
-    
+
+    // If the exercise was built with a V2 method-config (Drop Set, Pyramide,
+    // Rest-Pause, AMRAP, EMOM, Tabata, Cluster, Fartlek, etc.), render the
+    // exact same colored card as in the session builder.
+    const v2Card = <ReadOnlyMethodCard exercise={ex} />;
+    const parsedV2 = parseV2MethodConfig(ex.notes);
+    if (parsedV2) {
+      return (
+        <div key={ex.id || idx} className="space-y-1">
+          {!isGrouped && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="font-medium w-5">{idx + 1}.</span>
+            </div>
+          )}
+          {v2Card}
+        </div>
+      );
+    }
+
     return (
       <div key={ex.id || idx} className={cn(
         "p-3 border rounded-lg",
@@ -505,17 +524,6 @@ export function SessionDetailsDialog({
           {ex.rest_seconds && <span>- {ex.rest_seconds}s repos</span>}
           {ex.tempo && <span>Tempo: {ex.tempo}</span>}
         </div>
-        {(() => {
-          const parsed = parseV2MethodConfig(ex.notes);
-          if (parsed?.kind === "fartlek") {
-            return (
-              <div className="mt-2">
-                <FartlekCard config={parsed.config} />
-              </div>
-            );
-          }
-          return null;
-        })()}
         {ex.notes && (() => {
           const cleanNotes = stripV2MethodTags(ex.notes).replace(/<!--[\s\S]*?-->/g, "").trim();
           if (!cleanNotes) return null;
