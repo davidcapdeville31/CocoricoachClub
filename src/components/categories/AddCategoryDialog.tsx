@@ -296,14 +296,53 @@ export function AddCategoryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Ajouter une nouvelle catégorie</DialogTitle>
+          <DialogTitle>Créer / Modifier une catégorie</DialogTitle>
           {club?.sport && (
             <p className="text-sm text-muted-foreground">
               Sport : {getSportLabel(club.sport)}
             </p>
           )}
         </DialogHeader>
-        {isCategoryLimitReached && (
+
+        {/* Mode toggle */}
+        <div className="grid grid-cols-2 gap-2 rounded-lg border p-1 bg-muted/30">
+          <button
+            type="button"
+            onClick={() => { setMode("create"); setCategoryName(""); setEditingCategoryId(""); setValidationError(""); }}
+            className={`text-sm font-medium py-2 rounded-md transition-colors ${
+              mode === "create" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Créer
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMode("edit"); setCategoryName(""); setValidationError(""); }}
+            className={`text-sm font-medium py-2 rounded-md transition-colors ${
+              mode === "edit" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Modifier
+          </button>
+        </div>
+
+        {mode === "edit" && (
+          <div className="space-y-2">
+            <Label>Catégorie à modifier</Label>
+            <Select value={editingCategoryId} onValueChange={setEditingCategoryId}>
+              <SelectTrigger className="w-full bg-background">
+                <SelectValue placeholder="Choisir une catégorie..." />
+              </SelectTrigger>
+              <SelectContent className="bg-background border z-50">
+                {existingCategories.map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {mode === "create" && isCategoryLimitReached && (
           <div className="bg-destructive/10 border border-destructive/30 p-3 rounded-lg">
             <p className="text-sm text-destructive font-medium">
               Limite de catégories atteinte ({currentCategoryCount}/{maxCategories})
@@ -311,7 +350,7 @@ export function AddCategoryDialog({
             <p className="text-xs text-muted-foreground mt-1">Contactez votre administrateur pour augmenter cette limite.</p>
           </div>
         )}
-        {maxCategories !== null && !isCategoryLimitReached && (
+        {mode === "create" && maxCategories !== null && !isCategoryLimitReached && (
           <p className="text-xs text-muted-foreground">
             Catégories : {currentCategoryCount}/{maxCategories}
           </p>
