@@ -231,6 +231,60 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
     enabled: open,
   });
 
+  // Load existing session data when in edit mode
+  useEffect(() => {
+    if (!open || !isEdit || !editSession) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        // Title is stored as first line of notes; rest of notes is the general note
+        const rawNotes: string = editSession.notes || "";
+        const lines = rawNotes.split("\n");
+        setTitle(lines[0] || "Séance terrain");
+        setNotes(lines.slice(1).join("\n"));
+        setStartTime(editSession.session_start_time?.slice(0, 5) || "17:00");
+        setEndTime(editSession.session_end_time?.slice(0, 5) || "18:30");
+        setLocation(editSession.location || "");
+
+        const { data: blockRows } = await supabase
+          .from("training_session_blocks")
+          .select("*")
+          .eq("training_session_id", editSession.id)
+          .order("block_order");
+        if (cancelled) return;
+        if (blockRows && blockRows.length > 0) {
+          setBlocks(
+            blockRows.map((br: any) => ({
+              id: br.id || crypto.randomUUID(),
+              theme: br.training_type || br.theme || "Collectif",
+              themeLabel: br.theme || br.training_type || "Collectif",
+              duration_minutes: br.duration_minutes ?? 30,
+              intensity: br.intensity ?? 5,
+              notes: br.notes || "",
+              bowling_exercise_type: br.bowling_exercise_type || undefined,
+              target_intensity: br.target_intensity || undefined,
+              volume: br.volume || undefined,
+              contact_charge: br.contact_charge || undefined,
+            })),
+          );
+        }
+
+        const { data: parts } = await supabase
+          .from("event_participants")
+          .select("player_id")
+          .eq("training_session_id", editSession.id);
+        if (cancelled) return;
+        if (parts) {
+          setSelectedPlayers(parts.map((p: any) => p.player_id));
+          setSelectAll(false);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [open, isEdit, editSession]);
+
   const totalDuration = useMemo(
     () => blocks.reduce((sum, b) => sum + (Number(b.duration_minutes) || 0), 0),
     [blocks],
@@ -290,26 +344,49 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
       const plannedIntensity =
         totalDur > 0 && weightedSum > 0 ? Math.round((weightedSum / totalDur) * 10) / 10 : null;
 
-      const { data: session, error: sErr } = await supabase
-        .from("training_sessions")
-        .insert({
-          category_id: categoryId,
-          session_date: format(date, "yyyy-MM-dd"),
-          session_start_time: startTime || null,
-          session_end_time: endTime || null,
-          training_type: "terrain",
-          location: location || null,
-          notes: `${title}${notes ? `\n${notes}` : ""}`,
-          intensity: plannedIntensity ? Math.round(plannedIntensity) : 1,
-          planned_intensity: plannedIntensity,
-        })
-        .select("id")
-        .single();
-      if (sErr) throw sErr;
+      const sessionPayload = {
+        category_id: categoryId,
+        session_date: format(date, "yyyy-MM-dd"),
+        session_start_time: startTime || null,
+        session_end_time: endTime || null,
+        training_type: "terrain",
+        location: location || null,
+        notes: `${title}${notes ? `\n${notes}` : ""}`,
+        intensity: plannedIntensity ? Math.round(plannedIntensity) : 1,
+        planned_intensity: plannedIntensity,
+      };
+
+      let sessionId: string;
+      if (isEdit) {
+        const { error: uErr } = await supabase
+          .from("training_sessions")
+          .update(sessionPayload)
+          .eq("id", editSession.id);
+        if (uErr) throw uErr;
+        sessionId = editSession.id;
+        // Replace blocks
+        await supabase
+          .from("training_session_blocks")
+          .delete()
+          .eq("training_session_id", sessionId);
+        // Replace participants
+        await supabase
+          .from("event_participants")
+          .delete()
+          .eq("training_session_id", sessionId);
+      } else {
+        const { data: session, error: sErr } = await supabase
+          .from("training_sessions")
+          .insert(sessionPayload)
+          .select("id")
+          .single();
+        if (sErr) throw sErr;
+        sessionId = session.id;
+      }
 
       // Insert blocks
       const blockRows = blocks.map((b, idx) => ({
-        training_session_id: session.id,
+        training_session_id: sessionId,
         block_order: idx,
         training_type: b.theme,
         theme: b.themeLabel || b.theme,
@@ -327,21 +404,21 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
       // Participants
       if (selectedPlayers.length > 0) {
         const { error: pErr } = await supabase.from("event_participants").insert(
-          selectedPlayers.map((pid) => ({ training_session_id: session.id, player_id: pid })),
+          selectedPlayers.map((pid) => ({ training_session_id: sessionId, player_id: pid })),
         );
         if (pErr) console.error(pErr);
       }
 
-      return session.id;
+      return sessionId;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
-      toast.success("Séance terrain créée ✅");
+      toast.success(isEdit ? "Séance terrain mise à jour ✅" : "Séance terrain créée ✅");
       onOpenChange(false);
     },
-    onError: (e: Error) => toast.error(e.message || "Erreur lors de la création"),
+    onError: (e: Error) => toast.error(e.message || "Erreur lors de l'enregistrement"),
   });
 
   return (
