@@ -659,6 +659,15 @@ export const TRAINING_TYPE_COLORS: Record<string, string> = {
   tennis_mental: "bg-violet-500",
   // Precision (all sports)
   precision: "bg-lime-500",
+  // Generic session themes (program builder v2 SESSION_KIND_OPTIONS)
+  course: "bg-emerald-500",
+  fractionne: "bg-cyan-500",
+  endurance: "bg-teal-500",
+  vitesse: "bg-red-500",
+  puissance: "bg-rose-500",
+  mobilite: "bg-lime-500",
+  cardio: "bg-pink-500",
+  crossfit: "bg-orange-600",
   // Default for custom types
   _default: "bg-gray-500",
 };
