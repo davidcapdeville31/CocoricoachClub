@@ -355,7 +355,7 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
     .filter((it) => !!it.name);
 
   // Préchargement des images des tests (en parallèle)
-  const testImages: Record<string, string | null> = {};
+  const testImages: Record<string, { data: string; w: number; h: number } | null> = {};
   await Promise.all(
     presentationItems
       .filter((it) => !!it.image_url)
@@ -366,14 +366,9 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
   );
 
   if (presentationItems.length > 0) {
-    // Continuer sur la page de garde si possible, sinon nouvelle page
-    let py: number;
-    if (coverY < pageH - margin - 120) {
-      py = coverY + 16;
-    } else {
-      pdf.addPage();
-      py = margin;
-    }
+    // Toujours commencer la présentation des tests page 2
+    pdf.addPage();
+    let py: number = margin;
 
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(16);
@@ -387,15 +382,31 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
     st(pdf, "Description et objectifs de chaque test de la batterie", margin, py);
     py += 18;
 
-    const IMG_W = 110;
-    const IMG_H = 80;
+    const IMG_BOX_W = 110;
+    const IMG_BOX_H = 80;
     const TEXT_GAP = 12;
 
     presentationItems.forEach((it) => {
       const key = (it.name || "").trim().toLowerCase();
-      const imgData = testImages[key] || null;
-      const textX = imgData ? margin + IMG_W + TEXT_GAP : margin + 10;
-      const textW = imgData ? contentW - IMG_W - TEXT_GAP : contentW - 12;
+      const imgInfo = testImages[key] || null;
+
+      // Calcul des dimensions affichées en respectant le ratio
+      let dispW = 0;
+      let dispH = 0;
+      if (imgInfo) {
+        const ratio = imgInfo.w / imgInfo.h;
+        const boxRatio = IMG_BOX_W / IMG_BOX_H;
+        if (ratio >= boxRatio) {
+          dispW = IMG_BOX_W;
+          dispH = IMG_BOX_W / ratio;
+        } else {
+          dispH = IMG_BOX_H;
+          dispW = IMG_BOX_H * ratio;
+        }
+      }
+
+      const textX = imgInfo ? margin + IMG_BOX_W + TEXT_GAP : margin + 10;
+      const textW = imgInfo ? contentW - IMG_BOX_W - TEXT_GAP : contentW - 12;
 
       // Pré-calcul de la hauteur du bloc texte
       pdf.setFontSize(10);
@@ -409,7 +420,7 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
         18 + // titre
         (descLines.length > 0 ? 12 + descLines.length * 12 + 4 : 0) +
         (objLines.length > 0 ? 12 + objLines.length * 12 + 4 : 0);
-      const blockH = Math.max(textBlockH, imgData ? IMG_H : 0) + 10;
+      const blockH = Math.max(textBlockH, imgInfo ? IMG_BOX_H : 0) + 10;
 
       // Saut de page seulement si pas la place pour titre + ~3 lignes
       const minNeeded = 60;
@@ -421,10 +432,12 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
 
       const blockTop = py;
 
-      // Image à gauche
-      if (imgData) {
+      // Image à gauche, centrée dans la box pour respecter le ratio
+      if (imgInfo) {
         try {
-          pdf.addImage(imgData, "PNG", margin, blockTop, IMG_W, IMG_H);
+          const ix = margin + (IMG_BOX_W - dispW) / 2;
+          const iy = blockTop + (IMG_BOX_H - dispH) / 2;
+          pdf.addImage(imgInfo.data, "PNG", ix, iy, dispW, dispH);
         } catch {/* ignore */}
       }
 
@@ -478,7 +491,7 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
       }
 
       // py = max entre fin texte et fin image, + petit espace
-      py = Math.max(ty, blockTop + (imgData ? IMG_H : 0)) + 10;
+      py = Math.max(ty, blockTop + (imgInfo ? IMG_BOX_H : 0)) + 10;
     });
   }
 
