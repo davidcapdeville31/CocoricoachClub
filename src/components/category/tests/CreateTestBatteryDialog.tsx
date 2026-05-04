@@ -75,6 +75,7 @@ export function CreateTestBatteryDialog({ open, onOpenChange, categoryId, clubId
   });
 
   useEffect(() => {
+    if (!open) return;
     if (existingBattery?.battery) {
       setName(existingBattery.battery.name);
       setDescription(existingBattery.battery.description || "");
@@ -94,8 +95,12 @@ export function CreateTestBatteryDialog({ open, onOpenChange, categoryId, clubId
         }
       });
       setSelected(sel);
+    } else if (!batteryId) {
+      // Mode création: réinitialiser
+      setName(""); setDescription(""); setSelected({});
+      setLevels(DEFAULT_BATTERY_LEVELS);
     }
-  }, [existingBattery]);
+  }, [existingBattery, open, batteryId]);
 
   const filteredTests = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -194,7 +199,7 @@ export function CreateTestBatteryDialog({ open, onOpenChange, categoryId, clubId
   const removeLevel = (id: string) => setLevels(levels.filter(l => l.id !== id));
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) reset(); }}>
+    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v && !batteryId) reset(); }}>
       <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{batteryId ? "Modifier la batterie" : "Nouvelle batterie de tests"}</DialogTitle>
