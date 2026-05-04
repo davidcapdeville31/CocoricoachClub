@@ -41,6 +41,8 @@ export function AddCategoryDialog({
   onOpenChange,
   clubId,
 }: AddCategoryDialogProps) {
+  const [mode, setMode] = useState<"create" | "edit">("create");
+  const [editingCategoryId, setEditingCategoryId] = useState<string>("");
   const [categoryName, setCategoryName] = useState("");
   const [gender, setGender] = useState<"masculine" | "feminine" | "mixed">("masculine");
   const [sportSubType, setSportSubType] = useState<SportType>("XV");
