@@ -405,8 +405,8 @@ export function AthletePrecisionFieldInput({
           >
             {/* Show kick markers with distinct shapes */}
             {kickMarkers.map((kick, i) => {
-              const cx = 20 + (kick.x / 100) * 560;
-              const cy = 10 + (kick.y / 100) * 380;
+              const cx = (kick.x / 100) * 600;
+              const cy = (kick.y / 100) * 400;
               const exDef = BUTEUR_EXERCISES.find(b => b.value === kick.kickType);
               const fill = kick.success ? "#22c55e" : "#ef4444";
               const stroke = exDef?.color || "#f97316";
@@ -491,14 +491,14 @@ export function AthletePrecisionFieldInput({
             {(() => {
               const origin = getFixedOrigin() || zoneKickOrigin;
               if (!origin) return null;
-              const ox = 20 + (origin.x / 100) * 560;
-              const oy = 10 + (origin.y / 100) * 380;
+              const ox = (origin.x / 100) * 600;
+              const oy = (origin.y / 100) * 400;
               const isFixed = !!getFixedOrigin();
               return (
                 <g>
                   {isFixed ? (
                     // Fixed origin: show a line across the field width
-                    <line x1={ox} y1={10} x2={ox} y2={390} stroke="#f59e0b" strokeWidth={2} strokeDasharray="6 3" opacity={0.6} />
+                    <line x1={ox} y1={14} x2={ox} y2={386} stroke="#f59e0b" strokeWidth={2} strokeDasharray="6 3" opacity={0.6} />
                   ) : null}
                   <circle cx={ox} cy={oy} r={10} fill="none" stroke="#f59e0b" strokeWidth={2.5} strokeDasharray="4 2" opacity={0.9} />
                   <circle cx={ox} cy={oy} r={3} fill="#f59e0b" opacity={0.9} />
