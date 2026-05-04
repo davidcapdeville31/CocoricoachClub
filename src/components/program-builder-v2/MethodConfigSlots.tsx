@@ -746,12 +746,6 @@ const CircuitExerciseSlot = ({
                     type="button"
                     variant="outline"
                     size="sm"
-                    onPointerDown={(e) => {
-                      e.stopPropagation();
-                    }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                    }}
                     onClick={(e) => {
                       e.stopPropagation();
                     }}
