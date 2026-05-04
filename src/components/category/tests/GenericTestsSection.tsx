@@ -454,7 +454,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
   const { data: customTestsList } = useQuery({
     queryKey: ["custom_tests_list", categoryId, defaultCategory],
     queryFn: async () => {
-      const COLS = "id, name, test_category, unit, unit_kind, is_time, description, objectives, scoring_scale, max_points, image_url, video_url, formula_config, bilateral, is_system, cloned_from_system_id";
+      const COLS = "id, name, test_category, unit, unit_kind, is_time, description, objectives, scoring_scale, max_points, image_url, icon, video_url, formula_config, bilateral, is_system, cloned_from_system_id";
       // 1) Tests custom liés à la catégorie
       const { data: linked, error } = await supabase
         .from("custom_test_categories")
