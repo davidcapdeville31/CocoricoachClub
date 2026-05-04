@@ -370,6 +370,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
 
     if (rows.length === 0) return toast.error("Saisissez au moins un résultat");
 
+    // Delete existing rows at the current saved date for this battery+player
     const { error: deleteError } = await supabase
       .from("generic_tests")
       .delete()
@@ -380,8 +381,25 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
 
     if (deleteError) return toast.error("Erreur : " + deleteError.message);
 
+    // If the user changed the date (editing an existing entry to fix the date),
+    // also delete the old-date rows so the entry is moved, not duplicated.
+    const originalDate = originalDateByPlayer[playerId];
+    if (originalDate && originalDate !== savedDate) {
+      const { error: oldDateDeleteError } = await supabase
+        .from("generic_tests")
+        .delete()
+        .eq("player_id", playerId)
+        .eq("category_id", categoryId)
+        .eq("test_date", originalDate)
+        .ilike("notes", `[Batterie: ${battery.battery.name}]%`);
+      if (oldDateDeleteError) return toast.error("Erreur : " + oldDateDeleteError.message);
+    }
+
     const { error } = await supabase.from("generic_tests").insert(rows);
     if (error) return toast.error("Erreur : " + error.message);
+
+    // Update tracked original date to the new one
+    setOriginalDateByPlayer(prev => ({ ...prev, [playerId]: savedDate }));
 
     queryClient.invalidateQueries({ queryKey: ["generic_tests", categoryId] });
     queryClient.invalidateQueries({ queryKey: ["generic_tests_discovery", categoryId] });
@@ -389,7 +407,11 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     queryClient.invalidateQueries({ queryKey: ["generic-tests-multi-comparison", categoryId] });
     queryClient.invalidateQueries({ queryKey: ["battery-saved-results", batteryId, categoryId, playerId, savedDate] });
     queryClient.invalidateQueries({ queryKey: ["battery-saved-players", batteryId, categoryId, battery?.battery?.name] });
+    queryClient.invalidateQueries({ queryKey: ["battery-latest-date-per-player", batteryId, categoryId, battery?.battery?.name] });
     queryClient.invalidateQueries({ queryKey: ["battery-results-list", categoryId, battery?.battery?.name] });
+    // Athlete space queries
+    queryClient.invalidateQueries({ queryKey: ["athlete-generic-tests", playerId] });
+    queryClient.invalidateQueries({ queryKey: ["athlete-generic-tests"] });
 
     toast.success(`Batterie enregistrée pour cet athlète : ${totalPoints}/${totalMax} pts (${level.label})`);
     setSavedPlayerIds(prev => new Set(prev).add(playerId));
