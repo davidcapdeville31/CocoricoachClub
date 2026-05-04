@@ -113,8 +113,12 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     enabled: open,
   });
 
+  // We load existing results based on the ORIGINAL date (date when the test was actually
+  // performed and saved), not on `savedDate`. This way, if the user changes `savedDate`
+  // to correct it, the existing values stay visible and we just move them to the new date on save.
+  const loadDate = originalDateByPlayer[playerId] || savedDate;
   const { data: savedRows = [] } = useQuery({
-    queryKey: ["battery-saved-results", batteryId, categoryId, playerId, savedDate],
+    queryKey: ["battery-saved-results", batteryId, categoryId, playerId, loadDate],
     queryFn: async () => {
       if (!playerId || !battery?.battery?.name) return [];
       const { data, error } = await supabase
@@ -122,7 +126,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
         .select("player_id, test_type, result_value, notes")
         .eq("player_id", playerId)
         .eq("category_id", categoryId)
-        .eq("test_date", savedDate)
+        .eq("test_date", loadDate)
         .ilike("notes", `[Batterie: ${battery.battery.name}]%`);
       if (error) throw error;
       return data || [];
