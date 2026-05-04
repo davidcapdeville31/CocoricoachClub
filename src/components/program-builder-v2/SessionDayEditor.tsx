@@ -38,7 +38,7 @@ import { IntermittentCardioConfigSlots } from "./IntermittentCardioConfigSlots";
 import type { IntermittentCardioConfig } from "@/lib/program-builder-v2/intermittentCardioTypes";
 import { formatIntermittentSummary } from "@/lib/program-builder-v2/intermittentCardioTypes";
 import { MethodConfigSlots, type MethodConfigType } from "./MethodConfigSlots";
-import { Trash2 } from "lucide-react";
+import { Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { ExercisePicker, type PickedExercise } from "./ExercisePicker";
 import { ValidatedMethodCard } from "./ValidatedMethodCard";
 import { NormalExerciseEditor } from "./NormalExerciseEditor";
