@@ -427,7 +427,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         <DialogHeader className="shrink-0 border-b border-border/60 px-6 pt-6 pb-4">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Layers className="h-5 w-5 text-primary" />
-            Nouvelle séance terrain
+            {isEdit ? "Modifier la séance terrain" : "Nouvelle séance terrain"}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">{format(date, "EEEE d MMMM yyyy", { locale: fr })}</p>
         </DialogHeader>
@@ -691,7 +691,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         <DialogFooter className="shrink-0 border-t border-border/60 px-6 py-3">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
           <Button onClick={() => create.mutate()} disabled={create.isPending}>
-            {create.isPending ? "Création..." : "Créer la séance"}
+            {create.isPending ? (isEdit ? "Mise à jour..." : "Création...") : (isEdit ? "Enregistrer" : "Créer la séance")}
           </Button>
         </DialogFooter>
       </DialogContent>
