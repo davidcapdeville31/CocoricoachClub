@@ -436,6 +436,10 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
             <GenericTestsSection categoryId={categoryId} sportType={sportType} />
           </TabsContent>
 
+          <TabsContent value="none" className="space-y-6">
+            <GenericTestsSection categoryId={categoryId} sportType={sportType} hideTestCatalog />
+          </TabsContent>
+
           {testCategories.nonRehab.map((cat) => (
             <TabsContent key={cat.value} value={cat.value} className="space-y-6">
               <GenericTestsSection
