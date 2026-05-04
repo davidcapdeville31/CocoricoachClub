@@ -47,6 +47,7 @@ import { MaintenanceGate } from "./components/MaintenanceGate";
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const { isPublicAccess } = usePublicAccess();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -58,7 +59,11 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
   // Allow access if user is authenticated OR has public access
   if (!user && !isPublicAccess) {
-    return <Navigate to="/auth" replace />;
+    const target = `${location.pathname}${location.search}${location.hash}`;
+    const redirectParam = target && target !== "/" && !target.startsWith("/auth")
+      ? `?redirect=${encodeURIComponent(target)}`
+      : "";
+    return <Navigate to={`/auth${redirectParam}`} replace />;
   }
 
   return <>{children}</>;
