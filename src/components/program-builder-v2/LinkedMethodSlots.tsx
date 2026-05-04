@@ -739,6 +739,11 @@ const LinkedMethodSlotsContent = ({
   const [isEditing, setIsEditing] = useState(defaultEditing && !readOnly);
   
   const config = getMethodConfig(method);
+  const resolvedMethodRestSeconds =
+    methodRestSeconds ??
+    slottedExercises
+      .map((exercise) => exercise.params?.rest)
+      .find((rest): rest is number => rest !== undefined && rest !== null);
   const isDynamic = config.slots > config.minSlots;
   const minRequired = config.minSlots;
   const filledCount = slottedExercises.length;
@@ -848,7 +853,7 @@ const LinkedMethodSlotsContent = ({
       </div>
 
       {/* Method-level rest configuration */}
-      {(onMethodRestChange || (readOnly && methodRestSeconds)) && (
+      {(onMethodRestChange || (readOnly && resolvedMethodRestSeconds !== undefined)) && (
         <div className="mt-2 p-2 rounded-lg bg-muted/30 border border-border/50">
           <div className="flex flex-wrap items-center gap-2">
             <Label className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1.5">
@@ -857,14 +862,14 @@ const LinkedMethodSlotsContent = ({
             </Label>
             {isEditing && onMethodRestChange ? (
               <TimeInput
-                value={methodRestSeconds}
+                value={resolvedMethodRestSeconds}
                 onChange={(seconds) => onMethodRestChange(seconds)}
                 min={0}
                 max={600}
               />
             ) : (
               <span className="text-sm font-medium">
-                {methodRestSeconds ? `${methodRestSeconds}s` : '-'}
+                {resolvedMethodRestSeconds !== undefined ? `${resolvedMethodRestSeconds}s` : '-'}
               </span>
             )}
           </div>
