@@ -660,14 +660,12 @@ export const TRAINING_TYPE_COLORS: Record<string, string> = {
   // Precision (all sports)
   precision: "bg-lime-500",
   // Generic session themes (program builder v2 SESSION_KIND_OPTIONS)
-  musculation: "bg-orange-500",
   course: "bg-emerald-500",
   fractionne: "bg-cyan-500",
   endurance: "bg-teal-500",
   vitesse: "bg-red-500",
   puissance: "bg-rose-500",
   mobilite: "bg-lime-500",
-  recuperation: "bg-blue-400",
   cardio: "bg-pink-500",
   crossfit: "bg-orange-600",
   // Default for custom types
