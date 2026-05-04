@@ -49,9 +49,10 @@ interface Props {
   exercise: V2BlockExercise;
   onRemove: () => void;
   onEdit?: () => void;
+  readOnly?: boolean;
 }
 
-export const ValidatedMethodCard = ({ exercise, onRemove, onEdit }: Props) => {
+export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Props) => {
   const method = exercise.method ?? "normal";
   const colors = getMethodColors(method);
   const label = METHOD_LABELS[method] ?? method;
