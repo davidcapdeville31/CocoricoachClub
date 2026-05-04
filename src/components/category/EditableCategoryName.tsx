@@ -86,7 +86,7 @@ export function EditableCategoryName({ categoryId, initialName }: EditableCatego
       </h1>
       <button
         onClick={() => setIsEditing(true)}
-        className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-white/10 rounded-md"
+        className="opacity-100 sm:opacity-80 sm:hover:opacity-100 transition-opacity p-2 hover:bg-white/10 rounded-md"
         aria-label="Modifier le nom"
       >
         <Pencil className="h-5 w-5 text-white" />

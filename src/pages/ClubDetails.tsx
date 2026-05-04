@@ -257,7 +257,7 @@ function ClubDetailsContent() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-8 w-8 opacity-100 sm:opacity-70 sm:hover:opacity-100"
                         onClick={(e) => {
                           e.stopPropagation();
                           setEditingName(category.name);
@@ -270,7 +270,7 @@ function ClubDetailsContent() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-8 w-8 opacity-100 sm:opacity-70 sm:hover:opacity-100"
                         onClick={(e) => {
                           e.stopPropagation();
                           if (confirm(`Êtes-vous sûr de vouloir supprimer ${category.name} ?`)) {
