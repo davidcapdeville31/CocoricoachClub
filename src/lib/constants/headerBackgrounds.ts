@@ -12,6 +12,14 @@ import tennisCourt from "@/assets/banner-bg/tennis-court.jpg";
 import bowlingAlley from "@/assets/banner-bg/bowling-alley.jpg";
 import boxingGym from "@/assets/banner-bg/boxing-gym.jpg";
 import weightRoom from "@/assets/banner-bg/weight-room.jpg";
+import footballPitch from "@/assets/banner-bg/football-pitch.jpg";
+import rugbyPitch from "@/assets/banner-bg/rugby-pitch.jpg";
+import throwingSports from "@/assets/banner-bg/throwing-sports.jpg";
+import judoDojo from "@/assets/banner-bg/judo-dojo.jpg";
+import skiSlope from "@/assets/banner-bg/ski-slope.jpg";
+import snowboardPark from "@/assets/banner-bg/snowboard-park.jpg";
+import freshSnow from "@/assets/banner-bg/fresh-snow.jpg";
+import climbingWall from "@/assets/banner-bg/climbing-wall.jpg";
 
 export interface HeaderBackgroundPreset {
   id: string;
@@ -25,19 +33,44 @@ export interface HeaderBackgroundPreset {
  * au cadre derrière le logo de catégorie sans déformation.
  */
 export const HEADER_BACKGROUND_PRESETS: HeaderBackgroundPreset[] = [
+  // Génériques
   { id: "default", label: "Dégradé par défaut", url: "" },
   { id: "flag-fr", label: "Drapeau France", url: flagFr },
   { id: "gradient-indigo", label: "Vague indigo", url: gradientIndigo },
+  { id: "carbon", label: "Carbone sombre", url: carbon },
   { id: "stadium-night", label: "Stade de nuit", url: stadiumNight },
   { id: "stadium-seats", label: "Tribunes", url: stadiumSeats },
   { id: "grass-field", label: "Pelouse sportive", url: grassField },
-  { id: "basketball-court", label: "Parquet basketball", url: basketballCourt },
-  { id: "tennis-court", label: "Terre battue tennis", url: tennisCourt },
-  { id: "running-track", label: "Piste d'athlétisme", url: runningTrack },
-  { id: "swimming-pool", label: "Bassin de natation", url: swimmingPool },
-  { id: "bowling-alley", label: "Pistes de bowling", url: bowlingAlley },
-  { id: "boxing-gym", label: "Salle de boxe", url: boxingGym },
-  { id: "weight-room", label: "Salle de musculation", url: weightRoom },
-  { id: "mountains", label: "Montagne enneigée", url: mountains },
-  { id: "carbon", label: "Carbone sombre", url: carbon },
+
+  // Sports collectifs
+  { id: "football-pitch", label: "Football", url: footballPitch },
+  { id: "rugby-pitch", label: "Rugby", url: rugbyPitch },
+  { id: "basketball-court", label: "Basket", url: basketballCourt },
+
+  // Raquette
+  { id: "tennis-court", label: "Tennis – terre battue", url: tennisCourt },
+
+  // Athlétisme & lancers
+  { id: "running-track", label: "Athlétisme – piste", url: runningTrack },
+  { id: "throwing-sports", label: "Sports de lancer", url: throwingSports },
+
+  // Aquatique
+  { id: "swimming-pool", label: "Natation", url: swimmingPool },
+
+  // Combat
+  { id: "judo-dojo", label: "Judo – dojo", url: judoDojo },
+  { id: "boxing-gym", label: "Boxe", url: boxingGym },
+
+  // Bowling
+  { id: "bowling-alley", label: "Bowling", url: bowlingAlley },
+
+  // Force
+  { id: "weight-room", label: "Musculation", url: weightRoom },
+
+  // Outdoor & glisse
+  { id: "climbing-wall", label: "Escalade", url: climbingWall },
+  { id: "ski-slope", label: "Ski", url: skiSlope },
+  { id: "snowboard-park", label: "Snowboard", url: snowboardPark },
+  { id: "fresh-snow", label: "Neige", url: freshSnow },
+  { id: "mountains", label: "Montagne", url: mountains },
 ];
