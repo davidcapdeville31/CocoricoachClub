@@ -580,7 +580,7 @@ function PlayerDetailsContent() {
           {(isBowling || isSurf || isSki || isPadel) && (
             <TabsContent value="equipment">
               {isBowling && (
-                <PlayerBowlingArsenal playerId={playerId!} categoryId={player.category_id} isViewer={true} />
+                <PlayerBowlingArsenal playerId={playerId!} categoryId={player.category_id} isViewer={false} />
               )}
               {isSurf && (
                 <PlayerSurfEquipment playerId={playerId!} categoryId={player.category_id} isViewer={true} />
