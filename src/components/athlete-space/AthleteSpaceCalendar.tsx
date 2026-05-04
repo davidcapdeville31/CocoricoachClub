@@ -47,6 +47,27 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  // Realtime sync: invalidate caches when sessions/blocks/exercises change
+  useEffect(() => {
+    if (!categoryId) return;
+    const channel = supabase
+      .channel(`athlete-calendar-${categoryId}-${playerId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "training_sessions", filter: `category_id=eq.${categoryId}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["athlete-calendar-sessions", categoryId, playerId] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "training_session_blocks" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["athlete-calendar-blocks"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "gym_session_exercises" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["athlete-calendar-exercises-v3"] });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [categoryId, playerId, queryClient]);
 
   const { data: sessions = [] } = useQuery({
     queryKey: ["athlete-calendar-sessions", categoryId, playerId],
