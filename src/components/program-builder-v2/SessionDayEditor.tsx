@@ -1097,13 +1097,11 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                   );
 
                     const itemKey = item.type === "group" ? item.groupId : item.exercise.id;
-                    return reorderControls ? (
+                    return (
                       <div key={itemKey} className="flex items-start gap-1">
                         {reorderControls}
                         <div className="flex-1 min-w-0">{card}</div>
                       </div>
-                    ) : (
-                      <div key={itemKey}>{card}</div>
                     );
                   });
                 })()}
