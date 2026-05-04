@@ -265,7 +265,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         return next;
       });
     },
-    [blocks, onChange, pendingConfig, linkedDrafts, configDrafts],
+    [blocks, onChange, pendingConfig, linkedDrafts, configDrafts, clusterDrafts],
   );
 
   // Expose une API impérative pour insérer un exercice depuis la bibliothèque externe
