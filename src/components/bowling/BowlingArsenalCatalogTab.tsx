@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { resolveBallCatalogImages } from "@/lib/bowling/bowlingBallImageResolver";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface BowlingArsenalCatalogTabProps {
   categoryId: string;
@@ -622,7 +623,7 @@ export function BowlingArsenalCatalogTab({ categoryId }: BowlingArsenalCatalogTa
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
           {filtered.map((ball: any) => (
             <Card key={ball.id} className="overflow-hidden hover:shadow-md transition-shadow">
-              <div className="relative aspect-square bg-muted/30 flex items-center justify-center">
+              <div className="group relative aspect-square bg-muted/30 flex items-center justify-center">
                 {ball.resolved_image_url ? (
                   <>
                     <img
@@ -634,7 +635,7 @@ export function BowlingArsenalCatalogTab({ categoryId }: BowlingArsenalCatalogTa
                     <Button
                       variant="destructive"
                       size="icon"
-                      className="absolute top-2 right-2 h-7 w-7"
+                      className="absolute top-2 right-2 h-7 w-7 z-20"
                       onClick={() => removeImageMutation.mutate(ball.id)}
                     >
                       <X className="h-3.5 w-3.5" />
@@ -646,29 +647,39 @@ export function BowlingArsenalCatalogTab({ categoryId }: BowlingArsenalCatalogTa
                     <span className="text-xs">Pas de photo</span>
                   </div>
                 )}
+
+                {/* Overlay centré : bouton "Photo" au survol (ou toujours visible si pas de photo) */}
+                <button
+                  type="button"
+                  onClick={() => handleFileSelect(ball.id)}
+                  disabled={updateImageMutation.isPending}
+                  aria-label={ball.resolved_image_url ? "Changer la photo" : "Ajouter une photo"}
+                  title={ball.resolved_image_url ? "Changer la photo" : "Ajouter une photo"}
+                  className={cn(
+                    "absolute inset-0 z-10 flex items-center justify-center",
+                    "transition-opacity duration-200",
+                    ball.resolved_image_url
+                      ? "opacity-0 group-hover:opacity-100 focus-visible:opacity-100 bg-black/45"
+                      : "opacity-100 bg-transparent",
+                  )}
+                >
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-background/90 backdrop-blur px-3 py-1.5 text-xs font-medium shadow-lg ring-1 ring-border">
+                    <Upload className="h-3.5 w-3.5" />
+                    Photo
+                  </span>
+                </button>
+
                 {updateImageMutation.isPending && uploadingBallId === ball.id && (
-                  <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-background/60 flex items-center justify-center z-30">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
                 )}
               </div>
 
               <CardContent className="p-3 space-y-2">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-bold text-sm">{ball.brand}</p>
-                    <p className="text-sm text-muted-foreground">{ball.model}</p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 text-xs gap-1"
-                    onClick={() => handleFileSelect(ball.id)}
-                    disabled={updateImageMutation.isPending}
-                  >
-                    <Upload className="h-3.5 w-3.5" />
-                    Photo
-                  </Button>
+                <div>
+                  <p className="font-bold text-sm">{ball.brand}</p>
+                  <p className="text-sm text-muted-foreground">{ball.model}</p>
                 </div>
 
                 <div className="flex flex-wrap gap-1">
