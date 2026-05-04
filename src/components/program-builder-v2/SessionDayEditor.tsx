@@ -782,6 +782,9 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                 sets: Number(params.sets) || exercise.sets,
                 reps: params.reps ?? exercise.reps,
                 percentage: params.percentage,
+                weight_kg: params.load != null ? Number(params.load) : undefined,
+                rpe: params.rpe != null ? Number(params.rpe) : undefined,
+                rir: params.rir != null ? Number(params.rir) : undefined,
                 tempo: params.tempo,
                 restSeconds: params.rest ?? exercise.restSeconds,
               };
