@@ -386,6 +386,27 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
           </p>
         </div>
 
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="battery-date">Date du test</Label>
+            <Input
+              id="battery-date"
+              type="date"
+              value={savedDate}
+              onChange={(e) => setSavedDate(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="battery-time">Heure</Label>
+            <Input
+              id="battery-time"
+              type="time"
+              value={savedTime}
+              onChange={(e) => setSavedTime(e.target.value)}
+            />
+          </div>
+        </div>
+
         <ScrollArea className="min-h-0 pr-3">
           <div className="space-y-2 py-2">
             {(battery.items as any[]).map((it, idx) => {
