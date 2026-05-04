@@ -840,14 +840,14 @@ const LinkedMethodSlotsContent = ({
       </div>
 
       {/* Method-level rest configuration */}
-      {onMethodRestChange && (
+      {(onMethodRestChange || (readOnly && methodRestSeconds)) && (
         <div className="mt-2 p-2 rounded-lg bg-muted/30 border border-border/50">
           <div className="flex flex-wrap items-center gap-2">
             <Label className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5" />
               Repos entre séries
             </Label>
-            {isEditing ? (
+            {isEditing && onMethodRestChange ? (
               <TimeInput
                 value={methodRestSeconds}
                 onChange={(seconds) => onMethodRestChange(seconds)}
@@ -860,9 +860,11 @@ const LinkedMethodSlotsContent = ({
               </span>
             )}
           </div>
-          <p className="text-[10px] text-muted-foreground mt-1.5">
-            Temps de récupération après chaque tour de la méthode
-          </p>
+          {!readOnly && (
+            <p className="text-[10px] text-muted-foreground mt-1.5">
+              Temps de récupération après chaque tour de la méthode
+            </p>
+          )}
         </div>
       )}
 
