@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -203,39 +203,26 @@ export function LogoHoverActions({
         disabled={uploading}
       />
 
-      {/* Dialog: recentrer le logo */}
+      {/* Dialog: recentrer le logo via drag & drop */}
       <Dialog open={recenterOpen} onOpenChange={setRecenterOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Recadrer le logo</DialogTitle>
             <DialogDescription>
-              Choisissez la portion du logo affichée dans le cercle.
+              Maintenez le clic sur le logo et déplacez-le pour le repositionner dans le cercle.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
-            <div className="flex justify-center">
-              <div className="h-40 w-40 rounded-full overflow-hidden ring-4 ring-border bg-muted">
-                {currentCoverUrl && (
-                  <img
-                    src={currentCoverUrl}
-                    alt="Aperçu"
-                    className="h-full w-full object-cover transition-all"
-                    style={{ objectPosition: currentPos }}
-                  />
-                )}
-              </div>
-            </div>
-            <PositionPicker
-              value={currentPos}
-              onChange={(pos) => updatePosition.mutate(pos)}
-              disabled={updatePosition.isPending}
-            />
-          </div>
+          <DragPositionPicker
+            imageUrl={currentCoverUrl ?? null}
+            initialPosition={currentPos}
+            onCommit={(pos) => updatePosition.mutate(pos)}
+            saving={updatePosition.isPending}
+          />
           <DialogFooter>
             <Button variant="ghost" onClick={() => setRecenterOpen(false)}>Fermer</Button>
             <Button
               variant="outline"
-              onClick={() => updatePosition.mutate("center")}
+              onClick={() => updatePosition.mutate("50% 50%")}
               disabled={updatePosition.isPending}
             >
               Réinitialiser
@@ -341,41 +328,132 @@ export function CategoryCoverUpload({
   );
 }
 
-const POSITIONS: { label: string; value: string }[] = [
-  { label: "↖", value: "left top" },
-  { label: "↑", value: "center top" },
-  { label: "↗", value: "right top" },
-  { label: "←", value: "left center" },
-  { label: "•", value: "center" },
-  { label: "→", value: "right center" },
-  { label: "↙", value: "left bottom" },
-  { label: "↓", value: "center bottom" },
-  { label: "↘", value: "right bottom" },
-];
+/**
+ * Convertit une valeur object-position quelconque en pourcentages X/Y (0-100).
+ * Tolère les mots-clés ("center", "left top"...) et les "X% Y%".
+ */
+function parsePosition(value: string): { x: number; y: number } {
+  if (!value) return { x: 50, y: 50 };
+  const map: Record<string, number> = { left: 0, top: 0, center: 50, right: 100, bottom: 100 };
+  const parts = value.trim().split(/\s+/);
+  const toPct = (p: string, axis: "x" | "y") => {
+    if (p.endsWith("%")) return Math.max(0, Math.min(100, parseFloat(p)));
+    if (p in map) return map[p];
+    return 50;
+  };
+  if (parts.length === 1) {
+    const v = toPct(parts[0], "x");
+    return { x: v, y: v };
+  }
+  return { x: toPct(parts[0], "x"), y: toPct(parts[1], "y") };
+}
 
-function PositionPicker({
-  value,
-  onChange,
-  disabled,
+/**
+ * Picker drag-and-drop : on maintient le clic sur le logo et on le glisse
+ * pour ajuster object-position. Commit sur "pointerup" (mutation API).
+ */
+function DragPositionPicker({
+  imageUrl,
+  initialPosition,
+  onCommit,
+  saving,
 }: {
-  value: string;
-  onChange: (v: string) => void;
-  disabled?: boolean;
+  imageUrl: string | null;
+  initialPosition: string;
+  onCommit: (pos: string) => void;
+  saving?: boolean;
 }) {
+  const initial = parsePosition(initialPosition);
+  const [pos, setPos] = useState<{ x: number; y: number }>(initial);
+  const [dragging, setDragging] = useState(false);
+  const startRef = useState<{
+    pointerX: number; pointerY: number; baseX: number; baseY: number;
+  } | null>(null)[0];
+  const stateRef = React.useRef({ pos: initial, start: null as null | {
+    pointerX: number; pointerY: number; baseX: number; baseY: number;
+  } });
+
+  // Re-sync si la valeur initiale change (après mutation)
+  React.useEffect(() => {
+    const p = parsePosition(initialPosition);
+    setPos(p);
+    stateRef.current.pos = p;
+  }, [initialPosition]);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!imageUrl) return;
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    stateRef.current.start = {
+      pointerX: e.clientX,
+      pointerY: e.clientY,
+      baseX: stateRef.current.pos.x,
+      baseY: stateRef.current.pos.y,
+    };
+    setDragging(true);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const start = stateRef.current.start;
+    if (!start) return;
+    const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+    const dx = e.clientX - start.pointerX;
+    const dy = e.clientY - start.pointerY;
+    // Sens : on tire le logo dans la direction du drag → object-position diminue
+    // (déplacer la portion visible vers la gauche = object-position plus à droite)
+    const sensitivity = 100; // 100% = traverser tout le cercle
+    const nx = Math.max(0, Math.min(100, start.baseX - (dx / rect.width) * sensitivity));
+    const ny = Math.max(0, Math.min(100, start.baseY - (dy / rect.height) * sensitivity));
+    const next = { x: nx, y: ny };
+    stateRef.current.pos = next;
+    setPos(next);
+  };
+
+  const handlePointerUp = () => {
+    if (!stateRef.current.start) return;
+    stateRef.current.start = null;
+    setDragging(false);
+    const { x, y } = stateRef.current.pos;
+    onCommit(`${x.toFixed(1)}% ${y.toFixed(1)}%`);
+  };
+
   return (
-    <div className="grid grid-cols-3 gap-2 max-w-[180px] mx-auto">
-      {POSITIONS.map((p) => (
-        <Button
-          key={p.value}
-          variant={value === p.value ? "default" : "outline"}
-          size="sm"
-          disabled={disabled}
-          onClick={() => onChange(p.value)}
-          className="h-10 text-base"
+    <div className="space-y-3">
+      <div className="flex justify-center">
+        <div
+          className={cn(
+            "relative h-48 w-48 rounded-full overflow-hidden ring-4 ring-border bg-muted select-none touch-none",
+            imageUrl ? (dragging ? "cursor-grabbing" : "cursor-grab") : "cursor-not-allowed",
+          )}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
         >
-          {p.label}
-        </Button>
-      ))}
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt="Aperçu"
+              draggable={false}
+              className="h-full w-full object-cover pointer-events-none"
+              style={{ objectPosition: `${pos.x}% ${pos.y}%` }}
+            />
+          ) : (
+            <div className="h-full w-full flex items-center justify-center text-xs text-muted-foreground px-3 text-center">
+              Aucune image
+            </div>
+          )}
+          {/* Repère central */}
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="h-px w-6 bg-white/40" />
+            <div className="absolute h-6 w-px bg-white/40" />
+          </div>
+        </div>
+      </div>
+      <p className="text-center text-xs text-muted-foreground">
+        {saving
+          ? "Sauvegarde…"
+          : "Cliquez et maintenez pour faire glisser le logo dans le cercle."}
+      </p>
     </div>
   );
 }
