@@ -167,36 +167,28 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex gap-2 py-2">
-            <Button
-              type="button"
-              size="sm"
-              variant={mode === "create" ? "default" : "outline"}
-              onClick={() => { setMode("create"); setLabel(""); setEditingId(""); }}
-              className="flex-1"
-            >
-              Créer
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={mode === "edit" ? "default" : "outline"}
-              onClick={() => { setMode("edit"); setLabel(""); setEditingId(""); }}
-              className="flex-1"
-              disabled={existingThemes.length === 0}
-            >
-              Modifier
-            </Button>
-          </div>
-
-          {mode === "edit" && (
+          {existingThemes.length > 0 && (
             <div className="space-y-2">
-              <Label>Catégorie à modifier</Label>
-              <Select value={editingId} onValueChange={setEditingId}>
+              <Label>Modifier une catégorie existante (optionnel)</Label>
+              <Select
+                value={editingId || "__new__"}
+                onValueChange={(v) => {
+                  if (v === "__new__") {
+                    setMode("create");
+                    setEditingId("");
+                    setLabel("");
+                    setColor("#6366f1");
+                  } else {
+                    setMode("edit");
+                    setEditingId(v);
+                  }
+                }}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionnez une catégorie..." />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="__new__">+ Nouvelle catégorie</SelectItem>
                   {existingThemes.map((t) => (
                     <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
                   ))}
@@ -213,6 +205,28 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
               placeholder="Ex: Coordination spécifique"
               onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Couleur</Label>
+            <div className="flex items-center gap-2 flex-wrap">
+              {PRESET_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setColor(c)}
+                  className={`h-8 w-8 rounded-full border-2 transition-all ${color === c ? "border-foreground scale-110" : "border-transparent"}`}
+                  style={{ backgroundColor: c }}
+                  aria-label={`Couleur ${c}`}
+                />
+              ))}
+              <Input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="h-8 w-12 p-1 cursor-pointer"
+              />
+            </div>
           </div>
 
           <DialogFooter className="flex-col sm:flex-row gap-2">
