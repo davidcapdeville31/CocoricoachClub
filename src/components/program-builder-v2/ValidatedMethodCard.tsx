@@ -119,9 +119,23 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit }: Props) => {
           {dropName}
         </span>
         <span className="text-[11px] text-muted-foreground whitespace-nowrap">
-          {isRestPause
-            ? `${restPauseConfig!.series.length} série${restPauseConfig!.series.length > 1 ? "s" : ""}`
-            : `${exercise.sets} × ${series.length || exercise.reps || 1}`}
+          {(() => {
+            if (isRestPause) {
+              const n = restPauseConfig!.series.length;
+              return `${n} série${n > 1 ? "s" : ""}`;
+            }
+            // Si on a des séries détaillées (pyramides, drop set, etc.), les reps
+            // varient d'une série à l'autre : on affiche juste le nombre de séries.
+            if (series.length > 0) {
+              const repsList = series.map((s: any) => s?.reps).filter((r: any) => r != null && r !== "");
+              const allSame = repsList.length > 0 && repsList.every((r: any) => String(r) === String(repsList[0]));
+              if (allSame) {
+                return `${series.length} × ${repsList[0]}`;
+              }
+              return `${series.length} série${series.length > 1 ? "s" : ""}`;
+            }
+            return `${exercise.sets} × ${exercise.reps || 1}`;
+          })()}
         </span>
         {onEdit && (
           <Button
