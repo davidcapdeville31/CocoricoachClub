@@ -75,14 +75,30 @@ export const RestPauseReadOnlyUI: React.FC<RestPauseReadOnlyUIProps> = ({
           <div className="space-y-1">
             {s.miniSets.map((ms, mIdx) => {
               const isLastMiniSet = mIdx === s.miniSets.length - 1;
+              const isMax = ms.reps === "MAX" || ms.reps === undefined;
               return (
                 <div key={mIdx} className="flex items-center gap-1.5 flex-wrap">
                   <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
                     MS {mIdx + 1}
                   </Badge>
-                  <Badge className="bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5">
-                    MAX
-                  </Badge>
+                  {isMax ? (
+                    <Badge className="bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5">
+                      MAX
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 font-bold">
+                      {ms.reps} reps
+                    </Badge>
+                  )}
+                  {REST_PAUSE_VARIABLES.filter(v => v.key !== 'reps').map(v => {
+                    const val = (ms as any)[v.key];
+                    if (val === undefined || val === null) return null;
+                    return (
+                      <Badge key={v.key} variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                        {v.label}: {val}{v.unit ? ` ${v.unit}` : ''}
+                      </Badge>
+                    );
+                  })}
                   {!isLastMiniSet && ms.pauseSeconds > 0 && (
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
                       {formatTime(ms.pauseSeconds)} pause
