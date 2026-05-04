@@ -25,6 +25,7 @@ import { SuperAdminUsage } from "@/components/super-admin/SuperAdminUsage";
 import { SuperAdminExerciseLibrary } from "@/components/super-admin/SuperAdminExerciseLibrary";
 import { SuperAdminArchives } from "@/components/super-admin/SuperAdminArchives";
 import { SuperAdminTestBank } from "@/components/super-admin/SuperAdminTestBank";
+import { SuperAdminArsenalBank } from "@/components/super-admin/SuperAdminArsenalBank";
  
  export default function SuperAdmin() {
    const { user, loading: authLoading } = useAuth();
