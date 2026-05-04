@@ -80,6 +80,21 @@ export function AddCategoryDialog({
     staleTime: 0,
   });
 
+  // Fetch existing categories (for edit mode)
+  const { data: existingCategories = [] } = useQuery({
+    queryKey: ["categories-for-edit", clubId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name, gender, rugby_type")
+        .eq("club_id", clubId)
+        .order("name");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!clubId,
+  });
+
   const maxCategories = (club?.clients as any)?.max_categories_per_club ?? null;
   const isCategoryLimitReached = maxCategories !== null && currentCategoryCount >= maxCategories;
 
