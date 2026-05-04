@@ -901,6 +901,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
               {clusterDraft && (
                 <ClusterConfigSlots
                   initialConfig={clusterDraft.initial}
+                  exerciseName={clusterDraft.exerciseName}
                   onValidate={(config) => handleClusterValidate(block.id, config)}
                   onCancel={() => handleClusterCancel(block.id)}
                 />
