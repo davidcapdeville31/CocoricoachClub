@@ -236,6 +236,16 @@ export function TestBatteriesManager({
         />
       )}
 
+      {scheduleBattery && (
+        <ScheduleBatteryDialog
+          open={!!scheduleBattery}
+          onOpenChange={(v) => !v && setScheduleBattery(null)}
+          batteryId={scheduleBattery.id}
+          batteryName={scheduleBattery.name}
+          categoryId={categoryId}
+        />
+      )}
+
       <AlertDialog open={!!deleteId} onOpenChange={(v) => !v && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
