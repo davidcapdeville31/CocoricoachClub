@@ -413,7 +413,7 @@ export function AddCategoryDialog({
           </div>
 
           {/* Section d'assignation des membres */}
-          {clubMembers.length > 0 && (
+          {mode === "create" && clubMembers.length > 0 && (
             <div className="space-y-3 py-4 border-t">
               <div className="flex items-center justify-between">
                 <Label className="flex items-center gap-2">
