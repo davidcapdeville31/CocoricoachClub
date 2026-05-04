@@ -2,7 +2,7 @@ import jsPDF from "jspdf";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getLevelForPercent, type BatteryLevel } from "@/lib/constants/testUnits";
-import logoLight from "@/assets/logo-light.png";
+import { getReportLogoDataUrl } from "@/lib/pdf/clubLogo";
 
 interface TestRow {
   id: string;
@@ -29,6 +29,8 @@ interface ExportOptions {
   items: BatteryItemDef[];
   rows: TestRow[];
   testMeta?: Record<string, { description?: string | null; objectives?: string | null }>;
+  categoryId?: string | null;
+  clubId?: string | null;
 }
 
 /** Replace non-Latin1 characters that break Helvetica (e.g. ≥, ≤, →, …) */
