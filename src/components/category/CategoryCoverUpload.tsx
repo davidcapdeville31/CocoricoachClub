@@ -15,18 +15,22 @@ interface CategoryCoverUploadProps {
   currentCoverUrl?: string | null;
   currentCoverPosition?: string | null;
   currentHeaderBackgroundUrl?: string | null;
+  /**
+   * Si true, n'affiche QUE le bouton "Fond d'écran" (les actions logo
+   * sont alors gérées via <LogoHoverActions /> overlay sur le cercle).
+   */
+  backgroundOnly?: boolean;
 }
 
-export function CategoryCoverUpload({
-  categoryId,
-  currentCoverUrl,
-  currentCoverPosition,
-  currentHeaderBackgroundUrl,
-}: CategoryCoverUploadProps) {
-  const [uploading, setUploading] = useState(false);
-  const [bgOpen, setBgOpen] = useState(false);
-  const [recenterOpen, setRecenterOpen] = useState(false);
+/**
+ * Hook partagé : centralise les mutations de logo + fond d'écran.
+ */
+function useCoverMutations(
+  categoryId: string,
+  currentCoverUrl?: string | null,
+) {
   const queryClient = useQueryClient();
+  const [uploading, setUploading] = useState(false);
 
   const uploadCover = useMutation({
     mutationFn: async (file: File) => {
@@ -96,7 +100,6 @@ export function CategoryCoverUpload({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["category", categoryId] });
       toast.success("Logo recentré");
-      setRecenterOpen(false);
     },
     onError: (e: any) => toast.error(e.message || "Erreur"),
   });
@@ -112,139 +115,101 @@ export function CategoryCoverUpload({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["category", categoryId] });
       toast.success("Fond d'écran mis à jour");
-      setBgOpen(false);
     },
     onError: (e: any) => toast.error(e.message || "Erreur"),
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  return { uploading, setUploading, uploadCover, deleteCover, updatePosition, updateBackground };
+}
+
+/**
+ * Composant à rendre PAR-DESSUS le cercle du logo : affiche au hover
+ * deux icônes (changer l'image, recentrer) sur un voile sombre.
+ */
+export function LogoHoverActions({
+  categoryId,
+  currentCoverUrl,
+  currentCoverPosition,
+}: {
+  categoryId: string;
+  currentCoverUrl?: string | null;
+  currentCoverPosition?: string | null;
+}) {
+  const inputId = `cover-upload-${categoryId}`;
+  const [recenterOpen, setRecenterOpen] = useState(false);
+  const { uploading, setUploading, uploadCover, updatePosition } =
+    useCoverMutations(categoryId, currentCoverUrl);
+
+  const currentPos = currentCoverPosition || "center";
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setUploading(true);
       uploadCover.mutate(file);
     }
+    e.target.value = "";
   };
 
-  const currentPos = currentCoverPosition || "center";
-
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap gap-2">
+    <>
+      {/* Overlay hover : sombre + 2 icônes */}
+      <div
+        className={cn(
+          "pointer-events-auto absolute inset-0 rounded-full",
+          "flex items-center justify-center gap-2",
+          "bg-black/0 opacity-0 hover:bg-black/55 hover:opacity-100",
+          "focus-within:bg-black/55 focus-within:opacity-100",
+          "transition-all duration-200 z-10",
+        )}
+      >
         <Button
-          variant="outline"
-          size="sm"
+          type="button"
+          size="icon"
+          variant="secondary"
+          className="h-9 w-9 rounded-full shadow-lg"
           disabled={uploading}
-          onClick={() => document.getElementById("cover-upload")?.click()}
-          className="gap-2"
+          onClick={() => document.getElementById(inputId)?.click()}
+          title={currentCoverUrl ? "Changer l'image" : "Ajouter une image"}
+          aria-label={currentCoverUrl ? "Changer l'image" : "Ajouter une image"}
         >
           {uploading ? (
-            <><Loader2 className="h-4 w-4 animate-spin" /> Upload en cours...</>
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <><Upload className="h-4 w-4" /> {currentCoverUrl ? "Modifier l'image" : "Ajouter une image"}</>
+            <Upload className="h-4 w-4" />
           )}
         </Button>
         {currentCoverUrl && (
-          <>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setRecenterOpen(true)}
-              className="h-8 w-8"
-              title="Recentrer le logo"
-              aria-label="Recentrer le logo"
-            >
-              <Crosshair className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => deleteCover.mutate()}
-              disabled={deleteCover.isPending}
-              className="h-8 w-8 text-destructive hover:text-destructive"
-              title="Supprimer le logo"
-              aria-label="Supprimer le logo"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-          </>
+          <Button
+            type="button"
+            size="icon"
+            variant="secondary"
+            className="h-9 w-9 rounded-full shadow-lg"
+            onClick={() => setRecenterOpen(true)}
+            title="Recadrer le logo"
+            aria-label="Recadrer le logo"
+          >
+            <Crosshair className="h-4 w-4" />
+          </Button>
         )}
-        <input
-          id="cover-upload"
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileChange}
-          disabled={uploading}
-        />
       </div>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setBgOpen(true)}
-        className="gap-2"
-      >
-        <ImageIcon className="h-4 w-4" /> Fond d'écran
-      </Button>
 
-      {/* Dialog: choix fond d'écran */}
-      <Dialog open={bgOpen} onOpenChange={setBgOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Choisir un fond d'écran</DialogTitle>
-            <DialogDescription>
-              Sélectionnez un visuel adapté à la taille du bandeau. Le logo de la catégorie restera affiché par-dessus.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto p-1">
-            {HEADER_BACKGROUND_PRESETS.map((preset) => {
-              const isSelected =
-                (preset.url === "" && !currentHeaderBackgroundUrl) ||
-                (preset.url !== "" && currentHeaderBackgroundUrl === preset.url);
-              return (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => updateBackground.mutate(preset.url || null)}
-                  disabled={updateBackground.isPending}
-                  className={cn(
-                    "relative group rounded-xl overflow-hidden border-2 transition-all",
-                    isSelected
-                      ? "border-primary ring-2 ring-primary/40"
-                      : "border-border hover:border-primary/50"
-                  )}
-                >
-                  <div className="aspect-[4/1] w-full bg-gradient-hero">
-                    {preset.url && (
-                      <img
-                        src={preset.url}
-                        alt={preset.label}
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                      />
-                    )}
-                  </div>
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-                    <span className="text-xs text-white font-medium">{preset.label}</span>
-                  </div>
-                  {isSelected && (
-                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1 shadow-lg">
-                      <Check className="h-3 w-3" />
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <input
+        id={inputId}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFile}
+        disabled={uploading}
+      />
 
       {/* Dialog: recentrer le logo */}
       <Dialog open={recenterOpen} onOpenChange={setRecenterOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Recentrer le logo</DialogTitle>
+            <DialogTitle>Recadrer le logo</DialogTitle>
             <DialogDescription>
-              Choisissez la portion du logo affichée dans le cercle. Idéal pour cadrer une partie précise (ex. FFBSQ).
+              Choisissez la portion du logo affichée dans le cercle.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -276,6 +241,100 @@ export function CategoryCoverUpload({
               Réinitialiser
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+export function CategoryCoverUpload({
+  categoryId,
+  currentCoverUrl,
+  currentHeaderBackgroundUrl,
+  backgroundOnly = false,
+}: CategoryCoverUploadProps) {
+  const [bgOpen, setBgOpen] = useState(false);
+  const { deleteCover, updateBackground } = useCoverMutations(categoryId, currentCoverUrl);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setBgOpen(true)}
+          className="gap-2"
+        >
+          <ImageIcon className="h-4 w-4" /> Fond d'écran
+        </Button>
+        {!backgroundOnly && currentCoverUrl && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => deleteCover.mutate()}
+            disabled={deleteCover.isPending}
+            className="h-8 w-8 text-destructive hover:text-destructive"
+            title="Supprimer le logo"
+            aria-label="Supprimer le logo"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
+
+      {/* Dialog: choix fond d'écran */}
+      <Dialog open={bgOpen} onOpenChange={setBgOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Choisir un fond d'écran</DialogTitle>
+            <DialogDescription>
+              Sélectionnez un visuel adapté à la taille du bandeau. Le logo de la catégorie restera affiché par-dessus.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto p-1">
+            {HEADER_BACKGROUND_PRESETS.map((preset) => {
+              const isSelected =
+                (preset.url === "" && !currentHeaderBackgroundUrl) ||
+                (preset.url !== "" && currentHeaderBackgroundUrl === preset.url);
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => {
+                    updateBackground.mutate(preset.url || null, {
+                      onSuccess: () => setBgOpen(false),
+                    });
+                  }}
+                  disabled={updateBackground.isPending}
+                  className={cn(
+                    "relative group rounded-xl overflow-hidden border-2 transition-all",
+                    isSelected
+                      ? "border-primary ring-2 ring-primary/40"
+                      : "border-border hover:border-primary/50"
+                  )}
+                >
+                  <div className="aspect-[4/1] w-full bg-gradient-hero">
+                    {preset.url && (
+                      <img
+                        src={preset.url}
+                        alt={preset.label}
+                        loading="lazy"
+                        className="h-full w-full object-cover"
+                      />
+                    )}
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                    <span className="text-xs text-white font-medium">{preset.label}</span>
+                  </div>
+                  {isSelected && (
+                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1 shadow-lg">
+                      <Check className="h-3 w-3" />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
