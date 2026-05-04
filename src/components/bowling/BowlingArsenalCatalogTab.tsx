@@ -632,14 +632,15 @@ export function BowlingArsenalCatalogTab({ categoryId }: BowlingArsenalCatalogTa
                       className="w-full h-full object-contain p-2"
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-2 right-2 h-7 w-7 z-20"
+                    <button
+                      type="button"
+                      aria-label="Supprimer la photo"
+                      title="Supprimer la photo"
+                      className="absolute top-1 right-1 h-4 w-4 rounded-full bg-destructive/60 hover:bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
                       onClick={() => removeImageMutation.mutate(ball.id)}
                     >
-                      <X className="h-3.5 w-3.5" />
-                    </Button>
+                      <X className="h-2.5 w-2.5" />
+                    </button>
                   </>
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-muted-foreground" />
