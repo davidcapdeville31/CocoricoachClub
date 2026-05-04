@@ -76,6 +76,7 @@ export function SuperAdminSystemTestDialog({ open, onOpenChange, test }: Props) 
   const [scoringScale, setScoringScale] = useState<ScoringScale | null>(null);
   const [formulaConfig, setFormulaConfig] = useState<FormulaConfig | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [icon, setIcon] = useState<string>("");
   const [videoUrl, setVideoUrl] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
   const [bilateral, setBilateral] = useState(false);
