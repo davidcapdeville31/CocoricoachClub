@@ -28,7 +28,7 @@ interface ExportOptions {
   levels?: BatteryLevel[];
   items: BatteryItemDef[];
   rows: TestRow[];
-  testMeta?: Record<string, { description?: string | null; objectives?: string | null }>;
+  testMeta?: Record<string, { description?: string | null; objectives?: string | null; image_url?: string | null }>;
   categoryId?: string | null;
   clubId?: string | null;
 }
@@ -349,95 +349,136 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
         max: Number(it.max_points) || 0,
         description: meta[key]?.description || null,
         objectives: meta[key]?.objectives || null,
+        image_url: meta[key]?.image_url || null,
       };
     })
     .filter((it) => !!it.name);
 
+  // Préchargement des images des tests (en parallèle)
+  const testImages: Record<string, string | null> = {};
+  await Promise.all(
+    presentationItems
+      .filter((it) => !!it.image_url)
+      .map(async (it) => {
+        const data = await loadImageAsDataUrl(it.image_url!);
+        testImages[(it.name || "").trim().toLowerCase()] = data;
+      }),
+  );
+
   if (presentationItems.length > 0) {
-    pdf.addPage();
-    let py = margin;
+    // Continuer sur la page de garde si possible, sinon nouvelle page
+    let py: number;
+    if (coverY < pageH - margin - 120) {
+      py = coverY + 16;
+    } else {
+      pdf.addPage();
+      py = margin;
+    }
+
     pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(18);
+    pdf.setFontSize(16);
     pdf.setTextColor(20);
     st(pdf, "Presentation des tests", margin, py + 6);
-    py += 32;
+    py += 24;
 
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(10);
     pdf.setTextColor(110);
     st(pdf, "Description et objectifs de chaque test de la batterie", margin, py);
-    py += 22;
+    py += 18;
+
+    const IMG_W = 110;
+    const IMG_H = 80;
+    const TEXT_GAP = 12;
 
     presentationItems.forEach((it) => {
-      // Pré-calcul de la hauteur du bloc pour éviter de couper en plein milieu
-      pdf.setFontSize(11);
+      const key = (it.name || "").trim().toLowerCase();
+      const imgData = testImages[key] || null;
+      const textX = imgData ? margin + IMG_W + TEXT_GAP : margin + 10;
+      const textW = imgData ? contentW - IMG_W - TEXT_GAP : contentW - 12;
+
+      // Pré-calcul de la hauteur du bloc texte
+      pdf.setFontSize(10);
       const descLines = it.description
-        ? pdf.splitTextToSize(safe(String(it.description)), contentW - 12)
+        ? pdf.splitTextToSize(safe(String(it.description)), textW)
         : [];
       const objLines = it.objectives
-        ? pdf.splitTextToSize(safe(String(it.objectives)), contentW - 12)
+        ? pdf.splitTextToSize(safe(String(it.objectives)), textW)
         : [];
-      const blockH =
-        20 + // titre
-        (descLines.length > 0 ? 14 + descLines.length * 13 + 6 : 0) +
-        (objLines.length > 0 ? 14 + objLines.length * 13 + 6 : 0) +
-        12;
+      const textBlockH =
+        18 + // titre
+        (descLines.length > 0 ? 12 + descLines.length * 12 + 4 : 0) +
+        (objLines.length > 0 ? 12 + objLines.length * 12 + 4 : 0);
+      const blockH = Math.max(textBlockH, imgData ? IMG_H : 0) + 10;
 
-      if (py + blockH > pageH - margin) {
+      // Saut de page seulement si pas la place pour titre + ~3 lignes
+      const minNeeded = 60;
+      const remaining = pageH - margin - py;
+      if (remaining < minNeeded || (blockH > remaining && remaining < pageH * 0.4)) {
         pdf.addPage();
         py = margin;
       }
 
+      const blockTop = py;
+
+      // Image à gauche
+      if (imgData) {
+        try {
+          pdf.addImage(imgData, "PNG", margin, blockTop, IMG_W, IMG_H);
+        } catch {/* ignore */}
+      }
+
       // Barre colorée + titre
       pdf.setFillColor(59, 130, 246);
-      pdf.rect(margin, py - 2, 3, 16, "F");
+      pdf.rect(textX - 6, blockTop, 3, 14, "F");
       pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(12);
+      pdf.setFontSize(11);
       pdf.setTextColor(20);
-      st(pdf, it.name, margin + 10, py + 10);
+      st(pdf, it.name, textX, blockTop + 10);
       if (it.max > 0) {
         pdf.setFont("helvetica", "normal");
         pdf.setFontSize(9);
         pdf.setTextColor(110);
-        st(pdf, `${it.max} pts max`, pageW - margin, py + 10, { align: "right" });
+        st(pdf, `${it.max} pts max`, pageW - margin, blockTop + 10, { align: "right" });
       }
-      py += 22;
+      let ty = blockTop + 18;
 
       if (descLines.length > 0) {
         pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(9);
+        pdf.setFontSize(8);
         pdf.setTextColor(80);
-        st(pdf, "Description", margin + 10, py);
-        py += 12;
+        st(pdf, "Description", textX, ty);
+        ty += 11;
         pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(10);
+        pdf.setFontSize(9);
         pdf.setTextColor(60);
-        pdf.text(descLines, margin + 10, py);
-        py += descLines.length * 13 + 6;
+        pdf.text(descLines, textX, ty);
+        ty += descLines.length * 12 + 4;
       }
 
       if (objLines.length > 0) {
         pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(9);
+        pdf.setFontSize(8);
         pdf.setTextColor(80);
-        st(pdf, "Objectifs", margin + 10, py);
-        py += 12;
+        st(pdf, "Objectifs", textX, ty);
+        ty += 11;
         pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(10);
+        pdf.setFontSize(9);
         pdf.setTextColor(60);
-        pdf.text(objLines, margin + 10, py);
-        py += objLines.length * 13 + 6;
+        pdf.text(objLines, textX, ty);
+        ty += objLines.length * 12 + 4;
       }
 
       if (descLines.length === 0 && objLines.length === 0) {
         pdf.setFont("helvetica", "italic");
         pdf.setFontSize(9);
         pdf.setTextColor(150);
-        st(pdf, "Aucune description renseignee.", margin + 10, py);
-        py += 14;
+        st(pdf, "Aucune description renseignee.", textX, ty);
+        ty += 12;
       }
 
-      py += 8;
+      // py = max entre fin texte et fin image, + petit espace
+      py = Math.max(ty, blockTop + (imgData ? IMG_H : 0)) + 10;
     });
   }
 
