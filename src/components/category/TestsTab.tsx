@@ -403,14 +403,12 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
           <ScrollArea className="w-full">
             <ColoredNavTabsList className="flex flex-wrap w-full gap-1 p-1.5">
               <TestCategoryTrigger
-                value="all"
-                label="Tous"
+                value={activeTab === "all" ? "all" : "none-toggle"}
+                label={activeTab === "all" ? "Aucun" : "Tous"}
                 colorIndex={0}
-              />
-              <TestCategoryTrigger
-                value="none"
-                label="Aucun"
-                colorIndex={6}
+                onClickOverride={() => {
+                  setActiveTab(activeTab === "all" ? "none" : "all");
+                }}
               />
               {filteredNonRehab.map((cat, i) => (
                 <TestCategoryTrigger
