@@ -47,7 +47,7 @@ export function ReadOnlyMethodCard({ exercise }: Props) {
     <ValidatedMethodCard
       exercise={v2Exercise}
       onRemove={() => undefined}
-      // no onEdit → read-only (no pencil icon shown)
+      readOnly
     />
   );
 }
