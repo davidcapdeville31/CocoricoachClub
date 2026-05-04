@@ -668,6 +668,8 @@ export const TRAINING_TYPE_COLORS: Record<string, string> = {
   mobilite: "bg-lime-500",
   cardio: "bg-pink-500",
   crossfit: "bg-orange-600",
+  // Field session (séance terrain multi-blocs)
+  terrain: "bg-green-500",
   // Default for custom types
   _default: "bg-gray-500",
 };
