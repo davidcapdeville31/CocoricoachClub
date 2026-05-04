@@ -349,6 +349,17 @@ export function SuperAdminSystemTestDialog({ open, onOpenChange, test }: Props) 
             </div>
 
             <div className="space-y-1.5">
+              <Label>Icône (emoji, affichée si pas d'image)</Label>
+              <Input
+                value={icon}
+                onChange={(e) => setIcon(e.target.value)}
+                placeholder="Ex: 🏋️ ❤️ 🧘 ⚡"
+                maxLength={4}
+                className="w-32 text-center text-2xl"
+              />
+            </div>
+
+            <div className="space-y-1.5">
               <Label>Lien vidéo (YouTube, Vimeo...) (optionnel)</Label>
               <Input
                 type="url"
