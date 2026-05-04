@@ -36,8 +36,9 @@ export interface EditableTest {
   image_url?: string | null;
   video_url?: string | null;
   bilateral?: boolean | null;
-  source: "custom" | "seed";   // seed = test pré-existant du catalogue
+  source: "custom" | "seed" | "system";   // seed = test pré-existant du catalogue ; system = banque super-admin
   seedTestType?: string;       // test_type d'origine si seed (pour réf)
+  systemTestId?: string;       // id source si source === "system" (pour clone-on-edit)
 }
 
 interface EditCustomTestDialogProps {
