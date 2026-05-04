@@ -217,12 +217,11 @@ export function CreateTestBatteryDialog({ open, onOpenChange, categoryId, clubId
             </div>
             <div className="space-y-1.5">
               <Label>Description</Label>
-              <Textarea
+              <RichTextEditor
                 value={description}
-                onChange={e => setDescription(e.target.value)}
+                onChange={setDescription}
                 placeholder="Optionnel"
-                rows={3}
-                className="min-h-[80px] resize-y"
+                minHeight={100}
               />
             </div>
           </div>
