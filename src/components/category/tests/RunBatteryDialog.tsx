@@ -169,6 +169,18 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     enabled: open && !!battery?.battery?.name,
   });
 
+  // When selecting an athlete who already has results for this battery,
+  // pre-select their existing date so editing updates the same record (no duplicate).
+  useEffect(() => {
+    if (!playerId) return;
+    const existing = latestDatePerPlayer?.[playerId];
+    if (existing && !originalDateByPlayer[playerId]) {
+      setSavedDate(existing);
+      setOriginalDateByPlayer(prev => ({ ...prev, [playerId]: existing }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playerId, latestDatePerPlayer]);
+
   const savedResults = useMemo(() => {
     const mapped: Record<string, string> = {};
     (battery?.items || []).forEach((it: any) => {
