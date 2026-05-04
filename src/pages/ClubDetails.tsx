@@ -19,6 +19,8 @@ function ClubDetailsContent() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
   const { isViewer } = useViewerModeContext();
 
   const { data: club } = useQuery({
