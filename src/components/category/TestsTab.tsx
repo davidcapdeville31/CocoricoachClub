@@ -49,6 +49,7 @@ function TestCategoryTrigger({
   customColor,
   editable = false,
   onRename,
+  onClickOverride,
 }: {
   value: string;
   label: string;
@@ -56,6 +57,7 @@ function TestCategoryTrigger({
   customColor?: string | null;
   editable?: boolean;
   onRename?: (newLabel: string) => Promise<void> | void;
+  onClickOverride?: () => void;
 }) {
   const color = customColor || TEST_TAB_COLORS[colorIndex % TEST_TAB_COLORS.length];
   const [isEditing, setIsEditing] = useState(false);
