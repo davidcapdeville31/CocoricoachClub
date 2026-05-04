@@ -87,16 +87,16 @@ interface MatchOilInfo {
   patternName: string | null;
 }
 
-export function BowlingOilPatternStats({ games, categoryId }: BowlingOilPatternStatsProps) {
+export function BowlingOilPatternStats({ games, categoryId, playerId }: BowlingOilPatternStatsProps) {
   const [selectedMatchIds, setSelectedMatchIds] = useState<Set<string> | null>(null); // null = not yet initialized
   const [filterByOilType, setFilterByOilType] = useState<OilCategoryType | null>(null);
 
   // Get unique match IDs
   const uniqueMatchIds = useMemo(() => [...new Set(games.map(g => g.matchId))], [games]);
 
-  // Fetch oil patterns for all matches
+  // Fetch oil patterns for all matches, with per-player assignments
   const { data: matchOilData } = useQuery({
-    queryKey: ["bowling_oil_patterns_for_matches", categoryId, uniqueMatchIds],
+    queryKey: ["bowling_oil_patterns_for_matches", categoryId, uniqueMatchIds, playerId || "all"],
     queryFn: async () => {
       if (uniqueMatchIds.length === 0) return [];
 
@@ -105,27 +105,52 @@ export function BowlingOilPatternStats({ games, categoryId }: BowlingOilPatternS
         .select("id, name, match_id, oil_ratio")
         .in("match_id", uniqueMatchIds);
 
-      const oilMap = new Map<string, { name: string; oil_ratio: string | null }>();
+      const patternIds = (oilPatterns || []).map((op: any) => op.id);
+      let assignments: any[] = [];
+      if (patternIds.length > 0) {
+        const { data: assignData } = await supabase
+          .from("bowling_oil_pattern_players" as any)
+          .select("oil_pattern_id, player_id")
+          .in("oil_pattern_id", patternIds);
+        assignments = (assignData as any[]) || [];
+      }
+
+      // Build map: matchId -> assigned pattern for current player (fallback to first if none)
+      const patternsByMatch = new Map<string, any[]>();
       (oilPatterns || []).forEach((op: any) => {
-        if (op.match_id) oilMap.set(op.match_id, { name: op.name, oil_ratio: op.oil_ratio });
+        if (!op.match_id) return;
+        const arr = patternsByMatch.get(op.match_id) || [];
+        arr.push(op);
+        patternsByMatch.set(op.match_id, arr);
       });
 
-      // Build match info
       const matchInfos: MatchOilInfo[] = [];
       const seen = new Set<string>();
       for (const g of games) {
         if (seen.has(g.matchId)) continue;
         seen.add(g.matchId);
-        const oil = oilMap.get(g.matchId);
-        const cat = oil ? getOilCategory(oil.oil_ratio) : null;
+        const patternsForMatch = patternsByMatch.get(g.matchId) || [];
+        // Find the pattern assigned to this player (if playerId provided)
+        let resolved: any = null;
+        if (playerId) {
+          const assignedIds = new Set(
+            assignments
+              .filter((a: any) => a.player_id === playerId)
+              .map((a: any) => a.oil_pattern_id)
+          );
+          resolved = patternsForMatch.find((p: any) => assignedIds.has(p.id)) || null;
+        }
+        // Fallback: first pattern of the match if no assignment exists
+        if (!resolved) resolved = patternsForMatch[0] || null;
+        const cat = resolved ? getOilCategory(resolved.oil_ratio) : null;
         matchInfos.push({
           matchId: g.matchId,
           matchLabel: g.matchOpponent,
           matchDate: g.matchDate,
-          oilRatio: oil?.oil_ratio || null,
+          oilRatio: resolved?.oil_ratio || null,
           oilCategory: cat?.type || null,
           oilCategoryLabel: cat?.label || null,
-          patternName: oil?.name || null,
+          patternName: resolved?.name || null,
         });
       }
       return matchInfos.sort((a, b) => a.matchDate.localeCompare(b.matchDate));
