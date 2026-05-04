@@ -13,9 +13,86 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Pencil } from "lucide-react";
+import { Trash2, Pencil, Info, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getMethodColors } from "./shared/MethodGroupWrapper";
+import { ExerciseMediaViewer } from "@/components/library/ExerciseMediaViewer";
+import { useExerciseMedia } from "@/lib/hooks/useExerciseMedia";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+function ExerciseNameWithMedia({
+  name,
+  className,
+}: {
+  name: string;
+  className?: string;
+}) {
+  const { getMedia } = useExerciseMedia();
+  const media = getMedia(name);
+  const hasMedia = !!(media?.youtube_url || media?.image_url);
+
+  return (
+    <span className={cn("inline-flex items-center gap-1.5 min-w-0 flex-1", className)}>
+      <span className="truncate">{name}</span>
+      {hasMedia && (
+        <ExerciseMediaViewer
+          exerciseName={name}
+          imageUrl={media?.image_url}
+          youtubeUrl={media?.youtube_url}
+        >
+          <button
+            type="button"
+            className="inline-flex items-center justify-center h-5 w-5 rounded-full text-primary hover:bg-primary/10 shrink-0 transition-colors"
+            aria-label={`Voir la vidéo de ${name}`}
+            title="Voir la vidéo / image"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Video className="h-3.5 w-3.5" />
+          </button>
+        </ExerciseMediaViewer>
+      )}
+      <TooltipProvider delayDuration={150}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-full border h-4 w-4 shrink-0 transition-colors border-muted-foreground/40 text-muted-foreground hover:text-primary hover:border-primary"
+              aria-label={`Consignes pour ${name}`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
+              <Info className="h-3 w-3" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent
+            side="top"
+            align="start"
+            className="max-w-sm whitespace-pre-line text-xs leading-relaxed space-y-1"
+          >
+            <p className="font-semibold">{name}</p>
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              Consignes d'exécution
+            </p>
+            {media?.description ? (
+              <p>{media.description}</p>
+            ) : (
+              <p className="italic text-muted-foreground">
+                Aucune consigne renseignée pour cet exercice.
+              </p>
+            )}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </span>
+  );
+}
 import { RestPauseReadOnlyUI } from "./RestPauseReadOnlyUI";
 import { FartlekCard } from "./FartlekCard";
 import { ClusterCard } from "./ClusterCard";
@@ -161,9 +238,10 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
           {label}
         </Badge>
         {!isPhaseMethod && (
-          <span className={cn("text-sm font-medium truncate flex-1", colors.text)}>
-            {headerName}
-          </span>
+          <ExerciseNameWithMedia
+            name={headerName}
+            className={cn("text-sm font-medium", colors.text)}
+          />
         )}
         {isPhaseMethod && <div className="flex-1" />}
         <span className="text-[11px] text-muted-foreground whitespace-nowrap">
@@ -324,9 +402,10 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
                   {seriesLabel}
                 </Badge>
                 {isPhaseMethod && exName && (
-                  <span className={cn("text-xs font-medium truncate max-w-[180px]", colors.text)}>
-                    {exName}
-                  </span>
+                  <ExerciseNameWithMedia
+                    name={exName}
+                    className={cn("text-xs font-medium max-w-[180px]", colors.text)}
+                  />
                 )}
                 <Badge
                   variant="secondary"
