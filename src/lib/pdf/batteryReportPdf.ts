@@ -28,6 +28,7 @@ interface ExportOptions {
   levels?: BatteryLevel[];
   items: BatteryItemDef[];
   rows: TestRow[];
+  testMeta?: Record<string, { description?: string | null; objectives?: string | null }>;
 }
 
 /** Replace non-Latin1 characters that break Helvetica (e.g. ≥, ≤, →, …) */
