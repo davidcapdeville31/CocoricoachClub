@@ -204,6 +204,19 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         return;
       }
 
+      // Si un draft Cluster est actif → injecter l'exercice dans la carte de configuration
+      if (clusterDrafts[blockId]) {
+        setClusterDrafts((p) => ({
+          ...p,
+          [blockId]: {
+            ...p[blockId],
+            exerciseId: picked.id,
+            exerciseName: picked.name,
+          },
+        }));
+        return;
+      }
+
       // Si une méthode "config" (drop_set, amrap, emom, ...) est en cours,
       // router l'exercice vers la carte de configuration au lieu de l'ajouter au bloc.
       const cfg = configDrafts[blockId];
