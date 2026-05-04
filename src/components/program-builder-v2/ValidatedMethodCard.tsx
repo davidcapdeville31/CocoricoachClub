@@ -209,9 +209,11 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
         )}
       </div>
 
-      {/* Protocol summary (timing, repos, consigne) for CrossFit-style methods */}
+      {/* Protocol summary (consigne + timing/repos) for all methods */}
       {(() => {
         const lines: string[] = [];
+        const consigne = METHOD_DESCRIPTIONS[method];
+
         if (method === "tabata") {
           const t = config.tabataConfig ?? { workSeconds: 20, restSeconds: 10, rounds: 8 };
           lines.push(`${t.workSeconds}'' effort / ${t.restSeconds}'' repos × ${t.rounds} rounds`);
@@ -243,16 +245,20 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
               lines.push(`Repos ${r.globalRestSeconds}s entre les tours`);
             } else if (r.strategy === "between_exercises") {
               lines.push("Repos entre chaque exercice (voir détails)");
-            } else if (r.strategy === "no_rest") {
+            } else if ((r.strategy as string) === "no_rest") {
               lines.push("Sans repos");
             }
           }
         }
-        if (lines.length === 0) return null;
+
+        if (!consigne && lines.length === 0) return null;
         return (
-          <div className={cn("px-3 py-2 text-[11px] font-medium border-b", colors.bg, colors.text, colors.border)}>
+          <div className={cn("px-3 py-2 text-[11px] border-b space-y-0.5", colors.bg, colors.border)}>
+            {consigne && (
+              <div className={cn("italic", colors.text)}>{consigne}</div>
+            )}
             {lines.map((l, i) => (
-              <div key={i}>{l}</div>
+              <div key={i} className={cn("font-medium", colors.text)}>{l}</div>
             ))}
           </div>
         );
