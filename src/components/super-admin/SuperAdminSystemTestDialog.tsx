@@ -50,6 +50,7 @@ interface SystemTestEditing {
   scoring_scale?: ScoringScale | null;
   formula_config?: FormulaConfig | null;
   image_url?: string | null;
+  icon?: string | null;
   video_url?: string | null;
   bilateral?: boolean | null;
   max_points?: number | null;
