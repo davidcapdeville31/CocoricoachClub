@@ -711,31 +711,47 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
   );
 
   if (presentationItems.length > 0) {
-    // Toujours commencer la présentation des tests page 2
+    // ============================================================
+    // SYSTÈME DE BLOCS INDIVISIBLES — RÈGLES GLOBALES
+    // ============================================================
+    // Échelle d'espacement (en pt, base 1pt ≈ 0.353mm) :
+    //  - SPACE_TITLE_BOTTOM   : sous le titre du bloc
+    //  - SPACE_LABEL_BOTTOM   : sous un label "Description" / "Objectifs"
+    //  - SPACE_PARA_BOTTOM    : entre paragraphes / sections internes
+    //  - SPACE_BLOCK_BOTTOM   : entre deux blocs exercices
+    //  - SPACE_SEPARATOR      : épaisseur du séparateur visuel
+    // ============================================================
+    const SPACE_TITLE_BOTTOM = 14;     // titre exercice → contenu
+    const SPACE_LABEL_BOTTOM = 7;      // label → texte (collé mais lisible)
+    const SPACE_SECTION_GAP = 10;      // entre Description et Objectifs
+    const SPACE_BLOCK_BOTTOM = 22;     // entre deux exercices
+    const SPACE_HEADER_TO_BLOCK = 22;  // sous-titre page → premier bloc
+
     pdf.addPage();
     let py: number = margin;
 
+    // ----- Titre de section -----
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(16);
     pdf.setTextColor(20);
     st(pdf, "Presentation des tests", margin, py + 6);
-    py += 24;
+    py += 22;
 
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(10);
     pdf.setTextColor(110);
     st(pdf, "Description et objectifs de chaque test de la batterie", margin, py);
-    py += 18;
+    py += SPACE_HEADER_TO_BLOCK;
 
     const IMG_BOX_W = 110;
     const IMG_BOX_H = 80;
-    const TEXT_GAP = 12;
+    const TEXT_GAP = 14;
 
-    presentationItems.forEach((it) => {
+    presentationItems.forEach((it, blockIdx) => {
       const key = (it.name || "").trim().toLowerCase();
       const imgInfo = testImages[key] || null;
 
-      // Calcul des dimensions affichées en respectant le ratio
+      // ----- Dimensions image (ratio préservé) -----
       let dispW = 0;
       let dispH = 0;
       if (imgInfo) {
@@ -750,36 +766,42 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
         }
       }
 
-      const textX = imgInfo ? margin + IMG_BOX_W + TEXT_GAP : margin + 10;
-      const textW = imgInfo ? contentW - IMG_BOX_W - TEXT_GAP : contentW - 12;
+      const textX = imgInfo ? margin + IMG_BOX_W + TEXT_GAP : margin + 4;
+      const textW = imgInfo ? contentW - IMG_BOX_W - TEXT_GAP : contentW - 8;
 
       const hasDesc = !htmlIsEmpty(it.description);
       const hasObj = !htmlIsEmpty(it.objectives);
 
+      // ----- MESURE EXACTE DU BLOC (avant rendu) -----
       const descHeight = hasDesc
-        ? estimateRichHtmlHeight(pdf, String(it.description), textW, { size: 9, color: [60, 60, 60], align: "left" })
+        ? estimateRichHtmlHeight(pdf, String(it.description), textW, { size: 10, color: [55, 65, 81], align: "left" })
         : 0;
       const objHeight = hasObj
-        ? estimateRichHtmlHeight(pdf, String(it.objectives), textW, { size: 9, color: [60, 60, 60], align: "left" })
+        ? estimateRichHtmlHeight(pdf, String(it.objectives), textW, { size: 10, color: [55, 65, 81], align: "left" })
         : 0;
-      const estimatedTextHeight =
-        24 +
-        (hasDesc ? 10 + descHeight + 4 : 0) +
-        (hasObj ? 10 + objHeight + 4 : 0) +
-        (!hasDesc && !hasObj ? 12 : 0);
-      const estimatedBlockHeight = Math.max(imgInfo ? IMG_BOX_H : 0, estimatedTextHeight) + 10;
 
-      // Si le bloc ne tient pas, il doit commencer à la page suivante
-      const minNeeded = Math.max(60, estimatedBlockHeight);
+      // Hauteur texte = titre + sections (label + contenu) + gaps
+      const titleH = SPACE_TITLE_BOTTOM + 4; // hauteur titre + espace après
+      const descBlockH = hasDesc ? (10 + SPACE_LABEL_BOTTOM + descHeight) : 0;
+      const objBlockH = hasObj ? (10 + SPACE_LABEL_BOTTOM + objHeight) : 0;
+      const interSectionGap = (hasDesc && hasObj) ? SPACE_SECTION_GAP : 0;
+      const emptyNoticeH = (!hasDesc && !hasObj) ? 14 : 0;
+
+      const textColumnH = titleH + descBlockH + interSectionGap + objBlockH + emptyNoticeH;
+      const blockContentH = Math.max(imgInfo ? IMG_BOX_H : 0, textColumnH);
+      const fullBlockH = blockContentH + SPACE_BLOCK_BOTTOM;
+
+      // ----- RÈGLE INDIVISIBLE : si le bloc ne tient pas → saut de page AVANT -----
       const remaining = pageH - margin - py;
-      if (remaining < minNeeded) {
+      if (remaining < fullBlockH && remaining < pageH - margin * 2) {
+        // Seuil : si le bloc fait + d'une page entière, on accepte le débordement
         pdf.addPage();
         py = margin;
       }
 
       const blockTop = py;
 
-      // Image à gauche, centrée dans la box pour respecter le ratio
+      // ----- IMAGE (à gauche, attachée au bloc, jamais coupée) -----
       if (imgInfo) {
         try {
           const ix = margin + (IMG_BOX_W - dispW) / 2;
@@ -788,68 +810,80 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
         } catch {/* ignore */}
       }
 
-      // Barre colorée + titre
+      // ----- TITRE EXERCICE (barre colorée + nom) -----
       pdf.setFillColor(59, 130, 246);
-      pdf.rect(textX - 6, blockTop, 3, 14, "F");
+      pdf.rect(textX - 8, blockTop + 1, 3, 16, "F");
       pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(11);
-      pdf.setTextColor(20);
-      st(pdf, it.name, textX, blockTop + 10);
+      pdf.setFontSize(13);
+      pdf.setTextColor(17, 24, 39);
+      st(pdf, it.name, textX, blockTop + 12);
       if (it.max > 0) {
         pdf.setFont("helvetica", "normal");
         pdf.setFontSize(9);
-        pdf.setTextColor(110);
-        st(pdf, `${it.max} pts max`, pageW - margin, blockTop + 10, { align: "right" });
+        pdf.setTextColor(107, 114, 128);
+        st(pdf, `${it.max} pts max`, pageW - margin, blockTop + 12, { align: "right" });
       }
-      let ty = blockTop + 28;
-      let curTextX = textX;
-      let curTextW = textW;
 
+      // Curseur vertical APRÈS le titre, avec espacement contrôlé
+      let ty = blockTop + 12 + SPACE_TITLE_BOTTOM;
+
+      // Le bloc reste indivisible : on désactive le re-flow image au saut de page
       const onNewPage = () => {
         pdf.addPage();
         py = margin;
-        // After page break, drop the image column constraint
-        curTextX = margin;
-        curTextW = contentW;
-        return { x: curTextX, y: margin, width: curTextW };
+        return { x: margin, y: margin, width: contentW };
       };
 
+      // ----- DESCRIPTION -----
       if (hasDesc) {
         pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(8);
-        pdf.setTextColor(80);
-        st(pdf, "Description", curTextX, ty);
-        ty += 10;
-        ty = renderRichHtml(pdf, String(it.description), curTextX, ty, curTextW,
-          { size: 9, color: [60, 60, 60], align: "left" },
+        pdf.setFontSize(9);
+        pdf.setTextColor(75, 85, 99);
+        st(pdf, "Description", textX, ty);
+        ty += SPACE_LABEL_BOTTOM + 3;
+        ty = renderRichHtml(pdf, String(it.description), textX, ty, textW,
+          { size: 10, color: [55, 65, 81], align: "left" },
           { pageH, bottomMargin: margin, onNewPage },
         );
-        ty += 4;
       }
 
+      // ----- OBJECTIFS -----
       if (hasObj) {
+        if (hasDesc) ty += SPACE_SECTION_GAP;
         pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(8);
-        pdf.setTextColor(80);
-        st(pdf, "Objectifs", curTextX, ty);
-        ty += 14;
-        ty = renderRichHtml(pdf, String(it.objectives), curTextX, ty, curTextW,
-          { size: 9, color: [60, 60, 60], align: "left" },
+        pdf.setFontSize(9);
+        pdf.setTextColor(75, 85, 99);
+        st(pdf, "Objectifs", textX, ty);
+        ty += SPACE_LABEL_BOTTOM + 3;
+        ty = renderRichHtml(pdf, String(it.objectives), textX, ty, textW,
+          { size: 10, color: [55, 65, 81], align: "left" },
           { pageH, bottomMargin: margin, onNewPage },
         );
-        ty += 4;
       }
 
       if (!hasDesc && !hasObj) {
         pdf.setFont("helvetica", "italic");
         pdf.setFontSize(9);
-        pdf.setTextColor(150);
-        st(pdf, "Aucune description renseignee.", curTextX, ty);
+        pdf.setTextColor(156, 163, 175);
+        st(pdf, "Aucune description renseignee.", textX, ty);
         ty += 12;
       }
 
-      // py = max entre fin texte et fin image, + petit espace
-      py = Math.max(ty, blockTop + (imgInfo ? IMG_BOX_H : 0)) + 10;
+      // py = bas du bloc (max entre fin texte et fin image)
+      const blockEnd = Math.max(ty, blockTop + (imgInfo ? IMG_BOX_H : 0));
+
+      // ----- SÉPARATEUR VISUEL discret entre exercices -----
+      if (blockIdx < presentationItems.length - 1) {
+        const sepY = blockEnd + SPACE_BLOCK_BOTTOM / 2;
+        // Ne tracer le séparateur que s'il rentre encore sur la page
+        if (sepY < pageH - margin - 4) {
+          pdf.setDrawColor(229, 231, 235);
+          pdf.setLineWidth(0.4);
+          pdf.line(margin + 20, sepY, pageW - margin - 20, sepY);
+        }
+      }
+
+      py = blockEnd + SPACE_BLOCK_BOTTOM;
     });
   }
 
