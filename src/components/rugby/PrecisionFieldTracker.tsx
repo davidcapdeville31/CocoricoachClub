@@ -749,7 +749,18 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
         </Card>
       )}
 
-      {/* Dialog: Buteur - success/fail */}
+      {/* Statistiques cumulées (par thème + période) — vue d'ensemble historique */}
+      <div className="space-y-2 pt-2">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold">Statistiques cumulées</h3>
+          <span className="text-[11px] text-muted-foreground">
+            (filtre par thème, exercice et période)
+          </span>
+        </div>
+        <PrecisionTrainingStats categoryId={categoryId} />
+      </div>
+
       {pendingKickType && (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="sm:max-w-[350px]">
