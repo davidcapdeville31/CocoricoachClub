@@ -75,6 +75,7 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
     if (!open) {
       setMode("create");
       setLabel("");
+      setColor("#6366f1");
       setEditingId("");
     }
   }, [open]);
@@ -91,7 +92,7 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
         if (!editingId) throw new Error("Sélectionnez une catégorie à modifier");
         const { error } = await supabase
           .from("test_theme_categories" as any)
-          .update({ label: trimmed, value })
+          .update({ label: trimmed, value, color })
           .eq("id", editingId);
         if (error) {
           if (error.code === "23505") throw new Error("Cette catégorie existe déjà");
@@ -106,6 +107,7 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
             club_id: categoryData.club_id,
             value,
             label: trimmed,
+            color,
             created_by: user?.user?.id || null,
           });
         if (error) {
