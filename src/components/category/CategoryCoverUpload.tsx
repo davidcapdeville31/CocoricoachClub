@@ -278,7 +278,7 @@ export function CategoryCoverUpload({
               Sélectionnez un visuel adapté à la taille du bandeau. Le logo de la catégorie restera affiché par-dessus.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto p-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto pr-2 p-1">
             {HEADER_BACKGROUND_PRESETS.map((preset) => {
               const isSelected =
                 (preset.url === "" && !currentHeaderBackgroundUrl) ||
@@ -300,7 +300,7 @@ export function CategoryCoverUpload({
                       : "border-border hover:border-primary/50"
                   )}
                 >
-                  <div className="aspect-[4/1] w-full bg-gradient-hero">
+                  <div className="aspect-[16/9] w-full bg-gradient-hero">
                     {preset.url && (
                       <img
                         src={preset.url}
@@ -310,8 +310,10 @@ export function CategoryCoverUpload({
                       />
                     )}
                   </div>
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-                    <span className="text-xs text-white font-medium">{preset.label}</span>
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/35">
+                    <span className="text-sm text-white font-normal text-center px-3 drop-shadow-md">
+                      {preset.label}
+                    </span>
                   </div>
                   {isSelected && (
                     <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1 shadow-lg">
