@@ -258,51 +258,184 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
   const logoData = await loadImageAsDataUrl(logoLight);
 
   // ===== Cover page =====
+  const contentW = pageW - margin * 2;
+  const logoW = 110;
+  const logoH = 80;
+  const titleMaxW = contentW - logoW - 16;
+
   if (logoData) {
-    const logoW = 120;
-    const logoH = 90;
-    pdf.addImage(logoData, "PNG", pageW - margin - logoW, margin - 10, logoW, logoH);
+    pdf.addImage(logoData, "PNG", pageW - margin - logoW, margin - 4, logoW, logoH);
   }
 
+  // Titre + sous-titre dans la zone de gauche, à côté du logo
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(22);
   pdf.setTextColor(20);
-  st(pdf, categoryName || batteryName, margin, margin + 24);
+  const titleLines = pdf.splitTextToSize(safe(categoryName || batteryName), titleMaxW);
+  pdf.text(titleLines, margin, margin + 22);
 
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(13);
   pdf.setTextColor(80);
-  st(pdf, batteryName, margin, margin + 46);
+  const subLines = pdf.splitTextToSize(safe(batteryName), titleMaxW);
+  pdf.text(subLines, margin, margin + 22 + titleLines.length * 22 + 4);
 
+  // Curseur Y dynamique sous le bloc titre/logo
+  const headerBottom = Math.max(
+    margin + 22 + titleLines.length * 22 + 4 + subLines.length * 16,
+    margin - 4 + logoH,
+  );
+  let coverY = headerBottom + 24;
+
+  // Description (paragraphe respecté)
   pdf.setFontSize(11);
   pdf.setTextColor(110);
   if (batteryDescription) {
-    const desc = pdf.splitTextToSize(safe(batteryDescription), pageW - margin * 2);
-    pdf.text(desc, margin, margin + 70);
+    const paragraphs = String(batteryDescription).split(/\n\s*\n/);
+    paragraphs.forEach((p, idx) => {
+      const lines = pdf.splitTextToSize(safe(p.replace(/\n/g, " ")), contentW);
+      pdf.text(lines, margin, coverY);
+      coverY += lines.length * 14;
+      if (idx < paragraphs.length - 1) coverY += 6;
+    });
+    coverY += 10;
   }
+
   pdf.setTextColor(60);
-  st(pdf, `Genere le ${format(new Date(), "dd/MM/yyyy 'a' HH:mm", { locale: fr })}`, margin, margin + 110);
-  st(pdf, `${groups.length} passation(s) - ${items.length} tests - ${totalMaxBattery} pts max`, margin, margin + 126);
+  st(pdf, `Genere le ${format(new Date(), "dd/MM/yyyy 'a' HH:mm", { locale: fr })}`, margin, coverY);
+  coverY += 16;
+  st(pdf, `${groups.length} passation(s) - ${items.length} tests - ${totalMaxBattery} pts max`, margin, coverY);
+  coverY += 28;
 
   const lvls = (levels && levels.length > 0)
     ? [...levels].sort((a, b) => b.minPercent - a.minPercent)
     : undefined;
   if (lvls && lvls.length > 0) {
-    let y = margin + 162;
+    // Si on n'a plus la place pour le titre + au moins une ligne, on passe à une nouvelle page
+    if (coverY > pageH - margin - 60) {
+      pdf.addPage();
+      coverY = margin;
+    }
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(13);
     pdf.setTextColor(20);
-    st(pdf, "Bareme de niveaux", margin, y);
-    y += 18;
+    st(pdf, "Bareme de niveaux", margin, coverY);
+    coverY += 18;
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(11);
     lvls.forEach((lv) => {
+      if (coverY > pageH - margin - 20) {
+        pdf.addPage();
+        coverY = margin;
+      }
       const color = hexToRgb(lv.color || "#3b82f6");
       pdf.setFillColor(color.r, color.g, color.b);
-      pdf.rect(margin, y - 9, 12, 12, "F");
+      pdf.rect(margin, coverY - 9, 12, 12, "F");
       pdf.setTextColor(20);
-      st(pdf, `${lv.label} - >= ${lv.minPercent}%`, margin + 20, y);
-      y += 18;
+      st(pdf, `${lv.label} - >= ${lv.minPercent}%`, margin + 20, coverY);
+      coverY += 18;
+    });
+  }
+
+  // ===== Page(s) "Présentation des tests" =====
+  const meta = opts.testMeta || {};
+  const presentationItems = items
+    .map((it) => {
+      const key = (it.test_name || "").trim().toLowerCase();
+      return {
+        name: it.test_name,
+        max: Number(it.max_points) || 0,
+        description: meta[key]?.description || null,
+        objectives: meta[key]?.objectives || null,
+      };
+    })
+    .filter((it) => !!it.name);
+
+  if (presentationItems.length > 0) {
+    pdf.addPage();
+    let py = margin;
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(18);
+    pdf.setTextColor(20);
+    st(pdf, "Presentation des tests", margin, py + 6);
+    py += 32;
+
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10);
+    pdf.setTextColor(110);
+    st(pdf, "Description et objectifs de chaque test de la batterie", margin, py);
+    py += 22;
+
+    presentationItems.forEach((it) => {
+      // Pré-calcul de la hauteur du bloc pour éviter de couper en plein milieu
+      pdf.setFontSize(11);
+      const descLines = it.description
+        ? pdf.splitTextToSize(safe(String(it.description)), contentW - 12)
+        : [];
+      const objLines = it.objectives
+        ? pdf.splitTextToSize(safe(String(it.objectives)), contentW - 12)
+        : [];
+      const blockH =
+        20 + // titre
+        (descLines.length > 0 ? 14 + descLines.length * 13 + 6 : 0) +
+        (objLines.length > 0 ? 14 + objLines.length * 13 + 6 : 0) +
+        12;
+
+      if (py + blockH > pageH - margin) {
+        pdf.addPage();
+        py = margin;
+      }
+
+      // Barre colorée + titre
+      pdf.setFillColor(59, 130, 246);
+      pdf.rect(margin, py - 2, 3, 16, "F");
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(12);
+      pdf.setTextColor(20);
+      st(pdf, it.name, margin + 10, py + 10);
+      if (it.max > 0) {
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(9);
+        pdf.setTextColor(110);
+        st(pdf, `${it.max} pts max`, pageW - margin, py + 10, { align: "right" });
+      }
+      py += 22;
+
+      if (descLines.length > 0) {
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(9);
+        pdf.setTextColor(80);
+        st(pdf, "Description", margin + 10, py);
+        py += 12;
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(10);
+        pdf.setTextColor(60);
+        pdf.text(descLines, margin + 10, py);
+        py += descLines.length * 13 + 6;
+      }
+
+      if (objLines.length > 0) {
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(9);
+        pdf.setTextColor(80);
+        st(pdf, "Objectifs", margin + 10, py);
+        py += 12;
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(10);
+        pdf.setTextColor(60);
+        pdf.text(objLines, margin + 10, py);
+        py += objLines.length * 13 + 6;
+      }
+
+      if (descLines.length === 0 && objLines.length === 0) {
+        pdf.setFont("helvetica", "italic");
+        pdf.setFontSize(9);
+        pdf.setTextColor(150);
+        st(pdf, "Aucune description renseignee.", margin + 10, py);
+        py += 14;
+      }
+
+      py += 8;
     });
   }
 
