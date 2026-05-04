@@ -323,6 +323,7 @@ function CategoryDetailsContent() {
                   currentCoverUrl={category?.cover_image_url}
                   currentCoverPosition={(category as any)?.cover_image_position}
                   currentHeaderBackgroundUrl={(category as any)?.header_background_url}
+                  backgroundOnly
                 />
                 <Button
                   variant="outline"
