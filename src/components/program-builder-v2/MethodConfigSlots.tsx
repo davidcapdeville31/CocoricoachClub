@@ -746,9 +746,9 @@ const CircuitExerciseSlot = ({
                     type="button"
                     variant="outline"
                     size="sm"
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
                     className="h-5 text-[10px] border-dashed px-1.5 gap-0.5"
                     title="Ajouter une variable (Charge, %1RM, RPE, RIR, Tempo...)"
                   >
@@ -756,14 +756,17 @@ const CircuitExerciseSlot = ({
                     Variable
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-44 p-2" align="end">
+                <PopoverContent className="w-44 p-2 z-[60]" align="end" onOpenAutoFocus={(e) => e.preventDefault()}>
                   <div className="space-y-1">
                     <p className="text-xs font-medium text-muted-foreground px-2 py-1">Ajouter</p>
                     {hiddenVariables.map((v) => (
                       <button
                         key={v.key}
                         type="button"
-                        onClick={() => {
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
                           onAddVariable(v.key);
                           setVarPopoverOpen(false);
                         }}
