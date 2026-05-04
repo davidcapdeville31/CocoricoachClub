@@ -64,6 +64,17 @@ export async function exportAthleticsMinimasReport(data: MatrixExportData) {
   // ============ HEADER ============
   pdf.setFillColor(...PRIMARY);
   pdf.rect(0, 0, pageW, 24, "F");
+
+  // Logo club (en haut à droite, dans la barre header)
+  const logoData = await getReportLogoDataUrl({ categoryId: data.categoryId, clubId: data.clubId });
+  if (logoData) {
+    try {
+      const logoH = 18;
+      const logoW = 24;
+      pdf.addImage(logoData, "PNG", pageW - margin - logoW, 3, logoW, logoH);
+    } catch {/* ignore */}
+  }
+
   pdf.setTextColor(255, 255, 255);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(16);
@@ -74,7 +85,7 @@ export async function exportAthleticsMinimasReport(data: MatrixExportData) {
   pdf.setFontSize(8);
   pdf.text(
     `Généré le ${format(new Date(), "dd MMMM yyyy 'à' HH:mm", { locale: fr })}`,
-    pageW - margin,
+    pageW - margin - 28,
     19,
     { align: "right" }
   );
