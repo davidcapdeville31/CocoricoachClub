@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus, Trash2, ChevronRight, Users } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ChevronRight, Users, Pencil, Check, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddCategoryDialog } from "@/components/categories/AddCategoryDialog";
@@ -18,6 +19,8 @@ function ClubDetailsContent() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
   const { isViewer } = useViewerModeContext();
 
   const { data: club } = useQuery({
@@ -61,6 +64,24 @@ function ClubDetailsContent() {
     },
     onError: () => {
       toast.error("Erreur lors de la suppression de la catégorie");
+    },
+  });
+
+  const renameCategory = useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const { error } = await supabase
+        .from("categories")
+        .update({ name })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories", clubId] });
+      toast.success("Nom de la catégorie mis à jour");
+      setEditingId(null);
+    },
+    onError: () => {
+      toast.error("Erreur lors du renommage");
     },
   });
 
@@ -136,11 +157,13 @@ function ClubDetailsContent() {
           </Card>
         ) : (
           <div className="space-y-2">
-            {categories?.map((category) => (
+            {categories?.map((category) => {
+              const isEditing = editingId === category.id;
+              return (
               <div
                 key={category.id}
                 className="flex items-center gap-4 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors group cursor-pointer"
-                onClick={() => navigate(`/categories/${category.id}`)}
+                onClick={() => { if (!isEditing) navigate(`/categories/${category.id}`); }}
               >
                 {/* Category image/icon */}
                 <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex items-center justify-center border flex-shrink-0">
@@ -158,9 +181,32 @@ function ClubDetailsContent() {
                 {/* Name and info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-foreground group-hover:text-primary transition-colors truncate">
-                      {category.name}
-                    </span>
+                    {isEditing ? (
+                      <Input
+                        autoFocus
+                        value={editingName}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const trimmed = editingName.trim();
+                            if (trimmed && trimmed !== category.name) {
+                              renameCategory.mutate({ id: category.id, name: trimmed });
+                            } else {
+                              setEditingId(null);
+                            }
+                          } else if (e.key === "Escape") {
+                            setEditingId(null);
+                          }
+                        }}
+                        className="h-8 max-w-[260px]"
+                      />
+                    ) : (
+                      <span className="font-medium text-foreground group-hover:text-primary transition-colors truncate">
+                        {category.name}
+                      </span>
+                    )}
                     <span className="text-xs text-muted-foreground px-2 py-0.5 bg-muted rounded-full flex-shrink-0">
                       {category.rugby_type === "7" ? "7s" : 
                        category.rugby_type === "academie" ? "Académie" : 
@@ -175,25 +221,72 @@ function ClubDetailsContent() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  {!isViewer && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm(`Êtes-vous sûr de vouloir supprimer ${category.name} ?`)) {
-                          deleteCategory.mutate(category.id);
-                        }
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                  {!isViewer && isEditing && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const trimmed = editingName.trim();
+                          if (trimmed && trimmed !== category.name) {
+                            renameCategory.mutate({ id: category.id, name: trimmed });
+                          } else {
+                            setEditingId(null);
+                          }
+                        }}
+                      >
+                        <Check className="h-4 w-4 text-green-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingId(null);
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </>
                   )}
-                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  {!isViewer && !isEditing && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingName(category.name);
+                          setEditingId(category.id);
+                        }}
+                        title="Renommer"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`Êtes-vous sûr de vouloir supprimer ${category.name} ?`)) {
+                            deleteCategory.mutate(category.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </>
+                  )}
+                  {!isEditing && <ChevronRight className="h-5 w-5 text-muted-foreground" />}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </TabsContent>
