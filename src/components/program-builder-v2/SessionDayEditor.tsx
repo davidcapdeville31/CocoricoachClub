@@ -1009,8 +1009,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                           variant="ghost"
                           size="icon"
                           className="h-5 w-5 text-muted-foreground hover:text-primary"
-                          disabled={itemIdx === items.length - 1}
-                          onClick={() => moveItemInBlock(block.id, itemIdx, 1)}
+                          onClick={() => itemIdx < items.length - 1 && moveItemInBlock(block.id, itemIdx, 1)}
                           title="Descendre"
                         >
                           <ChevronDown className="h-3.5 w-3.5" />
