@@ -411,7 +411,7 @@ export interface MethodNoteInput {
   deathByConfig?: { startReps: number; incrementReps: number };
   circuitRecovery?: CircuitRecovery;
   methodExercises?: CrossFitExercise[];
-  restPauseConfig?: { series: Array<{ miniSets: Array<{ reps: string; pauseSeconds: number }>; recoverySeconds?: number; percentage?: number; load?: number; tempo?: string; rpe?: number; }>; visibleVariables?: string[]; };
+  restPauseConfig?: { series: Array<{ miniSets: Array<{ reps: string | number; pauseSeconds: number; percentage?: number; load?: number; tempo?: string; rpe?: number; rir?: number; }>; recoverySeconds?: number; percentage?: number; load?: number; tempo?: string; rpe?: number; rir?: number; reps?: number; }>; visibleVariables?: string[]; visibleMiniSetVariables?: string[]; };
   linkedExercises?: LinkedExerciseData[];
   methodRestSeconds?: number;
   clusterConfig?: { clusterSteps: Array<{ reps: number | "max"; restAfterSeconds?: number }>; sets: number; interSetRestSeconds: number; loadType: string; loadValue?: number; targetRpe?: number; };
