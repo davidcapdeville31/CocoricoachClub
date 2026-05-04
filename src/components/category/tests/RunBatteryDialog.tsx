@@ -1,4 +1,4 @@
-import { useMemo, useState, type MouseEvent } from "react";
+import { useEffect, useMemo, useState, type MouseEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -63,6 +63,9 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     const d = new Date();
     return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   });
+  // Track the date that originally loaded existing results for the selected player.
+  // If the user changes savedDate to correct it, we must also delete the old-date rows on save.
+  const [originalDateByPlayer, setOriginalDateByPlayer] = useState<Record<string, string>>({});
 
   const buildBaseTestType = (testName: string) => `custom_${testName?.toLowerCase().replace(/\s+/g, "_")}`;
 
@@ -128,20 +131,55 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
   });
 
   // Pre-load: which athletes already have results saved for this battery (any date)
+  // We also fetch the most recent test_date per player so editing pre-selects the existing date.
   const { data: alreadySavedPlayerIds = [] } = useQuery({
     queryKey: ["battery-saved-players", batteryId, categoryId, battery?.battery?.name],
     queryFn: async () => {
       if (!battery?.battery?.name) return [];
       const { data, error } = await supabase
         .from("generic_tests")
-        .select("player_id")
+        .select("player_id, test_date")
         .eq("category_id", categoryId)
-        .ilike("notes", `[Batterie: ${battery.battery.name}]%`);
+        .ilike("notes", `[Batterie: ${battery.battery.name}]%`)
+        .order("test_date", { ascending: false });
       if (error) throw error;
       return Array.from(new Set((data || []).map((r: any) => r.player_id))) as string[];
     },
     enabled: open && !!battery?.battery?.name,
   });
+
+  // Map player_id -> most recent existing test_date for this battery
+  const { data: latestDatePerPlayer = {} } = useQuery<Record<string, string>>({
+    queryKey: ["battery-latest-date-per-player", batteryId, categoryId, battery?.battery?.name],
+    queryFn: async () => {
+      if (!battery?.battery?.name) return {};
+      const { data, error } = await supabase
+        .from("generic_tests")
+        .select("player_id, test_date")
+        .eq("category_id", categoryId)
+        .ilike("notes", `[Batterie: ${battery.battery.name}]%`)
+        .order("test_date", { ascending: false });
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      (data || []).forEach((r: any) => {
+        if (!map[r.player_id]) map[r.player_id] = r.test_date;
+      });
+      return map;
+    },
+    enabled: open && !!battery?.battery?.name,
+  });
+
+  // When selecting an athlete who already has results for this battery,
+  // pre-select their existing date so editing updates the same record (no duplicate).
+  useEffect(() => {
+    if (!playerId) return;
+    const existing = latestDatePerPlayer?.[playerId];
+    if (existing && !originalDateByPlayer[playerId]) {
+      setSavedDate(existing);
+      setOriginalDateByPlayer(prev => ({ ...prev, [playerId]: existing }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playerId, latestDatePerPlayer]);
 
   const savedResults = useMemo(() => {
     const mapped: Record<string, string> = {};
@@ -332,6 +370,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
 
     if (rows.length === 0) return toast.error("Saisissez au moins un résultat");
 
+    // Delete existing rows at the current saved date for this battery+player
     const { error: deleteError } = await supabase
       .from("generic_tests")
       .delete()
@@ -342,8 +381,25 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
 
     if (deleteError) return toast.error("Erreur : " + deleteError.message);
 
+    // If the user changed the date (editing an existing entry to fix the date),
+    // also delete the old-date rows so the entry is moved, not duplicated.
+    const originalDate = originalDateByPlayer[playerId];
+    if (originalDate && originalDate !== savedDate) {
+      const { error: oldDateDeleteError } = await supabase
+        .from("generic_tests")
+        .delete()
+        .eq("player_id", playerId)
+        .eq("category_id", categoryId)
+        .eq("test_date", originalDate)
+        .ilike("notes", `[Batterie: ${battery.battery.name}]%`);
+      if (oldDateDeleteError) return toast.error("Erreur : " + oldDateDeleteError.message);
+    }
+
     const { error } = await supabase.from("generic_tests").insert(rows);
     if (error) return toast.error("Erreur : " + error.message);
+
+    // Update tracked original date to the new one
+    setOriginalDateByPlayer(prev => ({ ...prev, [playerId]: savedDate }));
 
     queryClient.invalidateQueries({ queryKey: ["generic_tests", categoryId] });
     queryClient.invalidateQueries({ queryKey: ["generic_tests_discovery", categoryId] });
@@ -351,7 +407,15 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     queryClient.invalidateQueries({ queryKey: ["generic-tests-multi-comparison", categoryId] });
     queryClient.invalidateQueries({ queryKey: ["battery-saved-results", batteryId, categoryId, playerId, savedDate] });
     queryClient.invalidateQueries({ queryKey: ["battery-saved-players", batteryId, categoryId, battery?.battery?.name] });
+    queryClient.invalidateQueries({ queryKey: ["battery-latest-date-per-player", batteryId, categoryId, battery?.battery?.name] });
     queryClient.invalidateQueries({ queryKey: ["battery-results-list", categoryId, battery?.battery?.name] });
+    // Athlete space queries
+    queryClient.invalidateQueries({ queryKey: ["athlete-space-all-tests", playerId] });
+    queryClient.invalidateQueries({ queryKey: ["athlete-space-generic-tests", playerId] });
+    queryClient.invalidateQueries({ queryKey: ["athlete-space-speed-tests", playerId] });
+    queryClient.invalidateQueries({ queryKey: ["athlete-space-strength-tests", playerId] });
+    queryClient.invalidateQueries({ queryKey: ["athlete-space-speed-tests-tab", playerId] });
+    queryClient.invalidateQueries({ queryKey: ["athlete-space-strength-tests-tab", playerId] });
 
     toast.success(`Batterie enregistrée pour cet athlète : ${totalPoints}/${totalMax} pts (${level.label})`);
     setSavedPlayerIds(prev => new Set(prev).add(playerId));
