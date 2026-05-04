@@ -1,14 +1,8 @@
 /**
  * RestPauseCreationUI — Interface UNIQUE de saisie
- * 
- * Utilisée pour :
- * - L'insertion initiale (objet vide, aucune série affichée)
- * - La modification (objet existant pré-rempli, même UI)
- * 
- * RÈGLES :
- * - Reps = toujours "MAX" (non modifiable)
- * - Variables dynamiques (Charge, %1RM, Tempo, RPE) ajoutables/supprimables par popover
- * - L'UI doit être VISUELLEMENT IDENTIQUE entre insertion et modification
+ *
+ * Reps des mini-séries: "MAX" par défaut, modifiable (cliquer pour passer en number).
+ * Variables ajoutables au niveau série ET au niveau mini-série.
  */
 
 import React, { useState } from "react";
@@ -23,23 +17,28 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import type { RestPauseConfig, RestPauseSeries, RestPauseMiniSet, REST_PAUSE_VARIABLES } from "./RestPauseTypes";
+import type { RestPauseConfig, RestPauseSeries, RestPauseMiniSet } from "./RestPauseTypes";
 import { REST_PAUSE_VARIABLES as VARIABLES } from "./RestPauseTypes";
-import { generateMethodNote } from "@/lib/program-builder-v2/athleteNoteGenerator";
-import { AthleteNoteDisplay } from "./AthleteNoteDisplay";
 
 interface RestPauseCreationUIProps {
   config: RestPauseConfig;
   onChange: (config: RestPauseConfig) => void;
 }
 
+// Variables applicables aux mini-séries (toutes sauf "reps" qui a sa propre UI)
+const MINISET_VARIABLES = VARIABLES.filter(v => v.key !== 'reps');
+
 export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
   config,
   onChange,
 }) => {
-  // Default all variables visible on fresh creation
-  const { series, visibleVariables = VARIABLES.map(v => v.key) } = config;
+  const {
+    series,
+    visibleVariables = VARIABLES.map(v => v.key),
+    visibleMiniSetVariables = [],
+  } = config;
   const [addVarPopoverOpen, setAddVarPopoverOpen] = useState(false);
+  const [addMiniVarPopoverOpen, setAddMiniVarPopoverOpen] = useState(false);
 
   const update = (partial: Partial<RestPauseConfig>) => {
     onChange({ ...config, ...partial });
@@ -49,20 +48,13 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
     update({ series: newSeries });
   };
 
-  // --- Variable operations ---
+  // --- Series-level variables ---
   const addVariable = (varKey: string) => {
     const newVisibleVars = [...visibleVariables, varKey];
-    // Pré-remplit avec une valeur par défaut sensible (modifiable ensuite)
     if (varKey === 'rpe') {
-      update({
-        visibleVariables: newVisibleVars,
-        series: series.map(s => ({ ...s, rpe: s.rpe ?? 10 })),
-      });
+      update({ visibleVariables: newVisibleVars, series: series.map(s => ({ ...s, rpe: s.rpe ?? 10 })) });
     } else if (varKey === 'rir') {
-      update({
-        visibleVariables: newVisibleVars,
-        series: series.map(s => ({ ...s, rir: s.rir ?? 0 })),
-      });
+      update({ visibleVariables: newVisibleVars, series: series.map(s => ({ ...s, rir: s.rir ?? 0 })) });
     } else {
       update({ visibleVariables: newVisibleVars });
     }
@@ -72,31 +64,41 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
   const removeVariable = (varKey: string) => {
     update({
       visibleVariables: visibleVariables.filter(v => v !== varKey),
-      // Clear the value from all series
       series: series.map(s => ({ ...s, [varKey]: undefined })),
     });
   };
 
   const hiddenVariables = VARIABLES.filter(v => !visibleVariables.includes(v.key));
 
-  // --- Série operations ---
-  const addSeries = () => {
-    updateSeries([...series, { miniSets: [] }]);
+  // --- Mini-set-level variables ---
+  const addMiniSetVariable = (varKey: string) => {
+    update({ visibleMiniSetVariables: [...visibleMiniSetVariables, varKey] });
+    setAddMiniVarPopoverOpen(false);
   };
 
-  const removeSeries = (sIdx: number) => {
-    updateSeries(series.filter((_, i) => i !== sIdx));
+  const removeMiniSetVariable = (varKey: string) => {
+    update({
+      visibleMiniSetVariables: visibleMiniSetVariables.filter(v => v !== varKey),
+      series: series.map(s => ({
+        ...s,
+        miniSets: s.miniSets.map(ms => ({ ...ms, [varKey]: undefined })),
+      })),
+    });
   };
+
+  const hiddenMiniSetVariables = MINISET_VARIABLES.filter(v => !visibleMiniSetVariables.includes(v.key));
+
+  // --- Série operations ---
+  const addSeries = () => updateSeries([...series, { miniSets: [] }]);
+  const removeSeries = (sIdx: number) => updateSeries(series.filter((_, i) => i !== sIdx));
 
   const updateSeriesField = (sIdx: number, field: string, value: any) => {
     const newSeries = [...series];
-    newSeries[sIdx] = { ...newSeries[sIdx], [field]: value || undefined };
+    newSeries[sIdx] = { ...newSeries[sIdx], [field]: value === "" || value === undefined ? undefined : value };
     updateSeries(newSeries);
   };
 
-  const updateRecovery = (sIdx: number, seconds: number) => {
-    updateSeriesField(sIdx, 'recoverySeconds', seconds);
-  };
+  const updateRecovery = (sIdx: number, seconds: number) => updateSeriesField(sIdx, 'recoverySeconds', seconds);
 
   // --- MiniSet operations ---
   const addMiniSet = (sIdx: number) => {
@@ -117,12 +119,21 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
     updateSeries(newSeries);
   };
 
-  const updateMiniSetPause = (sIdx: number, mIdx: number, seconds: number) => {
+  const updateMiniSetField = (sIdx: number, mIdx: number, field: keyof RestPauseMiniSet, value: any) => {
     const newSeries = [...series];
     const newMiniSets = [...newSeries[sIdx].miniSets];
-    newMiniSets[mIdx] = { ...newMiniSets[mIdx], pauseSeconds: seconds };
+    newMiniSets[mIdx] = { ...newMiniSets[mIdx], [field]: value === "" || value === undefined ? undefined : value } as RestPauseMiniSet;
     newSeries[sIdx] = { ...newSeries[sIdx], miniSets: newMiniSets };
     updateSeries(newSeries);
+  };
+
+  const toggleMiniSetMax = (sIdx: number, mIdx: number) => {
+    const cur = series[sIdx].miniSets[mIdx];
+    if (cur.reps === "MAX") {
+      updateMiniSetField(sIdx, mIdx, 'reps', 8);
+    } else {
+      updateMiniSetField(sIdx, mIdx, 'reps', "MAX");
+    }
   };
 
   return (
@@ -130,7 +141,6 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
       <div className="flex items-center justify-between">
         <Label className="text-xs font-medium text-amber-600">Rest-Pause</Label>
         <div className="flex items-center gap-1">
-          {/* Add variable popover */}
           {hiddenVariables.length > 0 && (
             <Popover open={addVarPopoverOpen} onOpenChange={setAddVarPopoverOpen}>
               <PopoverTrigger asChild>
@@ -140,22 +150,23 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
                   size="sm"
                   onPointerDown={(e) => e.stopPropagation()}
                   onMouseDown={(e) => e.stopPropagation()}
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); setAddVarPopoverOpen(o => !o); }}
                   className="h-5 text-[10px] border-dashed px-1.5 gap-0.5"
-                  title="Ajouter une variable (Charge, %1RM, Tempo, RPE...)"
+                  title="Ajouter une variable série"
                 >
                   <Plus className="h-2.5 w-2.5" />
-                  Variable
+                  Var. série
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-44 p-2" align="end">
+              <PopoverContent className="w-44 p-2 z-[60]" align="end">
                 <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground px-2 py-1">Ajouter</p>
+                  <p className="text-xs font-medium text-muted-foreground px-2 py-1">Ajouter (par série)</p>
                   {hiddenVariables.map(v => (
                     <button
                       key={v.key}
                       type="button"
-                      onClick={() => addVariable(v.key)}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => { e.stopPropagation(); addVariable(v.key); }}
                       className="w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded hover:bg-accent text-left"
                     >
                       <span>{v.label}</span>
@@ -186,6 +197,42 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
               Série {sIdx + 1}
             </Badge>
             <div className="flex items-center gap-1">
+              {/* Add variable to mini-sets */}
+              {hiddenMiniSetVariables.length > 0 && (
+                <Popover open={addMiniVarPopoverOpen} onOpenChange={setAddMiniVarPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => { e.stopPropagation(); setAddMiniVarPopoverOpen(o => !o); }}
+                      className="h-5 text-[10px] border-dashed px-1.5 gap-0.5"
+                      title="Ajouter une variable aux mini-séries"
+                    >
+                      <Plus className="h-2.5 w-2.5" />
+                      Var. mini-série
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-48 p-2 z-[60]" align="end">
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground px-2 py-1">Ajouter (par mini-série)</p>
+                      {hiddenMiniSetVariables.map(v => (
+                        <button
+                          key={v.key}
+                          type="button"
+                          onPointerDown={(e) => e.stopPropagation()}
+                          onClick={(e) => { e.stopPropagation(); addMiniSetVariable(v.key); }}
+                          className="w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded hover:bg-accent text-left"
+                        >
+                          <span>{v.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
               <Button type="button" variant="ghost" size="sm" onClick={() => addMiniSet(sIdx)} className="h-5 text-[10px] px-1.5">
                 <Plus className="h-2.5 w-2.5 mr-0.5" />
                 Mini-série
@@ -196,14 +243,13 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
             </div>
           </div>
 
-          {/* Dynamic variables for this series */}
+          {/* Series-level variables */}
           {visibleVariables.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
               {visibleVariables.map(varKey => {
                 const varDef = VARIABLES.find(v => v.key === varKey);
                 if (!varDef) return null;
                 const value = (s as any)[varDef.key];
-
                 return (
                   <div key={varKey} className="flex items-center gap-1">
                     <Label className="text-[10px] text-muted-foreground">{varDef.label}</Label>
@@ -234,7 +280,6 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
             </div>
           )}
 
-          {/* Mini-sets */}
           {s.miniSets.length === 0 && (
             <div className="text-[10px] text-muted-foreground text-center py-2 border border-dashed rounded">
               Aucune mini-série. Cliquez sur « + Mini-série ».
@@ -243,31 +288,98 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
 
           {s.miniSets.map((ms, mIdx) => {
             const isLastMiniSet = mIdx === s.miniSets.length - 1;
+            const isMax = ms.reps === "MAX";
             return (
-              <div key={mIdx} className="flex items-center gap-2 flex-wrap">
+              <div key={mIdx} className="flex items-center gap-2 flex-wrap py-1">
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 shrink-0">
                   MS {mIdx + 1}
                 </Badge>
 
-                {/* Reps — always MAX, not editable */}
-                <Badge className="bg-red-600 hover:bg-red-600 text-white text-[10px] font-bold px-2 py-0.5">
-                  MAX
-                </Badge>
+                {/* Reps editable: button MAX toggle + number input */}
+                <div className="flex items-center gap-1">
+                  <Label className="text-[10px] text-muted-foreground">Reps</Label>
+                  {isMax ? (
+                    <Badge
+                      onClick={() => toggleMiniSetMax(sIdx, mIdx)}
+                      className="bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold px-2 py-0.5 cursor-pointer"
+                      title="Cliquez pour saisir un nombre de reps"
+                    >
+                      MAX
+                    </Badge>
+                  ) : (
+                    <>
+                      <Input
+                        type="number"
+                        value={ms.reps ?? ""}
+                        onChange={(e) => updateMiniSetField(sIdx, mIdx, 'reps', e.target.value ? Number(e.target.value) : "")}
+                        className="h-7 w-14 text-xs"
+                        placeholder="8"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => toggleMiniSetMax(sIdx, mIdx)}
+                        className="text-[9px] text-muted-foreground hover:text-red-600 underline"
+                        title="Repasser en MAX"
+                      >
+                        MAX
+                      </button>
+                    </>
+                  )}
+                </div>
 
-                {/* Pause — hidden for last mini-set (no pause after last effort) */}
+                {/* Mini-set variables */}
+                {visibleMiniSetVariables.map(varKey => {
+                  const varDef = MINISET_VARIABLES.find(v => v.key === varKey);
+                  if (!varDef) return null;
+                  const value = (ms as any)[varDef.key];
+                  return (
+                    <div key={varKey} className="flex items-center gap-1">
+                      <Label className="text-[10px] text-muted-foreground">{varDef.label}</Label>
+                      <Input
+                        type={varDef.type}
+                        value={value ?? ""}
+                        onChange={(e) => updateMiniSetField(
+                          sIdx,
+                          mIdx,
+                          varDef.key as keyof RestPauseMiniSet,
+                          varDef.type === 'number' ? (e.target.value ? Number(e.target.value) : undefined) : e.target.value
+                        )}
+                        className="h-7 w-14 text-xs"
+                        placeholder={varDef.placeholder}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
+                      />
+                      {varDef.unit && <span className="text-[10px] text-muted-foreground">{varDef.unit}</span>}
+                      {/* Remove only on first mini-set to avoid clutter — removes from all */}
+                      {mIdx === 0 && (
+                        <button
+                          type="button"
+                          onClick={() => removeMiniSetVariable(varKey)}
+                          className="h-3 w-3 flex items-center justify-center text-destructive hover:text-destructive/80"
+                          title="Retirer cette variable de toutes les mini-séries"
+                        >
+                          <X className="h-2.5 w-2.5" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* Pause */}
                 {!isLastMiniSet && (
                   <div className="flex items-center gap-1">
                     <span className="text-xs text-muted-foreground">/</span>
                     <TimeInput
                       value={ms.pauseSeconds || 0}
-                      onChange={(seconds) => updateMiniSetPause(sIdx, mIdx, seconds)}
+                      onChange={(seconds) => updateMiniSetField(sIdx, mIdx, 'pauseSeconds', seconds)}
                       compact
                     />
                     <span className="text-xs text-muted-foreground">pause</span>
                   </div>
                 )}
 
-                {/* Remove mini-set */}
                 <Button type="button" variant="ghost" size="sm" onClick={() => removeMiniSet(sIdx, mIdx)} className="h-6 w-6 p-0 text-destructive shrink-0">
                   <X className="h-3 w-3" />
                 </Button>
