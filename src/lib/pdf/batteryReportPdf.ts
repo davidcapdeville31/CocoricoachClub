@@ -756,8 +756,21 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
       const hasDesc = !htmlIsEmpty(it.description);
       const hasObj = !htmlIsEmpty(it.objectives);
 
-      // Saut de page seulement si pas la place pour titre + ~3 lignes
-      const minNeeded = 60;
+      const descHeight = hasDesc
+        ? estimateRichHtmlHeight(pdf, String(it.description), textW, { size: 9, color: [60, 60, 60], align: "left" })
+        : 0;
+      const objHeight = hasObj
+        ? estimateRichHtmlHeight(pdf, String(it.objectives), textW, { size: 9, color: [60, 60, 60], align: "left" })
+        : 0;
+      const estimatedTextHeight =
+        24 +
+        (hasDesc ? 10 + descHeight + 4 : 0) +
+        (hasObj ? 10 + objHeight + 4 : 0) +
+        (!hasDesc && !hasObj ? 12 : 0);
+      const estimatedBlockHeight = Math.max(imgInfo ? IMG_BOX_H : 0, estimatedTextHeight) + 10;
+
+      // Si le bloc ne tient pas, il doit commencer à la page suivante
+      const minNeeded = Math.max(60, estimatedBlockHeight);
       const remaining = pageH - margin - py;
       if (remaining < minNeeded) {
         pdf.addPage();
@@ -788,7 +801,7 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
         pdf.setTextColor(110);
         st(pdf, `${it.max} pts max`, pageW - margin, blockTop + 10, { align: "right" });
       }
-      let ty = blockTop + 24;
+      let ty = blockTop + 28;
       let curTextX = textX;
       let curTextW = textW;
 
@@ -806,7 +819,7 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
         pdf.setFontSize(8);
         pdf.setTextColor(80);
         st(pdf, "Description", curTextX, ty);
-        ty += 14;
+        ty += 10;
         ty = renderRichHtml(pdf, String(it.description), curTextX, ty, curTextW,
           { size: 9, color: [60, 60, 60], align: "left" },
           { pageH, bottomMargin: margin, onNewPage },
