@@ -199,7 +199,7 @@ export function CreateTestBatteryDialog({ open, onOpenChange, categoryId, clubId
   const removeLevel = (id: string) => setLevels(levels.filter(l => l.id !== id));
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) reset(); }}>
+    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v && !batteryId) reset(); }}>
       <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{batteryId ? "Modifier la batterie" : "Nouvelle batterie de tests"}</DialogTitle>
