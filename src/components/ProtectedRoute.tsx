@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePublicAccess } from "@/contexts/PublicAccessContext";
 
@@ -9,6 +9,7 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading, isOfflineSession } = useAuth();
   const { isPublicAccess } = usePublicAccess();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -20,7 +21,12 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   // Allow access if user exists OR if public access is valid
   if (!user && !isPublicAccess) {
-    return <Navigate to="/auth" replace />;
+    const target = `${location.pathname}${location.search}${location.hash}`;
+    // Avoid redirect loops to /auth itself
+    const redirectParam = target && target !== "/" && !target.startsWith("/auth")
+      ? `?redirect=${encodeURIComponent(target)}`
+      : "";
+    return <Navigate to={`/auth${redirectParam}`} replace />;
   }
 
   return <>{children}</>;

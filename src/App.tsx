@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { OfflineSyncProvider } from "@/contexts/OfflineSyncContext";
 import { PublicAccessProvider, usePublicAccess } from "@/contexts/PublicAccessContext";
@@ -47,6 +47,7 @@ import { MaintenanceGate } from "./components/MaintenanceGate";
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const { isPublicAccess } = usePublicAccess();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -58,7 +59,11 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
   // Allow access if user is authenticated OR has public access
   if (!user && !isPublicAccess) {
-    return <Navigate to="/auth" replace />;
+    const target = `${location.pathname}${location.search}${location.hash}`;
+    const redirectParam = target && target !== "/" && !target.startsWith("/auth")
+      ? `?redirect=${encodeURIComponent(target)}`
+      : "";
+    return <Navigate to={`/auth${redirectParam}`} replace />;
   }
 
   return <>{children}</>;

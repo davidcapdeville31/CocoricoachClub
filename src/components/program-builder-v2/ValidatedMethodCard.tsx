@@ -251,6 +251,21 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
           }
         }
 
+        // Generic: number of series and rest between series for non-phase methods
+        if (!isPhaseMethod && !isRestPause) {
+          const seriesCount = series.length;
+          if (seriesCount > 0) {
+            lines.push(`${seriesCount} série${seriesCount > 1 ? "s" : ""}`);
+          }
+          const restSec = (exercise as any).restSeconds;
+          if (restSec != null && restSec > 0) {
+            const m = Math.floor(restSec / 60);
+            const s = restSec % 60;
+            const formatted = m > 0 ? (s > 0 ? `${m}min ${s}s` : `${m}min`) : `${s}s`;
+            lines.push(`Repos ${formatted} entre les séries`);
+          }
+        }
+
         if (!consigne && lines.length === 0) return null;
         return (
           <div className={cn("px-3 py-2 text-[11px] border-b space-y-0.5", colors.bg, colors.border)}>
