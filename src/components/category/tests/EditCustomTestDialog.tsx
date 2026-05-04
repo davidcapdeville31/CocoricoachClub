@@ -486,7 +486,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
 
         <DialogFooter className="shrink-0 gap-2 border-t border-border/60 bg-card px-6 py-4 sm:justify-between">
           <div>
-            {!isSeed && test?.id && (
+            {!isSeed && !isSystem && test?.id && (
               <Button
                 type="button"
                 variant="ghost"
@@ -502,7 +502,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
           <div className="flex gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
             <Button type="button" onClick={handleSubmit}>
-              {saveTest.isPending ? "Enregistrement..." : (isSeed ? "Créer la version personnalisée" : "Enregistrer")}
+              {saveTest.isPending ? "Enregistrement..." : (isSeed || isSystem ? "Créer la version personnalisée" : "Enregistrer")}
             </Button>
           </div>
         </DialogFooter>
