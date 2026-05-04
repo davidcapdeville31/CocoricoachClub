@@ -1226,7 +1226,9 @@ export const MethodConfigSlots = ({
     }
     return { series: [] };
   });
-  
+
+  // Rest between series (for classic methods: 5x5, drop set, pyramids, iso, etc.)
+  const [restSeconds, setRestSeconds] = useState<number>(initialData?.restSeconds ?? 90);
   // Helper functions for dynamic variables
   const removeVariable = (varKey: string) => {
     setVisibleVariables(prev => prev.filter(v => v !== varKey));
