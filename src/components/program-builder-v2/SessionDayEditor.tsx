@@ -323,6 +323,24 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
     [blocks, onChange],
   );
 
+  const updateExerciseField = useCallback(
+    (blockId: string, exerciseId: string, key: string, value: any) => {
+      onChange(
+        blocks.map((b) =>
+          b.id === blockId
+            ? {
+                ...b,
+                exercises: (b.exercises ?? []).map((e) =>
+                  e.id === exerciseId ? { ...e, [key]: value } : e,
+                ),
+              }
+            : b,
+        ),
+      );
+    },
+    [blocks, onChange],
+  );
+
   // Démarre une méthode liée (Biset/Superset/...) → affiche la carte LinkedMethodSlots
   const handleStartLinked = useCallback(
     (blockId: string, method: LinkedMethod) => {
