@@ -52,16 +52,16 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
   // --- Variable operations ---
   const addVariable = (varKey: string) => {
     const newVisibleVars = [...visibleVariables, varKey];
-    // Rest-Pause: all reps are MAX → auto-set RPE=10, RIR=0 when adding
+    // Pré-remplit avec une valeur par défaut sensible (modifiable ensuite)
     if (varKey === 'rpe') {
-      update({ 
+      update({
         visibleVariables: newVisibleVars,
-        series: series.map(s => ({ ...s, rpe: 10 })),
+        series: series.map(s => ({ ...s, rpe: s.rpe ?? 10 })),
       });
     } else if (varKey === 'rir') {
       update({
         visibleVariables: newVisibleVars,
-        series: series.map(s => ({ ...s, rir: 0 })),
+        series: series.map(s => ({ ...s, rir: s.rir ?? 0 })),
       });
     } else {
       update({ visibleVariables: newVisibleVars });
@@ -202,34 +202,24 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
               {visibleVariables.map(varKey => {
                 const varDef = VARIABLES.find(v => v.key === varKey);
                 if (!varDef) return null;
-                
-                // Rest-Pause: all reps are MAX → RPE=10 and RIR=0 locked
-                const isLockedByMax = varDef.key === 'rpe' || varDef.key === 'rir';
-                const lockedValue = varDef.key === 'rpe' ? 10 : varDef.key === 'rir' ? 0 : null;
                 const value = (s as any)[varDef.key];
-                
+
                 return (
                   <div key={varKey} className="flex items-center gap-1">
                     <Label className="text-[10px] text-muted-foreground">{varDef.label}</Label>
-                    {isLockedByMax ? (
-                      <div className="h-7 flex items-center justify-center rounded-md border-2 bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800 w-16 px-1.5">
-                        <span className="text-xs font-bold text-red-600 dark:text-red-400">{lockedValue}</span>
-                      </div>
-                    ) : (
-                      <Input
-                        type={varDef.type}
-                        value={value ?? ""}
-                        onChange={(e) => updateSeriesField(
-                          sIdx,
-                          varDef.key,
-                          varDef.type === 'number' ? (e.target.value ? Number(e.target.value) : undefined) : e.target.value
-                        )}
-                        className="h-7 w-16 text-xs"
-                        placeholder={varDef.placeholder}
-                        onPointerDown={(e) => e.stopPropagation()}
-                        onMouseDown={(e) => e.stopPropagation()}
-                      />
-                    )}
+                    <Input
+                      type={varDef.type}
+                      value={value ?? ""}
+                      onChange={(e) => updateSeriesField(
+                        sIdx,
+                        varDef.key,
+                        varDef.type === 'number' ? (e.target.value ? Number(e.target.value) : undefined) : e.target.value
+                      )}
+                      className="h-7 w-16 text-xs"
+                      placeholder={varDef.placeholder}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                    />
                     {varDef.unit && <span className="text-[10px] text-muted-foreground">{varDef.unit}</span>}
                     <button
                       type="button"
