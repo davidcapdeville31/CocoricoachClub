@@ -27,10 +27,12 @@ const FIELD_H = FIELD_BOTTOM - FIELD_TOP;
 const FIELD_LENGTH_M = 100;
 const FIELD_WIDTH_M = 70;
 
-/** Convert meters from try-line to SVG x */
+/** Convert meters from try-line to SVG x.
+ *  Try-lines are at pct 0.05/0.95 of FIELD_W → in-play span = 90% of FIELD_W. */
 function mToSvgX(meters: number, goalsOnRight: boolean): number {
-  const tryLineX = goalsOnRight ? 540 : 60;
-  const mToSvg = FIELD_W / FIELD_LENGTH_M;
+  const inPlayW = FIELD_W * 0.9;
+  const tryLineX = goalsOnRight ? FIELD_LEFT + FIELD_W * 0.95 : FIELD_LEFT + FIELD_W * 0.05;
+  const mToSvg = inPlayW / FIELD_LENGTH_M;
   return goalsOnRight ? tryLineX - meters * mToSvg : tryLineX + meters * mToSvg;
 }
 
