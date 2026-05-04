@@ -28,7 +28,7 @@ interface ExportOptions {
   levels?: BatteryLevel[];
   items: BatteryItemDef[];
   rows: TestRow[];
-  testMeta?: Record<string, { description?: string | null; objectives?: string | null }>;
+  testMeta?: Record<string, { description?: string | null; objectives?: string | null; image_url?: string | null }>;
   categoryId?: string | null;
   clubId?: string | null;
 }
