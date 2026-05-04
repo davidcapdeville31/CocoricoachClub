@@ -129,6 +129,7 @@ function TestCategoryTrigger({
     <TabsPrimitive.Trigger
       value={value}
       onDoubleClick={editable ? () => setIsEditing(true) : undefined}
+      onClick={onClickOverride ? (e) => { e.preventDefault(); onClickOverride(); } : undefined}
       title={editable ? "Double-cliquez pour renommer" : undefined}
       className={cn(
         "group relative inline-flex items-center px-2.5 py-1 rounded-md font-medium text-xs",
