@@ -641,6 +641,17 @@ export function SessionFeedbackDialog({
                 </Badge>
               )}
             </TabsTrigger>
+            {sessionType === "musculation" && (
+              <TabsTrigger value="weights" className="flex-1 gap-2">
+                <Dumbbell className="h-4 w-4" />
+                Charges
+                {hasWeightLogs && (
+                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                    {weightLogCount}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* Precision tab */}
@@ -744,6 +755,20 @@ export function SessionFeedbackDialog({
               </div>
             </div>
           </TabsContent>
+
+          {sessionType === "musculation" && (
+            <TabsContent value="weights" className="flex-1 flex flex-col min-h-0 mt-4">
+              <div className="flex-1 min-h-0 overflow-y-auto pr-2" style={{ maxHeight: "calc(90vh - 240px)" }}>
+                <SessionWeightLogTab
+                  sessionId={sessionId}
+                  categoryId={categoryId}
+                  playersToShow={players ?? []}
+                  weightLogs={weightLogs}
+                  onWeightLogChange={handleWeightLogChange}
+                />
+              </div>
+            </TabsContent>
+          )}
 
         </Tabs>
 
