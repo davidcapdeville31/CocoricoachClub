@@ -501,10 +501,10 @@ import { SeasonManager } from "@/components/club/SeasonManager";
              <div className="flex items-center justify-between">
                <h2 className="text-xl font-bold">Toutes les catégories</h2>
                {isAdmin && (
-                 <Button onClick={() => setIsAddCategoryOpen(true)} className="gap-1">
-                   <Plus className="h-4 w-4" />
-                   Créer une catégorie
-                 </Button>
+                  <Button onClick={() => setIsAddCategoryOpen(true)} className="gap-1">
+                    <Plus className="h-4 w-4" />
+                    Créer / Modifier une catégorie
+                  </Button>
                )}
              </div>
              
