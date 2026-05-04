@@ -134,7 +134,16 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
           {hiddenVariables.length > 0 && (
             <Popover open={addVarPopoverOpen} onOpenChange={setAddVarPopoverOpen}>
               <PopoverTrigger asChild>
-                <Button type="button" variant="outline" size="sm" className="h-5 text-[10px] border-dashed px-1.5 gap-0.5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  className="h-5 text-[10px] border-dashed px-1.5 gap-0.5"
+                  title="Ajouter une variable (Charge, %1RM, Tempo, RPE...)"
+                >
                   <Plus className="h-2.5 w-2.5" />
                   Variable
                 </Button>
