@@ -452,9 +452,7 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
           />
         </div>
 
-        <div className="mt-8">
-          <PlanTestsSection categoryId={categoryId} sportType={sportType} />
-        </div>
+        {/* PlanTestsSection inline retiré — disponible via le bouton "Planifier un test" en haut */}
       </CardContent>
 
       <CreateThemeCategoryDialog
