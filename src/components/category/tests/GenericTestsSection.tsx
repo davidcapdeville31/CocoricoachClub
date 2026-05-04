@@ -128,7 +128,9 @@ export function BatteryRadarCharts({
       const maxFromLookup = batteryLookup?.maxPoints?.[`${batteryName}::${baseTestName}`] ?? 0;
       const maxPoints = maxFromNotes > 0 ? maxFromNotes : maxFromLookup;
 
-      const playerName = test.players?.name || "Athlète";
+      const playerName = test.players?.first_name
+        ? `${test.players.first_name} ${test.players.name}`
+        : test.players?.name || "Athlète";
       const playerId = test.player_id || null;
       const key = `${playerId || playerName}__${test.test_date}__${batteryName}`;
 
