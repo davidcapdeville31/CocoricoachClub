@@ -135,6 +135,16 @@ export function BowlingArsenalCatalogTab({ categoryId }: BowlingArsenalCatalogTa
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié");
 
+      // Resolve club_id from current category so the ball is scoped to this client only
+      const { data: catRow, error: catError } = await supabase
+        .from("categories")
+        .select("club_id")
+        .eq("id", categoryId)
+        .single();
+      if (catError) throw catError;
+      const clubId = (catRow as any)?.club_id || null;
+      if (!clubId) throw new Error("Club introuvable pour cette catégorie");
+
       const { data, error } = await supabase
         .from("bowling_ball_catalog" as any)
         .insert({
@@ -147,6 +157,7 @@ export function BowlingArsenalCatalogTab({ categoryId }: BowlingArsenalCatalogTa
           factory_surface: newFactorySurface || null,
           is_system: false,
           created_by: user.id,
+          club_id: clubId,
         } as any)
         .select()
         .single();
