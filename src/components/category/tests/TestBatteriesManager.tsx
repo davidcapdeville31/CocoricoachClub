@@ -174,6 +174,8 @@ export function TestBatteriesManager({
                             items: (full.items as any) || [],
                             rows: rows as any,
                             testMeta,
+                            categoryId,
+                            clubId: (clubData as any)?.club_id || null,
                           });
                           toast.dismiss(t);
                           toast.success("PDF généré");
