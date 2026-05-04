@@ -66,10 +66,10 @@ export function DatasTab({ categoryId, sportType }: DatasTabProps) {
             <AthleticsThrowingStats categoryId={categoryId} />
           </div>
         ) : isRugby ? (
-          <div className="space-y-6">
-            <PrecisionFieldTracker categoryId={categoryId} />
-            <PrecisionTrainingStats categoryId={categoryId} />
-          </div>
+          // PrecisionFieldTracker affiche désormais : cartographie + stats du jour
+          // (vierge chaque jour) + panneau de statistiques cumulées (filtres thème
+          // & période) — même expérience que côté espace athlète.
+          <PrecisionFieldTracker categoryId={categoryId} />
         ) : (
           <PrecisionTrainingStats categoryId={categoryId} />
         )}
