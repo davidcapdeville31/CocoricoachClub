@@ -65,6 +65,7 @@ interface ClusterConfigSlotsProps {
   onCancel: () => void;
   initialConfig?: ClusterConfig;
   exerciseName?: string;
+  blockId?: string;
 }
 
 export const ClusterConfigSlots = ({
@@ -72,7 +73,12 @@ export const ClusterConfigSlots = ({
   onCancel,
   initialConfig,
   exerciseName,
+  blockId,
 }: ClusterConfigSlotsProps) => {
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: blockId ? `drop-${blockId}` : `cluster-drop-${Math.random()}`,
+    data: { type: "training-block-placeholder", blockId },
+  });
   const [config, setConfig] = useState<ClusterConfig>(
     initialConfig || getDefaultClusterConfig()
   );
