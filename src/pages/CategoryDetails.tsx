@@ -219,13 +219,21 @@ function CategoryDetailsContent() {
   return (
     <div className="min-h-screen bg-background">
       <div className="relative py-12 px-4 bg-gradient-hero overflow-hidden">
+        {(category as any)?.header_background_url && (
+          <div
+            className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${(category as any).header_background_url})` }}
+            aria-hidden="true"
+          />
+        )}
         {category?.cover_image_url && (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-0">
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-[1]">
             <div className="relative h-40 w-40 sm:h-48 sm:w-48 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm">
               <img
                 src={category.cover_image_url}
                 alt="Logo du club"
                 className="h-full w-full object-cover"
+                style={{ objectPosition: (category as any)?.cover_image_position || "center" }}
               />
             </div>
           </div>
@@ -293,6 +301,8 @@ function CategoryDetailsContent() {
                 <CategoryCoverUpload 
                   categoryId={categoryId} 
                   currentCoverUrl={category?.cover_image_url}
+                  currentCoverPosition={(category as any)?.cover_image_position}
+                  currentHeaderBackgroundUrl={(category as any)?.header_background_url}
                 />
                 <Button
                   variant="outline"
