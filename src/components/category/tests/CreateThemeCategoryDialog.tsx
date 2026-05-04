@@ -47,7 +47,7 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
         .eq("category_id", categoryId)
         .order("label");
       if (error) throw error;
-      return (data || []) as Array<{ id: string; label: string; value: string }>;
+      return (data || []) as unknown as Array<{ id: string; label: string; value: string }>;
     },
     enabled: open,
   });
