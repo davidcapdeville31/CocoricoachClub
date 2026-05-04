@@ -50,11 +50,11 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
     queryFn: async () => {
       const { data, error } = await supabase
         .from("test_theme_categories" as any)
-        .select("id, label, value")
+        .select("id, label, value, color")
         .eq("category_id", categoryId)
         .order("label");
       if (error) throw error;
-      return (data || []) as unknown as Array<{ id: string; label: string; value: string }>;
+      return (data || []) as unknown as Array<{ id: string; label: string; value: string; color: string | null }>;
     },
     enabled: open,
   });
@@ -63,7 +63,10 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
   useEffect(() => {
     if (mode === "edit" && editingId) {
       const t = existingThemes.find((x) => x.id === editingId);
-      if (t) setLabel(t.label);
+      if (t) {
+        setLabel(t.label);
+        setColor(t.color || "#6366f1");
+      }
     }
   }, [mode, editingId, existingThemes]);
 
