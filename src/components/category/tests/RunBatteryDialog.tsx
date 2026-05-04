@@ -57,7 +57,16 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     event.stopPropagation();
     toggleInjured(key, !currentValue);
   };
-  const setPlayerId = (id: string) => setPlayerIdState(id);
+  const setPlayerId = (id: string) => {
+    setPlayerIdState(id);
+    // If the player already has saved results for this battery, pre-select that date
+    // so the staff edits the existing entry instead of creating a duplicate.
+    const existing = (latestDatePerPlayer as Record<string, string>)?.[id];
+    if (existing) {
+      setSavedDate(existing);
+      setOriginalDateByPlayer(prev => ({ ...prev, [id]: existing }));
+    }
+  };
   const [savedDate, setSavedDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [savedTime, setSavedTime] = useState(() => {
     const d = new Date();
