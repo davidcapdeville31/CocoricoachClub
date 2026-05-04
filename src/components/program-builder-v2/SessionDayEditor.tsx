@@ -734,6 +734,9 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         restSeconds: draft.methodRestSeconds ?? 90,
         tempo: s.params?.tempo,
         percentage: s.params?.percentage ? Number(s.params.percentage) : undefined,
+        weight_kg: s.params?.load != null ? Number(s.params.load) : undefined,
+        rpe: s.params?.rpe != null ? Number(s.params.rpe) : undefined,
+        rir: s.params?.rir != null ? Number(s.params.rir) : undefined,
         method: draft.method,
         groupId,
       }));
@@ -779,6 +782,9 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                 sets: Number(params.sets) || exercise.sets,
                 reps: params.reps ?? exercise.reps,
                 percentage: params.percentage,
+                weight_kg: params.load != null ? Number(params.load) : undefined,
+                rpe: params.rpe != null ? Number(params.rpe) : undefined,
+                rir: params.rir != null ? Number(params.rir) : undefined,
                 tempo: params.tempo,
                 restSeconds: params.rest ?? exercise.restSeconds,
               };
@@ -976,14 +982,17 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                         exerciseName: ex.exerciseName,
                         stationName: ex.exerciseName,
                         slotIndex: idx,
-                        params: {
-                          sets: ex.sets,
-                          reps: ex.reps,
-                          percentage: ex.percentage,
-                          tempo: ex.tempo,
-                          rest: ex.restSeconds,
-                        },
-                      }))}
+                         params: {
+                           sets: ex.sets,
+                           reps: ex.reps,
+                           percentage: ex.percentage,
+                           load: ex.weight_kg,
+                           rpe: ex.rpe,
+                           rir: ex.rir,
+                           tempo: ex.tempo,
+                           rest: ex.restSeconds,
+                         },
+                       }))}
                       onRemoveFromSlot={(idx) =>
                         handlePersistedGroupRemove(block.id, item.groupId, idx)
                       }
