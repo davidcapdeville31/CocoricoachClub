@@ -244,7 +244,10 @@ export const ClusterConfigSlots = ({
   const errors = validateClusterConfig(config);
 
   return (
-    <Card className="border-orange-500/30 bg-orange-500/5">
+    <Card ref={setDropRef} className={cn(
+      "border-orange-500/30 bg-orange-500/5 transition-all",
+      isOver && "ring-2 ring-orange-500 bg-orange-500/10"
+    )}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
@@ -265,10 +268,15 @@ export const ClusterConfigSlots = ({
             {exerciseName}
           </Badge>
         ) : (
-          <div className="p-3 rounded-lg border-2 border-dashed border-orange-500/30 bg-orange-500/5 text-center">
-            <Dumbbell className="h-5 w-5 mx-auto mb-1 text-orange-500/50" />
+          <div className={cn(
+            "p-3 rounded-lg border-2 border-dashed text-center transition-all",
+            isOver
+              ? "border-orange-500 bg-orange-500/15"
+              : "border-orange-500/30 bg-orange-500/5"
+          )}>
+            <Dumbbell className="h-5 w-5 mx-auto mb-1 text-orange-500/70" />
             <p className="text-sm text-muted-foreground">
-              Cliquez sur un exercice de musculation pour le sélectionner
+              {isOver ? "Déposez l'exercice ici" : "Glissez ou cliquez sur un exercice de musculation"}
             </p>
           </div>
         )}
