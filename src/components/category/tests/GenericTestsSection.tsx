@@ -853,10 +853,10 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                     });
                     setIsEditDialogOpen(true);
                   }}
-                  className={`group inline-flex items-center gap-2 rounded-2xl bg-background border hover:border-primary hover:bg-accent transition-colors text-sm ${t.image_url ? "p-1.5 pr-3" : "px-2.5 py-1 text-xs"}`}
+                  className={`group inline-flex items-center gap-2 rounded-2xl bg-background border hover:border-primary hover:bg-accent transition-colors text-sm ${t.image_url ? "p-1.5 pr-3" : (t.icon ? "pl-1.5 pr-3 py-1" : "px-2.5 py-1 text-xs")}`}
                   title={isViewer ? (t.description || "") : (t.is_system ? "Test système (modifier crée une copie locale)" : "Cliquer pour modifier ce test")}
                 >
-                  {t.image_url && (
+                  {t.image_url ? (
                     <img
                       src={t.image_url}
                       alt=""
@@ -866,7 +866,11 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                       }}
                       className="h-16 w-16 rounded-xl object-cover border hover:opacity-90 hover:scale-105 transition-transform cursor-zoom-in"
                     />
-                  )}
+                  ) : t.icon ? (
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-xl bg-muted text-base" aria-hidden>
+                      {t.icon}
+                    </span>
+                  ) : null}
                   <span className="font-medium">{t.name}</span>
                   {t.unit && <span className="text-muted-foreground">({t.unit})</span>}
                   {t.is_system && (
