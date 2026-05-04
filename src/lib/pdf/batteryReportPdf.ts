@@ -81,7 +81,8 @@ function buildRadarPng(
 
   const cx = size / 2;
   const cy = size / 2;
-  const radius = size * 0.32;
+  // Plus petit rayon pour laisser place aux labels (évite la coupure)
+  const radius = size * 0.28;
   const n = Math.max(axes.length, 3);
 
   ctx.strokeStyle = "#d1d5db";
@@ -136,19 +137,57 @@ function buildRadarPng(
     ctx.fill();
   });
 
+  // Helper: wrap label sur max 2 lignes en respectant une largeur max
+  const wrapLabel = (text: string, maxWidth: number): string[] => {
+    const words = text.split(/\s+/);
+    const lines: string[] = [];
+    let current = "";
+    for (const w of words) {
+      const test = current ? current + " " + w : w;
+      if (ctx.measureText(test).width <= maxWidth) {
+        current = test;
+      } else {
+        if (current) lines.push(current);
+        current = w;
+        if (lines.length === 1) break;
+      }
+    }
+    if (current && lines.length < 2) lines.push(current);
+    // Si le texte restant n'a pas pu rentrer, tronquer la dernière ligne
+    if (lines.length === 2) {
+      const totalUsed = lines.join(" ");
+      if (totalUsed.length < text.length) {
+        let last = lines[1];
+        while (ctx.measureText(last + "...").width > maxWidth && last.length > 0) {
+          last = last.slice(0, -1);
+        }
+        lines[1] = last + "...";
+      }
+    } else if (lines.length === 1 && ctx.measureText(lines[0]).width > maxWidth) {
+      let l = lines[0];
+      while (ctx.measureText(l + "...").width > maxWidth && l.length > 0) l = l.slice(0, -1);
+      lines[0] = l + "...";
+    }
+    return lines;
+  };
+
   ctx.fillStyle = "#111827";
-  ctx.font = "11px Arial";
+  ctx.font = "10px Arial";
+  const maxLabelWidth = (size - radius * 2) / 2 - 6; // espace dispo de chaque côté
   axes.forEach((a, i) => {
     const angle = (-Math.PI / 2) + (i * 2 * Math.PI) / n;
-    const lr = radius + 18;
+    const lr = radius + 12;
     const x = cx + lr * Math.cos(angle);
     const y = cy + lr * Math.sin(angle);
-    let label = a.label.length > 18 ? a.label.slice(0, 17) + "..." : a.label;
-    const tw = ctx.measureText(label).width;
-    let tx = x;
-    if (Math.abs(Math.cos(angle)) < 0.3) tx = x - tw / 2;
-    else if (Math.cos(angle) < 0) tx = x - tw;
-    ctx.fillText(label, tx, y + 4);
+    const lines = wrapLabel(a.label, maxLabelWidth);
+    lines.forEach((line, li) => {
+      const tw = ctx.measureText(line).width;
+      let tx = x;
+      if (Math.abs(Math.cos(angle)) < 0.3) tx = x - tw / 2;
+      else if (Math.cos(angle) < 0) tx = x - tw;
+      const ty = y + 4 + (li - (lines.length - 1) / 2) * 11;
+      ctx.fillText(line, tx, ty);
+    });
   });
 
   return canvas.toDataURL("image/png");
