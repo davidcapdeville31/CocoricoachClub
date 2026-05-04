@@ -557,15 +557,16 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
       ty += 13;
     });
 
-    pdf.setFontSize(8);
-    pdf.setTextColor(150);
-    st(pdf, `Page ${idx + 2}`, pageW - margin, pageH - 14, { align: "right" });
   }
 
-  pdf.setPage(1);
-  pdf.setFontSize(8);
-  pdf.setTextColor(150);
-  st(pdf, "Page 1", pageW - margin, pageH - 14, { align: "right" });
+  // Numérotation finale de toutes les pages (générique)
+  const totalPages = pdf.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    pdf.setPage(p);
+    pdf.setFontSize(8);
+    pdf.setTextColor(150);
+    st(pdf, `Page ${p} / ${totalPages}`, pageW - margin, pageH - 14, { align: "right" });
+  }
 
   const fileName = `Rapport_${(categoryName || batteryName).replace(/[^a-z0-9]+/gi, "_")}_${format(new Date(), "yyyyMMdd")}.pdf`;
   pdf.save(fileName);
