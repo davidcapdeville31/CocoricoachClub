@@ -166,6 +166,8 @@ interface MethodConfigSlotsProps {
     visibleVariables?: string[];
     // Rest-Pause dedicated config
     restPauseConfig?: RestPauseConfig;
+    // Rest between series for non-crossfit methods
+    restSeconds?: number;
   }) => void;
   onCancel: () => void;
   droppedExercise?: { exerciseId: string; exerciseName: string } | null;
