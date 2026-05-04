@@ -2850,6 +2850,7 @@ export type Database = {
           created_by: string | null
           description: string | null
           formula_config: Json | null
+          icon: string | null
           id: string
           image_url: string | null
           is_system: boolean
@@ -2872,6 +2873,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           formula_config?: Json | null
+          icon?: string | null
           id?: string
           image_url?: string | null
           is_system?: boolean
@@ -2894,6 +2896,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           formula_config?: Json | null
+          icon?: string | null
           id?: string
           image_url?: string | null
           is_system?: boolean
