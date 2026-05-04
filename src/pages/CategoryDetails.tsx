@@ -13,6 +13,7 @@ import { usePendingTestResultsCount } from "@/lib/hooks/usePendingTestResultsCou
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CategoryCoverUpload, LogoHoverActions } from "@/components/category/CategoryCoverUpload";
+import { resolveHeaderBackgroundUrl } from "@/lib/constants/headerBackgrounds";
 import { CustomizeBrandingButton } from "@/components/branding/CustomizeBrandingButton";
 import { ClubBrandingProvider } from "@/contexts/ClubBrandingContext";
 import { GlobalPlayerSearch } from "@/components/search/GlobalPlayerSearch";
