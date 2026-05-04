@@ -131,9 +131,18 @@ export function TestBatteriesManager({
                     totalMax={totalMax}
                   />
 
-                  <div className="flex items-center gap-2 pt-2 border-t">
-                    <Button size="sm" className="flex-1 gap-1.5" onClick={() => setRunId(b.id)}>
-                      <Play className="h-3.5 w-3.5" /> Lancer / Saisir des résultats
+                  <div className="flex items-center gap-2 pt-2 border-t flex-wrap">
+                    <Button size="sm" className="flex-1 min-w-[160px] gap-1.5" onClick={() => setRunId(b.id)}>
+                      <Play className="h-3.5 w-3.5" /> Lancer / Saisir
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="gap-1.5"
+                      title="Planifier la batterie sur une ou plusieurs dates"
+                      onClick={() => setScheduleBattery({ id: b.id, name: b.name })}
+                    >
+                      <CalendarPlus className="h-3.5 w-3.5" /> Planifier
                     </Button>
                     <Button
                       size="sm"
