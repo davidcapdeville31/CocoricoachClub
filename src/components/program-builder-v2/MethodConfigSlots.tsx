@@ -1388,6 +1388,8 @@ export const MethodConfigSlots = ({
       visibleVariables: visibleVariables,
       // Rest-Pause: pass the ACTUAL config built by the user
       restPauseConfig: isRestPause ? restPauseConfig : undefined,
+      // Rest between series for classic strength methods
+      restSeconds: (!isCircuitMethod && !isEmom && !isTabata && !isDeathBy) ? restSeconds : undefined,
     });
     
     // Passer en mode lecture seule après validation
