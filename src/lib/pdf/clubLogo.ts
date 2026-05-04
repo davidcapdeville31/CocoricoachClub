@@ -42,7 +42,7 @@ export async function getReportLogoDataUrl(opts: {
   try {
     if (opts.categoryId) {
       const { data: settings } = await supabase
-        .from("pdf_custom_settings" as any)
+        .from("pdf_settings" as any)
         .select("logo_url, show_logo")
         .eq("category_id", opts.categoryId)
         .maybeSingle();
