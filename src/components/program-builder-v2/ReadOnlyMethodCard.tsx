@@ -20,6 +20,8 @@ interface Props {
     notes?: string | null;
     method?: string | null;
     set_type?: string | null;
+    rest_seconds?: number | string | null;
+    restSeconds?: number | string | null;
   };
 }
 
@@ -34,12 +36,27 @@ export function ReadOnlyMethodCard({ exercise }: Props) {
 
   const method = v2KindToMethod(parsed.kind);
   const cfg = parsed.config as any;
+  const resolvedRestSeconds =
+    typeof cfg?.restSeconds === "number"
+      ? cfg.restSeconds
+      : typeof cfg?.restSeconds === "string"
+      ? Number(cfg.restSeconds) || undefined
+      : typeof exercise.rest_seconds === "number"
+      ? exercise.rest_seconds
+      : typeof exercise.rest_seconds === "string"
+      ? Number(exercise.rest_seconds) || undefined
+      : typeof exercise.restSeconds === "number"
+      ? exercise.restSeconds
+      : typeof exercise.restSeconds === "string"
+      ? Number(exercise.restSeconds) || undefined
+      : undefined;
+
   const v2Exercise: V2BlockExercise = {
     id: exercise.id ?? `ro-${Math.random()}`,
     exerciseName: exercise.exercise_name,
     sets: Number(exercise.sets) || 1,
     reps: String(exercise.reps ?? ""),
-    restSeconds: typeof cfg?.restSeconds === "number" ? cfg.restSeconds : undefined,
+    restSeconds: resolvedRestSeconds,
     method,
     config: parsed.config,
     notes: exercise.notes ?? undefined,
