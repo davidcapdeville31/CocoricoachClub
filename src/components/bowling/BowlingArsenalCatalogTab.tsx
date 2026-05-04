@@ -642,10 +642,7 @@ export function BowlingArsenalCatalogTab({ categoryId }: BowlingArsenalCatalogTa
                     </Button>
                   </>
                 ) : (
-                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                    <ImageIcon className="h-12 w-12" />
-                    <span className="text-xs">Pas de photo</span>
-                  </div>
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground" />
                 )}
 
                 {/* Overlay centré : bouton "Photo" au survol (ou toujours visible si pas de photo) */}
