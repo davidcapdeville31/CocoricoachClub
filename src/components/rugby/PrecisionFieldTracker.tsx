@@ -479,26 +479,31 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
         </div>
       )}
 
-      {/* Stats summary */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
-          <CardContent className="pt-4 text-center">
-            <p className="text-3xl font-bold text-primary">{globalRate}%</p>
-            <p className="text-sm text-muted-foreground">Réussite globale</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
-          <CardContent className="pt-4 text-center">
-            <p className="text-3xl font-bold text-primary">{totalSuccesses}/{totalAttempts}</p>
-            <p className="text-sm text-muted-foreground">Réussites / Tentatives</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
-          <CardContent className="pt-4 text-center">
-            <p className="text-3xl font-bold text-primary">{entries.length}</p>
-            <p className="text-sm text-muted-foreground">Exercices enregistrés</p>
-          </CardContent>
-        </Card>
+      {/* Stats du jour */}
+      <div className="space-y-1">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">
+          Séance du {format(new Date(activeSessionDate), "dd/MM/yyyy", { locale: fr })}
+        </p>
+        <div className="grid grid-cols-3 gap-4">
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
+            <CardContent className="pt-4 text-center">
+              <p className="text-3xl font-bold text-primary">{globalRate}%</p>
+              <p className="text-sm text-muted-foreground">Réussite (jour)</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
+            <CardContent className="pt-4 text-center">
+              <p className="text-3xl font-bold text-primary">{totalSuccesses}/{totalAttempts}</p>
+              <p className="text-sm text-muted-foreground">Réussites / Tentatives</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
+            <CardContent className="pt-4 text-center">
+              <p className="text-3xl font-bold text-primary">{dayEntries.length}</p>
+              <p className="text-sm text-muted-foreground">Coups de pied du jour</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* ====== BUTEUR MODE ====== */}
