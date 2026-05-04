@@ -139,9 +139,13 @@ export function BowlingOilPatternStats({ games, categoryId, playerId }: BowlingO
               .map((a: any) => a.oil_pattern_id)
           );
           resolved = patternsForMatch.find((p: any) => assignedIds.has(p.id)) || null;
+          // IMPORTANT: si un joueur est ciblé, NE PAS retomber sur le 1er huilage
+          // de la compétition (sinon on affiche l'huilage d'un autre joueur).
+          // Si le joueur n'a pas été attribué à un huilage spécifique → resolved reste null.
+        } else {
+          // Pas de joueur ciblé (vue équipe) → on prend le 1er huilage par défaut.
+          resolved = patternsForMatch[0] || null;
         }
-        // Fallback: first pattern of the match if no assignment exists
-        if (!resolved) resolved = patternsForMatch[0] || null;
         const cat = resolved ? getOilCategory(resolved.oil_ratio) : null;
         matchInfos.push({
           matchId: g.matchId,
