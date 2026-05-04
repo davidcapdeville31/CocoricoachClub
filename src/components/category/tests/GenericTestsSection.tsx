@@ -450,18 +450,29 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
     },
   });
 
-  // Fetch custom tests defined in this category (so they show even without results yet)
+  // Fetch custom tests defined in this category + global system tests (so they show even without results yet)
   const { data: customTestsList } = useQuery({
     queryKey: ["custom_tests_list", categoryId, defaultCategory],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const COLS = "id, name, test_category, unit, unit_kind, is_time, description, objectives, scoring_scale, max_points, image_url, video_url, formula_config, bilateral, is_system, cloned_from_system_id";
+      // 1) Tests custom liés à la catégorie
+      const { data: linked, error } = await supabase
         .from("custom_test_categories")
-        .select("custom_tests(id, name, test_category, unit, unit_kind, is_time, description, objectives, scoring_scale, max_points, image_url, video_url, formula_config, bilateral)")
+        .select(`custom_tests(${COLS})`)
         .eq("category_id", categoryId);
       if (error) throw error;
-      const tests = (data || [])
-        .map((row: any) => row.custom_tests)
-        .filter(Boolean);
+      const customTests = (linked || []).map((row: any) => row.custom_tests).filter(Boolean);
+      // 2) Tests système globaux (visibles par tous)
+      const { data: systemTests } = await supabase
+        .from("custom_tests")
+        .select(COLS)
+        .eq("is_system", true);
+      // 3) Fusion : on masque un test système si déjà cloné en local dans ce club
+      const overriddenSystemIds = new Set(
+        customTests.map((t: any) => t.cloned_from_system_id).filter(Boolean)
+      );
+      const systemFiltered = (systemTests || []).filter((t: any) => !overriddenSystemIds.has(t.id));
+      const tests = [...customTests, ...systemFiltered];
       if (defaultCategory && defaultCategory !== "all" && defaultCategory !== "rehab") {
         return tests.filter((t: any) => t.test_category === defaultCategory);
       }
