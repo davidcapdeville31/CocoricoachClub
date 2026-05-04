@@ -45,6 +45,30 @@ const METHOD_LABELS: Record<string, string> = {
   intermittent_cardio: "Cardio Intermittent",
 };
 
+// Consigne par défaut (identique à l'écran de création) — affichée dans
+// le résumé read-only pour rappeler le principe de la méthode.
+const METHOD_DESCRIPTIONS: Record<string, string> = {
+  drop_set: "Séries dégressives sans repos entre les drops",
+  rest_pause: "Courtes pauses entre les mini-séries pour prolonger l'effort",
+  pyramid_up: "Augmentation progressive de la charge à chaque série",
+  pyramid_down: "Diminution progressive de la charge à chaque série",
+  pyramid_full: "Montée puis descente de la charge",
+  five_by_five: "5 séries de 5 répétitions pour développer la force",
+  isometric_overcoming: "Contraction maximale contre une résistance fixe",
+  isometric_yielding: "Maintien d'une charge à un angle spécifique",
+  amrap: "Réalisez un maximum de tours/reps dans le temps imparti",
+  for_time: "Complétez le circuit le plus vite possible",
+  death_by: "Ajoutez des reps chaque minute jusqu'à l'échec",
+  circuit: "Enchaînez les exercices avec peu de repos",
+  tabata: "Intervalles travail/repos courts et intenses",
+  emom: "Démarrez un nouvel exercice à chaque intervalle",
+  cluster: "Mini-pauses intra-série pour maintenir la qualité",
+  fartlek: "Alternance libre d'intensités sur la durée",
+  stato_dynamique: "Phase isométrique suivie d'une phase dynamique",
+  intermittent_cardio: "Alternance effort/récupération pour le cardio",
+};
+
+
 interface Props {
   exercise: V2BlockExercise;
   onRemove: () => void;
