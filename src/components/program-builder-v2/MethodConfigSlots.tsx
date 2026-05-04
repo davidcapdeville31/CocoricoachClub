@@ -163,7 +163,7 @@ interface MethodConfigSlotsProps {
     // CRITICAL: visible variables to preserve after validation
     visibleVariables?: string[];
     // Rest-Pause dedicated config
-    restPauseConfig?: { series: Array<{ miniSets: Array<{ reps: string; pauseSeconds: number }>; recoverySeconds?: number }> };
+    restPauseConfig?: RestPauseConfig;
   }) => void;
   onCancel: () => void;
   droppedExercise?: { exerciseId: string; exerciseName: string } | null;
