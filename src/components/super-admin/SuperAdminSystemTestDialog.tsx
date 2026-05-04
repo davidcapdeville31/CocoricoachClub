@@ -100,6 +100,7 @@ export function SuperAdminSystemTestDialog({ open, onOpenChange, test }: Props) 
       setScoringScale((test.scoring_scale as any) ?? null);
       setFormulaConfig((test.formula_config as any) ?? null);
       setImageUrl(test.image_url ?? null);
+      setIcon(test.icon ?? "");
       setVideoUrl(test.video_url ?? "");
       setBilateral(!!test.bilateral);
     } else {
@@ -113,6 +114,7 @@ export function SuperAdminSystemTestDialog({ open, onOpenChange, test }: Props) 
       setScoringScale(null);
       setFormulaConfig(null);
       setImageUrl(null);
+      setIcon("");
       setVideoUrl("");
       setBilateral(false);
     }
