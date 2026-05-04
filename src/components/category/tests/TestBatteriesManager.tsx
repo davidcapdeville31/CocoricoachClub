@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Play, ClipboardList, FileDown } from "lucide-react";
+import { Plus, Pencil, Trash2, Play, ClipboardList, FileDown, CalendarPlus } from "lucide-react";
 import { CreateTestBatteryDialog } from "./CreateTestBatteryDialog";
 import { RunBatteryDialog } from "./RunBatteryDialog";
+import { ScheduleBatteryDialog } from "./ScheduleBatteryDialog";
 import { BatteryResultsList } from "./BatteryResultsList";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
