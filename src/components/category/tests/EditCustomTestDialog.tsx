@@ -411,7 +411,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
               value={description}
               onChange={setDescription}
               placeholder="Comment se déroule le test, protocole..."
-              minHeight="100px"
+              minHeight={100}
             />
           </div>
 
@@ -421,7 +421,7 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
               value={objectives}
               onChange={setObjectives}
               placeholder="Ce que ce test cherche à évaluer ou améliorer..."
-              minHeight="100px"
+              minHeight={100}
             />
           </div>
 
