@@ -196,7 +196,7 @@ function buildRadarPng(
 }
 
 /** Load image as data URL (handles cross-origin via canvas) */
-async function loadImageAsDataUrl(src: string): Promise<string | null> {
+async function loadImageAsDataUrl(src: string): Promise<{ data: string; w: number; h: number } | null> {
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -207,7 +207,7 @@ async function loadImageAsDataUrl(src: string): Promise<string | null> {
         c.height = img.naturalHeight;
         const ctx = c.getContext("2d")!;
         ctx.drawImage(img, 0, 0);
-        resolve(c.toDataURL("image/png"));
+        resolve({ data: c.toDataURL("image/png"), w: img.naturalWidth, h: img.naturalHeight });
       } catch {
         resolve(null);
       }
