@@ -992,7 +992,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                 {(() => {
                   const items = groupBlockExercises(block.exercises ?? []);
                   return items.map((item, itemIdx) => {
-                    const reorderControls = items.length > 1 ? (
+                    const reorderControls = (
                       <div className="flex flex-col gap-0.5 pt-1 shrink-0">
                         <Button
                           type="button"
@@ -1017,7 +1017,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                           <ChevronDown className="h-3.5 w-3.5" />
                         </Button>
                       </div>
-                    ) : null;
+                    );
 
                     const card = item.type === "group" ? (
                     <LinkedMethodSlots
@@ -1097,13 +1097,11 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                   );
 
                     const itemKey = item.type === "group" ? item.groupId : item.exercise.id;
-                    return reorderControls ? (
+                    return (
                       <div key={itemKey} className="flex items-start gap-1">
                         {reorderControls}
                         <div className="flex-1 min-w-0">{card}</div>
                       </div>
-                    ) : (
-                      <div key={itemKey}>{card}</div>
                     );
                   });
                 })()}
