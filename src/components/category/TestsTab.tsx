@@ -42,18 +42,99 @@ const TEST_TAB_COLORS = [
   "hsl(10 80% 55%)",    // coral
 ] as const;
 
-function TestCategoryTrigger({ value, label, colorIndex, customColor }: { value: string; label: string; colorIndex: number; customColor?: string | null }) {
+function TestCategoryTrigger({
+  value,
+  label,
+  colorIndex,
+  customColor,
+  editable = false,
+  onRename,
+}: {
+  value: string;
+  label: string;
+  colorIndex: number;
+  customColor?: string | null;
+  editable?: boolean;
+  onRename?: (newLabel: string) => Promise<void> | void;
+}) {
   const color = customColor || TEST_TAB_COLORS[colorIndex % TEST_TAB_COLORS.length];
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState(label);
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isEditing) setDraft(label);
+  }, [label, isEditing]);
+
+  useEffect(() => {
+    if (isEditing) {
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      });
+    }
+  }, [isEditing]);
+
+  const commit = async () => {
+    const trimmed = draft.trim();
+    if (!trimmed || trimmed === label || !onRename) {
+      setIsEditing(false);
+      setDraft(label);
+      return;
+    }
+    setSaving(true);
+    try {
+      await onRename(trimmed);
+      setIsEditing(false);
+    } catch {
+      setDraft(label);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <span
+        className="inline-flex items-center px-2.5 py-1 rounded-md border-[1.5px]"
+        style={{ borderColor: color }}
+      >
+        <input
+          ref={inputRef}
+          value={draft}
+          disabled={saving}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commit();
+            } else if (e.key === "Escape") {
+              e.preventDefault();
+              setIsEditing(false);
+              setDraft(label);
+            }
+          }}
+          className="bg-transparent outline-none text-xs font-medium min-w-[60px] max-w-[180px]"
+          style={{ color }}
+        />
+      </span>
+    );
+  }
 
   return (
     <TabsPrimitive.Trigger
       value={value}
+      onDoubleClick={editable ? () => setIsEditing(true) : undefined}
+      title={editable ? "Double-cliquez pour renommer" : undefined}
       className={cn(
         "group relative inline-flex items-center px-2.5 py-1 rounded-md font-medium text-xs",
         "transition-all duration-200 ease-out whitespace-nowrap",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         "hover:opacity-80",
         "data-[state=active]:shadow-sm data-[state=active]:scale-105",
+        editable && "cursor-text",
       )}
       style={{
         borderWidth: "1.5px",
