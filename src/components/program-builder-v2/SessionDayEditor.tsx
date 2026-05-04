@@ -962,6 +962,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
               {statoDraft && (
                 <StatoDynamiqueConfigSlots
                   initialConfig={statoDraft.initial}
+                  exerciseName={statoDraft.exerciseName}
                   onValidate={(config) => handleStatoValidate(block.id, config)}
                   onCancel={() => handleStatoCancel(block.id)}
                 />
