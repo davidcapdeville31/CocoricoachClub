@@ -119,7 +119,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
   // Draft Fartlek actif par bloc — affiche FartlekConfigSlots
   const [fartlekDrafts, setFartlekDrafts] = useState<Record<string, { editing: boolean; initial?: FartlekConfig }>>({});
   const [clusterDrafts, setClusterDrafts] = useState<Record<string, { editing: boolean; initial?: ClusterConfig; exerciseId?: string; exerciseName?: string }>>({});
-  const [statoDrafts, setStatoDrafts] = useState<Record<string, { editing: boolean; initial?: StatoDynamiqueConfig }>>({});
+  const [statoDrafts, setStatoDrafts] = useState<Record<string, { editing: boolean; initial?: StatoDynamiqueConfig; exerciseId?: string; exerciseName?: string }>>({});
   const [intermittentDrafts, setIntermittentDrafts] = useState<Record<string, { editing: boolean; initial?: IntermittentCardioConfig }>>({});
 
   // (useImperativeHandle is declared after addExerciseToBlock — see below)
@@ -217,6 +217,19 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         return;
       }
 
+      // Si un draft Stato-Dynamique est actif → injecter l'exercice dedans
+      if (statoDrafts[blockId]) {
+        setStatoDrafts((p) => ({
+          ...p,
+          [blockId]: {
+            ...p[blockId],
+            exerciseId: picked.id,
+            exerciseName: picked.name,
+          },
+        }));
+        return;
+      }
+
       // Si une méthode "config" (drop_set, amrap, emom, ...) est en cours,
       // router l'exercice vers la carte de configuration au lieu de l'ajouter au bloc.
       const cfg = configDrafts[blockId];
@@ -265,7 +278,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         return next;
       });
     },
-    [blocks, onChange, pendingConfig, linkedDrafts, configDrafts, clusterDrafts],
+    [blocks, onChange, pendingConfig, linkedDrafts, configDrafts, clusterDrafts, statoDrafts],
   );
 
   // Expose une API impérative pour insérer un exercice depuis la bibliothèque externe
@@ -273,7 +286,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
     ref,
     () => ({
       hasActiveLinkedDraft: (blockId: string) =>
-        !!linkedDrafts[blockId] || !!configDrafts[blockId] || !!clusterDrafts[blockId],
+        !!linkedDrafts[blockId] || !!configDrafts[blockId] || !!clusterDrafts[blockId] || !!statoDrafts[blockId],
       insertExternalExercise: (blockId, picked) => {
         addExerciseToBlock(blockId, { id: picked.id, name: picked.name } as PickedExercise);
         return true;
@@ -321,7 +334,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         return true;
       },
     }),
-    [linkedDrafts, configDrafts, clusterDrafts, addExerciseToBlock],
+    [linkedDrafts, configDrafts, clusterDrafts, statoDrafts, addExerciseToBlock],
   );
 
   const removeExerciseFromBlock = useCallback(
@@ -538,12 +551,14 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
 
   const handleStatoValidate = useCallback(
     (blockId: string, config: StatoDynamiqueConfig) => {
+      const draft = statoDrafts[blockId];
       const summary = formatStatoDynamiqueSummary(config);
+      const baseName = draft?.exerciseName ? `${draft.exerciseName} — Stato-Dynamique` : `Stato-Dynamique — ${summary}`;
       appendMethodExercise(blockId, {
         method: "stato_dynamique",
-        name: `Stato-Dynamique — ${summary}`,
-        notes: `<!--v2-stato:${JSON.stringify(config)}-->`,
-        config: config as unknown as Record<string, unknown>,
+        name: baseName,
+        notes: `<!--v2-stato:${JSON.stringify({ ...config, exerciseId: draft?.exerciseId, exerciseName: draft?.exerciseName })}-->`,
+        config: { ...config, exerciseId: draft?.exerciseId, exerciseName: draft?.exerciseName } as unknown as Record<string, unknown>,
       });
       setStatoDrafts((p) => {
         const n = { ...p };
@@ -552,7 +567,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
       });
       toast.success("Stato-Dynamique ajouté à la séance");
     },
-    [appendMethodExercise],
+    [appendMethodExercise, statoDrafts],
   );
   const handleStatoCancel = useCallback((blockId: string) => {
     setStatoDrafts((p) => {
@@ -947,6 +962,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
               {statoDraft && (
                 <StatoDynamiqueConfigSlots
                   initialConfig={statoDraft.initial}
+                  exerciseName={statoDraft.exerciseName}
                   onValidate={(config) => handleStatoValidate(block.id, config)}
                   onCancel={() => handleStatoCancel(block.id)}
                 />
