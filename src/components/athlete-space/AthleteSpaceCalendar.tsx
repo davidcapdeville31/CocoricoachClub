@@ -497,13 +497,27 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     </Badge>
                                   )}
                                   {isCompleted && <CheckCircle2 className="h-4 w-4 text-status-optimal" />}
-                                  {exercises.length > 0 && (isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />)}
+                                  {(exercises.length > 0 || ((session as any).notes || "").replace(/<!--[\s\S]*?-->/g, "").trim()) && (isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />)}
                                 </div>
                               </div>
                             </button>
-                            {isExpanded && exercises.length > 0 && (
-                              <div className="px-3 pb-3 border-t border-border/50 pt-2">
-                                <GroupedExerciseList exercises={exercises} maxHeight="500px" />
+                            {isExpanded && (exercises.length > 0 || (session as any).notes) && (
+                              <div className="px-3 pb-3 border-t border-border/50 pt-2 space-y-2">
+                                {(() => {
+                                  const rawNotes = ((session as any).notes || "").replace(/<!--[\s\S]*?-->/g, "").trim();
+                                  if (!rawNotes) return null;
+                                  return (
+                                    <div className="rounded-md border border-primary/20 bg-primary/5 p-2">
+                                      <p className="text-[10px] uppercase tracking-wide font-semibold text-primary mb-1">
+                                        Consignes du coach
+                                      </p>
+                                      <p className="text-xs whitespace-pre-line text-foreground/90">{rawNotes}</p>
+                                    </div>
+                                  );
+                                })()}
+                                {exercises.length > 0 && (
+                                  <GroupedExerciseList exercises={exercises} maxHeight="500px" />
+                                )}
                               </div>
                             )}
                           </div>
