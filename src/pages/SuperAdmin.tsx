@@ -210,9 +210,13 @@ import { SuperAdminArsenalBank } from "@/components/super-admin/SuperAdminArsena
                  <SuperAdminExerciseLibrary />
                </TabsContent>
 
-               <TabsContent value="test-bank">
-                 <SuperAdminTestBank />
-               </TabsContent>
+                <TabsContent value="test-bank">
+                  <SuperAdminTestBank />
+                </TabsContent>
+
+                <TabsContent value="arsenal-bank">
+                  <SuperAdminArsenalBank />
+                </TabsContent>
 
                 <TabsContent value="audit">
                   <SecurityCenter />
