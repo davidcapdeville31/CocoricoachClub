@@ -125,6 +125,10 @@ const getDefaultVisibleParams = (method: LinkedMethodType, slotIndex: number): s
       ? ['sets', 'reps', 'percentage', 'load', 'tempo', 'rpe']
       : ['sets', 'reps', 'percentage', 'load', 'tempo'];
   }
+  // Superset / Biset / Triset / Giant set : afficher aussi Poids (kg) par défaut
+  if (method === 'superset' || method === 'biset' || method === 'triset' || method === 'giant_set') {
+    return ['sets', 'reps', 'percentage', 'load', 'tempo'];
+  }
   // Default for all other linked methods
   return ['sets', 'reps', 'percentage', 'tempo'];
 };
