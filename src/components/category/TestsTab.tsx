@@ -204,7 +204,7 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
           {!isViewer && (
             <>
               <Button size="sm" variant="outline" onClick={() => setIsCreateCategoryOpen(true)}>
-                <FolderPlus className="h-4 w-4 mr-1" /> Créer une catégorie
+                <FolderPlus className="h-4 w-4 mr-1" /> Créer / Modifier une catégorie
               </Button>
               <Button size="sm" variant="outline" onClick={() => setIsCreateTestOpen(true)}>
                 <Plus className="h-4 w-4 mr-1" /> Créer un test
