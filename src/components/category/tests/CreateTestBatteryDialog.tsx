@@ -211,7 +211,13 @@ export function CreateTestBatteryDialog({ open, onOpenChange, categoryId, clubId
             </div>
             <div className="space-y-1.5">
               <Label>Description</Label>
-              <Input value={description} onChange={e => setDescription(e.target.value)} placeholder="Optionnel" />
+              <Textarea
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                placeholder="Optionnel"
+                rows={3}
+                className="min-h-[80px] resize-y"
+              />
             </div>
           </div>
 
