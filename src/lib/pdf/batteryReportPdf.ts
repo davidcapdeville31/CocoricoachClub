@@ -329,13 +329,10 @@ function tokenizeHtml(html: string, base: RtStyle): RtToken[] {
   };
 
   root.childNodes.forEach((n) => walk(n, base));
-  // Compact consecutive paras
-  const out: RtToken[] = [];
-  for (const t of tokens) {
-    if (t.type === "para" && out.length && out[out.length - 1].type === "para" && !t.bullet) continue;
-    out.push(t);
-  }
-  return out;
+  // Note : on ne compacte PAS les paragraphes vides consécutifs afin de
+  // préserver les sauts de paragraphe (espaces) que l'utilisateur a créés
+  // dans l'éditeur riche (tiptap génère <p></p> pour les lignes vides).
+  return tokens;
 }
 
 function setRunFont(pdf: jsPDF, s: RtStyle) {
@@ -728,7 +725,7 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
         pdf.setTextColor(110);
         st(pdf, `${it.max} pts max`, pageW - margin, blockTop + 10, { align: "right" });
       }
-      let ty = blockTop + 18;
+      let ty = blockTop + 24;
       let curTextX = textX;
       let curTextW = textW;
 
@@ -746,7 +743,7 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
         pdf.setFontSize(8);
         pdf.setTextColor(80);
         st(pdf, "Description", curTextX, ty);
-        ty += 11;
+        ty += 14;
         ty = renderRichHtml(pdf, String(it.description), curTextX, ty, curTextW,
           { size: 9, color: [60, 60, 60], align: "left" },
           { pageH, bottomMargin: margin, onNewPage },
@@ -759,7 +756,7 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
         pdf.setFontSize(8);
         pdf.setTextColor(80);
         st(pdf, "Objectifs", curTextX, ty);
-        ty += 11;
+        ty += 14;
         ty = renderRichHtml(pdf, String(it.objectives), curTextX, ty, curTextW,
           { size: 9, color: [60, 60, 60], align: "left" },
           { pageH, bottomMargin: margin, onNewPage },
