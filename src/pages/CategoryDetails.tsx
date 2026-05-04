@@ -218,19 +218,19 @@ function CategoryDetailsContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div 
-        className="relative py-12 px-4 bg-gradient-hero"
-        style={
-          category?.cover_image_url
-            ? {
-                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${category.cover_image_url})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }
-            : undefined
-        }
-      >
-        <div className="container mx-auto max-w-7xl">
+      <div className="relative py-12 px-4 bg-gradient-hero overflow-hidden">
+        {category?.cover_image_url && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-0">
+            <div className="relative h-40 w-40 sm:h-48 sm:w-48 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm">
+              <img
+                src={category.cover_image_url}
+                alt="Logo du club"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </div>
+        )}
+        <div className="container mx-auto max-w-7xl relative z-10">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
             <Button
               variant="ghost"
