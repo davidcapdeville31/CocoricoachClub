@@ -461,8 +461,8 @@ export function generateMethodNote(input: MethodNoteInput): string {
   if (!series?.length) return "";
   switch (methodType) {
     case "drop_set": return genDropSet(series, visibleVariables, exerciseName);
-    case "isometric_overcoming": return genIsometric(series, visibleVariables, exerciseName, "Overcoming");
-    case "isometric_yielding": return genIsometric(series, visibleVariables, exerciseName, "Yielding");
-    default: return genSeries(series, visibleVariables, exerciseName, methodType);
+    case "isometric_overcoming": return genIsometric(series, visibleVariables, exerciseName, "Overcoming", input.methodRestSeconds);
+    case "isometric_yielding": return genIsometric(series, visibleVariables, exerciseName, "Yielding", input.methodRestSeconds);
+    default: return genSeries(series, visibleVariables, exerciseName, methodType, input.methodRestSeconds);
   }
 }
