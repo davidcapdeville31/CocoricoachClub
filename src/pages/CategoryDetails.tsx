@@ -13,6 +13,7 @@ import { usePendingTestResultsCount } from "@/lib/hooks/usePendingTestResultsCou
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CategoryCoverUpload, LogoHoverActions } from "@/components/category/CategoryCoverUpload";
+import { resolveHeaderBackgroundUrl } from "@/lib/constants/headerBackgrounds";
 import { CustomizeBrandingButton } from "@/components/branding/CustomizeBrandingButton";
 import { ClubBrandingProvider } from "@/contexts/ClubBrandingContext";
 import { GlobalPlayerSearch } from "@/components/search/GlobalPlayerSearch";
@@ -219,13 +220,16 @@ function CategoryDetailsContent() {
   return (
     <div className="min-h-screen bg-background">
       <div className="relative py-12 px-4 bg-gradient-hero overflow-hidden">
-        {(category as any)?.header_background_url && (
-          <div
-            className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${(category as any).header_background_url})` }}
-            aria-hidden="true"
-          />
-        )}
+        {(() => {
+          const bgUrl = resolveHeaderBackgroundUrl((category as any)?.header_background_url);
+          return bgUrl ? (
+            <div
+              className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${bgUrl})` }}
+              aria-hidden="true"
+            />
+          ) : null;
+        })()}
         {category?.cover_image_url && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-20">
             <div className="group pointer-events-auto relative h-40 w-40 sm:h-48 sm:w-48 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm">

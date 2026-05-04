@@ -74,3 +74,40 @@ export const HEADER_BACKGROUND_PRESETS: HeaderBackgroundPreset[] = [
   { id: "fresh-snow", label: "Neige", url: freshSnow },
   { id: "mountains", label: "Montagne", url: mountains },
 ];
+
+/**
+ * Résout une valeur stockée en base (qui peut être :
+ *  - un id de preset (ex: "flag-fr")
+ *  - une URL externe (http/https)
+ *  - un ancien chemin bundlé devenu invalide après rebuild
+ *    (ex: "/assets/flag-fr-XXXX.jpg" ou "/src/assets/banner-bg/flag-fr.jpg")
+ * vers l'URL bundlée actuelle. Retourne null si rien n'est trouvé.
+ */
+export function resolveHeaderBackgroundUrl(
+  stored: string | null | undefined,
+): string | null {
+  if (!stored) return null;
+
+  // URL externe : on la garde telle quelle
+  if (/^https?:\/\//i.test(stored)) return stored;
+
+  // 1) Match direct par id de preset
+  const byId = HEADER_BACKGROUND_PRESETS.find((p) => p.id === stored);
+  if (byId) return byId.url || null;
+
+  // 2) Extraire le nom de base du chemin et le matcher au slug du preset.
+  //    Ex: "/assets/flag-fr-DTE71Q8C.jpg" -> "flag-fr"
+  //    Ex: "/src/assets/banner-bg/flag-fr.jpg" -> "flag-fr"
+  const filename = stored.split("/").pop() ?? stored;
+  const baseRaw = filename.replace(/\.[a-z0-9]+$/i, "");
+  // Retirer un éventuel hash Vite final type "-AbC123_x"
+  const base = baseRaw.replace(/-[A-Za-z0-9_-]{6,}$/i, "");
+
+  const bySlug = HEADER_BACKGROUND_PRESETS.find(
+    (p) => p.id === base || p.id === baseRaw,
+  );
+  if (bySlug) return bySlug.url || null;
+
+  // 3) Inconnu : on retourne tel quel (peut casser, mais on n'a pas mieux)
+  return stored;
+}
