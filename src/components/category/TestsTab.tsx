@@ -130,11 +130,10 @@ function TestCategoryTrigger({
       title={editable ? "Double-cliquez pour renommer" : undefined}
       className={cn(
         "group relative inline-flex items-center px-2.5 py-1 rounded-md font-medium text-xs",
-        "transition-all duration-200 ease-out whitespace-nowrap",
+        "transition-all duration-200 ease-out whitespace-nowrap cursor-pointer",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         "hover:opacity-80",
         "data-[state=active]:shadow-sm data-[state=active]:scale-105",
-        editable && "cursor-text",
       )}
       style={{
         borderWidth: "1.5px",
