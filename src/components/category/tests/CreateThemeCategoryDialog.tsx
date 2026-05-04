@@ -26,8 +26,15 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<"create" | "edit">("create");
   const [label, setLabel] = useState("");
+  const [color, setColor] = useState<string>("#6366f1");
   const [editingId, setEditingId] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const PRESET_COLORS = [
+    "#6366f1", "#8b5cf6", "#ec4899", "#ef4444", "#f97316",
+    "#eab308", "#22c55e", "#14b8a6", "#06b6d4", "#3b82f6",
+    "#a855f7", "#64748b",
+  ];
 
   const { data: categoryData } = useQuery({
     queryKey: ["category-club-id", categoryId],
@@ -43,11 +50,11 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
     queryFn: async () => {
       const { data, error } = await supabase
         .from("test_theme_categories" as any)
-        .select("id, label, value")
+        .select("id, label, value, color")
         .eq("category_id", categoryId)
         .order("label");
       if (error) throw error;
-      return (data || []) as unknown as Array<{ id: string; label: string; value: string }>;
+      return (data || []) as unknown as Array<{ id: string; label: string; value: string; color: string | null }>;
     },
     enabled: open,
   });
@@ -56,7 +63,10 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
   useEffect(() => {
     if (mode === "edit" && editingId) {
       const t = existingThemes.find((x) => x.id === editingId);
-      if (t) setLabel(t.label);
+      if (t) {
+        setLabel(t.label);
+        setColor(t.color || "#6366f1");
+      }
     }
   }, [mode, editingId, existingThemes]);
 
@@ -65,6 +75,7 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
     if (!open) {
       setMode("create");
       setLabel("");
+      setColor("#6366f1");
       setEditingId("");
     }
   }, [open]);
@@ -81,7 +92,7 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
         if (!editingId) throw new Error("Sélectionnez une catégorie à modifier");
         const { error } = await supabase
           .from("test_theme_categories" as any)
-          .update({ label: trimmed, value })
+          .update({ label: trimmed, value, color })
           .eq("id", editingId);
         if (error) {
           if (error.code === "23505") throw new Error("Cette catégorie existe déjà");
@@ -96,6 +107,7 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
             club_id: categoryData.club_id,
             value,
             label: trimmed,
+            color,
             created_by: user?.user?.id || null,
           });
         if (error) {
