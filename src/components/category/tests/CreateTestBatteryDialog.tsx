@@ -75,6 +75,7 @@ export function CreateTestBatteryDialog({ open, onOpenChange, categoryId, clubId
   });
 
   useEffect(() => {
+    if (!open) return;
     if (existingBattery?.battery) {
       setName(existingBattery.battery.name);
       setDescription(existingBattery.battery.description || "");
@@ -94,8 +95,12 @@ export function CreateTestBatteryDialog({ open, onOpenChange, categoryId, clubId
         }
       });
       setSelected(sel);
+    } else if (!batteryId) {
+      // Mode création: réinitialiser
+      setName(""); setDescription(""); setSelected({});
+      setLevels(DEFAULT_BATTERY_LEVELS);
     }
-  }, [existingBattery]);
+  }, [existingBattery, open, batteryId]);
 
   const filteredTests = useMemo(() => {
     const q = search.toLowerCase().trim();
