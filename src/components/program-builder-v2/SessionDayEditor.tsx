@@ -982,14 +982,17 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                         exerciseName: ex.exerciseName,
                         stationName: ex.exerciseName,
                         slotIndex: idx,
-                        params: {
-                          sets: ex.sets,
-                          reps: ex.reps,
-                          percentage: ex.percentage,
-                          tempo: ex.tempo,
-                          rest: ex.restSeconds,
-                        },
-                      }))}
+                         params: {
+                           sets: ex.sets,
+                           reps: ex.reps,
+                           percentage: ex.percentage,
+                           load: ex.weight_kg,
+                           rpe: ex.rpe,
+                           rir: ex.rir,
+                           tempo: ex.tempo,
+                           rest: ex.restSeconds,
+                         },
+                       }))}
                       onRemoveFromSlot={(idx) =>
                         handlePersistedGroupRemove(block.id, item.groupId, idx)
                       }
