@@ -410,8 +410,12 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     queryClient.invalidateQueries({ queryKey: ["battery-latest-date-per-player", batteryId, categoryId, battery?.battery?.name] });
     queryClient.invalidateQueries({ queryKey: ["battery-results-list", categoryId, battery?.battery?.name] });
     // Athlete space queries
-    queryClient.invalidateQueries({ queryKey: ["athlete-generic-tests", playerId] });
-    queryClient.invalidateQueries({ queryKey: ["athlete-generic-tests"] });
+    queryClient.invalidateQueries({ queryKey: ["athlete-space-all-tests", playerId] });
+    queryClient.invalidateQueries({ queryKey: ["athlete-space-generic-tests", playerId] });
+    queryClient.invalidateQueries({ queryKey: ["athlete-space-speed-tests", playerId] });
+    queryClient.invalidateQueries({ queryKey: ["athlete-space-strength-tests", playerId] });
+    queryClient.invalidateQueries({ queryKey: ["athlete-space-speed-tests-tab", playerId] });
+    queryClient.invalidateQueries({ queryKey: ["athlete-space-strength-tests-tab", playerId] });
 
     toast.success(`Batterie enregistrée pour cet athlète : ${totalPoints}/${totalMax} pts (${level.label})`);
     setSavedPlayerIds(prev => new Set(prev).add(playerId));
