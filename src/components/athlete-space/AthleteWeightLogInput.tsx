@@ -7,6 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dumbbell, Lock, Plus, Trash2, Zap } from "lucide-react";
 import { resolveSessionExerciseRows } from "@/lib/utils/sessionExercises";
+import { cn } from "@/lib/utils";
+import { ReadOnlyMethodCard } from "@/components/program-builder-v2/ReadOnlyMethodCard";
+import { parseV2MethodConfig } from "@/lib/program-builder-v2/parseV2MethodConfig";
+import { getMethodColors } from "@/components/program-builder-v2/shared/MethodGroupWrapper";
 
 export type WeightLogQuickEntry = {
   mode: "quick";
