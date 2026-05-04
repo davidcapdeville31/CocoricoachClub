@@ -517,7 +517,7 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
       const avatar = await loadImageAsDataUrl(g.avatarUrl);
       if (avatar) {
         try {
-          pdf.addImage(avatar, "PNG", margin, y, 48, 48);
+          pdf.addImage(avatar.data, "PNG", margin, y, 48, 48);
           headerX = margin + 58;
         } catch {/* ignore */}
       }
