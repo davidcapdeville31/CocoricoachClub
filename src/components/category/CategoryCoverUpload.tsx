@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
-import { HEADER_BACKGROUND_PRESETS } from "@/lib/constants/headerBackgrounds";
+import { HEADER_BACKGROUND_PRESETS, resolveHeaderBackgroundUrl } from "@/lib/constants/headerBackgrounds";
 import { cn } from "@/lib/utils";
 
 interface CategoryCoverUploadProps {
