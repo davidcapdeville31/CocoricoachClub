@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, Play, ClipboardList, FileDown } from "lucide-react";
+import { Plus, Pencil, Trash2, Play, ClipboardList, FileDown, CalendarPlus } from "lucide-react";
 import { CreateTestBatteryDialog } from "./CreateTestBatteryDialog";
 import { RunBatteryDialog } from "./RunBatteryDialog";
+import { ScheduleBatteryDialog } from "./ScheduleBatteryDialog";
 import { BatteryResultsList } from "./BatteryResultsList";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -37,6 +38,7 @@ export function TestBatteriesManager({
   };
   const [editId, setEditId] = useState<string | null>(null);
   const [runId, setRunId] = useState<string | null>(null);
+  const [scheduleBattery, setScheduleBattery] = useState<{ id: string; name: string } | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: clubData } = useQuery({
@@ -129,9 +131,18 @@ export function TestBatteriesManager({
                     totalMax={totalMax}
                   />
 
-                  <div className="flex items-center gap-2 pt-2 border-t">
-                    <Button size="sm" className="flex-1 gap-1.5" onClick={() => setRunId(b.id)}>
-                      <Play className="h-3.5 w-3.5" /> Lancer / Saisir des résultats
+                  <div className="flex items-center gap-2 pt-2 border-t flex-wrap">
+                    <Button size="sm" className="flex-1 min-w-[160px] gap-1.5" onClick={() => setRunId(b.id)}>
+                      <Play className="h-3.5 w-3.5" /> Lancer / Saisir
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="gap-1.5"
+                      title="Planifier la batterie sur une ou plusieurs dates"
+                      onClick={() => setScheduleBattery({ id: b.id, name: b.name })}
+                    >
+                      <CalendarPlus className="h-3.5 w-3.5" /> Planifier
                     </Button>
                     <Button
                       size="sm"
@@ -221,6 +232,16 @@ export function TestBatteriesManager({
           open={!!runId}
           onOpenChange={(v) => !v && setRunId(null)}
           batteryId={runId}
+          categoryId={categoryId}
+        />
+      )}
+
+      {scheduleBattery && (
+        <ScheduleBatteryDialog
+          open={!!scheduleBattery}
+          onOpenChange={(v) => !v && setScheduleBattery(null)}
+          batteryId={scheduleBattery.id}
+          batteryName={scheduleBattery.name}
           categoryId={categoryId}
         />
       )}
