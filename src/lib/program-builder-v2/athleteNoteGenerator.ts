@@ -131,7 +131,7 @@ function genDropSet(series: SeriesData[], _vis: string[], _exerciseName?: string
 
 // ─── SERIES GENERIQUES (Pyramid, 5x5, etc.) ────────────────────────────────
 
-function genSeries(series: SeriesData[], _vis: string[], _exerciseName?: string, methodType?: string): string {
+function genSeries(series: SeriesData[], _vis: string[], _exerciseName?: string, methodType?: string, restSeconds?: number): string {
   if (series.length === 0) return "";
   const lines: string[] = [];
 
@@ -149,13 +149,16 @@ function genSeries(series: SeriesData[], _vis: string[], _exerciseName?: string,
   }
 
   lines.push(`${pl(series.length, "série")} à réaliser selon les variables prescrites.`);
+  if (restSeconds && restSeconds > 0) {
+    lines.push(`Repos : ${fmt(restSeconds)} entre chaque série.`);
+  }
 
   return lines.join("\n");
 }
 
 // ─── ISOMETRIC ──────────────────────────────────────────────────────────────
 
-function genIsometric(series: SeriesData[], _vis: string[], _exerciseName?: string, type = "Overcoming"): string {
+function genIsometric(series: SeriesData[], _vis: string[], _exerciseName?: string, type = "Overcoming", restSeconds?: number): string {
   if (series.length === 0) return "";
   const lines: string[] = [];
 
@@ -167,6 +170,9 @@ function genIsometric(series: SeriesData[], _vis: string[], _exerciseName?: stri
   lines.push(name);
   lines.push(desc);
   lines.push(`${pl(series.length, "série")} à réaliser selon les variables prescrites.`);
+  if (restSeconds && restSeconds > 0) {
+    lines.push(`Repos : ${fmt(restSeconds)} entre chaque série.`);
+  }
 
   return lines.join("\n");
 }
