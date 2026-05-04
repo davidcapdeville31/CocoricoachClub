@@ -49,6 +49,7 @@ function TestCategoryTrigger({
   customColor,
   editable = false,
   onRename,
+  onClickOverride,
 }: {
   value: string;
   label: string;
@@ -56,6 +57,7 @@ function TestCategoryTrigger({
   customColor?: string | null;
   editable?: boolean;
   onRename?: (newLabel: string) => Promise<void> | void;
+  onClickOverride?: () => void;
 }) {
   const color = customColor || TEST_TAB_COLORS[colorIndex % TEST_TAB_COLORS.length];
   const [isEditing, setIsEditing] = useState(false);
@@ -127,6 +129,7 @@ function TestCategoryTrigger({
     <TabsPrimitive.Trigger
       value={value}
       onDoubleClick={editable ? () => setIsEditing(true) : undefined}
+      onClick={onClickOverride ? (e) => { e.preventDefault(); onClickOverride(); } : undefined}
       title={editable ? "Double-cliquez pour renommer" : undefined}
       className={cn(
         "group relative inline-flex items-center px-2.5 py-1 rounded-md font-medium text-xs",
@@ -350,6 +353,7 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
   const [isCreateTestOpen, setIsCreateTestOpen] = useState(false);
   const [isCreateBatteryOpen, setIsCreateBatteryOpen] = useState(false);
   const [isPlanTestOpen, setIsPlanTestOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("all");
 
   return (
     <Card className="bg-gradient-card shadow-md">
@@ -391,10 +395,21 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="all" className="space-y-4">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v)}
+          className="space-y-4"
+        >
           <ScrollArea className="w-full">
             <ColoredNavTabsList className="flex flex-wrap w-full gap-1 p-1.5">
-              <TestCategoryTrigger value="all" label="Tous" colorIndex={0} />
+              <TestCategoryTrigger
+                value="all"
+                label={activeTab === "all" ? "Aucun" : "Tous"}
+                colorIndex={0}
+                onClickOverride={() => {
+                  setActiveTab(activeTab === "all" ? "none" : "all");
+                }}
+              />
               {filteredNonRehab.map((cat, i) => (
                 <TestCategoryTrigger
                   key={cat.value}
