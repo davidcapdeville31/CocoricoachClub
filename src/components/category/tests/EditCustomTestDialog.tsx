@@ -236,6 +236,23 @@ export function EditCustomTestDialog({ open, onOpenChange, categoryId, sportType
           .update(payload)
           .eq("id", test.id);
         if (error) throw error;
+      } else if (test.source === "system" && test.systemTestId) {
+        // SYSTEM: clone via RPC puis update du clone (override personnel)
+        const { data: clonedId, error: cloneErr } = await supabase.rpc(
+          "clone_system_test_to_club" as any,
+          { _system_test_id: test.systemTestId, _club_id: categoryData.club_id } as any,
+        );
+        if (cloneErr) throw cloneErr;
+        const newId = clonedId as unknown as string;
+        const { error: upErr } = await supabase
+          .from("custom_tests")
+          .update(payload)
+          .eq("id", newId);
+        if (upErr) throw upErr;
+        // S'assurer du lien à la catégorie courante
+        await supabase
+          .from("custom_test_categories")
+          .insert({ custom_test_id: newId, category_id: categoryId } as any);
       } else {
         // SEED: crée un nouveau custom_test (override) lié à la catégorie courante
         const { data: user } = await supabase.auth.getUser();
