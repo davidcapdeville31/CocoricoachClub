@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useDroppable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
-import { Dumbbell, X, Plus, SlidersHorizontal, Copy, CheckCheck, Trash2, Pencil, Hash } from "lucide-react";
+import { Dumbbell, X, Plus, SlidersHorizontal, Copy, CheckCheck, Trash2, Pencil, Hash, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MethodActionButtons } from "./shared/MethodActionButtons";
