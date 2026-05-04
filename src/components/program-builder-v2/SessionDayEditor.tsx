@@ -337,6 +337,25 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
     [blocks, onChange],
   );
 
+  // Réorganise une méthode (single ou groupe) à l'intérieur d'un bloc
+  const moveItemInBlock = useCallback(
+    (blockId: string, itemIndex: number, direction: -1 | 1) => {
+      const block = blocks.find((b) => b.id === blockId);
+      if (!block) return;
+      const items = groupBlockExercises(block.exercises ?? []);
+      const target = itemIndex + direction;
+      if (target < 0 || target >= items.length) return;
+      const reordered = [...items];
+      const [moved] = reordered.splice(itemIndex, 1);
+      reordered.splice(target, 0, moved);
+      const flat: V2BlockExercise[] = reordered.flatMap((it) =>
+        it.type === "group" ? it.exercises : [it.exercise],
+      );
+      onChange(blocks.map((b) => (b.id === blockId ? { ...b, exercises: flat } : b)));
+    },
+    [blocks, onChange],
+  );
+
   const updateExerciseField = useCallback(
     (blockId: string, exerciseId: string, key: string, value: any) => {
       onChange(
