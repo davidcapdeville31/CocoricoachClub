@@ -46,6 +46,7 @@ interface GenericTestsSectionProps {
   categoryId: string;
   sportType?: string;
   defaultCategory?: string;
+  hideTestCatalog?: boolean;
 }
 
 export function BatteryRadarCharts({
