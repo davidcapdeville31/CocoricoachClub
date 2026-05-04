@@ -41,8 +41,8 @@ const TEST_TAB_COLORS = [
   "hsl(10 80% 55%)",    // coral
 ] as const;
 
-function TestCategoryTrigger({ value, label, colorIndex }: { value: string; label: string; colorIndex: number }) {
-  const color = TEST_TAB_COLORS[colorIndex % TEST_TAB_COLORS.length];
+function TestCategoryTrigger({ value, label, colorIndex, customColor }: { value: string; label: string; colorIndex: number; customColor?: string | null }) {
+  const color = customColor || TEST_TAB_COLORS[colorIndex % TEST_TAB_COLORS.length];
 
   return (
     <TabsPrimitive.Trigger
