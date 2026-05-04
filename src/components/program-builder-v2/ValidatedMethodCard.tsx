@@ -57,7 +57,21 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
   const colors = getMethodColors(method);
   const label = METHOD_LABELS[method] ?? method;
   const config = (exercise.config ?? {}) as any;
-  const series: any[] = Array.isArray(config.series) ? config.series : [];
+  const rawSeries: any[] = Array.isArray(config.series) ? config.series : [];
+  const methodExercises: any[] = Array.isArray(config.methodExercises) ? config.methodExercises : [];
+  // For EMOM/Circuit/Tabata/Death By → use methodExercises (1 row per exercise) like For Time
+  // instead of `series` (which can contain N rows for N intervals/rounds).
+  const useMethodExercises = ["emom", "circuit", "tabata", "death_by"].includes(method) && methodExercises.length > 0;
+  const series: any[] = useMethodExercises
+    ? methodExercises.map((ex: any) => ({
+        reps: ex.reps,
+        percentage: ex.percentage,
+        load: ex.load,
+        tempo: ex.tempo,
+        rpe: ex.rpe,
+        exerciseName: ex.exerciseName,
+      }))
+    : rawSeries;
   const restPauseConfig: RestPauseConfig | undefined = config.restPauseConfig;
   const isRestPause = method === "rest_pause" && restPauseConfig?.series?.length;
   const dropName: string =
