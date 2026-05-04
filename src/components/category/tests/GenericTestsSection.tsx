@@ -837,7 +837,7 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                   onClick={() => {
                     if (isViewer) return;
                     setEditingTest({
-                      id: t.id,
+                      id: t.is_system ? undefined : t.id,
                       name: t.name,
                       test_category: t.test_category,
                       unit: t.unit,
@@ -848,12 +848,13 @@ export function GenericTestsSection({ categoryId, sportType, defaultCategory }: 
                       image_url: t.image_url ?? null,
                       video_url: t.video_url ?? null,
                       bilateral: (t as any).bilateral ?? false,
-                      source: "custom",
+                      source: t.is_system ? "system" : "custom",
+                      systemTestId: t.is_system ? t.id : undefined,
                     });
                     setIsEditDialogOpen(true);
                   }}
                   className={`group inline-flex items-center gap-2 rounded-2xl bg-background border hover:border-primary hover:bg-accent transition-colors text-sm ${t.image_url ? "p-1.5 pr-3" : "px-2.5 py-1 text-xs"}`}
-                  title={isViewer ? (t.description || "") : "Cliquer pour modifier ce test"}
+                  title={isViewer ? (t.description || "") : (t.is_system ? "Test système (modifier crée une copie locale)" : "Cliquer pour modifier ce test")}
                 >
                   {t.image_url && (
                     <img
