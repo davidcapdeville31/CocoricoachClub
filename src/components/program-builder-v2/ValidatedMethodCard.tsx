@@ -342,6 +342,21 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
                     RPE {s.rpe}
                   </Badge>
                 )}
+                {s.angle != null && s.angle !== "" && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                    Angle {s.angle}°
+                  </Badge>
+                )}
+                {s.timeUnderTension != null && s.timeUnderTension !== "" && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                    TST {s.timeUnderTension}s
+                  </Badge>
+                )}
+                {s.rir != null && s.rir !== "" && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
+                    RIR {s.rir}
+                  </Badge>
+                )}
                 {s.reductionValue != null && idx > 0 && (
                   <Badge
                     variant="outline"
