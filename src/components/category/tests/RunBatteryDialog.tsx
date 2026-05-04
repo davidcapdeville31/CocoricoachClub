@@ -63,6 +63,9 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     const d = new Date();
     return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   });
+  // Track the date that originally loaded existing results for the selected player.
+  // If the user changes savedDate to correct it, we must also delete the old-date rows on save.
+  const [originalDateByPlayer, setOriginalDateByPlayer] = useState<Record<string, string>>({});
 
   const buildBaseTestType = (testName: string) => `custom_${testName?.toLowerCase().replace(/\s+/g, "_")}`;
 
