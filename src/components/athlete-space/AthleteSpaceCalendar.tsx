@@ -497,7 +497,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     </Badge>
                                   )}
                                   {isCompleted && <CheckCircle2 className="h-4 w-4 text-status-optimal" />}
-                                  {exercises.length > 0 && (isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />)}
+                                  {(exercises.length > 0 || ((session as any).notes || "").replace(/<!--[\s\S]*?-->/g, "").trim()) && (isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />)}
                                 </div>
                               </div>
                             </button>
