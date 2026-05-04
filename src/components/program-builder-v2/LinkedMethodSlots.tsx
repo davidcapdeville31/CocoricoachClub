@@ -403,8 +403,8 @@ const AddParamButton = ({
   if (availableParams.length === 0) return null;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild>
         <Button
           type="button"
           variant="outline"
@@ -419,29 +419,30 @@ const AddParamButton = ({
         >
           <Plus className="h-3 w-3" />
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-36 p-2 z-[60]" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
-        <div className="space-y-1">
-          <p className="text-[10px] font-medium text-muted-foreground px-1">Ajouter</p>
-          {availableParams.map((param) => (
-            <button
-              key={param.key}
-              type="button"
-              onPointerDown={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                onAdd(param.key);
-                setOpen(false);
-              }}
-              className="w-full text-left px-2 py-1 text-xs rounded hover:bg-accent transition-colors"
-            >
-              {param.label}
-            </button>
-          ))}
-        </div>
-      </PopoverContent>
-    </Popover>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        className="w-40 z-[80]"
+        align="start"
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
+        <DropdownMenuLabel className="text-[10px] text-muted-foreground py-1">
+          Ajouter une variable
+        </DropdownMenuLabel>
+        {availableParams.map((param) => (
+          <DropdownMenuItem
+            key={param.key}
+            onSelect={(e) => {
+              e.preventDefault();
+              onAdd(param.key);
+              setOpen(false);
+            }}
+            className="text-xs cursor-pointer"
+          >
+            {param.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
