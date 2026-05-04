@@ -321,7 +321,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
         return true;
       },
     }),
-    [linkedDrafts, configDrafts, addExerciseToBlock],
+    [linkedDrafts, configDrafts, clusterDrafts, addExerciseToBlock],
   );
 
   const removeExerciseFromBlock = useCallback(
