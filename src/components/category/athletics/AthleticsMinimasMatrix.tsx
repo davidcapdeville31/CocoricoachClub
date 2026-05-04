@@ -272,12 +272,14 @@ export function AthleticsMinimasMatrix({ categoryId }: Props) {
         };
       });
 
-      exportAthleticsMinimasReport({
+      await exportAthleticsMinimasReport({
         clubName: (cat?.clubs as any)?.name || "Club",
         categoryName: cat?.name || "Catégorie",
         players: exportPlayers,
         minimas,
         records,
+        categoryId,
+        clubId: (cat as any)?.club_id || null,
       });
       toast.success("PDF généré avec succès");
     } catch (e: any) {
