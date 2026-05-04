@@ -41,8 +41,8 @@ const TEST_TAB_COLORS = [
   "hsl(10 80% 55%)",    // coral
 ] as const;
 
-function TestCategoryTrigger({ value, label, colorIndex }: { value: string; label: string; colorIndex: number }) {
-  const color = TEST_TAB_COLORS[colorIndex % TEST_TAB_COLORS.length];
+function TestCategoryTrigger({ value, label, colorIndex, customColor }: { value: string; label: string; colorIndex: number; customColor?: string | null }) {
+  const color = customColor || TEST_TAB_COLORS[colorIndex % TEST_TAB_COLORS.length];
 
   return (
     <TabsPrimitive.Trigger
@@ -102,12 +102,20 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("test_theme_categories" as any)
-        .select("value, label")
+        .select("value, label, color")
         .eq("category_id", categoryId);
       if (error) throw error;
-      return (data || []) as unknown as Array<{ value: string; label: string }>;
+      return (data || []) as unknown as Array<{ value: string; label: string; color: string | null }>;
     },
   });
+
+  const themeColorMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (themeCategories || []).forEach((tc) => {
+      if (tc.color) m.set(tc.value, tc.color);
+    });
+    return m;
+  }, [themeCategories]);
 
   const testCategories = useMemo(() => {
     const all = getTestCategoriesForSport(sportType || "");
@@ -246,6 +254,7 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
                   value={cat.value}
                   label={cat.label}
                   colorIndex={i + 1}
+                  customColor={themeColorMap.get(cat.value)}
                 />
               ))}
               {showRehab && (
