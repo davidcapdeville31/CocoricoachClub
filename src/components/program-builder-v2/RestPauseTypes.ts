@@ -30,11 +30,12 @@ export interface RestPauseSeries {
   tempo?: string;
   rpe?: number;
   rir?: number;
+  reps?: number; // Nombre de répétitions cible (optionnel, par série)
 }
 
 /** Variables dynamiques disponibles pour Rest-Pause */
 export interface RestPauseVariable {
-  key: keyof Pick<RestPauseSeries, 'percentage' | 'load' | 'tempo' | 'rpe' | 'rir'>;
+  key: keyof Pick<RestPauseSeries, 'percentage' | 'load' | 'tempo' | 'rpe' | 'rir' | 'reps'>;
   label: string;
   placeholder: string;
   unit?: string;
@@ -44,6 +45,7 @@ export interface RestPauseVariable {
 export const REST_PAUSE_VARIABLES: RestPauseVariable[] = [
   { key: 'load', label: 'Charge', placeholder: '50', unit: 'kg', type: 'number' },
   { key: 'percentage', label: '%1RM', placeholder: '75', unit: '%', type: 'number' },
+  { key: 'reps', label: 'Reps', placeholder: '8', unit: 'reps', type: 'number' },
   { key: 'tempo', label: 'Tempo', placeholder: '2-0-1-0', type: 'text' },
   { key: 'rpe', label: 'RPE', placeholder: '10', type: 'number' },
   { key: 'rir', label: 'RIR', placeholder: '0', type: 'number' },
