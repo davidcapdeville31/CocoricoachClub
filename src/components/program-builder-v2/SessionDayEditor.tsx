@@ -999,8 +999,7 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
                           variant="ghost"
                           size="icon"
                           className="h-5 w-5 text-muted-foreground hover:text-primary"
-                          disabled={itemIdx === 0}
-                          onClick={() => moveItemInBlock(block.id, itemIdx, -1)}
+                          onClick={() => itemIdx > 0 && moveItemInBlock(block.id, itemIdx, -1)}
                           title="Monter"
                         >
                           <ChevronUp className="h-3.5 w-3.5" />
