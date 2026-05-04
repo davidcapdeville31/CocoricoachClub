@@ -736,7 +736,9 @@ const LinkedMethodSlotsContent = ({
   const filledCount = slottedExercises.length;
   const isComplete = filledCount >= minRequired;
   const slotsToShow = isDynamic 
-    ? Math.max(config.minSlots, Math.min(filledCount + 1, config.slots))
+    ? (isEditing
+        ? Math.max(config.minSlots, Math.min(filledCount + 1, config.slots))
+        : Math.max(config.minSlots, filledCount))
     : config.slots;
 
   // Handler de validation: passe en lecture seule
