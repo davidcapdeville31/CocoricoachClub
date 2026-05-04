@@ -472,6 +472,69 @@ function renderRichHtml(
   return cursorY;
 }
 
+function estimateRichHtmlHeight(
+  pdf: jsPDF,
+  html: string,
+  width: number,
+  baseStyle: Partial<RtStyle> | undefined,
+): number {
+  const base: RtStyle = {
+    bold: false,
+    italic: false,
+    underline: false,
+    size: baseStyle?.size ?? 10,
+    color: baseStyle?.color ?? [60, 60, 60],
+    align: baseStyle?.align ?? "left",
+  };
+  const tokens = tokenizeHtml(html, base);
+
+  let totalH = 0;
+  let lineW = 0;
+  let lineH = 0;
+  let lineGap = 2;
+  let pendingBullet: string | undefined;
+
+  const flushLine = () => {
+    totalH += (lineH || 12) + lineGap;
+    lineW = 0;
+    lineH = 0;
+  };
+
+  const pushTextRun = (rawText: string, style: RtStyle) => {
+    if (!rawText) return;
+    const cleaned = rawText.replace(/<\/?[a-z][^>]*>/gi, "");
+    if (!cleaned) return;
+    setRunFont(pdf, style);
+    const words = cleaned.split(/(\s+)/);
+    for (const w of words) {
+      if (!w) continue;
+      const ww = pdf.getTextWidth(safe(w));
+      const indent = pendingBullet ? 14 : 0;
+      if (lineW + ww > width - indent && lineW > 0 && !/^\s+$/.test(w)) {
+        flushLine();
+        pendingBullet = undefined;
+      }
+      if (lineW === 0 && /^\s+$/.test(w)) continue;
+      lineW += ww;
+      lineH = Math.max(lineH, style.size + 2);
+    }
+  };
+
+  for (const t of tokens) {
+    if (t.type === "para") {
+      flushLine();
+      if (t.bullet) pendingBullet = t.bullet;
+    } else if (t.type === "break") {
+      flushLine();
+      pendingBullet = undefined;
+    } else if (t.type === "text") {
+      pushTextRun(t.text, t.style);
+    }
+  }
+  flushLine();
+  return totalH;
+}
+
 /** Strip HTML to detect emptiness */
 function htmlIsEmpty(html: string | null | undefined): boolean {
   if (!html) return true;
