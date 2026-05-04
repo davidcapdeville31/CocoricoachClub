@@ -153,8 +153,8 @@ function computeZoneSvgRect(
   goalsOnRight: boolean
 ): { x: number; y: number; w: number; h: number } {
   // Convert distance meters to SVG x positions
-  const tryLineX = goalsOnRight ? 540 : 60;
-  const mToSvg = FIELD_W / FIELD_LENGTH_M;
+  const tryLineX = goalsOnRight ? TRY_LINE_RIGHT_X : TRY_LINE_LEFT_X;
+  const mToSvg = IN_PLAY_W / FIELD_LENGTH_M;
 
   let x1: number, x2: number;
   if (goalsOnRight) {
