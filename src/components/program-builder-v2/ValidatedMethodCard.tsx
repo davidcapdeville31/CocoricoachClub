@@ -369,6 +369,61 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
             `${exercise.sets} × ${exercise.reps}`}
         </div>
       )}
+
+      {/* Coach notes / consignes complémentaires (rendu en bas) */}
+      {(() => {
+        // 1) coachNotes stocké dans config (Fartlek, Cluster, et tout payload custom)
+        const configNote: string | undefined =
+          (config.coachNotes as string | undefined) ||
+          (config.notes as string | undefined);
+
+        // 2) Notes libres saisies dans exercise.notes — on retire les balises
+        // <!--...--> et la ligne de résumé auto (ex. "Tabata 20/10 × 8") qui
+        // est déjà visible dans l'en-tête.
+        let freeNote = "";
+        if (exercise.notes) {
+          const stripped = exercise.notes.replace(/<!--[\s\S]*?-->/g, "").trim();
+          if (stripped) {
+            const lines = stripped.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+            // Skip first line if it looks like the auto summary (commence par le label méthode)
+            if (lines[0]?.toLowerCase().startsWith(label.toLowerCase())) {
+              lines.shift();
+            }
+            freeNote = lines.join("\n").trim();
+          }
+        }
+
+        // 3) Per-exercise coach notes (méthodes circuit/EMOM/Tabata/Death By)
+        const perExNotes: Array<{ name?: string; note: string }> = [];
+        const phaseList: any[] = Array.isArray(config.methodExercises) ? config.methodExercises : [];
+        for (const ex of phaseList) {
+          if (ex?.coachNotes && String(ex.coachNotes).trim()) {
+            perExNotes.push({ name: ex.exerciseName, note: String(ex.coachNotes).trim() });
+          }
+        }
+
+        if (!configNote && !freeNote && perExNotes.length === 0) return null;
+
+        return (
+          <div className={cn("px-3 py-2 border-t space-y-1.5", colors.bg, colors.border)}>
+            <div className={cn("text-[10px] font-semibold uppercase tracking-wide", colors.text)}>
+              💡 Consignes du coach
+            </div>
+            {configNote && (
+              <p className="text-xs text-foreground/80 whitespace-pre-wrap">{configNote}</p>
+            )}
+            {freeNote && (
+              <p className="text-xs text-foreground/80 whitespace-pre-wrap">{freeNote}</p>
+            )}
+            {perExNotes.map((p, i) => (
+              <p key={i} className="text-xs text-foreground/80 whitespace-pre-wrap">
+                {p.name && <span className="font-medium">{p.name} : </span>}
+                {p.note}
+              </p>
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 };
