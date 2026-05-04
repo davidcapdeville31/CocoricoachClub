@@ -85,20 +85,20 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
       if (!categoryData?.club_id) throw new Error("Club introuvable");
       const trimmed = label.trim();
       if (!trimmed) throw new Error("Le nom de la catégorie est requis");
-      const value = normalizeCustomTestType(trimmed);
-      if (!value) throw new Error("Nom de catégorie invalide");
 
       if (mode === "edit") {
         if (!editingId) throw new Error("Sélectionnez une catégorie à modifier");
         const { error } = await supabase
           .from("test_theme_categories" as any)
-          .update({ label: trimmed, value, color })
+          .update({ label: trimmed, color })
           .eq("id", editingId);
         if (error) {
           if (error.code === "23505") throw new Error("Cette catégorie existe déjà");
           throw error;
         }
       } else {
+        const value = normalizeCustomTestType(trimmed);
+        if (!value) throw new Error("Nom de catégorie invalide");
         const { data: user } = await supabase.auth.getUser();
         const { error } = await supabase
           .from("test_theme_categories" as any)
@@ -198,7 +198,7 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
           )}
 
           <div className="space-y-2 py-2">
-            <Label>{mode === "edit" ? "Nouveau nom" : "Nom de la catégorie"}</Label>
+            <Label>{mode === "edit" ? "Titre affiché" : "Nom de la catégorie"}</Label>
             <Input
               value={label}
               onChange={(e) => setLabel(e.target.value)}
@@ -240,10 +240,10 @@ export function CreateThemeCategoryDialog({ open, onOpenChange, categoryId }: Cr
               </Button>
             )}
             <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
-            <Button onClick={handleSubmit} disabled={saveMutation.isPending}>
+            <Button onClick={handleSubmit}>
               {saveMutation.isPending
                 ? (mode === "edit" ? "Modification..." : "Création...")
-                : (mode === "edit" ? "Modifier" : "Créer la catégorie")}
+                : (mode === "edit" ? "Enregistrer" : "Créer la catégorie")}
             </Button>
           </DialogFooter>
         </DialogContent>
