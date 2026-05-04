@@ -52,16 +52,16 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
   // --- Variable operations ---
   const addVariable = (varKey: string) => {
     const newVisibleVars = [...visibleVariables, varKey];
-    // Rest-Pause: all reps are MAX → auto-set RPE=10, RIR=0 when adding
+    // Pré-remplit avec une valeur par défaut sensible (modifiable ensuite)
     if (varKey === 'rpe') {
-      update({ 
+      update({
         visibleVariables: newVisibleVars,
-        series: series.map(s => ({ ...s, rpe: 10 })),
+        series: series.map(s => ({ ...s, rpe: s.rpe ?? 10 })),
       });
     } else if (varKey === 'rir') {
       update({
         visibleVariables: newVisibleVars,
-        series: series.map(s => ({ ...s, rir: 0 })),
+        series: series.map(s => ({ ...s, rir: s.rir ?? 0 })),
       });
     } else {
       update({ visibleVariables: newVisibleVars });
