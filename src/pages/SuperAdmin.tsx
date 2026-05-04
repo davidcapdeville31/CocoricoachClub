@@ -144,10 +144,14 @@ import { SuperAdminArsenalBank } from "@/components/super-admin/SuperAdminArsena
                    <Dumbbell className="h-4 w-4" />
                    Exercices
                  </TabsTrigger>
-                 <TabsTrigger value="test-bank" className="flex items-center gap-2">
-                   <ClipboardList className="h-4 w-4" />
-                   Banque de tests
-                 </TabsTrigger>
+                  <TabsTrigger value="test-bank" className="flex items-center gap-2">
+                    <ClipboardList className="h-4 w-4" />
+                    Banque de tests
+                  </TabsTrigger>
+                  <TabsTrigger value="arsenal-bank" className="flex items-center gap-2">
+                    <CircleDot className="h-4 w-4" />
+                    Banque Arsenal
+                  </TabsTrigger>
                   <TabsTrigger value="audit" className="flex items-center gap-2">
                     <Shield className="h-4 w-4" />
                     Sécurité &amp; Audit
