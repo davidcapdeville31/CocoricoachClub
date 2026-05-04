@@ -195,6 +195,287 @@ function buildRadarPng(
   return canvas.toDataURL("image/png");
 }
 
+// ===== HTML → jsPDF rich text renderer =====
+type RtStyle = {
+  bold: boolean;
+  italic: boolean;
+  underline: boolean;
+  size: number;
+  color: [number, number, number];
+  align: "left" | "center" | "right" | "justify";
+};
+type RtToken =
+  | { type: "text"; text: string; style: RtStyle }
+  | { type: "break"; style: RtStyle }
+  | { type: "para"; style: RtStyle; bullet?: string };
+
+function cloneStyle(s: RtStyle): RtStyle {
+  return { ...s, color: [...s.color] as [number, number, number] };
+}
+function parseColor(v: string | null): [number, number, number] | null {
+  if (!v) return null;
+  v = v.trim();
+  const hex = v.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (hex) {
+    let h = hex[1];
+    if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+  const rgb = v.match(/rgba?\(([^)]+)\)/i);
+  if (rgb) {
+    const p = rgb[1].split(",").map((x) => parseFloat(x.trim()));
+    return [p[0] | 0, p[1] | 0, p[2] | 0];
+  }
+  return null;
+}
+function applyInlineStyle(style: RtStyle, attr: string | null): RtStyle {
+  if (!attr) return style;
+  const out = cloneStyle(style);
+  attr.split(";").forEach((decl) => {
+    const i = decl.indexOf(":");
+    if (i < 0) return;
+    const k = decl.slice(0, i).trim().toLowerCase();
+    const v = decl.slice(i + 1).trim();
+    if (k === "font-weight") {
+      const n = parseInt(v, 10);
+      out.bold = !isNaN(n) ? n >= 600 : /bold/i.test(v);
+    } else if (k === "font-style") {
+      out.italic = /italic|oblique/i.test(v);
+    } else if (k === "text-decoration" || k === "text-decoration-line") {
+      if (/underline/i.test(v)) out.underline = true;
+      if (/none/i.test(v)) out.underline = false;
+    } else if (k === "font-size") {
+      const m = v.match(/(\d+(?:\.\d+)?)\s*(px|pt|em|rem)?/);
+      if (m) {
+        const n = parseFloat(m[1]);
+        const unit = (m[2] || "px").toLowerCase();
+        let pt = n;
+        if (unit === "px") pt = n * 0.75;
+        else if (unit === "em" || unit === "rem") pt = n * 12;
+        out.size = Math.max(6, Math.min(28, pt));
+      }
+    } else if (k === "text-align") {
+      if (/^(left|right|center|justify)$/i.test(v)) out.align = v.toLowerCase() as RtStyle["align"];
+    } else if (k === "color") {
+      const c = parseColor(v);
+      if (c) out.color = c;
+    }
+  });
+  return out;
+}
+
+function tokenizeHtml(html: string, base: RtStyle): RtToken[] {
+  const tokens: RtToken[] = [];
+  let doc: Document;
+  try {
+    doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
+  } catch {
+    tokens.push({ type: "text", text: html.replace(/<[^>]+>/g, " "), style: base });
+    return tokens;
+  }
+  const root = doc.body.firstElementChild as HTMLElement | null;
+  if (!root) return tokens;
+
+  const blockTags = new Set(["p", "div", "h1", "h2", "h3", "h4", "h5", "h6", "li", "blockquote", "pre"]);
+
+  let pendingBullet: string | undefined;
+  let listDepth = 0;
+
+  const walk = (node: Node, style: RtStyle) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const txt = (node.textContent || "").replace(/\s+/g, " ");
+      if (txt) tokens.push({ type: "text", text: txt, style });
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const el = node as HTMLElement;
+    const tag = el.tagName.toLowerCase();
+
+    if (tag === "br") {
+      tokens.push({ type: "break", style });
+      return;
+    }
+
+    let s = cloneStyle(style);
+    if (tag === "strong" || tag === "b") s.bold = true;
+    if (tag === "em" || tag === "i") s.italic = true;
+    if (tag === "u" || tag === "ins") s.underline = true;
+    if (tag === "h1") { s.bold = true; s.size = Math.max(s.size, 14); }
+    if (tag === "h2") { s.bold = true; s.size = Math.max(s.size, 13); }
+    if (tag === "h3") { s.bold = true; s.size = Math.max(s.size, 12); }
+    s = applyInlineStyle(s, el.getAttribute("style"));
+    const align = el.getAttribute("align");
+    if (align && /^(left|right|center|justify)$/i.test(align)) {
+      s.align = align.toLowerCase() as RtStyle["align"];
+    }
+
+    const isBlock = blockTags.has(tag);
+    const isList = tag === "ul" || tag === "ol";
+    if (isBlock) tokens.push({ type: "para", style: s, bullet: pendingBullet });
+    pendingBullet = undefined;
+
+    if (isList) listDepth++;
+    let liIdx = 0;
+    el.childNodes.forEach((child) => {
+      if (isList && (child as HTMLElement).tagName?.toLowerCase() === "li") {
+        liIdx++;
+        pendingBullet = tag === "ol" ? `${liIdx}.` : "•";
+      }
+      walk(child, s);
+    });
+    if (isList) listDepth--;
+
+    if (isBlock) tokens.push({ type: "para", style: s });
+  };
+
+  root.childNodes.forEach((n) => walk(n, base));
+  // Compact consecutive paras
+  const out: RtToken[] = [];
+  for (const t of tokens) {
+    if (t.type === "para" && out.length && out[out.length - 1].type === "para" && !t.bullet) continue;
+    out.push(t);
+  }
+  return out;
+}
+
+function setRunFont(pdf: jsPDF, s: RtStyle) {
+  const style = s.bold && s.italic ? "bolditalic" : s.bold ? "bold" : s.italic ? "italic" : "normal";
+  pdf.setFont("helvetica", style);
+  pdf.setFontSize(s.size);
+  pdf.setTextColor(s.color[0], s.color[1], s.color[2]);
+}
+
+/**
+ * Render rich HTML inside a box. Returns the new Y after drawing.
+ * Handles auto page-break via onNeedPage callback.
+ */
+function renderRichHtml(
+  pdf: jsPDF,
+  html: string,
+  x: number,
+  y: number,
+  width: number,
+  baseStyle: Partial<RtStyle> | undefined,
+  opts: {
+    pageH: number;
+    bottomMargin: number;
+    onNewPage: () => { x: number; y: number; width: number };
+  },
+): number {
+  const base: RtStyle = {
+    bold: false,
+    italic: false,
+    underline: false,
+    size: baseStyle?.size ?? 10,
+    color: baseStyle?.color ?? [60, 60, 60],
+    align: baseStyle?.align ?? "left",
+  };
+  const tokens = tokenizeHtml(html, base);
+
+  let cursorX = x;
+  let cursorY = y;
+  let curX = x;
+  let curWidth = width;
+  let lineGap = 2;
+
+  // Buffer of segments for current line: { text, style, w }
+  type Seg = { text: string; style: RtStyle; w: number; bullet?: string };
+  let line: Seg[] = [];
+  let lineH = 0;
+  let lineAlign: RtStyle["align"] = "left";
+  let pendingBullet: string | undefined;
+
+  const ensureSpace = (h: number) => {
+    if (cursorY + h > opts.pageH - opts.bottomMargin) {
+      const nx = opts.onNewPage();
+      curX = nx.x;
+      curWidth = nx.width;
+      cursorX = nx.x;
+      cursorY = nx.y;
+    }
+  };
+
+  const flushLine = () => {
+    if (line.length === 0) {
+      cursorY += (lineH || 12) + lineGap;
+      lineH = 0;
+      cursorX = curX;
+      return;
+    }
+    ensureSpace(lineH);
+    let totalW = line.reduce((a, b) => a + b.w, 0);
+    let startX = curX;
+    if (lineAlign === "center") startX = curX + (curWidth - totalW) / 2;
+    else if (lineAlign === "right") startX = curX + (curWidth - totalW);
+    let bx = startX;
+    if (pendingBullet) {
+      setRunFont(pdf, line[0].style);
+      pdf.text(pendingBullet, curX, cursorY + lineH * 0.8);
+      pendingBullet = undefined;
+    }
+    for (const seg of line) {
+      setRunFont(pdf, seg.style);
+      const baselineY = cursorY + lineH * 0.8;
+      pdf.text(seg.text, bx, baselineY);
+      if (seg.style.underline) {
+        const uy = baselineY + 1.5;
+        pdf.setDrawColor(seg.style.color[0], seg.style.color[1], seg.style.color[2]);
+        pdf.setLineWidth(0.5);
+        pdf.line(bx, uy, bx + seg.w, uy);
+      }
+      bx += seg.w;
+    }
+    cursorY += lineH + lineGap;
+    cursorX = curX;
+    line = [];
+    lineH = 0;
+  };
+
+  const pushTextRun = (rawText: string, style: RtStyle) => {
+    if (!rawText) return;
+    setRunFont(pdf, style);
+    // Split on spaces but keep them with the previous word for natural wrapping
+    const words = rawText.split(/(\s+)/);
+    for (const w of words) {
+      if (!w) continue;
+      const ww = pdf.getTextWidth(safe(w));
+      const usedW = line.reduce((a, b) => a + b.w, 0);
+      const indent = pendingBullet ? 14 : 0;
+      if (usedW + ww > curWidth - indent && line.length > 0 && !/^\s+$/.test(w)) {
+        flushLine();
+      }
+      // Skip leading whitespace at start of new line
+      if (line.length === 0 && /^\s+$/.test(w)) continue;
+      line.push({ text: safe(w), style, w: ww });
+      lineAlign = style.align;
+      lineH = Math.max(lineH, style.size + 2);
+    }
+  };
+
+  for (const t of tokens) {
+    if (t.type === "para") {
+      flushLine();
+      if (t.bullet) {
+        pendingBullet = t.bullet;
+        // indent line content
+        // (handled in flushLine via curX offset)
+      }
+    } else if (t.type === "break") {
+      flushLine();
+    } else if (t.type === "text") {
+      pushTextRun(t.text, t.style);
+    }
+  }
+  flushLine();
+  return cursorY;
+}
+
+/** Strip HTML to detect emptiness */
+function htmlIsEmpty(html: string | null | undefined): boolean {
+  if (!html) return true;
+  return !html.replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").trim();
+}
+
 /** Load image as data URL (handles cross-origin via canvas) */
 async function loadImageAsDataUrl(src: string): Promise<{ data: string; w: number; h: number } | null> {
   return new Promise((resolve) => {
@@ -289,17 +570,16 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
   );
   let coverY = headerBottom + 24;
 
-  // Description (paragraphe respecté)
-  pdf.setFontSize(11);
-  pdf.setTextColor(110);
-  if (batteryDescription) {
-    const paragraphs = String(batteryDescription).split(/\n\s*\n/);
-    paragraphs.forEach((p, idx) => {
-      const lines = pdf.splitTextToSize(safe(p.replace(/\n/g, " ")), contentW);
-      pdf.text(lines, margin, coverY);
-      coverY += lines.length * 14;
-      if (idx < paragraphs.length - 1) coverY += 6;
-    });
+  // Description (HTML rich text supporté : gras, souligné, taille, etc.)
+  if (!htmlIsEmpty(batteryDescription)) {
+    coverY = renderRichHtml(pdf, String(batteryDescription), margin, coverY, contentW,
+      { size: 11, color: [110, 110, 110], align: "left" },
+      {
+        pageH,
+        bottomMargin: margin,
+        onNewPage: () => { pdf.addPage(); return { x: margin, y: margin, width: contentW }; },
+      },
+    );
     coverY += 10;
   }
 
@@ -408,24 +688,13 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
       const textX = imgInfo ? margin + IMG_BOX_W + TEXT_GAP : margin + 10;
       const textW = imgInfo ? contentW - IMG_BOX_W - TEXT_GAP : contentW - 12;
 
-      // Pré-calcul de la hauteur du bloc texte
-      pdf.setFontSize(10);
-      const descLines = it.description
-        ? pdf.splitTextToSize(safe(String(it.description)), textW)
-        : [];
-      const objLines = it.objectives
-        ? pdf.splitTextToSize(safe(String(it.objectives)), textW)
-        : [];
-      const textBlockH =
-        18 + // titre
-        (descLines.length > 0 ? 12 + descLines.length * 12 + 4 : 0) +
-        (objLines.length > 0 ? 12 + objLines.length * 12 + 4 : 0);
-      const blockH = Math.max(textBlockH, imgInfo ? IMG_BOX_H : 0) + 10;
+      const hasDesc = !htmlIsEmpty(it.description);
+      const hasObj = !htmlIsEmpty(it.objectives);
 
       // Saut de page seulement si pas la place pour titre + ~3 lignes
       const minNeeded = 60;
       const remaining = pageH - margin - py;
-      if (remaining < minNeeded || (blockH > remaining && remaining < pageH * 0.4)) {
+      if (remaining < minNeeded) {
         pdf.addPage();
         py = margin;
       }
@@ -455,38 +724,49 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
         st(pdf, `${it.max} pts max`, pageW - margin, blockTop + 10, { align: "right" });
       }
       let ty = blockTop + 18;
+      let curTextX = textX;
+      let curTextW = textW;
 
-      if (descLines.length > 0) {
+      const onNewPage = () => {
+        pdf.addPage();
+        py = margin;
+        // After page break, drop the image column constraint
+        curTextX = margin;
+        curTextW = contentW;
+        return { x: curTextX, y: margin, width: curTextW };
+      };
+
+      if (hasDesc) {
         pdf.setFont("helvetica", "bold");
         pdf.setFontSize(8);
         pdf.setTextColor(80);
-        st(pdf, "Description", textX, ty);
+        st(pdf, "Description", curTextX, ty);
         ty += 11;
-        pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(9);
-        pdf.setTextColor(60);
-        pdf.text(descLines, textX, ty);
-        ty += descLines.length * 12 + 4;
+        ty = renderRichHtml(pdf, String(it.description), curTextX, ty, curTextW,
+          { size: 9, color: [60, 60, 60], align: "left" },
+          { pageH, bottomMargin: margin, onNewPage },
+        );
+        ty += 4;
       }
 
-      if (objLines.length > 0) {
+      if (hasObj) {
         pdf.setFont("helvetica", "bold");
         pdf.setFontSize(8);
         pdf.setTextColor(80);
-        st(pdf, "Objectifs", textX, ty);
+        st(pdf, "Objectifs", curTextX, ty);
         ty += 11;
-        pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(9);
-        pdf.setTextColor(60);
-        pdf.text(objLines, textX, ty);
-        ty += objLines.length * 12 + 4;
+        ty = renderRichHtml(pdf, String(it.objectives), curTextX, ty, curTextW,
+          { size: 9, color: [60, 60, 60], align: "left" },
+          { pageH, bottomMargin: margin, onNewPage },
+        );
+        ty += 4;
       }
 
-      if (descLines.length === 0 && objLines.length === 0) {
+      if (!hasDesc && !hasObj) {
         pdf.setFont("helvetica", "italic");
         pdf.setFontSize(9);
         pdf.setTextColor(150);
-        st(pdf, "Aucune description renseignee.", textX, ty);
+        st(pdf, "Aucune description renseignee.", curTextX, ty);
         ty += 12;
       }
 
