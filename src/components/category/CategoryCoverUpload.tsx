@@ -203,39 +203,26 @@ export function LogoHoverActions({
         disabled={uploading}
       />
 
-      {/* Dialog: recentrer le logo */}
+      {/* Dialog: recentrer le logo via drag & drop */}
       <Dialog open={recenterOpen} onOpenChange={setRecenterOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Recadrer le logo</DialogTitle>
             <DialogDescription>
-              Choisissez la portion du logo affichée dans le cercle.
+              Maintenez le clic sur le logo et déplacez-le pour le repositionner dans le cercle.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
-            <div className="flex justify-center">
-              <div className="h-40 w-40 rounded-full overflow-hidden ring-4 ring-border bg-muted">
-                {currentCoverUrl && (
-                  <img
-                    src={currentCoverUrl}
-                    alt="Aperçu"
-                    className="h-full w-full object-cover transition-all"
-                    style={{ objectPosition: currentPos }}
-                  />
-                )}
-              </div>
-            </div>
-            <PositionPicker
-              value={currentPos}
-              onChange={(pos) => updatePosition.mutate(pos)}
-              disabled={updatePosition.isPending}
-            />
-          </div>
+          <DragPositionPicker
+            imageUrl={currentCoverUrl ?? null}
+            initialPosition={currentPos}
+            onCommit={(pos) => updatePosition.mutate(pos)}
+            saving={updatePosition.isPending}
+          />
           <DialogFooter>
             <Button variant="ghost" onClick={() => setRecenterOpen(false)}>Fermer</Button>
             <Button
               variant="outline"
-              onClick={() => updatePosition.mutate("center")}
+              onClick={() => updatePosition.mutate("50% 50%")}
               disabled={updatePosition.isPending}
             >
               Réinitialiser
