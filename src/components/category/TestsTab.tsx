@@ -10,7 +10,7 @@ import { ColoredNavTabsList } from "@/components/ui/colored-nav-tabs";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
 import { TestBatteriesManager } from "./tests/TestBatteriesManager";
-import { formatCategoryLabel, normalizeCustomTestType } from "./tests/customTestCatalog";
+import { formatCategoryLabel } from "./tests/customTestCatalog";
 import { CategoryVisibilityManager } from "./tests/CategoryVisibilityManager";
 import { Button } from "@/components/ui/button";
 import { FolderPlus, Plus, ClipboardList, CalendarPlus } from "lucide-react";
