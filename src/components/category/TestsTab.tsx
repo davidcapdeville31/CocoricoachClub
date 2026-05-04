@@ -403,6 +403,8 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
                   label={cat.label}
                   colorIndex={i + 1}
                   customColor={themeColorMap.get(cat.value)}
+                  editable={!isViewer}
+                  onRename={(newLabel) => handleRenameCategory(cat.value, newLabel)}
                 />
               ))}
               {showRehab && (
