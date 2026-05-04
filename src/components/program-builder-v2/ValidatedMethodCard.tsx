@@ -93,6 +93,12 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
     return <IntermittentCardioCard config={config as any} onEdit={onEdit} onRemove={onRemove} />;
   }
 
+  // For phase methods (EMOM, AMRAP, For Time, Circuit, Tabata, Death By),
+  // each series carries its own exercise name → display it inline rather than
+  // concatenating everything in the header.
+  const isPhaseMethod = ["emom", "amrap", "for_time", "circuit", "tabata", "death_by"].includes(method);
+  const headerName = isPhaseMethod ? label : dropName;
+
   return (
     <div
       className={cn(
@@ -116,17 +122,18 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
         >
           {label}
         </Badge>
-        <span className={cn("text-sm font-medium truncate flex-1", colors.text)}>
-          {dropName}
-        </span>
+        {!isPhaseMethod && (
+          <span className={cn("text-sm font-medium truncate flex-1", colors.text)}>
+            {headerName}
+          </span>
+        )}
+        {isPhaseMethod && <div className="flex-1" />}
         <span className="text-[11px] text-muted-foreground whitespace-nowrap">
           {(() => {
             if (isRestPause) {
               const n = restPauseConfig!.series.length;
               return `${n} série${n > 1 ? "s" : ""}`;
             }
-            // Si on a des séries détaillées (pyramides, drop set, etc.), les reps
-            // varient d'une série à l'autre : on affiche juste le nombre de séries.
             if (series.length > 0) {
               const repsList = series.map((s: any) => s?.reps).filter((r: any) => r != null && r !== "");
               const allSame = repsList.length > 0 && repsList.every((r: any) => String(r) === String(repsList[0]));
@@ -171,7 +178,7 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
         </div>
       )}
 
-      {/* Series structure (drop set / pyramid / 5x5 / iso) */}
+      {/* Series structure (drop set / pyramid / 5x5 / iso / EMOM / AMRAP …) */}
       {!isRestPause && series.length > 0 && (
         <div className={cn("p-2 space-y-1", colors.bg)}>
           {series.map((s, idx) => {
@@ -181,6 +188,8 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
               : method === "drop_set"
               ? `Drop ${idx}`
               : `Série ${idx + 1}`;
+            const exName: string | undefined =
+              s.exerciseName || s.phaseExerciseName;
             return (
               <div
                 key={idx}
@@ -196,6 +205,11 @@ export const ValidatedMethodCard = ({ exercise, onRemove, onEdit, readOnly }: Pr
                 >
                   {seriesLabel}
                 </Badge>
+                {isPhaseMethod && exName && (
+                  <span className={cn("text-xs font-medium truncate max-w-[180px]", colors.text)}>
+                    {exName}
+                  </span>
+                )}
                 <Badge
                   variant="secondary"
                   className={cn(
