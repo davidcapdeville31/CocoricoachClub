@@ -28,6 +28,7 @@ interface ExportOptions {
   levels?: BatteryLevel[];
   items: BatteryItemDef[];
   rows: TestRow[];
+  testMeta?: Record<string, { description?: string | null; objectives?: string | null }>;
 }
 
 /** Replace non-Latin1 characters that break Helvetica (e.g. ≥, ≤, →, …) */
@@ -80,7 +81,8 @@ function buildRadarPng(
 
   const cx = size / 2;
   const cy = size / 2;
-  const radius = size * 0.32;
+  // Plus petit rayon pour laisser place aux labels (évite la coupure)
+  const radius = size * 0.28;
   const n = Math.max(axes.length, 3);
 
   ctx.strokeStyle = "#d1d5db";
@@ -135,19 +137,57 @@ function buildRadarPng(
     ctx.fill();
   });
 
+  // Helper: wrap label sur max 2 lignes en respectant une largeur max
+  const wrapLabel = (text: string, maxWidth: number): string[] => {
+    const words = text.split(/\s+/);
+    const lines: string[] = [];
+    let current = "";
+    for (const w of words) {
+      const test = current ? current + " " + w : w;
+      if (ctx.measureText(test).width <= maxWidth) {
+        current = test;
+      } else {
+        if (current) lines.push(current);
+        current = w;
+        if (lines.length === 1) break;
+      }
+    }
+    if (current && lines.length < 2) lines.push(current);
+    // Si le texte restant n'a pas pu rentrer, tronquer la dernière ligne
+    if (lines.length === 2) {
+      const totalUsed = lines.join(" ");
+      if (totalUsed.length < text.length) {
+        let last = lines[1];
+        while (ctx.measureText(last + "...").width > maxWidth && last.length > 0) {
+          last = last.slice(0, -1);
+        }
+        lines[1] = last + "...";
+      }
+    } else if (lines.length === 1 && ctx.measureText(lines[0]).width > maxWidth) {
+      let l = lines[0];
+      while (ctx.measureText(l + "...").width > maxWidth && l.length > 0) l = l.slice(0, -1);
+      lines[0] = l + "...";
+    }
+    return lines;
+  };
+
   ctx.fillStyle = "#111827";
-  ctx.font = "11px Arial";
+  ctx.font = "10px Arial";
+  const maxLabelWidth = (size - radius * 2) / 2 - 6; // espace dispo de chaque côté
   axes.forEach((a, i) => {
     const angle = (-Math.PI / 2) + (i * 2 * Math.PI) / n;
-    const lr = radius + 18;
+    const lr = radius + 12;
     const x = cx + lr * Math.cos(angle);
     const y = cy + lr * Math.sin(angle);
-    let label = a.label.length > 18 ? a.label.slice(0, 17) + "..." : a.label;
-    const tw = ctx.measureText(label).width;
-    let tx = x;
-    if (Math.abs(Math.cos(angle)) < 0.3) tx = x - tw / 2;
-    else if (Math.cos(angle) < 0) tx = x - tw;
-    ctx.fillText(label, tx, y + 4);
+    const lines = wrapLabel(a.label, maxLabelWidth);
+    lines.forEach((line, li) => {
+      const tw = ctx.measureText(line).width;
+      let tx = x;
+      if (Math.abs(Math.cos(angle)) < 0.3) tx = x - tw / 2;
+      else if (Math.cos(angle) < 0) tx = x - tw;
+      const ty = y + 4 + (li - (lines.length - 1) / 2) * 11;
+      ctx.fillText(line, tx, ty);
+    });
   });
 
   return canvas.toDataURL("image/png");
@@ -218,51 +258,184 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
   const logoData = await loadImageAsDataUrl(logoLight);
 
   // ===== Cover page =====
+  const contentW = pageW - margin * 2;
+  const logoW = 110;
+  const logoH = 80;
+  const titleMaxW = contentW - logoW - 16;
+
   if (logoData) {
-    const logoW = 120;
-    const logoH = 90;
-    pdf.addImage(logoData, "PNG", pageW - margin - logoW, margin - 10, logoW, logoH);
+    pdf.addImage(logoData, "PNG", pageW - margin - logoW, margin - 4, logoW, logoH);
   }
 
+  // Titre + sous-titre dans la zone de gauche, à côté du logo
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(22);
   pdf.setTextColor(20);
-  st(pdf, categoryName || batteryName, margin, margin + 24);
+  const titleLines = pdf.splitTextToSize(safe(categoryName || batteryName), titleMaxW);
+  pdf.text(titleLines, margin, margin + 22);
 
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(13);
   pdf.setTextColor(80);
-  st(pdf, batteryName, margin, margin + 46);
+  const subLines = pdf.splitTextToSize(safe(batteryName), titleMaxW);
+  pdf.text(subLines, margin, margin + 22 + titleLines.length * 22 + 4);
 
+  // Curseur Y dynamique sous le bloc titre/logo
+  const headerBottom = Math.max(
+    margin + 22 + titleLines.length * 22 + 4 + subLines.length * 16,
+    margin - 4 + logoH,
+  );
+  let coverY = headerBottom + 24;
+
+  // Description (paragraphe respecté)
   pdf.setFontSize(11);
   pdf.setTextColor(110);
   if (batteryDescription) {
-    const desc = pdf.splitTextToSize(safe(batteryDescription), pageW - margin * 2);
-    pdf.text(desc, margin, margin + 70);
+    const paragraphs = String(batteryDescription).split(/\n\s*\n/);
+    paragraphs.forEach((p, idx) => {
+      const lines = pdf.splitTextToSize(safe(p.replace(/\n/g, " ")), contentW);
+      pdf.text(lines, margin, coverY);
+      coverY += lines.length * 14;
+      if (idx < paragraphs.length - 1) coverY += 6;
+    });
+    coverY += 10;
   }
+
   pdf.setTextColor(60);
-  st(pdf, `Genere le ${format(new Date(), "dd/MM/yyyy 'a' HH:mm", { locale: fr })}`, margin, margin + 110);
-  st(pdf, `${groups.length} passation(s) - ${items.length} tests - ${totalMaxBattery} pts max`, margin, margin + 126);
+  st(pdf, `Genere le ${format(new Date(), "dd/MM/yyyy 'a' HH:mm", { locale: fr })}`, margin, coverY);
+  coverY += 16;
+  st(pdf, `${groups.length} passation(s) - ${items.length} tests - ${totalMaxBattery} pts max`, margin, coverY);
+  coverY += 28;
 
   const lvls = (levels && levels.length > 0)
     ? [...levels].sort((a, b) => b.minPercent - a.minPercent)
     : undefined;
   if (lvls && lvls.length > 0) {
-    let y = margin + 162;
+    // Si on n'a plus la place pour le titre + au moins une ligne, on passe à une nouvelle page
+    if (coverY > pageH - margin - 60) {
+      pdf.addPage();
+      coverY = margin;
+    }
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(13);
     pdf.setTextColor(20);
-    st(pdf, "Bareme de niveaux", margin, y);
-    y += 18;
+    st(pdf, "Bareme de niveaux", margin, coverY);
+    coverY += 18;
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(11);
     lvls.forEach((lv) => {
+      if (coverY > pageH - margin - 20) {
+        pdf.addPage();
+        coverY = margin;
+      }
       const color = hexToRgb(lv.color || "#3b82f6");
       pdf.setFillColor(color.r, color.g, color.b);
-      pdf.rect(margin, y - 9, 12, 12, "F");
+      pdf.rect(margin, coverY - 9, 12, 12, "F");
       pdf.setTextColor(20);
-      st(pdf, `${lv.label} - >= ${lv.minPercent}%`, margin + 20, y);
-      y += 18;
+      st(pdf, `${lv.label} - >= ${lv.minPercent}%`, margin + 20, coverY);
+      coverY += 18;
+    });
+  }
+
+  // ===== Page(s) "Présentation des tests" =====
+  const meta = opts.testMeta || {};
+  const presentationItems = items
+    .map((it) => {
+      const key = (it.test_name || "").trim().toLowerCase();
+      return {
+        name: it.test_name,
+        max: Number(it.max_points) || 0,
+        description: meta[key]?.description || null,
+        objectives: meta[key]?.objectives || null,
+      };
+    })
+    .filter((it) => !!it.name);
+
+  if (presentationItems.length > 0) {
+    pdf.addPage();
+    let py = margin;
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(18);
+    pdf.setTextColor(20);
+    st(pdf, "Presentation des tests", margin, py + 6);
+    py += 32;
+
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10);
+    pdf.setTextColor(110);
+    st(pdf, "Description et objectifs de chaque test de la batterie", margin, py);
+    py += 22;
+
+    presentationItems.forEach((it) => {
+      // Pré-calcul de la hauteur du bloc pour éviter de couper en plein milieu
+      pdf.setFontSize(11);
+      const descLines = it.description
+        ? pdf.splitTextToSize(safe(String(it.description)), contentW - 12)
+        : [];
+      const objLines = it.objectives
+        ? pdf.splitTextToSize(safe(String(it.objectives)), contentW - 12)
+        : [];
+      const blockH =
+        20 + // titre
+        (descLines.length > 0 ? 14 + descLines.length * 13 + 6 : 0) +
+        (objLines.length > 0 ? 14 + objLines.length * 13 + 6 : 0) +
+        12;
+
+      if (py + blockH > pageH - margin) {
+        pdf.addPage();
+        py = margin;
+      }
+
+      // Barre colorée + titre
+      pdf.setFillColor(59, 130, 246);
+      pdf.rect(margin, py - 2, 3, 16, "F");
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(12);
+      pdf.setTextColor(20);
+      st(pdf, it.name, margin + 10, py + 10);
+      if (it.max > 0) {
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(9);
+        pdf.setTextColor(110);
+        st(pdf, `${it.max} pts max`, pageW - margin, py + 10, { align: "right" });
+      }
+      py += 22;
+
+      if (descLines.length > 0) {
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(9);
+        pdf.setTextColor(80);
+        st(pdf, "Description", margin + 10, py);
+        py += 12;
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(10);
+        pdf.setTextColor(60);
+        pdf.text(descLines, margin + 10, py);
+        py += descLines.length * 13 + 6;
+      }
+
+      if (objLines.length > 0) {
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(9);
+        pdf.setTextColor(80);
+        st(pdf, "Objectifs", margin + 10, py);
+        py += 12;
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(10);
+        pdf.setTextColor(60);
+        pdf.text(objLines, margin + 10, py);
+        py += objLines.length * 13 + 6;
+      }
+
+      if (descLines.length === 0 && objLines.length === 0) {
+        pdf.setFont("helvetica", "italic");
+        pdf.setFontSize(9);
+        pdf.setTextColor(150);
+        st(pdf, "Aucune description renseignee.", margin + 10, py);
+        py += 14;
+      }
+
+      py += 8;
     });
   }
 
@@ -384,15 +557,16 @@ export async function exportBatteryReportPdf(opts: ExportOptions): Promise<void>
       ty += 13;
     });
 
-    pdf.setFontSize(8);
-    pdf.setTextColor(150);
-    st(pdf, `Page ${idx + 2}`, pageW - margin, pageH - 14, { align: "right" });
   }
 
-  pdf.setPage(1);
-  pdf.setFontSize(8);
-  pdf.setTextColor(150);
-  st(pdf, "Page 1", pageW - margin, pageH - 14, { align: "right" });
+  // Numérotation finale de toutes les pages (générique)
+  const totalPages = pdf.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    pdf.setPage(p);
+    pdf.setFontSize(8);
+    pdf.setTextColor(150);
+    st(pdf, `Page ${p} / ${totalPages}`, pageW - margin, pageH - 14, { align: "right" });
+  }
 
   const fileName = `Rapport_${(categoryName || batteryName).replace(/[^a-z0-9]+/gi, "_")}_${format(new Date(), "yyyyMMdd")}.pdf`;
   pdf.save(fileName);
