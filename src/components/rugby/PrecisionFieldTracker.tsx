@@ -18,6 +18,7 @@ import { getPositionLabel } from "@/lib/utils/kickingFieldZones";
 import { RUGBY_PRECISION_EXERCISES, EXERCISE_CATEGORIES, BUTEUR_EXERCISES, ZONE_KICK_EXERCISES, type RugbyPrecisionExerciseMode } from "@/lib/constants/rugbyPrecisionExercises";
 import { cn } from "@/lib/utils";
 import { LineoutFieldSVG, aggregateLineoutStats, type LineoutZone } from "@/components/rugby/LineoutFieldSVG";
+import { PrecisionTrainingStats } from "@/components/training/PrecisionTrainingStats";
 
 interface PrecisionFieldTrackerProps {
   categoryId: string;
