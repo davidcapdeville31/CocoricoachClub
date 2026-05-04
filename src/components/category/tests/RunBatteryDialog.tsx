@@ -429,7 +429,7 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
       <DialogContent className="max-w-3xl max-h-[92vh] grid grid-rows-[auto_auto_auto_minmax(0,1fr)_auto] overflow-hidden">
         <DialogHeader>
           <DialogTitle>{battery.battery.name}</DialogTitle>
-          <DialogDescription>{battery.battery.description || "Saisissez les résultats de l'athlète."}</DialogDescription>
+          <DialogDescription className="whitespace-pre-wrap">{battery.battery.description || "Saisissez les résultats de l'athlète."}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-1.5">
