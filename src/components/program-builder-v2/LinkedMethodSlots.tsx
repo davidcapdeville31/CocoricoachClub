@@ -113,11 +113,10 @@ const ALL_LINKED_PARAMS = [
 // Default visible params per method type
 const getDefaultVisibleParams = (method: LinkedMethodType, slotIndex: number): string[] => {
   if (method === 'bulgarian') {
-    // Heavy slot (0): sets, reps, percentage, tempo, rpe
-    // Light slot (1): sets, reps, load, tempo
-    return slotIndex === 0 
-      ? ['sets', 'reps', 'percentage', 'tempo', 'rpe']
-      : ['sets', 'reps', 'load', 'tempo'];
+    // Both slots expose %1RM AND Kg by default so the coach can pick either
+    return slotIndex === 0
+      ? ['sets', 'reps', 'percentage', 'load', 'tempo', 'rpe']
+      : ['sets', 'reps', 'percentage', 'load', 'tempo'];
   }
   // Default for all other linked methods
   return ['sets', 'reps', 'percentage', 'tempo'];
