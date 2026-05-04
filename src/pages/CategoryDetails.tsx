@@ -228,12 +228,32 @@ function CategoryDetailsContent() {
         )}
         {category?.cover_image_url && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-[1]">
-            <div className="relative h-40 w-40 sm:h-48 sm:w-48 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm">
+            <div className="group pointer-events-auto relative h-40 w-40 sm:h-48 sm:w-48 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm">
               <img
                 src={category.cover_image_url}
                 alt="Logo du club"
                 className="h-full w-full object-cover"
                 style={{ objectPosition: (category as any)?.cover_image_position || "center" }}
+              />
+              {categoryId && !isViewer && (
+                <LogoHoverActions
+                  categoryId={categoryId}
+                  currentCoverUrl={category.cover_image_url}
+                  currentCoverPosition={(category as any)?.cover_image_position}
+                />
+              )}
+            </div>
+          </div>
+        )}
+        {/* Si pas encore de logo, on permet d'en ajouter un via un cercle vide */}
+        {!category?.cover_image_url && categoryId && !isViewer && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-[1]">
+            <div className="group pointer-events-auto relative h-40 w-40 sm:h-48 sm:w-48 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm flex items-center justify-center">
+              <span className="text-xs text-white/70 px-3 text-center">Survolez pour ajouter un logo</span>
+              <LogoHoverActions
+                categoryId={categoryId}
+                currentCoverUrl={null}
+                currentCoverPosition={null}
               />
             </div>
           </div>
