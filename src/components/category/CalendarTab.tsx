@@ -62,6 +62,8 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
   const navigate = useNavigate();
   const { isViewer } = useViewerModeContext();
   const calendarContentRef = useRef<HTMLDivElement>(null);
+  const isFieldSession = (session?: { training_type?: string | null } | null) =>
+    session?.training_type === "terrain";
   const isV2EditableSession = (session?: { training_type?: string | null; notes?: string | null } | null) => {
     const trainingType = session?.training_type;
     const notes = session?.notes || "";
@@ -433,7 +435,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
 
       {/* Edit Session Dialog */}
       <SessionEditorV2
-        open={isEditDialogOpen && isV2EditableSession(editingSession)}
+        open={isEditDialogOpen && isV2EditableSession(editingSession) && !isFieldSession(editingSession)}
         onClose={() => {
           setIsEditDialogOpen(false);
           setEditingSession(null);
@@ -442,8 +444,20 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
         editSession={editingSession}
       />
 
+      <FieldSessionDialog
+        open={isEditDialogOpen && isFieldSession(editingSession)}
+        onOpenChange={(open) => {
+          setIsEditDialogOpen(open);
+          if (!open) setEditingSession(null);
+        }}
+        date={editingSession?.session_date ? new Date(editingSession.session_date) : new Date()}
+        categoryId={categoryId}
+        sportType={sportType}
+        editSession={editingSession}
+      />
+
       <SessionFormDialog
-        open={isEditDialogOpen && !isV2EditableSession(editingSession)}
+        open={isEditDialogOpen && !isV2EditableSession(editingSession) && !isFieldSession(editingSession)}
         onOpenChange={(open) => {
           setIsEditDialogOpen(open);
           if (!open) setEditingSession(null);
