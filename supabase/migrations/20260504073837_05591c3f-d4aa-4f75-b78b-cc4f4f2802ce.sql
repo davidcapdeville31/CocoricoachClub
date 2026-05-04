@@ -1,0 +1,1 @@
+ALTER TABLE public.test_theme_categories ADD COLUMN IF NOT EXISTS color text;
