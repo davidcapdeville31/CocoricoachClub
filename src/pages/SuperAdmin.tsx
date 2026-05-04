@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
-import { Shield, ArrowLeft, LayoutDashboard, Users, Building2, CreditCard, Video, Bell, Settings, FileText, Lock, Clock, Dumbbell, Archive, ClipboardList } from "lucide-react";
+import { Shield, ArrowLeft, LayoutDashboard, Users, Building2, CreditCard, Video, Bell, Settings, FileText, Lock, Clock, Dumbbell, Archive, ClipboardList, CircleDot } from "lucide-react";
 
 // Import tab components
 import { SuperAdminDashboard } from "@/components/super-admin/SuperAdminDashboard";
@@ -25,6 +25,7 @@ import { SuperAdminUsage } from "@/components/super-admin/SuperAdminUsage";
 import { SuperAdminExerciseLibrary } from "@/components/super-admin/SuperAdminExerciseLibrary";
 import { SuperAdminArchives } from "@/components/super-admin/SuperAdminArchives";
 import { SuperAdminTestBank } from "@/components/super-admin/SuperAdminTestBank";
+import { SuperAdminArsenalBank } from "@/components/super-admin/SuperAdminArsenalBank";
  
  export default function SuperAdmin() {
    const { user, loading: authLoading } = useAuth();
@@ -143,10 +144,14 @@ import { SuperAdminTestBank } from "@/components/super-admin/SuperAdminTestBank"
                    <Dumbbell className="h-4 w-4" />
                    Exercices
                  </TabsTrigger>
-                 <TabsTrigger value="test-bank" className="flex items-center gap-2">
-                   <ClipboardList className="h-4 w-4" />
-                   Banque de tests
-                 </TabsTrigger>
+                  <TabsTrigger value="test-bank" className="flex items-center gap-2">
+                    <ClipboardList className="h-4 w-4" />
+                    Banque de tests
+                  </TabsTrigger>
+                  <TabsTrigger value="arsenal-bank" className="flex items-center gap-2">
+                    <CircleDot className="h-4 w-4" />
+                    Banque Arsenal
+                  </TabsTrigger>
                   <TabsTrigger value="audit" className="flex items-center gap-2">
                     <Shield className="h-4 w-4" />
                     Sécurité &amp; Audit
@@ -205,9 +210,13 @@ import { SuperAdminTestBank } from "@/components/super-admin/SuperAdminTestBank"
                  <SuperAdminExerciseLibrary />
                </TabsContent>
 
-               <TabsContent value="test-bank">
-                 <SuperAdminTestBank />
-               </TabsContent>
+                <TabsContent value="test-bank">
+                  <SuperAdminTestBank />
+                </TabsContent>
+
+                <TabsContent value="arsenal-bank">
+                  <SuperAdminArsenalBank />
+                </TabsContent>
 
                 <TabsContent value="audit">
                   <SecurityCenter />

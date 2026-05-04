@@ -1393,6 +1393,7 @@ export type Database = {
       bowling_ball_catalog: {
         Row: {
           brand: string
+          club_id: string | null
           core_type: string
           cover_type: string
           created_at: string
@@ -1405,9 +1406,11 @@ export type Database = {
           is_system: boolean
           model: string
           rg: number | null
+          updated_at: string
         }
         Insert: {
           brand: string
+          club_id?: string | null
           core_type?: string
           cover_type?: string
           created_at?: string
@@ -1420,9 +1423,11 @@ export type Database = {
           is_system?: boolean
           model: string
           rg?: number | null
+          updated_at?: string
         }
         Update: {
           brand?: string
+          club_id?: string | null
           core_type?: string
           cover_type?: string
           created_at?: string
@@ -1435,8 +1440,24 @@ export type Database = {
           is_system?: boolean
           model?: string
           rg?: number | null
+          updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "bowling_ball_catalog_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "admin_all_clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bowling_ball_catalog_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       bowling_oil_pattern_players: {
         Row: {
