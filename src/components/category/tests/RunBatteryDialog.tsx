@@ -58,7 +58,11 @@ export function RunBatteryDialog({ open, onOpenChange, batteryId, categoryId }: 
     toggleInjured(key, !currentValue);
   };
   const setPlayerId = (id: string) => setPlayerIdState(id);
-  const [savedDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [savedDate, setSavedDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [savedTime, setSavedTime] = useState(() => {
+    const d = new Date();
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  });
 
   const buildBaseTestType = (testName: string) => `custom_${testName?.toLowerCase().replace(/\s+/g, "_")}`;
 
