@@ -5,6 +5,7 @@ import type { AthleticsMinima, AthleticsRecord } from "./recordsHelpers";
 import { computeDelta } from "./recordsHelpers";
 import { getMinimaLevel } from "./minimaLevels";
 import { ATHLETISME_DISCIPLINES } from "@/lib/constants/sportTypes";
+import { getReportLogoDataUrl } from "@/lib/pdf/clubLogo";
 
 export interface MatrixExportPlayer {
   id: string;
