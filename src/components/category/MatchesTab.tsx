@@ -127,10 +127,9 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
       <div className="w-full">
         <div>
 
-          <Card className="overflow-hidden border-0 shadow-2xl rounded-2xl bg-gradient-to-br from-amber-50/80 via-background to-orange-50/40 dark:from-amber-950/30 dark:via-background dark:to-orange-950/20">
-            {/* Premium gradient header */}
-            <div className="relative overflow-hidden bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 px-5 py-4">
-              <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,white,transparent_60%)]" />
+          <Card className="overflow-hidden border border-border shadow-sm rounded-2xl bg-card">
+            {/* Header solid */}
+            <div className="relative overflow-hidden bg-amber-600 px-5 py-4">
               <div className="relative flex flex-wrap justify-between items-center gap-3">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg ring-1 ring-white/30">
@@ -185,8 +184,8 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
 
             <CardContent className="p-5">
               {(!matches || matches.length === 0) ? (
-                <div className="text-center py-16 rounded-2xl bg-gradient-to-br from-muted/40 to-transparent border border-dashed border-border/60">
-                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/40 mb-4 shadow-inner">
+                <div className="text-center py-16 rounded-2xl bg-muted/30 border border-dashed border-border/60">
+                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-900/40 mb-4">
                     <Calendar className="h-8 w-8 text-amber-600 dark:text-amber-400" />
                   </div>
                   <p className="text-base font-semibold text-foreground mb-1">
@@ -196,7 +195,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                     Commencez par créer votre {isIndividual ? "première compétition" : "premier match"}
                   </p>
                   {!isViewer && (
-                    <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg">
+                    <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2 bg-amber-600 hover:bg-amber-700 text-white">
                       <Plus className="h-4 w-4" />
                       Créer {isIndividual ? "la première compétition" : "le premier match"}
                     </Button>
@@ -213,7 +212,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                       className={cn(
                         "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border",
                         showUpcoming
-                          ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-transparent shadow-md shadow-amber-500/30"
+                          ? "bg-amber-600 text-white border-transparent"
                           : "bg-muted/50 text-muted-foreground border-border hover:bg-muted",
                       )}
                     >
@@ -232,7 +231,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                       className={cn(
                         "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border",
                         showPast
-                          ? "bg-gradient-to-r from-slate-600 to-slate-700 text-white border-transparent shadow-md shadow-slate-500/30"
+                          ? "bg-slate-700 text-white border-transparent"
                           : "bg-muted/50 text-muted-foreground border-border hover:bg-muted",
                       )}
                     >
@@ -249,22 +248,22 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
 
                   {/* === UPCOMING SECTION === */}
                   {showUpcoming && (
-                    <section className="rounded-2xl border border-amber-300/40 dark:border-amber-700/40 bg-gradient-to-br from-amber-50 via-orange-50/50 to-transparent dark:from-amber-950/30 dark:via-orange-950/20 dark:to-transparent p-4 shadow-sm">
+                    <section className="rounded-2xl border border-border bg-card p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-md shadow-amber-500/30">
+                          <div className="h-8 w-8 rounded-lg bg-amber-600 flex items-center justify-center">
                             <CalendarClock className="h-4 w-4 text-white" />
                           </div>
                           <div>
-                            <h3 className="text-sm font-bold text-amber-900 dark:text-amber-100">
+                            <h3 className="text-sm font-bold text-foreground">
                               {itemLabelPluralCapital} à venir
                             </h3>
-                            <p className="text-[10px] text-amber-700/70 dark:text-amber-300/70 uppercase tracking-wider font-semibold">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
                               Prochains événements
                             </p>
                           </div>
                         </div>
-                        <span className="inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold shadow-md shadow-amber-500/30">
+                        <span className="inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded-full bg-amber-600 text-white text-xs font-bold">
                           {upcomingMatches.length}
                         </span>
                       </div>
@@ -284,22 +283,22 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
 
                   {/* === PAST SECTION === */}
                   {showPast && (
-                    <section className="rounded-2xl border border-slate-300/40 dark:border-slate-700/40 bg-gradient-to-br from-slate-50 via-slate-100/30 to-transparent dark:from-slate-900/40 dark:via-slate-800/20 dark:to-transparent p-4 shadow-sm">
+                    <section className="rounded-2xl border border-border bg-card p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-slate-500 to-slate-700 flex items-center justify-center shadow-md shadow-slate-500/30">
+                          <div className="h-8 w-8 rounded-lg bg-slate-700 flex items-center justify-center">
                             <History className="h-4 w-4 text-white" />
                           </div>
                           <div>
-                            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                            <h3 className="text-sm font-bold text-foreground">
                               {itemLabelPluralCapital} passé{isIndividual ? "e" : ""}s
                             </h3>
-                            <p className="text-[10px] text-slate-700/70 dark:text-slate-300/70 uppercase tracking-wider font-semibold">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
                               Historique & résultats
                             </p>
                           </div>
                         </div>
-                        <span className="inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded-full bg-gradient-to-r from-slate-500 to-slate-700 text-white text-xs font-bold shadow-md shadow-slate-500/30">
+                        <span className="inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded-full bg-slate-700 text-white text-xs font-bold">
                           {pastMatches.length}
                         </span>
                       </div>
@@ -308,10 +307,10 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                           {pastMatchesByMonth.map((group) => (
                             <div key={group.key}>
                               <div className="flex items-center gap-2 mb-2">
-                                <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 capitalize">
+                                <h4 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground capitalize">
                                   {group.label}
                                 </h4>
-                                <div className="flex-1 h-px bg-gradient-to-r from-slate-300 to-transparent dark:from-slate-700" />
+                                <div className="flex-1 h-px bg-border" />
                                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full bg-slate-200/60 dark:bg-slate-800/60">
                                   {group.matches.length}
                                 </span>
