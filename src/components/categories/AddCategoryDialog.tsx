@@ -198,19 +198,56 @@ export function AddCategoryDialog({
     },
   });
 
+  const updateCategory = useMutation({
+    mutationFn: async (data: { id: string; name: string; rugby_type: SportType; gender: "masculine" | "feminine" | "mixed" }) => {
+      const { error } = await supabase
+        .from("categories")
+        .update({
+          name: data.name,
+          rugby_type: data.rugby_type,
+          gender: data.gender,
+        })
+        .eq("id", data.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories", clubId] });
+      queryClient.invalidateQueries({ queryKey: ["categories-for-edit", clubId] });
+      queryClient.invalidateQueries({ queryKey: ["category", editingCategoryId] });
+      toast.success("Catégorie modifiée avec succès");
+      onOpenChange(false);
+    },
+    onError: (error: any) => {
+      toast.error(`Erreur lors de la modification: ${error?.message || "Erreur inconnue"}`);
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setValidationError("");
 
-    if (isCategoryLimitReached) {
-      setValidationError(`Limite de catégories atteinte (${currentCategoryCount}/${maxCategories}). Contactez votre administrateur.`);
+    const result = categorySchema.safeParse({ name: categoryName });
+    if (!result.success) {
+      setValidationError(result.error.errors[0].message);
       return;
     }
 
-    const result = categorySchema.safeParse({ name: categoryName });
-    
-    if (!result.success) {
-      setValidationError(result.error.errors[0].message);
+    if (mode === "edit") {
+      if (!editingCategoryId) {
+        setValidationError("Sélectionnez une catégorie à modifier");
+        return;
+      }
+      updateCategory.mutate({
+        id: editingCategoryId,
+        name: result.data.name,
+        rugby_type: sportSubType,
+        gender,
+      });
+      return;
+    }
+
+    if (isCategoryLimitReached) {
+      setValidationError(`Limite de catégories atteinte (${currentCategoryCount}/${maxCategories}). Contactez votre administrateur.`);
       return;
     }
 
