@@ -102,12 +102,20 @@ export function TestsTab({ categoryId, sportType }: TestsTabProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("test_theme_categories" as any)
-        .select("value, label")
+        .select("value, label, color")
         .eq("category_id", categoryId);
       if (error) throw error;
-      return (data || []) as unknown as Array<{ value: string; label: string }>;
+      return (data || []) as unknown as Array<{ value: string; label: string; color: string | null }>;
     },
   });
+
+  const themeColorMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (themeCategories || []).forEach((tc) => {
+      if (tc.color) m.set(tc.value, tc.color);
+    });
+    return m;
+  }, [themeCategories]);
 
   const testCategories = useMemo(() => {
     const all = getTestCategoriesForSport(sportType || "");
