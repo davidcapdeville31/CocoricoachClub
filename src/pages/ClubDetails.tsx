@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddCategoryDialog } from "@/components/categories/AddCategoryDialog";
 import { CollaborationTab } from "@/components/collaboration/CollaborationTab";
+import { SnapshotClubButton } from "@/components/club/SnapshotClubButton";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { GlobalPlayerSearch } from "@/components/search/GlobalPlayerSearch";
 import { ViewerModeProvider, useViewerModeContext } from "@/contexts/ViewerModeContext";
@@ -129,11 +130,14 @@ function ClubDetailsContent() {
             <div className="flex justify-between items-center gap-2 flex-wrap">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground">Catégories</h2>
               {!isViewer && (
-                <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="gap-2 shrink-0">
-                  <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">Créer / Modifier une catégorie</span>
-                  <span className="sm:hidden">Créer / Modifier</span>
-                </Button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {clubId && <SnapshotClubButton clubId={clubId} clubName={club?.name} />}
+                  <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="gap-2 shrink-0">
+                    <Plus className="h-4 w-4" />
+                    <span className="hidden sm:inline">Créer / Modifier une catégorie</span>
+                    <span className="sm:hidden">Créer / Modifier</span>
+                  </Button>
+                </div>
               )}
             </div>
 
