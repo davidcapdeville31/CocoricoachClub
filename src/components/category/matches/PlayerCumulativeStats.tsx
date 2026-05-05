@@ -2685,7 +2685,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
 
               return (
                 <TabsContent key={cat.key} value={cat.key}>
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 [&_th]:px-2 [&_th]:py-2 [&_td]:px-2 [&_td]:py-1.5 [&_th]:text-[11px] [&_td]:text-xs">
                     <Table>
                       <TableHeader>
                         {hasGroupLabels && (
@@ -2737,7 +2737,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
                           })
                           .map((p) => (
                             <TableRow key={p.playerId}>
-                              <TableCell className="font-medium">{p.playerName}</TableCell>
+                              <TableCell className="font-medium whitespace-nowrap max-w-[140px] truncate">{p.playerName}</TableCell>
                               <TableCell className="text-center">{p.matchesPlayed}</TableCell>
                               {columnGroups.map((group, gIdx) =>
                                 group.items.map((stat, sIdx) => {
@@ -2783,7 +2783,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 [&_th]:px-2 [&_th]:py-2 [&_td]:px-2 [&_td]:py-1.5 [&_th]:text-[11px] [&_td]:text-xs">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -2808,7 +2808,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
                       const dropRate = k.drop.total > 0 ? Math.round((k.drop.success / k.drop.total) * 100) : 0;
                       return (
                         <TableRow key={playerId}>
-                          <TableCell className="font-medium">{name}</TableCell>
+                          <TableCell className="font-medium whitespace-nowrap max-w-[140px] truncate">{name}</TableCell>
                           <TableCell className="text-center">
                             <span className="font-semibold">{rate}%</span>
                             <span className="text-xs text-muted-foreground ml-1">({k.success}/{k.total})</span>
