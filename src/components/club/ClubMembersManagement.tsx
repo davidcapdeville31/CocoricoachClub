@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Trash2, Crown, Settings2, Users } from "lucide-react";
+import { Trash2, Crown, Settings2, Users, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
