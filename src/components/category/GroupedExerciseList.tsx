@@ -171,8 +171,8 @@ export function GroupedExerciseList({
             : (fieldMode ? "bg-slate-700" : "bg-card")
         )}
       >
-        <div className="flex items-start justify-between gap-2 mb-1">
-          <div className="flex items-center gap-2">
+        <div className="flex items-start justify-between gap-2 mb-1 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap min-w-0 flex-1">
             {isGrouped && exerciseNumber && (
               <Badge className={cn("text-white text-xs", styleConfig.color || "bg-primary")}>
                 {exerciseNumber}
