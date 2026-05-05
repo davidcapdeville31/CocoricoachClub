@@ -230,9 +230,10 @@ function CategoryDetailsContent() {
             />
           ) : null;
         })()}
+        {/* Logo centré : en absolu sur desktop (md+), inline centré au-dessus du contenu sur mobile */}
         {category?.cover_image_url && (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-20">
-            <div className="group pointer-events-auto relative h-40 w-40 sm:h-48 sm:w-48 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm">
+          <div className="hidden md:flex pointer-events-none absolute inset-0 items-center justify-center z-20">
+            <div className="group pointer-events-auto relative h-48 w-48 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm">
               <img
                 src={category.cover_image_url}
                 alt="Logo du club"
@@ -249,10 +250,9 @@ function CategoryDetailsContent() {
             </div>
           </div>
         )}
-        {/* Si pas encore de logo, on permet d'en ajouter un via un cercle vide */}
         {!category?.cover_image_url && categoryId && !isViewer && (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-20">
-            <div className="group pointer-events-auto relative h-40 w-40 sm:h-48 sm:w-48 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm flex items-center justify-center">
+          <div className="hidden md:flex pointer-events-none absolute inset-0 items-center justify-center z-20">
+            <div className="group pointer-events-auto relative h-48 w-48 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm flex items-center justify-center">
               <span className="text-xs text-white/70 px-3 text-center">Survolez pour ajouter un logo</span>
               <LogoHoverActions
                 categoryId={categoryId}
@@ -283,7 +283,41 @@ function CategoryDetailsContent() {
               </div>
             )}
           </div>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+          {/* Logo inline mobile (md-) : centré au-dessus du titre */}
+          {categoryId && !isViewer && (
+            <div className="flex md:hidden justify-center mb-4">
+              <div className="group relative h-28 w-28 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm flex items-center justify-center">
+                {category?.cover_image_url ? (
+                  <img
+                    src={category.cover_image_url}
+                    alt="Logo du club"
+                    className="h-full w-full object-cover"
+                    style={{ objectPosition: (category as any)?.cover_image_position || "center" }}
+                  />
+                ) : (
+                  <span className="text-[10px] text-white/70 px-2 text-center">Ajouter un logo</span>
+                )}
+                <LogoHoverActions
+                  categoryId={categoryId}
+                  currentCoverUrl={category?.cover_image_url ?? null}
+                  currentCoverPosition={(category as any)?.cover_image_position}
+                />
+              </div>
+            </div>
+          )}
+          {category?.cover_image_url && isViewer && (
+            <div className="flex md:hidden justify-center mb-4">
+              <div className="relative h-28 w-28 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm">
+                <img
+                  src={category.cover_image_url}
+                  alt="Logo du club"
+                  className="h-full w-full object-cover"
+                  style={{ objectPosition: (category as any)?.cover_image_position || "center" }}
+                />
+              </div>
+            </div>
+          )}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 text-center sm:text-left">
             <div className="min-w-0 flex-1">
               {categoryId && (
                 isViewer ? (
@@ -299,7 +333,7 @@ function CategoryDetailsContent() {
                   )
                 )
               )}
-              <div className="flex items-center gap-2 sm:gap-4 mt-2 flex-wrap">
+              <div className="flex items-center gap-2 sm:gap-4 mt-2 flex-wrap justify-center sm:justify-start">
                 <p className="text-white/90 text-sm sm:text-base truncate">
                   {displayClubName}
                 </p>
@@ -321,7 +355,7 @@ function CategoryDetailsContent() {
               </div>
             </div>
             {categoryId && !isViewer && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 self-center sm:self-auto">
                 <CategoryCoverUpload 
                   categoryId={categoryId} 
                   currentCoverUrl={category?.cover_image_url}
