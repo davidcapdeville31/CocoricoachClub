@@ -283,7 +283,41 @@ function CategoryDetailsContent() {
               </div>
             )}
           </div>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+          {/* Logo inline mobile (md-) : centré au-dessus du titre */}
+          {categoryId && !isViewer && (
+            <div className="flex md:hidden justify-center mb-4">
+              <div className="group relative h-28 w-28 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm flex items-center justify-center">
+                {category?.cover_image_url ? (
+                  <img
+                    src={category.cover_image_url}
+                    alt="Logo du club"
+                    className="h-full w-full object-cover"
+                    style={{ objectPosition: (category as any)?.cover_image_position || "center" }}
+                  />
+                ) : (
+                  <span className="text-[10px] text-white/70 px-2 text-center">Ajouter un logo</span>
+                )}
+                <LogoHoverActions
+                  categoryId={categoryId}
+                  currentCoverUrl={category?.cover_image_url ?? null}
+                  currentCoverPosition={(category as any)?.cover_image_position}
+                />
+              </div>
+            </div>
+          )}
+          {category?.cover_image_url && isViewer && (
+            <div className="flex md:hidden justify-center mb-4">
+              <div className="relative h-28 w-28 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm">
+                <img
+                  src={category.cover_image_url}
+                  alt="Logo du club"
+                  className="h-full w-full object-cover"
+                  style={{ objectPosition: (category as any)?.cover_image_position || "center" }}
+                />
+              </div>
+            </div>
+          )}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 text-center sm:text-left">
             <div className="min-w-0 flex-1">
               {categoryId && (
                 isViewer ? (
