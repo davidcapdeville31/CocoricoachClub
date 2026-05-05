@@ -38,7 +38,7 @@ export const MethodExerciseDisplay = ({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 px-2 py-1.5 rounded-lg border transition-all",
+        "flex items-start gap-2 px-2 py-1.5 rounded-lg border transition-all min-w-0 flex-wrap sm:flex-nowrap",
         methodBgColor,
         methodBorderColor,
         className
@@ -50,7 +50,7 @@ export const MethodExerciseDisplay = ({
       )}>
         <Dumbbell className="h-3 w-3 text-white" />
       </div>
-      <span className={cn("font-semibold text-xs flex-1 truncate", methodTextColor)}>
+      <span className={cn("font-semibold text-xs flex-1 min-w-0 break-words sm:truncate", methodTextColor)}>
         {exerciseName}
       </span>
 
@@ -110,7 +110,7 @@ export const MethodExerciseDisplay = ({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex-shrink-0"
+          className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex-shrink-0 ml-auto"
           onClick={(e) => {
             e.stopPropagation();
             onRemove();
