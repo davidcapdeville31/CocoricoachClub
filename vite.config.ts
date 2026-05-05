@@ -13,6 +13,9 @@ export default defineConfig(({ mode }) => {
   return {
     clearScreen: false,
     define: defineFallbackEnv(mode),
+    build: {
+      sourcemap: true,
+    },
     server: {
       host: "::",
       port: PORT,
