@@ -548,9 +548,10 @@ const DroppableSlot = ({
       {/* Slot label badge */}
       <div
         className={cn(
-          "absolute top-1 left-1.5 px-1.5 py-0 rounded-full text-[9px] font-semibold z-10 leading-4",
+          "absolute top-1 left-1.5 max-w-[calc(100%-0.75rem)] truncate px-1.5 py-0 rounded-full text-[9px] font-semibold z-10 leading-4",
           isFilled ? `${config.color} text-white` : "bg-muted text-muted-foreground"
         )}
+        title={slotLabel}
       >
         {slotLabel}
       </div>
