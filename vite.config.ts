@@ -14,7 +14,19 @@ export default defineConfig(({ mode }) => {
     clearScreen: false,
     define: defineFallbackEnv(mode),
     build: {
-      sourcemap: true,
+      sourcemap: mode === "development",
+      chunkSizeWarningLimit: 2000,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-tabs', '@radix-ui/react-popover', '@radix-ui/react-tooltip'],
+            'charts-vendor': ['recharts'],
+            'supabase-vendor': ['@supabase/supabase-js'],
+            'query-vendor': ['@tanstack/react-query'],
+          },
+        },
+      },
     },
     server: {
       host: "::",
