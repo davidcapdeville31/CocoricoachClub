@@ -537,7 +537,7 @@ const DroppableSlot = ({
     <div
       ref={setNodeRef}
       className={cn(
-        "relative rounded-lg border-2 border-dashed transition-all",
+        "relative rounded-lg border-2 border-dashed transition-all min-w-0 overflow-hidden",
         isFilled
           ? `${config.borderColor} ${config.bgActive} border-solid`
           : isOver
@@ -556,7 +556,7 @@ const DroppableSlot = ({
       </div>
 
       {isFilled ? (
-        <div className="pt-4 pb-1 px-1.5">
+        <div className="pt-4 pb-1 px-1.5 min-w-0">
           {/* Exercise display with method's color scheme */}
           <MethodExerciseDisplay
             exerciseName={exercise.exerciseName}
@@ -641,7 +641,7 @@ const DroppableSlot = ({
             </>
           ) : (
             /* Mode lecture seule: afficher les valeurs */
-            <div className="flex flex-wrap gap-3 text-sm">
+            <div className="flex flex-wrap gap-2 text-sm min-w-0">
               {visibleParams.map(key => {
                 const paramConfig = ALL_LINKED_PARAMS.find(p => p.key === key);
                 if (!paramConfig) return null;
@@ -655,14 +655,14 @@ const DroppableSlot = ({
                 const displayValue = isLockedByMax ? (key === 'rpe' ? 10 : 0) : paramValue;
                 return (
                   <div key={key} className={cn(
-                    "px-2 py-1 rounded-md border",
+                    "px-2 py-1 rounded-md border min-w-0 max-w-full",
                     isLockedByMax 
                       ? "bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800" 
                       : "bg-muted/50"
                   )}>
-                    <span className="text-xs text-muted-foreground">{paramConfig.label}:</span>
+                    <span className="text-xs text-muted-foreground break-words">{paramConfig.label}:</span>
                     <span className={cn(
-                      "ml-1 font-medium",
+                      "ml-1 font-medium break-all",
                       isLockedByMax && "text-red-600 dark:text-red-400 font-bold"
                     )}>{displayValue}</span>
                   </div>
@@ -808,12 +808,12 @@ const LinkedMethodSlotsContent = ({
   };
 
   return (
-    <div className={cn("p-2 rounded-lg border-2", config.borderColor, "bg-background/50")}>
+    <div className={cn("p-2 rounded-lg border-2 min-w-0 overflow-hidden", config.borderColor, "bg-background/50")}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-start justify-between gap-2 mb-2 min-w-0">
+        <div className="flex flex-wrap items-center gap-2 min-w-0 flex-1">
           <Badge className={cn("text-white", config.color)}>{config.label}</Badge>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground break-words">
             {filledCount} exercice{filledCount > 1 ? "s" : ""}{isDynamic ? ` (min. ${minRequired})` : ` / ${config.slots}`}
           </span>
         </div>
@@ -832,7 +832,7 @@ const LinkedMethodSlotsContent = ({
       </div>
 
       {/* Slots grid */}
-      <div className="grid gap-2">
+      <div className="grid gap-2 min-w-0">
         {Array.from({ length: slotsToShow }).map((_, index) => {
           const exercise = slottedExercises.find((e) => e.slotIndex === index);
           const slotId = `linked-slot-${dayId}-${index}`;
