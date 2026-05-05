@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Trash2, Crown, Settings2, Users } from "lucide-react";
+import { Trash2, Crown, Settings2, Users, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -137,6 +137,35 @@ export function ClubMembersManagement({ clubId, categories, canManage }: ClubMem
     },
     onError: () => {
       toast.error("Erreur lors du retrait du membre");
+    },
+  });
+
+  const resendAccessEmail = useMutation({
+    mutationFn: async (member: any) => {
+      if (!member.profile?.email) throw new Error("no_email");
+      const inviterName = club?.profile?.full_name || "CocoriCoach";
+      const clubName = (club as any)?.name || "votre club";
+      const invitationLink = `${window.location.origin}/auth`;
+      await supabase.functions.invoke("send-invitation-email", {
+        body: {
+          email: member.profile.email,
+          invitationType: "collaborator",
+          inviterName,
+          clubName,
+          role: member.role,
+          invitationLink,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Email de rappel d'accès envoyé");
+    },
+    onError: (e: any) => {
+      if (e?.message === "no_email") {
+        toast.error("Aucun email enregistré pour ce membre");
+      } else {
+        toast.error("Erreur lors de l'envoi de l'email");
+      }
     },
   });
 
@@ -307,8 +336,18 @@ export function ClubMembersManagement({ clubId, categories, canManage }: ClubMem
                           variant="ghost"
                           size="icon"
                           onClick={() => handleEditMember(member)}
+                          title="Modifier les accès"
                         >
                           <Settings2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => resendAccessEmail.mutate(member)}
+                          disabled={resendAccessEmail.isPending || !member.profile?.email}
+                          title="Renvoyer un email de rappel d'accès (sans réinitialiser le mot de passe)"
+                        >
+                          <Mail className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
