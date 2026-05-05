@@ -138,13 +138,13 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 [&_th]:px-2 [&_th]:py-2 [&_td]:px-2 [&_td]:py-2 [&_th]:text-[11px] [&_th]:whitespace-nowrap">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Catégorie</TableHead>
-                  <TableHead>Test</TableHead>
+                  <TableHead className="whitespace-nowrap">Date</TableHead>
+                  <TableHead className="whitespace-nowrap">Catégorie</TableHead>
+                  <TableHead className="whitespace-nowrap">Test</TableHead>
                   <TableHead className="text-right whitespace-nowrap">Résultat</TableHead>
                 </TableRow>
               </TableHeader>
