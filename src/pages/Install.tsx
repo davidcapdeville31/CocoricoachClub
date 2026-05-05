@@ -51,7 +51,7 @@ const Install = () => {
           <div className="mx-auto mb-4 w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center">
             <Smartphone className="w-10 h-10 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Installer Rugby Strength Planner</CardTitle>
+          <CardTitle className="text-2xl">Installer CocoriCoach Club</CardTitle>
           <CardDescription>
             Accédez rapidement à votre application de préparation physique depuis votre écran d'accueil
           </CardDescription>
