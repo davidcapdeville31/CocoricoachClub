@@ -30,7 +30,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Crown } from "lucide-react";
+import { Trash2, Crown, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -168,6 +168,30 @@ export function MembersSection({ clubId, canManage }: MembersSectionProps) {
     },
   });
 
+  const resendAccessEmail = useMutation({
+    mutationFn: async (member: any) => {
+      if (!member.profile?.email) throw new Error("no_email");
+      const inviterName = club?.profile?.full_name || "CocoriCoach";
+      const clubName = (club as any)?.name || "votre club";
+      const invitationLink = `${window.location.origin}/auth`;
+      await supabase.functions.invoke("send-invitation-email", {
+        body: {
+          email: member.profile.email,
+          invitationType: "collaborator",
+          inviterName,
+          clubName,
+          role: member.role,
+          invitationLink,
+        },
+      });
+    },
+    onSuccess: () => toast.success("Email de rappel d'accès envoyé"),
+    onError: (e: any) => {
+      if (e?.message === "no_email") toast.error("Aucun email enregistré pour ce membre");
+      else toast.error("Erreur lors de l'envoi de l'email");
+    },
+  });
+
   if (isLoading) {
     return <Skeleton className="h-64 w-full" />;
   }
@@ -246,34 +270,45 @@ export function MembersSection({ clubId, canManage }: MembersSectionProps) {
                   </TableCell>
                   {canManage && (
                     <TableCell>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled={removeMember.isPending}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Retirer ce membre ?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              {member.profile?.full_name || "Ce membre"} sera retiré du club et de toutes les catégories associées. Vous pourrez ensuite inviter quelqu'un d'autre à sa place.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => removeMember.mutate(member)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => resendAccessEmail.mutate(member)}
+                          disabled={resendAccessEmail.isPending || !member.profile?.email}
+                          title="Renvoyer un email de rappel d'accès (sans réinitialiser le mot de passe)"
+                        >
+                          <Mail className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              disabled={removeMember.isPending}
                             >
-                              Retirer
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Retirer ce membre ?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {member.profile?.full_name || "Ce membre"} sera retiré du club et de toutes les catégories associées. Vous pourrez ensuite inviter quelqu'un d'autre à sa place.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => removeMember.mutate(member)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Retirer
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </TableCell>
                   )}
                 </TableRow>
