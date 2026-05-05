@@ -165,7 +165,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                           </TableCell>
                           <TableCell className="text-xs">{cat?.label || test.test_category?.replace(/_/g, " ")}</TableCell>
                           <TableCell className="text-xs">{testDef?.label || test.test_type?.replace(/_/g, " ")}</TableCell>
-                          <TableCell className="text-xs font-semibold text-primary">
+                          <TableCell className="text-xs font-semibold text-primary text-right whitespace-nowrap">
                             {test.result_value} {test.result_unit || ""}
                           </TableCell>
                         </TableRow>
@@ -178,7 +178,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                     </TableCell>
                     <TableCell className="text-xs">Vitesse</TableCell>
                     <TableCell className="text-xs">Sprint 40m</TableCell>
-                    <TableCell className="text-xs font-semibold text-primary">
+                    <TableCell className="text-xs font-semibold text-primary text-right whitespace-nowrap">
                       {test.time_40m_seconds}s
                     </TableCell>
                   </TableRow>
@@ -190,7 +190,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                     </TableCell>
                     <TableCell className="text-xs">Musculation</TableCell>
                     <TableCell className="text-xs">{test.test_name}</TableCell>
-                    <TableCell className="text-xs font-semibold text-primary">
+                    <TableCell className="text-xs font-semibold text-primary text-right whitespace-nowrap">
                       {test.weight_kg}kg
                     </TableCell>
                   </TableRow>
