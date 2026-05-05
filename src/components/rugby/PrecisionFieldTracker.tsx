@@ -758,7 +758,7 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
             (filtre par thème, exercice et période)
           </span>
         </div>
-        <PrecisionTrainingStats categoryId={categoryId} />
+        <PrecisionTrainingStats categoryId={categoryId} lockedPlayerId={lockedPlayerId} />
       </div>
 
       {pendingKickType && (

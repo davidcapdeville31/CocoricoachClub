@@ -33,23 +33,27 @@ import { drawPdfRugbyField, drawPdfFieldLegend, drawPdfZoneStatsGrid } from "@/l
 
 interface PrecisionTrainingStatsProps {
   categoryId: string;
+  /** Si fourni, restreint l'affichage et l'export aux stats de cet athlète uniquement (vue espace athlète). */
+  lockedPlayerId?: string;
 }
 
-export function PrecisionTrainingStats({ categoryId }: PrecisionTrainingStatsProps) {
+export function PrecisionTrainingStats({ categoryId, lockedPlayerId }: PrecisionTrainingStatsProps) {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string>("all");
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string>(lockedPlayerId || "all");
   const [selectedExercise, setSelectedExercise] = useState<string>("all");
   const [exportPlayerId, setExportPlayerId] = useState<string>("");
 
   const { data: rawData, isLoading } = useQuery({
-    queryKey: ["precision-training-stats", categoryId],
+    queryKey: ["precision-training-stats", categoryId, lockedPlayerId || "all"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("precision_training")
         .select("*, players(id, name, first_name)")
         .eq("category_id", categoryId)
         .order("session_date", { ascending: true });
+      if (lockedPlayerId) query = query.eq("player_id", lockedPlayerId);
+      const { data, error } = await query;
       if (error) throw error;
       return data || [];
     },
@@ -1093,18 +1097,20 @@ export function PrecisionTrainingStats({ categoryId }: PrecisionTrainingStatsPro
         <CardContent className="pt-4 pb-3">
           <div className="flex flex-wrap gap-3 items-end justify-between">
             <div className="flex flex-wrap gap-3 items-end">
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">Athlète</label>
-                <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
-                  <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous</SelectItem>
-                    {players.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {!lockedPlayerId && (
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">Athlète</label>
+                  <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
+                    <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous</SelectItem>
+                      {players.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">Exercice</label>
@@ -1158,17 +1164,19 @@ export function PrecisionTrainingStats({ categoryId }: PrecisionTrainingStatsPro
             </div>
 
             <div className="flex gap-2 items-center">
-              <Select value={exportPlayerId} onValueChange={setExportPlayerId}>
-                <SelectTrigger className="w-[180px] h-8 text-xs">
-                  <SelectValue placeholder="Exporter un athlète" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">Tous les athlètes</SelectItem>
-                  {players.map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {!lockedPlayerId && (
+                <Select value={exportPlayerId} onValueChange={setExportPlayerId}>
+                  <SelectTrigger className="w-[180px] h-8 text-xs">
+                    <SelectValue placeholder="Exporter un athlète" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">Tous les athlètes</SelectItem>
+                    {players.map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -1179,13 +1187,13 @@ export function PrecisionTrainingStats({ categoryId }: PrecisionTrainingStatsPro
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel className="text-xs">Exporter en Excel</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => handleExportExcel(exportPlayerId && exportPlayerId !== "__all__" ? exportPlayerId : undefined, "both")}>
+                  <DropdownMenuItem onClick={() => handleExportExcel(lockedPlayerId || (exportPlayerId && exportPlayerId !== "__all__" ? exportPlayerId : undefined), "both")}>
                     📊 Par exercice + entraînement
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExportExcel(exportPlayerId && exportPlayerId !== "__all__" ? exportPlayerId : undefined, "exercise")}>
+                  <DropdownMenuItem onClick={() => handleExportExcel(lockedPlayerId || (exportPlayerId && exportPlayerId !== "__all__" ? exportPlayerId : undefined), "exercise")}>
                     🎯 Par exercice uniquement
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExportExcel(exportPlayerId && exportPlayerId !== "__all__" ? exportPlayerId : undefined, "session")}>
+                  <DropdownMenuItem onClick={() => handleExportExcel(lockedPlayerId || (exportPlayerId && exportPlayerId !== "__all__" ? exportPlayerId : undefined), "session")}>
                     📅 Par entraînement uniquement
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -1200,13 +1208,13 @@ export function PrecisionTrainingStats({ categoryId }: PrecisionTrainingStatsPro
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel className="text-xs">Exporter en PDF</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => handleExportPdf(exportPlayerId && exportPlayerId !== "__all__" ? exportPlayerId : undefined, "both")}>
+                  <DropdownMenuItem onClick={() => handleExportPdf(lockedPlayerId || (exportPlayerId && exportPlayerId !== "__all__" ? exportPlayerId : undefined), "both")}>
                     📊 Par exercice + entraînement
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExportPdf(exportPlayerId && exportPlayerId !== "__all__" ? exportPlayerId : undefined, "exercise")}>
+                  <DropdownMenuItem onClick={() => handleExportPdf(lockedPlayerId || (exportPlayerId && exportPlayerId !== "__all__" ? exportPlayerId : undefined), "exercise")}>
                     🎯 Par exercice uniquement
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExportPdf(exportPlayerId && exportPlayerId !== "__all__" ? exportPlayerId : undefined, "session")}>
+                  <DropdownMenuItem onClick={() => handleExportPdf(lockedPlayerId || (exportPlayerId && exportPlayerId !== "__all__" ? exportPlayerId : undefined), "session")}>
                     📅 Par entraînement uniquement
                   </DropdownMenuItem>
                 </DropdownMenuContent>
