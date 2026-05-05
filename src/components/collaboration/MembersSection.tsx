@@ -168,6 +168,30 @@ export function MembersSection({ clubId, canManage }: MembersSectionProps) {
     },
   });
 
+  const resendAccessEmail = useMutation({
+    mutationFn: async (member: any) => {
+      if (!member.profile?.email) throw new Error("no_email");
+      const inviterName = club?.profile?.full_name || "CocoriCoach";
+      const clubName = (club as any)?.name || "votre club";
+      const invitationLink = `${window.location.origin}/auth`;
+      await supabase.functions.invoke("send-invitation-email", {
+        body: {
+          email: member.profile.email,
+          invitationType: "collaborator",
+          inviterName,
+          clubName,
+          role: member.role,
+          invitationLink,
+        },
+      });
+    },
+    onSuccess: () => toast.success("Email de rappel d'accès envoyé"),
+    onError: (e: any) => {
+      if (e?.message === "no_email") toast.error("Aucun email enregistré pour ce membre");
+      else toast.error("Erreur lors de l'envoi de l'email");
+    },
+  });
+
   if (isLoading) {
     return <Skeleton className="h-64 w-full" />;
   }
