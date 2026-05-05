@@ -1097,18 +1097,20 @@ export function PrecisionTrainingStats({ categoryId, lockedPlayerId }: Precision
         <CardContent className="pt-4 pb-3">
           <div className="flex flex-wrap gap-3 items-end justify-between">
             <div className="flex flex-wrap gap-3 items-end">
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">Athlète</label>
-                <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
-                  <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous</SelectItem>
-                    {players.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {!lockedPlayerId && (
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">Athlète</label>
+                  <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
+                    <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous</SelectItem>
+                      {players.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">Exercice</label>
