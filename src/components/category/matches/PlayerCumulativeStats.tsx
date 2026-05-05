@@ -2737,7 +2737,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
                           })
                           .map((p) => (
                             <TableRow key={p.playerId}>
-                              <TableCell className="font-medium">{p.playerName}</TableCell>
+                              <TableCell className="font-medium whitespace-nowrap max-w-[140px] truncate">{p.playerName}</TableCell>
                               <TableCell className="text-center">{p.matchesPlayed}</TableCell>
                               {columnGroups.map((group, gIdx) =>
                                 group.items.map((stat, sIdx) => {
