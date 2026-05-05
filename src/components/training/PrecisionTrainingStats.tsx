@@ -1164,17 +1164,19 @@ export function PrecisionTrainingStats({ categoryId, lockedPlayerId }: Precision
             </div>
 
             <div className="flex gap-2 items-center">
-              <Select value={exportPlayerId} onValueChange={setExportPlayerId}>
-                <SelectTrigger className="w-[180px] h-8 text-xs">
-                  <SelectValue placeholder="Exporter un athlète" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">Tous les athlètes</SelectItem>
-                  {players.map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {!lockedPlayerId && (
+                <Select value={exportPlayerId} onValueChange={setExportPlayerId}>
+                  <SelectTrigger className="w-[180px] h-8 text-xs">
+                    <SelectValue placeholder="Exporter un athlète" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">Tous les athlètes</SelectItem>
+                    {players.map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
