@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useRegisterSW } from "virtual:pwa-register/react";
+import { useEffect, useRef, useState } from "react";
+import { Workbox } from "workbox-window";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { RefreshCw, X } from "lucide-react";
@@ -22,35 +22,14 @@ const isInIframe = () => {
   }
 };
 
-const CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 min
+const CHECK_INTERVAL_MS = 30 * 60 * 1000;
 
 const PWAUpdatePrompt = () => {
   const disabled = isPreviewHost() || isInIframe();
+  const [needRefresh, setNeedRefresh] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const wbRef = useRef<Workbox | null>(null);
 
-  const {
-    needRefresh: [needRefresh, setNeedRefresh],
-    updateServiceWorker,
-  } = useRegisterSW({
-    onRegisteredSW(swUrl, registration) {
-      if (!registration) return;
-      // Polling périodique pour détecter une nouvelle version
-      setInterval(() => {
-        registration.update().catch(() => {});
-      }, CHECK_INTERVAL_MS);
-
-      // Vérification au focus / retour online
-      const check = () => registration.update().catch(() => {});
-      window.addEventListener("focus", check);
-      window.addEventListener("online", check);
-    },
-    onRegisterError(err) {
-      console.warn("[PWA] SW registration error", err);
-    },
-  });
-
-  // Fallback automatique : si un nouveau SW prend le contrôle (skipWaiting déjà appelé),
-  // on recharge la page pour servir la nouvelle version.
   useEffect(() => {
     if (disabled || !("serviceWorker" in navigator)) {
       navigator.serviceWorker?.getRegistrations().then((regs) => {
@@ -59,6 +38,10 @@ const PWAUpdatePrompt = () => {
       return;
     }
 
+    const wb = new Workbox("/sw.js");
+    wbRef.current = wb;
+
+    // Reload automatique quand le nouveau SW prend le contrôle
     let reloaded = false;
     const onControllerChange = () => {
       if (reloaded) return;
@@ -66,6 +49,25 @@ const PWAUpdatePrompt = () => {
       window.location.reload();
     };
     navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
+
+    // Nouvelle version en attente → propose au user
+    wb.addEventListener("waiting", () => setNeedRefresh(true));
+
+    wb.register()
+      .then((registration) => {
+        if (!registration) return;
+        const check = () => registration.update().catch(() => {});
+        const intervalId = window.setInterval(check, CHECK_INTERVAL_MS);
+        window.addEventListener("focus", check);
+        window.addEventListener("online", check);
+        return () => {
+          window.clearInterval(intervalId);
+          window.removeEventListener("focus", check);
+          window.removeEventListener("online", check);
+        };
+      })
+      .catch((err) => console.warn("[PWA] SW registration error", err));
+
     return () => {
       navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
     };
@@ -73,15 +75,17 @@ const PWAUpdatePrompt = () => {
 
   if (disabled || !needRefresh || dismissed) return null;
 
-  const handleUpdate = async () => {
-    // Active le nouveau SW (skipWaiting) — déclenchera controllerchange → reload
-    await updateServiceWorker(true);
+  const handleUpdate = () => {
+    const wb = wbRef.current;
+    if (!wb) {
+      window.location.reload();
+      return;
+    }
+    // Demande au SW en attente de s'activer → controllerchange → reload
+    wb.messageSkipWaiting();
   };
 
-  const handleDismiss = () => {
-    setNeedRefresh(false);
-    setDismissed(true);
-  };
+  const handleDismiss = () => setDismissed(true);
 
   return (
     <div className="fixed top-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96 animate-in slide-in-from-top-5">
