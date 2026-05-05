@@ -2808,7 +2808,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
                       const dropRate = k.drop.total > 0 ? Math.round((k.drop.success / k.drop.total) * 100) : 0;
                       return (
                         <TableRow key={playerId}>
-                          <TableCell className="font-medium">{name}</TableCell>
+                          <TableCell className="font-medium whitespace-nowrap max-w-[140px] truncate">{name}</TableCell>
                           <TableCell className="text-center">
                             <span className="font-semibold">{rate}%</span>
                             <span className="text-xs text-muted-foreground ml-1">({k.success}/{k.total})</span>
