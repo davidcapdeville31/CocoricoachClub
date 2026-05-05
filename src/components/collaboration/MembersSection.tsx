@@ -281,32 +281,34 @@ export function MembersSection({ clubId, canManage }: MembersSectionProps) {
                           <Mail className="h-4 w-4" />
                         </Button>
                         <AlertDialog>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled={removeMember.isPending}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Retirer ce membre ?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              {member.profile?.full_name || "Ce membre"} sera retiré du club et de toutes les catégories associées. Vous pourrez ensuite inviter quelqu'un d'autre à sa place.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => removeMember.mutate(member)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              disabled={removeMember.isPending}
                             >
-                              Retirer
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Retirer ce membre ?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {member.profile?.full_name || "Ce membre"} sera retiré du club et de toutes les catégories associées. Vous pourrez ensuite inviter quelqu'un d'autre à sa place.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => removeMember.mutate(member)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Retirer
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </TableCell>
                   )}
                 </TableRow>
