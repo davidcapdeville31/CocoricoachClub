@@ -2783,7 +2783,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 [&_th]:px-2 [&_th]:py-2 [&_td]:px-2 [&_td]:py-1.5 [&_th]:text-[11px] [&_td]:text-xs">
               <Table>
                 <TableHeader>
                   <TableRow>
