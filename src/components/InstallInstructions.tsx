@@ -84,7 +84,7 @@ const InstallInstructions = ({ onDismiss, showDismiss = true, redirectPath }: In
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Installez Rugby Strength Planner sur votre appareil pour un accès rapide et une utilisation hors ligne.
+          Installez CocoriCoach Club sur votre appareil pour un accès rapide et une utilisation hors ligne.
         </p>
 
         {deferredPrompt ? (
