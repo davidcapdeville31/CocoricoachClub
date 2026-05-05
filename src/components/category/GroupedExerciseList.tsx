@@ -186,7 +186,7 @@ export function GroupedExerciseList({
                 {idx + 1}.
               </span>
             )}
-            <span className={cn("font-medium", compact && "text-sm", fieldMode && "text-white")}>
+            <span className={cn("font-medium break-words min-w-0", compact && "text-sm", fieldMode && "text-white")}>
               {ex.exercise_name}
             </span>
             {(media?.youtube_url || media?.image_url) && (
