@@ -2,7 +2,8 @@ import { useState } from "react";
 import { ConversationList } from "./ConversationList";
 import { ChatWindow } from "./ChatWindow";
 import { Card, CardContent } from "@/components/ui/card";
-import { MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MessageCircle, ChevronLeft } from "lucide-react";
 
 interface MessagingTabProps {
   categoryId: string;
@@ -14,7 +15,8 @@ export function MessagingTab({ categoryId, isAthlete = false }: MessagingTabProp
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-1">
+      {/* Liste : visible sur desktop, ou sur mobile uniquement si aucune conv n'est ouverte */}
+      <div className={`lg:col-span-1 ${selectedConversationId ? "hidden lg:block" : "block"}`}>
         <ConversationList
           categoryId={categoryId}
           selectedId={selectedConversationId || undefined}
@@ -22,12 +24,24 @@ export function MessagingTab({ categoryId, isAthlete = false }: MessagingTabProp
           isAthlete={isAthlete}
         />
       </div>
-      <div className="lg:col-span-2">
+      {/* Fenêtre chat : visible sur desktop, ou sur mobile uniquement si une conv est ouverte */}
+      <div className={`lg:col-span-2 ${selectedConversationId ? "block" : "hidden lg:block"}`}>
         {selectedConversationId ? (
-          <ChatWindow 
-            conversationId={selectedConversationId} 
-            categoryId={categoryId}
-          />
+          <div className="space-y-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden -ml-2"
+              onClick={() => setSelectedConversationId(null)}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Retour aux conversations
+            </Button>
+            <ChatWindow
+              conversationId={selectedConversationId}
+              categoryId={categoryId}
+            />
+          </div>
         ) : (
           <Card className="h-[500px] flex items-center justify-center">
             <CardContent className="text-center">
