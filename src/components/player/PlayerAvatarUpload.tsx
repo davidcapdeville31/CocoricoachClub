@@ -26,16 +26,27 @@ export function PlayerAvatarUpload({
     mutationFn: async (file: File) => {
       setUploading(true);
 
-      // Upload to storage
+      // List and remove any existing avatar files for this player to avoid orphans
+      // (different extensions would otherwise leave the old file behind)
+      const { data: existingFiles } = await supabase.storage
+        .from("player-avatars")
+        .list(playerId);
+
+      if (existingFiles && existingFiles.length > 0) {
+        const pathsToRemove = existingFiles.map((f) => `${playerId}/${f.name}`);
+        await supabase.storage.from("player-avatars").remove(pathsToRemove);
+      }
+
+      // Upload new avatar with unique filename to bust caches
       const fileExt = file.name.split(".").pop();
-      const fileName = `${playerId}/avatar.${fileExt}`;
+      const fileName = `${playerId}/avatar-${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
         .from("player-avatars")
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, file, { upsert: true, cacheControl: "3600" });
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
+      // Get public URL (unique filename ensures the browser fetches the new image)
       const {
         data: { publicUrl },
       } = supabase.storage.from("player-avatars").getPublicUrl(fileName);
