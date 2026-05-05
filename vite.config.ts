@@ -44,7 +44,8 @@ export default defineConfig(({ mode }) => {
       react(),
       mode === "development" && componentTagger(),
       mode !== "development" && VitePWA({
-        registerType: 'autoUpdate',
+        registerType: 'prompt',
+        injectRegister: false,
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg', 'pwa-192x192.png', 'pwa-512x512.png'],
         manifest: {
           name: 'CocoriCoach Club',
