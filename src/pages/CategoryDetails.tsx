@@ -355,7 +355,7 @@ function CategoryDetailsContent() {
               </div>
             </div>
             {categoryId && !isViewer && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 self-center sm:self-auto">
                 <CategoryCoverUpload 
                   categoryId={categoryId} 
                   currentCoverUrl={category?.cover_image_url}
