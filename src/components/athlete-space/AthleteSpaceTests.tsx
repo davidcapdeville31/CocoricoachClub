@@ -163,8 +163,8 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                           <TableCell className="whitespace-nowrap text-xs">
                             {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
                           </TableCell>
-                          <TableCell className="text-xs">{cat?.label || test.test_category?.replace(/_/g, " ")}</TableCell>
-                          <TableCell className="text-xs">{testDef?.label || test.test_type?.replace(/_/g, " ")}</TableCell>
+                          <TableCell className="text-xs whitespace-nowrap">{cat?.label || test.test_category?.replace(/_/g, " ")}</TableCell>
+                          <TableCell className="text-xs whitespace-nowrap">{testDef?.label || test.test_type?.replace(/_/g, " ")}</TableCell>
                           <TableCell className="text-xs font-semibold text-primary text-right whitespace-nowrap">
                             {test.result_value} {test.result_unit || ""}
                           </TableCell>
@@ -176,8 +176,8 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                     <TableCell className="whitespace-nowrap text-xs">
                       {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
                     </TableCell>
-                    <TableCell className="text-xs">Vitesse</TableCell>
-                    <TableCell className="text-xs">Sprint 40m</TableCell>
+                    <TableCell className="text-xs whitespace-nowrap">Vitesse</TableCell>
+                    <TableCell className="text-xs whitespace-nowrap">Sprint 40m</TableCell>
                     <TableCell className="text-xs font-semibold text-primary text-right whitespace-nowrap">
                       {test.time_40m_seconds}s
                     </TableCell>
@@ -188,8 +188,8 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                     <TableCell className="whitespace-nowrap text-xs">
                       {format(new Date(test.test_date), "dd/MM/yyyy", { locale: fr })}
                     </TableCell>
-                    <TableCell className="text-xs">Musculation</TableCell>
-                    <TableCell className="text-xs">{test.test_name}</TableCell>
+                    <TableCell className="text-xs whitespace-nowrap">Musculation</TableCell>
+                    <TableCell className="text-xs whitespace-nowrap">{test.test_name}</TableCell>
                     <TableCell className="text-xs font-semibold text-primary text-right whitespace-nowrap">
                       {test.weight_kg}kg
                     </TableCell>
