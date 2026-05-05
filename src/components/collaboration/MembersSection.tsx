@@ -270,8 +270,17 @@ export function MembersSection({ clubId, canManage }: MembersSectionProps) {
                   </TableCell>
                   {canManage && (
                     <TableCell>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => resendAccessEmail.mutate(member)}
+                          disabled={resendAccessEmail.isPending || !member.profile?.email}
+                          title="Renvoyer un email de rappel d'accès (sans réinitialiser le mot de passe)"
+                        >
+                          <Mail className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
                           <Button
                             variant="ghost"
                             size="icon"
