@@ -4,12 +4,103 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Archive, RotateCcw, Trash2, Download, Building2, Users, Loader2 } from "lucide-react";
+import { Archive, RotateCcw, Trash2, Download, Building2, Users, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
+interface SnapshotRow {
+  snapshot_id: string;
+  entity_type: string;
+  entity_id: string;
+  entity_name: string;
+  club_id: string | null;
+  club_name: string | null;
+  version: number;
+  notes: string | null;
+  created_at: string;
+  created_by: string | null;
+  creator_email: string | null;
+  is_archived: boolean;
+}
+
+function SnapshotsList() {
+  const { data: snapshots, isLoading } = useQuery({
+    queryKey: ["club-snapshots"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("list_club_snapshots" as any);
+      if (error) throw error;
+      return (data || []) as SnapshotRow[];
+    },
+  });
+
+  const downloadSnapshot = async (id: string, name: string, version: number) => {
+    const { data, error } = await supabase
+      .from("archived_snapshots")
+      .select("snapshot, entity_name, version, created_at, notes")
+      .eq("id", id)
+      .single();
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `enregistrement_${name}_v${version}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="py-12 flex justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!snapshots || snapshots.length === 0) {
+    return <div className="text-center py-8 text-muted-foreground">Aucun enregistrement pour l'instant.</div>;
+  }
+
+  return (
+    <div className="space-y-3">
+      {snapshots.map((row) => (
+        <div
+          key={row.snapshot_id}
+          className="flex flex-wrap items-center gap-3 rounded-2xl border bg-surface p-4"
+        >
+          <div className="flex items-center gap-2">
+            <Save className="h-5 w-5 text-primary" />
+            <Badge variant="outline">v{row.version}</Badge>
+            {row.is_archived && <Badge variant="secondary">Archivé</Badge>}
+          </div>
+          <div className="flex-1 min-w-[200px]">
+            <div className="font-semibold">{row.entity_name}</div>
+            <div className="text-xs text-muted-foreground">
+              Enregistré le {new Date(row.created_at).toLocaleString("fr-FR")}
+              {row.creator_email && <> par {row.creator_email}</>}
+            </div>
+            {row.notes && <div className="text-xs text-muted-foreground mt-1 italic">« {row.notes} »</div>}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => downloadSnapshot(row.snapshot_id, row.entity_name, row.version)}
+          >
+            <Download className="h-4 w-4 mr-1" /> Exporter JSON
+          </Button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 
 interface ArchivedRow {
   entity_type: "club" | "category";
