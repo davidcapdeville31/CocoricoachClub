@@ -145,7 +145,7 @@ export function AthleteSpaceTests({ playerId, sportType }: Props) {
                   <TableHead>Date</TableHead>
                   <TableHead>Catégorie</TableHead>
                   <TableHead>Test</TableHead>
-                  <TableHead>Résultat</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Résultat</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
