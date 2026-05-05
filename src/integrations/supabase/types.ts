@@ -14186,6 +14186,23 @@ export type Database = {
           snapshot_count: number
         }[]
       }
+      list_club_snapshots: {
+        Args: never
+        Returns: {
+          club_id: string
+          club_name: string
+          created_at: string
+          created_by: string
+          creator_email: string
+          entity_id: string
+          entity_name: string
+          entity_type: string
+          is_archived: boolean
+          notes: string
+          snapshot_id: string
+          version: number
+        }[]
+      }
       log_audit_event: {
         Args: {
           _action: string
@@ -14258,6 +14275,10 @@ export type Database = {
       seed_default_program_themes: {
         Args: { p_club_id: string }
         Returns: undefined
+      }
+      snapshot_club_full: {
+        Args: { _club_id: string; _notes?: string }
+        Returns: Json
       }
       transfer_player_with_history: {
         Args: {
