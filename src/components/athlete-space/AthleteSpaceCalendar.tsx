@@ -537,7 +537,9 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   );
                                 })()}
                                 {exercises.length > 0 && (
-                                  <GroupedExerciseList exercises={exercises} maxHeight="500px" />
+                                  <div className="overflow-x-auto -mx-3 px-3">
+                                    <GroupedExerciseList exercises={exercises} maxHeight="500px" />
+                                  </div>
                                 )}
                               </div>
                             )}
