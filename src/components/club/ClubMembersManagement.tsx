@@ -336,8 +336,18 @@ export function ClubMembersManagement({ clubId, categories, canManage }: ClubMem
                           variant="ghost"
                           size="icon"
                           onClick={() => handleEditMember(member)}
+                          title="Modifier les accès"
                         >
                           <Settings2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => resendAccessEmail.mutate(member)}
+                          disabled={resendAccessEmail.isPending || !member.profile?.email}
+                          title="Renvoyer un email de rappel d'accès (sans réinitialiser le mot de passe)"
+                        >
+                          <Mail className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
