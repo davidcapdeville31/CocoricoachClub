@@ -333,7 +333,7 @@ function CategoryDetailsContent() {
                   )
                 )
               )}
-              <div className="flex items-center gap-2 sm:gap-4 mt-2 flex-wrap">
+              <div className="flex items-center gap-2 sm:gap-4 mt-2 flex-wrap justify-center sm:justify-start">
                 <p className="text-white/90 text-sm sm:text-base truncate">
                   {displayClubName}
                 </p>
