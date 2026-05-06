@@ -2430,7 +2430,7 @@ export const MethodConfigSlots = ({
               <div
                 key={idx}
                 className={cn(
-                  "relative p-2 pt-4 rounded-md border transition-all overflow-hidden",
+                  "relative p-2 pt-4 rounded-md border transition-all overflow-visible",
                   config.bgActive,
                   "border-" + config.borderColor.replace("border-", "") + "/40"
                 )}
