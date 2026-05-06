@@ -148,9 +148,10 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
   };
 
   const filteredPlayers = useMemo(() => {
+    if (playerId) return players.filter(p => p.id === playerId);
     if (selectedPlayerId === "all") return players;
     return players.filter(p => p.id === selectedPlayerId);
-  }, [players, selectedPlayerId]);
+  }, [players, selectedPlayerId, playerId]);
 
   // Compute per-player game stats
   const playerGameStats = useMemo(() => {
