@@ -128,8 +128,39 @@ function SnapshotsList() {
           >
             <Download className="h-4 w-4 mr-1" /> Exporter JSON
           </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => setConfirmRestore(row)}
+          >
+            <History className="h-4 w-4 mr-1" /> Restaurer
+          </Button>
         </div>
       ))}
+
+      <AlertDialog open={!!confirmRestore} onOpenChange={(o) => !o && setConfirmRestore(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restaurer depuis cet instantané</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action va réinjecter <strong>toutes les données</strong> de l'instantané v{confirmRestore?.version} de{" "}
+              <strong>{confirmRestore?.entity_name}</strong> (joueurs, tests, charges, compétitions, wellness, médical, vidéos, planning…).
+              Les données existantes ayant le même identifiant ne seront pas écrasées.
+              {confirmRestore?.is_archived && <> La catégorie/club sera également désarchivé.</>}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => confirmRestore && restoreFromSnapshot.mutate(confirmRestore.snapshot_id)}
+              disabled={restoreFromSnapshot.isPending}
+            >
+              {restoreFromSnapshot.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <History className="h-4 w-4 mr-1" />}
+              Restaurer maintenant
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
