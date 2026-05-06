@@ -23,14 +23,15 @@ import type { FrameData } from "@/components/athlete-portal/BowlingScoreSheet";
 
 interface BowlingTrainingStatsProps {
   categoryId: string;
+  playerId?: string;
 }
 
-export function BowlingTrainingStats({ categoryId }: BowlingTrainingStatsProps) {
+export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingStatsProps) {
   const [activeTab, setActiveTab] = useState("games");
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [selectedBallId, setSelectedBallId] = useState<string>("all");
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string>("all");
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string>(playerId || "all");
 
   // Fetch training data
   const { data: trainingData, isLoading } = useQuery({
