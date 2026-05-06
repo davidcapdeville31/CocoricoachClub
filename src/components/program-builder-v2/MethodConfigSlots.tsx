@@ -16,13 +16,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import type { RestPauseConfig } from "./RestPauseTypes";
 import { RestPauseCreationUI } from "./RestPauseCreationUI";
 import { generateMethodNote } from "@/lib/program-builder-v2/athleteNoteGenerator";
