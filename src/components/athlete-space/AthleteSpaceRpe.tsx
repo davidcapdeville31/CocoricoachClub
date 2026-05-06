@@ -410,6 +410,8 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     setPrecisionExerciseId(null);
     setPrecisionExerciseLabel("");
     setWeightLogs({});
+    setShowBowlingSheet(false);
+    setSavedGameScores([]);
 
     const session = todaySessions.find((s) => s.id === sessionId);
     if (session) {
