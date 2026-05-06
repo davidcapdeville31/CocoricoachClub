@@ -14,7 +14,9 @@ export default defineConfig(({ mode }) => {
     clearScreen: false,
     define: defineFallbackEnv(mode),
     build: {
-      sourcemap: mode === "development",
+      sourcemap: false,
+      minify: mode === "production" ? "esbuild" : false,
+      target: "es2020",
       chunkSizeWarningLimit: 2000,
       rollupOptions: {
         output: {
