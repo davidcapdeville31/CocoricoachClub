@@ -9,6 +9,17 @@ import { PersonalNotificationPreferences } from "@/components/notifications/Pers
 import { PushNotificationSettings } from "@/components/notifications/PushNotificationSettings";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Video, Bell, Settings, ChevronDown, Archive } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -151,18 +162,28 @@ export function SettingsTab({ categoryId }: SettingsTabProps) {
               </p>
             </div>
           </div>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => {
-              if (confirm("Archiver cette catégorie ? Toutes les données restent conservées et peuvent être restaurées.")) {
-                archiveCategory.mutate();
-              }
-            }}
-          >
-            <Archive className="h-4 w-4 mr-2" />
-            Archiver la catégorie
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" disabled={archiveCategory.isPending}>
+                <Archive className="h-4 w-4 mr-2" />
+                {archiveCategory.isPending ? "Archivage..." : "Archiver la catégorie"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Archiver cette catégorie ?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Toutes les données restent conservées et peuvent être restaurées depuis Super Admin → Archives.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction onClick={() => archiveCategory.mutate()}>
+                  Archiver
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
     </div>
