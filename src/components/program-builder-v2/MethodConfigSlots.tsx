@@ -763,7 +763,7 @@ const CircuitExerciseSlot = ({
                 </Button>
                 {inlineSlotVariablePickerOpen && (
                   <div
-                    className="absolute right-0 top-full mt-1 w-44 rounded-md border bg-popover text-popover-foreground shadow-md z-[70] p-1"
+                    className="absolute right-0 top-full mt-1 w-44 rounded-md border bg-popover text-popover-foreground shadow-md z-[999] p-1"
                     onPointerDown={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
                     onClick={(e) => e.stopPropagation()}
@@ -1465,7 +1465,7 @@ export const MethodConfigSlots = ({
 
   return (
     <div className={cn(
-      "p-2 rounded-lg border-2 bg-background/50 overflow-hidden",
+      "p-2 rounded-lg border-2 bg-background/50 overflow-visible",
       config.borderColor
     )}>
       {/* Header */}
@@ -2430,7 +2430,7 @@ export const MethodConfigSlots = ({
               <div
                 key={idx}
                 className={cn(
-                  "relative p-2 pt-4 rounded-md border transition-all overflow-hidden",
+                  "relative p-2 pt-4 rounded-md border transition-all overflow-visible",
                   config.bgActive,
                   "border-" + config.borderColor.replace("border-", "") + "/40"
                 )}
@@ -2775,7 +2775,7 @@ export const MethodConfigSlots = ({
                           </Button>
                           {inlineVariablePickerOpen && (
                             <div
-                              className="absolute left-0 top-full mt-1 w-48 rounded-md border bg-popover text-popover-foreground shadow-md z-[70] p-1"
+                              className="absolute left-0 top-full mt-1 w-48 rounded-md border bg-popover text-popover-foreground shadow-md z-[999] p-1"
                               onPointerDown={(e) => e.stopPropagation()}
                               onMouseDown={(e) => e.stopPropagation()}
                               onClick={(e) => e.stopPropagation()}
