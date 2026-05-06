@@ -202,8 +202,9 @@ export const VariableSetsTable = ({
                 />
               )}
             </div>
+          </div>
 
-          {/* Rows */}
+
           {sets.map((set, setIndex) => (
             <div
               key={setIndex}
