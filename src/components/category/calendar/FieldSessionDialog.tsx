@@ -343,7 +343,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         0,
       );
       const plannedIntensity =
-        totalDur > 0 && weightedSum > 0 ? Math.round((weightedSum / totalDur) * 10) / 10 : null;
+        totalDur > 0 && weightedSum > 0 ? Math.round(weightedSum / totalDur) : null;
 
       const sessionPayload = {
         category_id: categoryId,
@@ -353,7 +353,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         training_type: "terrain",
         location: location || null,
         notes: `${title}${notes ? `\n${notes}` : ""}`,
-        intensity: plannedIntensity ? Math.round(plannedIntensity) : 1,
+        intensity: plannedIntensity ?? 1,
         planned_intensity: plannedIntensity,
       };
 
