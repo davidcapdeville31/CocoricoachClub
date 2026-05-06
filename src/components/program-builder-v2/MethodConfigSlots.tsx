@@ -16,6 +16,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { RestPauseConfig } from "./RestPauseTypes";
 import { RestPauseCreationUI } from "./RestPauseCreationUI";
 import { generateMethodNote } from "@/lib/program-builder-v2/athleteNoteGenerator";
@@ -679,7 +686,6 @@ const CircuitExerciseSlot = ({
 
   const isFilled = !!exercise;
   const [showVars, setShowVars] = useState(true);
-  const [varPopoverOpen, setVarPopoverOpen] = useState(false);
 
   const activeVars = visibleVariables || ['percentage', 'load', 'tempo', 'rpe'];
 
@@ -744,43 +750,43 @@ const CircuitExerciseSlot = ({
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] text-muted-foreground font-medium">Variables</span>
             {onAddVariable && hiddenVariables && hiddenVariables.length > 0 && (
-              <Popover open={varPopoverOpen} onOpenChange={setVarPopoverOpen}>
-                <PopoverTrigger asChild>
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onPointerDown={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
                     className="h-5 text-[10px] border-dashed px-1.5 gap-0.5"
                     title="Ajouter une variable (Charge, %1RM, RPE, RIR, Tempo...)"
                   >
                     <Plus className="h-2.5 w-2.5" />
                     Variable
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-44 p-2 z-[60]" align="end" onOpenAutoFocus={(e) => e.preventDefault()}>
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground px-2 py-1">Ajouter</p>
-                    {hiddenVariables.map((v) => (
-                      <button
-                        key={v.key}
-                        type="button"
-                        onPointerDown={(e) => e.stopPropagation()}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onAddVariable(v.key);
-                          setVarPopoverOpen(false);
-                        }}
-                        className="w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded hover:bg-accent text-left"
-                      >
-                        <span>{v.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="w-44 z-[60]"
+                  align="end"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <DropdownMenuLabel className="text-xs">Ajouter</DropdownMenuLabel>
+                  {hiddenVariables.map((v) => (
+                    <DropdownMenuItem
+                      key={v.key}
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        onAddVariable(v.key);
+                      }}
+                      className="text-xs cursor-pointer"
+                    >
+                      {v.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
           <div className="flex flex-wrap gap-2">
@@ -2751,45 +2757,43 @@ export const MethodConfigSlots = ({
 
                       {/* Add Variable button - show only on first series to avoid duplicates */}
                       {idx === 0 && hiddenVariables.length > 0 && (
-                        <Popover open={addVarPopoverOpen} onOpenChange={setAddVarPopoverOpen}>
-                          <PopoverTrigger asChild>
+                        <DropdownMenu modal={false}>
+                          <DropdownMenuTrigger asChild>
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setAddVarPopoverOpen((o) => !o);
-                              }}
+                              onPointerDown={(e) => e.stopPropagation()}
+                              onMouseDown={(e) => e.stopPropagation()}
+                              onClick={(e) => e.stopPropagation()}
                               className="h-7 px-2 text-xs border-dashed hover:border-primary hover:bg-primary/5"
                             >
                               <Plus className="h-3 w-3 mr-1" />
                               Variable
                             </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-48 p-2 z-[60]" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
-                            <div className="space-y-1">
-                              <p className="text-xs font-medium text-muted-foreground px-2 py-1">Ajouter une variable</p>
-                              {hiddenVariables.map((variable) => (
-                                <button
-                                  key={variable.key}
-                                  type="button"
-                                  onPointerDown={(e) => e.stopPropagation()}
-                                  onMouseDown={(e) => e.stopPropagation()}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    addVariable(variable.key);
-                                    setAddVarPopoverOpen(false);
-                                  }}
-                                  className="w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded hover:bg-accent transition-colors text-left"
-                                >
-                                  <span>{variable.label}</span>
-                                  {variable.unit && <span className="text-muted-foreground">({variable.unit})</span>}
-                                </button>
-                              ))}
-                            </div>
-                          </PopoverContent>
-                        </Popover>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            className="w-48 z-[60]"
+                            align="start"
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <DropdownMenuLabel className="text-xs">Ajouter une variable</DropdownMenuLabel>
+                            {hiddenVariables.map((variable) => (
+                              <DropdownMenuItem
+                                key={variable.key}
+                                onSelect={(e) => {
+                                  e.preventDefault();
+                                  addVariable(variable.key);
+                                }}
+                                className="text-xs cursor-pointer"
+                              >
+                                <span>{variable.label}</span>
+                                {variable.unit && <span className="text-muted-foreground">({variable.unit})</span>}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       )}
                     </>
                   ) : (
