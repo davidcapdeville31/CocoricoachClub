@@ -259,6 +259,9 @@ function ClubDetailsContent() {
                   )}
                   {!isViewer && !isEditing && (
                     <>
+                      <span onClick={(e) => e.stopPropagation()}>
+                        <SnapshotCategoryButton categoryId={category.id} categoryName={category.name} />
+                      </span>
                       <Button
                         variant="ghost"
                         size="icon"
