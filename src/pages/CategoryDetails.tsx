@@ -6,7 +6,8 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredNavTabsList, NAV_COLORS, NavColorKey } from "@/components/ui/colored-nav-tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
-import { ArrowLeft, LayoutDashboard, Shield, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Settings, FileCode, MapPin, Video, GraduationCap, CircleDot, BarChart3 } from "lucide-react";
+import { ArrowLeft, LayoutDashboard, Shield, Users, Calendar, Zap, Heart, Trophy, MessageSquare, Loader2, Settings, FileCode, MapPin, Video, GraduationCap, CircleDot, BarChart3, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { usePendingWeightLogsCount } from "@/lib/hooks/usePendingWeightLogsCount";
 import { usePendingTestResultsCount } from "@/lib/hooks/usePendingTestResultsCount";
@@ -135,6 +136,7 @@ const hasVideoAnalysis = (_sportType: string | undefined) => {
 function CategoryDetailsContent() {
   const { categoryId } = useParams();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "overview";
   const handleTabChange = (value: string) => {
@@ -372,6 +374,16 @@ function CategoryDetailsContent() {
                   className="h-8 w-8"
                 >
                   <Settings className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={signOut}
+                  title="Déconnexion"
+                  aria-label="Déconnexion"
+                  className="h-8 w-8"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
                 </Button>
               </div>
             )}
