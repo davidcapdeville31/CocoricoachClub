@@ -195,7 +195,7 @@ export const VariableSetsTable = ({
               </div>
             ))}
             <div className="flex-1 px-2 py-1.5 flex items-center justify-end gap-1">
-              {hiddenColumns.length > 0 && (
+              {hiddenColumns.length > 0 && onVisibleColumnsChange && (
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <Button
