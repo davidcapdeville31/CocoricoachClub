@@ -307,7 +307,7 @@ export default function AthleteSpace() {
   if (showPlayerSelector) {
     return (
       <div className="min-h-screen bg-background">
-        <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur pt-[max(env(safe-area-inset-top),0.75rem)]">
+        <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur pt-[max(env(safe-area-inset-top),1.5rem)]">
           <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
@@ -375,7 +375,7 @@ export default function AthleteSpace() {
 
     return (
       <div className="min-h-screen bg-background">
-        <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur pt-[max(env(safe-area-inset-top),0.75rem)]">
+        <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur pt-[max(env(safe-area-inset-top),1.5rem)]">
           <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -451,7 +451,7 @@ export default function AthleteSpace() {
       {!isSuperAdminView && <AthletePWAInstallPopup playerId={athleteInfo.player_id} />}
 
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 pt-[max(env(safe-area-inset-top),0.75rem)]">
+      <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 pt-[max(env(safe-area-inset-top),1.5rem)]">
         <div className="max-w-5xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             {(isSuperAdminView || allAthleteEntries.length > 1) && (
