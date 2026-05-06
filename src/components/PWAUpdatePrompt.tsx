@@ -22,7 +22,7 @@ const isInIframe = () => {
   }
 };
 
-const CHECK_INTERVAL_MS = 30 * 60 * 1000;
+const CHECK_INTERVAL_MS = 5 * 60 * 1000; // toutes les 5 min
 
 const PWAUpdatePrompt = () => {
   const disabled = isPreviewHost() || isInIframe();
@@ -52,24 +52,44 @@ const PWAUpdatePrompt = () => {
 
     // Nouvelle version en attente → propose au user
     wb.addEventListener("waiting", () => setNeedRefresh(true));
+    // @ts-ignore - workbox émet aussi 'externalwaiting' dans certains cas
+    wb.addEventListener("externalwaiting" as any, () => setNeedRefresh(true));
 
-    wb.register()
+    let cleanup: (() => void) | undefined;
+
+    wb.register({ immediate: true })
       .then((registration) => {
         if (!registration) return;
+
+        // Si un SW est déjà en attente au moment du load
+        if (registration.waiting) setNeedRefresh(true);
+
         const check = () => registration.update().catch(() => {});
         const intervalId = window.setInterval(check, CHECK_INTERVAL_MS);
-        window.addEventListener("focus", check);
-        window.addEventListener("online", check);
-        return () => {
+        const onFocus = () => check();
+        const onOnline = () => check();
+        const onVisibility = () => {
+          if (document.visibilityState === "visible") check();
+        };
+        window.addEventListener("focus", onFocus);
+        window.addEventListener("online", onOnline);
+        document.addEventListener("visibilitychange", onVisibility);
+
+        // Vérification immédiate
+        check();
+
+        cleanup = () => {
           window.clearInterval(intervalId);
-          window.removeEventListener("focus", check);
-          window.removeEventListener("online", check);
+          window.removeEventListener("focus", onFocus);
+          window.removeEventListener("online", onOnline);
+          document.removeEventListener("visibilitychange", onVisibility);
         };
       })
       .catch((err) => console.warn("[PWA] SW registration error", err));
 
     return () => {
       navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
+      cleanup?.();
     };
   }, [disabled]);
 
@@ -83,6 +103,8 @@ const PWAUpdatePrompt = () => {
     }
     // Demande au SW en attente de s'activer → controllerchange → reload
     wb.messageSkipWaiting();
+    // Filet de sécurité au cas où controllerchange ne se déclencherait pas
+    setTimeout(() => window.location.reload(), 1500);
   };
 
   const handleDismiss = () => setDismissed(true);
@@ -102,7 +124,7 @@ const PWAUpdatePrompt = () => {
             <div className="flex gap-2 pt-2">
               <Button onClick={handleUpdate} size="sm" className="flex-1">
                 <RefreshCw className="w-4 h-4 mr-2" />
-                Mettre à jour
+                Rafraîchir
               </Button>
               <Button onClick={handleDismiss} size="sm" variant="ghost">
                 <X className="w-4 h-4" />

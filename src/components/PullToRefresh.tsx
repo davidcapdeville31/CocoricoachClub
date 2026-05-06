@@ -1,17 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw } from "lucide-react";
 
-const TRIGGER_DISTANCE = 80;
+const TRIGGER_DISTANCE = 70;
 const MAX_PULL = 140;
-
-const isStandalone = () => {
-  if (typeof window === "undefined") return false;
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    // @ts-ignore - iOS
-    window.navigator.standalone === true
-  );
-};
 
 const isInIframe = () => {
   try {
@@ -21,55 +12,85 @@ const isInIframe = () => {
   }
 };
 
+const getScrollTop = () => {
+  return Math.max(
+    window.scrollY || 0,
+    document.documentElement?.scrollTop || 0,
+    document.body?.scrollTop || 0,
+  );
+};
+
 const PullToRefresh = () => {
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const startY = useRef<number | null>(null);
+  const lastY = useRef<number>(0);
   const active = useRef(false);
+  const pullRef = useRef(0);
 
   useEffect(() => {
-    // Désactivé en preview/iframe et sur desktop non-tactile
     if (isInIframe()) return;
-    const isTouch = "ontouchstart" in window;
+    const isTouch = "ontouchstart" in window || (navigator as any).maxTouchPoints > 0;
     if (!isTouch) return;
 
     const onTouchStart = (e: TouchEvent) => {
-      if (window.scrollY > 0) {
+      if (refreshing) return;
+      // On regarde le scroll au moment du touch
+      if (getScrollTop() > 2) {
         startY.current = null;
+        active.current = false;
         return;
       }
       startY.current = e.touches[0].clientY;
+      lastY.current = e.touches[0].clientY;
       active.current = true;
     };
 
     const onTouchMove = (e: TouchEvent) => {
       if (!active.current || startY.current === null || refreshing) return;
-      const delta = e.touches[0].clientY - startY.current;
-      if (delta <= 0) {
+      // Si pendant le geste on a déjà scrollé, on annule
+      if (getScrollTop() > 2 && pullRef.current === 0) {
+        active.current = false;
+        startY.current = null;
         setPull(0);
         return;
       }
-      // Friction
-      const eased = Math.min(MAX_PULL, delta * 0.5);
+      const currentY = e.touches[0].clientY;
+      lastY.current = currentY;
+      const delta = currentY - startY.current;
+      if (delta <= 0) {
+        if (pullRef.current !== 0) {
+          pullRef.current = 0;
+          setPull(0);
+        }
+        return;
+      }
+      const eased = Math.min(MAX_PULL, delta * 0.55);
+      pullRef.current = eased;
       setPull(eased);
+      // Empêche le bounce iOS / scroll natif quand on tire vers le bas
+      if (e.cancelable) {
+        try { e.preventDefault(); } catch {}
+      }
     };
 
     const onTouchEnd = async () => {
       if (!active.current) return;
       active.current = false;
-      const shouldRefresh = pull >= TRIGGER_DISTANCE;
+      const shouldRefresh = pullRef.current >= TRIGGER_DISTANCE;
       startY.current = null;
 
       if (!shouldRefresh) {
+        pullRef.current = 0;
         setPull(0);
         return;
       }
 
       setRefreshing(true);
+      pullRef.current = TRIGGER_DISTANCE;
       setPull(TRIGGER_DISTANCE);
 
       try {
-        // Force la vérification d'une nouvelle version PWA
         if ("serviceWorker" in navigator) {
           const regs = await navigator.serviceWorker.getRegistrations();
           await Promise.all(regs.map((r) => r.update().catch(() => {})));
@@ -78,25 +99,25 @@ const PullToRefresh = () => {
         // ignore
       }
 
-      // Petit délai pour feedback visuel puis reload
       setTimeout(() => {
+        // Bypass cache au reload
         window.location.reload();
-      }, 400);
+      }, 350);
     };
 
+    // passive:false sur touchmove pour pouvoir preventDefault
     window.addEventListener("touchstart", onTouchStart, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
     window.addEventListener("touchcancel", onTouchEnd, { passive: true });
 
     return () => {
       window.removeEventListener("touchstart", onTouchStart);
-      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchmove", onTouchMove as any);
       window.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("touchcancel", onTouchEnd);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pull, refreshing]);
+  }, [refreshing]);
 
   if (pull === 0 && !refreshing) return null;
 
