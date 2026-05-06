@@ -17,6 +17,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { RestPauseConfig, RestPauseSeries, RestPauseMiniSet } from "./RestPauseTypes";
 import { REST_PAUSE_VARIABLES as VARIABLES } from "./RestPauseTypes";
 
@@ -142,39 +149,38 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
         <Label className="text-xs font-medium text-amber-600">Rest-Pause</Label>
         <div className="flex items-center gap-1">
           {hiddenVariables.length > 0 && (
-            <Popover open={addVarPopoverOpen} onOpenChange={setAddVarPopoverOpen}>
-              <PopoverTrigger asChild>
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onPointerDown={(e) => e.stopPropagation()}
                   onMouseDown={(e) => e.stopPropagation()}
-                  onClick={(e) => { e.stopPropagation(); setAddVarPopoverOpen(o => !o); }}
+                  onClick={(e) => { e.stopPropagation(); }}
                   className="h-5 text-[10px] border-dashed px-1.5 gap-0.5"
                   title="Ajouter une variable série"
                 >
                   <Plus className="h-2.5 w-2.5" />
                   Var. série
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-44 p-2 z-[60]" align="end">
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground px-2 py-1">Ajouter (par série)</p>
-                  {hiddenVariables.map(v => (
-                    <button
-                      key={v.key}
-                      type="button"
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onClick={(e) => { e.stopPropagation(); addVariable(v.key); }}
-                      className="w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded hover:bg-accent text-left"
-                    >
-                      <span>{v.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-44 z-[60]" align="end">
+                <DropdownMenuLabel className="text-xs">Ajouter (par série)</DropdownMenuLabel>
+                {hiddenVariables.map(v => (
+                  <DropdownMenuItem
+                    key={v.key}
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      addVariable(v.key);
+                    }}
+                    className="text-xs cursor-pointer"
+                  >
+                    {v.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
           <Button type="button" variant="ghost" size="sm" onClick={addSeries} className="h-6 text-xs">
             <Plus className="h-3 w-3 mr-1" />
@@ -199,39 +205,38 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
             <div className="flex items-center gap-1">
               {/* Add variable to mini-sets */}
               {hiddenMiniSetVariables.length > 0 && (
-                <Popover open={addMiniVarPopoverOpen} onOpenChange={setAddMiniVarPopoverOpen}>
-                  <PopoverTrigger asChild>
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       onPointerDown={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
-                      onClick={(e) => { e.stopPropagation(); setAddMiniVarPopoverOpen(o => !o); }}
+                      onClick={(e) => { e.stopPropagation(); }}
                       className="h-5 text-[10px] border-dashed px-1.5 gap-0.5"
                       title="Ajouter une variable aux mini-séries"
                     >
                       <Plus className="h-2.5 w-2.5" />
                       Var. mini-série
                     </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-48 p-2 z-[60]" align="end">
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-muted-foreground px-2 py-1">Ajouter (par mini-série)</p>
-                      {hiddenMiniSetVariables.map(v => (
-                        <button
-                          key={v.key}
-                          type="button"
-                          onPointerDown={(e) => e.stopPropagation()}
-                          onClick={(e) => { e.stopPropagation(); addMiniSetVariable(v.key); }}
-                          className="w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded hover:bg-accent text-left"
-                        >
-                          <span>{v.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-48 z-[60]" align="end">
+                    <DropdownMenuLabel className="text-xs">Ajouter (par mini-série)</DropdownMenuLabel>
+                    {hiddenMiniSetVariables.map(v => (
+                      <DropdownMenuItem
+                        key={v.key}
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          addMiniSetVariable(v.key);
+                        }}
+                        className="text-xs cursor-pointer"
+                      >
+                        {v.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
               <Button type="button" variant="ghost" size="sm" onClick={() => addMiniSet(sIdx)} className="h-5 text-[10px] px-1.5">
                 <Plus className="h-2.5 w-2.5 mr-0.5" />
