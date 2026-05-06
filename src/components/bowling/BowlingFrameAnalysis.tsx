@@ -326,62 +326,62 @@ export function BowlingFrameAnalysis({ games }: BowlingFrameAnalysisProps) {
               ];
               return (
                 <>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
                     {phaseCards.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="p-4 rounded-lg border border-border bg-card text-center">
+                      <div key={idx} className="p-2 sm:p-4 rounded-lg border border-border bg-card text-center min-w-0">
                         <div className="flex items-center justify-center gap-1 mb-2">
-                          <span className="text-sm font-semibold">{item.phase.label}</span>
+                          <span className="text-[11px] sm:text-sm font-semibold truncate">{item.phase.label}</span>
                         </div>
-                        <p className="text-3xl font-bold text-foreground">{item.phase.strikeRate.toFixed(1)}%</p>
-                        <p className="text-xs text-muted-foreground">% Strike</p>
-                        <div className="mt-3 space-y-1.5 text-sm">
-                          <div className="flex justify-between items-center px-1">
+                        <p className="text-xl sm:text-3xl font-bold text-foreground">{item.phase.strikeRate.toFixed(1)}%</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">% Strike</p>
+                        <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-1.5 text-xs sm:text-sm">
+                          <div className="flex justify-between items-center px-0.5 sm:px-1">
                             <span className="text-muted-foreground">Spare</span>
-                            <span className="font-bold text-foreground text-lg">{item.phase.spareRate.toFixed(0)}%</span>
+                            <span className="font-bold text-foreground text-sm sm:text-lg">{item.phase.spareRate.toFixed(0)}%</span>
                           </div>
-                          <div className="flex justify-between items-center px-1">
+                          <div className="flex justify-between items-center px-0.5 sm:px-1">
                             <span className="text-muted-foreground">Open</span>
-                            <span className="font-bold text-foreground text-lg">{item.phase.openRate.toFixed(0)}%</span>
+                            <span className="font-bold text-foreground text-sm sm:text-lg">{item.phase.openRate.toFixed(0)}%</span>
                           </div>
-                          <div className="flex justify-between items-center px-1">
+                          <div className="flex justify-between items-center px-0.5 sm:px-1">
                             <span className="text-muted-foreground">QS</span>
-                            <span className="font-bold text-foreground text-lg">{item.phase.singlePinConvRate.toFixed(0)}%</span>
+                            <span className="font-bold text-foreground text-sm sm:text-lg">{item.phase.singlePinConvRate.toFixed(0)}%</span>
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 mt-3">
                     {phaseCards.slice(3).map((item, idx) => (
                       <div
                         key={idx}
-                        className={`p-4 rounded-lg border text-center ${
+                        className={`p-2 sm:p-4 rounded-lg border text-center min-w-0 ${
                           item.type === "gold"
                             ? "bg-gradient-to-br from-yellow-400/30 via-amber-300/20 to-yellow-500/30 border-yellow-500/50 ring-2 ring-yellow-500/40"
                             : "border-border bg-card"
                         }`}
                       >
                         <div className="flex items-center justify-center gap-1 mb-2">
-                          <span className="text-sm font-semibold">
+                          <span className="text-[11px] sm:text-sm font-semibold truncate">
                             {item.type === "gold" ? "🎯 " : ""}{item.phase.label}
                           </span>
                         </div>
-                        <p className={`text-3xl font-bold ${item.type === "gold" ? "text-yellow-600 dark:text-yellow-400" : "text-foreground"}`}>
+                        <p className={`text-xl sm:text-3xl font-bold ${item.type === "gold" ? "text-yellow-600 dark:text-yellow-400" : "text-foreground"}`}>
                           {item.phase.strikeRate.toFixed(1)}%
                         </p>
-                        <p className="text-xs text-muted-foreground">% Strike</p>
-                        <div className="mt-3 space-y-1.5 text-sm">
-                          <div className="flex justify-between items-center px-1">
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">% Strike</p>
+                        <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-1.5 text-xs sm:text-sm">
+                          <div className="flex justify-between items-center px-0.5 sm:px-1">
                             <span className="text-muted-foreground">Spare</span>
-                            <span className="font-bold text-foreground text-lg">{item.phase.spareRate.toFixed(0)}%</span>
+                            <span className="font-bold text-foreground text-sm sm:text-lg">{item.phase.spareRate.toFixed(0)}%</span>
                           </div>
-                          <div className="flex justify-between items-center px-1">
+                          <div className="flex justify-between items-center px-0.5 sm:px-1">
                             <span className="text-muted-foreground">Open</span>
-                            <span className="font-bold text-foreground text-lg">{item.phase.openRate.toFixed(0)}%</span>
+                            <span className="font-bold text-foreground text-sm sm:text-lg">{item.phase.openRate.toFixed(0)}%</span>
                           </div>
-                          <div className="flex justify-between items-center px-1">
+                          <div className="flex justify-between items-center px-0.5 sm:px-1">
                             <span className="text-muted-foreground">QS</span>
-                            <span className="font-bold text-foreground text-lg">{item.phase.singlePinConvRate.toFixed(0)}%</span>
+                            <span className="font-bold text-foreground text-sm sm:text-lg">{item.phase.singlePinConvRate.toFixed(0)}%</span>
                           </div>
                         </div>
                       </div>
@@ -422,43 +422,43 @@ export function BowlingFrameAnalysis({ games }: BowlingFrameAnalysisProps) {
               const isBonus = f.frameNumber > 10;
 
               return (
-                <div key={f.frameNumber} className="flex items-center gap-3">
-                  <div className="w-20 text-sm font-medium flex items-center gap-1">
+                <div key={f.frameNumber} className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-14 sm:w-20 text-[11px] sm:text-sm font-medium flex items-center gap-1 shrink-0">
                     <span className={isBonus ? "text-muted-foreground italic" : ""}>
                       {f.label}
                     </span>
                     {isBest && <span className="text-primary">★</span>}
                     {isWorst && <span className="text-destructive">▼</span>}
                   </div>
-                  <div className="flex-1 h-8 bg-muted rounded-full overflow-hidden flex relative">
+                  <div className="flex-1 min-w-0 h-7 sm:h-8 bg-muted rounded-full overflow-hidden flex relative">
                     {strikePercent > 0 && (
                       <div
-                        className="h-full bg-yellow-500 transition-all flex items-center justify-center overflow-visible relative"
-                        style={{ width: `${strikePercent}%`, minWidth: strikePercent > 0 ? '28px' : undefined }}
+                        className="h-full bg-yellow-500 transition-all flex items-center justify-center overflow-hidden relative"
+                        style={{ width: `${strikePercent}%` }}
                       >
-                         <span className="text-sm font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)] whitespace-nowrap">{strikePercent.toFixed(0)}%</span>
+                         <span className="text-[10px] sm:text-sm font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)] whitespace-nowrap">{strikePercent.toFixed(0)}%</span>
                        </div>
                      )}
                      {f.frameNumber < 12 && sparePercent > 0 && (
                        <div
-                         className="h-full bg-emerald-500 transition-all flex items-center justify-center overflow-visible relative"
-                         style={{ width: `${sparePercent}%`, minWidth: sparePercent > 0 ? '28px' : undefined }}
+                         className="h-full bg-emerald-500 transition-all flex items-center justify-center overflow-hidden relative"
+                         style={{ width: `${sparePercent}%` }}
                        >
-                         <span className="text-sm font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)] whitespace-nowrap">{sparePercent.toFixed(0)}%</span>
+                         <span className="text-[10px] sm:text-sm font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)] whitespace-nowrap">{sparePercent.toFixed(0)}%</span>
                        </div>
                      )}
                      {openPercent > 0 && (
                        <div
-                         className="h-full bg-rose-500 transition-all flex items-center justify-center overflow-visible relative"
-                         style={{ width: `${openPercent}%`, minWidth: openPercent > 0 ? '28px' : undefined }}
+                         className="h-full bg-rose-500 transition-all flex items-center justify-center overflow-hidden relative"
+                         style={{ width: `${openPercent}%` }}
                        >
-                         <span className="text-sm font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)] whitespace-nowrap">{openPercent.toFixed(0)}%</span>
+                         <span className="text-[10px] sm:text-sm font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)] whitespace-nowrap">{openPercent.toFixed(0)}%</span>
                       </div>
                     )}
                   </div>
-                  <div className="w-24 text-right flex items-center justify-end gap-1">
-                    <span className="text-sm font-bold">{strikePercent.toFixed(0)}%</span>
-                    <span className="text-[10px] text-muted-foreground">X</span>
+                  <div className="w-14 sm:w-24 text-right flex items-center justify-end gap-1 shrink-0">
+                    <span className="text-[11px] sm:text-sm font-bold">{strikePercent.toFixed(0)}%</span>
+                    <span className="text-[10px] text-muted-foreground hidden sm:inline">X</span>
                     {isBonus && (
                       <span className="text-[10px] text-muted-foreground ml-1">({total})</span>
                     )}
