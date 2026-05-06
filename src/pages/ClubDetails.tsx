@@ -99,14 +99,13 @@ function ClubDetailsContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="bg-white py-6 sm:py-8 px-4 border-b border-border">
+      <div className="bg-background py-6 sm:py-8 px-4 border-b border-border">
         <div className="container mx-auto max-w-6xl">
           <div className="flex justify-between items-start gap-2 mb-4 flex-wrap">
             <Button
               variant="ghost"
-              size="sm"
+              onClick={() => navigate("/clubs")}
               className="text-[#ED2939] hover:bg-[#ED2939]/10 shrink-0"
-              onClick={() => navigate("/")}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">Retour aux clubs</span>
@@ -114,6 +113,14 @@ function ClubDetailsContent() {
             </Button>
             <div className="flex items-center gap-1 sm:gap-2 shrink-0 [&_button]:text-[#ED2939] [&_button:hover]:bg-[#ED2939]/10">
               <NotificationBell />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={signOut}
+                title="Déconnexion"
+              >
+                <LogOut className="h-5 w-5" />
+              </Button>
             </div>
           </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#ED2939] break-words">{club?.name}</h1>
