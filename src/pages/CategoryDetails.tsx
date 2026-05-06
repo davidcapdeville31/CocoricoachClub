@@ -375,6 +375,16 @@ function CategoryDetailsContent() {
                 >
                   <Settings className="h-3.5 w-3.5" />
                 </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={signOut}
+                  title="Déconnexion"
+                  aria-label="Déconnexion"
+                  className="h-8 w-8"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                </Button>
               </div>
             )}
           </div>
