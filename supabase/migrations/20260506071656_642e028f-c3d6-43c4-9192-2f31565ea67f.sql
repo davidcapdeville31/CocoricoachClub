@@ -1,0 +1,1 @@
+UPDATE public.categories SET is_archived = false, archived_at = NULL, archived_by = NULL WHERE id = '7a900dbb-a38f-41ff-9095-e1b25593089e';
