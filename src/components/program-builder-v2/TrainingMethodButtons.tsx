@@ -589,8 +589,11 @@ export const TrainingMethodButtons = ({
               </TooltipTrigger>
               <TooltipContent 
                 side="top" 
-                className="p-0 bg-transparent border-0 shadow-none z-[200]"
+                align="center"
+                className="p-0 bg-transparent border-0 shadow-none z-[200] max-w-[calc(100vw-16px)]"
                 sideOffset={8}
+                collisionPadding={12}
+                avoidCollisions
               >
                 <MethodTooltipContent style={style} colors={tooltipColors} />
               </TooltipContent>
