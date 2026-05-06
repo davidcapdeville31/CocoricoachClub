@@ -23,14 +23,15 @@ import type { FrameData } from "@/components/athlete-portal/BowlingScoreSheet";
 
 interface BowlingTrainingStatsProps {
   categoryId: string;
+  playerId?: string;
 }
 
-export function BowlingTrainingStats({ categoryId }: BowlingTrainingStatsProps) {
+export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingStatsProps) {
   const [activeTab, setActiveTab] = useState("games");
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [selectedBallId, setSelectedBallId] = useState<string>("all");
-  const [selectedPlayerId, setSelectedPlayerId] = useState<string>("all");
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string>(playerId || "all");
 
   // Fetch training data
   const { data: trainingData, isLoading } = useQuery({
@@ -147,9 +148,10 @@ export function BowlingTrainingStats({ categoryId }: BowlingTrainingStatsProps) 
   };
 
   const filteredPlayers = useMemo(() => {
+    if (playerId) return players.filter(p => p.id === playerId);
     if (selectedPlayerId === "all") return players;
     return players.filter(p => p.id === selectedPlayerId);
-  }, [players, selectedPlayerId]);
+  }, [players, selectedPlayerId, playerId]);
 
   // Compute per-player game stats
   const playerGameStats = useMemo(() => {
@@ -360,7 +362,7 @@ export function BowlingTrainingStats({ categoryId }: BowlingTrainingStatsProps) 
       {/* Player + Date range + Ball filter */}
       <div className="flex flex-wrap gap-2 items-center justify-between">
         <div className="flex flex-wrap gap-2 items-center">
-          {players.length > 0 && (
+          {!playerId && players.length > 0 && (
             <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
               <SelectTrigger className="w-[180px] h-8">
                 <SelectValue placeholder="Tous les athlètes" />
