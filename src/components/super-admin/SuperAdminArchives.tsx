@@ -210,6 +210,24 @@ export function SuperAdminArchives() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const restoreFromLatestSnapshot = useMutation({
+    mutationFn: async (snapshotId: string) => {
+      const { data, error } = await supabase.rpc("restore_from_snapshot" as any, { _snapshot_id: snapshotId });
+      if (error) throw error;
+      const result = data as { success: boolean; error?: string; errors?: string[] };
+      if (!result?.success) throw new Error(result?.error || "Échec");
+      return result;
+    },
+    onSuccess: (result) => {
+      const errCount = (result.errors || []).length;
+      if (errCount > 0) toast.warning(`Restauration partielle (${errCount} table(s) en erreur)`);
+      else toast.success("Toutes les données ont été restaurées depuis le dernier instantané");
+      queryClient.invalidateQueries({ queryKey: ["super-admin-archives"] });
+      queryClient.invalidateQueries({ queryKey: ["club-snapshots"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const permanentDelete = useMutation({
     mutationFn: async (row: ArchivedRow) => {
       const fn = row.entity_type === "club" ? "delete_archived_club" : "delete_archived_category";
