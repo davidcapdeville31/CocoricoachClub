@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Archive, RotateCcw, Trash2, Download, Building2, Users, Loader2, Save } from "lucide-react";
+import { Archive, RotateCcw, Trash2, Download, Building2, Users, Loader2, Save, History } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -28,6 +28,9 @@ interface SnapshotRow {
 }
 
 function SnapshotsList() {
+  const queryClient = useQueryClient();
+  const [confirmRestore, setConfirmRestore] = useState<SnapshotRow | null>(null);
+
   const { data: snapshots, isLoading, error } = useQuery({
     queryKey: ["club-snapshots"],
     queryFn: async () => {
@@ -38,6 +41,29 @@ function SnapshotsList() {
     staleTime: 0,
     refetchOnMount: "always",
     retry: false,
+  });
+
+  const restoreFromSnapshot = useMutation({
+    mutationFn: async (snapshotId: string) => {
+      const { data, error } = await supabase.rpc("restore_from_snapshot" as any, { _snapshot_id: snapshotId });
+      if (error) throw error;
+      const result = data as { success: boolean; error?: string; skipped?: string[]; errors?: string[] };
+      if (!result?.success) throw new Error(result?.error || "Échec de la restauration");
+      return result;
+    },
+    onSuccess: (result) => {
+      const errCount = (result.errors || []).length;
+      const skipCount = (result.skipped || []).length;
+      if (errCount > 0) {
+        toast.warning(`Restauration partielle : ${errCount} table(s) en erreur. Voir les logs d'audit.`);
+      } else {
+        toast.success(`Restauration réussie depuis cet instantané ${skipCount > 0 ? `(${skipCount} table(s) ignorée(s))` : ""}`);
+      }
+      setConfirmRestore(null);
+      queryClient.invalidateQueries({ queryKey: ["super-admin-archives"] });
+      queryClient.invalidateQueries({ queryKey: ["club-snapshots"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const downloadSnapshot = async (id: string, name: string, version: number) => {
@@ -102,8 +128,39 @@ function SnapshotsList() {
           >
             <Download className="h-4 w-4 mr-1" /> Exporter JSON
           </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => setConfirmRestore(row)}
+          >
+            <History className="h-4 w-4 mr-1" /> Restaurer
+          </Button>
         </div>
       ))}
+
+      <AlertDialog open={!!confirmRestore} onOpenChange={(o) => !o && setConfirmRestore(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restaurer depuis cet instantané</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action va réinjecter <strong>toutes les données</strong> de l'instantané v{confirmRestore?.version} de{" "}
+              <strong>{confirmRestore?.entity_name}</strong> (joueurs, tests, charges, compétitions, wellness, médical, vidéos, planning…).
+              Les données existantes ayant le même identifiant ne seront pas écrasées.
+              {confirmRestore?.is_archived && <> La catégorie/club sera également désarchivé.</>}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => confirmRestore && restoreFromSnapshot.mutate(confirmRestore.snapshot_id)}
+              disabled={restoreFromSnapshot.isPending}
+            >
+              {restoreFromSnapshot.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <History className="h-4 w-4 mr-1" />}
+              Restaurer maintenant
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -149,6 +206,24 @@ export function SuperAdminArchives() {
     onSuccess: () => {
       toast.success("Élément restauré");
       queryClient.invalidateQueries({ queryKey: ["super-admin-archives"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const restoreFromLatestSnapshot = useMutation({
+    mutationFn: async (snapshotId: string) => {
+      const { data, error } = await supabase.rpc("restore_from_snapshot" as any, { _snapshot_id: snapshotId });
+      if (error) throw error;
+      const result = data as { success: boolean; error?: string; errors?: string[] };
+      if (!result?.success) throw new Error(result?.error || "Échec");
+      return result;
+    },
+    onSuccess: (result) => {
+      const errCount = (result.errors || []).length;
+      if (errCount > 0) toast.warning(`Restauration partielle (${errCount} table(s) en erreur)`);
+      else toast.success("Toutes les données ont été restaurées depuis le dernier instantané");
+      queryClient.invalidateQueries({ queryKey: ["super-admin-archives"] });
+      queryClient.invalidateQueries({ queryKey: ["club-snapshots"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -258,9 +333,21 @@ export function SuperAdminArchives() {
                       size="sm"
                       onClick={() => restore.mutate(row)}
                       disabled={restore.isPending}
+                      title="Désarchive uniquement (sans réinjecter de données)"
                     >
-                      <RotateCcw className="h-4 w-4 mr-1" /> Restaurer
+                      <RotateCcw className="h-4 w-4 mr-1" /> Désarchiver
                     </Button>
+                    {row.latest_snapshot_id && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => row.latest_snapshot_id && restoreFromLatestSnapshot.mutate(row.latest_snapshot_id)}
+                        disabled={restoreFromLatestSnapshot.isPending}
+                        title="Restaure toutes les données depuis le dernier instantané"
+                      >
+                        <History className="h-4 w-4 mr-1" /> Restaurer données
+                      </Button>
+                    )}
                     <Button variant="destructive" size="sm" onClick={() => setConfirmDelete(row)}>
                       <Trash2 className="h-4 w-4 mr-1" /> Supprimer
                     </Button>

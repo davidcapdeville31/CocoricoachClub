@@ -14272,6 +14272,7 @@ export type Database = {
       }
       restore_category: { Args: { _category_id: string }; Returns: Json }
       restore_club: { Args: { _club_id: string }; Returns: Json }
+      restore_from_snapshot: { Args: { _snapshot_id: string }; Returns: Json }
       seed_default_program_themes: {
         Args: { p_club_id: string }
         Returns: undefined
