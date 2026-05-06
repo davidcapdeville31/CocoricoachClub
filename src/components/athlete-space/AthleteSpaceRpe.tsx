@@ -26,6 +26,7 @@ import { AthleteFieldBlocksRpe } from "./AthleteFieldBlocksRpe";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { RUGBY_PRECISION_EXERCISES, EXERCISE_CATEGORIES } from "@/lib/constants/rugbyPrecisionExercises";
 import { resolveSessionExerciseRows } from "@/lib/utils/sessionExercises";
+import { BowlingScoreSheet } from "@/components/athlete-portal/BowlingScoreSheet";
 import {
   AthleteWeightLogInput,
   buildWeightLogRecords,
