@@ -1152,6 +1152,7 @@ export const MethodConfigSlots = ({
   const [targetRpe, setTargetRpe] = useState<number | undefined>();
   // Drop Set: nombre de séries complètes (combien de fois répéter la séquence de drops)
   const [setsCount, setSetsCount] = useState<number>(method === "drop_set" ? 3 : 1);
+  const [inlineVariablePickerOpen, setInlineVariablePickerOpen] = useState(false);
   
   // Dynamic variables visibility state — ONLY show variables that were actually saved
   const getDefaultVisibleVars = () => {
@@ -2755,43 +2756,50 @@ export const MethodConfigSlots = ({
 
                       {/* Add Variable button - show only on first series to avoid duplicates */}
                       {idx === 0 && hiddenVariables.length > 0 && (
-                        <DropdownMenu modal={false}>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
+                        <div className="relative">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setInlineVariablePickerOpen((prev) => !prev);
+                            }}
+                            className="h-7 px-2 text-xs border-dashed hover:border-primary hover:bg-primary/5"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Variable
+                          </Button>
+                          {inlineVariablePickerOpen && (
+                            <div
+                              className="absolute left-0 top-full mt-1 w-48 rounded-md border bg-popover text-popover-foreground shadow-md z-[70] p-1"
                               onPointerDown={(e) => e.stopPropagation()}
                               onMouseDown={(e) => e.stopPropagation()}
                               onClick={(e) => e.stopPropagation()}
-                              className="h-7 px-2 text-xs border-dashed hover:border-primary hover:bg-primary/5"
                             >
-                              <Plus className="h-3 w-3 mr-1" />
-                              Variable
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            className="w-48 z-[60]"
-                            align="start"
-                            onPointerDown={(e) => e.stopPropagation()}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <DropdownMenuLabel className="text-xs">Ajouter une variable</DropdownMenuLabel>
-                            {hiddenVariables.map((variable) => (
-                              <DropdownMenuItem
-                                key={variable.key}
-                                onSelect={(e) => {
-                                  e.preventDefault();
-                                  addVariable(variable.key);
-                                }}
-                                className="text-xs cursor-pointer"
-                              >
-                                <span>{variable.label}</span>
-                                {variable.unit && <span className="text-muted-foreground">({variable.unit})</span>}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              <p className="px-2 py-1 text-xs text-muted-foreground">Ajouter une variable</p>
+                              {hiddenVariables.map((variable) => (
+                                <button
+                                  key={variable.key}
+                                  type="button"
+                                  onPointerDown={(e) => e.stopPropagation()}
+                                  onMouseDown={(e) => e.stopPropagation()}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    addVariable(variable.key);
+                                    setInlineVariablePickerOpen(false);
+                                  }}
+                                  className="flex w-full items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-xs text-left hover:bg-accent"
+                                >
+                                  <span>{variable.label}</span>
+                                  {variable.unit && <span className="text-muted-foreground">({variable.unit})</span>}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       )}
                     </>
                   ) : (
