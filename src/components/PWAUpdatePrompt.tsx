@@ -66,13 +66,21 @@ const PWAUpdatePrompt = () => {
       .then((registration) => {
         if (!registration) return;
 
-        // Si un SW est déjà en attente au moment du load → activation auto
+        // Si un SW est déjà en attente au moment du load → notifier l'utilisateur
         if (registration.waiting) {
           setNeedRefresh(true);
-          try {
-            registration.waiting.postMessage({ type: "SKIP_WAITING" });
-          } catch {}
         }
+
+        // Détecte une nouvelle version dès qu'elle est trouvée (utile en PWA standalone)
+        registration.addEventListener("updatefound", () => {
+          const installing = registration.installing;
+          if (!installing) return;
+          installing.addEventListener("statechange", () => {
+            if (installing.state === "installed" && navigator.serviceWorker.controller) {
+              setNeedRefresh(true);
+            }
+          });
+        });
 
         const check = () => registration.update().catch(() => {});
         const intervalId = window.setInterval(check, CHECK_INTERVAL_MS);
@@ -103,43 +111,44 @@ const PWAUpdatePrompt = () => {
     };
   }, [swDisabled]);
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     setIsUpdating(true);
-    const wb = wbRef.current;
-    const fallbackReload = () => setTimeout(() => window.location.reload(), 350);
 
-    if (!("serviceWorker" in navigator) || swDisabled) {
-      fallbackReload();
-      setTimeout(() => setIsUpdating(false), 1200);
-      return;
+    const hardReload = () => {
+      const url = new URL(window.location.href);
+      url.searchParams.set("_swr", Date.now().toString());
+      window.location.replace(url.toString());
+    };
+
+    try {
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+
+      if ("serviceWorker" in navigator && !swDisabled) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+
+        await Promise.all(
+          registrations.map(async (registration) => {
+            try { await registration.update(); } catch {}
+            if (registration.waiting) {
+              try { registration.waiting.postMessage({ type: "SKIP_WAITING" }); } catch {}
+            }
+          }),
+        );
+
+        const stillWaiting = registrations.some((r) => r.waiting);
+        if (!stillWaiting) {
+          await Promise.all(registrations.map((r) => r.unregister().catch(() => {})));
+        }
+      }
+    } catch (err) {
+      console.warn("[PWA] handleUpdate error", err);
     }
 
-    navigator.serviceWorker.getRegistrations()
-      .then(async (registrations) => {
-        await Promise.all(registrations.map((registration) => registration.update().catch(() => {})));
-
-        if (wb) {
-          try {
-            wb.messageSkipWaiting();
-            setTimeout(() => window.location.reload(), 1500);
-            return;
-          } catch {
-          }
-        }
-
-        const waitingRegistration = registrations.find((registration) => registration.waiting);
-        if (waitingRegistration?.waiting) {
-          waitingRegistration.waiting.postMessage({ type: "SKIP_WAITING" });
-          setTimeout(() => window.location.reload(), 1500);
-          return;
-        }
-
-        fallbackReload();
-      })
-      .catch(() => fallbackReload())
-      .finally(() => {
-        setTimeout(() => setIsUpdating(false), 1200);
-      });
+    setTimeout(hardReload, 300);
+    setTimeout(() => setIsUpdating(false), 1500);
   };
 
   const handleDismiss = () => setDismissed(true);
