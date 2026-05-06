@@ -234,8 +234,8 @@ function CategoryDetailsContent() {
         })()}
         {/* Logo centré : en absolu sur desktop (md+), inline centré au-dessus du contenu sur mobile */}
         {category?.cover_image_url && (
-          <div className="hidden md:flex pointer-events-none absolute inset-0 items-center justify-center z-20">
-            <div className="group pointer-events-auto relative h-48 w-48 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm">
+          <div className="hidden lg:flex pointer-events-none absolute inset-0 items-center justify-center z-20">
+            <div className="group pointer-events-auto relative h-36 w-36 xl:h-48 xl:w-48 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm">
               <img
                 src={category.cover_image_url}
                 alt="Logo du club"
@@ -253,8 +253,8 @@ function CategoryDetailsContent() {
           </div>
         )}
         {!category?.cover_image_url && categoryId && !isViewer && (
-          <div className="hidden md:flex pointer-events-none absolute inset-0 items-center justify-center z-20">
-            <div className="group pointer-events-auto relative h-48 w-48 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm flex items-center justify-center">
+          <div className="hidden lg:flex pointer-events-none absolute inset-0 items-center justify-center z-20">
+            <div className="group pointer-events-auto relative h-36 w-36 xl:h-48 xl:w-48 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm flex items-center justify-center">
               <span className="text-xs text-white/70 px-3 text-center">Survolez pour ajouter un logo</span>
               <LogoHoverActions
                 categoryId={categoryId}
@@ -287,8 +287,8 @@ function CategoryDetailsContent() {
           </div>
           {/* Logo inline mobile (md-) : centré au-dessus du titre */}
           {categoryId && !isViewer && (
-            <div className="flex md:hidden justify-center mb-4">
-              <div className="group relative h-28 w-28 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm flex items-center justify-center">
+            <div className="flex lg:hidden justify-center mb-4">
+              <div className="group relative h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm flex items-center justify-center">
                 {category?.cover_image_url ? (
                   <img
                     src={category.cover_image_url}
@@ -308,8 +308,8 @@ function CategoryDetailsContent() {
             </div>
           )}
           {category?.cover_image_url && isViewer && (
-            <div className="flex md:hidden justify-center mb-4">
-              <div className="relative h-28 w-28 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm">
+            <div className="flex lg:hidden justify-center mb-4">
+              <div className="relative h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm">
                 <img
                   src={category.cover_image_url}
                   alt="Logo du club"
