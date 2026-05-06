@@ -52,7 +52,8 @@ const PWAUpdatePrompt = () => {
 
     // Nouvelle version en attente → propose au user
     wb.addEventListener("waiting", () => setNeedRefresh(true));
-    wb.addEventListener("externalwaiting", () => setNeedRefresh(true));
+    // @ts-ignore - workbox émet aussi 'externalwaiting' dans certains cas
+    wb.addEventListener("externalwaiting" as any, () => setNeedRefresh(true));
 
     let cleanup: (() => void) | undefined;
 
