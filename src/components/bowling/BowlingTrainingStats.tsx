@@ -362,7 +362,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       {/* Player + Date range + Ball filter */}
       <div className="flex flex-wrap gap-2 items-center justify-between">
         <div className="flex flex-wrap gap-2 items-center">
-          {players.length > 0 && (
+          {!playerId && players.length > 0 && (
             <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
               <SelectTrigger className="w-[180px] h-8">
                 <SelectValue placeholder="Tous les athlètes" />
