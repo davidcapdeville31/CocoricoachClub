@@ -136,6 +136,7 @@ const hasVideoAnalysis = (_sportType: string | undefined) => {
 function CategoryDetailsContent() {
   const { categoryId } = useParams();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "overview";
   const handleTabChange = (value: string) => {
