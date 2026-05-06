@@ -9,6 +9,17 @@ import { PersonalNotificationPreferences } from "@/components/notifications/Pers
 import { PushNotificationSettings } from "@/components/notifications/PushNotificationSettings";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Video, Bell, Settings, ChevronDown, Archive } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
