@@ -35,7 +35,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
 
   // Fetch training data
   const { data: trainingData, isLoading } = useQuery({
-    queryKey: ["bowling_training_stats", categoryId],
+    queryKey: ["bowling_training_stats", categoryId, playerId || "all"],
     queryFn: async () => {
       const { data: matches } = await supabase
         .from("matches")

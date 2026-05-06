@@ -87,8 +87,9 @@ export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: 
     queryFn: async () => {
       const { data: matches, error: matchError } = await supabase
         .from("matches")
-        .select("id, match_date, opponent, location, age_category, competition")
+        .select("id, match_date, opponent, location, age_category, competition, event_type")
         .eq("category_id", categoryId)
+        .or("event_type.is.null,event_type.neq.training")
         .order("match_date", { ascending: false });
       if (matchError) throw matchError;
       if (!matches || matches.length === 0) return [];
