@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { RestPauseConfig, RestPauseSeries, RestPauseMiniSet } from "./RestPauseTypes";
 import { REST_PAUSE_VARIABLES as VARIABLES } from "./RestPauseTypes";
+import { InlineVariablePicker } from "./shared/InlineVariablePicker";
 
 interface RestPauseCreationUIProps {
   config: RestPauseConfig;
