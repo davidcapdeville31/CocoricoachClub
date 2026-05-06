@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddCategoryDialog } from "@/components/categories/AddCategoryDialog";
 import { CollaborationTab } from "@/components/collaboration/CollaborationTab";
 import { SnapshotClubButton } from "@/components/club/SnapshotClubButton";
+import { SnapshotCategoryButton } from "@/components/category/SnapshotCategoryButton";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { GlobalPlayerSearch } from "@/components/search/GlobalPlayerSearch";
 import { ViewerModeProvider, useViewerModeContext } from "@/contexts/ViewerModeContext";
@@ -258,6 +259,9 @@ function ClubDetailsContent() {
                   )}
                   {!isViewer && !isEditing && (
                     <>
+                      <span onClick={(e) => e.stopPropagation()}>
+                        <SnapshotCategoryButton categoryId={category.id} categoryName={category.name} />
+                      </span>
                       <Button
                         variant="ghost"
                         size="icon"
