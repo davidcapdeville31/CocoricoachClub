@@ -28,6 +28,9 @@ interface SnapshotRow {
 }
 
 function SnapshotsList() {
+  const queryClient = useQueryClient();
+  const [confirmRestore, setConfirmRestore] = useState<SnapshotRow | null>(null);
+
   const { data: snapshots, isLoading, error } = useQuery({
     queryKey: ["club-snapshots"],
     queryFn: async () => {
@@ -38,6 +41,29 @@ function SnapshotsList() {
     staleTime: 0,
     refetchOnMount: "always",
     retry: false,
+  });
+
+  const restoreFromSnapshot = useMutation({
+    mutationFn: async (snapshotId: string) => {
+      const { data, error } = await supabase.rpc("restore_from_snapshot" as any, { _snapshot_id: snapshotId });
+      if (error) throw error;
+      const result = data as { success: boolean; error?: string; skipped?: string[]; errors?: string[] };
+      if (!result?.success) throw new Error(result?.error || "Échec de la restauration");
+      return result;
+    },
+    onSuccess: (result) => {
+      const errCount = (result.errors || []).length;
+      const skipCount = (result.skipped || []).length;
+      if (errCount > 0) {
+        toast.warning(`Restauration partielle : ${errCount} table(s) en erreur. Voir les logs d'audit.`);
+      } else {
+        toast.success(`Restauration réussie depuis cet instantané ${skipCount > 0 ? `(${skipCount} table(s) ignorée(s))` : ""}`);
+      }
+      setConfirmRestore(null);
+      queryClient.invalidateQueries({ queryKey: ["super-admin-archives"] });
+      queryClient.invalidateQueries({ queryKey: ["club-snapshots"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const downloadSnapshot = async (id: string, name: string, version: number) => {
