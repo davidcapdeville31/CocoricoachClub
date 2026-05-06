@@ -10,7 +10,8 @@ const isPreviewHost = () => {
   return (
     import.meta.env.DEV ||
     hostname.includes("id-preview--") ||
-    hostname.includes("localhost")
+    hostname.includes("localhost") ||
+    hostname.includes("lovableproject.com")
   );
 };
 
@@ -25,7 +26,7 @@ const isInIframe = () => {
 const CHECK_INTERVAL_MS = 5 * 60 * 1000; // toutes les 5 min
 
 const PWAUpdatePrompt = () => {
-  const disabled = isPreviewHost() || isInIframe();
+  const disabled = isPreviewHost();
   const [needRefresh, setNeedRefresh] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const wbRef = useRef<Workbox | null>(null);
