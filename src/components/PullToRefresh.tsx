@@ -4,6 +4,17 @@ import { RefreshCw } from "lucide-react";
 const TRIGGER_DISTANCE = 70;
 const MAX_PULL = 140;
 
+const isPreviewHost = () => {
+  if (typeof window === "undefined") return false;
+  const hostname = window.location.hostname;
+  return (
+    import.meta.env.DEV ||
+    hostname.includes("id-preview--") ||
+    hostname.includes("localhost") ||
+    hostname.includes("lovableproject.com")
+  );
+};
+
 const isInIframe = () => {
   try {
     return window.self !== window.top;
@@ -20,6 +31,28 @@ const getScrollTop = () => {
   );
 };
 
+const getScrollableParent = (target: EventTarget | null): HTMLElement | null => {
+  if (!(target instanceof Element)) return null;
+
+  let current: Element | null = target;
+  while (current && current !== document.body) {
+    if (current instanceof HTMLElement) {
+      const style = window.getComputedStyle(current);
+      const overflowY = style.overflowY;
+      const canScroll = /(auto|scroll|overlay)/.test(overflowY) && current.scrollHeight > current.clientHeight;
+      if (canScroll) return current;
+    }
+    current = current.parentElement;
+  }
+
+  return null;
+};
+
+const getTopOffset = (scrollContainer: HTMLElement | null) => {
+  if (scrollContainer) return Math.max(scrollContainer.scrollTop, 0);
+  return getScrollTop();
+};
+
 const PullToRefresh = () => {
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
@@ -27,16 +60,18 @@ const PullToRefresh = () => {
   const lastY = useRef<number>(0);
   const active = useRef(false);
   const pullRef = useRef(0);
+  const scrollContainerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (isInIframe()) return;
+    if (isInIframe() && !isPreviewHost()) return;
     const isTouch = "ontouchstart" in window || (navigator as any).maxTouchPoints > 0;
     if (!isTouch) return;
 
     const onTouchStart = (e: TouchEvent) => {
       if (refreshing) return;
+      scrollContainerRef.current = getScrollableParent(e.target);
       // On regarde le scroll au moment du touch
-      if (getScrollTop() > 2) {
+      if (getTopOffset(scrollContainerRef.current) > 2) {
         startY.current = null;
         active.current = false;
         return;
@@ -49,7 +84,7 @@ const PullToRefresh = () => {
     const onTouchMove = (e: TouchEvent) => {
       if (!active.current || startY.current === null || refreshing) return;
       // Si pendant le geste on a déjà scrollé, on annule
-      if (getScrollTop() > 2 && pullRef.current === 0) {
+      if (getTopOffset(scrollContainerRef.current) > 2 && pullRef.current === 0) {
         active.current = false;
         startY.current = null;
         setPull(0);
@@ -83,6 +118,7 @@ const PullToRefresh = () => {
       if (!shouldRefresh) {
         pullRef.current = 0;
         setPull(0);
+        scrollContainerRef.current = null;
         return;
       }
 
@@ -103,6 +139,8 @@ const PullToRefresh = () => {
         // Bypass cache au reload
         window.location.reload();
       }, 350);
+
+      scrollContainerRef.current = null;
     };
 
     // passive:false sur touchmove pour pouvoir preventDefault

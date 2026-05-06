@@ -10,31 +10,27 @@ const isPreviewHost = () => {
   return (
     import.meta.env.DEV ||
     hostname.includes("id-preview--") ||
-    hostname.includes("localhost")
+    hostname.includes("localhost") ||
+    hostname.includes("lovableproject.com")
   );
-};
-
-const isInIframe = () => {
-  try {
-    return typeof window !== "undefined" && window.self !== window.top;
-  } catch {
-    return true;
-  }
 };
 
 const CHECK_INTERVAL_MS = 5 * 60 * 1000; // toutes les 5 min
 
 const PWAUpdatePrompt = () => {
-  const disabled = isPreviewHost() || isInIframe();
+  const swDisabled = isPreviewHost();
   const [needRefresh, setNeedRefresh] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const wbRef = useRef<Workbox | null>(null);
 
   useEffect(() => {
-    if (disabled || !("serviceWorker" in navigator)) {
-      navigator.serviceWorker?.getRegistrations().then((regs) => {
-        regs.forEach((r) => r.unregister());
-      });
+    if (swDisabled || !("serviceWorker" in navigator)) {
+      if (swDisabled) {
+        navigator.serviceWorker?.getRegistrations().then((regs) => {
+          regs.forEach((r) => r.unregister());
+        });
+      }
       return;
     }
 
@@ -105,49 +101,91 @@ const PWAUpdatePrompt = () => {
       navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
       cleanup?.();
     };
-  }, [disabled]);
-
-  if (disabled || !needRefresh || dismissed) return null;
+  }, [swDisabled]);
 
   const handleUpdate = () => {
+    setIsUpdating(true);
     const wb = wbRef.current;
-    if (!wb) {
-      window.location.reload();
+    const fallbackReload = () => setTimeout(() => window.location.reload(), 350);
+
+    if (!("serviceWorker" in navigator) || swDisabled) {
+      fallbackReload();
+      setTimeout(() => setIsUpdating(false), 1200);
       return;
     }
-    // Demande au SW en attente de s'activer → controllerchange → reload
-    wb.messageSkipWaiting();
-    // Filet de sécurité au cas où controllerchange ne se déclencherait pas
-    setTimeout(() => window.location.reload(), 1500);
+
+    navigator.serviceWorker.getRegistrations()
+      .then(async (registrations) => {
+        await Promise.all(registrations.map((registration) => registration.update().catch(() => {})));
+
+        if (wb) {
+          try {
+            wb.messageSkipWaiting();
+            setTimeout(() => window.location.reload(), 1500);
+            return;
+          } catch {
+          }
+        }
+
+        const waitingRegistration = registrations.find((registration) => registration.waiting);
+        if (waitingRegistration?.waiting) {
+          waitingRegistration.waiting.postMessage({ type: "SKIP_WAITING" });
+          setTimeout(() => window.location.reload(), 1500);
+          return;
+        }
+
+        fallbackReload();
+      })
+      .catch(() => fallbackReload())
+      .finally(() => {
+        setTimeout(() => setIsUpdating(false), 1200);
+      });
   };
 
   const handleDismiss = () => setDismissed(true);
 
   return (
-    <div className="fixed top-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96 animate-in slide-in-from-top-5">
-      <Card className="p-4 shadow-lg border-2 border-primary/20 bg-background">
-        <div className="flex items-start gap-3">
-          <div className="flex-1 space-y-2">
-            <div className="flex items-center gap-2">
-              <RefreshCw className="w-5 h-5 text-primary" />
-              <h3 className="font-semibold">Nouvelle version disponible</h3>
+    <>
+      {true ? (
+        <Button
+          type="button"
+          onClick={handleUpdate}
+          aria-label="Rafraîchir l'application"
+          size="sm"
+          className="fixed z-[51] h-11 rounded-full shadow-lg md:hidden bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+4.5rem)]"
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isUpdating ? "animate-spin" : ""}`} />
+          Rafraîchir
+        </Button>
+      ) : null}
+
+      {needRefresh && !dismissed ? (
+        <div className="fixed top-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96 animate-in slide-in-from-top-5">
+          <Card className="p-4 shadow-lg border-2 border-primary/20 bg-background">
+            <div className="flex items-start gap-3">
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="w-5 h-5 text-primary" />
+                  <h3 className="font-semibold">Nouvelle version disponible</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Une nouvelle version de l'application est disponible. Mettez à jour pour profiter des dernières améliorations.
+                </p>
+                <div className="flex gap-2 pt-2">
+                  <Button onClick={handleUpdate} size="sm" className="flex-1">
+                    <RefreshCw className={`w-4 h-4 mr-2 ${isUpdating ? "animate-spin" : ""}`} />
+                    Rafraîchir
+                  </Button>
+                  <Button onClick={handleDismiss} size="sm" variant="ghost">
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Une nouvelle version de l'application est disponible. Mettez à jour pour profiter des dernières améliorations.
-            </p>
-            <div className="flex gap-2 pt-2">
-              <Button onClick={handleUpdate} size="sm" className="flex-1">
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Rafraîchir
-              </Button>
-              <Button onClick={handleDismiss} size="sm" variant="ghost">
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
+          </Card>
         </div>
-      </Card>
-    </div>
+      ) : null}
+    </>
   );
 };
 
