@@ -403,7 +403,7 @@ export const MethodTooltipContent = ({
   
   return (
     <div className={cn(
-      "rounded-xl overflow-hidden border-2 shadow-xl min-w-[320px] max-w-[400px]",
+      "rounded-xl overflow-hidden border-2 shadow-xl w-[calc(100vw-24px)] sm:w-auto sm:min-w-[320px] sm:max-w-[400px]",
       colors.border,
       colors.bg
     )}>
@@ -589,8 +589,11 @@ export const TrainingMethodButtons = ({
               </TooltipTrigger>
               <TooltipContent 
                 side="top" 
-                className="p-0 bg-transparent border-0 shadow-none z-[200]"
+                align="center"
+                className="p-0 bg-transparent border-0 shadow-none z-[200] max-w-[calc(100vw-16px)]"
                 sideOffset={8}
+                collisionPadding={12}
+                avoidCollisions
               >
                 <MethodTooltipContent style={style} colors={tooltipColors} />
               </TooltipContent>
