@@ -638,7 +638,7 @@ export function SessionFeedbackDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn("max-h-[95vh] flex flex-col", isPrecisionSession ? "max-w-5xl w-[95vw]" : "max-w-lg")}>
+      <DialogContent className={cn("max-h-[95vh] flex flex-col", (isPrecisionSession || hasBowlingContent) ? "max-w-5xl w-[95vw]" : "max-w-lg")}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
@@ -652,6 +652,12 @@ export function SessionFeedbackDialog({
               <TabsTrigger value="precision" className="flex-1 gap-2">
                 <Target className="h-4 w-4" />
                 🎯 Précision
+              </TabsTrigger>
+            )}
+            {hasBowlingContent && (
+              <TabsTrigger value="bowling" className="flex-1 gap-2">
+                <Target className="h-4 w-4" />
+                🎳 {bowlingBlockType === "bowling_game" ? "Parties" : "Précision"}
               </TabsTrigger>
             )}
             <TabsTrigger value="rpe" className="flex-1 gap-2">
@@ -685,6 +691,23 @@ export function SessionFeedbackDialog({
                   sessionId={sessionId}
                   sessionDate={session?.session_date}
                 />
+              </div>
+            </TabsContent>
+          )}
+
+          {/* Bowling tab (parties d'entraînement / précision spare) */}
+          {hasBowlingContent && session?.session_date && (
+            <TabsContent value="bowling" className="flex-1 flex flex-col min-h-0 mt-4">
+              <div className="flex-1 min-h-0 overflow-y-auto pr-1" style={{ maxHeight: "calc(95vh - 180px)" }}>
+                <BowlingSessionContent
+                  sessionId={sessionId}
+                  categoryId={categoryId}
+                  blockType={bowlingBlockType!}
+                  sessionDate={session.session_date}
+                />
+                <p className="text-xs text-muted-foreground mt-3 italic">
+                  ✅ Les données bowling sont enregistrées immédiatement et alimentent <b>Datas → Datas d'entraînement</b>.
+                </p>
               </div>
             </TabsContent>
           )}
