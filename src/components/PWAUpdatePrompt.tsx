@@ -50,10 +50,19 @@ const PWAUpdatePrompt = () => {
     };
     navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
 
-    // Nouvelle version en attente → propose au user
-    wb.addEventListener("waiting", () => setNeedRefresh(true));
+    // Nouvelle version en attente → activation automatique immédiate
+    const autoApply = () => {
+      setNeedRefresh(true);
+      try {
+        wb.messageSkipWaiting();
+      } catch {
+        // fallback
+        setTimeout(() => window.location.reload(), 500);
+      }
+    };
+    wb.addEventListener("waiting", autoApply);
     // @ts-ignore - workbox émet aussi 'externalwaiting' dans certains cas
-    wb.addEventListener("externalwaiting" as any, () => setNeedRefresh(true));
+    wb.addEventListener("externalwaiting" as any, autoApply);
 
     let cleanup: (() => void) | undefined;
 
