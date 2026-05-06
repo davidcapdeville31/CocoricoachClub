@@ -41,13 +41,12 @@ export function SnapshotClubButton({ clubId, clubName }: Props) {
     <>
       <Button
         variant="outline"
-        size="sm"
+        size="icon"
         onClick={() => setOpen(true)}
-        className="gap-2"
+        title="Enregistrer les données du club"
+        aria-label="Enregistrer les données du club"
       >
         <Save className="h-4 w-4" />
-        <span className="hidden sm:inline">Enregistrer les données</span>
-        <span className="sm:hidden">Enregistrer</span>
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
