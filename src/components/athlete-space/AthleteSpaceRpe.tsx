@@ -926,6 +926,74 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                       </div>
                     )}
 
+                    {/* Bowling parties d'entraînement (feuille de score multi-parties) */}
+                    {isBowlingGame && selectedSession && (
+                      <div className="space-y-3 rounded-lg border border-blue-300 dark:border-blue-700 p-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm flex items-center gap-1.5">
+                            <Target className="h-3.5 w-3.5 text-blue-600" />
+                            Parties d'entraînement
+                          </Label>
+                          {savedGameScores.length > 0 && (
+                            <Badge variant="secondary" className="text-xs">
+                              {savedGameScores.length} partie{savedGameScores.length > 1 ? "s" : ""} : {savedGameScores.join(" / ")}
+                            </Badge>
+                          )}
+                        </div>
+                        {!showBowlingSheet ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => setShowBowlingSheet(true)}
+                            disabled={submittingGame}
+                          >
+                            + Ajouter une partie
+                          </Button>
+                        ) : (
+                          <BowlingScoreSheet
+                            playerId={playerId}
+                            categoryId={categoryId}
+                            onCancel={() => setShowBowlingSheet(false)}
+                            onSave={async (stats, frames, ballData) => {
+                              setSubmittingGame(true);
+                              try {
+                                const { data, error } = await supabase.functions.invoke(
+                                  "athlete-bowling-training",
+                                  {
+                                    body: {
+                                      action: "save_game",
+                                      category_id: categoryId,
+                                      player_id: playerId,
+                                      session_date: today,
+                                      training_session_id: selectedSession,
+                                      stats,
+                                      frames,
+                                      ballData,
+                                    },
+                                  },
+                                );
+                                if (error || !(data as any)?.success) {
+                                  throw new Error((data as any)?.error || error?.message || "Erreur");
+                                }
+                                toast.success(`Partie enregistrée : ${stats.totalScore} pts`);
+                                setSavedGameScores((prev) => [...prev, stats.totalScore]);
+                                setShowBowlingSheet(false);
+                                queryClient.invalidateQueries({ queryKey: ["bowling-training-rounds"] });
+                                queryClient.invalidateQueries({ queryKey: ["bowling_training_stats"] });
+                              } catch (e: any) {
+                                toast.error(e?.message || "Erreur lors de l'enregistrement de la partie");
+                              } finally {
+                                setSubmittingGame(false);
+                              }
+                            }}
+                          />
+                        )}
+                        <p className="text-[11px] text-muted-foreground italic">
+                          Tu peux ajouter plusieurs parties. Elles alimentent <b>Datas → Datas d'entraînement</b>.
+                        </p>
+                      </div>
+                    )}
 
                     {/* Actual weights logged by the athlete (feeds Tonnage) */}
                     {selectedSession && (
