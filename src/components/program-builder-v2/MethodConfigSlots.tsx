@@ -1182,7 +1182,6 @@ export const MethodConfigSlots = ({
     return vars;
   };
   const [visibleVariables, setVisibleVariables] = useState<string[]>(getDefaultVisibleVars);
-  const [addVarPopoverOpen, setAddVarPopoverOpen] = useState(false);
   
   // CrossFit specific states — restore from initialData if available
   const [timeCap, setTimeCap] = useState<number>(initialData?.timeCap ?? 10);
@@ -1254,7 +1253,6 @@ export const MethodConfigSlots = ({
   
   const addVariable = (varKey: string) => {
     setVisibleVariables(prev => [...prev, varKey]);
-    setAddVarPopoverOpen(false);
   };
   
   const hiddenVariables = DYNAMIC_VARIABLES.filter(v => !visibleVariables.includes(v.key));
