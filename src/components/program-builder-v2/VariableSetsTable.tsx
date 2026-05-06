@@ -15,6 +15,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   SetData,
   SetsTableColumn,
   STRENGTH_SET_COLUMNS,
@@ -189,39 +196,42 @@ export const VariableSetsTable = ({
             ))}
             <div className="flex-1 px-2 py-1.5 flex items-center justify-end gap-1">
               {hiddenColumns.length > 0 && (
-                <TooltipProvider delayDuration={200}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-5 w-5"
-                        onClick={() => hiddenColumns[0] && toggleColumn(hiddenColumns[0].key)}
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
+                      title="Ajouter une variable de série"
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-44 z-[80]"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <DropdownMenuLabel className="text-xs">Ajouter une variable</DropdownMenuLabel>
+                    {hiddenColumns.map((col) => (
+                      <DropdownMenuItem
+                        key={col.key}
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          toggleColumn(col.key);
+                        }}
+                        className="text-xs cursor-pointer"
                       >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-xs">
-                      <div className="space-y-1">
-                        <p className="font-medium">Ajouter une colonne</p>
-                        {hiddenColumns.map(col => (
-                          <button
-                            key={col.key}
-                            type="button"
-                            className="block w-full text-left px-2 py-1 hover:bg-accent rounded text-xs"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleColumn(col.key);
-                            }}
-                          >
-                            {col.label}
-                          </button>
-                        ))}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                        {col.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </div>
           </div>
