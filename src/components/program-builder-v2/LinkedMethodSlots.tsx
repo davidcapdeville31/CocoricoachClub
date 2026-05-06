@@ -417,48 +417,65 @@ const AddParamButton = ({
   if (availableParams.length === 0) return null;
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onPointerDown={(e) => e.stopPropagation()}
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            setOpen((o) => !o);
-          }}
-          className="h-7 px-2 text-[10px] border-dashed hover:border-primary hover:bg-primary/5 self-end"
-        >
-          <Plus className="h-3 w-3" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        className="w-40 z-[80]"
-        align="start"
-        onCloseAutoFocus={(e) => e.preventDefault()}
+    <div className="relative self-end">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onPointerDown={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((o) => !o);
+        }}
+        className="h-7 px-2 text-[10px] border-dashed hover:border-primary hover:bg-primary/5"
       >
-        <DropdownMenuLabel className="text-[10px] text-muted-foreground py-1">
-          Ajouter une variable
-        </DropdownMenuLabel>
-        {availableParams.map((param) => (
-          <DropdownMenuItem
-            key={param.key}
-            onSelect={(e) => {
-              e.preventDefault();
-              onAdd(param.key);
+        <Plus className="h-3 w-3" />
+      </Button>
+      {open && (
+        <>
+          {/* Backdrop pour fermer au clic extérieur */}
+          <div
+            className="fixed inset-0 z-[998]"
+            onPointerDown={(e) => {
+              e.stopPropagation();
               setOpen(false);
             }}
-            className="text-xs cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(false);
+            }}
+          />
+          <div
+            className="absolute left-0 top-full mt-1 w-44 rounded-md border bg-popover text-popover-foreground shadow-md z-[999] p-1"
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
-            {param.label}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+            <p className="px-2 py-1 text-[10px] text-muted-foreground">Ajouter une variable</p>
+            {availableParams.map((param) => (
+              <button
+                key={param.key}
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAdd(param.key);
+                  setOpen(false);
+                }}
+                className="w-full rounded-sm px-2 py-1.5 text-xs text-left hover:bg-accent"
+              >
+                {param.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 };
+
 
 // Individual droppable slot with inline editing
 const DroppableSlot = ({

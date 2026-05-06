@@ -196,47 +196,15 @@ export const VariableSetsTable = ({
             ))}
             <div className="flex-1 px-2 py-1.5 flex items-center justify-end gap-1">
               {hiddenColumns.length > 0 && onVisibleColumnsChange && (
-                <DropdownMenu modal={false}>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-5 w-5"
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClick={(e) => e.stopPropagation()}
-                      title="Ajouter une variable de série"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="w-44 z-[80]"
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <DropdownMenuLabel className="text-xs">Ajouter une variable</DropdownMenuLabel>
-                    {hiddenColumns.map((col) => (
-                      <DropdownMenuItem
-                        key={col.key}
-                        onSelect={(e) => {
-                          e.preventDefault();
-                          toggleColumn(col.key);
-                        }}
-                        className="text-xs cursor-pointer"
-                      >
-                        {col.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <InlineColumnPicker
+                  hiddenColumns={hiddenColumns}
+                  onPick={(key) => toggleColumn(key)}
+                />
               )}
             </div>
           </div>
 
-          {/* Rows */}
+
           {sets.map((set, setIndex) => (
             <div
               key={setIndex}
@@ -402,4 +370,67 @@ export const VariableSetsTable = ({
   );
 };
 
+const InlineColumnPicker = ({
+  hiddenColumns,
+  onPick,
+}: {
+  hiddenColumns: SetsTableColumn[];
+  onPick: (key: string) => void;
+}) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-5 w-5"
+        onPointerDown={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((o) => !o);
+        }}
+        title="Ajouter une variable de série"
+      >
+        <Plus className="h-3 w-3" />
+      </Button>
+      {open && (
+        <>
+          <div
+            className="fixed inset-0 z-[998]"
+            onPointerDown={(e) => { e.stopPropagation(); setOpen(false); }}
+            onClick={(e) => { e.stopPropagation(); setOpen(false); }}
+          />
+          <div
+            className="absolute right-0 top-full mt-1 w-44 rounded-md border bg-popover text-popover-foreground shadow-md z-[999] p-1"
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="px-2 py-1 text-[10px] text-muted-foreground">Ajouter une variable</p>
+            {hiddenColumns.map((col) => (
+              <button
+                key={col.key}
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPick(col.key);
+                  setOpen(false);
+                }}
+                className="w-full rounded-sm px-2 py-1.5 text-xs text-left hover:bg-accent"
+              >
+                {col.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
 export default VariableSetsTable;
+
