@@ -704,14 +704,31 @@ export function SessionFeedbackDialog({
             </TabsContent>
           )}
 
-          {/* Bowling tab (parties d'entraînement / précision spare) */}
-          {hasBowlingContent && session?.session_date && (
-            <TabsContent value="bowling" className="flex-1 flex flex-col min-h-0 mt-4">
+          {/* Bowling Parties tab */}
+          {hasBowlingGame && session?.session_date && (
+            <TabsContent value="bowling_game" className="flex-1 flex flex-col min-h-0 mt-4">
               <div className="flex-1 min-h-0 overflow-y-auto pr-1" style={{ maxHeight: "calc(95vh - 180px)" }}>
                 <BowlingSessionContent
                   sessionId={sessionId}
                   categoryId={categoryId}
-                  blockType={bowlingBlockType!}
+                  blockType="bowling_game"
+                  sessionDate={session.session_date}
+                />
+                <p className="text-xs text-muted-foreground mt-3 italic">
+                  ✅ Les données bowling sont enregistrées immédiatement et alimentent <b>Datas → Datas d'entraînement</b>.
+                </p>
+              </div>
+            </TabsContent>
+          )}
+
+          {/* Bowling Précision (spare) tab */}
+          {hasBowlingSpare && session?.session_date && (
+            <TabsContent value="bowling_spare" className="flex-1 flex flex-col min-h-0 mt-4">
+              <div className="flex-1 min-h-0 overflow-y-auto pr-1" style={{ maxHeight: "calc(95vh - 180px)" }}>
+                <BowlingSessionContent
+                  sessionId={sessionId}
+                  categoryId={categoryId}
+                  blockType="bowling_spare"
                   sessionDate={session.session_date}
                 />
                 <p className="text-xs text-muted-foreground mt-3 italic">
