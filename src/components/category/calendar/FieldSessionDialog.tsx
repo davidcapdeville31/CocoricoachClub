@@ -23,6 +23,7 @@ import {
 } from "@/lib/constants/sessionBlockOptions";
 import { getThemeColorTokens } from "@/lib/constants/themeColors";
 import { isRugbyType } from "@/lib/constants/sportTypes";
+import { BowlingSessionContent } from "@/components/bowling/BowlingSessionContent";
 
 interface FieldSessionDialogProps {
   open: boolean;
