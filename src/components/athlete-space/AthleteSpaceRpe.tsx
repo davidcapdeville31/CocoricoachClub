@@ -328,9 +328,13 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
     [selectedSessionData?.notes]
   );
   const isBowlingPrecision = selectedSessionData?.training_type === "bowling_spare";
+  const isBowlingGame = selectedSessionData?.training_type === "bowling_game" || selectedSessionData?.training_type === "bowling_practice";
   const isGenericPrecision = selectedSessionData?.training_type === "precision";
   const isRugbyPrecision = isGenericPrecision && sportType && isRugbyType(sportType);
   const isPrecisionSession = isBowlingPrecision || isGenericPrecision;
+  const [showBowlingSheet, setShowBowlingSheet] = useState(false);
+  const [savedGameScores, setSavedGameScores] = useState<number[]>([]);
+  const [submittingGame, setSubmittingGame] = useState(false);
 
   // State for generic precision exercises
   const [precisionExerciseId, setPrecisionExerciseId] = useState<string | null>(null);
