@@ -35,6 +35,8 @@ function SnapshotsList() {
       if (error) throw error;
       return (data || []) as SnapshotRow[];
     },
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const downloadSnapshot = async (id: string, name: string, version: number) => {
