@@ -836,23 +836,8 @@ export function SessionDetailsDialog({
             </div>
           )}
 
-          {/* Bowling-specific content for bowling_game and bowling_spare blocks */}
-          {sessionBlocks?.some((b: any) => b.training_type === "bowling_game" || b.training_type === "bowling_spare") && (
-            <div className="mb-4 space-y-4">
-              {sessionBlocks
-                .filter((b: any) => b.training_type === "bowling_game" || b.training_type === "bowling_spare")
-                .map((block: any) => (
-                  <BowlingSessionContent
-                    key={block.id}
-                    sessionId={sessionId}
-                    categoryId={categoryId}
-                    blockType={block.training_type as "bowling_game" | "bowling_spare"}
-                    sessionDate={sessionDate}
-                  />
-                ))
-              }
-            </div>
-          )}
+          {/* Saisie des scores bowling déplacée dans "Retour/Commentaire" */}
+
 
           {/* Tennis-specific drill training for tennis blocks */}
           {sessionBlocks?.some((b: any) => typeof b.training_type === "string" && b.training_type.startsWith("tennis_") && b.training_type !== "tennis_match") && (
