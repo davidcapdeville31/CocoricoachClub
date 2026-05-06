@@ -182,12 +182,15 @@ export function SessionFeedbackDialog({
     enabled: open && !!sessionId,
   });
 
-  const bowlingBlockType: "bowling_game" | "bowling_spare" | null = useMemo(() => {
-    if (sessionBlocks.some((b: any) => b.training_type === "bowling_game")) return "bowling_game";
-    if (sessionBlocks.some((b: any) => b.training_type === "bowling_spare")) return "bowling_spare";
-    return null;
-  }, [sessionBlocks]);
-  const hasBowlingContent = !!bowlingBlockType;
+  const hasBowlingGame = useMemo(
+    () => sessionBlocks.some((b: any) => b.training_type === "bowling_game"),
+    [sessionBlocks]
+  );
+  const hasBowlingSpare = useMemo(
+    () => sessionBlocks.some((b: any) => b.training_type === "bowling_spare"),
+    [sessionBlocks]
+  );
+  const hasBowlingContent = hasBowlingGame || hasBowlingSpare;
 
   // Initialize RPE values with default duration when players load
   useEffect(() => {
@@ -654,10 +657,16 @@ export function SessionFeedbackDialog({
                 🎯 Précision
               </TabsTrigger>
             )}
-            {hasBowlingContent && (
-              <TabsTrigger value="bowling" className="flex-1 gap-2">
+            {hasBowlingGame && (
+              <TabsTrigger value="bowling_game" className="flex-1 gap-2">
                 <Target className="h-4 w-4" />
-                🎳 {bowlingBlockType === "bowling_game" ? "Parties" : "Précision"}
+                🎳 Parties
+              </TabsTrigger>
+            )}
+            {hasBowlingSpare && (
+              <TabsTrigger value="bowling_spare" className="flex-1 gap-2">
+                <Target className="h-4 w-4" />
+                🎳 Précision
               </TabsTrigger>
             )}
             <TabsTrigger value="rpe" className="flex-1 gap-2">
@@ -695,14 +704,31 @@ export function SessionFeedbackDialog({
             </TabsContent>
           )}
 
-          {/* Bowling tab (parties d'entraînement / précision spare) */}
-          {hasBowlingContent && session?.session_date && (
-            <TabsContent value="bowling" className="flex-1 flex flex-col min-h-0 mt-4">
+          {/* Bowling Parties tab */}
+          {hasBowlingGame && session?.session_date && (
+            <TabsContent value="bowling_game" className="flex-1 flex flex-col min-h-0 mt-4">
               <div className="flex-1 min-h-0 overflow-y-auto pr-1" style={{ maxHeight: "calc(95vh - 180px)" }}>
                 <BowlingSessionContent
                   sessionId={sessionId}
                   categoryId={categoryId}
-                  blockType={bowlingBlockType!}
+                  blockType="bowling_game"
+                  sessionDate={session.session_date}
+                />
+                <p className="text-xs text-muted-foreground mt-3 italic">
+                  ✅ Les données bowling sont enregistrées immédiatement et alimentent <b>Datas → Datas d'entraînement</b>.
+                </p>
+              </div>
+            </TabsContent>
+          )}
+
+          {/* Bowling Précision (spare) tab */}
+          {hasBowlingSpare && session?.session_date && (
+            <TabsContent value="bowling_spare" className="flex-1 flex flex-col min-h-0 mt-4">
+              <div className="flex-1 min-h-0 overflow-y-auto pr-1" style={{ maxHeight: "calc(95vh - 180px)" }}>
+                <BowlingSessionContent
+                  sessionId={sessionId}
+                  categoryId={categoryId}
+                  blockType="bowling_spare"
                   sessionDate={session.session_date}
                 />
                 <p className="text-xs text-muted-foreground mt-3 italic">
