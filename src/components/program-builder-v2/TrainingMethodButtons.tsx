@@ -403,7 +403,7 @@ export const MethodTooltipContent = ({
   
   return (
     <div className={cn(
-      "rounded-xl overflow-hidden border-2 shadow-xl min-w-[320px] max-w-[400px]",
+      "rounded-xl overflow-hidden border-2 shadow-xl w-[calc(100vw-24px)] sm:w-auto sm:min-w-[320px] sm:max-w-[400px]",
       colors.border,
       colors.bg
     )}>
