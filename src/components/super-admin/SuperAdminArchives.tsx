@@ -35,6 +35,8 @@ function SnapshotsList() {
       if (error) throw error;
       return (data || []) as SnapshotRow[];
     },
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const downloadSnapshot = async (id: string, name: string, version: number) => {
@@ -126,6 +128,8 @@ export function SuperAdminArchives() {
       if (error) throw error;
       return (data || []) as ArchivedRow[];
     },
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const restore = useMutation({
