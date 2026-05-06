@@ -144,19 +144,18 @@ const PWAUpdatePrompt = () => {
 
   const handleDismiss = () => setDismissed(true);
 
-  const isTouchDevice = typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
-
   return (
     <>
-      {isTouchDevice ? (
+      {true ? (
         <Button
           type="button"
-          size="icon"
           onClick={handleUpdate}
           aria-label="Rafraîchir l'application"
-          className="fixed z-50 h-11 w-11 rounded-full shadow-lg right-4 bottom-[calc(env(safe-area-inset-bottom)+4.25rem)] md:hidden"
+          size="sm"
+          className="fixed z-[51] h-11 rounded-full shadow-lg md:hidden bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+4.5rem)]"
         >
-          <RefreshCw className={`h-4 w-4 ${isUpdating ? "animate-spin" : ""}`} />
+          <RefreshCw className={`h-4 w-4 mr-2 ${isUpdating ? "animate-spin" : ""}`} />
+          Rafraîchir
         </Button>
       ) : null}
 
