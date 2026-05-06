@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { PrecisionFieldTracker } from "@/components/rugby/PrecisionFieldTracker";
+import { BowlingSessionContent } from "@/components/bowling/BowlingSessionContent";
 
 interface SessionFeedbackDialogProps {
   open: boolean;
