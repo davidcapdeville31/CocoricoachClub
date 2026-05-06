@@ -41,6 +41,10 @@
         return;
       }
 
+      if (navigator.serviceWorker) {
+        await navigator.serviceWorker.ready;
+      }
+
       try {
         await OneSignal.init({
           appId: oneSignalAppId,

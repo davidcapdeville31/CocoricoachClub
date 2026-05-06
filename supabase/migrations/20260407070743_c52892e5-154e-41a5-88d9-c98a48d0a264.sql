@@ -1,6 +1,15 @@
 
 -- Remove old single-schedule wellness reminder cron
-SELECT cron.unschedule('wellness-reminder-daily');
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'wellness-reminder-daily') THEN
+        PERFORM cron.unschedule('wellness-reminder-daily');
+        RAISE NOTICE 'wellness-reminder-daily unscheduled';
+    ELSE
+        RAISE NOTICE 'wellness-reminder-daily not found, skipping';
+    END IF;
+END $$;
+
 
 -- Create two cron jobs: 6 UTC (=8h CEST summer) and 7 UTC (=8h CET winter)
 -- The edge function has a timezone guard and will skip if it's not 8h in Paris
