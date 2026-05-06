@@ -14277,6 +14277,10 @@ export type Database = {
         Args: { p_club_id: string }
         Returns: undefined
       }
+      snapshot_category_full: {
+        Args: { _category_id: string; _notes?: string }
+        Returns: Json
+      }
       snapshot_club_full: {
         Args: { _club_id: string; _notes?: string }
         Returns: Json
