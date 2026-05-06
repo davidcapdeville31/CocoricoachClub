@@ -366,6 +366,7 @@ function CategoryDetailsContent() {
                   currentHeaderBackgroundUrl={(category as any)?.header_background_url}
                   backgroundOnly
                 />
+                <SnapshotCategoryButton categoryId={categoryId} categoryName={category?.name} />
                 <Button
                   variant="outline"
                   size="icon"
