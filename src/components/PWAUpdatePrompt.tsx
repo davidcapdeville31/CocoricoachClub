@@ -144,31 +144,49 @@ const PWAUpdatePrompt = () => {
 
   const handleDismiss = () => setDismissed(true);
 
+  const isTouchDevice = typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+
   return (
-    <div className="fixed top-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96 animate-in slide-in-from-top-5">
-      <Card className="p-4 shadow-lg border-2 border-primary/20 bg-background">
-        <div className="flex items-start gap-3">
-          <div className="flex-1 space-y-2">
-            <div className="flex items-center gap-2">
-              <RefreshCw className="w-5 h-5 text-primary" />
-              <h3 className="font-semibold">Nouvelle version disponible</h3>
+    <>
+      {isTouchDevice ? (
+        <Button
+          type="button"
+          size="icon"
+          onClick={handleUpdate}
+          aria-label="Rafraîchir l'application"
+          className="fixed z-50 h-11 w-11 rounded-full shadow-lg right-4 bottom-[calc(env(safe-area-inset-bottom)+4.25rem)] md:hidden"
+        >
+          <RefreshCw className={`h-4 w-4 ${isUpdating ? "animate-spin" : ""}`} />
+        </Button>
+      ) : null}
+
+      {needRefresh && !dismissed ? (
+        <div className="fixed top-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96 animate-in slide-in-from-top-5">
+          <Card className="p-4 shadow-lg border-2 border-primary/20 bg-background">
+            <div className="flex items-start gap-3">
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="w-5 h-5 text-primary" />
+                  <h3 className="font-semibold">Nouvelle version disponible</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Une nouvelle version de l'application est disponible. Mettez à jour pour profiter des dernières améliorations.
+                </p>
+                <div className="flex gap-2 pt-2">
+                  <Button onClick={handleUpdate} size="sm" className="flex-1">
+                    <RefreshCw className={`w-4 h-4 mr-2 ${isUpdating ? "animate-spin" : ""}`} />
+                    Rafraîchir
+                  </Button>
+                  <Button onClick={handleDismiss} size="sm" variant="ghost">
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Une nouvelle version de l'application est disponible. Mettez à jour pour profiter des dernières améliorations.
-            </p>
-            <div className="flex gap-2 pt-2">
-              <Button onClick={handleUpdate} size="sm" className="flex-1">
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Rafraîchir
-              </Button>
-              <Button onClick={handleDismiss} size="sm" variant="ghost">
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
+          </Card>
         </div>
-      </Card>
-    </div>
+      ) : null}
+    </>
   );
 };
 
