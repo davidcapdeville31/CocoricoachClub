@@ -686,6 +686,7 @@ const CircuitExerciseSlot = ({
 
   const isFilled = !!exercise;
   const [showVars, setShowVars] = useState(true);
+  const [inlineSlotVariablePickerOpen, setInlineSlotVariablePickerOpen] = useState(false);
 
   const activeVars = visibleVariables || ['percentage', 'load', 'tempo', 'rpe'];
 
@@ -750,43 +751,50 @@ const CircuitExerciseSlot = ({
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] text-muted-foreground font-medium">Variables</span>
             {onAddVariable && hiddenVariables && hiddenVariables.length > 0 && (
-              <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
+              <div className="relative">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setInlineSlotVariablePickerOpen((prev) => !prev);
+                  }}
+                  className="h-5 text-[10px] border-dashed px-1.5 gap-0.5"
+                  title="Ajouter une variable (Charge, %1RM, RPE, RIR, Tempo...)"
+                >
+                  <Plus className="h-2.5 w-2.5" />
+                  Variable
+                </Button>
+                {inlineSlotVariablePickerOpen && (
+                  <div
+                    className="absolute right-0 top-full mt-1 w-44 rounded-md border bg-popover text-popover-foreground shadow-md z-[70] p-1"
                     onPointerDown={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
                     onClick={(e) => e.stopPropagation()}
-                    className="h-5 text-[10px] border-dashed px-1.5 gap-0.5"
-                    title="Ajouter une variable (Charge, %1RM, RPE, RIR, Tempo...)"
                   >
-                    <Plus className="h-2.5 w-2.5" />
-                    Variable
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="w-44 z-[60]"
-                  align="end"
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <DropdownMenuLabel className="text-xs">Ajouter</DropdownMenuLabel>
-                  {hiddenVariables.map((v) => (
-                    <DropdownMenuItem
-                      key={v.key}
-                      onSelect={(e) => {
-                        e.preventDefault();
-                        onAddVariable(v.key);
-                      }}
-                      className="text-xs cursor-pointer"
-                    >
-                      {v.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <p className="px-2 py-1 text-xs text-muted-foreground">Ajouter</p>
+                    {hiddenVariables.map((v) => (
+                      <button
+                        key={v.key}
+                        type="button"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddVariable(v.key);
+                          setInlineSlotVariablePickerOpen(false);
+                        }}
+                        className="w-full rounded-sm px-2 py-1.5 text-xs text-left hover:bg-accent"
+                      >
+                        {v.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
           <div className="flex flex-wrap gap-2">
