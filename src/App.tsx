@@ -10,6 +10,7 @@ import { PublicAccessProvider, usePublicAccess } from "@/contexts/PublicAccessCo
 import { FieldModeProvider } from "@/contexts/FieldModeContext";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import PWAUpdatePrompt from "@/components/PWAUpdatePrompt";
+import PullToRefresh from "@/components/PullToRefresh";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import { NotificationOnboarding } from "@/components/notifications/NotificationOnboarding";
 import { NotificationReminderModal } from "@/components/notifications/NotificationReminderModal";
@@ -138,6 +139,7 @@ const App = () => (
                 <OfflineIndicator />
                 <FieldModeToggle />
                 <PWAUpdatePrompt />
+                <PullToRefresh />
                 <PWAInstallPrompt />
                 <NotificationOnboarding />
                 <NotificationReminderModal />
