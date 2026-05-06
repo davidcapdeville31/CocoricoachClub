@@ -422,43 +422,43 @@ export function BowlingFrameAnalysis({ games }: BowlingFrameAnalysisProps) {
               const isBonus = f.frameNumber > 10;
 
               return (
-                <div key={f.frameNumber} className="flex items-center gap-3">
-                  <div className="w-20 text-sm font-medium flex items-center gap-1">
+                <div key={f.frameNumber} className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-14 sm:w-20 text-[11px] sm:text-sm font-medium flex items-center gap-1 shrink-0">
                     <span className={isBonus ? "text-muted-foreground italic" : ""}>
                       {f.label}
                     </span>
                     {isBest && <span className="text-primary">★</span>}
                     {isWorst && <span className="text-destructive">▼</span>}
                   </div>
-                  <div className="flex-1 h-8 bg-muted rounded-full overflow-hidden flex relative">
+                  <div className="flex-1 min-w-0 h-7 sm:h-8 bg-muted rounded-full overflow-hidden flex relative">
                     {strikePercent > 0 && (
                       <div
-                        className="h-full bg-yellow-500 transition-all flex items-center justify-center overflow-visible relative"
-                        style={{ width: `${strikePercent}%`, minWidth: strikePercent > 0 ? '28px' : undefined }}
+                        className="h-full bg-yellow-500 transition-all flex items-center justify-center overflow-hidden relative"
+                        style={{ width: `${strikePercent}%` }}
                       >
-                         <span className="text-sm font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)] whitespace-nowrap">{strikePercent.toFixed(0)}%</span>
+                         <span className="text-[10px] sm:text-sm font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)] whitespace-nowrap">{strikePercent.toFixed(0)}%</span>
                        </div>
                      )}
                      {f.frameNumber < 12 && sparePercent > 0 && (
                        <div
-                         className="h-full bg-emerald-500 transition-all flex items-center justify-center overflow-visible relative"
-                         style={{ width: `${sparePercent}%`, minWidth: sparePercent > 0 ? '28px' : undefined }}
+                         className="h-full bg-emerald-500 transition-all flex items-center justify-center overflow-hidden relative"
+                         style={{ width: `${sparePercent}%` }}
                        >
-                         <span className="text-sm font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)] whitespace-nowrap">{sparePercent.toFixed(0)}%</span>
+                         <span className="text-[10px] sm:text-sm font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)] whitespace-nowrap">{sparePercent.toFixed(0)}%</span>
                        </div>
                      )}
                      {openPercent > 0 && (
                        <div
-                         className="h-full bg-rose-500 transition-all flex items-center justify-center overflow-visible relative"
-                         style={{ width: `${openPercent}%`, minWidth: openPercent > 0 ? '28px' : undefined }}
+                         className="h-full bg-rose-500 transition-all flex items-center justify-center overflow-hidden relative"
+                         style={{ width: `${openPercent}%` }}
                        >
-                         <span className="text-sm font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)] whitespace-nowrap">{openPercent.toFixed(0)}%</span>
+                         <span className="text-[10px] sm:text-sm font-extrabold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)] whitespace-nowrap">{openPercent.toFixed(0)}%</span>
                       </div>
                     )}
                   </div>
-                  <div className="w-24 text-right flex items-center justify-end gap-1">
-                    <span className="text-sm font-bold">{strikePercent.toFixed(0)}%</span>
-                    <span className="text-[10px] text-muted-foreground">X</span>
+                  <div className="w-14 sm:w-24 text-right flex items-center justify-end gap-1 shrink-0">
+                    <span className="text-[11px] sm:text-sm font-bold">{strikePercent.toFixed(0)}%</span>
+                    <span className="text-[10px] text-muted-foreground hidden sm:inline">X</span>
                     {isBonus && (
                       <span className="text-[10px] text-muted-foreground ml-1">({total})</span>
                     )}
