@@ -341,15 +341,28 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
               <Activity className="h-4 w-4" style={{ color: NAV_COLORS.planification.base }} />
               Mon calendrier
             </CardTitle>
-            <Button
-              size="sm"
-              onClick={() => setIsCreateOpen(true)}
-              className="gap-1.5"
-              style={{ backgroundColor: ATHLETE_SESSION_COLOR }}
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Ajouter une séance
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              {isBowling && (
+                <Button
+                  size="sm"
+                  onClick={() => setIsBowlingTrainingOpen(true)}
+                  className="gap-1.5"
+                  style={{ backgroundColor: TRAINING_COLOR }}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Ajouter un entraînement
+                </Button>
+              )}
+              <Button
+                size="sm"
+                onClick={() => setIsCreateOpen(true)}
+                className="gap-1.5"
+                style={{ backgroundColor: ATHLETE_SESSION_COLOR }}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Ajouter une séance
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
