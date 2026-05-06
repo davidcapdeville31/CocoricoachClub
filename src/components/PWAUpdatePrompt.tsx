@@ -111,7 +111,6 @@ const PWAUpdatePrompt = () => {
     };
   }, [swDisabled]);
 
-  const handleUpdate = () => {
   const handleUpdate = async () => {
     setIsUpdating(true);
 
