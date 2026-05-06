@@ -139,6 +139,7 @@ const App = () => (
                 <OfflineIndicator />
                 <FieldModeToggle />
                 <PWAUpdatePrompt />
+                <PullToRefresh />
                 <PWAInstallPrompt />
                 <NotificationOnboarding />
                 <NotificationReminderModal />
