@@ -172,38 +172,14 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
             <div className="flex items-center gap-1">
               {/* Add variable to mini-sets */}
               {hiddenMiniSetVariables.length > 0 && (
-                <DropdownMenu modal={false}>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClick={(e) => { e.stopPropagation(); }}
-                      className="h-5 text-[10px] border-dashed px-1.5 gap-0.5"
-                      title="Ajouter une variable aux mini-séries"
-                    >
-                      <Plus className="h-2.5 w-2.5" />
-                      Var. mini-série
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-48 z-[60]" align="end">
-                    <DropdownMenuLabel className="text-xs">Ajouter (par mini-série)</DropdownMenuLabel>
-                    {hiddenMiniSetVariables.map(v => (
-                      <DropdownMenuItem
-                        key={v.key}
-                        onSelect={(e) => {
-                          e.preventDefault();
-                          addMiniSetVariable(v.key);
-                        }}
-                        className="text-xs cursor-pointer"
-                      >
-                        {v.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <InlineVariablePicker
+                  items={hiddenMiniSetVariables.map(v => ({ key: v.key, label: v.label }))}
+                  onPick={(key) => addMiniSetVariable(key)}
+                  buttonLabel="Var. mini-série"
+                  title="Ajouter une variable aux mini-séries"
+                  heading="Ajouter (par mini-série)"
+                  width="w-48"
+                />
               )}
               <Button type="button" variant="ghost" size="sm" onClick={() => addMiniSet(sIdx)} className="h-5 text-[10px] px-1.5">
                 <Plus className="h-2.5 w-2.5 mr-0.5" />
