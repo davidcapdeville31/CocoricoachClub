@@ -26,6 +26,7 @@ serve(async (req) => {
 
     if (error) throw error;
 
+    // Eligible = clubs whose local time is Monday 03:xx
     const eligible: { id: string; name: string }[] = [];
     for (const club of clubs ?? []) {
       if (club.auto_backup_enabled === false) continue;
@@ -40,7 +41,7 @@ serve(async (req) => {
         }).formatToParts(new Date());
         const weekday = parts.find((p) => p.type === "weekday")?.value;
         const hour = parts.find((p) => p.type === "hour")?.value;
-        if (weekday === "Sun" && hour === "23") {
+        if (weekday === "Mon" && hour === "03") {
           eligible.push({ id: club.id, name: club.name });
         }
       } catch (e) {
@@ -50,23 +51,47 @@ serve(async (req) => {
 
     if (eligible.length === 0) {
       return new Response(
-        JSON.stringify({ skipped: true, reason: "No clubs at Sun 23h local", count: 0 }),
+        JSON.stringify({ skipped: true, reason: "No clubs at Mon 03h local", count: 0 }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
     const results: any[] = [];
     for (const club of eligible) {
-      const { data, error: rpcErr } = await supabase.rpc("snapshot_club_full", {
+      // Snapshot the club
+      const { data: clubSnap, error: clubErr } = await supabase.rpc("snapshot_club_full", {
         _club_id: club.id,
-        _notes: "Sauvegarde automatique hebdomadaire (dimanche 23h55)",
+        _notes: "Sauvegarde automatique hebdomadaire (lundi 03h00 heure locale)",
       });
-      if (rpcErr) {
-        console.error(`[auto-snapshot] ${club.name}:`, rpcErr);
-        results.push({ club: club.name, success: false, error: rpcErr.message });
+      if (clubErr) {
+        console.error(`[auto-snapshot] club ${club.name}:`, clubErr);
+        results.push({ club: club.name, scope: "club", success: false, error: clubErr.message });
       } else {
-        console.log(`[auto-snapshot] ${club.name} ✓`, data);
-        results.push({ club: club.name, success: true, result: data });
+        console.log(`[auto-snapshot] club ${club.name} ✓`, clubSnap);
+        results.push({ club: club.name, scope: "club", success: true, result: clubSnap });
+      }
+
+      // Snapshot each active (non-archived) category of the club
+      const { data: cats, error: catsErr } = await supabase
+        .from("categories")
+        .select("id, name")
+        .eq("club_id", club.id)
+        .eq("is_archived", false);
+      if (catsErr) {
+        console.error(`[auto-snapshot] cats list ${club.name}:`, catsErr);
+        continue;
+      }
+      for (const cat of cats ?? []) {
+        const { data: catSnap, error: catErr } = await supabase.rpc("snapshot_category_full", {
+          _category_id: cat.id,
+          _notes: "Sauvegarde automatique hebdomadaire (lundi 03h00 heure locale)",
+        });
+        if (catErr) {
+          console.error(`[auto-snapshot] cat ${cat.name}:`, catErr);
+          results.push({ club: club.name, category: cat.name, scope: "category", success: false, error: catErr.message });
+        } else {
+          results.push({ club: club.name, category: cat.name, scope: "category", success: true, result: catSnap });
+        }
       }
     }
 
