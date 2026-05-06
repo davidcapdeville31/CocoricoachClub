@@ -287,8 +287,8 @@ function CategoryDetailsContent() {
           </div>
           {/* Logo inline mobile (md-) : centré au-dessus du titre */}
           {categoryId && !isViewer && (
-            <div className="flex md:hidden justify-center mb-4">
-              <div className="group relative h-28 w-28 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm flex items-center justify-center">
+            <div className="flex lg:hidden justify-center mb-4">
+              <div className="group relative h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm flex items-center justify-center">
                 {category?.cover_image_url ? (
                   <img
                     src={category.cover_image_url}
@@ -308,8 +308,8 @@ function CategoryDetailsContent() {
             </div>
           )}
           {category?.cover_image_url && isViewer && (
-            <div className="flex md:hidden justify-center mb-4">
-              <div className="relative h-28 w-28 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm">
+            <div className="flex lg:hidden justify-center mb-4">
+              <div className="relative h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 rounded-full overflow-hidden ring-4 ring-white/20 shadow-2xl bg-background/30 backdrop-blur-sm">
                 <img
                   src={category.cover_image_url}
                   alt="Logo du club"
