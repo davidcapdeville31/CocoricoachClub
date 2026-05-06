@@ -25,6 +25,7 @@ function ClubDetailsContent() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const { isViewer } = useViewerModeContext();
+  const { signOut } = useAuth();
 
   const { data: club } = useQuery({
     queryKey: ["club", clubId],
