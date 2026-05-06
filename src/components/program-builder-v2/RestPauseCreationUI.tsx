@@ -5,18 +5,13 @@
  * Variables ajoutables au niveau série ET au niveau mini-série.
  */
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { TimeInput } from "@/components/ui/time-input";
 import { Plus, X } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,8 +39,6 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
     visibleVariables = VARIABLES.map(v => v.key),
     visibleMiniSetVariables = [],
   } = config;
-  const [addVarPopoverOpen, setAddVarPopoverOpen] = useState(false);
-  const [addMiniVarPopoverOpen, setAddMiniVarPopoverOpen] = useState(false);
 
   const update = (partial: Partial<RestPauseConfig>) => {
     onChange({ ...config, ...partial });
@@ -65,7 +58,6 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
     } else {
       update({ visibleVariables: newVisibleVars });
     }
-    setAddVarPopoverOpen(false);
   };
 
   const removeVariable = (varKey: string) => {
@@ -80,7 +72,6 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
   // --- Mini-set-level variables ---
   const addMiniSetVariable = (varKey: string) => {
     update({ visibleMiniSetVariables: [...visibleMiniSetVariables, varKey] });
-    setAddMiniVarPopoverOpen(false);
   };
 
   const removeMiniSetVariable = (varKey: string) => {
