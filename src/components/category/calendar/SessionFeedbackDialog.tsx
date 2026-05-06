@@ -168,6 +168,27 @@ export function SessionFeedbackDialog({
     enabled: open && !!sessionId,
   });
 
+  // Fetch session blocks to detect bowling content (parties / précision)
+  const { data: sessionBlocks = [] } = useQuery({
+    queryKey: ["session-blocks-feedback", sessionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("training_session_blocks")
+        .select("training_type")
+        .eq("training_session_id", sessionId);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!sessionId,
+  });
+
+  const bowlingBlockType: "bowling_game" | "bowling_spare" | null = useMemo(() => {
+    if (sessionBlocks.some((b: any) => b.training_type === "bowling_game")) return "bowling_game";
+    if (sessionBlocks.some((b: any) => b.training_type === "bowling_spare")) return "bowling_spare";
+    return null;
+  }, [sessionBlocks]);
+  const hasBowlingContent = !!bowlingBlockType;
+
   // Initialize RPE values with default duration when players load
   useEffect(() => {
     if (players && open) {
