@@ -333,9 +333,21 @@ export function SuperAdminArchives() {
                       size="sm"
                       onClick={() => restore.mutate(row)}
                       disabled={restore.isPending}
+                      title="Désarchive uniquement (sans réinjecter de données)"
                     >
-                      <RotateCcw className="h-4 w-4 mr-1" /> Restaurer
+                      <RotateCcw className="h-4 w-4 mr-1" /> Désarchiver
                     </Button>
+                    {row.latest_snapshot_id && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => row.latest_snapshot_id && restoreFromLatestSnapshot.mutate(row.latest_snapshot_id)}
+                        disabled={restoreFromLatestSnapshot.isPending}
+                        title="Restaure toutes les données depuis le dernier instantané"
+                      >
+                        <History className="h-4 w-4 mr-1" /> Restaurer données
+                      </Button>
+                    )}
                     <Button variant="destructive" size="sm" onClick={() => setConfirmDelete(row)}>
                       <Trash2 className="h-4 w-4 mr-1" /> Supprimer
                     </Button>
