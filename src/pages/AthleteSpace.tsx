@@ -763,10 +763,40 @@ export default function AthleteSpace() {
 
           <TabsContent value="stats">
             {isBowling ? (
-              <BowlingCumulativeStats
-                categoryId={athleteInfo.category_id}
-                playerId={athleteInfo.player_id}
-              />
+              <Tabs defaultValue="competition" className="space-y-4">
+                <TabsList className="grid grid-cols-2 w-full bg-muted/40 rounded-xl p-1">
+                  <TabsTrigger
+                    value="competition"
+                    style={{ ["--tab-accent" as any]: NAV_COLORS.performance.base } as React.CSSProperties}
+                    className="gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
+                    <Trophy className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Datas de compétition</span>
+                    <span className="sm:hidden">Compét.</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="training"
+                    style={{ ["--tab-accent" as any]: NAV_COLORS.performance.base } as React.CSSProperties}
+                    className="gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
+                    <Target className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Datas d'entraînement</span>
+                    <span className="sm:hidden">Entr.</span>
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="competition">
+                  <BowlingCumulativeStats
+                    categoryId={athleteInfo.category_id}
+                    playerId={athleteInfo.player_id}
+                  />
+                </TabsContent>
+                <TabsContent value="training">
+                  <BowlingTrainingStats
+                    categoryId={athleteInfo.category_id}
+                    playerId={athleteInfo.player_id}
+                  />
+                </TabsContent>
+              </Tabs>
             ) : isRugby && kickingWorkEnabled ? (
               <Tabs defaultValue="competition" className="space-y-4">
                 <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-muted/40 rounded-xl p-1">
