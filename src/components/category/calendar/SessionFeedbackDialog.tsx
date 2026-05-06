@@ -657,10 +657,16 @@ export function SessionFeedbackDialog({
                 🎯 Précision
               </TabsTrigger>
             )}
-            {hasBowlingContent && (
-              <TabsTrigger value="bowling" className="flex-1 gap-2">
+            {hasBowlingGame && (
+              <TabsTrigger value="bowling_game" className="flex-1 gap-2">
                 <Target className="h-4 w-4" />
-                🎳 {bowlingBlockType === "bowling_game" ? "Parties" : "Précision"}
+                🎳 Parties
+              </TabsTrigger>
+            )}
+            {hasBowlingSpare && (
+              <TabsTrigger value="bowling_spare" className="flex-1 gap-2">
+                <Target className="h-4 w-4" />
+                🎳 Précision
               </TabsTrigger>
             )}
             <TabsTrigger value="rpe" className="flex-1 gap-2">
