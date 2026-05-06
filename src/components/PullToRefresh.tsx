@@ -7,7 +7,12 @@ const MAX_PULL = 140;
 const isPreviewHost = () => {
   if (typeof window === "undefined") return false;
   const hostname = window.location.hostname;
-  return import.meta.env.DEV || hostname.includes("id-preview--") || hostname.includes("localhost");
+  return (
+    import.meta.env.DEV ||
+    hostname.includes("id-preview--") ||
+    hostname.includes("localhost") ||
+    hostname.includes("lovableproject.com")
+  );
 };
 
 const isInIframe = () => {
@@ -113,6 +118,7 @@ const PullToRefresh = () => {
       if (!shouldRefresh) {
         pullRef.current = 0;
         setPull(0);
+        scrollContainerRef.current = null;
         return;
       }
 
