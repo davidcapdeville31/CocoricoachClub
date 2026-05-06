@@ -633,6 +633,22 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                         </Select>
                       </div>
                     )}
+                    {/* Saisie inline des feuilles de score / précision (en mode édition uniquement) */}
+                    {isEdit && (b.theme === "bowling_game" || b.theme === "bowling_spare") && (
+                      <div className="rounded-lg border border-dashed border-border/70 bg-muted/30 p-3">
+                        <BowlingSessionContent
+                          sessionId={editSession.id}
+                          categoryId={categoryId}
+                          blockType={b.theme as "bowling_game" | "bowling_spare"}
+                          sessionDate={format(date, "yyyy-MM-dd")}
+                        />
+                      </div>
+                    )}
+                    {!isEdit && (b.theme === "bowling_game" || b.theme === "bowling_spare") && (
+                      <p className="text-[11px] text-muted-foreground italic">
+                        Enregistrez la séance puis rouvrez-la pour saisir {b.theme === "bowling_game" ? "les parties" : "les exercices de précision"}.
+                      </p>
+                    )}
                     <Textarea
                       rows={2}
                       placeholder="Détail / consignes (optionnel)"
