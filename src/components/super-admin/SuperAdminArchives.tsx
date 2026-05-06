@@ -128,6 +128,8 @@ export function SuperAdminArchives() {
       if (error) throw error;
       return (data || []) as ArchivedRow[];
     },
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const restore = useMutation({
