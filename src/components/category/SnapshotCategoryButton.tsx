@@ -39,10 +39,8 @@ export function SnapshotCategoryButton({ categoryId, categoryName }: Props) {
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)} className="gap-2">
+      <Button variant="outline" size="icon" onClick={() => setOpen(true)} title="Enregistrer la catégorie" aria-label="Enregistrer la catégorie">
         <Save className="h-4 w-4" />
-        <span className="hidden sm:inline">Enregistrer la catégorie</span>
-        <span className="sm:hidden">Enregistrer</span>
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
