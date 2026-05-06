@@ -50,6 +50,14 @@ export function SessionEditorSheet({
     }
   }, [open]);
 
+  // Auto-switch to Séance tab on mobile after inserting an exercise from the library
+  useEffect(() => {
+    if (!open) return;
+    const handler = () => setMobileTab("session");
+    window.addEventListener("v2-exercise-inserted", handler);
+    return () => window.removeEventListener("v2-exercise-inserted", handler);
+  }, [open]);
+
   if (!open || typeof document === "undefined") return null;
 
   return createPortal(

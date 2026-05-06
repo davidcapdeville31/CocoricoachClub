@@ -384,11 +384,15 @@ function LibraryExerciseRow({
         <div
           role="button"
           tabIndex={0}
-          onClick={() => onClickInsert(exercise)}
+          onClick={() => {
+            onClickInsert(exercise);
+            try { window.dispatchEvent(new CustomEvent("v2-exercise-inserted")); } catch {}
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
               onClickInsert(exercise);
+              try { window.dispatchEvent(new CustomEvent("v2-exercise-inserted")); } catch {}
             }
           }}
           className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
