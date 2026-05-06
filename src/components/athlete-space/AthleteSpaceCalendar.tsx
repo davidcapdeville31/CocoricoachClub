@@ -710,6 +710,16 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         athletePlayerId={playerId}
         defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}
       />
+
+      {isBowling && (
+        <BowlingTrainingEntryDialog
+          open={isBowlingTrainingOpen}
+          onClose={() => setIsBowlingTrainingOpen(false)}
+          playerId={playerId}
+          categoryId={categoryId}
+          defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}
+        />
+      )}
     </div>
   );
 }
