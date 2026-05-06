@@ -47,8 +47,10 @@ const MATCH_COLOR = "#ef4444"; // Match/Compétition (rouge)
 export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isBowlingTrainingOpen, setIsBowlingTrainingOpen] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const isBowling = (sportType || "").toLowerCase().includes("bowling");
 
   // Realtime sync: invalidate caches when sessions/blocks/exercises change
   useEffect(() => {
