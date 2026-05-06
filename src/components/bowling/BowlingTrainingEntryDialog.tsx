@@ -74,22 +74,11 @@ export function BowlingTrainingEntryDialog({ open, onClose, playerId, categoryId
   });
 
   const callEdge = async (payload: any) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      toast.error("Vous devez être connecté");
-      return null;
-    }
-    const url = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.functions.supabase.co/athlete-bowling-training`;
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.access_token}`,
-        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string,
-      },
-      body: JSON.stringify({ category_id: categoryId, player_id: playerId, session_date: sessionDate, ...payload }),
+    const { data, error } = await supabase.functions.invoke("athlete-bowling-training", {
+      body: { category_id: categoryId, player_id: playerId, session_date: sessionDate, ...payload },
     });
-    return await res.json();
+    if (error) return { success: false, error: error.message };
+    return data;
   };
 
   const handleSaveGame = async (stats: any, frames: any, ballData?: any) => {
