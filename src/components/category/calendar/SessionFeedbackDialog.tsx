@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { PrecisionFieldTracker } from "@/components/rugby/PrecisionFieldTracker";
+import { BowlingSessionContent } from "@/components/bowling/BowlingSessionContent";
 
 interface SessionFeedbackDialogProps {
   open: boolean;
@@ -166,6 +167,27 @@ export function SessionFeedbackDialog({
     },
     enabled: open && !!sessionId,
   });
+
+  // Fetch session blocks to detect bowling content (parties / précision)
+  const { data: sessionBlocks = [] } = useQuery({
+    queryKey: ["session-blocks-feedback", sessionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("training_session_blocks")
+        .select("training_type")
+        .eq("training_session_id", sessionId);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!sessionId,
+  });
+
+  const bowlingBlockType: "bowling_game" | "bowling_spare" | null = useMemo(() => {
+    if (sessionBlocks.some((b: any) => b.training_type === "bowling_game")) return "bowling_game";
+    if (sessionBlocks.some((b: any) => b.training_type === "bowling_spare")) return "bowling_spare";
+    return null;
+  }, [sessionBlocks]);
+  const hasBowlingContent = !!bowlingBlockType;
 
   // Initialize RPE values with default duration when players load
   useEffect(() => {
@@ -616,7 +638,7 @@ export function SessionFeedbackDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn("max-h-[95vh] flex flex-col", isPrecisionSession ? "max-w-5xl w-[95vw]" : "max-w-lg")}>
+      <DialogContent className={cn("max-h-[95vh] flex flex-col", (isPrecisionSession || hasBowlingContent) ? "max-w-5xl w-[95vw]" : "max-w-lg")}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
@@ -630,6 +652,12 @@ export function SessionFeedbackDialog({
               <TabsTrigger value="precision" className="flex-1 gap-2">
                 <Target className="h-4 w-4" />
                 🎯 Précision
+              </TabsTrigger>
+            )}
+            {hasBowlingContent && (
+              <TabsTrigger value="bowling" className="flex-1 gap-2">
+                <Target className="h-4 w-4" />
+                🎳 {bowlingBlockType === "bowling_game" ? "Parties" : "Précision"}
               </TabsTrigger>
             )}
             <TabsTrigger value="rpe" className="flex-1 gap-2">
@@ -663,6 +691,23 @@ export function SessionFeedbackDialog({
                   sessionId={sessionId}
                   sessionDate={session?.session_date}
                 />
+              </div>
+            </TabsContent>
+          )}
+
+          {/* Bowling tab (parties d'entraînement / précision spare) */}
+          {hasBowlingContent && session?.session_date && (
+            <TabsContent value="bowling" className="flex-1 flex flex-col min-h-0 mt-4">
+              <div className="flex-1 min-h-0 overflow-y-auto pr-1" style={{ maxHeight: "calc(95vh - 180px)" }}>
+                <BowlingSessionContent
+                  sessionId={sessionId}
+                  categoryId={categoryId}
+                  blockType={bowlingBlockType!}
+                  sessionDate={session.session_date}
+                />
+                <p className="text-xs text-muted-foreground mt-3 italic">
+                  ✅ Les données bowling sont enregistrées immédiatement et alimentent <b>Datas → Datas d'entraînement</b>.
+                </p>
               </div>
             </TabsContent>
           )}
@@ -774,9 +819,9 @@ export function SessionFeedbackDialog({
 
         <div className="flex justify-end gap-2 pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {activeTab === "precision" ? "Fermer" : "Annuler"}
+            {(activeTab === "precision" || activeTab === "bowling") ? "Fermer" : "Annuler"}
           </Button>
-          {activeTab !== "precision" && (
+          {activeTab !== "precision" && activeTab !== "bowling" && (
             <Button
               onClick={() => saveData.mutate()}
               disabled={saveData.isPending || (!hasNewRpeValues && !hasTestResults && !hasWeightLogs)}
@@ -784,9 +829,9 @@ export function SessionFeedbackDialog({
               {saveData.isPending ? "Enregistrement..." : "Enregistrer"}
             </Button>
           )}
-          {activeTab === "precision" && (
+          {(activeTab === "precision" || activeTab === "bowling") && (
             <p className="text-xs text-muted-foreground self-center">
-              ✅ Les données de précision sont sauvegardées automatiquement à chaque saisie.
+              ✅ Données sauvegardées automatiquement à chaque saisie.
             </p>
           )}
         </div>
