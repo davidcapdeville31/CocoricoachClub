@@ -66,13 +66,21 @@ const PWAUpdatePrompt = () => {
       .then((registration) => {
         if (!registration) return;
 
-        // Si un SW est déjà en attente au moment du load → activation auto
+        // Si un SW est déjà en attente au moment du load → notifier l'utilisateur
         if (registration.waiting) {
           setNeedRefresh(true);
-          try {
-            registration.waiting.postMessage({ type: "SKIP_WAITING" });
-          } catch {}
         }
+
+        // Détecte une nouvelle version dès qu'elle est trouvée (utile en PWA standalone)
+        registration.addEventListener("updatefound", () => {
+          const installing = registration.installing;
+          if (!installing) return;
+          installing.addEventListener("statechange", () => {
+            if (installing.state === "installed" && navigator.serviceWorker.controller) {
+              setNeedRefresh(true);
+            }
+          });
+        });
 
         const check = () => registration.update().catch(() => {});
         const intervalId = window.setInterval(check, CHECK_INTERVAL_MS);
