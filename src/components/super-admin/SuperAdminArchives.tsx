@@ -28,7 +28,7 @@ interface SnapshotRow {
 }
 
 function SnapshotsList() {
-  const { data: snapshots, isLoading } = useQuery({
+  const { data: snapshots, isLoading, error } = useQuery({
     queryKey: ["club-snapshots"],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("list_club_snapshots" as any);
@@ -37,6 +37,7 @@ function SnapshotsList() {
     },
     staleTime: 0,
     refetchOnMount: "always",
+    retry: false,
   });
 
   const downloadSnapshot = async (id: string, name: string, version: number) => {
@@ -64,6 +65,10 @@ function SnapshotsList() {
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
+  }
+
+  if (error) {
+    return <div className="text-center py-8 text-destructive text-sm">Erreur : {(error as Error).message}</div>;
   }
 
   if (!snapshots || snapshots.length === 0) {
