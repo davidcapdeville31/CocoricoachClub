@@ -763,7 +763,7 @@ const CircuitExerciseSlot = ({
                 </Button>
                 {inlineSlotVariablePickerOpen && (
                   <div
-                    className="absolute right-0 top-full mt-1 w-44 rounded-md border bg-popover text-popover-foreground shadow-md z-[70] p-1"
+                    className="absolute right-0 top-full mt-1 w-44 rounded-md border bg-popover text-popover-foreground shadow-md z-[999] p-1"
                     onPointerDown={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
                     onClick={(e) => e.stopPropagation()}
@@ -2775,7 +2775,7 @@ export const MethodConfigSlots = ({
                           </Button>
                           {inlineVariablePickerOpen && (
                             <div
-                              className="absolute left-0 top-full mt-1 w-48 rounded-md border bg-popover text-popover-foreground shadow-md z-[70] p-1"
+                              className="absolute left-0 top-full mt-1 w-48 rounded-md border bg-popover text-popover-foreground shadow-md z-[999] p-1"
                               onPointerDown={(e) => e.stopPropagation()}
                               onMouseDown={(e) => e.stopPropagation()}
                               onClick={(e) => e.stopPropagation()}
