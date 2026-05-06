@@ -140,51 +140,14 @@ export const RestPauseCreationUI: React.FC<RestPauseCreationUIProps> = ({
         <Label className="text-xs font-medium text-amber-600">Rest-Pause</Label>
         <div className="flex items-center gap-1">
           {hiddenVariables.length > 0 && (
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onClick={(e) => { e.stopPropagation(); }}
-                  className="h-5 text-[10px] border-dashed px-1.5 gap-0.5"
-                  title="Ajouter une variable série"
-                >
-                  <Plus className="h-2.5 w-2.5" />
-                  Var. série
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-44 z-[60]" align="end">
-                <DropdownMenuLabel className="text-xs">Ajouter (par série)</DropdownMenuLabel>
-                {hiddenVariables.map(v => (
-                  <DropdownMenuItem
-                    key={v.key}
-                    onSelect={(e) => {
-                      e.preventDefault();
-                      addVariable(v.key);
-                    }}
-                    className="text-xs cursor-pointer"
-                  >
-                    {v.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <InlineVariablePicker
+              items={hiddenVariables.map(v => ({ key: v.key, label: v.label }))}
+              onPick={(key) => addVariable(key)}
+              buttonLabel="Var. série"
+              title="Ajouter une variable série"
+              heading="Ajouter (par série)"
+            />
           )}
-          <Button type="button" variant="ghost" size="sm" onClick={addSeries} className="h-6 text-xs">
-            <Plus className="h-3 w-3 mr-1" />
-            Série
-          </Button>
-        </div>
-      </div>
-
-      {series.length === 0 && (
-        <div className="text-xs text-muted-foreground text-center py-3 border border-dashed rounded-md">
-          Aucune série. Cliquez sur « + Série » pour commencer.
-        </div>
-      )}
 
       {series.map((s, sIdx) => (
         <div key={sIdx} className="space-y-1.5 p-2 rounded-md border border-amber-500/20 bg-amber-500/5">
