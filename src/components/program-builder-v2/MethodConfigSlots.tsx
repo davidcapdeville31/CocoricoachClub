@@ -1465,7 +1465,7 @@ export const MethodConfigSlots = ({
 
   return (
     <div className={cn(
-      "p-2 rounded-lg border-2 bg-background/50 overflow-hidden",
+      "p-2 rounded-lg border-2 bg-background/50 overflow-visible",
       config.borderColor
     )}>
       {/* Header */}
