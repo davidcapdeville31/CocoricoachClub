@@ -182,12 +182,15 @@ export function SessionFeedbackDialog({
     enabled: open && !!sessionId,
   });
 
-  const bowlingBlockType: "bowling_game" | "bowling_spare" | null = useMemo(() => {
-    if (sessionBlocks.some((b: any) => b.training_type === "bowling_game")) return "bowling_game";
-    if (sessionBlocks.some((b: any) => b.training_type === "bowling_spare")) return "bowling_spare";
-    return null;
-  }, [sessionBlocks]);
-  const hasBowlingContent = !!bowlingBlockType;
+  const hasBowlingGame = useMemo(
+    () => sessionBlocks.some((b: any) => b.training_type === "bowling_game"),
+    [sessionBlocks]
+  );
+  const hasBowlingSpare = useMemo(
+    () => sessionBlocks.some((b: any) => b.training_type === "bowling_spare"),
+    [sessionBlocks]
+  );
+  const hasBowlingContent = hasBowlingGame || hasBowlingSpare;
 
   // Initialize RPE values with default duration when players load
   useEffect(() => {
