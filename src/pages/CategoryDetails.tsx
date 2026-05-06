@@ -45,6 +45,7 @@ import { VideoAnalysisTab } from "@/components/category/video/VideoAnalysisTab";
 import { AdminTab } from "@/components/category/tabs/AdminTab";
 import { BowlingArsenalCatalogTab } from "@/components/bowling/BowlingArsenalCatalogTab";
 import { DatasTab } from "@/components/category/tabs/DatasTab";
+import { SnapshotCategoryButton } from "@/components/category/SnapshotCategoryButton";
 
 
 // Colored Tab Trigger Component - Large icons with labels below
