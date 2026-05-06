@@ -16,13 +16,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import type { RestPauseConfig } from "./RestPauseTypes";
 import { RestPauseCreationUI } from "./RestPauseCreationUI";
 import { generateMethodNote } from "@/lib/program-builder-v2/athleteNoteGenerator";
@@ -686,6 +679,7 @@ const CircuitExerciseSlot = ({
 
   const isFilled = !!exercise;
   const [showVars, setShowVars] = useState(true);
+  const [inlineSlotVariablePickerOpen, setInlineSlotVariablePickerOpen] = useState(false);
 
   const activeVars = visibleVariables || ['percentage', 'load', 'tempo', 'rpe'];
 
@@ -750,43 +744,50 @@ const CircuitExerciseSlot = ({
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] text-muted-foreground font-medium">Variables</span>
             {onAddVariable && hiddenVariables && hiddenVariables.length > 0 && (
-              <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
+              <div className="relative">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setInlineSlotVariablePickerOpen((prev) => !prev);
+                  }}
+                  className="h-5 text-[10px] border-dashed px-1.5 gap-0.5"
+                  title="Ajouter une variable (Charge, %1RM, RPE, RIR, Tempo...)"
+                >
+                  <Plus className="h-2.5 w-2.5" />
+                  Variable
+                </Button>
+                {inlineSlotVariablePickerOpen && (
+                  <div
+                    className="absolute right-0 top-full mt-1 w-44 rounded-md border bg-popover text-popover-foreground shadow-md z-[70] p-1"
                     onPointerDown={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
                     onClick={(e) => e.stopPropagation()}
-                    className="h-5 text-[10px] border-dashed px-1.5 gap-0.5"
-                    title="Ajouter une variable (Charge, %1RM, RPE, RIR, Tempo...)"
                   >
-                    <Plus className="h-2.5 w-2.5" />
-                    Variable
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="w-44 z-[60]"
-                  align="end"
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <DropdownMenuLabel className="text-xs">Ajouter</DropdownMenuLabel>
-                  {hiddenVariables.map((v) => (
-                    <DropdownMenuItem
-                      key={v.key}
-                      onSelect={(e) => {
-                        e.preventDefault();
-                        onAddVariable(v.key);
-                      }}
-                      className="text-xs cursor-pointer"
-                    >
-                      {v.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <p className="px-2 py-1 text-xs text-muted-foreground">Ajouter</p>
+                    {hiddenVariables.map((v) => (
+                      <button
+                        key={v.key}
+                        type="button"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddVariable(v.key);
+                          setInlineSlotVariablePickerOpen(false);
+                        }}
+                        className="w-full rounded-sm px-2 py-1.5 text-xs text-left hover:bg-accent"
+                      >
+                        {v.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
           <div className="flex flex-wrap gap-2">
@@ -1152,6 +1153,7 @@ export const MethodConfigSlots = ({
   const [targetRpe, setTargetRpe] = useState<number | undefined>();
   // Drop Set: nombre de séries complètes (combien de fois répéter la séquence de drops)
   const [setsCount, setSetsCount] = useState<number>(method === "drop_set" ? 3 : 1);
+  const [inlineVariablePickerOpen, setInlineVariablePickerOpen] = useState(false);
   
   // Dynamic variables visibility state — ONLY show variables that were actually saved
   const getDefaultVisibleVars = () => {
@@ -2755,43 +2757,50 @@ export const MethodConfigSlots = ({
 
                       {/* Add Variable button - show only on first series to avoid duplicates */}
                       {idx === 0 && hiddenVariables.length > 0 && (
-                        <DropdownMenu modal={false}>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
+                        <div className="relative">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setInlineVariablePickerOpen((prev) => !prev);
+                            }}
+                            className="h-7 px-2 text-xs border-dashed hover:border-primary hover:bg-primary/5"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Variable
+                          </Button>
+                          {inlineVariablePickerOpen && (
+                            <div
+                              className="absolute left-0 top-full mt-1 w-48 rounded-md border bg-popover text-popover-foreground shadow-md z-[70] p-1"
                               onPointerDown={(e) => e.stopPropagation()}
                               onMouseDown={(e) => e.stopPropagation()}
                               onClick={(e) => e.stopPropagation()}
-                              className="h-7 px-2 text-xs border-dashed hover:border-primary hover:bg-primary/5"
                             >
-                              <Plus className="h-3 w-3 mr-1" />
-                              Variable
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            className="w-48 z-[60]"
-                            align="start"
-                            onPointerDown={(e) => e.stopPropagation()}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <DropdownMenuLabel className="text-xs">Ajouter une variable</DropdownMenuLabel>
-                            {hiddenVariables.map((variable) => (
-                              <DropdownMenuItem
-                                key={variable.key}
-                                onSelect={(e) => {
-                                  e.preventDefault();
-                                  addVariable(variable.key);
-                                }}
-                                className="text-xs cursor-pointer"
-                              >
-                                <span>{variable.label}</span>
-                                {variable.unit && <span className="text-muted-foreground">({variable.unit})</span>}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              <p className="px-2 py-1 text-xs text-muted-foreground">Ajouter une variable</p>
+                              {hiddenVariables.map((variable) => (
+                                <button
+                                  key={variable.key}
+                                  type="button"
+                                  onPointerDown={(e) => e.stopPropagation()}
+                                  onMouseDown={(e) => e.stopPropagation()}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    addVariable(variable.key);
+                                    setInlineVariablePickerOpen(false);
+                                  }}
+                                  className="flex w-full items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-xs text-left hover:bg-accent"
+                                >
+                                  <span>{variable.label}</span>
+                                  {variable.unit && <span className="text-muted-foreground">({variable.unit})</span>}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       )}
                     </>
                   ) : (

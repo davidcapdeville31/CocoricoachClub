@@ -40,6 +40,16 @@ const PARAM_TO_COLUMN_MAP: Record<string, string> = {
   rest: 'rest_seconds',
 };
 
+const COLUMN_TO_PARAM_MAP: Record<string, string> = {
+  reps: 'reps',
+  weight_kg: 'load',
+  percentage: 'percentage',
+  rpe: 'rpe',
+  rir: 'rir',
+  tempo: 'tempo',
+  rest_seconds: 'rest',
+};
+
 // Convert visible params to visible column keys for the table
 const mapParamsToColumns = (visibleParams: string[]): string[] => {
   const columnKeys = new Set<string>();
@@ -629,6 +639,18 @@ const DroppableSlot = ({
                   }}
                   columns={STRENGTH_SET_COLUMNS}
                   visibleColumns={mapParamsToColumns(visibleParams)}
+                  onVisibleColumnsChange={(newColumns) => {
+                    const nextVisibleParams = Array.from(
+                      new Set(newColumns.map((column) => COLUMN_TO_PARAM_MAP[column]).filter(Boolean))
+                    );
+
+                    const currentDynamicParams = visibleParams.filter((key) => PARAM_TO_COLUMN_MAP[key]);
+                    const addedParams = nextVisibleParams.filter((key) => !currentDynamicParams.includes(key));
+                    const removedParams = currentDynamicParams.filter((key) => !nextVisibleParams.includes(key));
+
+                    addedParams.forEach((key) => handleAddParam(key));
+                    removedParams.forEach((key) => handleRemoveParam(key));
+                  }}
                 />
               </div>
 
