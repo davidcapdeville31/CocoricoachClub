@@ -467,7 +467,7 @@ export default function AthleteSpace() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shrink-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shrink-0 self-center">
               {athleteInfo.avatar_url ? (
                 <img src={athleteInfo.avatar_url} alt={displayName} className="w-full h-full object-cover" />
               ) : (
@@ -476,11 +476,11 @@ export default function AthleteSpace() {
             </div>
             <div className="min-w-0 flex-1">
               <h1 className="text-sm sm:text-base font-semibold leading-tight truncate">{displayName}</h1>
-              <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+              <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
                 {isSuperAdminView && (
                   <Badge variant="outline" className="text-[10px] h-5 border-primary text-primary shrink-0">Vue Admin</Badge>
                 )}
-                <Badge variant="secondary" className="text-[10px] h-5 max-w-[120px] sm:max-w-none truncate">{athleteInfo.category_name}</Badge>
+                <Badge variant="secondary" className="text-[10px] h-5 truncate min-w-0 max-w-[140px] sm:max-w-none">{athleteInfo.category_name}</Badge>
                 <span className="text-xs text-muted-foreground truncate hidden sm:inline">{athleteInfo.club_name}</span>
               </div>
             </div>
