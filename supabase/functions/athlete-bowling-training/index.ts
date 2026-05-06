@@ -29,9 +29,16 @@ serve(async (req) => {
     const jwt = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
     if (!jwt) return respond({ success: false, error: "Authentification requise" }, 401);
 
-    const { data: userData, error: userError } = await supabase.auth.getUser(jwt);
-    const userId = userData.user?.id;
-    if (userError || !userId) return respond({ success: false, error: "Session invalide" }, 401);
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const authClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: `Bearer ${jwt}` } },
+    });
+    const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(jwt);
+    const userId = claimsData?.claims?.sub;
+    if (claimsError || !userId) {
+      console.error("[athlete-bowling-training] auth", claimsError?.message);
+      return respond({ success: false, error: "Session invalide" }, 401);
+    }
 
     const body = await req.json();
     const { action, category_id, player_id, session_date } = body ?? {};
