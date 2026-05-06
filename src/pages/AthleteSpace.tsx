@@ -776,7 +776,7 @@ export default function AthleteSpace() {
                   </TabsTrigger>
                   <TabsTrigger
                     value="training"
-                    style={{ ["--tab-accent" as any]: NAV_COLORS.performance.base } as React.CSSProperties}
+                    style={{ ["--tab-accent" as any]: NAV_COLORS.competition.base } as React.CSSProperties}
                     className="gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     <Target className="h-3.5 w-3.5" />
