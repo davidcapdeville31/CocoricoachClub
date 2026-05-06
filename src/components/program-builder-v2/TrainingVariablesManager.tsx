@@ -297,46 +297,48 @@ interface AddVariableButtonProps {
 }
 
 const AddVariableButton = ({ availableVariables, onAdd }: AddVariableButtonProps) => {
-  const [open, setOpen] = useState(false);
-
   if (availableVariables.length === 0) return null;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
         <Button
           type="button"
           variant="outline"
           size="sm"
           onPointerDown={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
           className="h-7 px-2 text-xs border-dashed hover:border-primary hover:bg-primary/5"
           title="Ajouter une variable (Charge, %1RM, RPE, RIR, Repos, Tempo...)"
         >
           <Plus className="h-3 w-3 mr-1" />
           Variable
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-48 p-2" align="start">
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-muted-foreground px-2 py-1">Ajouter une variable</p>
-          {availableVariables.map((variable) => (
-            <button
-              key={variable.key}
-              type="button"
-              onClick={() => {
-                onAdd(variable.key);
-                setOpen(false);
-              }}
-              className="w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded hover:bg-accent transition-colors text-left"
-            >
-              {variable.icon}
-              <span>{variable.label}</span>
-            </button>
-          ))}
-        </div>
-      </PopoverContent>
-    </Popover>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        className="w-56 z-[60] max-h-[60vh] overflow-y-auto"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <DropdownMenuLabel className="text-xs">Ajouter une variable</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {availableVariables.map((variable) => (
+          <DropdownMenuItem
+            key={variable.key}
+            onSelect={(e) => {
+              e.preventDefault();
+              onAdd(variable.key);
+            }}
+            className="text-xs gap-2 cursor-pointer"
+          >
+            {variable.icon}
+            <span>{variable.label}</span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
