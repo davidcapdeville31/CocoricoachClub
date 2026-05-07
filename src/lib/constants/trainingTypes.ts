@@ -143,9 +143,9 @@ export const ALL_TRAINING_TYPES: TrainingTypeOption[] = [
   { value: "basketball_pick_roll", label: "Pick & Roll", hasExercises: false, forSports: ["basketball"], category: "basketball" },
   { value: "basketball_transition", label: "Transition", hasExercises: false, forSports: ["basketball"], category: "basketball" },
   { value: "basketball_tactique", label: "Tactique", hasExercises: false, forSports: ["basketball"], category: "basketball" },
-  { value: "basketball_lf", label: "Travail Lancers Francs", hasExercises: false, forSports: ["basketball"], category: "basketball" },
-  { value: "basketball_paint", label: "Travail Tirs Raquette", hasExercises: false, forSports: ["basketball"], category: "basketball" },
-  { value: "basketball_3pts", label: "Travail Tirs à 3 points", hasExercises: false, forSports: ["basketball"], category: "basketball" },
+  { value: "basketball_lf", label: "Travail Lancers Francs", hasExercises: false, forSports: ["basketball"], category: "basketball_precision" },
+  { value: "basketball_paint", label: "Travail Tirs Raquette", hasExercises: false, forSports: ["basketball"], category: "basketball_precision" },
+  { value: "basketball_3pts", label: "Travail Tirs à 3 points", hasExercises: false, forSports: ["basketball"], category: "basketball_precision" },
 
   // Basketball 3x3 specific (FIBA ruleset - format court 10 min, possession 12s, check-ball)
   { value: "basket3x3_1c1", label: "1c1 / Isolation", hasExercises: false, forSports: ["basketball_3x3"], category: "basketball" },
