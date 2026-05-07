@@ -9272,6 +9272,7 @@ export type Database = {
           ball_arsenal_id: string | null
           category_id: string
           created_at: string
+          created_by_athlete: boolean
           exercise_label: string
           exercise_type_id: string | null
           id: string
@@ -9295,6 +9296,7 @@ export type Database = {
           ball_arsenal_id?: string | null
           category_id: string
           created_at?: string
+          created_by_athlete?: boolean
           exercise_label: string
           exercise_type_id?: string | null
           id?: string
@@ -9318,6 +9320,7 @@ export type Database = {
           ball_arsenal_id?: string | null
           category_id?: string
           created_at?: string
+          created_by_athlete?: boolean
           exercise_label?: string
           exercise_type_id?: string | null
           id?: string
