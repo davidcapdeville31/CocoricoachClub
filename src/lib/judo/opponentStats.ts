@@ -31,6 +31,7 @@ export interface RoundLike {
     handedness?: string | null;
     weight_category?: string | null;
     gender?: string | null;
+    fighting_style?: string | null;
   } | null;
 }
 
