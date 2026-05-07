@@ -79,7 +79,20 @@ export default defineConfig(({ mode }) => {
         workbox: {
           globPatterns: ['./**/*.{js,css,html,ico,png,svg,woff,woff2,ttf,eot}'],
           maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+          cleanupOutdatedCaches: true,
+          skipWaiting: true,
+          clientsClaim: true,
+          navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//],
           runtimeCaching: [
+            {
+              urlPattern: ({ request }) => request.mode === 'navigate',
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'html-cache',
+                networkTimeoutSeconds: 3,
+                expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 },
+              },
+            },
             {
               urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
               handler: 'NetworkFirst',
@@ -87,12 +100,12 @@ export default defineConfig(({ mode }) => {
                 cacheName: 'supabase-api-cache',
                 expiration: {
                   maxEntries: 500,
-                  maxAgeSeconds: 60 * 60 * 24 * 2
+                  maxAgeSeconds: 60 * 60 * 2
                 },
                 cacheableResponse: {
                   statuses: [0, 200]
                 },
-                networkTimeoutSeconds: 15
+                networkTimeoutSeconds: 8
               }
             },
             {
