@@ -1,75 +1,62 @@
-## Objectif
+## Contexte
 
-Permettre à l'athlète bowling (et au staff) d'enregistrer une **session d'entraînement bowling** (parties + exercices de précision : quille 7/10, spares, poche) directement depuis le calendrier de l'Espace athlète, et de retrouver ces stats dans un sous-onglet **Datas d'entraînement**.
+Pour le bowling, on a déjà : (1) une cartographie cliquable côté staff (PrecisionFieldTracker), (2) un dialog "Ajouter un entraînement" côté athlète (`BowlingTrainingEntryDialog`), (3) un onglet "Datas d'entraînement" (BowlingTrainingStats), (4) une notification staff quand l'athlète termine sa saisie. La demande est de répliquer pour **toutes les disciplines basket** : `basketball`, `basketball_3x3`, `basketball_pro`, `basketball_jeunes`, `basketball_club`, `basketball_academie`, `basketball_national`.
 
-## 1. Calendrier Espace athlète — bouton dédié bowling
+Bonne nouvelle : la table `precision_training` (avec `zone_x`, `zone_y`, `attempts`, `successes`, `success_rate`, `exercise_label`, `player_id`, `category_id`, `session_date`, `training_session_id`) existe déjà et est utilisée par le rugby. On va donc la réutiliser et ajouter une cartographie SVG basket + UI dédiée.
 
-Fichier : `src/components/athlete-space/AthleteSpaceCalendar.tsx`
+## Étapes
 
-- À côté du bouton actuel **"+ Ajouter une séance"** (violet), afficher un nouveau bouton **"+ Ajouter un entraînement"** (couleur entraînement bleu) **uniquement si `sportType` contient "bowling"**.
-- Ce bouton ouvre un nouveau dialog `BowlingTrainingEntryDialog` (créé ci-dessous), pré-rempli avec la date sélectionnée.
-- Idem pour les boutons de fallback (zone "Aucun événement" et bouton bas de liste) : on duplique avec une variante bowling.
+### 1. SVG demi-terrain de basket cliquable
+- Créer `src/components/basketball/BasketballHalfCourtSVG.tsx` :
+  - SVG d'un demi-terrain (panier, raquette, ligne 3 pts, ligne médiane).
+  - Coordonnées normalisées (0–100 sur chaque axe).
+  - Props : `mode` ("free_throw" | "paint" | "three_point" | "all"), `onClick(x, y, zoneLabel)`, `points` (markers existants à afficher avec couleur réussite/échec).
+  - Rendu visuel premium en cohérence avec le terrain rugby.
 
-## 2. Nouveau composant `BowlingTrainingEntryDialog`
+### 2. Constantes des exercices basket
+- Créer `src/lib/constants/basketballPrecisionExercises.ts` :
+  - 3 exercices : `free_throw` (Lancers francs), `paint_shot` (Tirs dans la raquette), `three_point` (Tirs à 3 points).
+  - Helper `isBasketballPrecisionSport(sportType)` qui détecte tous les préfixes basket.
 
-Fichier nouveau : `src/components/bowling/BowlingTrainingEntryDialog.tsx`
+### 3. Composant tracker basket (équivalent PrecisionFieldTracker)
+- Créer `src/components/basketball/BasketballPrecisionTracker.tsx` :
+  - Sélecteur athlète + sélecteur exercice (dropdown : Lancers francs / Raquette / 3 pts).
+  - Affiche le SVG basket. Sur clic d'une zone → dialog "Tentatives / Réussites" → enregistrement direct dans `precision_training`.
+  - Sous le terrain : liste des saisies du jour + cartographie cumulée + filtre par période.
+  - Bouton recap → réutilise `PrecisionTrainingStats` filtré sur les 3 exercices basket.
 
-Dialog plein écran (`max-w-4xl h-[90vh]`) avec :
+### 4. Intégration côté staff
+- **`DatasTab.tsx`** : ajouter `isBasketballPrecisionSport` ; si vrai, rendre `BasketballPrecisionTracker` à la place de `PrecisionTrainingStats`.
+- **Calendrier global → création séance terrain** : dans `SessionFormDialog`, le `PrecisionExerciseSelector` est déjà branché ; on ajoute une variante basket qui propose les 3 thématiques basket et bascule sur le SVG basket.
+- **`SessionDetailsDialog` / `SessionFeedbackDialog`** : si sport basket, afficher `BasketballPrecisionTracker` au lieu de rugby.
 
-- En-tête : date de l'entraînement (sélecteur).
-- 2 sous-onglets internes :
-  - **Parties d'entraînement** → réutilise `BowlingScoreSheet` ; sauvegarde dans `matches` (event_type=`training`) + `competition_rounds` + `competition_round_stats` pour `playerId` courant.
-  - **Précision (spares)** → réutilise `BowlingSpareTraining` (déjà fait pour quille 7 / quille 10 / spares / poche, avec champs "tentatives" / "réussites").
-- Pas besoin de sélecteur de joueur : on est dans l'Espace athlète, le `playerId` est fixé.
+### 5. Dialog athlète (équivalent BowlingTrainingEntryDialog)
+- Créer `src/components/basketball/BasketballTrainingEntryDialog.tsx` :
+  - Tab unique "Précision" : sélection thématique → SVG cliquable → champs Lancers/Réussis → calcul live du % → enregistrement.
+  - Liste des exercices saisis aujourd'hui.
+  - À l'enregistrement, écrit dans `precision_training` (player_id de l'athlète) + crée une `training_sessions` "auto-planifiée" (purple border) liée à la séance, **et insère une notification staff** (`notifications` table avec `notification_type = 'athlete_self_session'` et lien deep vers le calendrier global staff).
 
-Les écritures se font via un nouvel **Edge Function** `athlete-bowling-training` (analogue à `athlete-create-session`) :
-- Vérifie JWT + accès via `players.user_id` ou `can_access_category` (staff).
-- Vérifie l'appartenance du player à la catégorie (primary ou `player_categories`).
-- Crée/réutilise le match d'entraînement du jour (`event_type='training'`).
-- Insère un `competition_round` + `competition_round_stats` pour les parties.
-- Insère les lignes `bowling_spare_training` pour la précision.
+### 6. Espace athlète – bouton "+ ajouter un entraînement"
+- **`AthleteSpaceCalendar.tsx`** : déjà branché bowling. Ajouter `isBasketballPrecisionSport` ; afficher le bouton "+ Ajouter un entraînement" qui ouvre `BasketballTrainingEntryDialog`.
 
-Cela contourne les RLS qui exigent staff access sur `matches` et `competition_rounds`.
+### 7. Notification staff sur séance autonome athlète
+- L'objectif : pour TOUTES disciplines (musculation ou entraînement spécifique), quand un athlète crée/termine sa séance dans son espace, le staff voit la séance détaillée dans le calendrier global ET reçoit une notif.
+- Vérifier que l'edge function `athlete-create-session` insère bien dans `notifications` pour le staff (créer/étendre si besoin via une nouvelle migration ou un trigger DB).
+- Ajouter un trigger DB : à l'`INSERT` d'une `precision_training` faite par un athlète (détecté via le créateur ou via un flag `created_by_athlete`), insérer une notification dans `notifications` pour le staff de la catégorie.
 
-Côté staff, on appelle directement Supabase (RLS OK).
-
-## 3. Sous-onglet "Datas d'entraînement" côté athlète
-
-Fichier : `src/pages/AthleteSpace.tsx` (lignes ~763-811)
-
-- Pour `isBowling`, remplacer le `BowlingCumulativeStats` solo par un `Tabs` à 2 sous-onglets identiques au staff :
-  - **Datas de compétition** → `BowlingCumulativeStats` (filtré sur `playerId`).
-  - **Datas d'entraînement** → `BowlingTrainingStats` adapté pour un seul athlète (filtre `playerId` interne).
-- `BowlingTrainingStats` doit accepter un prop optionnel `playerId` pour filtrer la liste des athlètes affichés.
-
-## 4. Côté staff (déjà OK)
-
-Le sous-onglet **Datas d'entraînement** existe déjà dans `src/components/category/tabs/DatasTab.tsx` pour bowling → `BowlingTrainingStats`. **Aucun changement**.
+### 8. Migration DB
+- Ajouter colonne `created_by_athlete BOOLEAN DEFAULT false` à `precision_training` (pour distinguer saisies athlète vs staff et déclencher la notif).
+- Ajouter trigger `notify_staff_on_athlete_precision` qui insère une `notifications` row pour chaque membre staff de la catégorie quand un athlète saisit.
 
 ## Détails techniques
 
-```text
-AthleteSpaceCalendar
- ├── [+ Ajouter une séance]   → SessionEditorV2 (existant)
- └── [+ Ajouter un entraînement] (bowling only)
-       └── BowlingTrainingEntryDialog
-             ├── tab "Parties"     → BowlingScoreSheet + edge fn athlete-bowling-training
-             └── tab "Précision"   → BowlingSpareTraining (idem)
-
-AthleteSpace > tab "stats" (bowling)
- └── Tabs
-     ├── "Datas de compétition" → BowlingCumulativeStats(playerId)
-     └── "Datas d'entraînement" → BowlingTrainingStats(categoryId, playerId)
-```
-
-Edge function `supabase/functions/athlete-bowling-training/index.ts` :
-- Inputs : `category_id`, `player_id`, `session_date`, `mode: "game"|"spare"`, payload spécifique.
-- Sécurité JWT identique à `athlete-create-session`.
-- Pas de modification de schéma DB ni de RLS.
+- Composants placés dans `src/components/basketball/`.
+- Réutilise `precision_training`, `notifications`, `training_sessions`.
+- Détection du sport via `(sportType || "").toLowerCase().startsWith("basketball")`.
+- Aucune modif côté types Supabase manuelle (auto-régénérée après migration).
+- RLS de `precision_training` : déjà OK pour staff ; pour les athlètes on passe par l'edge function `athlete-precision-training` (à créer, calquée sur `athlete-bowling-training`) qui bypass RLS et set `created_by_athlete = true`.
 
 ## Hors scope
 
-- Pas de toucher au flux Compétitions officielles (séparation training/compétition conservée — cf. mémoire "Match vs Training Coherence").
-- Pas de modifications pour les autres sports.
-
-Confirme et je l'implémente.
+- L'ajout des exercices de précision basket dans la **bibliothèque d'exercices générale** (déjà couvert par les `basketball_shooting/dribbling/...` existants).
+- Tout changement dans les analytics globales (dashboards) au-delà de l'onglet "Datas d'entraînement".
