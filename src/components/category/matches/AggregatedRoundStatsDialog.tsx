@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3, Trophy, Target, Percent, Circle, Swords, Ship, Printer, FileDown, Timer, Medal } from "lucide-react";
 import { getAggregatedStatsForSport, getAthletismeStatsForDiscipline, ATHLETISME_PHASES, type StatField } from "@/lib/constants/sportStats";
+import { computeOpponentStats } from "@/lib/judo/opponentStats";
 import { useStatPreferences } from "@/hooks/use-stat-preferences";
 import { isAthletismeCategory } from "@/lib/constants/sportTypes";
 import { toast } from "sonner";
