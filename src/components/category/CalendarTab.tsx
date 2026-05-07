@@ -30,6 +30,7 @@ import { ImprovedCalendarView } from "./calendar/ImprovedCalendarView";
 import { FieldSessionDialog } from "./calendar/FieldSessionDialog";
 import { EditAdminEventDialog, ADMIN_EVENT_TYPES } from "./calendar/EditAdminEventDialog";
 import { AnnualPlanningView } from "@/components/planning/AnnualPlanningView";
+import { useUnreadAthleteSessionsCount } from "@/lib/hooks/useUnreadAthleteSessionsCount";
 
 interface CalendarTabProps {
   categoryId: string;
