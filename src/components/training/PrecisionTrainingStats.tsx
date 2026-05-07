@@ -375,10 +375,13 @@ export function PrecisionTrainingStats({ categoryId, lockedPlayerId }: Precision
   }, [filtered]);
 
   const kickFieldEntries = useMemo(() => {
+    const buteurLabelSet = new Set(BUTEUR_EXERCISES.map((b) => b.label));
     const map = new Map<string, { attempts: number; successes: number; x: number; y: number }>();
     filtered.forEach((e: any) => {
       if (e.zone_x == null || e.zone_y == null) return;
-      if (e.exercise_label?.startsWith("Jeu de zone") || e.exercise_label?.startsWith("Touche")) return;
+      // Restrict the rugby kicker map to rugby buteur exercises only
+      // (excludes basketball precision, lineout, zone-kick entries, etc.)
+      if (!buteurLabelSet.has(e.exercise_label)) return;
       const zoneKey = `${Math.round(e.zone_x / 15) * 15}-${Math.round(e.zone_y / 15) * 15}`;
       const prev = map.get(zoneKey) || { attempts: 0, successes: 0, x: Math.round(e.zone_x / 15) * 15, y: Math.round(e.zone_y / 15) * 15 };
       prev.attempts += e.attempts || 0;
