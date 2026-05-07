@@ -542,6 +542,7 @@ export function CompetitionRoundsDialog({
               id: r.id,
               round_number: r.round_number,
               opponent_name: r.opponent_name || "",
+              opponent_profile_id: (r as any).opponent_profile_id || null,
               result: r.result || "",
               notes: r.notes || "",
               stats: cleanStats as Record<string, number>,
