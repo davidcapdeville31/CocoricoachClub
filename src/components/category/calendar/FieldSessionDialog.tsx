@@ -277,6 +277,8 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
               target_intensity: br.target_intensity || undefined,
               volume: br.volume || undefined,
               contact_charge: br.contact_charge || undefined,
+              throwing_implement: br.throwing_implement || undefined,
+              implement_weight_g: br.implement_weight_g ?? null,
             })),
           );
         }
