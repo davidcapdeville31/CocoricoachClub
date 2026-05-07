@@ -51,6 +51,13 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import { cn } from "@/lib/utils";
+import {
+  computeSprintPbDelta,
+  findPb,
+  mapSprintToPair,
+  type AthleticsRecordLite,
+} from "@/lib/athletics/pbDelta";
 
 interface Props {
   categoryId: string;
@@ -156,6 +163,19 @@ export function AthleticsSprintStats({ categoryId }: Props) {
         .order("training_sessions(session_date)", { ascending: false });
       if (error) throw error;
       return data || [];
+    },
+  });
+
+  // Records personnels (PB) pour comparer les essais à la perf de référence
+  const { data: records = [] } = useQuery({
+    queryKey: ["athletics_records_for_sprint", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("athletics_records" as any)
+        .select("player_id, discipline, specialty, personal_best, lower_is_better, unit")
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return (data || []) as unknown as AthleticsRecordLite[];
     },
   });
 
@@ -458,6 +478,7 @@ export function AthleticsSprintStats({ categoryId }: Props) {
                     <TableHead>Type</TableHead>
                     <TableHead>Distance</TableHead>
                     <TableHead>Temps</TableHead>
+                    <TableHead>vs PB</TableHead>
                     <TableHead>Vmax</TableHead>
                     <TableHead>Départ</TableHead>
                     <TableHead>Lestage</TableHead>
@@ -466,7 +487,17 @@ export function AthleticsSprintStats({ categoryId }: Props) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((a) => (
+                  {filtered.map((a) => {
+                    const pair = mapSprintToPair(a.distance_m, a.exercise_type);
+                    const pbRec = pair
+                      ? findPb(records, a.player_id, pair.discipline, pair.specialty)
+                      : null;
+                    const delta = computeSprintPbDelta(
+                      a.distance_m,
+                      a.time_seconds,
+                      pbRec?.personal_best ?? null,
+                    );
+                    return (
                     <TableRow key={a.id}>
                       <TableCell className="text-xs">
                         {format(new Date(a.session_date), "dd/MM/yy")}
@@ -478,7 +509,25 @@ export function AthleticsSprintStats({ categoryId }: Props) {
                       </TableCell>
                       <TableCell className="text-xs">{exerciseLabel(a.exercise_type)}</TableCell>
                       <TableCell>{a.distance_m} m</TableCell>
-                      <TableCell className="font-semibold">{formatTime(a.time_seconds)}</TableCell>
+                      <TableCell
+                        className={cn(
+                          "font-semibold",
+                          delta.isBetter === false && "text-destructive",
+                          delta.isBetter === true && "text-emerald-600 dark:text-emerald-400",
+                        )}
+                      >
+                        {formatTime(a.time_seconds)}
+                      </TableCell>
+                      <TableCell
+                        className={cn(
+                          "font-mono text-xs",
+                          delta.isBetter === false && "text-destructive",
+                          delta.isBetter === true && "text-emerald-600 dark:text-emerald-400",
+                        )}
+                        title={pbRec?.personal_best ? `PB : ${formatTime(pbRec.personal_best)}` : undefined}
+                      >
+                        {delta.display}
+                      </TableCell>
                       <TableCell className="font-mono text-xs">
                         {a.vmax_ms != null ? `${a.vmax_ms.toFixed(2)} m/s` : "—"}
                       </TableCell>
@@ -511,7 +560,8 @@ export function AthleticsSprintStats({ categoryId }: Props) {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
