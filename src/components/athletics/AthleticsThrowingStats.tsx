@@ -33,6 +33,7 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 import { computeFieldPbDelta, findPb, type AthleticsRecordLite } from "@/lib/athletics/pbDelta";
+import { practicesAny } from "@/lib/athletics/athleteDisciplines";
 
 interface Props {
   categoryId: string;
@@ -82,19 +83,24 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
     },
   });
 
-  // Fetch players in this category
-  const { data: players = [] } = useQuery({
+  // Fetch players in this category (avec disciplines pour filtrer)
+  const { data: allPlayers = [] } = useQuery({
     queryKey: ["category-players-throwing", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, name, first_name")
+        .select("id, name, first_name, discipline, specialty, disciplines, specialties")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
       return data || [];
     },
   });
+  const players = useMemo(
+    () => (allPlayers as any[]).filter((p) => practicesAny(p, ["lancers"])),
+    [allPlayers],
+  );
+  const allowedPlayerIds = useMemo(() => new Set(players.map((p: any) => p.id)), [players]);
 
   // Fetch throwing-related blocks (sessions with implement set)
   const { data: throwingBlocks = [] } = useQuery({
