@@ -126,18 +126,25 @@ export function AthleticsSprintStats({ categoryId, groups = ["sprints", "haies",
     },
   });
 
-  const { data: players = [] } = useQuery({
+  const { data: allPlayers = [] } = useQuery({
     queryKey: ["category-players-sprint", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, name, first_name")
+        .select("id, name, first_name, discipline, specialty, disciplines, specialties")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
       return data || [];
     },
   });
+
+  // Ne garder que les athlètes qui pratiquent une des familles ciblées
+  const players = useMemo(
+    () => (allPlayers as any[]).filter((p) => practicesAny(p, groups)),
+    [allPlayers, groups],
+  );
+  const allowedPlayerIds = useMemo(() => new Set(players.map((p: any) => p.id)), [players]);
 
   const { data: sprintBlocks = [] } = useQuery({
     queryKey: ["sprint-blocks", categoryId],
