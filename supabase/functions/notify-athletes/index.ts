@@ -27,7 +27,16 @@ interface NotifyAthletesRequest {
     time?: string;
     location?: string;
   };
+  /** Optional: server fetches club + category names to personalize emails */
+  category_id?: string;
+  /** Optional explicit overrides */
+  clubName?: string;
+  categoryName?: string;
 }
+
+const APP_NAME = "CocoriCoach Club";
+const APP_URL = "https://cocoricoachclub.com";
+const LOGO_URL = "https://cocoricoachclub.com/email-logo.png";
 
 function eventTypeToCategory(t: NotifyAthletesRequest["eventType"]): NotificationCategory {
   switch (t) {
@@ -36,6 +45,24 @@ function eventTypeToCategory(t: NotifyAthletesRequest["eventType"]): Notificatio
     case "convocation": return "convocations";
     default: return "sessions";
   }
+}
+
+// Strip emojis & non-printable symbols (deliverability-friendly subjects)
+function cleanSubject(s: string): string {
+  return s
+    .replace(/[\u{1F000}-\u{1FFFF}]/gu, "")
+    .replace(/[\u{2600}-\u{27BF}]/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -74,14 +101,33 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("OneSignal credentials not configured");
     }
 
-    const { athletes, subject, message, channels, eventType, eventDetails }: NotifyAthletesRequest = await req.json();
+    const body: NotifyAthletesRequest = await req.json();
+    const { athletes, message, channels, eventType, eventDetails, category_id } = body;
+    let { clubName, categoryName } = body;
 
-    if (!athletes || athletes.length === 0) {
-      throw new Error("No athletes provided");
-    }
+    if (!athletes || athletes.length === 0) throw new Error("No athletes provided");
+    if (!channels || channels.length === 0) throw new Error("No notification channels selected");
 
-    if (!channels || channels.length === 0) {
-      throw new Error("No notification channels selected");
+    const subject = cleanSubject(body.subject || "Notification");
+
+    const supabaseService = createClient(
+      supabaseUrl!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? supabaseAnonKey!
+    );
+
+    // Resolve club + category names from category_id if not provided
+    if (category_id && (!clubName || !categoryName)) {
+      const { data: catRow } = await supabaseService
+        .from("categories")
+        .select("name, clubs(name)")
+        .eq("id", category_id)
+        .maybeSingle();
+      if (catRow) {
+        // @ts-ignore
+        categoryName = categoryName ?? catRow.name ?? undefined;
+        // @ts-ignore
+        clubName = clubName ?? catRow.clubs?.name ?? undefined;
+      }
     }
 
     const results = {
@@ -91,50 +137,62 @@ const handler = async (req: Request): Promise<Response> => {
       errors: [] as string[],
     };
 
-    // Build HTML email content
+    // Clean professional HTML email (no emojis, brand logo, dynamic club/category)
     const buildEmailContent = (athleteName: string) => {
-      const eventInfo = eventDetails ? `
-        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 16px 0;">
-          ${eventDetails.date ? `<p style="margin: 4px 0;"><strong>📅 Date:</strong> ${eventDetails.date}</p>` : ""}
-          ${eventDetails.time ? `<p style="margin: 4px 0;"><strong>🕐 Heure:</strong> ${eventDetails.time}</p>` : ""}
-          ${eventDetails.location ? `<p style="margin: 4px 0;"><strong>📍 Lieu:</strong> ${eventDetails.location}</p>` : ""}
-        </div>
-      ` : "";
+      const safeName = escapeHtml(athleteName);
+      const safeSubject = escapeHtml(subject);
+      const safeMessage = escapeHtml(message).replace(/\n/g, "<br>");
+      const safeClub = clubName ? escapeHtml(clubName) : null;
+      const safeCategory = categoryName ? escapeHtml(categoryName) : null;
 
-      return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f4f4f5; margin: 0; padding: 20px;">
-          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <div style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 32px; text-align: center;">
-              <h1 style="color: white; margin: 0; font-size: 24px;">🏉 CocoriCoach</h1>
-            </div>
-            <div style="padding: 32px;">
-              <p style="color: #4b5563; margin: 0 0 8px 0;">Bonjour <strong>${athleteName}</strong>,</p>
-              <h2 style="color: #1f2937; margin: 16px 0;">${subject}</h2>
-              <p style="color: #4b5563; line-height: 1.6; margin: 0 0 16px 0; white-space: pre-wrap;">${message}</p>
-              ${eventInfo}
-            </div>
-            <div style="background: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
-              <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-                © ${new Date().getFullYear()} CocoriCoach - Notification automatique
-              </p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
+      const contextLine = safeClub || safeCategory
+        ? `<p style="margin: 0 0 24px 0; color: #6b7280; font-size: 13px; letter-spacing: 0.3px; text-transform: uppercase;">${[safeClub, safeCategory].filter(Boolean).join(" &middot; ")}</p>`
+        : "";
+
+      const detailsRows: string[] = [];
+      if (eventDetails?.date) detailsRows.push(`<tr><td style="padding:6px 0;color:#6b7280;font-size:13px;width:90px;">Date</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;">${escapeHtml(eventDetails.date)}</td></tr>`);
+      if (eventDetails?.time) detailsRows.push(`<tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Heure</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;">${escapeHtml(eventDetails.time)}</td></tr>`);
+      if (eventDetails?.location) detailsRows.push(`<tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Lieu</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;">${escapeHtml(eventDetails.location)}</td></tr>`);
+
+      const detailsBlock = detailsRows.length
+        ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:24px 0;border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;padding:8px 0;">${detailsRows.join("")}</table>`
+        : "";
+
+      return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${safeSubject}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f6fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#111827;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#f4f6fb;padding:32px 16px;">
+    <tr><td align="center">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px;background-color:#ffffff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;">
+        <tr><td style="padding:32px 32px 0 32px;text-align:center;">
+          <img src="${LOGO_URL}" alt="${APP_NAME}" width="56" height="56" style="display:inline-block;border:0;border-radius:12px;">
+        </td></tr>
+        <tr><td style="padding:24px 32px 32px 32px;">
+          ${contextLine}
+          <h1 style="margin:0 0 16px 0;color:#111827;font-size:20px;font-weight:600;line-height:1.3;">${safeSubject}</h1>
+          <p style="margin:0 0 16px 0;color:#374151;font-size:15px;line-height:1.6;">Bonjour ${safeName},</p>
+          <p style="margin:0;color:#374151;font-size:15px;line-height:1.6;">${safeMessage}</p>
+          ${detailsBlock}
+          <p style="margin:24px 0 0 0;color:#6b7280;font-size:13px;line-height:1.5;">Connectez-vous à votre espace pour plus de détails.</p>
+        </td></tr>
+        <tr><td style="padding:20px 32px;background-color:#fafafa;border-top:1px solid #e5e7eb;text-align:center;">
+          <p style="margin:0;color:#9ca3af;font-size:12px;line-height:1.5;">
+            ${APP_NAME}${safeClub ? ` &middot; ${safeClub}` : ""}<br>
+            <a href="${APP_URL}" style="color:#9ca3af;text-decoration:underline;">${APP_URL.replace("https://", "")}</a>
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
     };
 
-    // Resolve user_ids for athletes that didn't pass one (lookup via email)
-    const supabaseService = createClient(
-      supabaseUrl!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? supabaseAnonKey!
-    );
     const emailsToLookup = athletes
       .filter((a) => !a.user_id && a.email)
       .map((a) => a.email!.toLowerCase());
@@ -155,7 +213,6 @@ const handler = async (req: Request): Promise<Response> => {
       user_id: a.user_id ?? (a.email ? emailToUserId.get(a.email.toLowerCase()) : undefined),
     }));
 
-    // Filter by per-user notification preferences
     const category = eventTypeToCategory(eventType);
     const allUserIds = enrichedAthletes
       .map((a) => a.user_id)
@@ -168,13 +225,14 @@ const handler = async (req: Request): Promise<Response> => {
     const allowedPushSet = new Set(pushUserIds);
     const allowedEmailSet = new Set(emailUserIds);
 
-    // Send notifications for each athlete
+    const fromName = clubName ? `${APP_NAME} - ${clubName}` : APP_NAME;
+    // Sanitize: OneSignal email_from_name must be ASCII-safe, no emoji
+    const safeFromName = cleanSubject(fromName).slice(0, 64) || APP_NAME;
+
     for (const athlete of enrichedAthletes) {
-      // If we know the user_id, respect their preferences. If unknown, fall through (legacy).
       const emailAllowed = !athlete.user_id || allowedEmailSet.has(athlete.user_id);
       const pushAllowed = !athlete.user_id || allowedPushSet.has(athlete.user_id);
 
-      // Send email if channel selected and email available
       if (channels.includes("email") && athlete.email && emailAllowed) {
         try {
           const emailResponse = await fetch("https://api.onesignal.com/notifications", {
@@ -188,13 +246,12 @@ const handler = async (req: Request): Promise<Response> => {
               include_email_tokens: [athlete.email],
               email_subject: subject,
               email_body: buildEmailContent(athlete.name),
-              email_from_name: "CocoriCoach",
+              email_from_name: safeFromName,
             }),
           });
 
           if (emailResponse.ok) {
             results.emailsSent++;
-            console.log(`Email sent to ${athlete.email}`);
           } else {
             const errorData = await emailResponse.json();
             console.error(`Failed to send email to ${athlete.email}:`, errorData);
@@ -202,18 +259,14 @@ const handler = async (req: Request): Promise<Response> => {
           }
         } catch (e: unknown) {
           const errorMessage = e instanceof Error ? e.message : String(e);
-          console.error(`Error sending email to ${athlete.email}:`, e);
           results.errors.push(`Email ${athlete.email}: ${errorMessage}`);
         }
       }
 
-      // Send SMS if channel selected and phone available
       if (channels.includes("sms") && athlete.phone) {
         try {
-          // Format phone number (ensure it starts with +)
           let formattedPhone = athlete.phone.replace(/\s/g, "");
           if (!formattedPhone.startsWith("+")) {
-            // Assume French number if no country code
             if (formattedPhone.startsWith("0")) {
               formattedPhone = "+33" + formattedPhone.substring(1);
             } else {
@@ -221,16 +274,11 @@ const handler = async (req: Request): Promise<Response> => {
             }
           }
 
-          // Build SMS content (max 160 chars ideally)
           let smsContent = `${subject}\n${message}`;
-          if (eventDetails?.date) smsContent += `\n📅 ${eventDetails.date}`;
-          if (eventDetails?.time) smsContent += ` à ${eventDetails.time}`;
-          if (eventDetails?.location) smsContent += `\n📍 ${eventDetails.location}`;
-          
-          // Truncate if too long
-          if (smsContent.length > 300) {
-            smsContent = smsContent.substring(0, 297) + "...";
-          }
+          if (eventDetails?.date) smsContent += `\n${eventDetails.date}`;
+          if (eventDetails?.time) smsContent += ` a ${eventDetails.time}`;
+          if (eventDetails?.location) smsContent += `\n${eventDetails.location}`;
+          if (smsContent.length > 300) smsContent = smsContent.substring(0, 297) + "...";
 
           const smsResponse = await fetch("https://api.onesignal.com/notifications", {
             method: "POST",
@@ -249,27 +297,22 @@ const handler = async (req: Request): Promise<Response> => {
 
           if (smsResponse.ok) {
             results.smsSent++;
-            console.log(`SMS sent to ${formattedPhone}`);
           } else {
             const errorData = await smsResponse.json();
-            console.error(`Failed to send SMS to ${formattedPhone}:`, errorData);
             results.errors.push(`SMS ${athlete.phone}: ${JSON.stringify(errorData)}`);
           }
         } catch (e: unknown) {
           const errorMessage = e instanceof Error ? e.message : String(e);
-          console.error(`Error sending SMS to ${athlete.phone}:`, e);
           results.errors.push(`SMS ${athlete.phone}: ${errorMessage}`);
         }
       }
 
-      // Send push notification if channel selected
       if (channels.includes("push") && athlete.email && pushAllowed) {
         try {
-          // Build push content
           let pushMessage = message;
-          if (eventDetails?.date) pushMessage += `\n📅 ${eventDetails.date}`;
+          if (eventDetails?.date) pushMessage += `\n${eventDetails.date}`;
           if (eventDetails?.time) pushMessage += ` à ${eventDetails.time}`;
-          if (eventDetails?.location) pushMessage += `\n📍 ${eventDetails.location}`;
+          if (eventDetails?.location) pushMessage += `\n${eventDetails.location}`;
 
           const pushResponse = await fetch("https://api.onesignal.com/notifications", {
             method: "POST",
@@ -279,9 +322,7 @@ const handler = async (req: Request): Promise<Response> => {
             },
             body: JSON.stringify({
               app_id: ONESIGNAL_APP_ID,
-              include_aliases: {
-                external_id: [athlete.email],
-              },
+              include_aliases: { external_id: [athlete.email] },
               target_channel: "push",
               headings: { en: subject, fr: subject },
               contents: { en: pushMessage, fr: pushMessage },
@@ -291,42 +332,27 @@ const handler = async (req: Request): Promise<Response> => {
 
           if (pushResponse.ok) {
             results.pushSent++;
-            console.log(`Push sent for ${athlete.email}`);
           } else {
             const errorData = await pushResponse.json();
-            console.error(`Failed to send push for ${athlete.email}:`, errorData);
             results.errors.push(`Push ${athlete.email}: ${JSON.stringify(errorData)}`);
           }
         } catch (e: unknown) {
           const errorMessage = e instanceof Error ? e.message : String(e);
-          console.error(`Error sending push for ${athlete.email}:`, e);
           results.errors.push(`Push ${athlete.email}: ${errorMessage}`);
         }
       }
     }
 
-    console.log("Notification results:", results);
-
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        ...results,
-        totalAthletes: athletes.length,
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ success: true, ...results, totalAthletes: athletes.length }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Error in notify-athletes:", error);
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 };
