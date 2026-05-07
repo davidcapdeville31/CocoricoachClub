@@ -574,6 +574,59 @@ export function AggregatedRoundStatsDialog({
             </div>
           ) : (
             <div className="space-y-4">
+              {isJudo && roundsData && roundsData.length > 0 && (() => {
+                const stats = computeOpponentStats(roundsData as any);
+                const renderRow = (b: { label: string; wins: number; losses: number; draws: number; total: number; winRate: number }) => (
+                  <div key={b.label} className="flex items-center justify-between gap-2 py-1.5 border-b last:border-0 text-sm">
+                    <span className="font-medium">{b.label}</span>
+                    <div className="flex items-center gap-2 text-xs">
+                      <Badge variant="outline" className="text-emerald-600 border-emerald-200">{b.wins}V</Badge>
+                      <Badge variant="outline" className="text-destructive border-destructive/30">{b.losses}D</Badge>
+                      {b.draws > 0 && <Badge variant="outline">{b.draws}N</Badge>}
+                      <Badge className="bg-amber-600 text-white">{b.winRate}%</Badge>
+                    </div>
+                  </div>
+                );
+                if (stats.overall.total === 0) return null;
+                return (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Swords className="h-4 w-4" />
+                        Analyse adversaires (V/D)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div>
+                        <div className="text-xs uppercase font-bold text-muted-foreground mb-1">Global</div>
+                        {renderRow(stats.overall)}
+                      </div>
+                      {stats.byHandedness.length > 0 && (
+                        <div>
+                          <div className="text-xs uppercase font-bold text-muted-foreground mb-1">Par latéralité</div>
+                          {stats.byHandedness.map(renderRow)}
+                        </div>
+                      )}
+                      {stats.byWeight.length > 0 && (
+                        <div>
+                          <div className="text-xs uppercase font-bold text-muted-foreground mb-1">Par catégorie de poids</div>
+                          {stats.byWeight.map(renderRow)}
+                        </div>
+                      )}
+                      {stats.byGender.length > 1 && (
+                        <div>
+                          <div className="text-xs uppercase font-bold text-muted-foreground mb-1">Par sexe</div>
+                          {stats.byGender.map(renderRow)}
+                        </div>
+                      )}
+                      <p className="text-[10px] text-muted-foreground italic">
+                        Calculé sur les combats liés à un profil adversaire enregistré.
+                      </p>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
+
               {/* Athletics: Group by discipline */}
               {isAthletics ? (() => {
                 // Group players by discipline
