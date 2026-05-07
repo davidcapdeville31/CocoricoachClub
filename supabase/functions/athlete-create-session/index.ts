@@ -211,6 +211,80 @@ serve(async (req) => {
       }
     }
 
+    // ── Notifier le staff de la catégorie (in-app + push best-effort) ──
+    try {
+      const { data: playerInfo } = await supabase
+        .from("players")
+        .select("name")
+        .eq("id", player_id)
+        .maybeSingle();
+      const playerName = playerInfo?.name || "Un athlète";
+
+      const { data: catInfo } = await supabase
+        .from("categories")
+        .select("name")
+        .eq("id", category_id)
+        .maybeSingle();
+
+      // Récupérer les staff de la catégorie (exclure les athlètes & le créateur)
+      const { data: members } = await supabase
+        .from("category_members")
+        .select("user_id, role")
+        .eq("category_id", category_id);
+      const staffIds = Array.from(
+        new Set(
+          (members || [])
+            .filter((m) => m.role && m.role !== "athlete" && m.user_id !== userId)
+            .map((m) => m.user_id),
+        ),
+      );
+
+      const title = "🏋️ Nouvelle séance d'athlète";
+      const message = `${playerName} vient de se créer une séance ${training_type} le ${session_date}${catInfo?.name ? ` (${catInfo.name})` : ""}`;
+
+      if (staffIds.length > 0) {
+        const records = staffIds.map((uid) => ({
+          user_id: uid,
+          category_id,
+          title,
+          message,
+          notification_type: "athlete_session",
+          notification_subtype: "self_planned",
+          priority: "normal",
+          metadata: { player_id, session_id: session.id, training_type, session_date },
+        }));
+        const { error: notifErr } = await supabase.from("notifications").insert(records);
+        if (notifErr) console.warn("[athlete-create-session] notif insert warn:", notifErr.message);
+
+        // Push OneSignal best-effort
+        const ONESIGNAL_APP_ID = Deno.env.get("ONESIGNAL_APP_ID");
+        const ONESIGNAL_REST_API_KEY = Deno.env.get("ONESIGNAL_REST_API_KEY");
+        if (ONESIGNAL_APP_ID && ONESIGNAL_REST_API_KEY) {
+          try {
+            await fetch("https://api.onesignal.com/notifications", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Key ${ONESIGNAL_REST_API_KEY}`,
+              },
+              body: JSON.stringify({
+                app_id: ONESIGNAL_APP_ID,
+                include_aliases: { external_id: staffIds },
+                target_channel: "push",
+                headings: { en: title, fr: title },
+                contents: { en: message, fr: message },
+                name: "Athlete self-planned session",
+              }),
+            });
+          } catch (pushErr) {
+            console.warn("[athlete-create-session] push warn:", pushErr);
+          }
+        }
+      }
+    } catch (notifyErr) {
+      console.warn("[athlete-create-session] notify staff warn:", notifyErr);
+    }
+
     return respond({ success: true, session_id: session.id });
   } catch (error: unknown) {
     const err = error as { message?: string; details?: string; hint?: string; code?: string; stack?: string };
