@@ -100,7 +100,7 @@ export function AggregatedRoundStatsDialog({
           *,
           competition_round_stats(*),
           players(id, name, discipline, specialty),
-          opponent_profile:opponent_profiles(id, last_name, first_name, gender, weight_category, handedness)
+          opponent_profile:opponent_profiles(id, last_name, first_name, gender, weight_category, handedness, fighting_style)
         `)
         .eq("match_id", matchId)
         .order("round_number");
@@ -611,6 +611,12 @@ export function AggregatedRoundStatsDialog({
                         <div>
                           <div className="text-xs uppercase font-bold text-muted-foreground mb-1">Par catégorie de poids</div>
                           {stats.byWeight.map(renderRow)}
+                        </div>
+                      )}
+                      {stats.byStyle.length > 0 && (
+                        <div>
+                          <div className="text-xs uppercase font-bold text-muted-foreground mb-1">Par profil de combat</div>
+                          {stats.byStyle.map(renderRow)}
                         </div>
                       )}
                       {stats.byGender.length > 1 && (

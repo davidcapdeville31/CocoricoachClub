@@ -35,6 +35,10 @@ const handLabel = (h?: string | null) =>
   h === "left" ? "Gaucher" : h === "right" ? "Droitier" : h === "ambidextrous" ? "Ambidextre" : "—";
 const genderLabel = (g?: string | null) =>
   g === "male" ? "H" : g === "female" ? "F" : g === "other" ? "Autre" : "—";
+const styleLabel = (s?: string | null) =>
+  s === "offensive" ? "Offensif" : s === "defensive" ? "Défensif" : s === "balanced" ? "Équilibré" : "—";
+const styleVariant = (s?: string | null) =>
+  s === "offensive" ? "destructive" : s === "defensive" ? "secondary" : s === "balanced" ? "default" : "outline";
 
 export function JudoOpponentsTab({ categoryId }: Props) {
   const qc = useQueryClient();
@@ -175,6 +179,7 @@ export function JudoOpponentsTab({ categoryId }: Props) {
                     <th className="text-left px-3 py-2">Sexe</th>
                     <th className="text-left px-3 py-2">Catégorie</th>
                     <th className="text-left px-3 py-2">Latéralité</th>
+                    <th className="text-left px-3 py-2">Profil</th>
                     <th className="text-left px-3 py-2">Club / Pays</th>
                     <th className="text-right px-3 py-2">Actions</th>
                   </tr>
@@ -193,6 +198,11 @@ export function JudoOpponentsTab({ categoryId }: Props) {
                         ) : "—"}
                       </td>
                       <td className="px-3 py-2">{handLabel(p.handedness)}</td>
+                      <td className="px-3 py-2">
+                        {p.fighting_style ? (
+                          <Badge variant={styleVariant(p.fighting_style) as any}>{styleLabel(p.fighting_style)}</Badge>
+                        ) : "—"}
+                      </td>
                       <td className="px-3 py-2 text-muted-foreground">
                         {[p.club_origin, p.country].filter(Boolean).join(" • ") || "—"}
                       </td>

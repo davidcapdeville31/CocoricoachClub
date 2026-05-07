@@ -31,6 +31,7 @@ export interface OpponentProfile {
   gender?: "male" | "female" | "other" | null;
   weight_category?: string | null;
   handedness?: "left" | "right" | "ambidextrous" | "unknown" | null;
+  fighting_style?: "offensive" | "defensive" | "balanced" | null;
   club_origin?: string | null;
   country?: string | null;
   birth_year?: number | null;
@@ -53,6 +54,7 @@ const empty = (clubId: string, categoryId?: string): OpponentProfile => ({
   gender: null,
   weight_category: null,
   handedness: "unknown",
+  fighting_style: null,
   club_origin: "",
   country: "",
   birth_year: null,
@@ -78,6 +80,7 @@ export function OpponentProfileDialog({ open, onOpenChange, clubId, categoryId, 
         gender: form.gender || null,
         weight_category: form.weight_category || null,
         handedness: form.handedness || "unknown",
+        fighting_style: form.fighting_style || null,
         club_origin: form.club_origin?.trim() || null,
         country: form.country?.trim() || null,
         birth_year: form.birth_year || null,
@@ -162,6 +165,20 @@ export function OpponentProfileDialog({ open, onOpenChange, clubId, categoryId, 
                 <SelectItem value="left">Gaucher</SelectItem>
                 <SelectItem value="ambidextrous">Ambidextre</SelectItem>
                 <SelectItem value="unknown">Inconnue</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Profil de combat</Label>
+            <Select
+              value={form.fighting_style || ""}
+              onValueChange={(v) => setForm({ ...form, fighting_style: (v || null) as any })}
+            >
+              <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="offensive">Offensif</SelectItem>
+                <SelectItem value="defensive">Défensif</SelectItem>
+                <SelectItem value="balanced">Équilibré</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -1,0 +1,1 @@
+ALTER TABLE public.opponent_profiles ADD COLUMN IF NOT EXISTS fighting_style text CHECK (fighting_style IN ('offensive','defensive','balanced'));
