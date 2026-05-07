@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { JUDO_WEIGHT_CATEGORIES } from "@/lib/constants/sportTypes";
+import { JUDO_WEIGHT_CATEGORIES, JUDO_WEIGHT_CATEGORIES_MEN, JUDO_WEIGHT_CATEGORIES_WOMEN } from "@/lib/constants/sportTypes";
 import { toast } from "sonner";
 
 export interface OpponentProfile {
