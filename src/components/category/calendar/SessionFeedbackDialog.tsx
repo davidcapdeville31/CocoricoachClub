@@ -678,6 +678,12 @@ export function SessionFeedbackDialog({
                 🎳 Précision
               </TabsTrigger>
             )}
+            {hasBasketPrecision && (
+              <TabsTrigger value="basket_precision" className="flex-1 gap-2">
+                <Target className="h-4 w-4" />
+                🏀 Précision
+              </TabsTrigger>
+            )}
             <TabsTrigger value="rpe" className="flex-1 gap-2">
               <Activity className="h-4 w-4" />
               RPE
