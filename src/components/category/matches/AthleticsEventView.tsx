@@ -624,6 +624,11 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
                       <TableHead>Athlète</TableHead>
                       <TableHead>Phase</TableHead>
                       <TableHead className="text-right">Meilleure perf</TableHead>
+                      {isFieldEventActive && (
+                        <TableHead className="text-right" title="Moyenne des essais valides saisis sur cette compétition">
+                          Moyenne essais
+                        </TableHead>
+                      )}
                       <TableHead className="text-center w-16">Manches</TableHead>
                       <TableHead className="text-center">
                         <span className="inline-flex items-center gap-1"><Wind className="h-3.5 w-3.5" />Vent</span>
@@ -660,6 +665,24 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
                             return formatResult(r.bestResult, unit);
                           })()}
                         </TableCell>
+                        {isFieldEventActive && (
+                          <TableCell className="text-right font-mono text-xs">
+                            {r.avgAttempt != null ? (
+                              <span>
+                                {(() => {
+                                  const { unit } = getDefaultUnitForDiscipline(
+                                    activeEvent?.discipline || undefined,
+                                    activeEvent?.specialty || undefined,
+                                  );
+                                  return formatResult(r.avgAttempt, unit);
+                                })()}
+                                <span className="ml-1 text-muted-foreground">({r.attemptCount})</span>
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                        )}
                         <TableCell className="text-center font-mono text-xs text-muted-foreground">
                           {r.raceCount > 0 ? r.raceCount : "—"}
                         </TableCell>
