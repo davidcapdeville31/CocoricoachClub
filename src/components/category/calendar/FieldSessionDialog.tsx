@@ -54,6 +54,8 @@ interface BlockDraft {
   target_intensity?: string; // faible / moderee / elevee / tres_elevee
   volume?: string;           // court / moyen / long
   contact_charge?: string;   // aucun / faible / modere / eleve
+  throwing_implement?: string;
+  implement_weight_g?: number | null;
 }
 
 const GENERIC_THEMES = [
