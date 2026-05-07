@@ -113,6 +113,18 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
     },
   });
 
+  const { data: records = [] } = useQuery({
+    queryKey: ["athletics_records_for_throwing", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("athletics_records" as any)
+        .select("player_id, discipline, specialty, personal_best, lower_is_better, unit")
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return (data || []) as unknown as AthleticsRecordLite[];
+    },
+  });
+
   // Filter
   const filtered = useMemo(() => {
     return attempts.filter((a) => {
