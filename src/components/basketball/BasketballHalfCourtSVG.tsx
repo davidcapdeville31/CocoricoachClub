@@ -37,8 +37,9 @@ interface Props {
 
 const COURT_FILL = "hsl(28 60% 88%)";
 const LINE = "hsl(220 25% 25%)";
-const PAINT_FILL = "hsl(15 70% 60% / 0.55)";
-const HIGHLIGHT = "hsl(var(--primary) / 0.18)";
+const PAINT_FILL_INACTIVE = "hsl(15 70% 60% / 0.18)";
+const PAINT_FILL_ACTIVE = "hsl(var(--primary) / 0.35)";
+const HIGHLIGHT = "hsl(var(--primary) / 0.28)";
 const HIGHLIGHT_STROKE = "hsl(var(--primary))";
 
 export function BasketballHalfCourtSVG({
@@ -155,7 +156,7 @@ export function BasketballHalfCourtSVG({
         y="5"
         width="26"
         height="23"
-        fill={exercise.region === "paint" ? HIGHLIGHT : PAINT_FILL}
+        fill={exercise.region === "paint" ? PAINT_FILL_ACTIVE : PAINT_FILL_INACTIVE}
         stroke={exercise.region === "paint" ? HIGHLIGHT_STROKE : LINE}
         strokeWidth="0.5"
       />
