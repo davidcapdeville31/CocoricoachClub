@@ -98,7 +98,8 @@ export function AggregatedRoundStatsDialog({
         .select(`
           *,
           competition_round_stats(*),
-          players(id, name, discipline, specialty)
+          players(id, name, discipline, specialty),
+          opponent_profile:opponent_profiles(id, last_name, first_name, gender, weight_category, handedness)
         `)
         .eq("match_id", matchId)
         .order("round_number");
