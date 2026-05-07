@@ -147,7 +147,12 @@ export function OpponentProfileDialog({ open, onOpenChange, clubId, categoryId, 
             >
               <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
               <SelectContent>
-                {JUDO_WEIGHT_CATEGORIES.map((c) => (
+                {(form.gender === "male"
+                  ? JUDO_WEIGHT_CATEGORIES_MEN
+                  : form.gender === "female"
+                  ? JUDO_WEIGHT_CATEGORIES_WOMEN
+                  : JUDO_WEIGHT_CATEGORIES
+                ).map((c) => (
                   <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
                 ))}
               </SelectContent>
