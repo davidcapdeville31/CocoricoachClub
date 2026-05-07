@@ -761,6 +761,21 @@ export function SessionFeedbackDialog({
             </TabsContent>
           )}
 
+          {hasBasketPrecision && session?.session_date && (
+            <TabsContent value="basket_precision" className="flex-1 flex flex-col min-h-0 mt-4">
+              <div className="flex-1 min-h-0 overflow-y-auto pr-1" style={{ maxHeight: "calc(95vh - 180px)" }}>
+                <BasketballPrecisionTracker
+                  categoryId={categoryId}
+                  trainingSessionId={sessionId}
+                  sessionDate={session.session_date}
+                />
+                <p className="text-xs text-muted-foreground mt-3 italic">
+                  ✅ Saisies enregistrées immédiatement et visibles dans <b>Datas → Datas d'entraînement</b>.
+                </p>
+              </div>
+            </TabsContent>
+          )}
+
           <TabsContent value="rpe" className="flex-1 flex flex-col min-h-0 mt-4">
             <p className="text-sm text-muted-foreground mb-3">
               RPE: Rate of Perceived Exertion (0-10). La durée est pré-remplie depuis les horaires de la séance.
