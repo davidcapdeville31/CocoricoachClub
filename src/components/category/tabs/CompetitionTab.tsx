@@ -1,5 +1,6 @@
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Trophy, Swords, Flag, Award, Mountain, BarChart3, Medal } from "lucide-react";
+import { Trophy, Swords, Flag, Award, Mountain, BarChart3, Medal, Users } from "lucide-react";
+import { JudoOpponentsTab } from "@/components/category/judo/JudoOpponentsTab";
 import { MatchesTab } from "@/components/category/MatchesTab";
 import { TournamentsTab } from "@/components/category/TournamentsTab";
 import { NationalTeamTab } from "@/components/category/national-team/NationalTeamTab";
