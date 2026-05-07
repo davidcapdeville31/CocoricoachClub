@@ -727,6 +727,9 @@ export const TRAINING_TYPE_LABELS: Record<string, string> = {
   basketball_defense: "Travail Défensif",
   basketball_pick_roll: "Pick & Roll",
   basketball_transition: "Transition",
+  basketball_lf: "Travail Lancers Francs",
+  basketball_paint: "Travail Tirs Raquette",
+  basketball_3pts: "Travail Tirs à 3 points",
   // Basketball 3x3 specific (FIBA)
   basket3x3_1c1: "1c1 / Isolation",
   basket3x3_2c2: "2c2 / Pick & Roll court",
