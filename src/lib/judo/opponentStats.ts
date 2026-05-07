@@ -60,6 +60,7 @@ export function computeOpponentStats(rounds: RoundLike[]) {
   const byHandedness: Record<string, GroupBucket> = {};
   const byWeight: Record<string, GroupBucket> = {};
   const byGender: Record<string, GroupBucket> = {};
+  const byStyle: Record<string, GroupBucket> = {};
 
   const handLabel = (h?: string | null) =>
     h === "left"
@@ -71,6 +72,8 @@ export function computeOpponentStats(rounds: RoundLike[]) {
       : "Non renseigné";
   const genderLabel = (g?: string | null) =>
     g === "male" ? "Hommes" : g === "female" ? "Femmes" : g === "other" ? "Autre" : "Non renseigné";
+  const styleLabel = (s?: string | null) =>
+    s === "offensive" ? "Offensifs" : s === "defensive" ? "Défensifs" : s === "balanced" ? "Équilibrés" : "Non renseigné";
 
   for (const r of rounds) {
     const res = normalizeResult(r.result);
@@ -104,6 +107,14 @@ export function computeOpponentStats(rounds: RoundLike[]) {
     if (res === "win") gb.wins += 1;
     else if (res === "loss") gb.losses += 1;
     else gb.draws += 1;
+
+    const sKey = op?.fighting_style || "unknown";
+    if (!byStyle[sKey]) byStyle[sKey] = bucket(styleLabel(op?.fighting_style));
+    const sb = byStyle[sKey];
+    sb.total += 1;
+    if (res === "win") sb.wins += 1;
+    else if (res === "loss") sb.losses += 1;
+    else sb.draws += 1;
   }
 
   return {
@@ -111,5 +122,6 @@ export function computeOpponentStats(rounds: RoundLike[]) {
     byHandedness: Object.values(byHandedness).map(finalize),
     byWeight: Object.values(byWeight).map(finalize),
     byGender: Object.values(byGender).map(finalize),
+    byStyle: Object.values(byStyle).map(finalize),
   };
 }
