@@ -560,7 +560,8 @@ export function AthleticsSprintStats({ categoryId }: Props) {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
