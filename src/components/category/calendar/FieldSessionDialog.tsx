@@ -411,6 +411,8 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         target_intensity: b.target_intensity || null,
         volume: b.volume || null,
         contact_charge: b.contact_charge || null,
+        throwing_implement: isThrowingBlock(b.theme) ? (b.throwing_implement || null) : null,
+        implement_weight_g: isThrowingBlock(b.theme) ? (b.implement_weight_g ?? null) : null,
       }));
       const { error: bErr } = await supabase.from("training_session_blocks").insert(blockRows);
       if (bErr) throw bErr;
