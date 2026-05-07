@@ -179,6 +179,7 @@ export function JudoOpponentsTab({ categoryId }: Props) {
                     <th className="text-left px-3 py-2">Sexe</th>
                     <th className="text-left px-3 py-2">Catégorie</th>
                     <th className="text-left px-3 py-2">Latéralité</th>
+                    <th className="text-left px-3 py-2">Profil</th>
                     <th className="text-left px-3 py-2">Club / Pays</th>
                     <th className="text-right px-3 py-2">Actions</th>
                   </tr>
@@ -197,6 +198,11 @@ export function JudoOpponentsTab({ categoryId }: Props) {
                         ) : "—"}
                       </td>
                       <td className="px-3 py-2">{handLabel(p.handedness)}</td>
+                      <td className="px-3 py-2">
+                        {p.fighting_style ? (
+                          <Badge variant={styleVariant(p.fighting_style) as any}>{styleLabel(p.fighting_style)}</Badge>
+                        ) : "—"}
+                      </td>
                       <td className="px-3 py-2 text-muted-foreground">
                         {[p.club_origin, p.country].filter(Boolean).join(" • ") || "—"}
                       </td>
