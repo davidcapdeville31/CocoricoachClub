@@ -24,6 +24,9 @@ import {
 import { getThemeColorTokens } from "@/lib/constants/themeColors";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { BowlingSessionContent } from "@/components/bowling/BowlingSessionContent";
+import { BasketballPrecisionTracker } from "@/components/basketball/BasketballPrecisionTracker";
+
+const BASKET_PRECISION_THEMES = new Set(["basketball_lf", "basketball_paint", "basketball_3pts"]);
 
 interface FieldSessionDialogProps {
   open: boolean;
@@ -644,9 +647,18 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                         />
                       </div>
                     )}
-                    {!isEdit && (b.theme === "bowling_game" || b.theme === "bowling_spare") && (
+                    {isEdit && BASKET_PRECISION_THEMES.has(b.theme) && (
+                      <div className="rounded-lg border border-dashed border-border/70 bg-muted/30 p-3">
+                        <BasketballPrecisionTracker
+                          categoryId={categoryId}
+                          trainingSessionId={editSession.id}
+                          sessionDate={format(date, "yyyy-MM-dd")}
+                        />
+                      </div>
+                    )}
+                    {!isEdit && BASKET_PRECISION_THEMES.has(b.theme) && (
                       <p className="text-[11px] text-muted-foreground italic">
-                        Enregistrez la séance puis rouvrez-la pour saisir {b.theme === "bowling_game" ? "les parties" : "les exercices de précision"}.
+                        Enregistrez la séance puis rouvrez-la pour saisir les statistiques de tir (cartographie cliquable).
                       </p>
                     )}
                     <Textarea

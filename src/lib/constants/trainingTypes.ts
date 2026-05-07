@@ -142,7 +142,10 @@ export const ALL_TRAINING_TYPES: TrainingTypeOption[] = [
   { value: "basketball_pick_roll", label: "Pick & Roll", hasExercises: false, forSports: ["basketball"], category: "basketball" },
   { value: "basketball_transition", label: "Transition", hasExercises: false, forSports: ["basketball"], category: "basketball" },
   { value: "basketball_tactique", label: "Tactique", hasExercises: false, forSports: ["basketball"], category: "basketball" },
-  
+  { value: "basketball_lf", label: "Travail Lancers Francs", hasExercises: false, forSports: ["basketball"], category: "basketball" },
+  { value: "basketball_paint", label: "Travail Tirs Raquette", hasExercises: false, forSports: ["basketball"], category: "basketball" },
+  { value: "basketball_3pts", label: "Travail Tirs à 3 points", hasExercises: false, forSports: ["basketball"], category: "basketball" },
+
   // Basketball 3x3 specific (FIBA ruleset - format court 10 min, possession 12s, check-ball)
   { value: "basket3x3_1c1", label: "1c1 / Isolation", hasExercises: false, forSports: ["basketball_3x3"], category: "basketball" },
   { value: "basket3x3_2c2", label: "2c2 / Pick & Roll court", hasExercises: false, forSports: ["basketball_3x3"], category: "basketball" },
@@ -530,6 +533,9 @@ export const TRAINING_TYPE_COLORS: Record<string, string> = {
   basketball_pick_roll: "bg-purple-500",
   basketball_transition: "bg-amber-500",
   basketball_tactique: "bg-blue-600",
+  basketball_lf: "bg-orange-400",
+  basketball_paint: "bg-orange-700",
+  basketball_3pts: "bg-orange-600",
   // Basketball 3x3 specific (FIBA)
   basket3x3_1c1: "bg-orange-700",
   basket3x3_2c2: "bg-orange-600",
@@ -721,6 +727,9 @@ export const TRAINING_TYPE_LABELS: Record<string, string> = {
   basketball_defense: "Travail Défensif",
   basketball_pick_roll: "Pick & Roll",
   basketball_transition: "Transition",
+  basketball_lf: "Travail Lancers Francs",
+  basketball_paint: "Travail Tirs Raquette",
+  basketball_3pts: "Travail Tirs à 3 points",
   // Basketball 3x3 specific (FIBA)
   basket3x3_1c1: "1c1 / Isolation",
   basket3x3_2c2: "2c2 / Pick & Roll court",
