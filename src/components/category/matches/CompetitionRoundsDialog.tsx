@@ -53,6 +53,7 @@ interface Round {
   id?: string;
   round_number: number;
   opponent_name: string;
+  opponent_profile_id?: string | null;
   result: string;
   notes: string;
   stats: Record<string, number>;
@@ -79,6 +80,8 @@ interface PlayerRounds {
   entryKey: string;
   playerId: string;
   playerName: string;
+  playerGender?: string | null;
+  playerWeightCategory?: string | null;
   discipline?: string;
   specialty?: string;
   rounds: Round[];
