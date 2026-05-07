@@ -30,12 +30,14 @@ import { ImprovedCalendarView } from "./calendar/ImprovedCalendarView";
 import { FieldSessionDialog } from "./calendar/FieldSessionDialog";
 import { EditAdminEventDialog, ADMIN_EVENT_TYPES } from "./calendar/EditAdminEventDialog";
 import { AnnualPlanningView } from "@/components/planning/AnnualPlanningView";
+import { useUnreadAthleteSessionsCount } from "@/lib/hooks/useUnreadAthleteSessionsCount";
 
 interface CalendarTabProps {
   categoryId: string;
 }
 
 export function CalendarTab({ categoryId }: CalendarTabProps) {
+  const athleteSessionsBadge = useUnreadAthleteSessionsCount(categoryId);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [addSessionDate, setAddSessionDate] = useState<string | undefined>();
   const [isAddMatchDialogOpen, setIsAddMatchDialogOpen] = useState(false);
@@ -316,8 +318,13 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
             <span className="sm:hidden">Annuel</span>
           </ColoredSubTabsTrigger>
           <ColoredSubTabsTrigger value="global" colorKey="planification" icon={<CalendarIcon className="h-4 w-4" />} tooltip="Calendrier hebdomadaire interactif avec les séances, matchs et événements jour par jour">
-            <span className="hidden sm:inline">Calendrier Global</span>
-            <span className="sm:hidden">Global</span>
+            <span className="relative inline-flex items-center">
+              <span className="hidden sm:inline">Calendrier Global</span>
+              <span className="sm:hidden">Global</span>
+              {athleteSessionsBadge > 0 && (
+                <span className="absolute -top-1.5 -right-2 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background animate-pulse" />
+              )}
+            </span>
           </ColoredSubTabsTrigger>
           {!isViewer && (
             <ColoredSubTabsTrigger value="objectives" colorKey="planification" icon={<Target className="h-4 w-4" />} tooltip="Définir et suivre les objectifs de saison pour l'équipe et chaque athlète">

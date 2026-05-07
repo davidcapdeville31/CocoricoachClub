@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { usePendingWeightLogsCount } from "@/lib/hooks/usePendingWeightLogsCount";
 import { usePendingTestResultsCount } from "@/lib/hooks/usePendingTestResultsCount";
+import { useUnreadAthleteSessionsCount } from "@/lib/hooks/useUnreadAthleteSessionsCount";
 import { OverviewTab } from "@/components/category/OverviewTab";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CategoryCoverUpload, LogoHoverActions } from "@/components/category/CategoryCoverUpload";
@@ -154,6 +155,7 @@ function CategoryDetailsContent() {
   const pendingWeightLogsCount = usePendingWeightLogsCount(categoryId);
   const pendingTestResultsCount = usePendingTestResultsCount(categoryId);
   const workloadBadge = pendingWeightLogsCount + pendingTestResultsCount;
+  const athleteSessionsBadge = useUnreadAthleteSessionsCount(categoryId);
 
   // Fetch category data - use edge function for public access, direct query for authenticated
   const { data: category, isLoading } = useQuery({
@@ -442,6 +444,7 @@ function CategoryDetailsContent() {
                   icon={<Calendar className="h-5 w-5" />}
                   label="Planification"
                   shortLabel="Planning"
+                  badge={athleteSessionsBadge}
                   tooltip="Calendrier annuel et hebdomadaire : organisation des séances, compétitions et objectifs de saison"
                 />
               )}
