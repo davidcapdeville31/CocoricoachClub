@@ -638,10 +638,30 @@ function SprintAttemptDialog({ categoryId, players, blocks, onClose }: DialogPro
         .from("athletics_sprint_attempts" as any)
         .insert(rows as any);
       if (error) throw error;
+
+      // Sync PB/SB depuis l'entraînement (athlétisme uniquement)
+      try {
+        const { syncRecordsFromSprintAttempts } = await import("@/lib/athletics/syncRecordsFromTraining");
+        await syncRecordsFromSprintAttempts({
+          categoryId,
+          playerId,
+          sessionDate,
+          attempts: rows.map((r) => ({
+            distance_m: r.distance_m,
+            time_seconds: r.time_seconds,
+            exercise_type: r.exercise_type,
+            is_valid: r.is_valid,
+          })),
+        });
+      } catch (e) {
+        console.warn("[athletics] sync PB/SB sprint échoué:", e);
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sprint-attempts", categoryId] });
       qc.invalidateQueries({ queryKey: ["sprint-blocks", categoryId] });
+      qc.invalidateQueries({ queryKey: ["athletics_records_matrix", categoryId] });
+      qc.invalidateQueries({ queryKey: ["athletics_records", categoryId] });
       toast.success("Essais enregistrés");
       onClose();
     },
