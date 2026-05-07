@@ -54,6 +54,7 @@ const empty = (clubId: string, categoryId?: string): OpponentProfile => ({
   gender: null,
   weight_category: null,
   handedness: "unknown",
+  fighting_style: null,
   club_origin: "",
   country: "",
   birth_year: null,
