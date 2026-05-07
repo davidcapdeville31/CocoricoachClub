@@ -882,22 +882,34 @@ export function SessionFeedbackDialog({
         </Tabs>
 
         <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {(activeTab === "precision" || activeTab === "bowling") ? "Fermer" : "Annuler"}
-          </Button>
-          {activeTab !== "precision" && activeTab !== "bowling" && (
-            <Button
-              onClick={() => saveData.mutate()}
-              disabled={saveData.isPending || (!hasNewRpeValues && !hasTestResults && !hasWeightLogs)}
-            >
-              {saveData.isPending ? "Enregistrement..." : "Enregistrer"}
-            </Button>
-          )}
-          {(activeTab === "precision" || activeTab === "bowling") && (
-            <p className="text-xs text-muted-foreground self-center">
-              ✅ Données sauvegardées automatiquement à chaque saisie.
-            </p>
-          )}
+          {(() => {
+            const isAutoSaveTab =
+              activeTab === "precision" ||
+              activeTab === "bowling" ||
+              activeTab === "bowling_game" ||
+              activeTab === "bowling_spare" ||
+              activeTab === "basket_precision";
+            return (
+              <>
+                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                  {isAutoSaveTab ? "Fermer" : "Annuler"}
+                </Button>
+                {!isAutoSaveTab && (
+                  <Button
+                    onClick={() => saveData.mutate()}
+                    disabled={saveData.isPending || (!hasNewRpeValues && !hasTestResults && !hasWeightLogs)}
+                  >
+                    {saveData.isPending ? "Enregistrement..." : "Enregistrer"}
+                  </Button>
+                )}
+                {isAutoSaveTab && (
+                  <p className="text-xs text-muted-foreground self-center">
+                    ✅ Données sauvegardées automatiquement à chaque saisie.
+                  </p>
+                )}
+              </>
+            );
+          })()}
         </div>
       </DialogContent>
     </Dialog>
