@@ -30,6 +30,7 @@ export const SPORT_TRAINING_CATEGORIES: TrainingTypeCategory[] = [
   { key: "volleyball", label: "Volleyball", forSports: ["volleyball"] },
   // Basketball
   { key: "basketball", label: "Basketball", forSports: ["basketball"] },
+  { key: "basketball_precision", label: "Exercices de précision", forSports: ["basketball"] },
   // Tennis
   { key: "tennis", label: "Tennis", forSports: ["tennis"] },
   // Aviron
