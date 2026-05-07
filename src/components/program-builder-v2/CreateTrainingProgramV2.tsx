@@ -298,9 +298,61 @@ export function CreateTrainingProgramV2({
       toast.success(`« ${data.exercise.exercise_name} » ajouté au slot`);
       return;
     }
+    // Drop sur un slot de phase (AMRAP, For Time, Circuit, EMOM, Tabata, Death By)
+    // ID format : `method-phase-slot-${blockId}-${idx}` ou `method-phase-slot-${blockId}-${groupId}-${idx}`
+    if (overData?.type === "method-phase-slot") {
+      const m = overId.match(/^method-phase-slot-(.+)-(\d+)$/);
+      const blockId = m?.[1]?.split("-")[0] ? m[1] : null;
+      const slotIndex = m ? parseInt(m[2], 10) : NaN;
+      // dayId in MethodConfigSlots is either blockId or `${blockId}-${groupId}` — extract the leading uuid
+      const rawBlockId = m?.[1];
+      // try full match first, then fallback to first uuid segment
+      const tryBlockIds = rawBlockId ? [rawBlockId, rawBlockId.split("-").slice(0, 5).join("-")] : [];
+      for (const bid of tryBlockIds) {
+        const ok = handle.insertExternalExerciseAtSlot(bid, slotIndex, {
+          id: data.exercise.id,
+          name: data.exercise.exercise_name,
+        });
+        if (ok) {
+          toast.success(`« ${data.exercise.exercise_name} » ajouté au slot`);
+          return;
+        }
+      }
+      return;
+    }
+    // Drop sur un slot de méthode "config" simple (drop set, pyramide, rest-pause...)
+    if (overData?.type === "method-config-slot") {
+      const m = overId.match(/^method-config-slot-(.+)$/);
+      const rawBlockId = m?.[1];
+      if (rawBlockId) {
+        const tryBlockIds = [rawBlockId, rawBlockId.split("-").slice(0, 5).join("-")];
+        for (const bid of tryBlockIds) {
+          const ok = handle.insertExternalExercise(bid, {
+            id: data.exercise.id,
+            name: data.exercise.exercise_name,
+          });
+          if (ok) {
+            toast.success(`« ${data.exercise.exercise_name} » ajouté`);
+            return;
+          }
+        }
+      }
+      return;
+    }
     if (overId.startsWith("drop-")) {
       const blockId = overId.replace(/^drop-/, "");
       handle.insertExternalExercise(blockId, {
+        id: data.exercise.id,
+        name: data.exercise.exercise_name,
+      });
+      toast.success(`« ${data.exercise.exercise_name} » ajouté`);
+      return;
+    }
+    // Fallback : insère dans le bloc actif de la journée courante
+    const day = currentDayRef.current;
+    const fallbackId = day?.blocks?.[day.blocks.length - 1]?.id;
+    if (fallbackId) {
+      handle.insertExternalExercise(fallbackId, {
         id: data.exercise.id,
         name: data.exercise.exercise_name,
       });
