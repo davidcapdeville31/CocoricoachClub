@@ -447,12 +447,26 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                   </h3>
 
                   {!hasDayEvents ? (
-                    <div className="text-center py-6">
+                    <div className="text-center py-6 space-y-2">
                       <p className="text-sm text-muted-foreground mb-3">Aucun événement</p>
-                      <Button variant="outline" size="sm" onClick={() => setIsCreateOpen(true)} className="gap-1.5">
-                        <Plus className="h-3.5 w-3.5" />
-                        Ajouter une séance
-                      </Button>
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {isBowling && (
+                          <Button variant="outline" size="sm" onClick={() => setIsBowlingTrainingOpen(true)} className="gap-1.5" style={{ borderColor: TRAINING_COLOR, color: TRAINING_COLOR }}>
+                            <Plus className="h-3.5 w-3.5" />
+                            Ajouter un entraînement
+                          </Button>
+                        )}
+                        {isBasket && (
+                          <Button variant="outline" size="sm" onClick={() => setIsBasketTrainingOpen(true)} className="gap-1.5" style={{ borderColor: TRAINING_COLOR, color: TRAINING_COLOR }}>
+                            <Plus className="h-3.5 w-3.5" />
+                            Ajouter un entraînement
+                          </Button>
+                        )}
+                        <Button variant="outline" size="sm" onClick={() => setIsCreateOpen(true)} className="gap-1.5">
+                          <Plus className="h-3.5 w-3.5" />
+                          Ajouter une séance
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <div className="space-y-2 max-h-[400px] overflow-y-auto">
@@ -699,10 +713,24 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                         );
                       })}
 
-                      <Button variant="ghost" size="sm" onClick={() => setIsCreateOpen(true)} className="w-full gap-1.5 text-muted-foreground">
-                        <Plus className="h-3.5 w-3.5" />
-                        Ajouter une séance
-                      </Button>
+                      <div className="flex flex-wrap gap-2">
+                        {isBowling && (
+                          <Button variant="ghost" size="sm" onClick={() => setIsBowlingTrainingOpen(true)} className="flex-1 gap-1.5" style={{ color: TRAINING_COLOR }}>
+                            <Plus className="h-3.5 w-3.5" />
+                            Ajouter un entraînement
+                          </Button>
+                        )}
+                        {isBasket && (
+                          <Button variant="ghost" size="sm" onClick={() => setIsBasketTrainingOpen(true)} className="flex-1 gap-1.5" style={{ color: TRAINING_COLOR }}>
+                            <Plus className="h-3.5 w-3.5" />
+                            Ajouter un entraînement
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="sm" onClick={() => setIsCreateOpen(true)} className="flex-1 gap-1.5 text-muted-foreground">
+                          <Plus className="h-3.5 w-3.5" />
+                          Ajouter une séance
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>
