@@ -53,6 +53,7 @@ interface Round {
   id?: string;
   round_number: number;
   opponent_name: string;
+  opponent_profile_id?: string | null;
   result: string;
   notes: string;
   stats: Record<string, number>;
@@ -79,6 +80,8 @@ interface PlayerRounds {
   entryKey: string;
   playerId: string;
   playerName: string;
+  playerGender?: string | null;
+  playerWeightCategory?: string | null;
   discipline?: string;
   specialty?: string;
   rounds: Round[];
@@ -358,7 +361,7 @@ export function CompetitionRoundsDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("match_lineups")
-        .select("id, player_id, boat_type, crew_role, seat_position, discipline, specialty, start_order, players(id, name, first_name, discipline, specialty)")
+        .select("id, player_id, boat_type, crew_role, seat_position, discipline, specialty, start_order, players(id, name, first_name, discipline, specialty, gender)")
         .eq("match_id", matchId);
       if (error) throw error;
       // Sort by athlete name then by start_order so events appear in starting order
@@ -387,6 +390,36 @@ export function CompetitionRoundsDialog({
     enabled: !!matchId,
   });
 
+  // Get club_id of this category (for opponent profiles lookup)
+  const { data: categoryRow } = useQuery({
+    queryKey: ["category-club", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("club_id")
+        .eq("id", categoryId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!categoryId && isJudo,
+  });
+
+  const { data: opponentProfiles } = useQuery({
+    queryKey: ["opponent-profiles", categoryRow?.club_id],
+    queryFn: async () => {
+      if (!categoryRow?.club_id) return [];
+      const { data, error } = await supabase
+        .from("opponent_profiles")
+        .select("id, last_name, first_name, gender, weight_category, handedness, club_origin")
+        .eq("club_id", categoryRow.club_id)
+        .order("last_name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!categoryRow?.club_id && isJudo,
+  });
+
   // Initialize data only once when lineup and existingRounds are loaded
   useEffect(() => {
     if (isDataInitialized) return;
@@ -395,11 +428,14 @@ export function CompetitionRoundsDialog({
       const newBowlingBlocks: Record<string, BowlingBlock[]> = {};
       
       const playersData = lineup.map((l: any) => {
-        const player = l.players as { id: string; name: string; first_name?: string; discipline?: string; specialty?: string } | null;
+        const player = l.players as { id: string; name: string; first_name?: string; discipline?: string; specialty?: string; gender?: string } | null;
         // Prefer the lineup's discipline/specialty (per-event inscription).
         // Fallback to the player's primary discipline/specialty for backward compat.
         const effectiveDiscipline = l.discipline || player?.discipline || undefined;
         const effectiveSpecialty = l.specialty || player?.specialty || undefined;
+        const playerGender = player?.gender || null;
+        // For judo, the weight category is stored in players.discipline
+        const playerWeightCategory = isJudo ? (player?.discipline || null) : null;
         // Filter rounds for this lineup entry: match by player_id + discipline + specialty
         // (stored in stat_data._discipline / _specialty). Fallback to all player rounds
         // when no discipline tag is present (backward compat with legacy data).
@@ -488,6 +524,8 @@ export function CompetitionRoundsDialog({
           entryKey: buildEntryKey(l.player_id, effectiveDiscipline, effectiveSpecialty),
           playerId: l.player_id,
           playerName: [player?.first_name, player?.name].filter(Boolean).join(" ") || "Athlète",
+          playerGender,
+          playerWeightCategory,
           discipline: effectiveDiscipline,
           specialty: effectiveSpecialty,
           boat_type: l.boat_type || undefined,
@@ -504,6 +542,7 @@ export function CompetitionRoundsDialog({
               id: r.id,
               round_number: r.round_number,
               opponent_name: r.opponent_name || "",
+              opponent_profile_id: (r as any).opponent_profile_id || null,
               result: r.result || "",
               notes: r.notes || "",
               stats: cleanStats as Record<string, number>,
@@ -625,6 +664,7 @@ export function CompetitionRoundsDialog({
             player_id: playerData.playerId,
             round_number: nextNumber,
             opponent_name: round.opponent_name || null,
+            opponent_profile_id: round.opponent_profile_id || null,
             result: round.result || null,
             notes: round.notes || null,
             phase: round.phase || null,
@@ -1947,13 +1987,101 @@ export function CompetitionRoundsDialog({
                             <div className="grid grid-cols-2 gap-3">
                               <div>
                                 <Label className="text-xs">Adversaire</Label>
-                                <Input
-                                  value={round.opponent_name}
-                                  onChange={(e) => updateRound(selectedPlayer.entryKey, round.round_number, { opponent_name: e.target.value })}
-                                  placeholder="Nom de l'adversaire"
-                                  className="h-8"
-                                  disabled={round.isLocked}
-                                />
+                                {isJudo ? (
+                                  (() => {
+                                    const allOpps = opponentProfiles || [];
+                                    const playerGender = selectedPlayer.playerGender;
+                                    const playerWeight = selectedPlayer.playerWeightCategory;
+                                    const matchesAthlete = (o: any) =>
+                                      (!playerGender || !o.gender || o.gender === playerGender) &&
+                                      (!playerWeight || !o.weight_category || o.weight_category === playerWeight);
+                                    const matched = allOpps.filter(matchesAthlete);
+                                    const others = allOpps.filter((o) => !matchesAthlete(o));
+                                    const fmt = (o: any) =>
+                                      `${o.last_name}${o.first_name ? " " + o.first_name : ""}` +
+                                      (o.weight_category ? ` (${o.weight_category.replace(/^judo_/, "")})` : "") +
+                                      (o.handedness === "left" ? " G" : o.handedness === "right" ? " D" : "");
+                                    return (
+                                      <div className="flex gap-1.5">
+                                        <Select
+                                          value={round.opponent_profile_id || "__manual__"}
+                                          onValueChange={(v) => {
+                                            if (v === "__manual__") {
+                                              updateRound(selectedPlayer.entryKey, round.round_number, {
+                                                opponent_profile_id: null,
+                                              });
+                                            } else {
+                                              const op = allOpps.find((o) => o.id === v);
+                                              if (op) {
+                                                updateRound(selectedPlayer.entryKey, round.round_number, {
+                                                  opponent_profile_id: op.id,
+                                                  opponent_name: `${op.last_name}${op.first_name ? " " + op.first_name : ""}`,
+                                                });
+                                              }
+                                            }
+                                          }}
+                                          disabled={round.isLocked}
+                                        >
+                                          <SelectTrigger className="h-8 flex-1">
+                                            <SelectValue placeholder="Choisir un adversaire" />
+                                          </SelectTrigger>
+                                          <SelectContent className="z-[200] max-h-[300px]">
+                                            <SelectItem value="__manual__">— Saisie libre —</SelectItem>
+                                            {matched.length > 0 && (
+                                              <>
+                                                <div className="px-2 py-1 text-[10px] font-bold uppercase text-muted-foreground">
+                                                  Catégorie de l'athlète
+                                                </div>
+                                                {matched.map((o) => (
+                                                  <SelectItem key={o.id} value={o.id}>
+                                                    {fmt(o)}
+                                                  </SelectItem>
+                                                ))}
+                                              </>
+                                            )}
+                                            {others.length > 0 && (
+                                              <>
+                                                <div className="px-2 py-1 text-[10px] font-bold uppercase text-muted-foreground">
+                                                  Autres
+                                                </div>
+                                                {others.map((o) => (
+                                                  <SelectItem key={o.id} value={o.id}>
+                                                    {fmt(o)}
+                                                  </SelectItem>
+                                                ))}
+                                              </>
+                                            )}
+                                            {allOpps.length === 0 && (
+                                              <div className="px-2 py-2 text-xs text-muted-foreground">
+                                                Aucun profil. Allez dans Compétitions → Profils adversaires.
+                                              </div>
+                                            )}
+                                          </SelectContent>
+                                        </Select>
+                                        <Input
+                                          value={round.opponent_name}
+                                          onChange={(e) =>
+                                            updateRound(selectedPlayer.entryKey, round.round_number, {
+                                              opponent_name: e.target.value,
+                                              opponent_profile_id: null,
+                                            })
+                                          }
+                                          placeholder="Nom"
+                                          className="h-8 w-[110px]"
+                                          disabled={round.isLocked}
+                                        />
+                                      </div>
+                                    );
+                                  })()
+                                ) : (
+                                  <Input
+                                    value={round.opponent_name}
+                                    onChange={(e) => updateRound(selectedPlayer.entryKey, round.round_number, { opponent_name: e.target.value })}
+                                    placeholder="Nom de l'adversaire"
+                                    className="h-8"
+                                    disabled={round.isLocked}
+                                  />
+                                )}
                               </div>
                               <div>
                                 <Label className="text-xs">Résultat</Label>

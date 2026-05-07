@@ -2387,6 +2387,7 @@ export type Database = {
           match_id: string
           notes: string | null
           opponent_name: string | null
+          opponent_profile_id: string | null
           phase: string | null
           player_id: string
           ranking: number | null
@@ -2408,6 +2409,7 @@ export type Database = {
           match_id: string
           notes?: string | null
           opponent_name?: string | null
+          opponent_profile_id?: string | null
           phase?: string | null
           player_id: string
           ranking?: number | null
@@ -2429,6 +2431,7 @@ export type Database = {
           match_id?: string
           notes?: string | null
           opponent_name?: string | null
+          opponent_profile_id?: string | null
           phase?: string | null
           player_id?: string
           ranking?: number | null
@@ -2445,6 +2448,13 @@ export type Database = {
             columns: ["match_id"]
             isOneToOne: false
             referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "competition_rounds_opponent_profile_id_fkey"
+            columns: ["opponent_profile_id"]
+            isOneToOne: false
+            referencedRelation: "opponent_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -6487,6 +6497,82 @@ export type Database = {
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "players_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opponent_profiles: {
+        Row: {
+          birth_year: number | null
+          category_id: string | null
+          club_id: string
+          club_origin: string | null
+          country: string | null
+          created_at: string
+          created_by: string | null
+          first_name: string | null
+          gender: string | null
+          handedness: string | null
+          id: string
+          last_name: string
+          notes: string | null
+          updated_at: string
+          weight_category: string | null
+        }
+        Insert: {
+          birth_year?: number | null
+          category_id?: string | null
+          club_id: string
+          club_origin?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          first_name?: string | null
+          gender?: string | null
+          handedness?: string | null
+          id?: string
+          last_name: string
+          notes?: string | null
+          updated_at?: string
+          weight_category?: string | null
+        }
+        Update: {
+          birth_year?: number | null
+          category_id?: string | null
+          club_id?: string
+          club_origin?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          first_name?: string | null
+          gender?: string | null
+          handedness?: string | null
+          id?: string
+          last_name?: string
+          notes?: string | null
+          updated_at?: string
+          weight_category?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opponent_profiles_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opponent_profiles_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "admin_all_clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opponent_profiles_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
             referencedColumns: ["id"]
           },
         ]
