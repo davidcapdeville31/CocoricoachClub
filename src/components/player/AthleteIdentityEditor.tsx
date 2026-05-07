@@ -102,6 +102,9 @@ const STYLES_BY_SPORT: Record<string, { value: string; label: string }[]> = {
     { value: "polyvalent", label: "Polyvalent" },
   ],
   judo: [
+    { value: "offensif", label: "Profil offensif" },
+    { value: "defensif", label: "Profil défensif" },
+    { value: "equilibre", label: "Profil équilibré" },
     { value: "tachi_waza", label: "Tachi-waza (debout)" },
     { value: "ne_waza", label: "Ne-waza (sol)" },
     { value: "migi", label: "Garde droite (migi)" },
