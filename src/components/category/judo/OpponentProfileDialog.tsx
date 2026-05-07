@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { JUDO_WEIGHT_CATEGORIES } from "@/lib/constants/sportTypes";
+import { JUDO_WEIGHT_CATEGORIES, JUDO_WEIGHT_CATEGORIES_MEN, JUDO_WEIGHT_CATEGORIES_WOMEN } from "@/lib/constants/sportTypes";
 import { toast } from "sonner";
 
 export interface OpponentProfile {
@@ -129,7 +129,12 @@ export function OpponentProfileDialog({ open, onOpenChange, clubId, categoryId, 
             <Label>Sexe</Label>
             <Select
               value={form.gender || ""}
-              onValueChange={(v) => setForm({ ...form, gender: (v || null) as any })}
+              onValueChange={(v) => {
+                const g = (v || null) as any;
+                const allowed = g === "male" ? JUDO_WEIGHT_CATEGORIES_MEN : g === "female" ? JUDO_WEIGHT_CATEGORIES_WOMEN : null;
+                const keepWeight = !allowed || !form.weight_category || allowed.some((c) => c.value === form.weight_category);
+                setForm({ ...form, gender: g, weight_category: keepWeight ? form.weight_category : null });
+              }}
             >
               <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
               <SelectContent>
@@ -147,7 +152,12 @@ export function OpponentProfileDialog({ open, onOpenChange, clubId, categoryId, 
             >
               <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
               <SelectContent>
-                {JUDO_WEIGHT_CATEGORIES.map((c) => (
+                {(form.gender === "male"
+                  ? JUDO_WEIGHT_CATEGORIES_MEN
+                  : form.gender === "female"
+                  ? JUDO_WEIGHT_CATEGORIES_WOMEN
+                  : JUDO_WEIGHT_CATEGORIES
+                ).map((c) => (
                   <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
                 ))}
               </SelectContent>
