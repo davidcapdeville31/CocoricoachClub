@@ -58,9 +58,14 @@ import {
   mapSprintToPair,
   type AthleticsRecordLite,
 } from "@/lib/athletics/pbDelta";
+import { practicesAny, type AthleticsGroup } from "@/lib/athletics/athleteDisciplines";
 
 interface Props {
   categoryId: string;
+  /** Familles d'épreuves cible (par défaut : courses : sprints, haies, demi-fond, fond, marche). */
+  groups?: AthleticsGroup[];
+  /** Titre affiché dans le header (par défaut "Stats entraînement — Course / Sprint"). */
+  title?: string;
 }
 
 interface SprintAttempt {
@@ -99,7 +104,7 @@ const formatTime = (sec?: number | null) => {
   return `${m}'${s.padStart(5, "0")}"`;
 };
 
-export function AthleticsSprintStats({ categoryId }: Props) {
+export function AthleticsSprintStats({ categoryId, groups = ["sprints", "haies", "demi_fond", "fond", "marche", "combines"], title = "Stats entraînement — Course / Sprint" }: Props) {
   const qc = useQueryClient();
   const [filterPlayer, setFilterPlayer] = useState<string>("all");
   const [filterExercise, setFilterExercise] = useState<string>("all");
@@ -121,18 +126,25 @@ export function AthleticsSprintStats({ categoryId }: Props) {
     },
   });
 
-  const { data: players = [] } = useQuery({
+  const { data: allPlayers = [] } = useQuery({
     queryKey: ["category-players-sprint", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, name, first_name")
+        .select("id, name, first_name, discipline, specialty, disciplines, specialties")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
       return data || [];
     },
   });
+
+  // Ne garder que les athlètes qui pratiquent une des familles ciblées
+  const players = useMemo(
+    () => (allPlayers as any[]).filter((p) => practicesAny(p, groups)),
+    [allPlayers, groups],
+  );
+  const allowedPlayerIds = useMemo(() => new Set(players.map((p: any) => p.id)), [players]);
 
   const { data: sprintBlocks = [] } = useQuery({
     queryKey: ["sprint-blocks", categoryId],
@@ -181,13 +193,14 @@ export function AthleticsSprintStats({ categoryId }: Props) {
 
   const filtered = useMemo(() => {
     return attempts.filter((a) => {
+      if (!allowedPlayerIds.has(a.player_id)) return false;
       if (filterPlayer !== "all" && a.player_id !== filterPlayer) return false;
       if (filterExercise !== "all" && a.exercise_type !== filterExercise) return false;
       if (filterDistance !== "all" && String(a.distance_m) !== filterDistance) return false;
       if (filterLoad !== "all" && (a.load_type || "aucun") !== filterLoad) return false;
       return true;
     });
-  }, [attempts, filterPlayer, filterExercise, filterDistance, filterLoad]);
+  }, [attempts, allowedPlayerIds, filterPlayer, filterExercise, filterDistance, filterLoad]);
 
   const kpis = useMemo(() => {
     const valid = filtered.filter((a) => a.is_valid && a.time_seconds != null);
@@ -309,7 +322,7 @@ export function AthleticsSprintStats({ categoryId }: Props) {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2">
           <Timer className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold">Stats entraînement — Vitesse / Course</h3>
+          <h3 className="text-lg font-semibold">{title}</h3>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>

@@ -33,6 +33,7 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 import { computeFieldPbDelta, findPb, type AthleticsRecordLite } from "@/lib/athletics/pbDelta";
+import { practicesAny } from "@/lib/athletics/athleteDisciplines";
 
 interface Props {
   categoryId: string;
@@ -82,19 +83,24 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
     },
   });
 
-  // Fetch players in this category
-  const { data: players = [] } = useQuery({
+  // Fetch players in this category (avec disciplines pour filtrer)
+  const { data: allPlayers = [] } = useQuery({
     queryKey: ["category-players-throwing", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, name, first_name")
+        .select("id, name, first_name, discipline, specialty, disciplines, specialties")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
       return data || [];
     },
   });
+  const players = useMemo(
+    () => (allPlayers as any[]).filter((p) => practicesAny(p, ["lancers"])),
+    [allPlayers],
+  );
+  const allowedPlayerIds = useMemo(() => new Set(players.map((p: any) => p.id)), [players]);
 
   // Fetch throwing-related blocks (sessions with implement set)
   const { data: throwingBlocks = [] } = useQuery({
@@ -128,12 +134,13 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
   // Filter
   const filtered = useMemo(() => {
     return attempts.filter((a) => {
+      if (!allowedPlayerIds.has(a.player_id)) return false;
       if (filterPlayer !== "all" && a.player_id !== filterPlayer) return false;
       if (filterImplement !== "all" && a.implement !== filterImplement) return false;
       if (filterWeight !== "all" && String(a.implement_weight_g) !== filterWeight) return false;
       return true;
     });
-  }, [attempts, filterPlayer, filterImplement, filterWeight]);
+  }, [attempts, allowedPlayerIds, filterPlayer, filterImplement, filterWeight]);
 
   // KPI: best throw, average, total attempts
   const kpis = useMemo(() => {
