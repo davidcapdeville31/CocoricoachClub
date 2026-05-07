@@ -59,6 +59,11 @@ export function BasketballTrainingEntryDialog({
   const [successes, setSuccesses] = useState("0");
   const [submitting, setSubmitting] = useState(false);
 
+  // Sync date when dialog reopens with a different default (e.g. another day clicked)
+  useEffect(() => {
+    if (open && defaultDate) setSessionDate(defaultDate);
+  }, [open, defaultDate]);
+
   const exercise = getBasketballExerciseByValue(exerciseValue)!;
 
   const { data: entries = [] } = useQuery({
