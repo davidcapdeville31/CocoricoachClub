@@ -992,8 +992,15 @@ export function CompetitionRoundsDialog({
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Circle className="h-4 w-4" />
-                    Épreuve {round.round_number}
-                    {round.phase && (
+                    {isAthletics && round.phase
+                      ? (phases.find((p) => p.value === round.phase)?.label || `${roundLabel} ${round.round_number}`)
+                      : `${roundLabel} ${round.round_number}`}
+                    {isAthletics && round.phase && (
+                      <Badge variant="outline" className="ml-1 text-[10px]">
+                        Tour {round.round_number}
+                      </Badge>
+                    )}
+                    {!isAthletics && round.phase && (
                       <Badge variant="outline" className="ml-1">
                         {phases.find((p) => p.value === round.phase)?.label || round.phase}
                       </Badge>
