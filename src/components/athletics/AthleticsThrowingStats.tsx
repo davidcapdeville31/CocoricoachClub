@@ -377,12 +377,16 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
                     <TableHead>Poids</TableHead>
                     <TableHead>N° essai</TableHead>
                     <TableHead>Distance</TableHead>
+                    <TableHead>vs PB</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((a) => (
+                  {filtered.map((a) => {
+                    const pbRec = findPb(records, a.player_id, "athletisme_lancers", a.implement);
+                    const delta = computeFieldPbDelta(a.distance_m, pbRec?.personal_best ?? null);
+                    return (
                     <TableRow key={a.id}>
                       <TableCell className="text-xs">{format(new Date(a.session_date), "dd/MM/yyyy")}</TableCell>
                       <TableCell>
@@ -391,8 +395,24 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
                       <TableCell>{IMPLEMENT_LABELS[a.implement as ImplementType] || a.implement}</TableCell>
                       <TableCell>{formatWeight(a.implement_weight_g)}</TableCell>
                       <TableCell>#{a.attempt_number}</TableCell>
-                      <TableCell className="font-semibold">
+                      <TableCell
+                        className={cn(
+                          "font-semibold",
+                          delta.isBetter === false && "text-destructive",
+                          delta.isBetter === true && "text-emerald-600 dark:text-emerald-400",
+                        )}
+                      >
                         {a.distance_m != null ? `${Number(a.distance_m).toFixed(2)} m` : "—"}
+                      </TableCell>
+                      <TableCell
+                        className={cn(
+                          "font-mono text-xs",
+                          delta.isBetter === false && "text-destructive",
+                          delta.isBetter === true && "text-emerald-600 dark:text-emerald-400",
+                        )}
+                        title={pbRec?.personal_best ? `PB : ${pbRec.personal_best.toFixed(2)} m` : undefined}
+                      >
+                        {delta.display}
                       </TableCell>
                       <TableCell>
                         {a.is_valid ? (
@@ -413,7 +433,8 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
                         </Button>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
