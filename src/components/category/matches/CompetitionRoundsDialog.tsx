@@ -828,6 +828,15 @@ export function CompetitionRoundsDialog({
       ? Math.max(...player.rounds.map((r) => r.round_number)) + 1
       : 1;
 
+    // Athlétisme : pré-remplir une phase par défaut suivant l'ordre logique des tours
+    // (Séries → Repêchages → Quarts → Demi-finales → Finale), en évitant les doublons.
+    let defaultPhase = "";
+    if (isAthletics && player) {
+      const usedPhases = new Set(player.rounds.map((r) => r.phase).filter(Boolean) as string[]);
+      const ordered = (phases as { value: string; label: string }[]).map((p) => p.value);
+      defaultPhase = ordered.find((v) => !usedPhases.has(v)) || "";
+    }
+
     setPlayerRoundsData((prev) =>
       prev.map((p) => {
         if (p.entryKey === entryKey) {
@@ -841,7 +850,7 @@ export function CompetitionRoundsDialog({
                 result: "",
                 notes: "",
                 stats: {},
-                phase: "",
+                phase: defaultPhase,
                 isLocked: false,
                 bowlingFrames: undefined,
               },
