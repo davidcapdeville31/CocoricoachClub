@@ -71,6 +71,10 @@ interface AthleteResultRow {
   temperature: number | null;
   isPR: boolean;
   raceCount: number;
+  /** Moyenne des essais valides (lancers/sauts uniquement). */
+  avgAttempt: number | null;
+  /** Nombre d'essais valides agrégés sur la compétition. */
+  attemptCount: number;
 }
 
 export function AthleticsEventView({ categoryId, matchIds }: Props) {
@@ -261,6 +265,10 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
       }
     });
 
+    // Détecte si c'est une épreuve "field" : lancers ou sauts (essais agrégeables)
+    const isFieldEvent = !lowerIsBetter; // toutes les épreuves "plus c'est haut/loin mieux c'est"
+    const ATTEMPT_KEYS = ["attempt1", "attempt2", "attempt3", "attempt4", "attempt5", "attempt6"];
+
     const results: AthleteResultRow[] = [];
     Object.entries(byPair).forEach(([k, rs]) => {
       const [pid, mid] = k.split("|");
@@ -275,6 +283,7 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
       let finalRank: number | null = null;
       let finalPhase: string | null = null;
       let isPR = false;
+      const attemptValues: number[] = [];
       rs.forEach((r, idx) => {
         const { value } = extractResult(r, lowerIsBetter);
         if (value != null) {
@@ -291,7 +300,20 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
           }
         }
         if (r.is_personal_record) isPR = true;
+
+        // Collecte les essais individuels (lancers / sauts) pour la moyenne
+        if (isFieldEvent) {
+          const sd = r.competition_round_stats?.[0]?.stat_data || {};
+          ATTEMPT_KEYS.forEach((k) => {
+            const v = Number((sd as any)[k]);
+            if (Number.isFinite(v) && v > 0) attemptValues.push(v);
+          });
+        }
       });
+
+      const avgAttempt = attemptValues.length > 0
+        ? attemptValues.reduce((s, v) => s + v, 0) / attemptValues.length
+        : null;
 
       const weatherSource = bestRoundIdx >= 0
         ? rs[bestRoundIdx]
@@ -314,6 +336,8 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
         temperature: weatherSource?.temperature_celsius ?? null,
         isPR,
         raceCount: rs.length,
+        avgAttempt,
+        attemptCount: attemptValues.length,
       });
     });
 
@@ -349,6 +373,16 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
     ? (activeEvent.specialty ? `${activeEvent.specialty} (${disciplineLabel(activeEvent.discipline)})` : disciplineLabel(activeEvent.discipline))
     : "";
 
+  // Épreuve "field" = lancer / saut → on affiche la moyenne des essais
+  const isFieldEventActive = useMemo(() => {
+    if (!activeEvent) return false;
+    const { lowerIsBetter } = getDefaultUnitForDiscipline(
+      activeEvent.discipline || undefined,
+      activeEvent.specialty || undefined,
+    );
+    return !lowerIsBetter;
+  }, [activeEvent]);
+
   // ===== Exports =====
   const handleExportExcel = () => {
     if (!activeEvent || rows.length === 0) {
@@ -363,21 +397,29 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
       void lowerIsBetter;
       const wb = XLSX.utils.book_new();
 
-      const data = rows.map(r => ({
-        "Compétition": r.matchLabel,
-        "Date": r.matchDate ? format(parseISO(r.matchDate), "dd/MM/yyyy", { locale: fr }) : "",
-        "Athlète": r.playerName,
-        "Manches saisies": r.raceCount,
-        "Classement final": r.finalRank != null ? r.finalRank : "",
-        "Phase classement": r.finalPhase || "",
-        "Meilleure perf": formatResult(r.bestResult, unit),
-        "Perf brute": r.bestResult != null ? r.bestResult : "",
-        "Phase meilleure perf": r.bestPhase || "",
-        "Vent (m/s)": r.windSpeed != null ? r.windSpeed : "",
-        "Direction vent": r.windDirection || "",
-        "Température (°C)": r.temperature != null ? r.temperature : "",
-        "Record perso": r.isPR ? "Oui" : "",
-      }));
+      const isField = !lowerIsBetter;
+      const data = rows.map(r => {
+        const base: Record<string, any> = {
+          "Compétition": r.matchLabel,
+          "Date": r.matchDate ? format(parseISO(r.matchDate), "dd/MM/yyyy", { locale: fr }) : "",
+          "Athlète": r.playerName,
+          "Manches saisies": r.raceCount,
+          "Classement final": r.finalRank != null ? r.finalRank : "",
+          "Phase classement": r.finalPhase || "",
+          "Meilleure perf": formatResult(r.bestResult, unit),
+          "Perf brute": r.bestResult != null ? r.bestResult : "",
+          "Phase meilleure perf": r.bestPhase || "",
+        };
+        if (isField) {
+          base["Moyenne essais"] = r.avgAttempt != null ? formatResult(r.avgAttempt, unit) : "";
+          base["Nb essais valides"] = r.attemptCount;
+        }
+        base["Vent (m/s)"] = r.windSpeed != null ? r.windSpeed : "";
+        base["Direction vent"] = r.windDirection || "";
+        base["Température (°C)"] = r.temperature != null ? r.temperature : "";
+        base["Record perso"] = r.isPR ? "Oui" : "";
+        return base;
+      });
       const ws = XLSX.utils.json_to_sheet(data);
       ws["!cols"] = [
         { wch: 28 }, { wch: 11 }, { wch: 22 }, { wch: 10 },
@@ -590,6 +632,11 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
                       <TableHead>Athlète</TableHead>
                       <TableHead>Phase</TableHead>
                       <TableHead className="text-right">Meilleure perf</TableHead>
+                      {isFieldEventActive && (
+                        <TableHead className="text-right" title="Moyenne des essais valides saisis sur cette compétition">
+                          Moyenne essais
+                        </TableHead>
+                      )}
                       <TableHead className="text-center w-16">Manches</TableHead>
                       <TableHead className="text-center">
                         <span className="inline-flex items-center gap-1"><Wind className="h-3.5 w-3.5" />Vent</span>
@@ -626,6 +673,24 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
                             return formatResult(r.bestResult, unit);
                           })()}
                         </TableCell>
+                        {isFieldEventActive && (
+                          <TableCell className="text-right font-mono text-xs">
+                            {r.avgAttempt != null ? (
+                              <span>
+                                {(() => {
+                                  const { unit } = getDefaultUnitForDiscipline(
+                                    activeEvent?.discipline || undefined,
+                                    activeEvent?.specialty || undefined,
+                                  );
+                                  return formatResult(r.avgAttempt, unit);
+                                })()}
+                                <span className="ml-1 text-muted-foreground">({r.attemptCount})</span>
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                        )}
                         <TableCell className="text-center font-mono text-xs text-muted-foreground">
                           {r.raceCount > 0 ? r.raceCount : "—"}
                         </TableCell>
