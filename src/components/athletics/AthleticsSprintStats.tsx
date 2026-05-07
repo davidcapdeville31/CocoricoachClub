@@ -193,13 +193,14 @@ export function AthleticsSprintStats({ categoryId, groups = ["sprints", "haies",
 
   const filtered = useMemo(() => {
     return attempts.filter((a) => {
+      if (!allowedPlayerIds.has(a.player_id)) return false;
       if (filterPlayer !== "all" && a.player_id !== filterPlayer) return false;
       if (filterExercise !== "all" && a.exercise_type !== filterExercise) return false;
       if (filterDistance !== "all" && String(a.distance_m) !== filterDistance) return false;
       if (filterLoad !== "all" && (a.load_type || "aucun") !== filterLoad) return false;
       return true;
     });
-  }, [attempts, filterPlayer, filterExercise, filterDistance, filterLoad]);
+  }, [attempts, allowedPlayerIds, filterPlayer, filterExercise, filterDistance, filterLoad]);
 
   const kpis = useMemo(() => {
     const valid = filtered.filter((a) => a.is_valid && a.time_seconds != null);
