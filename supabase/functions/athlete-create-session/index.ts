@@ -256,30 +256,8 @@ serve(async (req) => {
         const { error: notifErr } = await supabase.from("notifications").insert(records);
         if (notifErr) console.warn("[athlete-create-session] notif insert warn:", notifErr.message);
 
-        // Push OneSignal best-effort
-        const ONESIGNAL_APP_ID = Deno.env.get("ONESIGNAL_APP_ID");
-        const ONESIGNAL_REST_API_KEY = Deno.env.get("ONESIGNAL_REST_API_KEY");
-        if (ONESIGNAL_APP_ID && ONESIGNAL_REST_API_KEY) {
-          try {
-            await fetch("https://api.onesignal.com/notifications", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Key ${ONESIGNAL_REST_API_KEY}`,
-              },
-              body: JSON.stringify({
-                app_id: ONESIGNAL_APP_ID,
-                include_aliases: { external_id: staffIds },
-                target_channel: "push",
-                headings: { en: title, fr: title },
-                contents: { en: message, fr: message },
-                name: "Athlete self-planned session",
-              }),
-            });
-          } catch (pushErr) {
-            console.warn("[athlete-create-session] push warn:", pushErr);
-          }
-        }
+        // Note: pas de push OneSignal pour ce type — pastille in-app uniquement
+
       }
     } catch (notifyErr) {
       console.warn("[athlete-create-session] notify staff warn:", notifyErr);
