@@ -25,6 +25,12 @@ import { getThemeColorTokens } from "@/lib/constants/themeColors";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { BowlingSessionContent } from "@/components/bowling/BowlingSessionContent";
 import { BasketballPrecisionTracker } from "@/components/basketball/BasketballPrecisionTracker";
+import {
+  IMPLEMENT_LABELS,
+  type ImplementType,
+  getWeightOptions,
+  isThrowingBlock,
+} from "@/lib/constants/athleticsImplements";
 
 const BASKET_PRECISION_THEMES = new Set(["basketball_lf", "basketball_paint", "basketball_3pts"]);
 
@@ -48,6 +54,8 @@ interface BlockDraft {
   target_intensity?: string; // faible / moderee / elevee / tres_elevee
   volume?: string;           // court / moyen / long
   contact_charge?: string;   // aucun / faible / modere / eleve
+  throwing_implement?: string;
+  implement_weight_g?: number | null;
 }
 
 const GENERIC_THEMES = [
@@ -269,6 +277,8 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
               target_intensity: br.target_intensity || undefined,
               volume: br.volume || undefined,
               contact_charge: br.contact_charge || undefined,
+              throwing_implement: br.throwing_implement || undefined,
+              implement_weight_g: br.implement_weight_g ?? null,
             })),
           );
         }
@@ -401,6 +411,8 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         target_intensity: b.target_intensity || null,
         volume: b.volume || null,
         contact_charge: b.contact_charge || null,
+        throwing_implement: isThrowingBlock(b.theme) ? (b.throwing_implement || null) : null,
+        implement_weight_g: isThrowingBlock(b.theme) ? (b.implement_weight_g ?? null) : null,
       }));
       const { error: bErr } = await supabase.from("training_session_blocks").insert(blockRows);
       if (bErr) throw bErr;
@@ -660,6 +672,67 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                       <p className="text-[11px] text-muted-foreground italic">
                         Enregistrez la séance puis rouvrez-la pour saisir les statistiques de tir (cartographie cliquable).
                       </p>
+                    )}
+                    {/* Athlétisme - Lancers : engin + poids du matériel (alimente datas d'entraînement) */}
+                    {isThrowingBlock(b.theme) && (
+                      <div className="grid grid-cols-2 gap-2 rounded-md border border-dashed border-primary/30 bg-primary/5 p-2">
+                        <div className="space-y-1">
+                          <Label className="text-[11px] text-muted-foreground">Engin</Label>
+                          <Select
+                            value={b.throwing_implement || ""}
+                            onValueChange={(val) =>
+                              updateBlock(b.id, {
+                                throwing_implement: val || undefined,
+                                implement_weight_g: null,
+                              })
+                            }
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="Javelot, poids..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(Object.keys(IMPLEMENT_LABELS) as ImplementType[]).map((k) => (
+                                <SelectItem key={k} value={k}>{IMPLEMENT_LABELS[k]}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px] text-muted-foreground">Poids du matériel</Label>
+                          <Select
+                            value={b.implement_weight_g != null ? String(b.implement_weight_g) : ""}
+                            onValueChange={(val) =>
+                              updateBlock(b.id, { implement_weight_g: val ? parseInt(val) : null })
+                            }
+                            disabled={!b.throwing_implement}
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder={b.throwing_implement ? "Sélectionner le poids..." : "Choisir d'abord l'engin"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {b.throwing_implement &&
+                                Object.entries(
+                                  getWeightOptions(b.throwing_implement as ImplementType, null, "ALL").reduce<Record<number, string[]>>((acc, w) => {
+                                    const cat = `${w.age.charAt(0).toUpperCase() + w.age.slice(1)} ${w.gender}`;
+                                    if (!acc[w.weight_g]) acc[w.weight_g] = [];
+                                    if (!acc[w.weight_g].includes(cat)) acc[w.weight_g].push(cat);
+                                    return acc;
+                                  }, {}),
+                                )
+                                  .sort(([a], [b]) => parseInt(a) - parseInt(b))
+                                  .map(([weight, cats]) => {
+                                    const wg = parseInt(weight);
+                                    const kg = wg >= 1000 ? `${(wg / 1000).toFixed(wg % 1000 === 0 ? 0 : 2)} kg` : `${wg} g`;
+                                    return (
+                                      <SelectItem key={weight} value={weight}>
+                                        {kg} — {cats.join(", ")}
+                                      </SelectItem>
+                                    );
+                                  })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
                     )}
                     <Textarea
                       rows={2}
