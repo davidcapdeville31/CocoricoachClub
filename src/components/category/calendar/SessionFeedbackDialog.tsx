@@ -194,6 +194,13 @@ export function SessionFeedbackDialog({
   );
   const hasBowlingContent = hasBowlingGame || hasBowlingSpare;
 
+  const BASKET_PRECISION_THEMES = ["basketball_lf", "basketball_paint", "basketball_3pts"];
+  const basketPrecisionBlocks = useMemo(
+    () => sessionBlocks.filter((b: any) => BASKET_PRECISION_THEMES.includes(b.training_type)),
+    [sessionBlocks]
+  );
+  const hasBasketPrecision = basketPrecisionBlocks.length > 0;
+
   // Initialize RPE values with default duration when players load
   useEffect(() => {
     if (players && open) {
@@ -643,7 +650,7 @@ export function SessionFeedbackDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn("max-h-[95vh] flex flex-col", (isPrecisionSession || hasBowlingContent) ? "max-w-5xl w-[95vw]" : "max-w-lg")}>
+      <DialogContent className={cn("max-h-[95vh] flex flex-col", (isPrecisionSession || hasBowlingContent || hasBasketPrecision) ? "max-w-5xl w-[95vw]" : "max-w-lg")}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
@@ -669,6 +676,12 @@ export function SessionFeedbackDialog({
               <TabsTrigger value="bowling_spare" className="flex-1 gap-2">
                 <Target className="h-4 w-4" />
                 🎳 Précision
+              </TabsTrigger>
+            )}
+            {hasBasketPrecision && (
+              <TabsTrigger value="basket_precision" className="flex-1 gap-2">
+                <Target className="h-4 w-4" />
+                🏀 Précision
               </TabsTrigger>
             )}
             <TabsTrigger value="rpe" className="flex-1 gap-2">
@@ -743,6 +756,21 @@ export function SessionFeedbackDialog({
                 />
                 <p className="text-xs text-muted-foreground mt-3 italic">
                   ✅ Les données bowling sont enregistrées immédiatement et alimentent <b>Datas → Datas d'entraînement</b>.
+                </p>
+              </div>
+            </TabsContent>
+          )}
+
+          {hasBasketPrecision && session?.session_date && (
+            <TabsContent value="basket_precision" className="flex-1 flex flex-col min-h-0 mt-4">
+              <div className="flex-1 min-h-0 overflow-y-auto pr-1" style={{ maxHeight: "calc(95vh - 180px)" }}>
+                <BasketballPrecisionTracker
+                  categoryId={categoryId}
+                  trainingSessionId={sessionId}
+                  sessionDate={session.session_date}
+                />
+                <p className="text-xs text-muted-foreground mt-3 italic">
+                  ✅ Saisies enregistrées immédiatement et visibles dans <b>Datas → Datas d'entraînement</b>.
                 </p>
               </div>
             </TabsContent>
@@ -854,22 +882,34 @@ export function SessionFeedbackDialog({
         </Tabs>
 
         <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {(activeTab === "precision" || activeTab === "bowling") ? "Fermer" : "Annuler"}
-          </Button>
-          {activeTab !== "precision" && activeTab !== "bowling" && (
-            <Button
-              onClick={() => saveData.mutate()}
-              disabled={saveData.isPending || (!hasNewRpeValues && !hasTestResults && !hasWeightLogs)}
-            >
-              {saveData.isPending ? "Enregistrement..." : "Enregistrer"}
-            </Button>
-          )}
-          {(activeTab === "precision" || activeTab === "bowling") && (
-            <p className="text-xs text-muted-foreground self-center">
-              ✅ Données sauvegardées automatiquement à chaque saisie.
-            </p>
-          )}
+          {(() => {
+            const isAutoSaveTab =
+              activeTab === "precision" ||
+              activeTab === "bowling" ||
+              activeTab === "bowling_game" ||
+              activeTab === "bowling_spare" ||
+              activeTab === "basket_precision";
+            return (
+              <>
+                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                  {isAutoSaveTab ? "Fermer" : "Annuler"}
+                </Button>
+                {!isAutoSaveTab && (
+                  <Button
+                    onClick={() => saveData.mutate()}
+                    disabled={saveData.isPending || (!hasNewRpeValues && !hasTestResults && !hasWeightLogs)}
+                  >
+                    {saveData.isPending ? "Enregistrement..." : "Enregistrer"}
+                  </Button>
+                )}
+                {isAutoSaveTab && (
+                  <p className="text-xs text-muted-foreground self-center">
+                    ✅ Données sauvegardées automatiquement à chaque saisie.
+                  </p>
+                )}
+              </>
+            );
+          })()}
         </div>
       </DialogContent>
     </Dialog>
