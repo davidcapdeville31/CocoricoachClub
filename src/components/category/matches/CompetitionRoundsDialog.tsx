@@ -1987,13 +1987,101 @@ export function CompetitionRoundsDialog({
                             <div className="grid grid-cols-2 gap-3">
                               <div>
                                 <Label className="text-xs">Adversaire</Label>
-                                <Input
-                                  value={round.opponent_name}
-                                  onChange={(e) => updateRound(selectedPlayer.entryKey, round.round_number, { opponent_name: e.target.value })}
-                                  placeholder="Nom de l'adversaire"
-                                  className="h-8"
-                                  disabled={round.isLocked}
-                                />
+                                {isJudo ? (
+                                  (() => {
+                                    const allOpps = opponentProfiles || [];
+                                    const playerGender = selectedPlayer.playerGender;
+                                    const playerWeight = selectedPlayer.playerWeightCategory;
+                                    const matchesAthlete = (o: any) =>
+                                      (!playerGender || !o.gender || o.gender === playerGender) &&
+                                      (!playerWeight || !o.weight_category || o.weight_category === playerWeight);
+                                    const matched = allOpps.filter(matchesAthlete);
+                                    const others = allOpps.filter((o) => !matchesAthlete(o));
+                                    const fmt = (o: any) =>
+                                      `${o.last_name}${o.first_name ? " " + o.first_name : ""}` +
+                                      (o.weight_category ? ` (${o.weight_category.replace(/^judo_/, "")})` : "") +
+                                      (o.handedness === "left" ? " G" : o.handedness === "right" ? " D" : "");
+                                    return (
+                                      <div className="flex gap-1.5">
+                                        <Select
+                                          value={round.opponent_profile_id || "__manual__"}
+                                          onValueChange={(v) => {
+                                            if (v === "__manual__") {
+                                              updateRound(selectedPlayer.entryKey, round.round_number, {
+                                                opponent_profile_id: null,
+                                              });
+                                            } else {
+                                              const op = allOpps.find((o) => o.id === v);
+                                              if (op) {
+                                                updateRound(selectedPlayer.entryKey, round.round_number, {
+                                                  opponent_profile_id: op.id,
+                                                  opponent_name: `${op.last_name}${op.first_name ? " " + op.first_name : ""}`,
+                                                });
+                                              }
+                                            }
+                                          }}
+                                          disabled={round.isLocked}
+                                        >
+                                          <SelectTrigger className="h-8 flex-1">
+                                            <SelectValue placeholder="Choisir un adversaire" />
+                                          </SelectTrigger>
+                                          <SelectContent className="z-[200] max-h-[300px]">
+                                            <SelectItem value="__manual__">— Saisie libre —</SelectItem>
+                                            {matched.length > 0 && (
+                                              <>
+                                                <div className="px-2 py-1 text-[10px] font-bold uppercase text-muted-foreground">
+                                                  Catégorie de l'athlète
+                                                </div>
+                                                {matched.map((o) => (
+                                                  <SelectItem key={o.id} value={o.id}>
+                                                    {fmt(o)}
+                                                  </SelectItem>
+                                                ))}
+                                              </>
+                                            )}
+                                            {others.length > 0 && (
+                                              <>
+                                                <div className="px-2 py-1 text-[10px] font-bold uppercase text-muted-foreground">
+                                                  Autres
+                                                </div>
+                                                {others.map((o) => (
+                                                  <SelectItem key={o.id} value={o.id}>
+                                                    {fmt(o)}
+                                                  </SelectItem>
+                                                ))}
+                                              </>
+                                            )}
+                                            {allOpps.length === 0 && (
+                                              <div className="px-2 py-2 text-xs text-muted-foreground">
+                                                Aucun profil. Allez dans Compétitions → Profils adversaires.
+                                              </div>
+                                            )}
+                                          </SelectContent>
+                                        </Select>
+                                        <Input
+                                          value={round.opponent_name}
+                                          onChange={(e) =>
+                                            updateRound(selectedPlayer.entryKey, round.round_number, {
+                                              opponent_name: e.target.value,
+                                              opponent_profile_id: null,
+                                            })
+                                          }
+                                          placeholder="Nom"
+                                          className="h-8 w-[110px]"
+                                          disabled={round.isLocked}
+                                        />
+                                      </div>
+                                    );
+                                  })()
+                                ) : (
+                                  <Input
+                                    value={round.opponent_name}
+                                    onChange={(e) => updateRound(selectedPlayer.entryKey, round.round_number, { opponent_name: e.target.value })}
+                                    placeholder="Nom de l'adversaire"
+                                    className="h-8"
+                                    disabled={round.isLocked}
+                                  />
+                                )}
                               </div>
                               <div>
                                 <Label className="text-xs">Résultat</Label>
