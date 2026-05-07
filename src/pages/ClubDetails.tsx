@@ -99,7 +99,7 @@ function ClubDetailsContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="bg-background py-6 sm:py-8 px-4 border-b border-border">
+      <div className="bg-background pt-[max(env(safe-area-inset-top),1.5rem)] pb-6 sm:pb-8 px-4 border-b border-border">
         <div className="container mx-auto max-w-6xl">
           <div className="flex justify-between items-start gap-2 mb-4 flex-wrap">
             <Button
