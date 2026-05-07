@@ -15,7 +15,7 @@ const isPreviewHost = () => {
   );
 };
 
-const CHECK_INTERVAL_MS = 5 * 60 * 1000; // toutes les 5 min
+const CHECK_INTERVAL_MS = 30 * 1000; // toutes les 30s
 
 const PWAUpdatePrompt = () => {
   const swDisabled = isPreviewHost();
