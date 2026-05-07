@@ -58,6 +58,7 @@ import {
   mapSprintToPair,
   type AthleticsRecordLite,
 } from "@/lib/athletics/pbDelta";
+import { practicesAny, type AthleticsGroup } from "@/lib/athletics/athleteDisciplines";
 
 interface Props {
   categoryId: string;
