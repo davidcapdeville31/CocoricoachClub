@@ -30,6 +30,7 @@ interface NotifyAthletesDialogProps {
   athletes: Athlete[];
   eventType: "session" | "match" | "event" | "custom";
   defaultSubject?: string;
+  categoryId?: string;
   eventDetails?: {
     date?: string;
     time?: string;
@@ -43,6 +44,7 @@ export function NotifyAthletesDialog({
   athletes,
   eventType,
   defaultSubject = "",
+  categoryId,
   eventDetails,
 }: NotifyAthletesDialogProps) {
   const [subject, setSubject] = useState(defaultSubject);
@@ -88,6 +90,7 @@ export function NotifyAthletesDialog({
           channels,
           eventType,
           eventDetails,
+          category_id: categoryId,
         },
       });
 
