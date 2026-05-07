@@ -657,7 +657,7 @@ function DimensionBlock({
                   {labelFor(it.value)}
                   {specialtyLabel ? ` · ${specialtyLabel}` : ""}
                 </span>
-                {!it.is_primary && (
+                {!it.is_primary && config.dimension !== "discipline" && (
                   <Input
                     type="number"
                     min={0}
