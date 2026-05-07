@@ -37,6 +37,7 @@ interface CalendarTabProps {
 }
 
 export function CalendarTab({ categoryId }: CalendarTabProps) {
+  const athleteSessionsBadge = useUnreadAthleteSessionsCount(categoryId);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [addSessionDate, setAddSessionDate] = useState<string | undefined>();
   const [isAddMatchDialogOpen, setIsAddMatchDialogOpen] = useState(false);
