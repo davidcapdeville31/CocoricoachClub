@@ -88,10 +88,12 @@ const PlayerDetailsWithAuth = () => (
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 60 * 24, // 24 hours (formerly cacheTime)
+      staleTime: 0, // toujours considéré stale → refetch dès focus/reconnect
+      gcTime: 1000 * 60 * 60 * 24, // 24 hours
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
+      refetchOnMount: true,
       retry: (failureCount, error) => {
-        // Don't retry if offline
         if (!navigator.onLine) return false;
         return failureCount < 3;
       },
