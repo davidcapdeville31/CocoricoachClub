@@ -35,6 +35,10 @@ const handLabel = (h?: string | null) =>
   h === "left" ? "Gaucher" : h === "right" ? "Droitier" : h === "ambidextrous" ? "Ambidextre" : "—";
 const genderLabel = (g?: string | null) =>
   g === "male" ? "H" : g === "female" ? "F" : g === "other" ? "Autre" : "—";
+const styleLabel = (s?: string | null) =>
+  s === "offensive" ? "Offensif" : s === "defensive" ? "Défensif" : s === "balanced" ? "Équilibré" : "—";
+const styleVariant = (s?: string | null) =>
+  s === "offensive" ? "destructive" : s === "defensive" ? "secondary" : s === "balanced" ? "default" : "outline";
 
 export function JudoOpponentsTab({ categoryId }: Props) {
   const qc = useQueryClient();
