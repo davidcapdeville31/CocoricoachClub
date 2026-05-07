@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { RugbyFieldSVG } from "@/components/rugby/RugbyFieldSVG";
 import { BUTEUR_EXERCISES, EXERCISE_CATEGORIES } from "@/lib/constants/rugbyPrecisionExercises";
+import { BASKETBALL_PRECISION_EXERCISES } from "@/lib/constants/basketballPrecisionExercises";
+import { BasketballHalfCourtSVG, type BasketCourtPoint } from "@/components/basketball/BasketballHalfCourtSVG";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -390,6 +392,34 @@ export function PrecisionTrainingStats({ categoryId, lockedPlayerId }: Precision
     });
     return Array.from(map.values());
   }, [filtered]);
+
+  // Basketball precision: aggregate per exercise + zone
+  const basketLabelToExercise = useMemo(() => {
+    const m = new Map<string, typeof BASKETBALL_PRECISION_EXERCISES[number]>();
+    BASKETBALL_PRECISION_EXERCISES.forEach((ex) => m.set(ex.label, ex));
+    return m;
+  }, []);
+  const basketCourtData = useMemo(() => {
+    const aggMap = new Map<string, Map<string, BasketCourtPoint>>();
+    filtered.forEach((e: any) => {
+      if (e.zone_x == null || e.zone_y == null) return;
+      const ex = basketLabelToExercise.get(e.exercise_label);
+      if (!ex) return;
+      const sx = Math.round(Number(e.zone_x) / 5) * 5;
+      const sy = Math.round(Number(e.zone_y) / 5) * 5;
+      const zoneKey = `${sx}-${sy}`;
+      if (!aggMap.has(ex.value)) aggMap.set(ex.value, new Map());
+      const inner = aggMap.get(ex.value)!;
+      const prev = inner.get(zoneKey) || { x: sx, y: sy, attempts: 0, successes: 0 };
+      prev.attempts += e.attempts || 0;
+      prev.successes += e.successes || 0;
+      inner.set(zoneKey, prev);
+    });
+    return Array.from(aggMap.entries()).map(([exValue, inner]) => ({
+      exercise: BASKETBALL_PRECISION_EXERCISES.find((x) => x.value === exValue)!,
+      points: Array.from(inner.values()),
+    }));
+  }, [filtered, basketLabelToExercise]);
 
   const hasZoneData = filtered.some((e: any) => e.zone_x != null && e.zone_y != null);
 
@@ -1340,6 +1370,40 @@ export function PrecisionTrainingStats({ categoryId, lockedPlayerId }: Precision
       )}
 
       {/* Buteur kick mapping visual */}
+      {/* Basketball precision shooting maps (one per thématique) */}
+      {basketCourtData.length > 0 && (
+        <Card className="bg-gradient-card shadow-md">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              🏀 Cartographie des tirs (Basket)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={cn("grid gap-4", basketCourtData.length > 1 ? "md:grid-cols-2" : "")}>
+              {basketCourtData.map(({ exercise, points }) => {
+                const totalAttempts = points.reduce((s, p) => s + p.attempts, 0);
+                const totalSuccesses = points.reduce((s, p) => s + p.successes, 0);
+                const rate = totalAttempts > 0 ? Math.round((totalSuccesses / totalAttempts) * 100) : 0;
+                return (
+                  <div key={exercise.value} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">{exercise.label}</p>
+                      <Badge variant="secondary">
+                        {totalSuccesses}/{totalAttempts} • {rate}%
+                      </Badge>
+                    </div>
+                    <BasketballHalfCourtSVG exercise={exercise} points={points} readOnly />
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              Vert ≥ 70% • Orange 40-69% • Rouge &lt; 40%
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {kickFieldEntries.length > 0 && (
         <Card className="bg-gradient-card shadow-md">
           <CardHeader className="pb-2">
