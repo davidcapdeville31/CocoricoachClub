@@ -298,22 +298,32 @@ export function CreateTrainingProgramV2({
       toast.success(`« ${data.exercise.exercise_name} » ajouté au slot`);
       return;
     }
+    // Helper : retrouve le vrai blockId à partir d'un dayId qui peut être
+    // soit `block.id`, soit `${block.id}-${groupId}` (groupId contient des dashes).
+    const resolveBlockId = (raw: string | undefined): string | null => {
+      if (!raw) return null;
+      const day = currentDayRef.current;
+      const allBlockIds = day?.blocks?.map((b) => b.id) ?? [];
+      // exact match
+      if (allBlockIds.includes(raw)) return raw;
+      // prefix match (longest first)
+      const sorted = [...allBlockIds].sort((a, b) => b.length - a.length);
+      for (const bid of sorted) {
+        if (raw === bid || raw.startsWith(`${bid}-`)) return bid;
+      }
+      return null;
+    };
     // Drop sur un slot de phase (AMRAP, For Time, Circuit, EMOM, Tabata, Death By)
-    // ID format : `method-phase-slot-${blockId}-${idx}` ou `method-phase-slot-${blockId}-${groupId}-${idx}`
     if (overData?.type === "method-phase-slot") {
       const m = overId.match(/^method-phase-slot-(.+)-(\d+)$/);
-      const blockId = m?.[1]?.split("-")[0] ? m[1] : null;
-      const slotIndex = m ? parseInt(m[2], 10) : NaN;
-      // dayId in MethodConfigSlots is either blockId or `${blockId}-${groupId}` — extract the leading uuid
-      const rawBlockId = m?.[1];
-      // try full match first, then fallback to first uuid segment
-      const tryBlockIds = rawBlockId ? [rawBlockId, rawBlockId.split("-").slice(0, 5).join("-")] : [];
-      for (const bid of tryBlockIds) {
-        const ok = handle.insertExternalExerciseAtSlot(bid, slotIndex, {
-          id: data.exercise.id,
-          name: data.exercise.exercise_name,
-        });
-        if (ok) {
+      if (m) {
+        const blockId = resolveBlockId(m[1]);
+        const slotIndex = parseInt(m[2], 10);
+        if (blockId && !Number.isNaN(slotIndex)) {
+          handle.insertExternalExerciseAtSlot(blockId, slotIndex, {
+            id: data.exercise.id,
+            name: data.exercise.exercise_name,
+          });
           toast.success(`« ${data.exercise.exercise_name} » ajouté au slot`);
           return;
         }
@@ -323,19 +333,13 @@ export function CreateTrainingProgramV2({
     // Drop sur un slot de méthode "config" simple (drop set, pyramide, rest-pause...)
     if (overData?.type === "method-config-slot") {
       const m = overId.match(/^method-config-slot-(.+)$/);
-      const rawBlockId = m?.[1];
-      if (rawBlockId) {
-        const tryBlockIds = [rawBlockId, rawBlockId.split("-").slice(0, 5).join("-")];
-        for (const bid of tryBlockIds) {
-          const ok = handle.insertExternalExercise(bid, {
-            id: data.exercise.id,
-            name: data.exercise.exercise_name,
-          });
-          if (ok) {
-            toast.success(`« ${data.exercise.exercise_name} » ajouté`);
-            return;
-          }
-        }
+      const blockId = resolveBlockId(m?.[1]);
+      if (blockId) {
+        handle.insertExternalExercise(blockId, {
+          id: data.exercise.id,
+          name: data.exercise.exercise_name,
+        });
+        toast.success(`« ${data.exercise.exercise_name} » ajouté`);
       }
       return;
     }
