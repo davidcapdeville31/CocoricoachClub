@@ -169,6 +169,20 @@ export function OpponentProfileDialog({ open, onOpenChange, clubId, categoryId, 
             </Select>
           </div>
           <div className="space-y-1.5">
+            <Label>Profil de combat</Label>
+            <Select
+              value={form.fighting_style || ""}
+              onValueChange={(v) => setForm({ ...form, fighting_style: (v || null) as any })}
+            >
+              <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="offensive">Offensif</SelectItem>
+                <SelectItem value="defensive">Défensif</SelectItem>
+                <SelectItem value="balanced">Équilibré</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
             <Label>Année de naissance</Label>
             <Input
               type="number"
