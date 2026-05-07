@@ -537,10 +537,29 @@ function ThrowingAttemptDialog({ categoryId, players, blocks, onClose }: DialogP
 
       const { error } = await supabase.from("athletics_throwing_attempts").insert(rows as any);
       if (error) throw error;
+
+      // Sync PB/SB depuis l'entraînement (athlétisme uniquement)
+      try {
+        const { syncRecordsFromThrowingAttempts } = await import("@/lib/athletics/syncRecordsFromTraining");
+        await syncRecordsFromThrowingAttempts({
+          categoryId,
+          playerId,
+          sessionDate,
+          attempts: rows.map((r) => ({
+            implement: r.implement,
+            distance_m: r.distance_m,
+            is_valid: r.is_valid,
+          })),
+        });
+      } catch (e) {
+        console.warn("[athletics] sync PB/SB lancers échoué:", e);
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["throwing-attempts", categoryId] });
       qc.invalidateQueries({ queryKey: ["throwing-blocks", categoryId] });
+      qc.invalidateQueries({ queryKey: ["athletics_records_matrix", categoryId] });
+      qc.invalidateQueries({ queryKey: ["athletics_records", categoryId] });
       toast.success("Essais enregistrés");
       onClose();
     },
