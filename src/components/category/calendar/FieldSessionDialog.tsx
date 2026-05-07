@@ -673,6 +673,67 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                         Enregistrez la séance puis rouvrez-la pour saisir les statistiques de tir (cartographie cliquable).
                       </p>
                     )}
+                    {/* Athlétisme - Lancers : engin + poids du matériel (alimente datas d'entraînement) */}
+                    {isThrowingBlock(b.theme) && (
+                      <div className="grid grid-cols-2 gap-2 rounded-md border border-dashed border-primary/30 bg-primary/5 p-2">
+                        <div className="space-y-1">
+                          <Label className="text-[11px] text-muted-foreground">Engin</Label>
+                          <Select
+                            value={b.throwing_implement || ""}
+                            onValueChange={(val) =>
+                              updateBlock(b.id, {
+                                throwing_implement: val || undefined,
+                                implement_weight_g: null,
+                              })
+                            }
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="Javelot, poids..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(Object.keys(IMPLEMENT_LABELS) as ImplementType[]).map((k) => (
+                                <SelectItem key={k} value={k}>{IMPLEMENT_LABELS[k]}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px] text-muted-foreground">Poids du matériel</Label>
+                          <Select
+                            value={b.implement_weight_g != null ? String(b.implement_weight_g) : ""}
+                            onValueChange={(val) =>
+                              updateBlock(b.id, { implement_weight_g: val ? parseInt(val) : null })
+                            }
+                            disabled={!b.throwing_implement}
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder={b.throwing_implement ? "Sélectionner le poids..." : "Choisir d'abord l'engin"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {b.throwing_implement &&
+                                Object.entries(
+                                  getWeightOptions(b.throwing_implement as ImplementType, null, "ALL").reduce<Record<number, string[]>>((acc, w) => {
+                                    const cat = `${w.age.charAt(0).toUpperCase() + w.age.slice(1)} ${w.gender}`;
+                                    if (!acc[w.weight_g]) acc[w.weight_g] = [];
+                                    if (!acc[w.weight_g].includes(cat)) acc[w.weight_g].push(cat);
+                                    return acc;
+                                  }, {}),
+                                )
+                                  .sort(([a], [b]) => parseInt(a) - parseInt(b))
+                                  .map(([weight, cats]) => {
+                                    const wg = parseInt(weight);
+                                    const kg = wg >= 1000 ? `${(wg / 1000).toFixed(wg % 1000 === 0 ? 0 : 2)} kg` : `${wg} g`;
+                                    return (
+                                      <SelectItem key={weight} value={weight}>
+                                        {kg} — {cats.join(", ")}
+                                      </SelectItem>
+                                    );
+                                  })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
                     <Textarea
                       rows={2}
                       placeholder="Détail / consignes (optionnel)"
