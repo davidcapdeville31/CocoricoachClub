@@ -227,6 +227,26 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
     return Array.from(s).sort((a, b) => a - b);
   }, [attempts]);
 
+  // Moyennes par engin + poids (pour l'athlète sélectionné, sinon tous)
+  const perImplementStats = useMemo(() => {
+    const map: Record<string, { implement: string; weight_g: number | null; total: number; valid: number; sum: number; best: number }> = {};
+    filtered.forEach((a) => {
+      const key = `${a.implement}__${a.implement_weight_g ?? "x"}`;
+      if (!map[key]) {
+        map[key] = { implement: a.implement, weight_g: a.implement_weight_g, total: 0, valid: 0, sum: 0, best: 0 };
+      }
+      map[key].total += 1;
+      if (a.is_valid && a.distance_m != null) {
+        map[key].valid += 1;
+        map[key].sum += Number(a.distance_m);
+        map[key].best = Math.max(map[key].best, Number(a.distance_m));
+      }
+    });
+    return Object.values(map)
+      .map((r) => ({ ...r, avg: r.valid > 0 ? r.sum / r.valid : 0 }))
+      .sort((a, b) => (a.implement + (a.weight_g ?? 0)).localeCompare(b.implement + (b.weight_g ?? 0)));
+  }, [filtered]);
+
   // Delete
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
