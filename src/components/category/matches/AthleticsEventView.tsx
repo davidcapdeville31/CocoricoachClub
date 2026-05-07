@@ -71,6 +71,10 @@ interface AthleteResultRow {
   temperature: number | null;
   isPR: boolean;
   raceCount: number;
+  /** Moyenne des essais valides (lancers/sauts uniquement). */
+  avgAttempt: number | null;
+  /** Nombre d'essais valides agrégés sur la compétition. */
+  attemptCount: number;
 }
 
 export function AthleticsEventView({ categoryId, matchIds }: Props) {
