@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -58,6 +58,11 @@ export function BasketballTrainingEntryDialog({
   const [attempts, setAttempts] = useState("10");
   const [successes, setSuccesses] = useState("0");
   const [submitting, setSubmitting] = useState(false);
+
+  // Sync date when dialog reopens with a different default (e.g. another day clicked)
+  useEffect(() => {
+    if (open && defaultDate) setSessionDate(defaultDate);
+  }, [open, defaultDate]);
 
   const exercise = getBasketballExerciseByValue(exerciseValue)!;
 
