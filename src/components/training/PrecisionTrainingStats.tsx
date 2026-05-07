@@ -393,6 +393,34 @@ export function PrecisionTrainingStats({ categoryId, lockedPlayerId }: Precision
     return Array.from(map.values());
   }, [filtered]);
 
+  // Basketball precision: aggregate per exercise + zone
+  const basketLabelToExercise = useMemo(() => {
+    const m = new Map<string, typeof BASKETBALL_PRECISION_EXERCISES[number]>();
+    BASKETBALL_PRECISION_EXERCISES.forEach((ex) => m.set(ex.label, ex));
+    return m;
+  }, []);
+  const basketCourtData = useMemo(() => {
+    const aggMap = new Map<string, Map<string, BasketCourtPoint>>();
+    filtered.forEach((e: any) => {
+      if (e.zone_x == null || e.zone_y == null) return;
+      const ex = basketLabelToExercise.get(e.exercise_label);
+      if (!ex) return;
+      const sx = Math.round(Number(e.zone_x) / 5) * 5;
+      const sy = Math.round(Number(e.zone_y) / 5) * 5;
+      const zoneKey = `${sx}-${sy}`;
+      if (!aggMap.has(ex.value)) aggMap.set(ex.value, new Map());
+      const inner = aggMap.get(ex.value)!;
+      const prev = inner.get(zoneKey) || { x: sx, y: sy, attempts: 0, successes: 0 };
+      prev.attempts += e.attempts || 0;
+      prev.successes += e.successes || 0;
+      inner.set(zoneKey, prev);
+    });
+    return Array.from(aggMap.entries()).map(([exValue, inner]) => ({
+      exercise: BASKETBALL_PRECISION_EXERCISES.find((x) => x.value === exValue)!,
+      points: Array.from(inner.values()),
+    }));
+  }, [filtered, basketLabelToExercise]);
+
   const hasZoneData = filtered.some((e: any) => e.zone_x != null && e.zone_y != null);
 
   // PDF drawing helpers
