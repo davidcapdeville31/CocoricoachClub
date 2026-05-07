@@ -126,7 +126,7 @@ export function MatchNotifyDialog({
       }
 
       const results: { emailsSent: number; pushSent: number } = { emailsSent: 0, pushSent: 0 };
-      const subject = isIndividual ? "Convocation compétition" : `Convocation match vs ${match.opponent}`;
+      const subject = isIndividual ? "Convocation competition" : `Convocation - ${match.opponent}`;
       const eventDetails = {
         date: format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: fr }),
         time: match.match_time ? match.match_time.substring(0, 5) : undefined,
@@ -165,6 +165,7 @@ export function MatchNotifyDialog({
               channels: ["email"],
               eventType: "match",
               eventDetails,
+              category_id: categoryId,
             },
           });
 

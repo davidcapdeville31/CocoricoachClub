@@ -201,7 +201,7 @@ export function useSessionNotifications() {
         // keep raw date
       }
 
-      const title = `${emoji} ${label}`;
+      const title = label;
       let message = `${typeLabel} — ${dateLabel}`;
       if (sessionStartTime) message += ` à ${sessionStartTime.substring(0, 5)}`;
       if (action === "cancelled") message += "\nCette séance a été annulée.";
@@ -331,6 +331,7 @@ export function useSessionNotifications() {
                 message,
                 channels: ["email"],
                 eventType: emailEventType,
+                category_id: categoryId,
                 eventDetails: {
                   date: dateLabel,
                   ...(sessionStartTime ? { time: sessionStartTime.substring(0, 5) } : {}),
