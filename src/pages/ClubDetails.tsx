@@ -104,7 +104,7 @@ function ClubDetailsContent() {
           <div className="flex justify-between items-start gap-2 mb-4 flex-wrap">
             <Button
               variant="ghost"
-              onClick={() => navigate("/clubs")}
+              onClick={() => navigate("/")}
               className="text-[#ED2939] hover:bg-[#ED2939]/10 shrink-0"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
