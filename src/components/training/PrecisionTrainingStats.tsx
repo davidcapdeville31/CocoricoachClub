@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { RugbyFieldSVG } from "@/components/rugby/RugbyFieldSVG";
 import { BUTEUR_EXERCISES, EXERCISE_CATEGORIES } from "@/lib/constants/rugbyPrecisionExercises";
+import { BASKETBALL_PRECISION_EXERCISES } from "@/lib/constants/basketballPrecisionExercises";
+import { BasketballHalfCourtSVG, type BasketCourtPoint } from "@/components/basketball/BasketballHalfCourtSVG";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
