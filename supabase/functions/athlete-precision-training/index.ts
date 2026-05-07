@@ -199,29 +199,8 @@ serve(async (req) => {
           }));
           await supabase.from("notifications").insert(records);
 
-          const ONESIGNAL_APP_ID = Deno.env.get("ONESIGNAL_APP_ID");
-          const ONESIGNAL_REST_API_KEY = Deno.env.get("ONESIGNAL_REST_API_KEY");
-          if (ONESIGNAL_APP_ID && ONESIGNAL_REST_API_KEY) {
-            try {
-              await fetch("https://api.onesignal.com/notifications", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Key ${ONESIGNAL_REST_API_KEY}`,
-                },
-                body: JSON.stringify({
-                  app_id: ONESIGNAL_APP_ID,
-                  include_aliases: { external_id: staffIds },
-                  target_channel: "push",
-                  headings: { en: title, fr: title },
-                  contents: { en: message, fr: message },
-                  name: "Athlete self-planned precision session",
-                }),
-              });
-            } catch (pushErr) {
-              console.warn("[athlete-precision-training] push warn:", pushErr);
-            }
-          }
+          // Note: pas de push OneSignal pour ce type — pastille in-app uniquement
+
         }
       } catch (notifyErr) {
         console.warn("[athlete-precision-training] notify staff warn:", notifyErr);
