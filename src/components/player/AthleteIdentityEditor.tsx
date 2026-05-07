@@ -27,7 +27,9 @@ import {
   ATHLETISME_DISCIPLINES,
   ATHLETISME_SPECIALTIES,
   isAthletismeCategory,
+  isJudoCategory,
   isTeamSport,
+  JUDO_WEIGHT_CATEGORIES,
 } from "@/lib/constants/sportTypes";
 import { getPositionsForSport } from "@/lib/constants/sportPositions";
 import { getAgeCategoriesForSport, getAgeCategoryLabel } from "@/lib/constants/ageCategories";
@@ -102,6 +104,9 @@ const STYLES_BY_SPORT: Record<string, { value: string; label: string }[]> = {
     { value: "polyvalent", label: "Polyvalent" },
   ],
   judo: [
+    { value: "offensif", label: "Profil offensif" },
+    { value: "defensif", label: "Profil défensif" },
+    { value: "equilibre", label: "Profil équilibré" },
     { value: "tachi_waza", label: "Tachi-waza (debout)" },
     { value: "ne_waza", label: "Ne-waza (sol)" },
     { value: "migi", label: "Garde droite (migi)" },
@@ -185,6 +190,36 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
   });
 
   const isAthletics = isAthletismeCategory(sportType);
+
+  const isJudo = isJudoCategory(sportType);
+
+  const { data: judoWeight } = useQuery({
+    queryKey: ["player-judo-weight", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("discipline")
+        .eq("id", playerId)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as any)?.discipline ?? null;
+    },
+    enabled: !!playerId && isJudo,
+  });
+  const updateJudoWeight = useMutation({
+    mutationFn: async (val: string | null) => {
+      const { error } = await supabase
+        .from("players")
+        .update({ discipline: val } as any)
+        .eq("id", playerId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["player-judo-weight", playerId] });
+      toast.success("Catégorie de poids enregistrée");
+    },
+    onError: (e: any) => toast.error("Erreur : " + e.message),
+  });
 
   const age = computeAge(playerCore?.birth_date ?? null, playerCore?.birth_year ?? null);
   const gInfo = genderInfo(playerCore?.gender ?? null);
@@ -380,6 +415,28 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
           )}
         </div>
       </div>
+
+      {isJudo && (
+        <div className="rounded-xl border bg-background/60 p-3 space-y-2">
+          <Label className="text-sm font-semibold">Catégorie de poids (judo)</Label>
+          <Select
+            value={judoWeight ?? ""}
+            onValueChange={(v) => updateJudoWeight.mutate(v || null)}
+          >
+            <SelectTrigger className="w-full bg-background">
+              <SelectValue placeholder="Sélectionner une catégorie de poids" />
+            </SelectTrigger>
+            <SelectContent className="bg-background border z-[200] max-h-[300px]">
+              {JUDO_WEIGHT_CATEGORIES.map((c) => (
+                <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Utilisée pour les filtres, les comparaisons et la sélection automatique des adversaires.
+          </p>
+        </div>
+      )}
 
       {isRugby && (
         <div className="rounded-xl border bg-background/60 p-3 flex items-start gap-3">
