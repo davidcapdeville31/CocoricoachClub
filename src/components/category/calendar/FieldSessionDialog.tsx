@@ -24,6 +24,9 @@ import {
 import { getThemeColorTokens } from "@/lib/constants/themeColors";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { BowlingSessionContent } from "@/components/bowling/BowlingSessionContent";
+import { BasketballPrecisionTracker } from "@/components/basketball/BasketballPrecisionTracker";
+
+const BASKET_PRECISION_THEMES = new Set(["basketball_lf", "basketball_paint", "basketball_3pts"]);
 
 interface FieldSessionDialogProps {
   open: boolean;
