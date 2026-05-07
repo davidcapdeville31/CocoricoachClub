@@ -390,6 +390,36 @@ export function CompetitionRoundsDialog({
     enabled: !!matchId,
   });
 
+  // Get club_id of this category (for opponent profiles lookup)
+  const { data: categoryRow } = useQuery({
+    queryKey: ["category-club", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("club_id")
+        .eq("id", categoryId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!categoryId && isJudo,
+  });
+
+  const { data: opponentProfiles } = useQuery({
+    queryKey: ["opponent-profiles", categoryRow?.club_id],
+    queryFn: async () => {
+      if (!categoryRow?.club_id) return [];
+      const { data, error } = await supabase
+        .from("opponent_profiles")
+        .select("id, last_name, first_name, gender, weight_category, handedness, club_origin")
+        .eq("club_id", categoryRow.club_id)
+        .order("last_name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!categoryRow?.club_id && isJudo,
+  });
+
   // Initialize data only once when lineup and existingRounds are loaded
   useEffect(() => {
     if (isDataInitialized) return;
