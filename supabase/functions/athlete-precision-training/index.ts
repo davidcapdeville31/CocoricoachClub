@@ -123,6 +123,32 @@ serve(async (req) => {
       .single();
 
     if (error) throw error;
+
+    // Auto-créer une training_sessions liée pour que le staff voie la séance
+    // dans le calendrier (vignette violette = créée par l'athlète).
+    try {
+      const { data: existingSession } = await supabase
+        .from("training_sessions")
+        .select("id")
+        .eq("category_id", category_id)
+        .eq("session_date", session_date)
+        .eq("created_by_player_id", player_id)
+        .eq("training_type", "precision")
+        .maybeSingle();
+
+      if (!existingSession) {
+        await supabase.from("training_sessions").insert({
+          category_id,
+          session_date,
+          training_type: "precision",
+          created_by_player_id: player_id,
+          notes: `[Séance athlète] Précision - ${exercise_label}`,
+        });
+      }
+    } catch (sessionErr) {
+      console.warn("[athlete-precision-training] auto-session warn:", sessionErr);
+    }
+
     return respond({ success: true, id: data.id });
   } catch (err: unknown) {
     const e = err as { message?: string };
