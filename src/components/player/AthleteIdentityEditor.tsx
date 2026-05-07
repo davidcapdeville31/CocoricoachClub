@@ -416,6 +416,28 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
         </div>
       </div>
 
+      {isJudo && (
+        <div className="rounded-xl border bg-background/60 p-3 space-y-2">
+          <Label className="text-sm font-semibold">Catégorie de poids (judo)</Label>
+          <Select
+            value={judoWeight ?? ""}
+            onValueChange={(v) => updateJudoWeight.mutate(v || null)}
+          >
+            <SelectTrigger className="w-full bg-background">
+              <SelectValue placeholder="Sélectionner une catégorie de poids" />
+            </SelectTrigger>
+            <SelectContent className="bg-background border z-[200] max-h-[300px]">
+              {JUDO_WEIGHT_CATEGORIES.map((c) => (
+                <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Utilisée pour les filtres, les comparaisons et la sélection automatique des adversaires.
+          </p>
+        </div>
+      )}
+
       {isRugby && (
         <div className="rounded-xl border bg-background/60 p-3 flex items-start gap-3">
           <Checkbox
