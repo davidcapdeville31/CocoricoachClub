@@ -265,6 +265,10 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
       }
     });
 
+    // Détecte si c'est une épreuve "field" : lancers ou sauts (essais agrégeables)
+    const isFieldEvent = !lowerIsBetter; // toutes les épreuves "plus c'est haut/loin mieux c'est"
+    const ATTEMPT_KEYS = ["attempt1", "attempt2", "attempt3", "attempt4", "attempt5", "attempt6"];
+
     const results: AthleteResultRow[] = [];
     Object.entries(byPair).forEach(([k, rs]) => {
       const [pid, mid] = k.split("|");
@@ -279,6 +283,7 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
       let finalRank: number | null = null;
       let finalPhase: string | null = null;
       let isPR = false;
+      const attemptValues: number[] = [];
       rs.forEach((r, idx) => {
         const { value } = extractResult(r, lowerIsBetter);
         if (value != null) {
@@ -295,7 +300,20 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
           }
         }
         if (r.is_personal_record) isPR = true;
+
+        // Collecte les essais individuels (lancers / sauts) pour la moyenne
+        if (isFieldEvent) {
+          const sd = r.competition_round_stats?.[0]?.stat_data || {};
+          ATTEMPT_KEYS.forEach((k) => {
+            const v = Number((sd as any)[k]);
+            if (Number.isFinite(v) && v > 0) attemptValues.push(v);
+          });
+        }
       });
+
+      const avgAttempt = attemptValues.length > 0
+        ? attemptValues.reduce((s, v) => s + v, 0) / attemptValues.length
+        : null;
 
       const weatherSource = bestRoundIdx >= 0
         ? rs[bestRoundIdx]
@@ -318,6 +336,8 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
         temperature: weatherSource?.temperature_celsius ?? null,
         isPR,
         raceCount: rs.length,
+        avgAttempt,
+        attemptCount: attemptValues.length,
       });
     });
 
