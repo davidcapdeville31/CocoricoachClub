@@ -134,12 +134,13 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
   // Filter
   const filtered = useMemo(() => {
     return attempts.filter((a) => {
+      if (!allowedPlayerIds.has(a.player_id)) return false;
       if (filterPlayer !== "all" && a.player_id !== filterPlayer) return false;
       if (filterImplement !== "all" && a.implement !== filterImplement) return false;
       if (filterWeight !== "all" && String(a.implement_weight_g) !== filterWeight) return false;
       return true;
     });
-  }, [attempts, filterPlayer, filterImplement, filterWeight]);
+  }, [attempts, allowedPlayerIds, filterPlayer, filterImplement, filterWeight]);
 
   // KPI: best throw, average, total attempts
   const kpis = useMemo(() => {
