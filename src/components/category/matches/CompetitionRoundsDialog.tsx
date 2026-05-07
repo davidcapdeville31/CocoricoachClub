@@ -428,11 +428,14 @@ export function CompetitionRoundsDialog({
       const newBowlingBlocks: Record<string, BowlingBlock[]> = {};
       
       const playersData = lineup.map((l: any) => {
-        const player = l.players as { id: string; name: string; first_name?: string; discipline?: string; specialty?: string } | null;
+        const player = l.players as { id: string; name: string; first_name?: string; discipline?: string; specialty?: string; gender?: string } | null;
         // Prefer the lineup's discipline/specialty (per-event inscription).
         // Fallback to the player's primary discipline/specialty for backward compat.
         const effectiveDiscipline = l.discipline || player?.discipline || undefined;
         const effectiveSpecialty = l.specialty || player?.specialty || undefined;
+        const playerGender = player?.gender || null;
+        // For judo, the weight category is stored in players.discipline
+        const playerWeightCategory = isJudo ? (player?.discipline || null) : null;
         // Filter rounds for this lineup entry: match by player_id + discipline + specialty
         // (stored in stat_data._discipline / _specialty). Fallback to all player rounds
         // when no discipline tag is present (backward compat with legacy data).
