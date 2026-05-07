@@ -1370,6 +1370,40 @@ export function PrecisionTrainingStats({ categoryId, lockedPlayerId }: Precision
       )}
 
       {/* Buteur kick mapping visual */}
+      {/* Basketball precision shooting maps (one per thématique) */}
+      {basketCourtData.length > 0 && (
+        <Card className="bg-gradient-card shadow-md">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              🏀 Cartographie des tirs (Basket)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={cn("grid gap-4", basketCourtData.length > 1 ? "md:grid-cols-2" : "")}>
+              {basketCourtData.map(({ exercise, points }) => {
+                const totalAttempts = points.reduce((s, p) => s + p.attempts, 0);
+                const totalSuccesses = points.reduce((s, p) => s + p.successes, 0);
+                const rate = totalAttempts > 0 ? Math.round((totalSuccesses / totalAttempts) * 100) : 0;
+                return (
+                  <div key={exercise.value} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">{exercise.label}</p>
+                      <Badge variant="secondary">
+                        {totalSuccesses}/{totalAttempts} • {rate}%
+                      </Badge>
+                    </div>
+                    <BasketballHalfCourtSVG exercise={exercise} points={points} readOnly />
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              Vert ≥ 70% • Orange 40-69% • Rouge &lt; 40%
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {kickFieldEntries.length > 0 && (
         <Card className="bg-gradient-card shadow-md">
           <CardHeader className="pb-2">
