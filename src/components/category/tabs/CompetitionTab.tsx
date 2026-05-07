@@ -88,6 +88,17 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
                 <span className="sm:hidden">Records</span>
               </ColoredSubTabsTrigger>
             )}
+            {isJudo && (
+              <ColoredSubTabsTrigger
+                value="opponents"
+                colorKey="competition"
+                icon={<Users className="h-4 w-4" />}
+                tooltip="Profils adversaires : enregistrer les judokas rencontrés en compétition pour analyser les forces/faiblesses"
+              >
+                <span className="hidden sm:inline">Profils adversaires</span>
+                <span className="sm:hidden">Adversaires</span>
+              </ColoredSubTabsTrigger>
+            )}
           </ColoredSubTabsList>
         </div>
       )}
