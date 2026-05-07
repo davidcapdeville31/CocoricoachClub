@@ -24,6 +24,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { PrecisionFieldTracker } from "@/components/rugby/PrecisionFieldTracker";
+import { BasketballPrecisionTracker } from "@/components/basketball/BasketballPrecisionTracker";
+import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
 import { BowlingSessionContent } from "@/components/bowling/BowlingSessionContent";
 
 interface SessionFeedbackDialogProps {
@@ -695,11 +697,19 @@ export function SessionFeedbackDialog({
           {isPrecisionSession && (
             <TabsContent value="precision" className="flex-1 flex flex-col min-h-0 mt-4">
               <div className="flex-1 min-h-0 overflow-y-auto pr-1" style={{ maxHeight: "calc(95vh - 180px)" }}>
-                <PrecisionFieldTracker
-                  categoryId={categoryId}
-                  sessionId={sessionId}
-                  sessionDate={session?.session_date}
-                />
+                {isBasketballPrecisionSport(sportType) ? (
+                  <BasketballPrecisionTracker
+                    categoryId={categoryId}
+                    trainingSessionId={sessionId}
+                    sessionDate={session?.session_date}
+                  />
+                ) : (
+                  <PrecisionFieldTracker
+                    categoryId={categoryId}
+                    sessionId={sessionId}
+                    sessionDate={session?.session_date}
+                  />
+                )}
               </div>
             </TabsContent>
           )}

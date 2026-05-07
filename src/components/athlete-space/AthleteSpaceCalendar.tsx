@@ -30,6 +30,8 @@ import { GroupedExerciseList } from "@/components/category/GroupedExerciseList";
 import { SessionEditorV2 } from "@/components/program-builder-v2/SessionEditorV2";
 import { resolveSessionExerciseRows } from "@/lib/utils/sessionExercises";
 import { BowlingTrainingEntryDialog } from "@/components/bowling/BowlingTrainingEntryDialog";
+import { BasketballTrainingEntryDialog } from "@/components/basketball/BasketballTrainingEntryDialog";
+import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
 
 interface Props {
   playerId: string;
@@ -48,9 +50,11 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isBowlingTrainingOpen, setIsBowlingTrainingOpen] = useState(false);
+  const [isBasketTrainingOpen, setIsBasketTrainingOpen] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const isBowling = (sportType || "").toLowerCase().includes("bowling");
+  const isBasket = isBasketballPrecisionSport(sportType);
 
   // Realtime sync: invalidate caches when sessions/blocks/exercises change
   useEffect(() => {
@@ -346,6 +350,17 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                 <Button
                   size="sm"
                   onClick={() => setIsBowlingTrainingOpen(true)}
+                  className="gap-1.5"
+                  style={{ backgroundColor: TRAINING_COLOR }}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Ajouter un entraînement
+                </Button>
+              )}
+              {isBasket && (
+                <Button
+                  size="sm"
+                  onClick={() => setIsBasketTrainingOpen(true)}
                   className="gap-1.5"
                   style={{ backgroundColor: TRAINING_COLOR }}
                 >
@@ -715,6 +730,15 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         <BowlingTrainingEntryDialog
           open={isBowlingTrainingOpen}
           onClose={() => setIsBowlingTrainingOpen(false)}
+          playerId={playerId}
+          categoryId={categoryId}
+          defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}
+        />
+      )}
+      {isBasket && (
+        <BasketballTrainingEntryDialog
+          open={isBasketTrainingOpen}
+          onClose={() => setIsBasketTrainingOpen(false)}
           playerId={playerId}
           categoryId={categoryId}
           defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}

@@ -9,6 +9,8 @@ import { PrecisionTrainingStats } from "@/components/training/PrecisionTrainingS
 import { PrecisionFieldTracker } from "@/components/rugby/PrecisionFieldTracker";
 import { AthleticsThrowingStats } from "@/components/athletics/AthleticsThrowingStats";
 import { AthleticsSprintStats } from "@/components/athletics/AthleticsSprintStats";
+import { BasketballPrecisionTracker } from "@/components/basketball/BasketballPrecisionTracker";
+import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
 import { isRugbyType, isAthletismeCategory } from "@/lib/constants/sportTypes";
 
 interface DatasTabProps {
@@ -19,6 +21,7 @@ interface DatasTabProps {
 export function DatasTab({ categoryId, sportType }: DatasTabProps) {
   const isBowling = (sportType || "").toLowerCase().includes("bowling");
   const isTennis = (sportType || "").toLowerCase().includes("tennis");
+  const isBasket = isBasketballPrecisionSport(sportType);
   const isRugby = isRugbyType(sportType || "");
   const isAthletics = isAthletismeCategory(sportType || "");
 
@@ -60,6 +63,8 @@ export function DatasTab({ categoryId, sportType }: DatasTabProps) {
           <BowlingTrainingStats categoryId={categoryId} />
         ) : isTennis ? (
           <TennisTrainingStats categoryId={categoryId} />
+        ) : isBasket ? (
+          <BasketballPrecisionTracker categoryId={categoryId} />
         ) : isAthletics ? (
           <div className="space-y-6">
             <AthleticsSprintStats categoryId={categoryId} />
