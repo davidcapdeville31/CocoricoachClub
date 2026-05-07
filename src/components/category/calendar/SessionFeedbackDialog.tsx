@@ -194,6 +194,13 @@ export function SessionFeedbackDialog({
   );
   const hasBowlingContent = hasBowlingGame || hasBowlingSpare;
 
+  const BASKET_PRECISION_THEMES = ["basketball_lf", "basketball_paint", "basketball_3pts"];
+  const basketPrecisionBlocks = useMemo(
+    () => sessionBlocks.filter((b: any) => BASKET_PRECISION_THEMES.includes(b.training_type)),
+    [sessionBlocks]
+  );
+  const hasBasketPrecision = basketPrecisionBlocks.length > 0;
+
   // Initialize RPE values with default duration when players load
   useEffect(() => {
     if (players && open) {
