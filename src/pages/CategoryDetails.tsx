@@ -155,6 +155,7 @@ function CategoryDetailsContent() {
   const pendingWeightLogsCount = usePendingWeightLogsCount(categoryId);
   const pendingTestResultsCount = usePendingTestResultsCount(categoryId);
   const workloadBadge = pendingWeightLogsCount + pendingTestResultsCount;
+  const athleteSessionsBadge = useUnreadAthleteSessionsCount(categoryId);
 
   // Fetch category data - use edge function for public access, direct query for authenticated
   const { data: category, isLoading } = useQuery({
