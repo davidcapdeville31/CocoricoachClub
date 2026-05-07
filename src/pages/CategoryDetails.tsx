@@ -444,6 +444,7 @@ function CategoryDetailsContent() {
                   icon={<Calendar className="h-5 w-5" />}
                   label="Planification"
                   shortLabel="Planning"
+                  badge={athleteSessionsBadge}
                   tooltip="Calendrier annuel et hebdomadaire : organisation des séances, compétitions et objectifs de saison"
                 />
               )}
