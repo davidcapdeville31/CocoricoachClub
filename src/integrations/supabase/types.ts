@@ -6510,6 +6510,7 @@ export type Database = {
           country: string | null
           created_at: string
           created_by: string | null
+          fighting_style: string | null
           first_name: string | null
           gender: string | null
           handedness: string | null
@@ -6527,6 +6528,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           created_by?: string | null
+          fighting_style?: string | null
           first_name?: string | null
           gender?: string | null
           handedness?: string | null
@@ -6544,6 +6546,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           created_by?: string | null
+          fighting_style?: string | null
           first_name?: string | null
           gender?: string | null
           handedness?: string | null
