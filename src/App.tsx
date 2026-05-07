@@ -152,6 +152,7 @@ const App = () => (
                   <Routes>
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/" element={<Clubs />} />
+                    <Route path="/clubs" element={<Navigate to="/" replace />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/accept-invitation" element={<AcceptInvitation />} />
                     <Route path="/public-view" element={<PublicView />} />
