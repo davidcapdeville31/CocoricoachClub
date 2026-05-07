@@ -524,6 +524,8 @@ export function CompetitionRoundsDialog({
           entryKey: buildEntryKey(l.player_id, effectiveDiscipline, effectiveSpecialty),
           playerId: l.player_id,
           playerName: [player?.first_name, player?.name].filter(Boolean).join(" ") || "Athlète",
+          playerGender,
+          playerWeightCategory,
           discipline: effectiveDiscipline,
           specialty: effectiveSpecialty,
           boat_type: l.boat_type || undefined,
