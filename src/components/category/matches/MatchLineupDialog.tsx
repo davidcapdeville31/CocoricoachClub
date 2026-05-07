@@ -86,7 +86,23 @@ export function MatchLineupDialog({
           .eq("category_id", categoryId)
           .order("name");
         if (error) throw error;
-        return data as any[];
+        const playerIds = (data || []).map((p: any) => p.id);
+        let attrsByPlayer: Record<string, { discipline: string; specialty: string | null }[]> = {};
+        if (playerIds.length > 0) {
+          const { data: attrs } = await supabase
+            .from("athlete_attributes")
+            .select("player_id, dimension, value, metadata")
+            .in("player_id", playerIds)
+            .eq("dimension", "discipline");
+          (attrs || []).forEach((a: any) => {
+            const list = attrsByPlayer[a.player_id] || (attrsByPlayer[a.player_id] = []);
+            const spec = (a.metadata as any)?.specialty || null;
+            if (!list.some((p) => p.discipline === a.value && (p.specialty || null) === spec)) {
+              list.push({ discipline: a.value, specialty: spec });
+            }
+          });
+        }
+        return (data || []).map((p: any) => ({ ...p, _attrPairs: attrsByPlayer[p.id] || [] })) as any[];
       }
       const { data, error } = await supabase
         .from("players")
