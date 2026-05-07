@@ -21,12 +21,13 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
   const isIndividual = isIndividualSport(sportType || "");
   const isSkiSport = sportType ? getMainSportFromType(sportType) === "ski" : false;
   const isAthletics = sportType ? isAthletismeCategory(sportType) : false;
+  const isJudo = (sportType || "").toLowerCase().includes("judo");
   
   const matchLabel = "Compétitions";
   const MatchIcon = isIndividual ? Award : Swords;
 
   // Si "Compétitions" est seul (pas d'autres sous-onglets), on masque la barre d'onglets : c'est inutile
-  const hasOtherSubtabs = isSkiSport || isRugby7 || isNationalTeam || isAthletics;
+  const hasOtherSubtabs = isSkiSport || isRugby7 || isNationalTeam || isAthletics || isJudo;
 
   return (
     <Tabs defaultValue="matches" className="space-y-4">
