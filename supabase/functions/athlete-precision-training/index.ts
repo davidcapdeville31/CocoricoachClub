@@ -126,6 +126,8 @@ serve(async (req) => {
 
     // Auto-créer une training_sessions liée pour que le staff voie la séance
     // dans le calendrier (vignette violette = créée par l'athlète).
+    let createdSessionId: string | null = null;
+    let isNewSession = false;
     try {
       const { data: existingSession } = await supabase
         .from("training_sessions")
@@ -136,17 +138,94 @@ serve(async (req) => {
         .eq("training_type", "precision")
         .maybeSingle();
 
-      if (!existingSession) {
-        await supabase.from("training_sessions").insert({
-          category_id,
-          session_date,
-          training_type: "precision",
-          created_by_player_id: player_id,
-          notes: `[Séance athlète] Précision - ${exercise_label}`,
-        });
+      if (existingSession) {
+        createdSessionId = existingSession.id;
+      } else {
+        const { data: newSess } = await supabase
+          .from("training_sessions")
+          .insert({
+            category_id,
+            session_date,
+            training_type: "precision",
+            created_by_player_id: player_id,
+            notes: `[Séance athlète] Précision - ${exercise_label}`,
+          })
+          .select("id")
+          .single();
+        if (newSess) {
+          createdSessionId = newSess.id;
+          isNewSession = true;
+        }
       }
     } catch (sessionErr) {
       console.warn("[athlete-precision-training] auto-session warn:", sessionErr);
+    }
+
+    // Notifier le staff uniquement à la création initiale de la séance
+    if (isNewSession) {
+      try {
+        const { data: playerInfo } = await supabase
+          .from("players")
+          .select("name")
+          .eq("id", player_id)
+          .maybeSingle();
+        const playerName = playerInfo?.name || "Un athlète";
+
+        const { data: members } = await supabase
+          .from("category_members")
+          .select("user_id, role")
+          .eq("category_id", category_id);
+        const staffIds = Array.from(
+          new Set(
+            (members || [])
+              .filter((m) => m.role && m.role !== "athlete" && m.user_id !== userId)
+              .map((m) => m.user_id),
+          ),
+        );
+
+        const title = "🎯 Nouvelle séance de précision";
+        const message = `${playerName} vient de se créer une séance de précision le ${session_date}`;
+
+        if (staffIds.length > 0) {
+          const records = staffIds.map((uid) => ({
+            user_id: uid,
+            category_id,
+            title,
+            message,
+            notification_type: "athlete_session",
+            notification_subtype: "self_planned",
+            priority: "normal",
+            metadata: { player_id, session_id: createdSessionId, training_type: "precision", session_date },
+          }));
+          await supabase.from("notifications").insert(records);
+
+          const ONESIGNAL_APP_ID = Deno.env.get("ONESIGNAL_APP_ID");
+          const ONESIGNAL_REST_API_KEY = Deno.env.get("ONESIGNAL_REST_API_KEY");
+          if (ONESIGNAL_APP_ID && ONESIGNAL_REST_API_KEY) {
+            try {
+              await fetch("https://api.onesignal.com/notifications", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Key ${ONESIGNAL_REST_API_KEY}`,
+                },
+                body: JSON.stringify({
+                  app_id: ONESIGNAL_APP_ID,
+                  include_aliases: { external_id: staffIds },
+                  target_channel: "push",
+                  headings: { en: title, fr: title },
+                  contents: { en: message, fr: message },
+                  name: "Athlete self-planned precision session",
+                }),
+              });
+            } catch (pushErr) {
+              console.warn("[athlete-precision-training] push warn:", pushErr);
+            }
+          }
+        }
+      } catch (notifyErr) {
+        console.warn("[athlete-precision-training] notify staff warn:", notifyErr);
+      }
     }
 
     return respond({ success: true, id: data.id });
