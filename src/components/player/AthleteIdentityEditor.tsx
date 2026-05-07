@@ -191,6 +191,36 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
 
   const isAthletics = isAthletismeCategory(sportType);
 
+  const isJudo = isJudoCategory(sportType);
+
+  const { data: judoWeight } = useQuery({
+    queryKey: ["player-judo-weight", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("discipline")
+        .eq("id", playerId)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as any)?.discipline ?? null;
+    },
+    enabled: !!playerId && isJudo,
+  });
+  const updateJudoWeight = useMutation({
+    mutationFn: async (val: string | null) => {
+      const { error } = await supabase
+        .from("players")
+        .update({ discipline: val } as any)
+        .eq("id", playerId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["player-judo-weight", playerId] });
+      toast.success("Catégorie de poids enregistrée");
+    },
+    onError: (e: any) => toast.error("Erreur : " + e.message),
+  });
+
   const age = computeAge(playerCore?.birth_date ?? null, playerCore?.birth_year ?? null);
   const gInfo = genderInfo(playerCore?.gender ?? null);
 
