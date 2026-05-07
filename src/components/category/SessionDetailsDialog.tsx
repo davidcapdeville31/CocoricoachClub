@@ -32,6 +32,8 @@ import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesD
 import { BowlingSessionContent } from "@/components/bowling/BowlingSessionContent";
 import { TennisDrillTraining } from "@/components/tennis/TennisDrillTraining";
 import { PrecisionFieldTracker } from "@/components/rugby/PrecisionFieldTracker";
+import { BasketballPrecisionTracker } from "@/components/basketball/BasketballPrecisionTracker";
+import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
 import { RUGBY_PRECISION_EXERCISES, EXERCISE_CATEGORIES } from "@/lib/constants/rugbyPrecisionExercises";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { LinkedMethodSlots, type LinkedMethodType } from "@/components/program-builder-v2/LinkedMethodSlots";
@@ -1129,11 +1131,15 @@ export function SessionDetailsDialog({
             </TabsContent>
 
             {/* Precision stats tab with field cartography */}
-            {session?.training_type === "precision" && isRugby && (
+            {session?.training_type === "precision" && (isRugby || isBasketballPrecisionSport(sportType)) && (
               <TabsContent value="precision_stats" className="h-full m-0 data-[state=active]:flex data-[state=active]:flex-col">
                 <ScrollArea className="flex-1 h-[60vh]">
                   <div className="pr-4">
-                    <PrecisionFieldTracker categoryId={categoryId} />
+                    {isBasketballPrecisionSport(sportType) ? (
+                      <BasketballPrecisionTracker categoryId={categoryId} />
+                    ) : (
+                      <PrecisionFieldTracker categoryId={categoryId} />
+                    )}
                   </div>
                 </ScrollArea>
               </TabsContent>
