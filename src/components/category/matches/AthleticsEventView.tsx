@@ -397,21 +397,29 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
       void lowerIsBetter;
       const wb = XLSX.utils.book_new();
 
-      const data = rows.map(r => ({
-        "Compétition": r.matchLabel,
-        "Date": r.matchDate ? format(parseISO(r.matchDate), "dd/MM/yyyy", { locale: fr }) : "",
-        "Athlète": r.playerName,
-        "Manches saisies": r.raceCount,
-        "Classement final": r.finalRank != null ? r.finalRank : "",
-        "Phase classement": r.finalPhase || "",
-        "Meilleure perf": formatResult(r.bestResult, unit),
-        "Perf brute": r.bestResult != null ? r.bestResult : "",
-        "Phase meilleure perf": r.bestPhase || "",
-        "Vent (m/s)": r.windSpeed != null ? r.windSpeed : "",
-        "Direction vent": r.windDirection || "",
-        "Température (°C)": r.temperature != null ? r.temperature : "",
-        "Record perso": r.isPR ? "Oui" : "",
-      }));
+      const isField = !lowerIsBetter;
+      const data = rows.map(r => {
+        const base: Record<string, any> = {
+          "Compétition": r.matchLabel,
+          "Date": r.matchDate ? format(parseISO(r.matchDate), "dd/MM/yyyy", { locale: fr }) : "",
+          "Athlète": r.playerName,
+          "Manches saisies": r.raceCount,
+          "Classement final": r.finalRank != null ? r.finalRank : "",
+          "Phase classement": r.finalPhase || "",
+          "Meilleure perf": formatResult(r.bestResult, unit),
+          "Perf brute": r.bestResult != null ? r.bestResult : "",
+          "Phase meilleure perf": r.bestPhase || "",
+        };
+        if (isField) {
+          base["Moyenne essais"] = r.avgAttempt != null ? formatResult(r.avgAttempt, unit) : "";
+          base["Nb essais valides"] = r.attemptCount;
+        }
+        base["Vent (m/s)"] = r.windSpeed != null ? r.windSpeed : "";
+        base["Direction vent"] = r.windDirection || "";
+        base["Température (°C)"] = r.temperature != null ? r.temperature : "";
+        base["Record perso"] = r.isPR ? "Oui" : "";
+        return base;
+      });
       const ws = XLSX.utils.json_to_sheet(data);
       ws["!cols"] = [
         { wch: 28 }, { wch: 11 }, { wch: 22 }, { wch: 10 },
