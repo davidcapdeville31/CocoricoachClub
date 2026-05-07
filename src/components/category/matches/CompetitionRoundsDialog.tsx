@@ -664,6 +664,7 @@ export function CompetitionRoundsDialog({
             player_id: playerData.playerId,
             round_number: nextNumber,
             opponent_name: round.opponent_name || null,
+            opponent_profile_id: round.opponent_profile_id || null,
             result: round.result || null,
             notes: round.notes || null,
             phase: round.phase || null,
