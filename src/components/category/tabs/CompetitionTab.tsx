@@ -134,6 +134,12 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
           <AthleticsRecordsTab categoryId={categoryId} />
         </TabsContent>
       )}
+
+      {isJudo && (
+        <TabsContent value="opponents">
+          <JudoOpponentsTab categoryId={categoryId} />
+        </TabsContent>
+      )}
     </Tabs>
   );
 }
