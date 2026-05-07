@@ -373,6 +373,16 @@ export function AthleticsEventView({ categoryId, matchIds }: Props) {
     ? (activeEvent.specialty ? `${activeEvent.specialty} (${disciplineLabel(activeEvent.discipline)})` : disciplineLabel(activeEvent.discipline))
     : "";
 
+  // Épreuve "field" = lancer / saut → on affiche la moyenne des essais
+  const isFieldEventActive = useMemo(() => {
+    if (!activeEvent) return false;
+    const { lowerIsBetter } = getDefaultUnitForDiscipline(
+      activeEvent.discipline || undefined,
+      activeEvent.specialty || undefined,
+    );
+    return !lowerIsBetter;
+  }, [activeEvent]);
+
   // ===== Exports =====
   const handleExportExcel = () => {
     if (!activeEvent || rows.length === 0) {
