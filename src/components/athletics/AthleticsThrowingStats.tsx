@@ -383,6 +383,53 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
         </Card>
       )}
 
+      {/* Moyennes / meilleur lancer par engin + poids */}
+      {perImplementStats.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              Moyenne et meilleur par engin / poids
+              {filterPlayer !== "all" && (() => {
+                const p = players.find((x: any) => x.id === filterPlayer);
+                return p ? ` — ${[p.first_name, p.name].filter(Boolean).join(" ")}` : "";
+              })()}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Engin</TableHead>
+                    <TableHead>Poids</TableHead>
+                    <TableHead className="text-right">Essais valides</TableHead>
+                    <TableHead className="text-right">Moyenne</TableHead>
+                    <TableHead className="text-right">Meilleur</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {perImplementStats.map((r, i) => (
+                    <TableRow key={i}>
+                      <TableCell>{IMPLEMENT_LABELS[r.implement as ImplementType] || r.implement}</TableCell>
+                      <TableCell>{formatWeight(r.weight_g)}</TableCell>
+                      <TableCell className="text-right text-xs text-muted-foreground">
+                        {r.valid} / {r.total}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold">
+                        {r.avg > 0 ? `${r.avg.toFixed(2)} m` : "—"}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold text-emerald-600 dark:text-emerald-400">
+                        {r.best > 0 ? `${r.best.toFixed(2)} m` : "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Table of attempts */}
       <Card>
         <CardHeader>
