@@ -533,6 +533,9 @@ export const TRAINING_TYPE_COLORS: Record<string, string> = {
   basketball_pick_roll: "bg-purple-500",
   basketball_transition: "bg-amber-500",
   basketball_tactique: "bg-blue-600",
+  basketball_lf: "bg-orange-400",
+  basketball_paint: "bg-orange-700",
+  basketball_3pts: "bg-orange-600",
   // Basketball 3x3 specific (FIBA)
   basket3x3_1c1: "bg-orange-700",
   basket3x3_2c2: "bg-orange-600",
