@@ -156,7 +156,7 @@ export function BasketballHalfCourtSVG({
         y="5"
         width="26"
         height="23"
-        fill={exercise.region === "paint" ? HIGHLIGHT : PAINT_FILL}
+        fill={exercise.region === "paint" ? PAINT_FILL_ACTIVE : PAINT_FILL_INACTIVE}
         stroke={exercise.region === "paint" ? HIGHLIGHT_STROKE : LINE}
         strokeWidth="0.5"
       />
