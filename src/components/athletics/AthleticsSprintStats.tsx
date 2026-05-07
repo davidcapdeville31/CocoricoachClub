@@ -62,6 +62,10 @@ import { practicesAny, type AthleticsGroup } from "@/lib/athletics/athleteDiscip
 
 interface Props {
   categoryId: string;
+  /** Familles d'épreuves cible (par défaut : courses : sprints, haies, demi-fond, fond, marche). */
+  groups?: AthleticsGroup[];
+  /** Titre affiché dans le header (par défaut "Stats entraînement — Course / Sprint"). */
+  title?: string;
 }
 
 interface SprintAttempt {
@@ -100,7 +104,7 @@ const formatTime = (sec?: number | null) => {
   return `${m}'${s.padStart(5, "0")}"`;
 };
 
-export function AthleticsSprintStats({ categoryId }: Props) {
+export function AthleticsSprintStats({ categoryId, groups = ["sprints", "haies", "demi_fond", "fond", "marche", "combines"], title = "Stats entraînement — Course / Sprint" }: Props) {
   const qc = useQueryClient();
   const [filterPlayer, setFilterPlayer] = useState<string>("all");
   const [filterExercise, setFilterExercise] = useState<string>("all");
