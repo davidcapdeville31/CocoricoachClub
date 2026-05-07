@@ -100,7 +100,7 @@ export function AggregatedRoundStatsDialog({
           *,
           competition_round_stats(*),
           players(id, name, discipline, specialty),
-          opponent_profile:opponent_profiles(id, last_name, first_name, gender, weight_category, handedness)
+          opponent_profile:opponent_profiles(id, last_name, first_name, gender, weight_category, handedness, fighting_style)
         `)
         .eq("match_id", matchId)
         .order("round_number");
