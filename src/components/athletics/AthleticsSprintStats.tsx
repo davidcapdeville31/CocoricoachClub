@@ -322,7 +322,7 @@ export function AthleticsSprintStats({ categoryId, groups = ["sprints", "haies",
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2">
           <Timer className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold">Stats entraînement — Vitesse / Course</h3>
+          <h3 className="text-lg font-semibold">{title}</h3>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
