@@ -575,7 +575,7 @@ export default function AthleteSpace() {
               </TabsTrigger>
               <TabsTrigger
                  value="stats"
-                 className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                 className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg relative"
                  style={{
                    color: NAV_COLORS.competition.base,
                    backgroundColor: `${NAV_COLORS.competition.base}15`,
@@ -585,6 +585,9 @@ export default function AthleteSpace() {
                >
                  <Trophy className="h-3.5 w-3.5" />
                  Datas
+                 {recordNotifCount > 0 && (
+                   <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
+                 )}
                </TabsTrigger>
               {/* Onglet Santé fusionné en sous-menu de Wellness */}
                {isBowling && (
