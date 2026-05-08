@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, User, LogOut, Activity, Heart, BarChart3, Target, Video, Shield, ArrowLeft, Search, ChevronRight, MessageSquare, Settings, CalendarDays, CircleDot, Waves, FileText, Trophy } from "lucide-react";
+import { Loader2, User, LogOut, Activity, Heart, BarChart3, Target, Video, Shield, ArrowLeft, Search, ChevronRight, MessageSquare, Settings, CalendarDays, CircleDot, Waves, FileText, Trophy, Medal } from "lucide-react";
 import { PlayerCumulativeStats } from "@/components/category/matches/PlayerCumulativeStats";
 import { BowlingCumulativeStats } from "@/components/bowling/BowlingCumulativeStats";
 import { BowlingTrainingStats } from "@/components/bowling/BowlingTrainingStats";
@@ -30,6 +30,8 @@ import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { AthleteSpaceCalendar } from "@/components/athlete-space/AthleteSpaceCalendar";
 import { AthleteSpaceDocuments } from "@/components/athlete-space/AthleteSpaceDocuments";
 import { AthletePrecisionTracker } from "@/components/athlete-space/AthletePrecisionTracker";
+import { AthleticsRecordsManager } from "@/components/category/athletics/AthleticsRecordsManager";
+import { isAthletismeCategory } from "@/lib/constants/sportTypes";
 
 interface AthleteInfo {
   player_id: string;
@@ -431,6 +433,7 @@ export default function AthleteSpace() {
   if (!athleteInfo) return null;
 
   const isBowling = (athleteInfo.sport_type || "").toLowerCase().includes("bowling");
+  const isAthletics = athleteInfo.sport_type ? isAthletismeCategory(athleteInfo.sport_type) : false;
   const isSurf = (athleteInfo.sport_type || "").toLowerCase().includes("surf");
   const isSki = (athleteInfo.sport_type || "").toLowerCase().includes("ski") || (athleteInfo.sport_type || "").toLowerCase().includes("snow");
   const isPadel = (athleteInfo.sport_type || "").toLowerCase().includes("padel");
@@ -794,6 +797,58 @@ export default function AthleteSpace() {
                   <BowlingTrainingStats
                     categoryId={athleteInfo.category_id}
                     playerId={athleteInfo.player_id}
+                  />
+                </TabsContent>
+              </Tabs>
+            ) : isAthletics ? (
+              <Tabs defaultValue="competition" className="space-y-4">
+                <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-muted/40 rounded-xl p-1">
+                  <TabsTrigger
+                    value="competition"
+                    style={{ ["--tab-accent" as any]: NAV_COLORS.performance.base } as React.CSSProperties}
+                    className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
+                    <Trophy className="h-3.5 w-3.5" />
+                    Datas de compétition
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="training"
+                    style={{ ["--tab-accent" as any]: NAV_COLORS.competition.base } as React.CSSProperties}
+                    className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
+                    <Target className="h-3.5 w-3.5" />
+                    Datas d'entraînement
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="records"
+                    style={{ ["--tab-accent" as any]: NAV_COLORS.planification.base } as React.CSSProperties}
+                    className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
+                    <Medal className="h-3.5 w-3.5" />
+                    Minimas / Records
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="competition">
+                  <PlayerCumulativeStats
+                    categoryId={athleteInfo.category_id}
+                    sportType={athleteInfo.sport_type}
+                    playerId={athleteInfo.player_id}
+                    showTeamView={false}
+                  />
+                </TabsContent>
+                <TabsContent value="training">
+                  <AthleteSpacePerformance
+                    playerId={athleteInfo.player_id}
+                    categoryId={athleteInfo.category_id}
+                    sportType={athleteInfo.sport_type}
+                  />
+                </TabsContent>
+                <TabsContent value="records">
+                  <AthleticsRecordsManager
+                    categoryId={athleteInfo.category_id}
+                    playerId={athleteInfo.player_id}
+                    singlePlayer
+                    canEdit={false}
                   />
                 </TabsContent>
               </Tabs>
