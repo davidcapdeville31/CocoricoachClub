@@ -27,7 +27,7 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
   const MatchIcon = isIndividual ? Award : Swords;
 
   // Si "Compétitions" est seul (pas d'autres sous-onglets), on masque la barre d'onglets : c'est inutile
-  const hasOtherSubtabs = isSkiSport || isRugby7 || isNationalTeam || isAthletics || isJudo;
+  const hasOtherSubtabs = isSkiSport || isRugby7 || isNationalTeam || isJudo;
 
   return (
     <Tabs defaultValue="matches" className="space-y-4">
