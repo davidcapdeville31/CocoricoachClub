@@ -4,7 +4,7 @@ import { JudoOpponentsTab } from "@/components/category/judo/JudoOpponentsTab";
 import { MatchesTab } from "@/components/category/MatchesTab";
 import { TournamentsTab } from "@/components/category/TournamentsTab";
 import { NationalTeamTab } from "@/components/category/national-team/NationalTeamTab";
-import { isIndividualSport, getMainSportFromType, isAthletismeCategory } from "@/lib/constants/sportTypes";
+import { isIndividualSport, getMainSportFromType } from "@/lib/constants/sportTypes";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { FisCompetitionsTab } from "@/components/category/fis/FisCompetitionsTab";
 import { FisRankingTab } from "@/components/category/fis/FisRankingTab";
