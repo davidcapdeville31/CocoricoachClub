@@ -77,17 +77,6 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
                 <span className="sm:hidden">National</span>
               </ColoredSubTabsTrigger>
             )}
-            {isAthletics && (
-              <ColoredSubTabsTrigger
-                value="records"
-                colorKey="competition"
-                icon={<Medal className="h-4 w-4" />}
-                tooltip="Records personnels des athlètes et minimas fédéraux par discipline"
-              >
-                <span className="hidden sm:inline">Minimas / Records</span>
-                <span className="sm:hidden">Records</span>
-              </ColoredSubTabsTrigger>
-            )}
             {isJudo && (
               <ColoredSubTabsTrigger
                 value="opponents"
