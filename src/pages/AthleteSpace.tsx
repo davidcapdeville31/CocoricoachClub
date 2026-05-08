@@ -60,6 +60,7 @@ export default function AthleteSpace() {
   const [showPlayerSelector, setShowPlayerSelector] = useState(false);
   const [playerSearch, setPlayerSearch] = useState("");
   const { total: unreadCount } = useUnreadMessages(athleteInfo?.category_id || "");
+  const { count: recordNotifCount, markAsRead: markRecordNotifsRead } = useAthleteRecordNotifications(athleteInfo?.player_id);
 
   const queryPlayerId = searchParams.get("playerId");
 
