@@ -223,7 +223,16 @@ export function OpponentProfileDialog({ open, onOpenChange, clubId, categoryId, 
             />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
-            <Label>Notes (style de combat, prises favorites…)</Label>
+            <Label>Attaques favorites</Label>
+            <Textarea
+              value={form.favorite_attacks || ""}
+              onChange={(e) => setForm({ ...form, favorite_attacks: e.target.value })}
+              rows={2}
+              placeholder="Ex : Uchi-mata, Seoi-nage, Ko-uchi-gari…"
+            />
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Notes</Label>
             <Textarea
               value={form.notes || ""}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
