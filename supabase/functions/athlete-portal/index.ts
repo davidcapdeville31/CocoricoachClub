@@ -174,16 +174,16 @@ serve(async (req) => {
 
     const { player_id, category_id, player_name, category_name, club_name } = tokenInfo as AthleteTokenInfo;
 
-    // Get sport type from category -> club
+    // Get sport type from category.rugby_type (source of truth for the discipline)
     let sport_type: string | undefined;
     const { data: categoryData } = await supabase
       .from("categories")
-      .select("club_id, clubs(sport_type)")
+      .select("rugby_type")
       .eq("id", category_id)
       .single();
-    
-    if (categoryData?.clubs && typeof categoryData.clubs === 'object' && 'sport_type' in categoryData.clubs) {
-      sport_type = (categoryData.clubs as { sport_type?: string }).sport_type;
+
+    if (categoryData?.rugby_type) {
+      sport_type = categoryData.rugby_type as string;
     }
 
     // ─── VALIDATE ───
