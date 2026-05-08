@@ -806,11 +806,11 @@ export default function AthleteSpace() {
                 </TabsContent>
               </Tabs>
             ) : isAthletics ? (
-              <Tabs defaultValue="competition" className="space-y-4">
+              <Tabs defaultValue="competition" className="space-y-4" onValueChange={(v) => { if (v === "records") markRecordNotifsRead(); }}>
                 <TabsList className="flex flex-wrap h-auto gap-1 w-full bg-muted/40 rounded-xl p-1">
                   <TabsTrigger
                     value="competition"
-                    style={{ ["--tab-accent" as any]: NAV_COLORS.performance.base } as React.CSSProperties}
+                    style={{ ["--tab-accent" as any]: NAV_COLORS.competition.base } as React.CSSProperties}
                     className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     <Trophy className="h-3.5 w-3.5" />
@@ -818,7 +818,7 @@ export default function AthleteSpace() {
                   </TabsTrigger>
                   <TabsTrigger
                     value="training"
-                    style={{ ["--tab-accent" as any]: NAV_COLORS.competition.base } as React.CSSProperties}
+                    style={{ ["--tab-accent" as any]: NAV_COLORS.performance.base } as React.CSSProperties}
                     className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
                   >
                     <Target className="h-3.5 w-3.5" />
@@ -827,10 +827,13 @@ export default function AthleteSpace() {
                   <TabsTrigger
                     value="records"
                     style={{ ["--tab-accent" as any]: NAV_COLORS.planification.base } as React.CSSProperties}
-                    className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                    className="flex-1 gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[var(--tab-accent)] data-[state=active]:text-white data-[state=active]:shadow-md relative"
                   >
                     <Medal className="h-3.5 w-3.5" />
                     Minimas / Records
+                    {recordNotifCount > 0 && (
+                      <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
+                    )}
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="competition">
