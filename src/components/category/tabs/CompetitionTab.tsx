@@ -20,7 +20,7 @@ interface CompetitionTabProps {
 export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType }: CompetitionTabProps) {
   const isIndividual = isIndividualSport(sportType || "");
   const isSkiSport = sportType ? getMainSportFromType(sportType) === "ski" : false;
-  const isAthletics = sportType ? isAthletismeCategory(sportType) : false;
+  // (athletics: minimas/records moved to Planification only)
   const isJudo = (sportType || "").toLowerCase().includes("judo");
   
   const matchLabel = "Compétitions";
