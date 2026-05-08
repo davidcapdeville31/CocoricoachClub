@@ -4,12 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Loader2, User, XCircle, Activity, Trophy, LogOut, BarChart3, CalendarPlus } from "lucide-react";
+import { Loader2, User, XCircle, Activity, Trophy, LogOut, BarChart3, CalendarPlus, Medal } from "lucide-react";
 import { AthleteRpeEntry } from "@/components/athlete-portal/AthleteRpeEntry";
 import { AthleteMatchStats } from "@/components/athlete-portal/AthleteMatchStats";
 import { AthleteTrainingStats } from "@/components/athlete-portal/AthleteTrainingStats";
 import { AthleteCreateSession } from "@/components/athlete-portal/AthleteCreateSession";
 import { AthletePWAInstallPopup } from "@/components/athlete/AthletePWAInstallPopup";
+import { AthleticsRecordsManager } from "@/components/category/athletics/AthleticsRecordsManager";
+import { isAthletismeCategory } from "@/lib/constants/sportTypes";
 import { athletePortalHeaders, buildAthletePortalFunctionUrl } from "@/lib/athletePortalClient";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
