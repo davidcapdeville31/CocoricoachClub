@@ -32,6 +32,7 @@ export interface OpponentProfile {
   weight_category?: string | null;
   handedness?: "left" | "right" | "ambidextrous" | "unknown" | null;
   fighting_style?: "offensive" | "defensive" | "balanced" | null;
+  favorite_attacks?: string | null;
   club_origin?: string | null;
   country?: string | null;
   birth_year?: number | null;
