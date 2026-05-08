@@ -1,0 +1,1 @@
+ALTER TABLE public.opponent_profiles ADD COLUMN IF NOT EXISTS favorite_attacks text;

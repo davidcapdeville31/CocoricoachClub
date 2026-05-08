@@ -32,6 +32,7 @@ export interface OpponentProfile {
   weight_category?: string | null;
   handedness?: "left" | "right" | "ambidextrous" | "unknown" | null;
   fighting_style?: "offensive" | "defensive" | "balanced" | null;
+  favorite_attacks?: string | null;
   club_origin?: string | null;
   country?: string | null;
   birth_year?: number | null;
@@ -55,6 +56,7 @@ const empty = (clubId: string, categoryId?: string): OpponentProfile => ({
   weight_category: null,
   handedness: "unknown",
   fighting_style: null,
+  favorite_attacks: "",
   club_origin: "",
   country: "",
   birth_year: null,
@@ -81,6 +83,7 @@ export function OpponentProfileDialog({ open, onOpenChange, clubId, categoryId, 
         weight_category: form.weight_category || null,
         handedness: form.handedness || "unknown",
         fighting_style: form.fighting_style || null,
+        favorite_attacks: form.favorite_attacks?.trim() || null,
         club_origin: form.club_origin?.trim() || null,
         country: form.country?.trim() || null,
         birth_year: form.birth_year || null,
@@ -220,7 +223,16 @@ export function OpponentProfileDialog({ open, onOpenChange, clubId, categoryId, 
             />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
-            <Label>Notes (style de combat, prises favorites…)</Label>
+            <Label>Attaques favorites</Label>
+            <Textarea
+              value={form.favorite_attacks || ""}
+              onChange={(e) => setForm({ ...form, favorite_attacks: e.target.value })}
+              rows={2}
+              placeholder="Ex : Uchi-mata, Seoi-nage, Ko-uchi-gari…"
+            />
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Notes</Label>
             <Textarea
               value={form.notes || ""}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
