@@ -8,7 +8,7 @@ import { isIndividualSport, getMainSportFromType, isAthletismeCategory } from "@
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { FisCompetitionsTab } from "@/components/category/fis/FisCompetitionsTab";
 import { FisRankingTab } from "@/components/category/fis/FisRankingTab";
-import { AthleticsRecordsTab } from "@/components/category/athletics/AthleticsRecordsTab";
+
 
 interface CompetitionTabProps {
   categoryId: string;
