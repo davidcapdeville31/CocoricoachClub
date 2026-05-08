@@ -439,7 +439,6 @@ export default function AthleteSpace() {
   const isSki = (athleteInfo.sport_type || "").toLowerCase().includes("ski") || (athleteInfo.sport_type || "").toLowerCase().includes("snow");
   const isPadel = (athleteInfo.sport_type || "").toLowerCase().includes("padel");
   const isRugby = ["XV", "7", "XIII", "touch", "15", "academie", "national_team"].includes(athleteInfo.sport_type || "");
-  const { count: recordNotifCount, markAsRead: markRecordNotifsRead } = useAthleteRecordNotifications(athleteInfo.player_id);
 
   const displayName = athleteInfo.player_first_name
     ? `${athleteInfo.player_first_name} ${athleteInfo.player_name}`
