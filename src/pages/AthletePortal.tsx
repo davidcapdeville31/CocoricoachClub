@@ -254,6 +254,17 @@ export default function AthletePortal() {
             />
           </TabsContent>
 
+          {isAthletics && (
+            <TabsContent value="records" className="mt-6">
+              <AthleticsRecordsManager
+                categoryId={athleteInfo!.category_id}
+                playerId={athleteInfo!.player_id}
+                singlePlayer
+                canEdit={false}
+              />
+            </TabsContent>
+          )}
+
           {isBowling && (
             <>
               <TabsContent value="stats" className="mt-6">
