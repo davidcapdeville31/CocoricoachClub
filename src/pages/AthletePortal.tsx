@@ -181,9 +181,12 @@ export default function AthletePortal() {
                 </div>
               </div>
               {user && (
-                <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                  <LogOut className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <NotificationBell variant="default" />
+                  <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </div>
               )}
             </div>
           </CardHeader>
