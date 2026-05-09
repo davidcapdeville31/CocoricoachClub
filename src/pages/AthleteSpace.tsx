@@ -27,6 +27,7 @@ import { AthleteSpacePerformance } from "@/components/athlete-space/AthleteSpace
 import { MessagingTab } from "@/components/messaging/MessagingTab";
 import { AthleteSpaceSettings } from "@/components/athlete-space/AthleteSpaceSettings";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { AthleteSpaceCalendar } from "@/components/athlete-space/AthleteSpaceCalendar";
 import { AthleteSpaceDocuments } from "@/components/athlete-space/AthleteSpaceDocuments";
 import { AthletePrecisionTracker } from "@/components/athlete-space/AthletePrecisionTracker";
@@ -491,16 +492,19 @@ export default function AthleteSpace() {
               </div>
             </div>
           </div>
-          {!isSuperAdminView ? (
-            <Button variant="ghost" size="icon" className="shrink-0" onClick={() => signOut()}>
-              <LogOut className="h-4 w-4" />
-            </Button>
-          ) : (
-            <Button variant="outline" size="sm" className="shrink-0 px-2 sm:px-3" onClick={() => navigate(`/players/${athleteInfo.player_id}`)}>
-              <span className="hidden sm:inline">Fiche joueur</span>
-              <User className="h-4 w-4 sm:hidden" />
-            </Button>
-          )}
+          <div className="flex items-center gap-1 shrink-0">
+            <NotificationBell variant="default" />
+            {!isSuperAdminView ? (
+              <Button variant="ghost" size="icon" onClick={() => signOut()}>
+                <LogOut className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" className="px-2 sm:px-3" onClick={() => navigate(`/players/${athleteInfo.player_id}`)}>
+                <span className="hidden sm:inline">Fiche joueur</span>
+                <User className="h-4 w-4 sm:hidden" />
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 

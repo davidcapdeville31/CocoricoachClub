@@ -14073,6 +14073,7 @@ export type Database = {
       }
     }
     Functions: {
+      _athlete_display_name: { Args: { _player_id: string }; Returns: string }
       accept_ambassador_invitation: {
         Args: { invitation_token: string }
         Returns: boolean
@@ -14339,6 +14340,17 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      notify_athlete_data_added: {
+        Args: {
+          _category_id: string
+          _message: string
+          _metadata?: Json
+          _notification_type: string
+          _player_id: string
+          _title: string
+        }
+        Returns: undefined
       }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
