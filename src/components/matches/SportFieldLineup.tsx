@@ -382,7 +382,7 @@ export function SportFieldLineup({
                 <SelectContent>
                   {availablePlayers.map((player) => (
                     <SelectItem key={player.id} value={player.id}>
-                      {player.name} {player.position && `(${player.position})`}
+                      {formatPlayerName(player)} {player.position && `(${player.position})`}
                     </SelectItem>
                   ))}
                   {availablePlayers.length === 0 && (
