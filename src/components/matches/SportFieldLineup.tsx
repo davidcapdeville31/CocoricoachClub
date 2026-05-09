@@ -419,7 +419,7 @@ export function SportFieldLineup({
                   className="text-sm py-1 px-2 flex items-center gap-1"
                 >
                   <span className="font-bold text-orange-600">{fieldConfig.starters + index + 1}</span>
-                  <span>{player.name}</span>
+                  <span>{formatPlayerName(player)}</span>
                   {!readOnly && (
                     <button
                       onClick={() => handleRemoveSubstitute(player.id)}
