@@ -10,7 +10,15 @@ import { getPositionsForSport, getSportFieldConfig, type Position } from "@/lib/
 interface Player {
   id: string;
   name: string;
+  first_name?: string | null;
   position: string | null;
+}
+
+function formatPlayerName(player: Pick<Player, "name" | "first_name">) {
+  const last = (player.name || "").trim();
+  const first = (player.first_name || "").trim();
+  if (last && first) return `${last.toUpperCase()} ${first}`;
+  return last || first || "";
 }
 
 interface SportFieldLineupProps {
