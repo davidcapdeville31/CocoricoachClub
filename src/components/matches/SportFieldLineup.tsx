@@ -248,7 +248,7 @@ export function SportFieldLineup({
 
   const getPlayerName = (playerId: string) => {
     const player = players.find(p => p.id === playerId);
-    return player?.name || "";
+    return player ? formatPlayerName(player) : "";
   };
 
   const filledPositions = Object.keys(lineup).length;
