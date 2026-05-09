@@ -660,12 +660,6 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
               <Users className="h-3.5 w-3.5" />
               {isDoublesMatch ? `Paire (${lineupCount || 0}/2)` : isIndividual ? `Participants (${lineupCount || 0})` : `Composition (${lineupCount || 0})`}
             </Button>
-            {isTeamSport && (
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsMatchSheetOpen(true); }}>
-                <FileSpreadsheet className="h-3.5 w-3.5" />
-                Feuille de match
-              </Button>
-            )}
             {hasRoundBasedStats ? (
               <>
                 {isTrainingMatch && !sportType.toLowerCase().includes("bowling") ? (
