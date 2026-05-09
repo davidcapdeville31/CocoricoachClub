@@ -10,7 +10,15 @@ import { getPositionsForSport, getSportFieldConfig, type Position } from "@/lib/
 interface Player {
   id: string;
   name: string;
+  first_name?: string | null;
   position: string | null;
+}
+
+function formatPlayerName(player: Pick<Player, "name" | "first_name">) {
+  const last = (player.name || "").trim();
+  const first = (player.first_name || "").trim();
+  if (last && first) return `${last.toUpperCase()} ${first}`;
+  return last || first || "";
 }
 
 interface SportFieldLineupProps {
@@ -240,7 +248,7 @@ export function SportFieldLineup({
 
   const getPlayerName = (playerId: string) => {
     const player = players.find(p => p.id === playerId);
-    return player?.name || "";
+    return player ? formatPlayerName(player) : "";
   };
 
   const filledPositions = Object.keys(lineup).length;
@@ -351,8 +359,8 @@ export function SportFieldLineup({
                   >
                     <span className="text-xs font-bold">{pos.id}</span>
                     {playerId && (
-                      <span className="absolute -bottom-5 text-[9px] font-medium text-white bg-black/60 px-1 rounded whitespace-nowrap max-w-[50px] truncate">
-                        {getPlayerName(playerId).split(" ")[0]}
+                      <span className="absolute -bottom-5 text-[9px] font-medium text-white bg-black/60 px-1 rounded whitespace-nowrap max-w-[70px] truncate">
+                        {getPlayerName(playerId)}
                       </span>
                     )}
                   </button>
@@ -374,7 +382,7 @@ export function SportFieldLineup({
                 <SelectContent>
                   {availablePlayers.map((player) => (
                     <SelectItem key={player.id} value={player.id}>
-                      {player.name} {player.position && `(${player.position})`}
+                      {formatPlayerName(player)} {player.position && `(${player.position})`}
                     </SelectItem>
                   ))}
                   {availablePlayers.length === 0 && (
@@ -411,7 +419,7 @@ export function SportFieldLineup({
                   className="text-sm py-1 px-2 flex items-center gap-1"
                 >
                   <span className="font-bold text-orange-600">{fieldConfig.starters + index + 1}</span>
-                  <span>{player.name}</span>
+                  <span>{formatPlayerName(player)}</span>
                   {!readOnly && (
                     <button
                       onClick={() => handleRemoveSubstitute(player.id)}
@@ -442,7 +450,7 @@ export function SportFieldLineup({
                       checked={substitutes.includes(player.id)}
                       onCheckedChange={() => handleToggleSubstitute(player.id)}
                     />
-                    <span className="text-sm truncate">{player.name}</span>
+                    <span className="text-sm truncate">{formatPlayerName(player)}</span>
                   </div>
                 ))}
               </div>
