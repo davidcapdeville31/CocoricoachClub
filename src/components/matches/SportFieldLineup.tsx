@@ -450,7 +450,7 @@ export function SportFieldLineup({
                       checked={substitutes.includes(player.id)}
                       onCheckedChange={() => handleToggleSubstitute(player.id)}
                     />
-                    <span className="text-sm truncate">{player.name}</span>
+                    <span className="text-sm truncate">{formatPlayerName(player)}</span>
                   </div>
                 ))}
               </div>
