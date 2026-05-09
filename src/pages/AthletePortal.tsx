@@ -13,6 +13,7 @@ import { AthletePWAInstallPopup } from "@/components/athlete/AthletePWAInstallPo
 import { AthleticsRecordsManager } from "@/components/category/athletics/AthleticsRecordsManager";
 import { isAthletismeCategory } from "@/lib/constants/sportTypes";
 import { athletePortalHeaders, buildAthletePortalFunctionUrl } from "@/lib/athletePortalClient";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
