@@ -27,6 +27,7 @@ import { AthleteSpacePerformance } from "@/components/athlete-space/AthleteSpace
 import { MessagingTab } from "@/components/messaging/MessagingTab";
 import { AthleteSpaceSettings } from "@/components/athlete-space/AthleteSpaceSettings";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { AthleteSpaceCalendar } from "@/components/athlete-space/AthleteSpaceCalendar";
 import { AthleteSpaceDocuments } from "@/components/athlete-space/AthleteSpaceDocuments";
 import { AthletePrecisionTracker } from "@/components/athlete-space/AthletePrecisionTracker";
