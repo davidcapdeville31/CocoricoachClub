@@ -359,8 +359,8 @@ export function SportFieldLineup({
                   >
                     <span className="text-xs font-bold">{pos.id}</span>
                     {playerId && (
-                      <span className="absolute -bottom-5 text-[9px] font-medium text-white bg-black/60 px-1 rounded whitespace-nowrap max-w-[50px] truncate">
-                        {getPlayerName(playerId).split(" ")[0]}
+                      <span className="absolute -bottom-5 text-[9px] font-medium text-white bg-black/60 px-1 rounded whitespace-nowrap max-w-[70px] truncate">
+                        {getPlayerName(playerId)}
                       </span>
                     )}
                   </button>
