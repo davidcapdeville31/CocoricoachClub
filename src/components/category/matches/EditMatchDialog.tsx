@@ -24,6 +24,7 @@ import {
 import { toast } from "sonner";
 import { getCompetitionsBySport, getCompetitionStagesBySport } from "@/lib/constants/competitions";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
+import { TOURNAMENT_LEVELS, SELECTION_TYPES } from "@/lib/judo/competitionAnalytics";
 
 interface Match {
   id: string;
@@ -41,6 +42,7 @@ interface Match {
   age_category?: string | null;
   distance_meters?: number | null;
   tournament_level?: string | null;
+  selection_type?: string | null;
   is_finalized?: boolean;
 }
 
@@ -96,6 +98,7 @@ export function EditMatchDialog({
   const [ageCategory, setAgeCategory] = useState(match.age_category || "");
   const [distanceMeters, setDistanceMeters] = useState<number | undefined>(match.distance_meters || undefined);
   const [tournamentLevel, setTournamentLevel] = useState<string>(match.tournament_level || "");
+  const [selectionType, setSelectionType] = useState<string>(match.selection_type || "club");
   
   const queryClient = useQueryClient();
 
@@ -134,6 +137,7 @@ export function EditMatchDialog({
           age_category: ageCategory || null,
           distance_meters: distanceMeters || null,
           tournament_level: tournamentLevel || null,
+          selection_type: selectionType || "club",
         } as any)
         .eq("id", match.id);
       if (error) throw error;
@@ -333,20 +337,34 @@ export function EditMatchDialog({
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="tournamentLevel">Niveau du tournoi</Label>
-            <Select value={tournamentLevel || "none"} onValueChange={(v) => setTournamentLevel(v === "none" ? "" : v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un niveau (optionnel)" />
-              </SelectTrigger>
-              <SelectContent className="z-[200]">
-                <SelectItem value="none">Non défini</SelectItem>
-                <SelectItem value="local">Local</SelectItem>
-                <SelectItem value="national">National</SelectItem>
-                <SelectItem value="international">International</SelectItem>
-                <SelectItem value="other">Autre</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="tournamentLevel">Niveau du tournoi</Label>
+              <Select value={tournamentLevel || "none"} onValueChange={(v) => setTournamentLevel(v === "none" ? "" : v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un niveau (optionnel)" />
+                </SelectTrigger>
+                <SelectContent className="z-[200]">
+                  <SelectItem value="none">Non défini</SelectItem>
+                  {TOURNAMENT_LEVELS.map((lvl) => (
+                    <SelectItem key={lvl.value} value={lvl.value}>{lvl.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="selectionType">Participation</Label>
+              <Select value={selectionType} onValueChange={setSelectionType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Type de participation" />
+                </SelectTrigger>
+                <SelectContent className="z-[200]">
+                  {SELECTION_TYPES.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">

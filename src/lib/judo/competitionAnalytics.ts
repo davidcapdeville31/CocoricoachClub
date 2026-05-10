@@ -3,14 +3,39 @@
 // - Performance label from best ranking achieved
 // - Win/loss counters per opponent
 
-export type TournamentLevel = "local" | "national" | "international" | "other";
+export type TournamentLevel =
+  | "local"
+  | "departmental"
+  | "regional"
+  | "national"
+  | "international"
+  | "other";
 
 export const TOURNAMENT_LEVELS: { value: TournamentLevel; label: string; color: string }[] = [
   { value: "local",         label: "Local",         color: "bg-emerald-100 text-emerald-700 border-emerald-300" },
+  { value: "departmental",  label: "Départemental", color: "bg-teal-100 text-teal-700 border-teal-300" },
+  { value: "regional",      label: "Régional",      color: "bg-cyan-100 text-cyan-700 border-cyan-300" },
   { value: "national",      label: "National",      color: "bg-blue-100 text-blue-700 border-blue-300" },
   { value: "international", label: "International", color: "bg-purple-100 text-purple-700 border-purple-300" },
   { value: "other",         label: "Autre",         color: "bg-muted text-muted-foreground border-border" },
 ];
+
+export type SelectionType =
+  | "club"
+  | "departmental_selection"
+  | "regional_selection"
+  | "national_selection";
+
+export const SELECTION_TYPES: { value: SelectionType; label: string; short: string; color: string }[] = [
+  { value: "club",                   label: "Club",                       short: "Club",       color: "bg-slate-100 text-slate-700 border-slate-300" },
+  { value: "departmental_selection", label: "Sélection départementale",   short: "Sél. Dép.",  color: "bg-teal-100 text-teal-700 border-teal-300" },
+  { value: "regional_selection",     label: "Sélection régionale",        short: "Sél. Rég.",  color: "bg-cyan-100 text-cyan-700 border-cyan-300" },
+  { value: "national_selection",     label: "Équipe de France",           short: "Équipe Fr.", color: "bg-blue-100 text-blue-700 border-blue-300" },
+];
+
+export function selectionLabel(v?: string | null): string {
+  return SELECTION_TYPES.find((s) => s.value === v)?.label || "Club";
+}
 
 export function tournamentLevelLabel(v?: string | null): string {
   return TOURNAMENT_LEVELS.find((l) => l.value === v)?.label || "Non défini";
@@ -71,6 +96,7 @@ export interface MatchForAnalytics {
   competition?: string | null;
   opponent?: string | null;
   tournament_level?: string | null;
+  selection_type?: string | null;
   rounds: RoundForAnalytics[];
 }
 
@@ -104,7 +130,7 @@ export function summarizeByLevel(matches: MatchForAnalytics[]): LevelSummary[] {
     if (!groups[key]) groups[key] = [];
     groups[key].push(m);
   }
-  const order: (TournamentLevel | "unknown")[] = ["local", "national", "international", "other", "unknown"];
+  const order: (TournamentLevel | "unknown")[] = ["local", "departmental", "regional", "national", "international", "other", "unknown"];
   const out: LevelSummary[] = [];
   for (const lvl of order) {
     const list = groups[lvl];
@@ -192,3 +218,54 @@ export function summarizeOpponents(matches: MatchForAnalytics[]): OpponentStat[]
   arr.sort((a, b) => b.total - a.total || b.winRate - a.winRate);
   return arr;
 }
+
+export interface SelectionSummary {
+  selection: SelectionType | "unknown";
+  label: string;
+  short: string;
+  color: string;
+  tournamentsCount: number;
+  bestPerformance: { label: string; rank: number; tournament: string; date: string } | null;
+  averageRankLabel: string;
+}
+
+export function summarizeBySelection(matches: MatchForAnalytics[]): SelectionSummary[] {
+  const groups: Record<string, MatchForAnalytics[]> = {};
+  for (const m of matches) {
+    const key = (m.selection_type as SelectionType) || "club";
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(m);
+  }
+  const order: (SelectionType | "unknown")[] = ["club", "departmental_selection", "regional_selection", "national_selection"];
+  const out: SelectionSummary[] = [];
+  for (const sel of order) {
+    const list = groups[sel];
+    if (!list || list.length === 0) continue;
+    const meta = SELECTION_TYPES.find((s) => s.value === sel);
+    let best: { rank: number; tournament: string; date: string } | null = null;
+    const ranks: number[] = [];
+    for (const m of list) {
+      const r = bestRankOfMatch(m);
+      if (r !== null) {
+        ranks.push(r);
+        if (!best || r < best.rank) {
+          best = { rank: r, tournament: m.competition || m.opponent || "Compétition", date: m.match_date };
+        }
+      }
+    }
+    const avg = ranks.length > 0 ? ranks.reduce((a, b) => a + b, 0) / ranks.length : null;
+    out.push({
+      selection: sel,
+      label: meta?.label || "Club",
+      short: meta?.short || "Club",
+      color: meta?.color || "bg-slate-100 text-slate-700 border-slate-300",
+      tournamentsCount: list.length,
+      bestPerformance: best
+        ? { label: performanceLabelFromRanking(best.rank), rank: best.rank, tournament: best.tournament, date: best.date }
+        : null,
+      averageRankLabel: avg !== null ? performanceLabelFromRanking(Math.round(avg)) : "—",
+    });
+  }
+  return out;
+}
+

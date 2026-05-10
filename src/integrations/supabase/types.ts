@@ -5482,6 +5482,7 @@ export type Database = {
           parent_match_id: string | null
           score_away: number | null
           score_home: number | null
+          selection_type: string | null
           tournament_level: string | null
           updated_at: string
         }
@@ -5514,6 +5515,7 @@ export type Database = {
           parent_match_id?: string | null
           score_away?: number | null
           score_home?: number | null
+          selection_type?: string | null
           tournament_level?: string | null
           updated_at?: string
         }
@@ -5546,6 +5548,7 @@ export type Database = {
           parent_match_id?: string | null
           score_away?: number | null
           score_home?: number | null
+          selection_type?: string | null
           tournament_level?: string | null
           updated_at?: string
         }

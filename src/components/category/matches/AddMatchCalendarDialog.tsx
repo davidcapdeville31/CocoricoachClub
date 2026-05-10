@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { getCompetitionsBySport, getCompetitionStagesBySport } from "@/lib/constants/competitions";
 import { isIndividualSport, isBasket3x3 } from "@/lib/constants/sportTypes";
 import { Info } from "lucide-react";
+import { TOURNAMENT_LEVELS, SELECTION_TYPES } from "@/lib/judo/competitionAnalytics";
 
 interface AddMatchCalendarDialogProps {
   open: boolean;
@@ -116,6 +117,7 @@ export function AddMatchCalendarDialog({
   const [isHome, setIsHome] = useState(true);
   const [notes, setNotes] = useState("");
   const [tournamentLevel, setTournamentLevel] = useState<string>("");
+  const [selectionType, setSelectionType] = useState<string>("club");
   
   // Aviron specific fields
   const [eventType, setEventType] = useState<string>("individual");
@@ -161,6 +163,7 @@ export function AddMatchCalendarDialog({
           ? format3x3
           : null,
         tournament_level: tournamentLevel || null,
+        selection_type: selectionType || "club",
       } as any);
       if (error) throw error;
     },
@@ -198,6 +201,7 @@ export function AddMatchCalendarDialog({
     setDistanceMeters(undefined);
     setMatchFormat("simple");
     setTournamentLevel("");
+    setSelectionType("club");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -428,20 +432,34 @@ export function AddMatchCalendarDialog({
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="tournamentLevel">Niveau du tournoi</Label>
-            <Select value={tournamentLevel || "none"} onValueChange={(v) => setTournamentLevel(v === "none" ? "" : v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un niveau (optionnel)" />
-              </SelectTrigger>
-              <SelectContent className="z-[200]">
-                <SelectItem value="none">Non défini</SelectItem>
-                <SelectItem value="local">Local</SelectItem>
-                <SelectItem value="national">National</SelectItem>
-                <SelectItem value="international">International</SelectItem>
-                <SelectItem value="other">Autre</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="tournamentLevel">Niveau du tournoi</Label>
+              <Select value={tournamentLevel || "none"} onValueChange={(v) => setTournamentLevel(v === "none" ? "" : v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un niveau (optionnel)" />
+                </SelectTrigger>
+                <SelectContent className="z-[200]">
+                  <SelectItem value="none">Non défini</SelectItem>
+                  {TOURNAMENT_LEVELS.map((lvl) => (
+                    <SelectItem key={lvl.value} value={lvl.value}>{lvl.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="selectionType">Participation</Label>
+              <Select value={selectionType} onValueChange={setSelectionType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Type de participation" />
+                </SelectTrigger>
+                <SelectContent className="z-[200]">
+                  {SELECTION_TYPES.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className={`grid ${isIndividual ? 'grid-cols-3' : 'grid-cols-2'} gap-4`}>
