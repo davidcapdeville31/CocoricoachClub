@@ -96,6 +96,7 @@ export interface MatchForAnalytics {
   competition?: string | null;
   opponent?: string | null;
   tournament_level?: string | null;
+  selection_type?: string | null;
   rounds: RoundForAnalytics[];
 }
 
