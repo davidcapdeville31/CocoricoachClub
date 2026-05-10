@@ -102,6 +102,17 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
                 <span className="sm:hidden">Bilan</span>
               </ColoredSubTabsTrigger>
             )}
+            {isAthletics && (
+              <ColoredSubTabsTrigger
+                value="athle-analytics"
+                colorKey="competition"
+                icon={<LineChart className="h-4 w-4" />}
+                tooltip="Bilan compétitions : nombre d'épreuves par niveau (local, départemental, régional, national, international), meilleures performances et participations Club / Sélection"
+              >
+                <span className="hidden sm:inline">Bilan compétitions</span>
+                <span className="sm:hidden">Bilan</span>
+              </ColoredSubTabsTrigger>
+            )}
           </ColoredSubTabsList>
         </div>
       )}
