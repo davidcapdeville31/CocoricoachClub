@@ -35,6 +35,7 @@ import { syncAthleticsRecordsFromRounds } from "@/lib/athletics/syncRecordsFromC
 import { getDefaultUnitForDiscipline } from "@/lib/athletics/recordsHelpers";
 import { BowlingBlockManager, type BowlingBlock, type Round as BowlingRound, BOWLING_COMPETITION_CATEGORIES, BOWLING_PHASES } from "@/components/bowling/BowlingBlockManager";
 import { BowlingCompetitionSummary } from "@/components/bowling/BowlingCompetitionSummary";
+import { JudoCombatStatsView } from "@/components/category/judo/JudoCombatStatsView";
 
 const blurOnWheel = (e: React.WheelEvent<HTMLInputElement>) => {
   // Prevent wheel/trackpad from changing number inputs instead of scrolling the dialog
@@ -1781,8 +1782,18 @@ export function CompetitionRoundsDialog({
             <TabsContent value="rounds" className="flex-1 min-h-0 mt-0 overflow-hidden data-[state=active]:flex data-[state=active]:flex-col">
               <div className="flex-1 min-h-0 overflow-y-auto pr-2">
                 <div className="pb-6 pr-2">
-                {/* Bowling: use block manager */}
-                {isBowling ? (
+                {/* Judo: use dedicated table view with category wizard */}
+                {isJudo ? (
+                  <JudoCombatStatsView
+                    selectedPlayer={selectedPlayer as any}
+                    phases={phases}
+                    opponentProfiles={opponentProfiles as any}
+                    addRound={addRound}
+                    removeRound={removeRound}
+                    updateRound={updateRound as any}
+                    updateRoundStat={updateRoundStat}
+                  />
+                ) : isBowling ? (
                   <BowlingBlockManager
                     playerId={selectedPlayer.playerId}
                     categoryId={categoryId}
