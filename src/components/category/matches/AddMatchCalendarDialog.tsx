@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { getCompetitionsBySport, getCompetitionStagesBySport } from "@/lib/constants/competitions";
 import { isIndividualSport, isBasket3x3 } from "@/lib/constants/sportTypes";
 import { Info } from "lucide-react";
+import { TOURNAMENT_LEVELS, SELECTION_TYPES } from "@/lib/judo/competitionAnalytics";
 
 interface AddMatchCalendarDialogProps {
   open: boolean;
