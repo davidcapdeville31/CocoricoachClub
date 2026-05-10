@@ -184,6 +184,58 @@ export function JudoCompetitionAnalyticsTab({ categoryId }: Props) {
         </CardContent>
       </Card>
 
+      {selectionSummaries.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              Par type de participation
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {selectionSummaries.map((s) => (
+                <Card key={s.selection} className="border">
+                  <CardHeader className="pb-2">
+                    <Badge variant="outline" className={`w-fit ${s.color}`}>
+                      {s.label}
+                    </Badge>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-bold">{s.tournamentsCount}</span>
+                      <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                        tournois
+                      </span>
+                    </div>
+                    <div className="space-y-1 pt-2 border-t">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Trophy className="h-4 w-4 text-amber-500" />
+                        <span className="text-muted-foreground">Meilleure :</span>
+                        <span className="font-semibold">
+                          {s.bestPerformance?.label || "—"}
+                        </span>
+                      </div>
+                      {s.bestPerformance && (
+                        <p className="text-[11px] text-muted-foreground pl-6 truncate">
+                          {s.bestPerformance.tournament} ·{" "}
+                          {format(parseISO(s.bestPerformance.date), "dd MMM yyyy", { locale: fr })}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 text-sm">
+                        <Medal className="h-4 w-4 text-blue-500" />
+                        <span className="text-muted-foreground">Moyenne :</span>
+                        <span className="font-semibold">{s.averageRankLabel}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
