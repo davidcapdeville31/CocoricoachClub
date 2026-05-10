@@ -3,14 +3,39 @@
 // - Performance label from best ranking achieved
 // - Win/loss counters per opponent
 
-export type TournamentLevel = "local" | "national" | "international" | "other";
+export type TournamentLevel =
+  | "local"
+  | "departmental"
+  | "regional"
+  | "national"
+  | "international"
+  | "other";
 
 export const TOURNAMENT_LEVELS: { value: TournamentLevel; label: string; color: string }[] = [
   { value: "local",         label: "Local",         color: "bg-emerald-100 text-emerald-700 border-emerald-300" },
+  { value: "departmental",  label: "Départemental", color: "bg-teal-100 text-teal-700 border-teal-300" },
+  { value: "regional",      label: "Régional",      color: "bg-cyan-100 text-cyan-700 border-cyan-300" },
   { value: "national",      label: "National",      color: "bg-blue-100 text-blue-700 border-blue-300" },
   { value: "international", label: "International", color: "bg-purple-100 text-purple-700 border-purple-300" },
   { value: "other",         label: "Autre",         color: "bg-muted text-muted-foreground border-border" },
 ];
+
+export type SelectionType =
+  | "club"
+  | "departmental_selection"
+  | "regional_selection"
+  | "national_selection";
+
+export const SELECTION_TYPES: { value: SelectionType; label: string; short: string; color: string }[] = [
+  { value: "club",                   label: "Club",                       short: "Club",       color: "bg-slate-100 text-slate-700 border-slate-300" },
+  { value: "departmental_selection", label: "Sélection départementale",   short: "Sél. Dép.",  color: "bg-teal-100 text-teal-700 border-teal-300" },
+  { value: "regional_selection",     label: "Sélection régionale",        short: "Sél. Rég.",  color: "bg-cyan-100 text-cyan-700 border-cyan-300" },
+  { value: "national_selection",     label: "Équipe de France",           short: "Équipe Fr.", color: "bg-blue-100 text-blue-700 border-blue-300" },
+];
+
+export function selectionLabel(v?: string | null): string {
+  return SELECTION_TYPES.find((s) => s.value === v)?.label || "Club";
+}
 
 export function tournamentLevelLabel(v?: string | null): string {
   return TOURNAMENT_LEVELS.find((l) => l.value === v)?.label || "Non défini";
