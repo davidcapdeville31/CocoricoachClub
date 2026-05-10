@@ -160,6 +160,7 @@ export function AddMatchCalendarDialog({
           : is3x3
           ? format3x3
           : null,
+        tournament_level: tournamentLevel || null,
       } as any);
       if (error) throw error;
     },
