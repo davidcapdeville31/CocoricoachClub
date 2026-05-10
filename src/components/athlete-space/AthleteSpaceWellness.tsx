@@ -24,7 +24,15 @@ interface Props {
   hideHistory?: boolean;
 }
 
-const SLEEP_HOURS = [4, 5, 6, 7, 8, 9, 10, 11, 12];
+// Plages horaires de sommeil — la valeur stockée est l'heure médiane de la plage
+const SLEEP_RANGES: { label: string; value: number }[] = [
+  { label: "<6h", value: 5 },
+  { label: "6-7h", value: 6.5 },
+  { label: "7-8h", value: 7.5 },
+  { label: "8-9h", value: 8.5 },
+  { label: "9-10h", value: 9.5 },
+  { label: ">10h", value: 11 },
+];
 
 const WELLNESS_FIELDS = [
   {
