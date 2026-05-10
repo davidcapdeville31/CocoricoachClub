@@ -197,6 +197,7 @@ export function AddMatchCalendarDialog({
     setAgeCategory("");
     setDistanceMeters(undefined);
     setMatchFormat("simple");
+    setTournamentLevel("");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
