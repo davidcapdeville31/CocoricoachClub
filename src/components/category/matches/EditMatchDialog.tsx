@@ -95,6 +95,7 @@ export function EditMatchDialog({
   const [eventType, setEventType] = useState<string>(match.event_type || "individual");
   const [ageCategory, setAgeCategory] = useState(match.age_category || "");
   const [distanceMeters, setDistanceMeters] = useState<number | undefined>(match.distance_meters || undefined);
+  const [tournamentLevel, setTournamentLevel] = useState<string>(match.tournament_level || "");
   
   const queryClient = useQueryClient();
 
