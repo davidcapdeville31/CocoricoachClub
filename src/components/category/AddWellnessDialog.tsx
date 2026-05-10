@@ -22,7 +22,7 @@ import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { HrvInputSection, emptyHrvData, type HrvData } from "./hrv/HrvInputSection";
-import { getWellnessButtonClasses } from "@/lib/wellnessColors";
+import { getWellnessButtonClasses, getSleepScoreButtonClasses } from "@/lib/wellnessColors";
 import { cn } from "@/lib/utils";
 
 interface AddWellnessDialogProps {
@@ -192,12 +192,14 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
     onChange,
     labels,
     inverted = true,
+    customColorFn,
   }: {
     label: string;
     value: number;
     onChange: (v: number) => void;
     labels: string[];
     inverted?: boolean;
+    customColorFn?: (score: number, selected: boolean) => string;
   }) => (
     <div className="space-y-3">
       <Label>{label}</Label>
@@ -210,7 +212,9 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
             className={cn(
               "flex-1 min-w-0 rounded-md border text-xs font-medium py-2 px-1 transition-all",
               "active:scale-95 whitespace-normal h-auto",
-              getWellnessButtonClasses(score, inverted, value === score),
+              customColorFn
+                ? customColorFn(score, value === score)
+                : getWellnessButtonClasses(score, inverted, value === score),
             )}
           >
             <span className="text-center line-clamp-2 block">{labels[score]}</span>
@@ -273,6 +277,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
               value={sleepDuration}
               onChange={setSleepDuration}
               labels={scoreLabels.sleep_duration}
+              customColorFn={getSleepScoreButtonClasses}
             />
 
             <ScoreButton

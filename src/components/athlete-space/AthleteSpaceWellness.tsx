@@ -16,7 +16,7 @@ import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { cn } from "@/lib/utils";
 import { PAIN_ZONES } from "@/lib/constants/pain-locations";
 import { sleepHoursToScore } from "@/lib/sleepConversion";
-import { getWellnessButtonClasses } from "@/lib/wellnessColors";
+import { getWellnessButtonClasses, getSleepHoursButtonClasses } from "@/lib/wellnessColors";
 
 interface Props {
   playerId: string;
@@ -272,7 +272,6 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                   </Label>
                   <div className="grid grid-cols-9 gap-0.5">
                     {SLEEP_HOURS.map(hour => {
-                      const score = sleepHoursToScore(hour);
                       const isSelected = currentValue === hour;
                       return (
                         <button
@@ -282,7 +281,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                           className={cn(
                             "h-6 sm:h-7 rounded text-[10px] sm:text-xs font-semibold transition-all duration-150",
                             "border active:scale-95",
-                            getWellnessButtonClasses(score, true, isSelected),
+                            getSleepHoursButtonClasses(hour, isSelected),
                           )}
                         >
                           {hour}
