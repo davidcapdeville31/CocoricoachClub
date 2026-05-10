@@ -115,6 +115,7 @@ export function AddMatchCalendarDialog({
   const [location, setLocation] = useState("");
   const [isHome, setIsHome] = useState(true);
   const [notes, setNotes] = useState("");
+  const [tournamentLevel, setTournamentLevel] = useState<string>("");
   
   // Aviron specific fields
   const [eventType, setEventType] = useState<string>("individual");
