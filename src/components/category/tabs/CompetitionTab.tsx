@@ -9,6 +9,7 @@ import { isIndividualSport, getMainSportFromType } from "@/lib/constants/sportTy
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { FisCompetitionsTab } from "@/components/category/fis/FisCompetitionsTab";
 import { FisRankingTab } from "@/components/category/fis/FisRankingTab";
+import { AthleticsCompetitionAnalyticsTab } from "@/components/category/athletics/AthleticsCompetitionAnalyticsTab";
 
 
 interface CompetitionTabProps {
@@ -23,12 +24,13 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
   const isSkiSport = sportType ? getMainSportFromType(sportType) === "ski" : false;
   // (athletics: minimas/records moved to Planification only)
   const isJudo = (sportType || "").toLowerCase().includes("judo");
-  
+  const isAthletics = (sportType || "").toLowerCase().includes("athle");
+
   const matchLabel = "Compétitions";
   const MatchIcon = isIndividual ? Award : Swords;
 
   // Si "Compétitions" est seul (pas d'autres sous-onglets), on masque la barre d'onglets : c'est inutile
-  const hasOtherSubtabs = isSkiSport || isRugby7 || isNationalTeam || isJudo;
+  const hasOtherSubtabs = isSkiSport || isRugby7 || isNationalTeam || isJudo || isAthletics;
 
   return (
     <Tabs defaultValue="matches" className="space-y-4">
@@ -100,6 +102,17 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
                 <span className="sm:hidden">Bilan</span>
               </ColoredSubTabsTrigger>
             )}
+            {isAthletics && (
+              <ColoredSubTabsTrigger
+                value="athle-analytics"
+                colorKey="competition"
+                icon={<LineChart className="h-4 w-4" />}
+                tooltip="Bilan compétitions : nombre d'épreuves par niveau (local, départemental, régional, national, international), meilleures performances et participations Club / Sélection"
+              >
+                <span className="hidden sm:inline">Bilan compétitions</span>
+                <span className="sm:hidden">Bilan</span>
+              </ColoredSubTabsTrigger>
+            )}
           </ColoredSubTabsList>
         </div>
       )}
@@ -139,6 +152,12 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
       {isJudo && (
         <TabsContent value="judo-analytics">
           <JudoCompetitionAnalyticsTab categoryId={categoryId} />
+        </TabsContent>
+      )}
+
+      {isAthletics && (
+        <TabsContent value="athle-analytics">
+          <AthleticsCompetitionAnalyticsTab categoryId={categoryId} />
         </TabsContent>
       )}
     </Tabs>
