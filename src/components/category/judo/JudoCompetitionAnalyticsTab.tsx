@@ -18,12 +18,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Trophy, Medal, Award, Users, BarChart3 } from "lucide-react";
+import { Trophy, Medal, Award, Users, BarChart3, Shield } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   TOURNAMENT_LEVELS,
+  SELECTION_TYPES,
   summarizeByLevel,
+  summarizeBySelection,
   summarizeOpponents,
   type MatchForAnalytics,
 } from "@/lib/judo/competitionAnalytics";
