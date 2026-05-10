@@ -89,6 +89,17 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
                 <span className="sm:hidden">Adversaires</span>
               </ColoredSubTabsTrigger>
             )}
+            {isJudo && (
+              <ColoredSubTabsTrigger
+                value="judo-analytics"
+                colorKey="competition"
+                icon={<LineChart className="h-4 w-4" />}
+                tooltip="Bilan compétitions : nombre de tournois locaux/nationaux/internationaux, meilleures performances et statistiques par adversaire"
+              >
+                <span className="hidden sm:inline">Bilan compétitions</span>
+                <span className="sm:hidden">Bilan</span>
+              </ColoredSubTabsTrigger>
+            )}
           </ColoredSubTabsList>
         </div>
       )}
