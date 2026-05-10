@@ -57,7 +57,7 @@ export function JudoCompetitionAnalyticsTab({ categoryId }: Props) {
       const { data, error } = await supabase
         .from("matches")
         .select(`
-          id, match_date, competition, opponent, tournament_level,
+          id, match_date, competition, opponent, tournament_level, selection_type,
           competition_rounds(
             result, ranking, phase, opponent_name, player_id,
             opponent_profile:opponent_profiles(last_name, first_name)
@@ -71,19 +71,23 @@ export function JudoCompetitionAnalyticsTab({ categoryId }: Props) {
   });
 
   const matches: MatchForAnalytics[] = useMemo(() => {
-    return rawMatches.map((m: any) => ({
-      id: m.id,
-      match_date: m.match_date,
-      competition: m.competition,
-      opponent: m.opponent,
-      tournament_level: m.tournament_level,
-      rounds: (m.competition_rounds || []).filter(
-        (r: any) => playerId === "all" || r.player_id === playerId,
-      ),
-    })).filter((m) => m.rounds.length > 0);
-  }, [rawMatches, playerId]);
+    return rawMatches
+      .filter((m: any) => selectionFilter === "all" || (m.selection_type || "club") === selectionFilter)
+      .map((m: any) => ({
+        id: m.id,
+        match_date: m.match_date,
+        competition: m.competition,
+        opponent: m.opponent,
+        tournament_level: m.tournament_level,
+        selection_type: m.selection_type,
+        rounds: (m.competition_rounds || []).filter(
+          (r: any) => playerId === "all" || r.player_id === playerId,
+        ),
+      })).filter((m) => m.rounds.length > 0);
+  }, [rawMatches, playerId, selectionFilter]);
 
   const levelSummaries = useMemo(() => summarizeByLevel(matches), [matches]);
+  const selectionSummaries = useMemo(() => summarizeBySelection(matches), [matches]);
   const opponentStats = useMemo(() => summarizeOpponents(matches), [matches]);
 
   const levelColor = (lvl: string) =>
