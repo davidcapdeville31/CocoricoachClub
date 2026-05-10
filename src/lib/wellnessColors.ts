@@ -58,3 +58,53 @@ export function getWellnessButtonClasses(
     ? `${styles.selected} ring-2 ${styles.selectedRing} shadow-sm`
     : styles.unselected;
 }
+
+/** Couleurs basées sur les heures de sommeil réelles (espace athlète).
+ *  ≤6h rouge | 7-8h orange | 9-10h jaune | ≥11h vert
+ */
+export function getSleepHoursButtonClasses(hours: number, selected: boolean): string {
+  if (hours <= 6) {
+    return selected
+      ? "bg-red-600 border-red-700 text-white ring-2 ring-red-600/40 shadow-sm"
+      : "bg-red-50 border-red-200 text-red-800 hover:bg-red-100 dark:bg-red-950/40 dark:border-red-800 dark:text-red-200";
+  }
+  if (hours <= 8) {
+    return selected
+      ? "bg-orange-500 border-orange-600 text-white ring-2 ring-orange-500/40 shadow-sm"
+      : "bg-orange-50 border-orange-200 text-orange-800 hover:bg-orange-100 dark:bg-orange-950/40 dark:border-orange-800 dark:text-orange-200";
+  }
+  if (hours <= 10) {
+    return selected
+      ? "bg-yellow-400 border-yellow-500 text-yellow-950 ring-2 ring-yellow-400/40 shadow-sm"
+      : "bg-yellow-50 border-yellow-200 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-950/40 dark:border-yellow-800 dark:text-yellow-200";
+  }
+  // 11h et plus → vert
+  return selected
+    ? "bg-lime-500 border-lime-600 text-white ring-2 ring-lime-500/40 shadow-sm"
+    : "bg-lime-50 border-lime-200 text-lime-800 hover:bg-lime-100 dark:bg-lime-950/40 dark:border-lime-800 dark:text-lime-200";
+}
+
+/** Couleurs basées sur le score 1-5 de durée de sommeil (staff).
+ *  5(<5h)=rouge | 4(5-6h)=rouge | 3(6-7h)=orange | 2(7-8h)=jaune | 1(>8h)=vert
+ */
+export function getSleepScoreButtonClasses(score: number, selected: boolean): string {
+  if (score >= 4) {
+    return selected
+      ? "bg-red-600 border-red-700 text-white ring-2 ring-red-600/40 shadow-sm"
+      : "bg-red-50 border-red-200 text-red-800 hover:bg-red-100 dark:bg-red-950/40 dark:border-red-800 dark:text-red-200";
+  }
+  if (score === 3) {
+    return selected
+      ? "bg-orange-500 border-orange-600 text-white ring-2 ring-orange-500/40 shadow-sm"
+      : "bg-orange-50 border-orange-200 text-orange-800 hover:bg-orange-100 dark:bg-orange-950/40 dark:border-orange-800 dark:text-orange-200";
+  }
+  if (score === 2) {
+    return selected
+      ? "bg-yellow-400 border-yellow-500 text-yellow-950 ring-2 ring-yellow-400/40 shadow-sm"
+      : "bg-yellow-50 border-yellow-200 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-950/40 dark:border-yellow-800 dark:text-yellow-200";
+  }
+  // score 1 (>8h)
+  return selected
+    ? "bg-lime-500 border-lime-600 text-white ring-2 ring-lime-500/40 shadow-sm"
+    : "bg-lime-50 border-lime-200 text-lime-800 hover:bg-lime-100 dark:bg-lime-950/40 dark:border-lime-800 dark:text-lime-200";
+}
