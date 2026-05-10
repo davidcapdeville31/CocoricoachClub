@@ -36,6 +36,7 @@ interface Props {
 
 export function JudoCompetitionAnalyticsTab({ categoryId }: Props) {
   const [playerId, setPlayerId] = useState<string>("all");
+  const [selectionFilter, setSelectionFilter] = useState<string>("all");
 
   const { data: players = [] } = useQuery({
     queryKey: ["judo_analytics_players", categoryId],
