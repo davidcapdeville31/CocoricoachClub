@@ -133,7 +133,8 @@ export function EditMatchDialog({
           event_type: isAviron ? eventType : (isIndividual ? "individual" : "team"),
           age_category: ageCategory || null,
           distance_meters: distanceMeters || null,
-        })
+          tournament_level: tournamentLevel || null,
+        } as any)
         .eq("id", match.id);
       if (error) throw error;
     },
