@@ -22,7 +22,7 @@ import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { HrvInputSection, emptyHrvData, type HrvData } from "./hrv/HrvInputSection";
-import { getWellnessButtonClasses } from "@/lib/wellnessColors";
+import { getWellnessButtonClasses, getSleepScoreButtonClasses } from "@/lib/wellnessColors";
 import { cn } from "@/lib/utils";
 
 interface AddWellnessDialogProps {
