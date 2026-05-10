@@ -24,6 +24,7 @@ import {
 import { toast } from "sonner";
 import { getCompetitionsBySport, getCompetitionStagesBySport } from "@/lib/constants/competitions";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
+import { TOURNAMENT_LEVELS, SELECTION_TYPES } from "@/lib/judo/competitionAnalytics";
 
 interface Match {
   id: string;
