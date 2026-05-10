@@ -16,6 +16,7 @@ import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { cn } from "@/lib/utils";
 import { PAIN_ZONES } from "@/lib/constants/pain-locations";
 import { sleepHoursToScore } from "@/lib/sleepConversion";
+import { getWellnessButtonClasses } from "@/lib/wellnessColors";
 
 interface Props {
   playerId: string;
@@ -270,23 +271,24 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                     )}
                   </Label>
                   <div className="grid grid-cols-9 gap-0.5">
-                    {SLEEP_HOURS.map(hour => (
-                      <button
-                        key={hour}
-                        type="button"
-                        onClick={() => setValues(prev => ({ ...prev, [field.key]: hour }))}
-                        className={cn(
-                          "h-6 sm:h-7 rounded text-[10px] sm:text-xs font-semibold transition-all duration-150",
-                          "border active:scale-95",
-                          currentValue === hour
-                            ? "text-white shadow-sm"
-                            : "bg-background border-border text-foreground"
-                        )}
-                        style={currentValue === hour ? { backgroundColor: NAV_COLORS.sante.base, borderColor: NAV_COLORS.sante.base } : {}}
-                      >
-                        {hour}
-                      </button>
-                    ))}
+                    {SLEEP_HOURS.map(hour => {
+                      const score = sleepHoursToScore(hour);
+                      const isSelected = currentValue === hour;
+                      return (
+                        <button
+                          key={hour}
+                          type="button"
+                          onClick={() => setValues(prev => ({ ...prev, [field.key]: hour }))}
+                          className={cn(
+                            "h-6 sm:h-7 rounded text-[10px] sm:text-xs font-semibold transition-all duration-150",
+                            "border active:scale-95",
+                            getWellnessButtonClasses(score, true, isSelected),
+                          )}
+                        >
+                          {hour}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -312,24 +314,24 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                 </Label>
                 <p className="text-[9px] text-muted-foreground mb-1 italic">{scaleHint}</p>
                 <div className="grid grid-cols-5 gap-0.5">
-                  {fieldOptions.map(opt => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      title={opt.label}
-                      onClick={() => setValues(prev => ({ ...prev, [field.key]: opt.value }))}
-                      className={cn(
-                        "h-7 sm:h-8 rounded text-xs sm:text-sm font-bold transition-all duration-150",
-                        "border active:scale-95",
-                        currentValue === opt.value
-                          ? "text-white shadow-sm"
-                          : "bg-background border-border text-foreground"
-                      )}
-                      style={currentValue === opt.value ? { backgroundColor: NAV_COLORS.sante.base, borderColor: NAV_COLORS.sante.base } : {}}
-                    >
-                      {opt.value}
-                    </button>
-                  ))}
+                  {fieldOptions.map(opt => {
+                    const isSelected = currentValue === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        title={opt.label}
+                        onClick={() => setValues(prev => ({ ...prev, [field.key]: opt.value }))}
+                        className={cn(
+                          "h-7 sm:h-8 rounded text-xs sm:text-sm font-bold transition-all duration-150",
+                          "border active:scale-95",
+                          getWellnessButtonClasses(opt.value, isInverted, isSelected),
+                        )}
+                      >
+                        {opt.value}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             );

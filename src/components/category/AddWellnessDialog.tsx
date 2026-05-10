@@ -22,6 +22,8 @@ import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { HrvInputSection, emptyHrvData, type HrvData } from "./hrv/HrvInputSection";
+import { getWellnessButtonClasses } from "@/lib/wellnessColors";
+import { cn } from "@/lib/utils";
 
 interface AddWellnessDialogProps {
   open: boolean;
@@ -184,31 +186,35 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
     addWellness.mutate();
   };
 
-  const ScoreButton = ({ 
-    label, 
-    value, 
-    onChange, 
-    labels 
-  }: { 
-    label: string; 
-    value: number; 
+  const ScoreButton = ({
+    label,
+    value,
+    onChange,
+    labels,
+    inverted = true,
+  }: {
+    label: string;
+    value: number;
     onChange: (v: number) => void;
     labels: string[];
+    inverted?: boolean;
   }) => (
     <div className="space-y-3">
       <Label>{label}</Label>
       <div className="flex gap-2 flex-wrap">
         {[1, 2, 3, 4, 5].map((score) => (
-          <Button
+          <button
             key={score}
             type="button"
-            variant={value === score ? "default" : "outline"}
-            size="sm"
             onClick={() => onChange(score)}
-            className="flex-1 text-xs whitespace-normal h-auto py-2 px-1"
+            className={cn(
+              "flex-1 min-w-0 rounded-md border text-xs font-medium py-2 px-1 transition-all",
+              "active:scale-95 whitespace-normal h-auto",
+              getWellnessButtonClasses(score, inverted, value === score),
+            )}
           >
-            <span className="text-center line-clamp-2">{labels[score]}</span>
-          </Button>
+            <span className="text-center line-clamp-2 block">{labels[score]}</span>
+          </button>
         ))}
       </div>
     </div>
