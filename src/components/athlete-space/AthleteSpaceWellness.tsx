@@ -16,7 +16,7 @@ import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { cn } from "@/lib/utils";
 import { PAIN_ZONES } from "@/lib/constants/pain-locations";
 import { sleepHoursToScore } from "@/lib/sleepConversion";
-import { getWellnessButtonClasses } from "@/lib/wellnessColors";
+import { getWellnessButtonClasses, getSleepHoursButtonClasses } from "@/lib/wellnessColors";
 
 interface Props {
   playerId: string;
