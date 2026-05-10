@@ -271,23 +271,24 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                     )}
                   </Label>
                   <div className="grid grid-cols-9 gap-0.5">
-                    {SLEEP_HOURS.map(hour => (
-                      <button
-                        key={hour}
-                        type="button"
-                        onClick={() => setValues(prev => ({ ...prev, [field.key]: hour }))}
-                        className={cn(
-                          "h-6 sm:h-7 rounded text-[10px] sm:text-xs font-semibold transition-all duration-150",
-                          "border active:scale-95",
-                          currentValue === hour
-                            ? "text-white shadow-sm"
-                            : "bg-background border-border text-foreground"
-                        )}
-                        style={currentValue === hour ? { backgroundColor: NAV_COLORS.sante.base, borderColor: NAV_COLORS.sante.base } : {}}
-                      >
-                        {hour}
-                      </button>
-                    ))}
+                    {SLEEP_HOURS.map(hour => {
+                      const score = sleepHoursToScore(hour);
+                      const isSelected = currentValue === hour;
+                      return (
+                        <button
+                          key={hour}
+                          type="button"
+                          onClick={() => setValues(prev => ({ ...prev, [field.key]: hour }))}
+                          className={cn(
+                            "h-6 sm:h-7 rounded text-[10px] sm:text-xs font-semibold transition-all duration-150",
+                            "border active:scale-95",
+                            getWellnessButtonClasses(score, true, isSelected),
+                          )}
+                        >
+                          {hour}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               );
