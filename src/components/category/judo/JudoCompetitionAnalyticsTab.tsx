@@ -97,25 +97,40 @@ export function JudoCompetitionAnalyticsTab({ categoryId }: Props) {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-3">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-primary" />
             Bilan compétitions
           </CardTitle>
-          <div className="w-64">
-            <Select value={playerId} onValueChange={setPlayerId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Athlète" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les athlètes</SelectItem>
-                {players.map((p: any) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {(p.name || "").toUpperCase()} {p.first_name || ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="w-full sm:w-56">
+              <Select value={selectionFilter} onValueChange={setSelectionFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Participation" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes participations</SelectItem>
+                  {SELECTION_TYPES.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full sm:w-56">
+              <Select value={playerId} onValueChange={setPlayerId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Athlète" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les athlètes</SelectItem>
+                  {players.map((p: any) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {(p.name || "").toUpperCase()} {p.first_name || ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
