@@ -218,3 +218,54 @@ export function summarizeOpponents(matches: MatchForAnalytics[]): OpponentStat[]
   arr.sort((a, b) => b.total - a.total || b.winRate - a.winRate);
   return arr;
 }
+
+export interface SelectionSummary {
+  selection: SelectionType | "unknown";
+  label: string;
+  short: string;
+  color: string;
+  tournamentsCount: number;
+  bestPerformance: { label: string; rank: number; tournament: string; date: string } | null;
+  averageRankLabel: string;
+}
+
+export function summarizeBySelection(matches: MatchForAnalytics[]): SelectionSummary[] {
+  const groups: Record<string, MatchForAnalytics[]> = {};
+  for (const m of matches) {
+    const key = (m.selection_type as SelectionType) || "club";
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(m);
+  }
+  const order: (SelectionType | "unknown")[] = ["club", "departmental_selection", "regional_selection", "national_selection"];
+  const out: SelectionSummary[] = [];
+  for (const sel of order) {
+    const list = groups[sel];
+    if (!list || list.length === 0) continue;
+    const meta = SELECTION_TYPES.find((s) => s.value === sel);
+    let best: { rank: number; tournament: string; date: string } | null = null;
+    const ranks: number[] = [];
+    for (const m of list) {
+      const r = bestRankOfMatch(m);
+      if (r !== null) {
+        ranks.push(r);
+        if (!best || r < best.rank) {
+          best = { rank: r, tournament: m.competition || m.opponent || "Compétition", date: m.match_date };
+        }
+      }
+    }
+    const avg = ranks.length > 0 ? ranks.reduce((a, b) => a + b, 0) / ranks.length : null;
+    out.push({
+      selection: sel,
+      label: meta?.label || "Club",
+      short: meta?.short || "Club",
+      color: meta?.color || "bg-slate-100 text-slate-700 border-slate-300",
+      tournamentsCount: list.length,
+      bestPerformance: best
+        ? { label: performanceLabelFromRanking(best.rank), rank: best.rank, tournament: best.tournament, date: best.date }
+        : null,
+      averageRankLabel: avg !== null ? performanceLabelFromRanking(Math.round(avg)) : "—",
+    });
+  }
+  return out;
+}
+
