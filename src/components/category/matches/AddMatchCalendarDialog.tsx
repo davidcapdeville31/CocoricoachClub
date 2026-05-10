@@ -428,6 +428,22 @@ export function AddMatchCalendarDialog({
             </div>
           )}
 
+          <div className="space-y-2">
+            <Label htmlFor="tournamentLevel">Niveau du tournoi</Label>
+            <Select value={tournamentLevel || "none"} onValueChange={(v) => setTournamentLevel(v === "none" ? "" : v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un niveau (optionnel)" />
+              </SelectTrigger>
+              <SelectContent className="z-[200]">
+                <SelectItem value="none">Non défini</SelectItem>
+                <SelectItem value="local">Local</SelectItem>
+                <SelectItem value="national">National</SelectItem>
+                <SelectItem value="international">International</SelectItem>
+                <SelectItem value="other">Autre</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className={`grid ${isIndividual ? 'grid-cols-3' : 'grid-cols-2'} gap-4`}>
             <div className="space-y-2">
               <Label htmlFor="matchDate">{isIndividual ? "Date début *" : "Date *"}</Label>
