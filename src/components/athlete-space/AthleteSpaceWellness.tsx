@@ -24,7 +24,15 @@ interface Props {
   hideHistory?: boolean;
 }
 
-const SLEEP_HOURS = [4, 5, 6, 7, 8, 9, 10, 11, 12];
+// Plages horaires de sommeil — la valeur stockée est l'heure médiane de la plage
+const SLEEP_RANGES: { label: string; value: number }[] = [
+  { label: "<6h", value: 5 },
+  { label: "6-7h", value: 6.5 },
+  { label: "7-8h", value: 7.5 },
+  { label: "8-9h", value: 8.5 },
+  { label: "9-10h", value: 9.5 },
+  { label: ">10h", value: 11 },
+];
 
 const WELLNESS_FIELDS = [
   {
@@ -267,24 +275,26 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                     <span className="text-xs">{field.emoji}</span>
                     {field.label}
                     {currentValue > 0 && (
-                      <Badge variant="secondary" className="ml-auto text-[10px] font-bold px-1 py-0 leading-tight">{currentValue}h</Badge>
+                      <Badge variant="secondary" className="ml-auto text-[10px] font-bold px-1 py-0 leading-tight">
+                        {SLEEP_RANGES.find(r => r.value === currentValue)?.label ?? `${currentValue}h`}
+                      </Badge>
                     )}
                   </Label>
-                  <div className="grid grid-cols-9 gap-0.5">
-                    {SLEEP_HOURS.map(hour => {
-                      const isSelected = currentValue === hour;
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-1">
+                    {SLEEP_RANGES.map(range => {
+                      const isSelected = currentValue === range.value;
                       return (
                         <button
-                          key={hour}
+                          key={range.label}
                           type="button"
-                          onClick={() => setValues(prev => ({ ...prev, [field.key]: hour }))}
+                          onClick={() => setValues(prev => ({ ...prev, [field.key]: range.value }))}
                           className={cn(
-                            "h-6 sm:h-7 rounded text-[10px] sm:text-xs font-semibold transition-all duration-150",
+                            "h-9 sm:h-10 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150",
                             "border active:scale-95",
-                            getSleepHoursButtonClasses(hour, isSelected),
+                            getSleepHoursButtonClasses(range.value, isSelected),
                           )}
                         >
-                          {hour}
+                          {range.label}
                         </button>
                       );
                     })}
