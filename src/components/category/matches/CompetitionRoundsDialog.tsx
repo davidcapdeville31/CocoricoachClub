@@ -1781,8 +1781,18 @@ export function CompetitionRoundsDialog({
             <TabsContent value="rounds" className="flex-1 min-h-0 mt-0 overflow-hidden data-[state=active]:flex data-[state=active]:flex-col">
               <div className="flex-1 min-h-0 overflow-y-auto pr-2">
                 <div className="pb-6 pr-2">
-                {/* Bowling: use block manager */}
-                {isBowling ? (
+                {/* Judo: use dedicated table view with category wizard */}
+                {isJudo ? (
+                  <JudoCombatStatsView
+                    selectedPlayer={selectedPlayer as any}
+                    phases={phases}
+                    opponentProfiles={opponentProfiles as any}
+                    addRound={addRound}
+                    removeRound={removeRound}
+                    updateRound={updateRound as any}
+                    updateRoundStat={updateRoundStat}
+                  />
+                ) : isBowling ? (
                   <BowlingBlockManager
                     playerId={selectedPlayer.playerId}
                     categoryId={categoryId}
