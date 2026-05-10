@@ -5482,6 +5482,7 @@ export type Database = {
           parent_match_id: string | null
           score_away: number | null
           score_home: number | null
+          tournament_level: string | null
           updated_at: string
         }
         Insert: {
@@ -5513,6 +5514,7 @@ export type Database = {
           parent_match_id?: string | null
           score_away?: number | null
           score_home?: number | null
+          tournament_level?: string | null
           updated_at?: string
         }
         Update: {
@@ -5544,6 +5546,7 @@ export type Database = {
           parent_match_id?: string | null
           score_away?: number | null
           score_home?: number | null
+          tournament_level?: string | null
           updated_at?: string
         }
         Relationships: [
