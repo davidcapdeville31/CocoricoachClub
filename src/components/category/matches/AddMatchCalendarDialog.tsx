@@ -163,6 +163,7 @@ export function AddMatchCalendarDialog({
           ? format3x3
           : null,
         tournament_level: tournamentLevel || null,
+        selection_type: selectionType || "club",
       } as any);
       if (error) throw error;
     },
