@@ -130,7 +130,7 @@ export function summarizeByLevel(matches: MatchForAnalytics[]): LevelSummary[] {
     if (!groups[key]) groups[key] = [];
     groups[key].push(m);
   }
-  const order: (TournamentLevel | "unknown")[] = ["local", "national", "international", "other", "unknown"];
+  const order: (TournamentLevel | "unknown")[] = ["local", "departmental", "regional", "national", "international", "other", "unknown"];
   const out: LevelSummary[] = [];
   for (const lvl of order) {
     const list = groups[lvl];
