@@ -40,6 +40,7 @@ interface Match {
   event_type?: string | null;
   age_category?: string | null;
   distance_meters?: number | null;
+  tournament_level?: string | null;
   is_finalized?: boolean;
 }
 
