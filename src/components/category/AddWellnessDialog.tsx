@@ -277,6 +277,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
               value={sleepDuration}
               onChange={setSleepDuration}
               labels={scoreLabels.sleep_duration}
+              customColorFn={getSleepScoreButtonClasses}
             />
 
             <ScoreButton
