@@ -538,10 +538,16 @@ function AttackBlock({
 
   const round = rounds.find((r) => r.round_number === selectedRoundNumber) || rounds[0];
 
+  const STANDING_FAMILIES = ["te", "koshi", "ashi", "sutemi"];
+  const GROUND_FAMILIES = ["ne_osae", "ne_shime", "ne_kansetsu"];
+
   const visibleTechniques =
     familyFilter === "all"
       ? JUDO_TECHNIQUES
       : JUDO_TECHNIQUES.filter((t) => t.family === familyFilter);
+
+  const standingTechs = visibleTechniques.filter((t) => STANDING_FAMILIES.includes(t.family));
+  const groundTechs = visibleTechniques.filter((t) => GROUND_FAMILIES.includes(t.family));
 
   // Aggregate per-technique totals across all combats (for tournament view).
   const cumul = useMemo(() => {
@@ -561,6 +567,97 @@ function AttackBlock({
     }
     return out;
   }, [rounds]);
+
+  const renderTechRow = (t: typeof JUDO_TECHNIQUES[number]) => {
+    const att = Number(round?.stats?.[techStatKey(t.key, "att")]) || 0;
+    const suc = Number(round?.stats?.[techStatKey(t.key, "suc")]) || 0;
+    const pts = Number(round?.stats?.[techStatKey(t.key, "pts")]) || 0;
+    const pct = att > 0 ? Math.round((suc / att) * 100) : null;
+    return (
+      <TableRow key={t.key}>
+        <TableCell className="text-xs">
+          <div className="font-medium">{t.label}</div>
+          <div className="text-[10px] text-muted-foreground">
+            {JUDO_TECHNIQUE_FAMILIES.find((f) => f.key === t.family)?.label}
+          </div>
+        </TableCell>
+        <TableCell className="p-1">
+          <Input
+            type="number"
+            min={0}
+            value={att || ""}
+            onChange={(e) =>
+              onUpdateStat(round!.round_number, techStatKey(t.key, "att"), parseFloat(e.target.value) || 0)
+            }
+            className="h-8 text-xs text-center"
+            onWheel={(e) => e.currentTarget.blur()}
+          />
+        </TableCell>
+        <TableCell className="p-1">
+          <Input
+            type="number"
+            min={0}
+            max={att || undefined}
+            value={suc || ""}
+            onChange={(e) =>
+              onUpdateStat(round!.round_number, techStatKey(t.key, "suc"), parseFloat(e.target.value) || 0)
+            }
+            className="h-8 text-xs text-center"
+            onWheel={(e) => e.currentTarget.blur()}
+          />
+        </TableCell>
+        <TableCell className="p-1">
+          <Input
+            type="number"
+            min={0}
+            value={pts || ""}
+            onChange={(e) =>
+              onUpdateStat(round!.round_number, techStatKey(t.key, "pts"), parseFloat(e.target.value) || 0)
+            }
+            className="h-8 text-xs text-center"
+            onWheel={(e) => e.currentTarget.blur()}
+          />
+        </TableCell>
+        <TableCell className="text-center text-xs">
+          {pct !== null ? (
+            <Badge variant={pct >= 50 ? "default" : pct >= 25 ? "secondary" : "outline"}>
+              {pct}%
+            </Badge>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+        </TableCell>
+      </TableRow>
+    );
+  };
+
+  const renderTechTable = (
+    techs: typeof JUDO_TECHNIQUES,
+    title: string,
+    accentClass: string,
+    headerBg: string,
+  ) => {
+    if (techs.length === 0) return null;
+    return (
+      <Card className={`overflow-x-auto border-l-4 ${accentClass}`}>
+        <div className={`px-3 py-2 ${headerBg} text-xs font-bold uppercase tracking-wide`}>
+          {title}
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="min-w-[180px] whitespace-nowrap">Technique</TableHead>
+              <TableHead className="text-center w-24 whitespace-nowrap">Tentatives</TableHead>
+              <TableHead className="text-center w-24 whitespace-nowrap">Réussies</TableHead>
+              <TableHead className="text-center w-24 whitespace-nowrap">Points</TableHead>
+              <TableHead className="text-center w-24 whitespace-nowrap">% réussite</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>{techs.map(renderTechRow)}</TableBody>
+        </Table>
+      </Card>
+    );
+  };
 
   return (
     <div className="space-y-3">
@@ -599,98 +696,18 @@ function AttackBlock({
         </Select>
       </div>
 
-      {/* Per-technique table for the selected combat */}
-      <Card className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="min-w-[180px]">Technique</TableHead>
-              <TableHead className="text-center w-24">Tentatives</TableHead>
-              <TableHead className="text-center w-24">Réussies</TableHead>
-              <TableHead className="text-center w-24">Points</TableHead>
-              <TableHead className="text-center w-20">% réussite</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {visibleTechniques.map((t) => {
-              const att = Number(round?.stats?.[techStatKey(t.key, "att")]) || 0;
-              const suc = Number(round?.stats?.[techStatKey(t.key, "suc")]) || 0;
-              const pts = Number(round?.stats?.[techStatKey(t.key, "pts")]) || 0;
-              const pct = att > 0 ? Math.round((suc / att) * 100) : null;
-              return (
-                <TableRow key={t.key}>
-                  <TableCell className="text-xs">
-                    <div className="font-medium">{t.label}</div>
-                    <div className="text-[10px] text-muted-foreground">
-                      {JUDO_TECHNIQUE_FAMILIES.find((f) => f.key === t.family)?.label}
-                    </div>
-                  </TableCell>
-                  <TableCell className="p-1">
-                    <Input
-                      type="number"
-                      min={0}
-                      value={att || ""}
-                      onChange={(e) =>
-                        onUpdateStat(
-                          round!.round_number,
-                          techStatKey(t.key, "att"),
-                          parseFloat(e.target.value) || 0,
-                        )
-                      }
-                      className="h-8 text-xs text-center"
-                      onWheel={(e) => e.currentTarget.blur()}
-                    />
-                  </TableCell>
-                  <TableCell className="p-1">
-                    <Input
-                      type="number"
-                      min={0}
-                      max={att || undefined}
-                      value={suc || ""}
-                      onChange={(e) =>
-                        onUpdateStat(
-                          round!.round_number,
-                          techStatKey(t.key, "suc"),
-                          parseFloat(e.target.value) || 0,
-                        )
-                      }
-                      className="h-8 text-xs text-center"
-                      onWheel={(e) => e.currentTarget.blur()}
-                    />
-                  </TableCell>
-                  <TableCell className="p-1">
-                    <Input
-                      type="number"
-                      min={0}
-                      value={pts || ""}
-                      onChange={(e) =>
-                        onUpdateStat(
-                          round!.round_number,
-                          techStatKey(t.key, "pts"),
-                          parseFloat(e.target.value) || 0,
-                        )
-                      }
-                      className="h-8 text-xs text-center"
-                      onWheel={(e) => e.currentTarget.blur()}
-                    />
-                  </TableCell>
-                  <TableCell className="text-center text-xs">
-                    {pct !== null ? (
-                      <Badge
-                        variant={pct >= 50 ? "default" : pct >= 25 ? "secondary" : "outline"}
-                      >
-                        {pct}%
-                      </Badge>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </Card>
+      {renderTechTable(
+        standingTechs,
+        "Tachi-waza — Attaques debout",
+        "border-l-blue-500",
+        "bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-200",
+      )}
+      {renderTechTable(
+        groundTechs,
+        "Ne-waza — Attaques au sol",
+        "border-l-amber-500",
+        "bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200",
+      )}
 
       {/* Cumulative recap across all combats */}
       {Object.keys(cumul).length > 0 && (
