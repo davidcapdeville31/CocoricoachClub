@@ -424,7 +424,7 @@ function GeneralTable({
                   value={r.result}
                   onValueChange={(v) => onUpdate(r.round_number, { result: v })}
                 >
-                  <SelectTrigger className="h-8 text-xs">
+                  <SelectTrigger className="h-8 text-xs whitespace-nowrap [&>span]:truncate">
                     <SelectValue placeholder="—" />
                   </SelectTrigger>
                   <SelectContent className="z-[200]">
