@@ -201,6 +201,7 @@ export function AddMatchCalendarDialog({
     setDistanceMeters(undefined);
     setMatchFormat("simple");
     setTournamentLevel("");
+    setSelectionType("club");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
