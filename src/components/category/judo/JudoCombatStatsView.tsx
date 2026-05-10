@@ -390,10 +390,10 @@ function GeneralTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-12">#</TableHead>
-            <TableHead>Phase</TableHead>
-            <TableHead>Adversaire</TableHead>
-            <TableHead className="w-32">Résultat</TableHead>
+            <TableHead className="w-12 whitespace-nowrap">#</TableHead>
+            <TableHead className="whitespace-nowrap">Phase</TableHead>
+            <TableHead className="whitespace-nowrap">Adversaire</TableHead>
+            <TableHead className="w-40 whitespace-nowrap">Résultat</TableHead>
             <TableHead className="w-10" />
           </TableRow>
         </TableHeader>
