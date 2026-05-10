@@ -137,6 +137,7 @@ export function EditMatchDialog({
           age_category: ageCategory || null,
           distance_meters: distanceMeters || null,
           tournament_level: tournamentLevel || null,
+          selection_type: selectionType || "club",
         } as any)
         .eq("id", match.id);
       if (error) throw error;
