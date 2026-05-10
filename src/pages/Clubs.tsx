@@ -220,7 +220,7 @@ export default function Clubs() {
           {/* Header: title + actions on the same row */}
           <div className="flex items-center justify-between gap-3 sm:gap-4 min-w-0 min-h-14">
             <div className="flex items-center min-w-0 flex-1">
-              <BrandLogo className="h-20 sm:h-28 md:h-40 lg:h-48 w-auto shrink-0 -my-3 sm:-my-6" />
+              <BrandLogo className="h-12 sm:h-14 md:h-16 w-auto shrink-0" />
             </div>
             <div className="flex items-center gap-0.5 sm:gap-2 shrink-0 [&_button]:text-[#ED2939] [&_button:hover]:bg-[#ED2939]/10">
               <NotificationBell variant="default" />
