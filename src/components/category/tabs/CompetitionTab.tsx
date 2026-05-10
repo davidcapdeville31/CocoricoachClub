@@ -1,6 +1,7 @@
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Trophy, Swords, Flag, Award, Mountain, BarChart3, Users } from "lucide-react";
+import { Trophy, Swords, Flag, Award, Mountain, BarChart3, Users, LineChart } from "lucide-react";
 import { JudoOpponentsTab } from "@/components/category/judo/JudoOpponentsTab";
+import { JudoCompetitionAnalyticsTab } from "@/components/category/judo/JudoCompetitionAnalyticsTab";
 import { MatchesTab } from "@/components/category/MatchesTab";
 import { TournamentsTab } from "@/components/category/TournamentsTab";
 import { NationalTeamTab } from "@/components/category/national-team/NationalTeamTab";
@@ -88,6 +89,17 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
                 <span className="sm:hidden">Adversaires</span>
               </ColoredSubTabsTrigger>
             )}
+            {isJudo && (
+              <ColoredSubTabsTrigger
+                value="judo-analytics"
+                colorKey="competition"
+                icon={<LineChart className="h-4 w-4" />}
+                tooltip="Bilan compétitions : nombre de tournois locaux/nationaux/internationaux, meilleures performances et statistiques par adversaire"
+              >
+                <span className="hidden sm:inline">Bilan compétitions</span>
+                <span className="sm:hidden">Bilan</span>
+              </ColoredSubTabsTrigger>
+            )}
           </ColoredSubTabsList>
         </div>
       )}
@@ -121,6 +133,12 @@ export function CompetitionTab({ categoryId, isRugby7, isNationalTeam, sportType
       {isJudo && (
         <TabsContent value="opponents">
           <JudoOpponentsTab categoryId={categoryId} />
+        </TabsContent>
+      )}
+
+      {isJudo && (
+        <TabsContent value="judo-analytics">
+          <JudoCompetitionAnalyticsTab categoryId={categoryId} />
         </TabsContent>
       )}
     </Tabs>

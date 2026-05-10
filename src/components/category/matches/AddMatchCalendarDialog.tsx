@@ -115,6 +115,7 @@ export function AddMatchCalendarDialog({
   const [location, setLocation] = useState("");
   const [isHome, setIsHome] = useState(true);
   const [notes, setNotes] = useState("");
+  const [tournamentLevel, setTournamentLevel] = useState<string>("");
   
   // Aviron specific fields
   const [eventType, setEventType] = useState<string>("individual");
@@ -159,6 +160,7 @@ export function AddMatchCalendarDialog({
           : is3x3
           ? format3x3
           : null,
+        tournament_level: tournamentLevel || null,
       } as any);
       if (error) throw error;
     },
@@ -195,6 +197,7 @@ export function AddMatchCalendarDialog({
     setAgeCategory("");
     setDistanceMeters(undefined);
     setMatchFormat("simple");
+    setTournamentLevel("");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -424,6 +427,22 @@ export function AddMatchCalendarDialog({
               />
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label htmlFor="tournamentLevel">Niveau du tournoi</Label>
+            <Select value={tournamentLevel || "none"} onValueChange={(v) => setTournamentLevel(v === "none" ? "" : v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un niveau (optionnel)" />
+              </SelectTrigger>
+              <SelectContent className="z-[200]">
+                <SelectItem value="none">Non défini</SelectItem>
+                <SelectItem value="local">Local</SelectItem>
+                <SelectItem value="national">National</SelectItem>
+                <SelectItem value="international">International</SelectItem>
+                <SelectItem value="other">Autre</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className={`grid ${isIndividual ? 'grid-cols-3' : 'grid-cols-2'} gap-4`}>
             <div className="space-y-2">

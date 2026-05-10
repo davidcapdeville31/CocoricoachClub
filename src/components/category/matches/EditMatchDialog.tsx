@@ -40,6 +40,7 @@ interface Match {
   event_type?: string | null;
   age_category?: string | null;
   distance_meters?: number | null;
+  tournament_level?: string | null;
   is_finalized?: boolean;
 }
 
@@ -94,6 +95,7 @@ export function EditMatchDialog({
   const [eventType, setEventType] = useState<string>(match.event_type || "individual");
   const [ageCategory, setAgeCategory] = useState(match.age_category || "");
   const [distanceMeters, setDistanceMeters] = useState<number | undefined>(match.distance_meters || undefined);
+  const [tournamentLevel, setTournamentLevel] = useState<string>(match.tournament_level || "");
   
   const queryClient = useQueryClient();
 
@@ -131,7 +133,8 @@ export function EditMatchDialog({
           event_type: isAviron ? eventType : (isIndividual ? "individual" : "team"),
           age_category: ageCategory || null,
           distance_meters: distanceMeters || null,
-        })
+          tournament_level: tournamentLevel || null,
+        } as any)
         .eq("id", match.id);
       if (error) throw error;
     },
@@ -329,6 +332,22 @@ export function EditMatchDialog({
               />
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label htmlFor="tournamentLevel">Niveau du tournoi</Label>
+            <Select value={tournamentLevel || "none"} onValueChange={(v) => setTournamentLevel(v === "none" ? "" : v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un niveau (optionnel)" />
+              </SelectTrigger>
+              <SelectContent className="z-[200]">
+                <SelectItem value="none">Non défini</SelectItem>
+                <SelectItem value="local">Local</SelectItem>
+                <SelectItem value="national">National</SelectItem>
+                <SelectItem value="international">International</SelectItem>
+                <SelectItem value="other">Autre</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
