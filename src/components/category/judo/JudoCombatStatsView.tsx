@@ -719,11 +719,11 @@ function AttackBlock({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Technique</TableHead>
-                  <TableHead className="text-center">Tentées</TableHead>
-                  <TableHead className="text-center">Réussies</TableHead>
-                  <TableHead className="text-center">Points</TableHead>
-                  <TableHead className="text-center">% réussite</TableHead>
+                  <TableHead className="whitespace-nowrap">Technique</TableHead>
+                  <TableHead className="text-center whitespace-nowrap">Tentées</TableHead>
+                  <TableHead className="text-center whitespace-nowrap">Réussies</TableHead>
+                  <TableHead className="text-center whitespace-nowrap">Points</TableHead>
+                  <TableHead className="text-center whitespace-nowrap">% réussite</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
