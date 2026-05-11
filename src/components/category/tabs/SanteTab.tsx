@@ -150,11 +150,7 @@ export function SanteTab({ categoryId }: SanteTabProps) {
           <MedicalRecordsTab categoryId={categoryId} />
         </TabsContent>
 
-        {!isViewer && (
-          <TabsContent value="nutrition">
-            <NutritionTab categoryId={categoryId} />
-          </TabsContent>
-        )}
+        {/* Nutrition masquée */}
 
         {!isViewer && (
           <TabsContent value="injuries">
