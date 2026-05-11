@@ -34,6 +34,10 @@ export function TackleInlinePanel({ players, teamSide, period, minute, second, o
     });
   };
 
+  const half = Math.ceil(players.length / 2);
+  const leftPlayers = players.slice(0, half);
+  const rightPlayers = players.slice(half);
+
   return (
     <Card className="p-3 mt-3">
       <div className="flex items-center justify-between mb-2">
@@ -46,54 +50,106 @@ export function TackleInlinePanel({ players, teamSide, period, minute, second, o
       {players.length === 0 ? (
         <p className="text-center text-xs text-muted-foreground py-4">Aucun joueur dans la feuille de match.</p>
       ) : (
-        <div className="grid grid-cols-2 gap-2">
-          {/* Réussis */}
+        <div className="grid grid-cols-4 gap-2">
+          {/* Réussis — colonne 1 */}
           <div className="space-y-1.5">
-            <div className="sticky top-0 z-10 bg-green-600 text-white text-center py-1.5 rounded-lg font-bold text-[11px] uppercase tracking-wider flex items-center justify-center gap-1">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Réussis
+            <div className="sticky top-0 z-10 bg-green-600 text-white text-center py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1">
+              <CheckCircle2 className="h-3 w-3" /> Réussis 1
             </div>
-            {players.map((p) => {
+            {leftPlayers.map((p) => {
               const c = counts[p.id]?.tackles ?? 0;
               const isFlash = flash?.id === p.id && flash.kind === "success";
               return (
                 <button
-                  key={`s-${p.id}`}
+                  key={`s1-${p.id}`}
                   onClick={() => record(p.id, "success")}
                   className={cn(
-                    "w-full h-11 px-2 rounded-xl bg-green-600 hover:bg-green-500 active:bg-green-700",
-                    "text-white font-semibold text-xs shadow transition-all",
-                    "flex items-center justify-between gap-2 select-none",
+                    "w-full h-10 px-1.5 rounded-xl bg-green-600 hover:bg-green-500 active:bg-green-700",
+                    "text-white font-semibold text-[11px] shadow transition-all",
+                    "flex items-center justify-between gap-1 select-none",
                     isFlash && "ring-2 ring-green-300 scale-[0.97]"
                   )}
                 >
-                  <span className="truncate text-left">{p.label}</span>
-                  <span className="font-mono text-[11px] bg-black/25 rounded px-1.5 py-0.5 tabular-nums shrink-0">{c}</span>
+                  <span className="truncate text-left leading-tight">{p.label}</span>
+                  <span className="font-mono text-[10px] bg-black/25 rounded px-1 py-0.5 tabular-nums shrink-0">{c}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* Manqués */}
+          {/* Réussis — colonne 2 */}
           <div className="space-y-1.5">
-            <div className="sticky top-0 z-10 bg-red-600 text-white text-center py-1.5 rounded-lg font-bold text-[11px] uppercase tracking-wider flex items-center justify-center gap-1">
-              <XCircle className="h-3.5 w-3.5" /> Manqués
+            <div className="sticky top-0 z-10 bg-green-600 text-white text-center py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1">
+              <CheckCircle2 className="h-3 w-3" /> Réussis 2
             </div>
-            {players.map((p) => {
+            {rightPlayers.map((p) => {
+              const c = counts[p.id]?.tackles ?? 0;
+              const isFlash = flash?.id === p.id && flash.kind === "success";
+              return (
+                <button
+                  key={`s2-${p.id}`}
+                  onClick={() => record(p.id, "success")}
+                  className={cn(
+                    "w-full h-10 px-1.5 rounded-xl bg-green-600 hover:bg-green-500 active:bg-green-700",
+                    "text-white font-semibold text-[11px] shadow transition-all",
+                    "flex items-center justify-between gap-1 select-none",
+                    isFlash && "ring-2 ring-green-300 scale-[0.97]"
+                  )}
+                >
+                  <span className="truncate text-left leading-tight">{p.label}</span>
+                  <span className="font-mono text-[10px] bg-black/25 rounded px-1 py-0.5 tabular-nums shrink-0">{c}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Manqués — colonne 1 */}
+          <div className="space-y-1.5">
+            <div className="sticky top-0 z-10 bg-red-600 text-white text-center py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1">
+              <XCircle className="h-3 w-3" /> Manqués 1
+            </div>
+            {leftPlayers.map((p) => {
               const c = counts[p.id]?.missedTackles ?? 0;
               const isFlash = flash?.id === p.id && flash.kind === "fail";
               return (
                 <button
-                  key={`f-${p.id}`}
+                  key={`f1-${p.id}`}
                   onClick={() => record(p.id, "fail")}
                   className={cn(
-                    "w-full h-11 px-2 rounded-xl bg-red-600 hover:bg-red-500 active:bg-red-700",
-                    "text-white font-semibold text-xs shadow transition-all",
-                    "flex items-center justify-between gap-2 select-none",
+                    "w-full h-10 px-1.5 rounded-xl bg-red-600 hover:bg-red-500 active:bg-red-700",
+                    "text-white font-semibold text-[11px] shadow transition-all",
+                    "flex items-center justify-between gap-1 select-none",
                     isFlash && "ring-2 ring-red-300 scale-[0.97]"
                   )}
                 >
-                  <span className="truncate text-left">{p.label}</span>
-                  <span className="font-mono text-[11px] bg-black/25 rounded px-1.5 py-0.5 tabular-nums shrink-0">{c}</span>
+                  <span className="truncate text-left leading-tight">{p.label}</span>
+                  <span className="font-mono text-[10px] bg-black/25 rounded px-1 py-0.5 tabular-nums shrink-0">{c}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Manqués — colonne 2 */}
+          <div className="space-y-1.5">
+            <div className="sticky top-0 z-10 bg-red-600 text-white text-center py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1">
+              <XCircle className="h-3 w-3" /> Manqués 2
+            </div>
+            {rightPlayers.map((p) => {
+              const c = counts[p.id]?.missedTackles ?? 0;
+              const isFlash = flash?.id === p.id && flash.kind === "fail";
+              return (
+                <button
+                  key={`f2-${p.id}`}
+                  onClick={() => record(p.id, "fail")}
+                  className={cn(
+                    "w-full h-10 px-1.5 rounded-xl bg-red-600 hover:bg-red-500 active:bg-red-700",
+                    "text-white font-semibold text-[11px] shadow transition-all",
+                    "flex items-center justify-between gap-1 select-none",
+                    isFlash && "ring-2 ring-red-300 scale-[0.97]"
+                  )}
+                >
+                  <span className="truncate text-left leading-tight">{p.label}</span>
+                  <span className="font-mono text-[10px] bg-black/25 rounded px-1 py-0.5 tabular-nums shrink-0">{c}</span>
                 </button>
               );
             })}
@@ -103,3 +159,4 @@ export function TackleInlinePanel({ players, teamSide, period, minute, second, o
     </Card>
   );
 }
+
