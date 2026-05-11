@@ -121,7 +121,7 @@ export function EventDialog(props: EventDialogProps) {
 
     const payload: Partial<MatchEvent> = {
       team_side: side,
-      minute, second: 0, period,
+      minute, second, period,
       event_type: eventType,
       event_subtype: subtype || null,
       outcome: (outcome || null) as Outcome,
