@@ -88,11 +88,11 @@ export function isRugbySport(sportType: string | undefined): boolean {
 
 // Rugby XV positions (15 players)
 export const RUGBY_XV_POSITIONS: Position[] = [
-  { id: "1", name: "Pilier gauche", x: 22, y: 92 },
-  { id: "2", name: "Talonneur", x: 50, y: 92 },
-  { id: "3", name: "Pilier droit", x: 78, y: 92 },
-  { id: "4", name: "2ème ligne", x: 32, y: 78 },
-  { id: "5", name: "2ème ligne", x: 68, y: 78 },
+  { id: "1", name: "Pilier gauche", x: 22, y: 86 },
+  { id: "2", name: "Talonneur", x: 50, y: 86 },
+  { id: "3", name: "Pilier droit", x: 78, y: 86 },
+  { id: "4", name: "2ème ligne", x: 32, y: 73 },
+  { id: "5", name: "2ème ligne", x: 68, y: 73 },
   { id: "6", name: "Flanker", x: 12, y: 65 },
   { id: "7", name: "Flanker", x: 88, y: 65 },
   { id: "8", name: "N°8", x: 50, y: 65 },
