@@ -149,10 +149,29 @@ export function EventDialog(props: EventDialogProps) {
   };
 
   const subtypes = SUBTYPES[eventType] ?? [];
-  const players = draft.side === "home" ? homePlayers : awayPlayers;
+  const allPlayers = draft.side === "home" ? homePlayers : awayPlayers;
   const oppositePlayers = draft.side === "home" ? awayPlayers : homePlayers;
+
+  // Tirs au but (pénalité au pied, drop, transformation) : uniquement les arrières (n°9 à 15)
+  const isKickerOnly =
+    eventType === "conversion" ||
+    eventType === "drop" ||
+    (eventType === "penalty_kick");
+  // Touches & mêlées : pas de sélection de joueur (action collective)
+  const hidePlayerSelection = eventType === "lineout" || eventType === "scrum";
+
+  const players = (() => {
+    if (hidePlayerSelection) return [];
+    if (!isKickerOnly) return allPlayers;
+    return allPlayers.filter((p) => {
+      const m = p.label.match(/#\s*(\d+)/);
+      if (!m) return true;
+      const n = parseInt(m[1], 10);
+      return n >= 9 && n <= 15;
+    });
+  })();
   const canSelectPlayer = players.length > 0;
-  const isOpponentSide = !canSelectPlayer && oppositePlayers.length > 0;
+  const isOpponentSide = !canSelectPlayer && !hidePlayerSelection && oppositePlayers.length > 0;
 
   const showOutcomeWonLost = ["lineout", "scrum"].includes(eventType);
   const isKickAttempt =
@@ -307,9 +326,11 @@ export function EventDialog(props: EventDialogProps) {
           </div>
 
           {/* Joueur : sélection limitée à mon équipe (feuille de match) */}
-          {canSelectPlayer ? (
+          {hidePlayerSelection ? null : canSelectPlayer ? (
             <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Joueur</Label>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                Joueur{isKickerOnly ? " (buteurs n°9-15)" : ""}
+              </Label>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 mt-1">
                 {players.map((p) => (
                   <Button key={p.id} type="button" variant="outline" onClick={() => setField("playerId", draft.playerId === p.id ? "" : p.id)} className={`${cls(draft.playerId === p.id)} truncate justify-start px-2`}>
@@ -322,6 +343,8 @@ export function EventDialog(props: EventDialogProps) {
             <div className="rounded-md border border-dashed border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
               {isOpponentSide
                 ? "Action adverse — sélection du joueur non disponible (effectif adverse non saisi)."
+                : isKickerOnly
+                ? "Aucun arrière (n°9-15) dans la feuille de match."
                 : "Aucun joueur dans la feuille de match. Renseigne la composition pour pouvoir cocher l'auteur de l'action."}
             </div>
           )}
