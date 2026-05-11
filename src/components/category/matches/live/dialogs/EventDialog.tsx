@@ -445,8 +445,6 @@ export function EventDialog(props: EventDialogProps) {
               </div>
             </div>
           )}
-            </div>
-          )}
 
           {showZone && (
             <div>
