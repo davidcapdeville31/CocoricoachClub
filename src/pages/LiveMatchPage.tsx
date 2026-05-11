@@ -185,7 +185,7 @@ export default function LiveMatchPage() {
         </div>
         <div className="md:col-span-3 lg:col-span-3">
           <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Stats</h2>
-          <LiveStatsPanel home={stats.home} away={stats.away} />
+          <LiveStatsPanel home={stats.home} away={stats.away} homeH1={stats.homeH1} awayH1={stats.awayH1} homeH2={stats.homeH2} awayH2={stats.awayH2} />
         </div>
       </div>
 
@@ -209,7 +209,7 @@ export default function LiveMatchPage() {
               })}
             />
           </TabsContent>
-          <TabsContent value="stats"><LiveStatsPanel home={stats.home} away={stats.away} /></TabsContent>
+          <TabsContent value="stats"><LiveStatsPanel home={stats.home} away={stats.away} homeH1={stats.homeH1} awayH1={stats.awayH1} homeH2={stats.homeH2} awayH2={stats.awayH2} /></TabsContent>
         </Tabs>
       </div>
 
