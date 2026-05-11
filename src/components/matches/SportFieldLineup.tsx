@@ -415,11 +415,15 @@ export function SportFieldLineup({
                   <SelectContent>
                     {matching.length > 0 && (
                       <>
-                        <div className="px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
-                          Postes correspondants
+                        <div className="px-2 py-1 text-[10px] uppercase tracking-wide font-bold text-amber-600 dark:text-amber-400">
+                          ★ Postes correspondants
                         </div>
                         {matching.map((player) => (
-                          <SelectItem key={player.id} value={player.id} className="bg-primary/10 font-semibold">
+                          <SelectItem
+                            key={player.id}
+                            value={player.id}
+                            className="bg-gradient-to-r from-amber-400/40 to-yellow-300/30 dark:from-amber-500/40 dark:to-yellow-400/30 border-l-4 border-amber-500 font-bold text-amber-900 dark:text-amber-100 my-0.5 focus:bg-amber-400/60 focus:text-amber-950"
+                          >
                             ★ {formatPlayerName(player)} {player.position && `(${player.position})`}
                           </SelectItem>
                         ))}
