@@ -42,6 +42,7 @@ import { CompetitionRoundsDialog } from "./CompetitionRoundsDialog";
 import { AggregatedRoundStatsDialog } from "./AggregatedRoundStatsDialog";
 import { EditMatchDialog } from "./EditMatchDialog";
 import { AddSubMatchDialog } from "./AddSubMatchDialog";
+import { MatchExportDialog } from "./MatchExportDialog";
 import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesDialog";
 import {
   Dialog,
