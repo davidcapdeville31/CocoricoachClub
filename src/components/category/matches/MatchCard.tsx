@@ -127,6 +127,8 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   const [scoreAway, setScoreAway] = useState(match.score_away?.toString() || "");
   const queryClient = useQueryClient();
 
+  const navigate = useNavigate();
+
   const stopCardAction = (e: React.SyntheticEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -253,6 +255,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   const hasSubMatches = subMatches && subMatches.length > 0;
   const canHaveSubMatches = (!isIndividual || hasTournamentBracket) && !isSubMatch && !match.parent_match_id;
   const isTeamSport = !isIndividual;
+  const isRugby = isRugbyType(sportType);
   const isJudo = sportType.toLowerCase().includes("judo");
   const isAthletics = sportType.toLowerCase().includes("athl");
   // Export available for team sports + Judo + Athletics (per user request).
