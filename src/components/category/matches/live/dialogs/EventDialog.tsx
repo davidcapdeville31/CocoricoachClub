@@ -138,6 +138,15 @@ export function EventDialog(props: EventDialogProps) {
     onSubmit(payload, chain);
   };
 
+  const selBase = "h-10 text-xs border-2 transition-all";
+  const selOn = "bg-primary text-primary-foreground border-primary ring-2 ring-primary/40 shadow-md hover:bg-primary";
+  const selOff = "bg-transparent border-border hover:bg-accent hover:text-accent-foreground";
+  const cls = (active: boolean) => `${selBase} ${active ? selOn : selOff}`;
+
+  const okOn = "bg-green-600 text-white border-green-600 ring-2 ring-green-400/50 shadow-md hover:bg-green-600";
+  const koOn = "bg-red-600 text-white border-red-600 ring-2 ring-red-400/50 shadow-md hover:bg-red-600";
+  const warnOn = "bg-amber-500 text-white border-amber-500 ring-2 ring-amber-300/50 shadow-md hover:bg-amber-500";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -150,8 +159,8 @@ export function EventDialog(props: EventDialogProps) {
           <div>
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">Équipe</Label>
             <div className="grid grid-cols-2 gap-2 mt-1">
-              <Button type="button" size="lg" variant={side === "home" ? "default" : "outline"} onClick={() => setSide("home")} className="h-12">{homeName}</Button>
-              <Button type="button" size="lg" variant={side === "away" ? "default" : "outline"} onClick={() => setSide("away")} className="h-12">{awayName}</Button>
+              <Button type="button" variant="outline" onClick={() => setSide("home")} className={`h-12 text-sm border-2 ${side === "home" ? selOn : selOff}`}>{homeName}</Button>
+              <Button type="button" variant="outline" onClick={() => setSide("away")} className={`h-12 text-sm border-2 ${side === "away" ? selOn : selOff}`}>{awayName}</Button>
             </div>
           </div>
 
@@ -176,7 +185,7 @@ export function EventDialog(props: EventDialogProps) {
                   { v: "H2", l: "2ème MT" },
                   { v: "ET", l: "Prolong." },
                 ].map((o) => (
-                  <Button key={o.v} type="button" size="sm" variant={period === o.v ? "default" : "outline"} onClick={() => setPeriod(o.v as Period)} className="text-xs h-10">{o.l}</Button>
+                  <Button key={o.v} type="button" variant="outline" onClick={() => setPeriod(o.v as Period)} className={cls(period === o.v)}>{o.l}</Button>
                 ))}
               </div>
             </div>
@@ -188,7 +197,7 @@ export function EventDialog(props: EventDialogProps) {
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Joueur</Label>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 mt-1">
                 {players.map((p) => (
-                  <Button key={p.id} type="button" size="sm" variant={playerId === p.id ? "default" : "outline"} onClick={() => setPlayerId(playerId === p.id ? "" : p.id)} className="text-xs h-10 truncate justify-start px-2">
+                  <Button key={p.id} type="button" variant="outline" onClick={() => setPlayerId(playerId === p.id ? "" : p.id)} className={`${cls(playerId === p.id)} truncate justify-start px-2`}>
                     {p.label}
                   </Button>
                 ))}
@@ -202,7 +211,7 @@ export function EventDialog(props: EventDialogProps) {
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Type</Label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 mt-1">
                 {subtypes.map((s) => (
-                  <Button key={s.value} type="button" size="sm" variant={subtype === s.value ? "default" : "outline"} onClick={() => setSubtype(subtype === s.value ? "" : s.value)} className="text-xs h-10">
+                  <Button key={s.value} type="button" variant="outline" onClick={() => setSubtype(subtype === s.value ? "" : s.value)} className={cls(subtype === s.value)}>
                     {s.label}
                   </Button>
                 ))}
@@ -220,7 +229,7 @@ export function EventDialog(props: EventDialogProps) {
                   { v: "scrum", l: "Mêlée" },
                   { v: "quick", l: "Rapide" },
                 ].map((o) => (
-                  <Button key={o.v} type="button" variant={penaltyMode === o.v ? "default" : "outline"} size="sm" onClick={() => setPenaltyMode(o.v)} className="text-xs h-10">{o.l}</Button>
+                  <Button key={o.v} type="button" variant="outline" onClick={() => setPenaltyMode(o.v)} className={cls(penaltyMode === o.v)}>{o.l}</Button>
                 ))}
               </div>
             </div>
@@ -230,8 +239,8 @@ export function EventDialog(props: EventDialogProps) {
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Résultat</Label>
               <div className="grid grid-cols-2 gap-2 mt-1">
-                <Button type="button" variant={outcome === "success" ? "default" : "outline"} onClick={() => setOutcome("success")} className={outcome === "success" ? "bg-green-600 hover:bg-green-600 h-11" : "h-11"}>Réussi</Button>
-                <Button type="button" variant={outcome === "fail" ? "destructive" : "outline"} onClick={() => setOutcome("fail")} className="h-11">Manqué</Button>
+                <Button type="button" variant="outline" onClick={() => setOutcome("success")} className={`h-11 text-sm border-2 ${outcome === "success" ? okOn : selOff}`}>Réussi</Button>
+                <Button type="button" variant="outline" onClick={() => setOutcome("fail")} className={`h-11 text-sm border-2 ${outcome === "fail" ? koOn : selOff}`}>Manqué</Button>
               </div>
             </div>
           )}
@@ -240,9 +249,9 @@ export function EventDialog(props: EventDialogProps) {
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Résultat</Label>
               <div className="grid grid-cols-3 gap-2 mt-1">
-                <Button type="button" variant={outcome === "won" ? "default" : "outline"} onClick={() => setOutcome("won")} className={outcome === "won" ? "bg-green-600 hover:bg-green-600 h-11" : "h-11"}>Gagnée</Button>
-                <Button type="button" variant={outcome === "lost" ? "destructive" : "outline"} onClick={() => setOutcome("lost")} className="h-11">Perdue</Button>
-                <Button type="button" variant={outcome === "contested" ? "secondary" : "outline"} onClick={() => setOutcome("contested")} className="h-11">Contestée</Button>
+                <Button type="button" variant="outline" onClick={() => setOutcome("won")} className={`h-11 text-sm border-2 ${outcome === "won" ? okOn : selOff}`}>Gagnée</Button>
+                <Button type="button" variant="outline" onClick={() => setOutcome("lost")} className={`h-11 text-sm border-2 ${outcome === "lost" ? koOn : selOff}`}>Perdue</Button>
+                <Button type="button" variant="outline" onClick={() => setOutcome("contested")} className={`h-11 text-sm border-2 ${outcome === "contested" ? warnOn : selOff}`}>Contestée</Button>
               </div>
             </div>
           )}
@@ -252,7 +261,7 @@ export function EventDialog(props: EventDialogProps) {
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Zone du terrain</Label>
               <div className="grid grid-cols-2 gap-1.5 mt-1">
                 {ZONES.map((z) => (
-                  <Button key={z.value} type="button" size="sm" variant={zone === z.value ? "default" : "outline"} onClick={() => setZone(zone === z.value ? "" : z.value)} className="text-xs h-10">{z.label}</Button>
+                  <Button key={z.value} type="button" variant="outline" onClick={() => setZone(zone === z.value ? "" : z.value)} className={cls(zone === z.value)}>{z.label}</Button>
                 ))}
               </div>
             </div>
