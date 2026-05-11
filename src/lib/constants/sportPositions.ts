@@ -88,104 +88,104 @@ export function isRugbySport(sportType: string | undefined): boolean {
 
 // Rugby XV positions (15 players)
 export const RUGBY_XV_POSITIONS: Position[] = [
-  { id: "1", name: "Pilier gauche", x: 20, y: 85 },
-  { id: "2", name: "Talonneur", x: 50, y: 85 },
-  { id: "3", name: "Pilier droit", x: 80, y: 85 },
-  { id: "4", name: "2ème ligne", x: 35, y: 75 },
-  { id: "5", name: "2ème ligne", x: 65, y: 75 },
-  { id: "6", name: "Flanker", x: 15, y: 65 },
-  { id: "7", name: "Flanker", x: 85, y: 65 },
+  { id: "1", name: "Pilier gauche", x: 22, y: 92 },
+  { id: "2", name: "Talonneur", x: 50, y: 92 },
+  { id: "3", name: "Pilier droit", x: 78, y: 92 },
+  { id: "4", name: "2ème ligne", x: 32, y: 78 },
+  { id: "5", name: "2ème ligne", x: 68, y: 78 },
+  { id: "6", name: "Flanker", x: 12, y: 65 },
+  { id: "7", name: "Flanker", x: 88, y: 65 },
   { id: "8", name: "N°8", x: 50, y: 65 },
-  { id: "9", name: "Demi de mêlée", x: 35, y: 50 },
-  { id: "10", name: "Demi d'ouverture", x: 50, y: 45 },
-  { id: "11", name: "Ailier gauche", x: 5, y: 30 },
-  { id: "12", name: "1er centre", x: 35, y: 35 },
-  { id: "13", name: "2ème centre", x: 65, y: 35 },
-  { id: "14", name: "Ailier droit", x: 95, y: 30 },
-  { id: "15", name: "Arrière", x: 50, y: 15 },
+  { id: "9", name: "Demi de mêlée", x: 30, y: 50 },
+  { id: "10", name: "Demi d'ouverture", x: 50, y: 40 },
+  { id: "11", name: "Ailier gauche", x: 8, y: 25 },
+  { id: "12", name: "1er centre", x: 32, y: 28 },
+  { id: "13", name: "2ème centre", x: 68, y: 28 },
+  { id: "14", name: "Ailier droit", x: 92, y: 25 },
+  { id: "15", name: "Arrière", x: 50, y: 8 },
 ];
 
 // Rugby 7s positions (7 players)
 export const RUGBY_7S_POSITIONS: Position[] = [
-  { id: "1", name: "Pilier gauche", x: 25, y: 80 },
-  { id: "2", name: "Talonneur", x: 50, y: 80 },
-  { id: "3", name: "Pilier droit", x: 75, y: 80 },
-  { id: "4", name: "Demi de mêlée", x: 50, y: 55 },
-  { id: "5", name: "Centre gauche", x: 25, y: 40 },
-  { id: "6", name: "Centre droit", x: 75, y: 40 },
-  { id: "7", name: "Arrière", x: 50, y: 20 },
+  { id: "1", name: "Pilier gauche", x: 22, y: 88 },
+  { id: "2", name: "Talonneur", x: 50, y: 88 },
+  { id: "3", name: "Pilier droit", x: 78, y: 88 },
+  { id: "4", name: "Demi de mêlée", x: 50, y: 58 },
+  { id: "5", name: "Centre gauche", x: 22, y: 35 },
+  { id: "6", name: "Centre droit", x: 78, y: 35 },
+  { id: "7", name: "Arrière", x: 50, y: 10 },
 ];
 
 // Rugby XIII positions (13 players) - Rugby League
 export const RUGBY_XIII_POSITIONS: Position[] = [
-  { id: "1", name: "Arrière", x: 50, y: 15 },
-  { id: "2", name: "Ailier droit", x: 90, y: 25 },
-  { id: "3", name: "Centre droit", x: 70, y: 35 },
-  { id: "4", name: "Centre gauche", x: 30, y: 35 },
-  { id: "5", name: "Ailier gauche", x: 10, y: 25 },
-  { id: "6", name: "Demi d'ouverture", x: 50, y: 45 },
-  { id: "7", name: "Demi de mêlée", x: 35, y: 55 },
-  { id: "8", name: "Pilier gauche", x: 25, y: 75 },
-  { id: "9", name: "Talonneur", x: 50, y: 75 },
-  { id: "10", name: "Pilier droit", x: 75, y: 75 },
-  { id: "11", name: "2ème ligne gauche", x: 35, y: 85 },
-  { id: "12", name: "2ème ligne droit", x: 65, y: 85 },
-  { id: "13", name: "Troisième ligne centre", x: 50, y: 90 },
+  { id: "1", name: "Arrière", x: 50, y: 8 },
+  { id: "2", name: "Ailier droit", x: 92, y: 22 },
+  { id: "3", name: "Centre droit", x: 70, y: 30 },
+  { id: "4", name: "Centre gauche", x: 30, y: 30 },
+  { id: "5", name: "Ailier gauche", x: 8, y: 22 },
+  { id: "6", name: "Demi d'ouverture", x: 55, y: 48 },
+  { id: "7", name: "Demi de mêlée", x: 35, y: 58 },
+  { id: "8", name: "Pilier gauche", x: 22, y: 78 },
+  { id: "9", name: "Talonneur", x: 50, y: 78 },
+  { id: "10", name: "Pilier droit", x: 78, y: 78 },
+  { id: "11", name: "2ème ligne gauche", x: 30, y: 92 },
+  { id: "12", name: "2ème ligne droit", x: 70, y: 92 },
+  { id: "13", name: "Troisième ligne centre", x: 50, y: 95 },
 ];
 
 // Touch Rugby positions (6 players)
 export const TOUCH_RUGBY_POSITIONS: Position[] = [
-  { id: "1", name: "Link gauche", x: 15, y: 55 },
-  { id: "2", name: "Milieu gauche", x: 35, y: 70 },
-  { id: "3", name: "Milieu droit", x: 65, y: 70 },
-  { id: "4", name: "Link droit", x: 85, y: 55 },
-  { id: "5", name: "Demi", x: 50, y: 50 },
-  { id: "6", name: "Arrière", x: 50, y: 25 },
+  { id: "1", name: "Link gauche", x: 12, y: 55 },
+  { id: "2", name: "Milieu gauche", x: 32, y: 75 },
+  { id: "3", name: "Milieu droit", x: 68, y: 75 },
+  { id: "4", name: "Link droit", x: 88, y: 55 },
+  { id: "5", name: "Demi", x: 50, y: 45 },
+  { id: "6", name: "Arrière", x: 50, y: 15 },
 ];
 
 // Football (soccer) positions - 4-3-3 formation (11 players)
 export const FOOTBALL_POSITIONS: Position[] = [
-  { id: "1", name: "Gardien", x: 50, y: 92 },
-  { id: "2", name: "Latéral droit", x: 85, y: 75 },
-  { id: "3", name: "Défenseur central", x: 35, y: 78 },
-  { id: "4", name: "Défenseur central", x: 65, y: 78 },
-  { id: "5", name: "Latéral gauche", x: 15, y: 75 },
-  { id: "6", name: "Milieu défensif", x: 50, y: 60 },
-  { id: "7", name: "Milieu droit", x: 75, y: 50 },
-  { id: "8", name: "Milieu gauche", x: 25, y: 50 },
-  { id: "9", name: "Attaquant", x: 50, y: 20 },
-  { id: "10", name: "Ailier droit", x: 80, y: 28 },
-  { id: "11", name: "Ailier gauche", x: 20, y: 28 },
+  { id: "1", name: "Gardien", x: 50, y: 95 },
+  { id: "2", name: "Latéral droit", x: 88, y: 78 },
+  { id: "3", name: "Défenseur central", x: 35, y: 80 },
+  { id: "4", name: "Défenseur central", x: 65, y: 80 },
+  { id: "5", name: "Latéral gauche", x: 12, y: 78 },
+  { id: "6", name: "Milieu défensif", x: 50, y: 58 },
+  { id: "7", name: "Milieu droit", x: 78, y: 48 },
+  { id: "8", name: "Milieu gauche", x: 22, y: 48 },
+  { id: "9", name: "Attaquant", x: 50, y: 12 },
+  { id: "10", name: "Ailier droit", x: 82, y: 22 },
+  { id: "11", name: "Ailier gauche", x: 18, y: 22 },
 ];
 
 // Handball positions (7 players)
 export const HANDBALL_POSITIONS: Position[] = [
-  { id: "1", name: "Gardien", x: 50, y: 90 },
-  { id: "2", name: "Ailier gauche", x: 10, y: 55 },
-  { id: "3", name: "Arrière gauche", x: 25, y: 45 },
-  { id: "4", name: "Demi-centre", x: 50, y: 40 },
-  { id: "5", name: "Arrière droit", x: 75, y: 45 },
-  { id: "6", name: "Ailier droit", x: 90, y: 55 },
-  { id: "7", name: "Pivot", x: 50, y: 25 },
+  { id: "1", name: "Gardien", x: 50, y: 95 },
+  { id: "2", name: "Ailier gauche", x: 8, y: 55 },
+  { id: "3", name: "Arrière gauche", x: 22, y: 42 },
+  { id: "4", name: "Demi-centre", x: 50, y: 38 },
+  { id: "5", name: "Arrière droit", x: 78, y: 42 },
+  { id: "6", name: "Ailier droit", x: 92, y: 55 },
+  { id: "7", name: "Pivot", x: 50, y: 18 },
 ];
 
 // Volleyball positions (6 players)
 export const VOLLEYBALL_POSITIONS: Position[] = [
-  { id: "1", name: "Arrière droit (P1)", x: 80, y: 75 },
-  { id: "2", name: "Avant droit (P2)", x: 80, y: 35 },
-  { id: "3", name: "Avant centre (P3)", x: 50, y: 35 },
-  { id: "4", name: "Avant gauche (P4)", x: 20, y: 35 },
-  { id: "5", name: "Arrière gauche (P5)", x: 20, y: 75 },
-  { id: "6", name: "Arrière centre (P6)", x: 50, y: 75 },
+  { id: "1", name: "Arrière droit (P1)", x: 82, y: 80 },
+  { id: "2", name: "Avant droit (P2)", x: 82, y: 28 },
+  { id: "3", name: "Avant centre (P3)", x: 50, y: 28 },
+  { id: "4", name: "Avant gauche (P4)", x: 18, y: 28 },
+  { id: "5", name: "Arrière gauche (P5)", x: 18, y: 80 },
+  { id: "6", name: "Arrière centre (P6)", x: 50, y: 80 },
 ];
 
 // Basketball positions (5 players)
 export const BASKETBALL_POSITIONS: Position[] = [
-  { id: "1", name: "Meneur (Point Guard)", x: 50, y: 75 },
-  { id: "2", name: "Arrière (Shooting Guard)", x: 20, y: 60 },
-  { id: "3", name: "Ailier (Small Forward)", x: 80, y: 60 },
-  { id: "4", name: "Ailier fort (Power Forward)", x: 25, y: 40 },
-  { id: "5", name: "Pivot (Center)", x: 75, y: 40 },
+  { id: "1", name: "Meneur (Point Guard)", x: 50, y: 82 },
+  { id: "2", name: "Arrière (Shooting Guard)", x: 15, y: 60 },
+  { id: "3", name: "Ailier (Small Forward)", x: 85, y: 60 },
+  { id: "4", name: "Ailier fort (Power Forward)", x: 22, y: 32 },
+  { id: "5", name: "Pivot (Center)", x: 78, y: 32 },
 ];
 
 // Basketball 3x3 (FIBA) - 3 joueurs sur un demi-terrain
