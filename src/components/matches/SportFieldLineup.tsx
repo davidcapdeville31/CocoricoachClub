@@ -12,6 +12,11 @@ interface Player {
   name: string;
   first_name?: string | null;
   position: string | null;
+  avatar_url?: string | null;
+}
+
+function normalizePos(s: string | null | undefined): string {
+  return (s || "").toString().trim().toLowerCase();
 }
 
 function formatPlayerName(player: Pick<Player, "name" | "first_name">) {
