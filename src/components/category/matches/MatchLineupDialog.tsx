@@ -106,7 +106,7 @@ export function MatchLineupDialog({
       }
       const { data, error } = await supabase
         .from("players")
-        .select("id, name, first_name, position")
+        .select("id, name, first_name, position, avatar_url")
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
