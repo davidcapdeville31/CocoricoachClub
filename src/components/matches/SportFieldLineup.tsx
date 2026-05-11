@@ -392,30 +392,59 @@ export function SportFieldLineup({
           </div>
 
           {/* Player selection for position */}
-          {!readOnly && selectedPosition && (
-            <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm font-medium mb-2">
-                Position {selectedPosition}: {positions.find(p => p.id === selectedPosition)?.name}
-              </p>
-              <Select onValueChange={handlePlayerSelect}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un athlète..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {availablePlayers.map((player) => (
-                    <SelectItem key={player.id} value={player.id}>
-                      {formatPlayerName(player)} {player.position && `(${player.position})`}
-                    </SelectItem>
-                  ))}
-                  {availablePlayers.length === 0 && (
-                    <SelectItem value="none" disabled>
-                      Tous les athlètes sont assignés
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          {!readOnly && selectedPosition && (() => {
+            const posMeta = positions.find(p => p.id === selectedPosition);
+            const targetName = normalizePos(posMeta?.name);
+            const targetId = normalizePos(posMeta?.id);
+            const isMatch = (p: Player) => {
+              const pp = normalizePos(p.position);
+              if (!pp) return false;
+              return pp === targetName || pp === targetId || pp.includes(targetName) || targetName.includes(pp);
+            };
+            const matching = availablePlayers.filter(isMatch);
+            const others = availablePlayers.filter(p => !isMatch(p));
+            return (
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm font-medium mb-2">
+                  Position {selectedPosition}: {posMeta?.name}
+                </p>
+                <Select onValueChange={handlePlayerSelect}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un athlète..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {matching.length > 0 && (
+                      <>
+                        <div className="px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
+                          Postes correspondants
+                        </div>
+                        {matching.map((player) => (
+                          <SelectItem key={player.id} value={player.id} className="bg-primary/10 font-semibold">
+                            ★ {formatPlayerName(player)} {player.position && `(${player.position})`}
+                          </SelectItem>
+                        ))}
+                        {others.length > 0 && (
+                          <div className="px-2 py-1 mt-1 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold border-t">
+                            Autres athlètes
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {others.map((player) => (
+                      <SelectItem key={player.id} value={player.id}>
+                        {formatPlayerName(player)} {player.position && `(${player.position})`}
+                      </SelectItem>
+                    ))}
+                    {availablePlayers.length === 0 && (
+                      <SelectItem value="none" disabled>
+                        Tous les athlètes sont assignés
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
 
