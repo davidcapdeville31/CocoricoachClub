@@ -65,6 +65,7 @@ export default function LiveMatchPage() {
 
   const homeName = match?.is_home ? (match?.categories?.name ?? "Domicile") : (match?.opponent ?? "Extérieur");
   const awayName = match?.is_home ? (match?.opponent ?? "Extérieur") : (match?.categories?.name ?? "Domicile");
+  const clubSide = match?.is_home ? "home" : "away";
 
   const homePlayers = useMemo(
     () => (lineup ?? [])
@@ -213,6 +214,7 @@ export default function LiveMatchPage() {
           defaultPeriod={period}
           homeName={homeName} awayName={awayName}
           homeColor={teamColors?.home} awayColor={teamColors?.away}
+          clubSide={clubSide}
           homePlayers={match?.is_home ? homePlayers : []}
           awayPlayers={match?.is_home ? [] : homePlayers}
           initial={editing}
