@@ -1,7 +1,10 @@
 import { Card } from "@/components/ui/card";
 import type { TeamStats } from "./hooks/useMatchStats";
 
-const pct = (a: number, b: number) => (b > 0 ? Math.round((a / (a + b)) * 100) : 0);
+const pct = (won: number, lost: number) => {
+  const total = won + lost;
+  return total > 0 ? Math.round((won / total) * 100) : 0;
+};
 const pctMade = (made: number, att: number) => (att > 0 ? Math.round((made / att) * 100) : 0);
 
 function Row({ label, h, a, suffix }: { label: string; h: any; a: any; suffix?: string }) {
