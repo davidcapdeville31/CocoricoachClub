@@ -190,7 +190,7 @@ export function EventDialog(props: EventDialogProps) {
       : "";
 
   const submit = () => {
-    const metadata: Record<string, any> = { ...(draft as any).extraMeta };
+    const metadata: Record<string, any> = {};
     if (draft.zone) metadata.zone = draft.zone;
     if (draft.kickDistance) metadata.kickDistance = parseInt(draft.kickDistance) || null;
     if (draft.contested) metadata.contested = true;
@@ -202,8 +202,7 @@ export function EventDialog(props: EventDialogProps) {
       metadata.kickingSide = draft.kickingSide;
       if (isKickAttempt && kickDistanceFromField !== null) metadata.kickDistance = kickDistanceFromField;
     }
-    if (initial?.metadata?.setPieceResult) metadata.setPieceResult = initial.metadata.setPieceResult;
-    if ((draft as any).setPieceResult) metadata.setPieceResult = (draft as any).setPieceResult;
+    if (isSetPiece && draft.setPieceResult) metadata.setPieceResult = draft.setPieceResult;
 
     const payload: Partial<MatchEvent> = {
       team_side: draft.side,
