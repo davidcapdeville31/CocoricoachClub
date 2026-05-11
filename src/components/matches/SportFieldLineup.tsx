@@ -12,6 +12,11 @@ interface Player {
   name: string;
   first_name?: string | null;
   position: string | null;
+  avatar_url?: string | null;
+}
+
+function normalizePos(s: string | null | undefined): string {
+  return (s || "").toString().trim().toLowerCase();
 }
 
 function formatPlayerName(player: Pick<Player, "name" | "first_name">) {
@@ -334,6 +339,8 @@ export function SportFieldLineup({
             {positions.map((pos) => {
               const playerId = lineup[pos.id];
               const isSelected = selectedPosition === pos.id;
+              const assignedPlayer = playerId ? players.find(p => p.id === playerId) : null;
+              const avatar = assignedPlayer?.avatar_url || null;
               
               return (
                 <div
@@ -345,21 +352,36 @@ export function SportFieldLineup({
                     onClick={() => handlePositionClick(pos.id)}
                     onDoubleClick={() => playerId && handleRemovePlayer(pos.id)}
                     className={`
-                      relative flex flex-col items-center justify-center
-                      min-w-[2.5rem] min-h-[2.5rem] rounded-full transition-all
-                      ${playerId 
-                        ? "bg-primary text-primary-foreground shadow-lg" 
+                      relative flex items-center justify-center
+                      w-12 h-12 rounded-full transition-all overflow-hidden
+                      ${assignedPlayer 
+                        ? "shadow-lg ring-2 ring-white/80" 
                         : "bg-white/20 border-2 border-dashed border-white/50 text-white"
                       }
+                      ${!assignedPlayer || !avatar ? (assignedPlayer ? "bg-primary text-primary-foreground" : "") : ""}
                       ${isSelected ? "ring-4 ring-yellow-400 scale-110" : ""}
                       ${!readOnly ? "hover:scale-105 cursor-pointer" : ""}
                     `}
                     disabled={readOnly}
                     title={playerId ? `${getPlayerName(playerId)} - Double-clic pour retirer` : pos.name}
                   >
-                    <span className="text-xs font-bold">{pos.id}</span>
+                    {assignedPlayer && avatar ? (
+                      <img src={avatar} alt={getPlayerName(playerId)} className="w-full h-full object-cover" />
+                    ) : assignedPlayer ? (
+                      <span className="text-[10px] font-bold uppercase">
+                        {(assignedPlayer.first_name?.[0] || "") + (assignedPlayer.name?.[0] || "")}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-bold">{pos.id}</span>
+                    )}
+                    {/* Number badge */}
+                    {assignedPlayer && (
+                      <span className="absolute -top-1 -right-1 text-[9px] font-bold text-white bg-primary border border-white rounded-full w-4 h-4 flex items-center justify-center shadow">
+                        {pos.id}
+                      </span>
+                    )}
                     {playerId && (
-                      <span className="absolute -bottom-5 text-[9px] font-medium text-white bg-black/60 px-1 rounded whitespace-nowrap max-w-[70px] truncate">
+                      <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-medium text-white bg-black/60 px-1 rounded whitespace-nowrap max-w-[70px] truncate">
                         {getPlayerName(playerId)}
                       </span>
                     )}
@@ -370,30 +392,59 @@ export function SportFieldLineup({
           </div>
 
           {/* Player selection for position */}
-          {!readOnly && selectedPosition && (
-            <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm font-medium mb-2">
-                Position {selectedPosition}: {positions.find(p => p.id === selectedPosition)?.name}
-              </p>
-              <Select onValueChange={handlePlayerSelect}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un athlète..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {availablePlayers.map((player) => (
-                    <SelectItem key={player.id} value={player.id}>
-                      {formatPlayerName(player)} {player.position && `(${player.position})`}
-                    </SelectItem>
-                  ))}
-                  {availablePlayers.length === 0 && (
-                    <SelectItem value="none" disabled>
-                      Tous les athlètes sont assignés
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          {!readOnly && selectedPosition && (() => {
+            const posMeta = positions.find(p => p.id === selectedPosition);
+            const targetName = normalizePos(posMeta?.name);
+            const targetId = normalizePos(posMeta?.id);
+            const isMatch = (p: Player) => {
+              const pp = normalizePos(p.position);
+              if (!pp) return false;
+              return pp === targetName || pp === targetId || pp.includes(targetName) || targetName.includes(pp);
+            };
+            const matching = availablePlayers.filter(isMatch);
+            const others = availablePlayers.filter(p => !isMatch(p));
+            return (
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm font-medium mb-2">
+                  Position {selectedPosition}: {posMeta?.name}
+                </p>
+                <Select onValueChange={handlePlayerSelect}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un athlète..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {matching.length > 0 && (
+                      <>
+                        <div className="px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
+                          Postes correspondants
+                        </div>
+                        {matching.map((player) => (
+                          <SelectItem key={player.id} value={player.id} className="bg-primary/10 font-semibold">
+                            ★ {formatPlayerName(player)} {player.position && `(${player.position})`}
+                          </SelectItem>
+                        ))}
+                        {others.length > 0 && (
+                          <div className="px-2 py-1 mt-1 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold border-t">
+                            Autres athlètes
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {others.map((player) => (
+                      <SelectItem key={player.id} value={player.id}>
+                        {formatPlayerName(player)} {player.position && `(${player.position})`}
+                      </SelectItem>
+                    ))}
+                    {availablePlayers.length === 0 && (
+                      <SelectItem value="none" disabled>
+                        Tous les athlètes sont assignés
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
 
