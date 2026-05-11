@@ -65,6 +65,7 @@ export default function LiveMatchPage() {
 
   const homeName = match?.is_home ? (match?.categories?.name ?? "Domicile") : (match?.opponent ?? "Extérieur");
   const awayName = match?.is_home ? (match?.opponent ?? "Extérieur") : (match?.categories?.name ?? "Domicile");
+  const clubSide: "home" | "away" = match?.is_home === false ? "away" : "home";
 
   const homePlayers = useMemo(
     () => (lineup ?? [])
@@ -206,13 +207,14 @@ export default function LiveMatchPage() {
         <EventDialog
           open={!!openType}
           onOpenChange={(o) => { if (!o) { setOpenType(null); setEditing(null); setChainSide(null); } }}
-          defaultSide={chainSide ?? undefined}
+          defaultSide={chainSide ?? clubSide}
           eventType={openType}
           defaultMinute={minute}
           defaultSecond={seconds}
           defaultPeriod={period}
           homeName={homeName} awayName={awayName}
           homeColor={teamColors?.home} awayColor={teamColors?.away}
+          clubSide={clubSide}
           homePlayers={match?.is_home ? homePlayers : []}
           awayPlayers={match?.is_home ? [] : homePlayers}
           initial={editing}

@@ -22,6 +22,7 @@ export interface EventDialogProps {
   awayName: string;
   homeColor?: string;
   awayColor?: string;
+  clubSide: TeamSide;
   homePlayers: EventDialogPlayer[];
   awayPlayers: EventDialogPlayer[];
   /** Editing existing event */
@@ -121,7 +122,7 @@ function createDraft(params: {
 }
 
 export function EventDialog(props: EventDialogProps) {
-  const { open, onOpenChange, eventType, defaultMinute, defaultSecond = 0, defaultPeriod, defaultSide, homeName, awayName, homeColor, awayColor, homePlayers, awayPlayers, initial, onSubmit } = props;
+  const { open, onOpenChange, eventType, defaultMinute, defaultSecond = 0, defaultPeriod, defaultSide, homeName, awayName, homeColor, awayColor, clubSide, homePlayers, awayPlayers, initial, onSubmit } = props;
 
   const [draft, setDraft] = useState<EventDialogDraft>(() =>
     createDraft({ initial, defaultMinute, defaultSecond, defaultPeriod, defaultSide })
@@ -139,6 +140,7 @@ export function EventDialog(props: EventDialogProps) {
 
   const subtypes = SUBTYPES[eventType] ?? [];
   const players = draft.side === "home" ? homePlayers : awayPlayers;
+  const isClubSide = draft.side === clubSide;
 
   const showOutcomeWonLost = ["lineout", "scrum"].includes(eventType);
   const showOutcomeSuccessFail = ["conversion", "penalty_kick", "drop"].includes(eventType) || (eventType === "penalty_kick" && draft.penaltyMode === "kick");
@@ -252,7 +254,7 @@ export function EventDialog(props: EventDialogProps) {
           </div>
 
           {/* Joueur : sélection limitée à mon équipe (feuille de match) */}
-          {draft.side === "home" ? (
+          {isClubSide ? (
             players.length > 0 ? (
               <div>
                 <Label className="text-xs uppercase tracking-wider text-muted-foreground">Joueur</Label>
