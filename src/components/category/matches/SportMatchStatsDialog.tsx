@@ -23,6 +23,7 @@ import { useStatPreferences } from "@/hooks/use-stat-preferences";
 import { MatchGpsImport } from "./MatchGpsImport";
 import { PlayerStatsGrid } from "./PlayerStatsGrid";
 import { MatchKickingFieldDialog, type KickAttempt } from "./MatchKickingFieldDialog";
+import { RugbyTeamStatsBlock } from "./RugbyTeamStatsBlock";
 
 // Convert seconds to minutes display format (e.g., 185 => "3'05")
 function formatSecondsToMinutes(totalSeconds: number): string {
