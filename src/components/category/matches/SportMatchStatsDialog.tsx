@@ -82,6 +82,7 @@ export function SportMatchStatsDialog({
   const [averagePlaySequence, setAveragePlaySequence] = useState<number>(0);
   const [longestPlaySequenceText, setLongestPlaySequenceText] = useState<string>("");
   const [averagePlaySequenceText, setAveragePlaySequenceText] = useState<string>("");
+  const [teamMatchStats, setTeamMatchStats] = useState<Record<string, number>>({});
   const [showGpsImport, setShowGpsImport] = useState(false);
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
   const [kickingFieldPlayer, setKickingFieldPlayer] = useState<{ id: string; name: string } | null>(null);
