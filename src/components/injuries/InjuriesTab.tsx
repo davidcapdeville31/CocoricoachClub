@@ -19,7 +19,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Activity, TrendingUp, Library } from "lucide-react";
+import { Plus, Activity, TrendingUp, Library, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { AddInjuryDialog } from "./AddInjuryDialog";
 import { InjuryLibraryDialog } from "@/components/category/programs/InjuryLibraryDialog";
 import { toast } from "sonner";
@@ -75,6 +86,22 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
       console.error("Erreur mutation complète:", error);
       const errorMessage = error?.message || "Erreur inconnue";
       toast.error(`Erreur: ${errorMessage}`);
+    },
+  });
+
+  const deleteInjury = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("injuries").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["injuries", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["recovering-injuries-no-protocol", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["active-rehab-protocols", categoryId] });
+      toast.success("Blessure supprimée");
+    },
+    onError: (error: any) => {
+      toast.error(`Erreur: ${error?.message || "suppression impossible"}`);
     },
   });
 
@@ -221,23 +248,55 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                       </TableCell>
                         <TableCell>
                           {!isViewer ? (
-                            <Select
-                              value={injury.status}
-                              onValueChange={(value) => {
-                                console.log("Select change:", { id: injury.id, value });
-                                updateInjuryStatus.mutate({ id: injury.id, status: value });
-                              }}
-                              disabled={updateInjuryStatus.isPending}
-                            >
-                              <SelectTrigger className="w-[180px]">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value={INJURY_STATUS.ACTIVE}>{INJURY_STATUS_LABELS[INJURY_STATUS.ACTIVE]}</SelectItem>
-                                <SelectItem value={INJURY_STATUS.REHABILITATION}>{INJURY_STATUS_LABELS[INJURY_STATUS.REHABILITATION]}</SelectItem>
-                                <SelectItem value={INJURY_STATUS.HEALED}>{INJURY_STATUS_LABELS[INJURY_STATUS.HEALED]}</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <div className="flex items-center gap-2">
+                              <Select
+                                value={injury.status}
+                                onValueChange={(value) => {
+                                  updateInjuryStatus.mutate({ id: injury.id, status: value });
+                                }}
+                                disabled={updateInjuryStatus.isPending}
+                              >
+                                <SelectTrigger className="w-[160px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value={INJURY_STATUS.ACTIVE}>{INJURY_STATUS_LABELS[INJURY_STATUS.ACTIVE]}</SelectItem>
+                                  <SelectItem value={INJURY_STATUS.REHABILITATION}>{INJURY_STATUS_LABELS[INJURY_STATUS.REHABILITATION]}</SelectItem>
+                                  <SelectItem value={INJURY_STATUS.HEALED}>{INJURY_STATUS_LABELS[INJURY_STATUS.HEALED]}</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    title="Supprimer la blessure"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Supprimer cette blessure ?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Cette action est irréversible. La blessure « {injury.injury_type} » du{" "}
+                                      {new Date(injury.injury_date).toLocaleDateString("fr-FR")} sera
+                                      définitivement supprimée, ainsi que les données de réhabilitation associées.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => deleteInjury.mutate(injury.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Supprimer
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}
