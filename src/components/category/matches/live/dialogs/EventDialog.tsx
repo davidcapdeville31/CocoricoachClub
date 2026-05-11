@@ -17,6 +17,7 @@ export interface EventDialogProps {
   defaultMinute: number;
   defaultSecond?: number;
   defaultPeriod: Period;
+  defaultSide?: TeamSide;
   homeName: string;
   awayName: string;
   homeColor?: string;
@@ -98,11 +99,12 @@ function createDraft(params: {
   defaultMinute: number;
   defaultSecond: number;
   defaultPeriod: Period;
+  defaultSide?: TeamSide;
 }): EventDialogDraft {
-  const { initial, defaultMinute, defaultSecond, defaultPeriod } = params;
+  const { initial, defaultMinute, defaultSecond, defaultPeriod, defaultSide } = params;
 
   return {
-    side: initial?.team_side ?? "home",
+    side: initial?.team_side ?? defaultSide ?? "home",
     minute: initial?.minute ?? defaultMinute,
     second: initial?.second ?? defaultSecond,
     period: initial?.period ?? defaultPeriod,
@@ -119,16 +121,16 @@ function createDraft(params: {
 }
 
 export function EventDialog(props: EventDialogProps) {
-  const { open, onOpenChange, eventType, defaultMinute, defaultSecond = 0, defaultPeriod, homeName, awayName, homeColor, awayColor, homePlayers, awayPlayers, initial, onSubmit } = props;
+  const { open, onOpenChange, eventType, defaultMinute, defaultSecond = 0, defaultPeriod, defaultSide, homeName, awayName, homeColor, awayColor, homePlayers, awayPlayers, initial, onSubmit } = props;
 
   const [draft, setDraft] = useState<EventDialogDraft>(() =>
-    createDraft({ initial, defaultMinute, defaultSecond, defaultPeriod })
+    createDraft({ initial, defaultMinute, defaultSecond, defaultPeriod, defaultSide })
   );
 
   useEffect(() => {
     if (!open) return;
 
-    setDraft(createDraft({ initial, defaultMinute, defaultSecond, defaultPeriod }));
+    setDraft(createDraft({ initial, defaultMinute, defaultSecond, defaultPeriod, defaultSide }));
   }, [open, eventType, initial?.id]);
 
   const setField = <K extends keyof EventDialogDraft,>(field: K, value: EventDialogDraft[K]) => {
