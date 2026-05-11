@@ -226,7 +226,7 @@ export function EventDialog(props: EventDialogProps) {
     // Try → ask conversion next
     let chain: { type: EventType } | undefined;
     if (eventType === "try" && draft.tryAttemptConv) chain = { type: "conversion" };
-    if (eventType === "penalty_kick" && draft.penaltyMode !== "kick") {
+    if (eventType === "penalty_kick" && draft.penaltyMode !== "kick" && draft.penaltyMode !== "penaltouche") {
       payload.outcome = null;
     }
     onSubmit(payload, chain);
