@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LiveScoreboard } from "@/components/category/matches/live/LiveScoreboard";
+import { PeriodControls } from "@/components/category/matches/live/PeriodControls";
 import { LiveTimeline } from "@/components/category/matches/live/LiveTimeline";
 import { LiveQuickActions } from "@/components/category/matches/live/LiveQuickActions";
 import { LiveStatsPanel } from "@/components/category/matches/live/LiveStatsPanel";
@@ -143,11 +144,20 @@ export default function LiveMatchPage() {
         homeColor={teamColors?.home} awayColor={teamColors?.away}
       />
 
-      <div className="px-4 py-3 flex items-center justify-between">
+      <div className="px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
         <Button variant="ghost" size="sm" onClick={() => navigate(`/categories/${categoryId}?tab=competition`)}>
           <ArrowLeft className="h-4 w-4 mr-1" /> Retour
         </Button>
-        <div className="text-xs text-muted-foreground">
+        <PeriodControls
+          matchId={matchId}
+          period={period}
+          onPeriodChange={setPeriod}
+          onResetClock={() => { setMinute(0); setSeconds(0); }}
+          isFinalized={!!match?.is_finalized}
+          homeScore={stats.home.points}
+          awayScore={stats.away.points}
+        />
+        <div className="text-xs text-muted-foreground hidden lg:block">
           Mode analyste · raccourcis : <kbd className="bg-muted rounded px-1">E</kbd> essai · <kbd className="bg-muted rounded px-1">P</kbd> pénalité · <kbd className="bg-muted rounded px-1">T</kbd> touche · <kbd className="bg-muted rounded px-1">M</kbd> mêlée · <kbd className="bg-muted rounded px-1">C</kbd> carton · <kbd className="bg-muted rounded px-1">D</kbd> drop
         </div>
       </div>
