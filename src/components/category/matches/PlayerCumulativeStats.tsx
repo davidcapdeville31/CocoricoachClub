@@ -2216,6 +2216,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
       {/* Match filter + Export */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3 flex-wrap">
+          {!lockMatchSelection && (
           <Popover open={filterOpen} onOpenChange={setFilterOpen}>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2">
@@ -2266,6 +2267,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
               </ScrollArea>
             </PopoverContent>
           </Popover>
+          )}
 
           {selectedMatchIds.length === 0 && allMatches.length > 0 && (
             <Badge variant="secondary" className="gap-1">{isIndividualCompetitionSport ? "Toutes les compétitions" : "Tous les matchs"} ({allMatches.length})</Badge>
