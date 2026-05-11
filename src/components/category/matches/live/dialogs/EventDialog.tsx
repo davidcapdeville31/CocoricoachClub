@@ -332,6 +332,75 @@ export function EventDialog(props: EventDialogProps) {
             </div>
           )}
 
+          {isKickAttempt && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Position du tir
+                </Label>
+                <div className="flex gap-1">
+                  <Button
+                    type="button"
+                    variant={draft.kickingSide === "left" ? "default" : "outline"}
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => setField("kickingSide", "left")}
+                  >
+                    ← Gauche
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={draft.kickingSide === "right" ? "default" : "outline"}
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => setField("kickingSide", "right")}
+                  >
+                    Droite →
+                  </Button>
+                </div>
+              </div>
+              <div className="relative w-full">
+                <RugbyFieldSVG
+                  goalsOnRight={draft.kickingSide === "right"}
+                  showCursorTracker
+                  onClick={(x, y) => {
+                    setDraft((prev) => ({ ...prev, kickX: x, kickY: y }));
+                  }}
+                >
+                  {draft.kickX !== null && draft.kickY !== null && (
+                    <g>
+                      <circle
+                        cx={(draft.kickX / 100) * 600}
+                        cy={(draft.kickY / 100) * 400}
+                        r={14}
+                        fill={draft.outcome === "success" ? "#22c55e" : draft.outcome === "fail" ? "#ef4444" : "none"}
+                        opacity={0.85}
+                        stroke="white"
+                        strokeWidth={3}
+                        strokeDasharray={draft.outcome ? undefined : "4 4"}
+                      />
+                      {draft.outcome && (
+                        <text x={(draft.kickX / 100) * 600} y={(draft.kickY / 100) * 400 + 4} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">
+                          {draft.outcome === "success" ? "✓" : "✗"}
+                        </text>
+                      )}
+                    </g>
+                  )}
+                </RugbyFieldSVG>
+              </div>
+              {draft.kickX !== null && draft.kickY !== null && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <MapPin className="h-3 w-3" />
+                  <span>{kickPositionLabel}</span>
+                  {kickDistanceFromField !== null && <span className="ml-2">≈ {kickDistanceFromField}m des poteaux</span>}
+                </div>
+              )}
+              <p className="text-[11px] text-muted-foreground">
+                Cliquez sur le terrain pour placer le tir, puis sélectionnez Réussi ou Manqué.
+              </p>
+            </div>
+          )}
+
           {(showOutcomeSuccessFail && (eventType !== "penalty_kick" || draft.penaltyMode === "kick")) && (
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Résultat</Label>
