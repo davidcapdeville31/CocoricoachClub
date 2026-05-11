@@ -183,6 +183,7 @@ export default function LiveMatchPage() {
           onOpenChange={(o) => { if (!o) { setOpenType(null); setEditing(null); } }}
           eventType={openType}
           defaultMinute={minute}
+          defaultSecond={seconds}
           defaultPeriod={period}
           homeName={homeName} awayName={awayName}
           homePlayers={homePlayers}
