@@ -339,6 +339,8 @@ export function SportFieldLineup({
             {positions.map((pos) => {
               const playerId = lineup[pos.id];
               const isSelected = selectedPosition === pos.id;
+              const assignedPlayer = playerId ? players.find(p => p.id === playerId) : null;
+              const avatar = assignedPlayer?.avatar_url || null;
               
               return (
                 <div
@@ -350,21 +352,36 @@ export function SportFieldLineup({
                     onClick={() => handlePositionClick(pos.id)}
                     onDoubleClick={() => playerId && handleRemovePlayer(pos.id)}
                     className={`
-                      relative flex flex-col items-center justify-center
-                      min-w-[2.5rem] min-h-[2.5rem] rounded-full transition-all
-                      ${playerId 
-                        ? "bg-primary text-primary-foreground shadow-lg" 
+                      relative flex items-center justify-center
+                      w-12 h-12 rounded-full transition-all overflow-hidden
+                      ${assignedPlayer 
+                        ? "shadow-lg ring-2 ring-white/80" 
                         : "bg-white/20 border-2 border-dashed border-white/50 text-white"
                       }
+                      ${!assignedPlayer || !avatar ? (assignedPlayer ? "bg-primary text-primary-foreground" : "") : ""}
                       ${isSelected ? "ring-4 ring-yellow-400 scale-110" : ""}
                       ${!readOnly ? "hover:scale-105 cursor-pointer" : ""}
                     `}
                     disabled={readOnly}
                     title={playerId ? `${getPlayerName(playerId)} - Double-clic pour retirer` : pos.name}
                   >
-                    <span className="text-xs font-bold">{pos.id}</span>
+                    {assignedPlayer && avatar ? (
+                      <img src={avatar} alt={getPlayerName(playerId)} className="w-full h-full object-cover" />
+                    ) : assignedPlayer ? (
+                      <span className="text-[10px] font-bold uppercase">
+                        {(assignedPlayer.first_name?.[0] || "") + (assignedPlayer.name?.[0] || "")}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-bold">{pos.id}</span>
+                    )}
+                    {/* Number badge */}
+                    {assignedPlayer && (
+                      <span className="absolute -top-1 -right-1 text-[9px] font-bold text-white bg-primary border border-white rounded-full w-4 h-4 flex items-center justify-center shadow">
+                        {pos.id}
+                      </span>
+                    )}
                     {playerId && (
-                      <span className="absolute -bottom-5 text-[9px] font-medium text-white bg-black/60 px-1 rounded whitespace-nowrap max-w-[70px] truncate">
+                      <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-medium text-white bg-black/60 px-1 rounded whitespace-nowrap max-w-[70px] truncate">
                         {getPlayerName(playerId)}
                       </span>
                     )}
