@@ -16,9 +16,21 @@ interface Props {
   onMinuteChange: (m: number) => void;
   seconds: number;
   onSecondsChange: (s: number) => void;
+  homeColor?: string;
+  awayColor?: string;
 }
 
-export function LiveScoreboard({ homeName, awayName, homeScore, awayScore, period, onPeriodChange, minute, onMinuteChange, seconds, onSecondsChange }: Props) {
+function isLight(hex?: string) {
+  if (!hex) return false;
+  const h = hex.replace("#", "");
+  if (h.length < 6) return false;
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 >= 160;
+}
+
+export function LiveScoreboard({ homeName, awayName, homeScore, awayScore, period, onPeriodChange, minute, onMinuteChange, seconds, onSecondsChange, homeColor, awayColor }: Props) {
   const [running, setRunning] = useState(false);
   const tickRef = useRef<number | null>(null);
   const startRef = useRef<{ at: number; baseSec: number } | null>(null);
@@ -46,8 +58,11 @@ export function LiveScoreboard({ homeName, awayName, homeScore, awayScore, perio
   return (
     <Card className="sticky top-0 z-30 rounded-none border-x-0 border-t-0 bg-gradient-to-b from-background to-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="px-4 py-3 grid grid-cols-12 items-center gap-4">
-        <div className="col-span-4 text-right">
-          <div className="text-xs text-muted-foreground uppercase tracking-wider">Domicile</div>
+        <div
+          className="col-span-4 text-right rounded-xl px-3 py-2 transition-colors"
+          style={homeColor ? { backgroundColor: homeColor, color: isLight(homeColor) ? "#0f172a" : "#fff" } : undefined}
+        >
+          <div className="text-xs uppercase tracking-wider opacity-80">Domicile</div>
           <div className="font-bold text-lg truncate">{homeName}</div>
         </div>
         <div className="col-span-4 text-center">
@@ -77,8 +92,11 @@ export function LiveScoreboard({ homeName, awayName, homeScore, awayScore, perio
             </Select>
           </div>
         </div>
-        <div className="col-span-4 text-left">
-          <div className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1"><Trophy className="h-3 w-3" />Extérieur</div>
+        <div
+          className="col-span-4 text-left rounded-xl px-3 py-2 transition-colors"
+          style={awayColor ? { backgroundColor: awayColor, color: isLight(awayColor) ? "#0f172a" : "#fff" } : undefined}
+        >
+          <div className="text-xs uppercase tracking-wider opacity-80 flex items-center gap-1"><Trophy className="h-3 w-3" />Extérieur</div>
           <div className="font-bold text-lg truncate">{awayName}</div>
         </div>
       </div>
