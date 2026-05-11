@@ -429,6 +429,56 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
               </SelectContent>
             </Select>
           )}
+          {isTeam && positionOpts.length > 0 && (
+            <Select
+              value={positionAttr?.value ?? ""}
+              onValueChange={(v) => {
+                if (!v) return;
+                if (positionAttr) {
+                  if (v === positionAttr.value) return;
+                  addMut.mutate({
+                    dimension: "position",
+                    value: v,
+                    is_primary: true,
+                    weight: null,
+                    metadata: {},
+                  });
+                  deleteMut.mutate(positionAttr.id);
+                } else {
+                  addMut.mutate({
+                    dimension: "position",
+                    value: v,
+                    is_primary: true,
+                    weight: null,
+                    metadata: {},
+                  });
+                }
+              }}
+            >
+              <SelectTrigger className="h-7 w-auto gap-1 px-2 py-0 text-xs bg-secondary border-transparent hover:bg-secondary/80 rounded-md">
+                <Trophy className="h-3 w-3" />
+                <SelectValue placeholder="Choisir un poste…">
+                  {positionLabel}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-background border z-[200] max-h-[300px]">
+                {positionOpts.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+                {positionAttr && (
+                  <button
+                    type="button"
+                    onClick={() => deleteMut.mutate(positionAttr.id)}
+                    className="w-full text-left text-xs text-destructive px-2 py-1.5 hover:bg-muted border-t mt-1"
+                  >
+                    Retirer
+                  </button>
+                )}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </div>
 
