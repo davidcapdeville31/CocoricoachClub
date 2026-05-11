@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { MatchEvent, Period, TeamSide } from "../types";
+import type { MatchEvent, Period, TeamSide } from "./types";
 
 interface PlayerOpt { id: string; label: string }
 
