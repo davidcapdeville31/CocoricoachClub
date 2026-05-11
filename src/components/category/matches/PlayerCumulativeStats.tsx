@@ -39,6 +39,10 @@ interface PlayerCumulativeStatsProps {
   playerId?: string;
   /** When true and in single player mode, also display the team-aggregated stats above the personal stats. */
   showTeamView?: boolean;
+  /** Pre-select these matches on mount (e.g. when used inside a per-match export dialog). */
+  initialMatchIds?: string[];
+  /** Hide the match filter UI; useful when matches are imposed from outside. */
+  lockMatchSelection?: boolean;
 }
 
 interface MatchInfo {
