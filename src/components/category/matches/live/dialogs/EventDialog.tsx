@@ -95,6 +95,9 @@ interface EventDialogDraft {
   motif: string;
   penaltyMode: string;
   tryAttemptConv: boolean;
+  kickX: number | null;
+  kickY: number | null;
+  kickingSide: "left" | "right";
 }
 
 function createDraft(params: {
@@ -120,6 +123,9 @@ function createDraft(params: {
     motif: initial?.metadata?.motif ?? "",
     penaltyMode: initial?.metadata?.penaltyMode ?? "kick",
     tryAttemptConv: true,
+    kickX: typeof initial?.metadata?.kickX === "number" ? initial.metadata.kickX : null,
+    kickY: typeof initial?.metadata?.kickY === "number" ? initial.metadata.kickY : null,
+    kickingSide: initial?.metadata?.kickingSide === "left" ? "left" : "right",
   };
 }
 
