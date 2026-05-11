@@ -10,6 +10,7 @@ import { LiveTimeline } from "@/components/category/matches/live/LiveTimeline";
 import { LiveQuickActions } from "@/components/category/matches/live/LiveQuickActions";
 import { LiveStatsPanel } from "@/components/category/matches/live/LiveStatsPanel";
 import { EventDialog } from "@/components/category/matches/live/dialogs/EventDialog";
+import { TeamColorsDialog } from "@/components/category/matches/live/dialogs/TeamColorsDialog";
 import { useMatchEvents } from "@/components/category/matches/live/hooks/useMatchEvents";
 import { useMatchStats } from "@/components/category/matches/live/hooks/useMatchStats";
 import type { EventType, MatchEvent, Period } from "@/components/category/matches/live/types";
@@ -24,6 +25,19 @@ export default function LiveMatchPage() {
   const [openType, setOpenType] = useState<EventType | null>(null);
   const [editing, setEditing] = useState<MatchEvent | null>(null);
   const [chainNext, setChainNext] = useState<EventType | null>(null);
+
+  const colorsKey = `match-team-colors-${matchId}`;
+  const [teamColors, setTeamColors] = useState<{ home: string; away: string } | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = localStorage.getItem(`match-team-colors-${matchId}`);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  });
+  const [colorsOpen, setColorsOpen] = useState(false);
+  useEffect(() => {
+    if (matchId && !teamColors) setColorsOpen(true);
+  }, [matchId, teamColors]);
 
   const { data: match } = useQuery({
     queryKey: ["match-live", matchId],
