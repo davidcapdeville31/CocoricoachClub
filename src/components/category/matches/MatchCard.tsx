@@ -33,7 +33,9 @@ import {
 } from "lucide-react";
 import { MedalsDialog } from "./MedalsDialog";
 import { MatchLineupDialog } from "./MatchLineupDialog";
-import { isSurfCategory, isSkiCategory, getMainSportFromType } from "@/lib/constants/sportTypes";
+import { isSurfCategory, isSkiCategory, getMainSportFromType, isRugbyType } from "@/lib/constants/sportTypes";
+import { useNavigate } from "react-router-dom";
+import { Play } from "lucide-react";
 import { FisPreCompetitionForm } from "@/components/planning/FisPreCompetitionForm";
 import { SurfConditionsForm } from "@/components/surf/SurfConditionsForm";
 import { SkiConditionsForm } from "@/components/ski/SkiConditionsForm";
@@ -124,6 +126,8 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   const [scoreHome, setScoreHome] = useState(match.score_home?.toString() || "");
   const [scoreAway, setScoreAway] = useState(match.score_away?.toString() || "");
   const queryClient = useQueryClient();
+
+  const navigate = useNavigate();
 
   const stopCardAction = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -251,6 +255,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   const hasSubMatches = subMatches && subMatches.length > 0;
   const canHaveSubMatches = (!isIndividual || hasTournamentBracket) && !isSubMatch && !match.parent_match_id;
   const isTeamSport = !isIndividual;
+  const isRugby = isRugbyType(sportType);
   const isJudo = sportType.toLowerCase().includes("judo");
   const isAthletics = sportType.toLowerCase().includes("athl");
   // Export available for team sports + Judo + Athletics (per user request).
@@ -648,6 +653,17 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
           </div>
 
           <div className="relative z-20 flex shrink-0 flex-col gap-1.5 items-end pointer-events-auto">
+            {isRugby && (
+              <Button
+                size="lg"
+                className="w-full gap-2 bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg shadow-red-600/30 animate-pulse"
+                onPointerDown={stopCardAction}
+                onClick={(e) => { stopCardAction(e); navigate(`/categories/${categoryId}/match/${match.id}/live`); }}
+              >
+                <Play className="h-5 w-5 fill-white" />
+                Démarrer
+              </Button>
+            )}
             {/* Direct action buttons */}
             <div className="flex items-center gap-1.5 w-full">
               <Button variant="outline" size="sm" className="gap-1.5 text-xs flex-1 justify-start" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsEditOpen(true); }}>

@@ -5215,6 +5215,89 @@ export type Database = {
         }
         Relationships: []
       }
+      match_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          event_subtype: string | null
+          event_type: string
+          id: string
+          match_id: string
+          metadata: Json
+          minute: number
+          outcome: string | null
+          period: string
+          player_id: string | null
+          points: number
+          second: number
+          team_side: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          event_subtype?: string | null
+          event_type: string
+          id?: string
+          match_id: string
+          metadata?: Json
+          minute?: number
+          outcome?: string | null
+          period?: string
+          player_id?: string | null
+          points?: number
+          second?: number
+          team_side: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          event_subtype?: string | null
+          event_type?: string
+          id?: string
+          match_id?: string
+          metadata?: Json
+          minute?: number
+          outcome?: string | null
+          period?: string
+          player_id?: string | null
+          points?: number
+          second?: number
+          team_side?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_events_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_events_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "player_tags"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "match_events_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_events_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_lineups: {
         Row: {
           boat_type: string | null
