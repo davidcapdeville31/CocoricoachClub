@@ -30,6 +30,7 @@ import {
   FileSpreadsheet,
   Award,
   Download,
+} from "lucide-react";
 import { MedalsDialog } from "./MedalsDialog";
 import { MatchLineupDialog } from "./MatchLineupDialog";
 import { isSurfCategory, isSkiCategory, getMainSportFromType } from "@/lib/constants/sportTypes";
