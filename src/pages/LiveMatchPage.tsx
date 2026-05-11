@@ -213,8 +213,8 @@ export default function LiveMatchPage() {
           defaultPeriod={period}
           homeName={homeName} awayName={awayName}
           homeColor={teamColors?.home} awayColor={teamColors?.away}
-          homePlayers={homePlayers}
-          awayPlayers={[]}
+          homePlayers={match?.is_home ? homePlayers : []}
+          awayPlayers={match?.is_home ? [] : homePlayers}
           initial={editing}
           onSubmit={handleSubmit}
         />
