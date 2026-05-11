@@ -31,17 +31,17 @@ export function RugbyTeamStatsBlock({ value, onChange }: RugbyTeamStatsBlockProp
   const num = (k: string) => Number(value[k]) || 0;
 
   return (
-    <div className="mt-4 space-y-4">
-      <div className="grid grid-cols-3 gap-3">
+    <div className="mt-3 space-y-3">
+      <div className="grid grid-cols-3 gap-2">
         {FIELDS.map((f) => (
           <div key={f.key}>
-            <Label className="text-xs">{f.label}</Label>
+            <Label className="text-[11px]">{f.label}</Label>
             <Input
               type="number"
               min={0}
               value={value[f.key] ?? ""}
               onChange={(e) => onChange(f.key, parseInt(e.target.value) || 0)}
-              className="h-8 mt-1"
+              className="h-7 text-xs mt-0.5"
               placeholder="0"
             />
           </div>
@@ -49,33 +49,33 @@ export function RugbyTeamStatsBlock({ value, onChange }: RugbyTeamStatsBlockProp
       </div>
 
       <div>
-        <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Mêlées</p>
-        <div className="space-y-2">
+        <p className="text-[11px] font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Mêlées</p>
+        <div className="space-y-1.5">
           {SCRUM_FIELDS.map((row) => (
-            <div key={row.totalKey} className="grid grid-cols-3 gap-3 items-end">
+            <div key={row.totalKey} className="grid grid-cols-3 gap-2 items-end">
               <div>
-                <Label className="text-xs">{row.totalLabel}</Label>
+                <Label className="text-[11px]">{row.totalLabel}</Label>
                 <Input
                   type="number"
                   min={0}
                   value={value[row.totalKey] ?? ""}
                   onChange={(e) => onChange(row.totalKey, parseInt(e.target.value) || 0)}
-                  className="h-8 mt-1"
+                  className="h-7 text-xs mt-0.5"
                   placeholder="0"
                 />
               </div>
               <div>
-                <Label className="text-xs">{row.wonLabel}</Label>
+                <Label className="text-[11px]">{row.wonLabel}</Label>
                 <Input
                   type="number"
                   min={0}
                   value={value[row.wonKey] ?? ""}
                   onChange={(e) => onChange(row.wonKey, parseInt(e.target.value) || 0)}
-                  className="h-8 mt-1"
+                  className="h-7 text-xs mt-0.5"
                   placeholder="0"
                 />
               </div>
-              <div className="h-8 mt-1 flex items-center justify-center rounded-md bg-muted text-sm font-semibold">
+              <div className="h-7 mt-0.5 flex items-center justify-center rounded-md bg-muted text-xs font-semibold">
                 {pct(num(row.wonKey), num(row.totalKey))}
               </div>
             </div>
@@ -84,33 +84,33 @@ export function RugbyTeamStatsBlock({ value, onChange }: RugbyTeamStatsBlockProp
       </div>
 
       <div>
-        <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Touches</p>
-        <div className="space-y-2">
+        <p className="text-[11px] font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Touches</p>
+        <div className="space-y-1.5">
           {LINEOUT_FIELDS.map((row) => (
-            <div key={row.totalKey} className="grid grid-cols-3 gap-3 items-end">
+            <div key={row.totalKey} className="grid grid-cols-3 gap-2 items-end">
               <div>
-                <Label className="text-xs">{row.totalLabel}</Label>
+                <Label className="text-[11px]">{row.totalLabel}</Label>
                 <Input
                   type="number"
                   min={0}
                   value={value[row.totalKey] ?? ""}
                   onChange={(e) => onChange(row.totalKey, parseInt(e.target.value) || 0)}
-                  className="h-8 mt-1"
+                  className="h-7 text-xs mt-0.5"
                   placeholder="0"
                 />
               </div>
               <div>
-                <Label className="text-xs">{row.wonLabel}</Label>
+                <Label className="text-[11px]">{row.wonLabel}</Label>
                 <Input
                   type="number"
                   min={0}
                   value={value[row.wonKey] ?? ""}
                   onChange={(e) => onChange(row.wonKey, parseInt(e.target.value) || 0)}
-                  className="h-8 mt-1"
+                  className="h-7 text-xs mt-0.5"
                   placeholder="0"
                 />
               </div>
-              <div className="h-8 mt-1 flex items-center justify-center rounded-md bg-muted text-sm font-semibold">
+              <div className="h-7 mt-0.5 flex items-center justify-center rounded-md bg-muted text-xs font-semibold">
                 {pct(num(row.wonKey), num(row.totalKey))}
               </div>
             </div>
