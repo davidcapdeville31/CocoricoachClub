@@ -77,7 +77,7 @@ export function MatchLineupDialog({
   const maxPairSize = isDoublesMatch ? 2 : undefined;
 
   const { data: players } = useQuery({
-    queryKey: ["players", categoryId, isAthletics ? "athletics" : "default"],
+    queryKey: ["players", categoryId, isAthletics ? "athletics" : "default", "v2-avatar"],
     queryFn: async () => {
       if (isAthletics) {
         const { data, error } = await supabase
