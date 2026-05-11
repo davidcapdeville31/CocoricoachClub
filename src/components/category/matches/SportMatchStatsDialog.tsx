@@ -514,43 +514,43 @@ export function SportMatchStatsDialog({
 
         {/* Scrollable content: Infos match + goalkeeper toggles + player grid */}
         <ScrollArea className="flex-1 min-h-0 max-h-full">
-          <div className="pr-2 pb-4 space-y-3">
+          <div className="pr-2 pb-4 space-y-2">
             {/* Match-level general stats (only on "general" category) */}
             {activeCategory?.key === "general" && !isIndividual && (
-              <div className="p-3 rounded-lg border bg-card">
-                <h4 className="font-semibold mb-2 text-sm text-primary">Infos match</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-2.5 rounded-lg border bg-card">
+                <h4 className="font-semibold mb-1.5 text-sm text-primary">Infos match</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div>
-                    <Label className="text-xs">Temps effectif (min)</Label>
+                    <Label className="text-[11px]">Temps effectif (min)</Label>
                     <Input
                       type="number"
                       value={effectivePlayTime || ""}
                       onChange={(e) => setEffectivePlayTime(parseInt(e.target.value) || 0)}
                       min={0}
                       max={120}
-                      className="h-8 mt-1"
+                      className="h-7 text-xs mt-0.5"
                       placeholder="80"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Séquence max</Label>
+                    <Label className="text-[11px]">Séquence max</Label>
                     <Input
                       type="text"
                       value={longestPlaySequenceText}
                       onChange={(e) => setLongestPlaySequenceText(e.target.value)}
                       onBlur={() => setLongestPlaySequence(parseMinutesToSeconds(longestPlaySequenceText))}
-                      className="h-8 mt-1"
+                      className="h-7 text-xs mt-0.5"
                       placeholder="3'00"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Séquence moyenne</Label>
+                    <Label className="text-[11px]">Séquence moyenne</Label>
                     <Input
                       type="text"
                       value={averagePlaySequenceText}
                       onChange={(e) => setAveragePlaySequenceText(e.target.value)}
                       onBlur={() => setAveragePlaySequence(parseMinutesToSeconds(averagePlaySequenceText))}
-                      className="h-8 mt-1"
+                      className="h-7 text-xs mt-0.5"
                       placeholder="0'45"
                     />
                   </div>
