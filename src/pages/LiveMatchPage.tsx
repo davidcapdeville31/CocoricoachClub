@@ -20,6 +20,7 @@ export default function LiveMatchPage() {
   const navigate = useNavigate();
   const [period, setPeriod] = useState<Period>("H1");
   const [minute, setMinute] = useState(0);
+  const [seconds, setSeconds] = useState(0);
   const [openType, setOpenType] = useState<EventType | null>(null);
   const [editing, setEditing] = useState<MatchEvent | null>(null);
   const [chainNext, setChainNext] = useState<EventType | null>(null);
@@ -113,6 +114,7 @@ export default function LiveMatchPage() {
         homeScore={stats.home.points} awayScore={stats.away.points}
         period={period} onPeriodChange={setPeriod}
         minute={minute} onMinuteChange={setMinute}
+        seconds={seconds} onSecondsChange={setSeconds}
       />
 
       <div className="px-4 py-3 flex items-center justify-between">
@@ -181,6 +183,7 @@ export default function LiveMatchPage() {
           onOpenChange={(o) => { if (!o) { setOpenType(null); setEditing(null); } }}
           eventType={openType}
           defaultMinute={minute}
+          defaultSecond={seconds}
           defaultPeriod={period}
           homeName={homeName} awayName={awayName}
           homePlayers={homePlayers}

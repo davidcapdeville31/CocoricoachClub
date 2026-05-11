@@ -15,6 +15,7 @@ export interface EventDialogProps {
   eventType: EventType;
   /** Default chrono values */
   defaultMinute: number;
+  defaultSecond?: number;
   defaultPeriod: Period;
   homeName: string;
   awayName: string;
@@ -75,10 +76,11 @@ const ZONES = [
 ];
 
 export function EventDialog(props: EventDialogProps) {
-  const { open, onOpenChange, eventType, defaultMinute, defaultPeriod, homeName, awayName, homePlayers, awayPlayers, initial, onSubmit } = props;
+  const { open, onOpenChange, eventType, defaultMinute, defaultSecond = 0, defaultPeriod, homeName, awayName, homePlayers, awayPlayers, initial, onSubmit } = props;
 
   const [side, setSide] = useState<TeamSide>(initial?.team_side ?? "home");
   const [minute, setMinute] = useState<number>(initial?.minute ?? defaultMinute);
+  const [second, setSecond] = useState<number>(initial?.second ?? defaultSecond);
   const [period, setPeriod] = useState<Period>(initial?.period ?? defaultPeriod);
   const [playerId, setPlayerId] = useState<string | "">(initial?.player_id ?? "");
   const [subtype, setSubtype] = useState<string>(initial?.event_subtype ?? "");
@@ -92,11 +94,11 @@ export function EventDialog(props: EventDialogProps) {
 
   useEffect(() => {
     if (open && !initial) {
-      setSide("home"); setMinute(defaultMinute); setPeriod(defaultPeriod);
+      setSide("home"); setMinute(defaultMinute); setSecond(defaultSecond); setPeriod(defaultPeriod);
       setPlayerId(""); setSubtype(""); setOutcome("");
       setZone(""); setKickDistance(""); setContested(false); setMotif(""); setPenaltyMode("kick"); setTryAttemptConv(true);
     }
-  }, [open, defaultMinute, defaultPeriod, initial]);
+  }, [open, defaultMinute, defaultSecond, defaultPeriod, initial]);
 
   const subtypes = SUBTYPES[eventType] ?? [];
   const players = side === "home" ? homePlayers : awayPlayers;
@@ -119,7 +121,7 @@ export function EventDialog(props: EventDialogProps) {
 
     const payload: Partial<MatchEvent> = {
       team_side: side,
-      minute, second: 0, period,
+      minute, second, period,
       event_type: eventType,
       event_subtype: subtype || null,
       outcome: (outcome || null) as Outcome,
@@ -154,10 +156,14 @@ export function EventDialog(props: EventDialogProps) {
               </SelectContent>
             </Select>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <div>
-              <Label className="text-xs">Minute</Label>
+              <Label className="text-xs">Min</Label>
               <Input type="number" min={0} max={120} value={minute} onChange={(e) => setMinute(parseInt(e.target.value) || 0)} className="h-9 mt-1" />
+            </div>
+            <div>
+              <Label className="text-xs">Sec</Label>
+              <Input type="number" min={0} max={59} value={second} onChange={(e) => setSecond(parseInt(e.target.value) || 0)} className="h-9 mt-1" />
             </div>
             <div>
               <Label className="text-xs">Période</Label>
