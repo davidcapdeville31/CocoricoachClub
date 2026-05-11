@@ -436,14 +436,7 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
                 if (!v) return;
                 if (positionAttr) {
                   if (v === positionAttr.value) return;
-                  addMut.mutate({
-                    dimension: "position",
-                    value: v,
-                    is_primary: true,
-                    weight: null,
-                    metadata: {},
-                  });
-                  deleteMut.mutate(positionAttr.id);
+                  updateMut.mutate({ id: positionAttr.id, patch: { value: v, is_primary: true } });
                 } else {
                   addMut.mutate({
                     dimension: "position",
@@ -535,6 +528,7 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
             sportType={sportType}
             singleValue={singleValue}
             onAdd={(payload) => addMut.mutate(payload)}
+            onUpdateValue={(id, value) => updateMut.mutate({ id, patch: { value } })}
             onTogglePrimary={(id) => updateMut.mutate({ id, patch: { is_primary: true } })}
             onUpdateWeight={(id, weight) =>
               updateMut.mutate({ id, patch: { weight } })
@@ -566,6 +560,7 @@ interface DimensionBlockProps {
     weight?: number | null;
     metadata?: any;
   }) => void;
+  onUpdateValue: (id: string, value: string) => void;
   onTogglePrimary: (id: string) => void;
   onUpdateWeight: (id: string, weight: number | null) => void;
   onUpdateMetadata: (id: string, metadata: any) => void;
@@ -579,6 +574,7 @@ function DimensionBlock({
   sportType,
   singleValue = false,
   onAdd,
+  onUpdateValue,
   onTogglePrimary,
   onUpdateWeight,
   onUpdateMetadata,
@@ -635,16 +631,9 @@ function DimensionBlock({
             onValueChange={(v) => {
               if (!v) return;
               if (current) {
-                // Remplacer la valeur existante
+                // Remplacer la valeur existante (UPDATE pour respecter le trigger "un seul poste")
                 if (v === current.value) return;
-                onAdd({
-                  dimension: config.dimension,
-                  value: v,
-                  is_primary: true,
-                  weight: null,
-                  metadata: {},
-                });
-                onDelete(current.id);
+                onUpdateValue(current.id, v);
               } else {
                 onAdd({
                   dimension: config.dimension,
