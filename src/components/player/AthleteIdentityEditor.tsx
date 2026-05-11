@@ -631,16 +631,9 @@ function DimensionBlock({
             onValueChange={(v) => {
               if (!v) return;
               if (current) {
-                // Remplacer la valeur existante
+                // Remplacer la valeur existante (UPDATE pour respecter le trigger "un seul poste")
                 if (v === current.value) return;
-                onAdd({
-                  dimension: config.dimension,
-                  value: v,
-                  is_primary: true,
-                  weight: null,
-                  metadata: {},
-                });
-                onDelete(current.id);
+                onUpdateValue(current.id, v);
               } else {
                 onAdd({
                   dimension: config.dimension,
