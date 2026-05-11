@@ -149,10 +149,29 @@ export function EventDialog(props: EventDialogProps) {
   };
 
   const subtypes = SUBTYPES[eventType] ?? [];
-  const players = draft.side === "home" ? homePlayers : awayPlayers;
+  const allPlayers = draft.side === "home" ? homePlayers : awayPlayers;
   const oppositePlayers = draft.side === "home" ? awayPlayers : homePlayers;
+
+  // Tirs au but (pénalité au pied, drop, transformation) : uniquement les arrières (n°9 à 15)
+  const isKickerOnly =
+    eventType === "conversion" ||
+    eventType === "drop" ||
+    (eventType === "penalty_kick");
+  // Touches & mêlées : pas de sélection de joueur (action collective)
+  const hidePlayerSelection = eventType === "lineout" || eventType === "scrum";
+
+  const players = (() => {
+    if (hidePlayerSelection) return [];
+    if (!isKickerOnly) return allPlayers;
+    return allPlayers.filter((p) => {
+      const m = p.label.match(/#\s*(\d+)/);
+      if (!m) return true;
+      const n = parseInt(m[1], 10);
+      return n >= 9 && n <= 15;
+    });
+  })();
   const canSelectPlayer = players.length > 0;
-  const isOpponentSide = !canSelectPlayer && oppositePlayers.length > 0;
+  const isOpponentSide = !canSelectPlayer && !hidePlayerSelection && oppositePlayers.length > 0;
 
   const showOutcomeWonLost = ["lineout", "scrum"].includes(eventType);
   const isKickAttempt =
