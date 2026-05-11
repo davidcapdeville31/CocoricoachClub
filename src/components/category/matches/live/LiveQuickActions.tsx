@@ -21,7 +21,7 @@ const ACTIONS: Action[] = [
   { type: "drop", label: "Drop", shortcut: "D", group: "score", icon: Zap },
   { type: "lineout", label: "Touche", shortcut: "T", group: "conquete", icon: Anchor },
   { type: "scrum", label: "Mêlée", shortcut: "M", group: "conquete", icon: Shield },
-  { type: "tackle", label: "Plaquage", group: "defense", icon: Footprints },
+  // Plaquage géré via panneau inline dédié (TackleInlinePanel)
   { type: "knock_on", label: "En-avant", group: "defense", icon: Hand },
   { type: "foul", label: "Faute", group: "discipline", icon: AlertTriangle },
   { type: "yellow_card", label: "Jaune", shortcut: "C", group: "discipline", icon: Square },
