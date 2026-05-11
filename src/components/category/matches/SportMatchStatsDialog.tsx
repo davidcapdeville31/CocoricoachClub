@@ -303,7 +303,8 @@ export function SportMatchStatsDialog({
           effective_play_time: effectivePlayTime,
           longest_play_sequence: longestPlaySequence,
           average_play_sequence: averagePlaySequence,
-        })
+          team_match_stats: teamMatchStats,
+        } as any)
         .eq("id", matchId);
 
       // Delete existing stats
