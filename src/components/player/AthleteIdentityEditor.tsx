@@ -299,6 +299,22 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
     ? getAgeCategoryLabel(sportType, ageCategoryAttr.value)
     : null;
 
+  // Poste (sport collectif uniquement) — affiché aussi dans la barre "Identité de base"
+  const isTeam = isTeamSport(sportType);
+  const positionAttr = isTeam
+    ? (attributes.find((a) => a.dimension === "position" && a.is_primary) ??
+       attributes.find((a) => a.dimension === "position"))
+    : undefined;
+  const positionOpts = isTeam
+    ? getPositionsForSport(sportType as any).map((p) => ({
+        value: p.name,
+        label: `${p.id}. ${p.name}`,
+      }))
+    : [];
+  const positionLabel = positionAttr
+    ? positionOpts.find((o) => o.value === positionAttr.value)?.label ?? positionAttr.value
+    : null;
+
   const requestEditPersonalInfo = () => {
     window.dispatchEvent(
       new CustomEvent("player:edit-personal-info", { detail: { playerId } }),
