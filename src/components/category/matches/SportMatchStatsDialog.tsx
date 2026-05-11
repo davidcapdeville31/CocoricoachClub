@@ -23,6 +23,7 @@ import { useStatPreferences } from "@/hooks/use-stat-preferences";
 import { MatchGpsImport } from "./MatchGpsImport";
 import { PlayerStatsGrid } from "./PlayerStatsGrid";
 import { MatchKickingFieldDialog, type KickAttempt } from "./MatchKickingFieldDialog";
+import { RugbyTeamStatsBlock } from "./RugbyTeamStatsBlock";
 
 // Convert seconds to minutes display format (e.g., 185 => "3'05")
 function formatSecondsToMinutes(totalSeconds: number): string {
@@ -82,6 +83,7 @@ export function SportMatchStatsDialog({
   const [averagePlaySequence, setAveragePlaySequence] = useState<number>(0);
   const [longestPlaySequenceText, setLongestPlaySequenceText] = useState<string>("");
   const [averagePlaySequenceText, setAveragePlaySequenceText] = useState<string>("");
+  const [teamMatchStats, setTeamMatchStats] = useState<Record<string, number>>({});
   const [showGpsImport, setShowGpsImport] = useState(false);
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
   const [kickingFieldPlayer, setKickingFieldPlayer] = useState<{ id: string; name: string } | null>(null);
@@ -136,6 +138,8 @@ export function SportMatchStatsDialog({
       setAveragePlaySequence(aps);
       setLongestPlaySequenceText(lps ? formatSecondsToMinutes(lps) : "");
       setAveragePlaySequenceText(aps ? formatSecondsToMinutes(aps) : "");
+      const tms = ((matchData as { team_match_stats?: Record<string, number> }).team_match_stats) || {};
+      setTeamMatchStats(tms);
     }
   }, [matchData]);
 
@@ -300,7 +304,8 @@ export function SportMatchStatsDialog({
           effective_play_time: effectivePlayTime,
           longest_play_sequence: longestPlaySequence,
           average_play_sequence: averagePlaySequence,
-        })
+          team_match_stats: teamMatchStats,
+        } as any)
         .eq("id", matchId);
 
       // Delete existing stats
@@ -547,6 +552,15 @@ export function SportMatchStatsDialog({
                 />
               </div>
             </div>
+
+            {isRugbyType(sportType) && (
+              <RugbyTeamStatsBlock
+                value={teamMatchStats}
+                onChange={(key, val) =>
+                  setTeamMatchStats((prev) => ({ ...prev, [key]: val }))
+                }
+              />
+            )}
           </div>
         )}
 
