@@ -377,7 +377,17 @@ export function EventDialog(props: EventDialogProps) {
                 <RugbyFieldSVG
                   goalsOnRight={draft.kickingSide === "right"}
                   showCursorTracker
-                  onClick={(x, y) => setDraft((prev) => ({ ...prev, kickX: x, kickY: y }))}
+                  onClick={(x, y) => {
+                    let snappedX = x;
+                    let snappedY = y;
+                    // Touche : snap sur la ligne de touche la plus proche (haut ou bas)
+                    if (eventType === "lineout" || isPenaltouche) {
+                      const topPct = (14 / 400) * 100;     // ~3.5%
+                      const bottomPct = (386 / 400) * 100; // ~96.5%
+                      snappedY = Math.abs(y - topPct) < Math.abs(y - bottomPct) ? topPct : bottomPct;
+                    }
+                    setDraft((prev) => ({ ...prev, kickX: snappedX, kickY: snappedY }));
+                  }}
                 >
                   {draft.kickX !== null && draft.kickY !== null && (
                     <g>
