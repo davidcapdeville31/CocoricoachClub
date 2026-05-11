@@ -1,0 +1,1 @@
+ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS team_match_stats jsonb NOT NULL DEFAULT '{}'::jsonb;

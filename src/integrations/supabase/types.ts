@@ -5483,6 +5483,7 @@ export type Database = {
           score_away: number | null
           score_home: number | null
           selection_type: string | null
+          team_match_stats: Json
           tournament_level: string | null
           updated_at: string
         }
@@ -5516,6 +5517,7 @@ export type Database = {
           score_away?: number | null
           score_home?: number | null
           selection_type?: string | null
+          team_match_stats?: Json
           tournament_level?: string | null
           updated_at?: string
         }
@@ -5549,6 +5551,7 @@ export type Database = {
           score_away?: number | null
           score_home?: number | null
           selection_type?: string | null
+          team_match_stats?: Json
           tournament_level?: string | null
           updated_at?: string
         }
