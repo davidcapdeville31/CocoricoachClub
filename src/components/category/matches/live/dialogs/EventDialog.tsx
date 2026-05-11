@@ -105,7 +105,7 @@ export function EventDialog(props: EventDialogProps) {
 
   const showOutcomeWonLost = ["lineout", "scrum"].includes(eventType);
   const showOutcomeSuccessFail = ["conversion", "penalty_kick", "drop"].includes(eventType) || (eventType === "penalty_kick" && penaltyMode === "kick");
-  const showZone = ["try", "lineout", "kick", "occupation"].includes(eventType);
+  const showZone = ["lineout", "kick", "occupation"].includes(eventType);
   const showKickDistance = ["conversion", "penalty_kick", "drop", "kick"].includes(eventType);
   const showContested = ["lineout"].includes(eventType);
   const showPenaltyMode = eventType === "penalty_kick";
