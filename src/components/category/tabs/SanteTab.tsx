@@ -87,16 +87,7 @@ export function SanteTab({ categoryId }: SanteTabProps) {
             >
               Wellness
             </ColoredSubTabsTrigger>
-            {!isViewer && (
-              <ColoredSubTabsTrigger
-                value="nutrition"
-                colorKey="sante"
-                icon={<Apple className="h-4 w-4" />}
-                tooltip="Plans nutritionnels et suivi alimentaire"
-              >
-                Nutrition
-              </ColoredSubTabsTrigger>
-            )}
+            {/* Nutrition masquée pour toutes les disciplines (non pertinent pour le moment) */}
             {!isViewer && (
               <ColoredSubTabsTrigger
                 value="injuries"
@@ -159,11 +150,7 @@ export function SanteTab({ categoryId }: SanteTabProps) {
           <MedicalRecordsTab categoryId={categoryId} />
         </TabsContent>
 
-        {!isViewer && (
-          <TabsContent value="nutrition">
-            <NutritionTab categoryId={categoryId} />
-          </TabsContent>
-        )}
+        {/* Nutrition masquée */}
 
         {!isViewer && (
           <TabsContent value="injuries">
