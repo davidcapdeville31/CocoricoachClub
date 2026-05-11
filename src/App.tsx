@@ -22,6 +22,7 @@ import Clubs from "./pages/Clubs";
 import ClubDetails from "./pages/ClubDetails";
 import CategoryDetails from "./pages/CategoryDetails";
 import PlayerDetails from "./pages/PlayerDetails";
+import LiveMatchPage from "./pages/LiveMatchPage";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import AcceptInvitation from "./pages/AcceptInvitation";
@@ -168,6 +169,7 @@ const App = () => (
                     <Route path="/clubs/:clubId" element={<ClubDetailsWithAuth />} />
                      <Route path="/clubs/:clubId/admin" element={<AdminClubWithAuth />} />
                     <Route path="/categories/:categoryId" element={<CategoryDetailsWithAuth />} />
+                    <Route path="/categories/:categoryId/match/:matchId/live" element={<AuthGuard><LiveMatchPage /></AuthGuard>} />
                     <Route path="/players/:playerId" element={<PlayerDetailsWithAuth />} />
                     <Route path="/mentions-legales" element={<MentionsLegales />} />
                     <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
