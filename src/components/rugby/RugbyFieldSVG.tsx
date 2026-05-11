@@ -370,9 +370,9 @@ export function RugbyFieldSVG({
         )}
       </svg>
 
-      {/* Bottom coordinate bar */}
+      {/* Bottom coordinate bar (sous le SVG pour ne pas masquer la ligne de touche inférieure) */}
       {cursorPos && showCursorTracker && (
-        <div className="absolute bottom-0 left-0 right-0 bg-black/70 backdrop-blur-sm text-white text-[11px] font-mono px-3 py-1 rounded-b-xl flex justify-between pointer-events-none">
+        <div className="mt-1 bg-black/70 backdrop-blur-sm text-white text-[11px] font-mono px-3 py-1 rounded-md flex justify-between pointer-events-none">
           <span>📍 {cursorPos.distM}m des poteaux</span>
           <span>
             {Math.abs(cursorPos.lateralM) <= 5
