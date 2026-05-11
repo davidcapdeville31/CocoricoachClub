@@ -20,6 +20,7 @@ export default function LiveMatchPage() {
   const navigate = useNavigate();
   const [period, setPeriod] = useState<Period>("H1");
   const [minute, setMinute] = useState(0);
+  const [seconds, setSeconds] = useState(0);
   const [openType, setOpenType] = useState<EventType | null>(null);
   const [editing, setEditing] = useState<MatchEvent | null>(null);
   const [chainNext, setChainNext] = useState<EventType | null>(null);
