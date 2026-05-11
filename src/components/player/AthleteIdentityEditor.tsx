@@ -574,6 +574,7 @@ function DimensionBlock({
   sportType,
   singleValue = false,
   onAdd,
+  onUpdateValue,
   onTogglePrimary,
   onUpdateWeight,
   onUpdateMetadata,
