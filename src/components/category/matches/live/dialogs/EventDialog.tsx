@@ -15,6 +15,7 @@ export interface EventDialogProps {
   eventType: EventType;
   /** Default chrono values */
   defaultMinute: number;
+  defaultSecond?: number;
   defaultPeriod: Period;
   homeName: string;
   awayName: string;
