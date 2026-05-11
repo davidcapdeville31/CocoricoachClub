@@ -156,10 +156,14 @@ export function EventDialog(props: EventDialogProps) {
               </SelectContent>
             </Select>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <div>
-              <Label className="text-xs">Minute</Label>
+              <Label className="text-xs">Min</Label>
               <Input type="number" min={0} max={120} value={minute} onChange={(e) => setMinute(parseInt(e.target.value) || 0)} className="h-9 mt-1" />
+            </div>
+            <div>
+              <Label className="text-xs">Sec</Label>
+              <Input type="number" min={0} max={59} value={second} onChange={(e) => setSecond(parseInt(e.target.value) || 0)} className="h-9 mt-1" />
             </div>
             <div>
               <Label className="text-xs">Période</Label>
