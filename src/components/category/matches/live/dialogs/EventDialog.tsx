@@ -22,7 +22,6 @@ export interface EventDialogProps {
   awayName: string;
   homeColor?: string;
   awayColor?: string;
-  clubSide: TeamSide;
   homePlayers: EventDialogPlayer[];
   awayPlayers: EventDialogPlayer[];
   /** Editing existing event */
@@ -122,7 +121,7 @@ function createDraft(params: {
 }
 
 export function EventDialog(props: EventDialogProps) {
-  const { open, onOpenChange, eventType, defaultMinute, defaultSecond = 0, defaultPeriod, defaultSide, homeName, awayName, homeColor, awayColor, clubSide, homePlayers, awayPlayers, initial, onSubmit } = props;
+  const { open, onOpenChange, eventType, defaultMinute, defaultSecond = 0, defaultPeriod, defaultSide, homeName, awayName, homeColor, awayColor, homePlayers, awayPlayers, initial, onSubmit } = props;
 
   const [draft, setDraft] = useState<EventDialogDraft>(() =>
     createDraft({ initial, defaultMinute, defaultSecond, defaultPeriod, defaultSide })
@@ -132,7 +131,7 @@ export function EventDialog(props: EventDialogProps) {
     if (!open) return;
 
     setDraft(createDraft({ initial, defaultMinute, defaultSecond, defaultPeriod, defaultSide }));
-  }, [open, eventType, initial?.id]);
+  }, [open, eventType, initial?.id, defaultMinute, defaultSecond, defaultPeriod, defaultSide]);
 
   const setField = <K extends keyof EventDialogDraft,>(field: K, value: EventDialogDraft[K]) => {
     setDraft((prev) => ({ ...prev, [field]: value }));
@@ -140,7 +139,9 @@ export function EventDialog(props: EventDialogProps) {
 
   const subtypes = SUBTYPES[eventType] ?? [];
   const players = draft.side === "home" ? homePlayers : awayPlayers;
-  const isClubSide = draft.side === clubSide;
+  const oppositePlayers = draft.side === "home" ? awayPlayers : homePlayers;
+  const canSelectPlayer = players.length > 0;
+  const isOpponentSide = !canSelectPlayer && oppositePlayers.length > 0;
 
   const showOutcomeWonLost = ["lineout", "scrum"].includes(eventType);
   const showOutcomeSuccessFail = ["conversion", "penalty_kick", "drop"].includes(eventType) || (eventType === "penalty_kick" && draft.penaltyMode === "kick");
@@ -254,26 +255,22 @@ export function EventDialog(props: EventDialogProps) {
           </div>
 
           {/* Joueur : sélection limitée à mon équipe (feuille de match) */}
-          {isClubSide ? (
-            players.length > 0 ? (
-              <div>
-                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Joueur</Label>
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 mt-1">
-                  {players.map((p) => (
-                    <Button key={p.id} type="button" variant="outline" onClick={() => setField("playerId", draft.playerId === p.id ? "" : p.id)} className={`${cls(draft.playerId === p.id)} truncate justify-start px-2`}>
-                      {p.label}
-                    </Button>
-                  ))}
-                </div>
+          {canSelectPlayer ? (
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Joueur</Label>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 mt-1">
+                {players.map((p) => (
+                  <Button key={p.id} type="button" variant="outline" onClick={() => setField("playerId", draft.playerId === p.id ? "" : p.id)} className={`${cls(draft.playerId === p.id)} truncate justify-start px-2`}>
+                    {p.label}
+                  </Button>
+                ))}
               </div>
-            ) : (
-              <div className="rounded-md border border-dashed border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-                Aucun joueur dans la feuille de match. Renseigne la composition pour pouvoir cocher l'auteur de l'action.
-              </div>
-            )
+            </div>
           ) : (
             <div className="rounded-md border border-dashed border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-              Action adverse — sélection du joueur non disponible (effectif adverse non saisi).
+              {isOpponentSide
+                ? "Action adverse — sélection du joueur non disponible (effectif adverse non saisi)."
+                : "Aucun joueur dans la feuille de match. Renseigne la composition pour pouvoir cocher l'auteur de l'action."}
             </div>
           )}
 
