@@ -39,6 +39,10 @@ interface PlayerCumulativeStatsProps {
   playerId?: string;
   /** When true and in single player mode, also display the team-aggregated stats above the personal stats. */
   showTeamView?: boolean;
+  /** Pre-select these matches on mount (e.g. when used inside a per-match export dialog). */
+  initialMatchIds?: string[];
+  /** Hide the match filter UI; useful when matches are imposed from outside. */
+  lockMatchSelection?: boolean;
 }
 
 interface MatchInfo {
@@ -67,8 +71,8 @@ interface CumulativeStats {
   position?: string;
 }
 
-export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: fixedPlayerId, showTeamView = false }: PlayerCumulativeStatsProps) {
-  const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
+export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: fixedPlayerId, showTeamView = false, initialMatchIds, lockMatchSelection = false }: PlayerCumulativeStatsProps) {
+  const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>(initialMatchIds || []);
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>(fixedPlayerId || "");
   const [exportPlayerId, setExportPlayerId] = useState<string>("");
@@ -2212,6 +2216,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
       {/* Match filter + Export */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3 flex-wrap">
+          {!lockMatchSelection && (
           <Popover open={filterOpen} onOpenChange={setFilterOpen}>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2">
@@ -2262,6 +2267,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
               </ScrollArea>
             </PopoverContent>
           </Popover>
+          )}
 
           {selectedMatchIds.length === 0 && allMatches.length > 0 && (
             <Badge variant="secondary" className="gap-1">{isIndividualCompetitionSport ? "Toutes les compétitions" : "Tous les matchs"} ({allMatches.length})</Badge>

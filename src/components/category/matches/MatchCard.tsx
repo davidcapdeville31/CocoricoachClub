@@ -29,6 +29,7 @@ import {
   Bell,
   FileSpreadsheet,
   Award,
+  Download,
 } from "lucide-react";
 import { MedalsDialog } from "./MedalsDialog";
 import { MatchLineupDialog } from "./MatchLineupDialog";
@@ -42,6 +43,7 @@ import { CompetitionRoundsDialog } from "./CompetitionRoundsDialog";
 import { AggregatedRoundStatsDialog } from "./AggregatedRoundStatsDialog";
 import { EditMatchDialog } from "./EditMatchDialog";
 import { AddSubMatchDialog } from "./AddSubMatchDialog";
+import { MatchExportDialog } from "./MatchExportDialog";
 import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesDialog";
 import {
   Dialog,
@@ -117,6 +119,8 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   const [isMatchSheetOpen, setIsMatchSheetOpen] = useState(false);
   const [isMedalsOpen, setIsMedalsOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const [exportScope, setExportScope] = useState<"single" | "competition">("single");
   const [scoreHome, setScoreHome] = useState(match.score_home?.toString() || "");
   const [scoreAway, setScoreAway] = useState(match.score_away?.toString() || "");
   const queryClient = useQueryClient();
@@ -247,7 +251,12 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   const hasSubMatches = subMatches && subMatches.length > 0;
   const canHaveSubMatches = (!isIndividual || hasTournamentBracket) && !isSubMatch && !match.parent_match_id;
   const isTeamSport = !isIndividual;
-  
+  const isJudo = sportType.toLowerCase().includes("judo");
+  const isAthletics = sportType.toLowerCase().includes("athl");
+  // Export available for team sports + Judo + Athletics (per user request).
+  // Sub-matches/parents are kept consistent so the menu always appears.
+  const canExport = (isTeamSport || isJudo || isAthletics) && !isSubMatch;
+  const competitionLabel = match.competition || match.opponent || "Compétition";
   // Check if match is within 3 days (for pre-competition form)
   const fisMatchDate = new Date(match.match_date);
   const now = new Date();
@@ -727,6 +736,21 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                   <Bell className="h-4 w-4 mr-2" />
                   Notifier les athlètes
                 </DropdownMenuItem>
+                {canExport && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => { setExportScope("single"); setIsExportOpen(true); }}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Exporter ce match (PDF / Excel)
+                    </DropdownMenuItem>
+                    {hasSubMatches && (
+                      <DropdownMenuItem onClick={() => { setExportScope("competition"); setIsExportOpen(true); }}>
+                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                        Exporter toute la compétition ({(subMatches?.length || 0) + 1})
+                      </DropdownMenuItem>
+                    )}
+                  </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={() => {
@@ -929,6 +953,21 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         competitionName={isIndividual ? (match.competition || match.opponent || "Compétition") : `${match.is_home ? "vs" : "@"} ${match.opponent}`}
         competitionDate={match.match_date}
       />
+      {canExport && isExportOpen && (
+        <MatchExportDialog
+          open={isExportOpen}
+          onOpenChange={setIsExportOpen}
+          categoryId={categoryId}
+          sportType={sportType}
+          matchIds={exportScope === "competition" && hasSubMatches
+            ? [match.id, ...(subMatches || []).map(s => s.id)]
+            : [match.id]}
+          title={exportScope === "competition"
+            ? `${competitionLabel} (${(subMatches?.length || 0) + 1} matchs)`
+            : `vs ${match.opponent || competitionLabel}`}
+          subtitle={format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: fr })}
+        />
+      )}
     </>
   );
 }
