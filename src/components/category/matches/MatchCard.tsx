@@ -656,7 +656,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
             {isRugby && (
               <Button
                 size="lg"
-                className="w-full gap-2 bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg shadow-red-600/30 animate-pulse"
+                className="w-full gap-2 bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg shadow-red-600/30"
                 onPointerDown={stopCardAction}
                 onClick={(e) => { stopCardAction(e); navigate(`/categories/${categoryId}/match/${match.id}/live`); }}
               >
