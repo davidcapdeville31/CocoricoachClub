@@ -183,7 +183,7 @@ export default function LiveMatchPage() {
         </div>
         <div className="md:col-span-4 lg:col-span-4">
           <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Actions rapides</h2>
-          <LiveQuickActions onSelect={(t) => { setEditing(null); setOpenType(t); }} />
+          <LiveQuickActions onSelect={(t) => { if (t === "tackle") { setTacklePanelOpen(true); return; } setEditing(null); setOpenType(t); }} />
         </div>
         <div className="md:col-span-3 lg:col-span-3">
           <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Stats</h2>
@@ -199,7 +199,7 @@ export default function LiveMatchPage() {
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
             <TabsTrigger value="stats">Stats</TabsTrigger>
           </TabsList>
-          <TabsContent value="actions"><LiveQuickActions onSelect={(t) => { setEditing(null); setOpenType(t); }} /></TabsContent>
+          <TabsContent value="actions"><LiveQuickActions onSelect={(t) => { if (t === "tackle") { setTacklePanelOpen(true); return; } setEditing(null); setOpenType(t); }} /></TabsContent>
           <TabsContent value="timeline">
             <LiveTimeline events={events} homeName={homeName} awayName={awayName} playerNames={playerNames}
               onEdit={(e) => { setEditing(e); setOpenType(e.event_type as EventType); }}
@@ -232,6 +232,18 @@ export default function LiveMatchPage() {
           onSubmit={handleSubmit}
         />
       )}
+
+      <TacklePanel
+        open={tacklePanelOpen}
+        onOpenChange={setTacklePanelOpen}
+        players={homePlayers}
+        teamSide={clubSide}
+        period={period}
+        minute={minute}
+        second={seconds}
+        counts={Object.fromEntries(Object.entries(stats.players).map(([id, s]) => [id, { tackles: s.tackles, missedTackles: s.missedTackles }]))}
+        onRecord={(payload) => create.mutate(payload)}
+      />
 
       <TeamColorsDialog
         open={colorsOpen}
