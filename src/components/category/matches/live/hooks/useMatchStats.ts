@@ -46,7 +46,10 @@ function add(s: TeamStats, e: MatchEvent) {
     case "scrum":
       if (e.outcome === "won") s.scrumsWon += 1;
       else if (e.outcome === "lost") s.scrumsLost += 1; break;
-    case "tackle": s.tackles += 1; break;
+    case "tackle":
+      if (e.outcome === "fail") s.missedTackles += 1;
+      else s.tackles += 1;
+      break;
     case "missed_tackle": s.missedTackles += 1; break;
     case "turnover": s.turnovers += 1; break;
     case "foul": s.fouls += 1; break;
