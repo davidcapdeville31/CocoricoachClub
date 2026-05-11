@@ -953,6 +953,21 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         competitionName={isIndividual ? (match.competition || match.opponent || "Compétition") : `${match.is_home ? "vs" : "@"} ${match.opponent}`}
         competitionDate={match.match_date}
       />
+      {canExport && isExportOpen && (
+        <MatchExportDialog
+          open={isExportOpen}
+          onOpenChange={setIsExportOpen}
+          categoryId={categoryId}
+          sportType={sportType}
+          matchIds={exportScope === "competition" && hasSubMatches
+            ? [match.id, ...(subMatches || []).map(s => s.id)]
+            : [match.id]}
+          title={exportScope === "competition"
+            ? `${competitionLabel} (${(subMatches?.length || 0) + 1} matchs)`
+            : `vs ${match.opponent || competitionLabel}`}
+          subtitle={format(new Date(match.match_date), "EEEE d MMMM yyyy", { locale: fr })}
+        />
+      )}
     </>
   );
 }
