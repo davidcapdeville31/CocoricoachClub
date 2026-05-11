@@ -14,13 +14,14 @@ interface Props {
   onPeriodChange: (p: Period) => void;
   minute: number;
   onMinuteChange: (m: number) => void;
+  seconds: number;
+  onSecondsChange: (s: number) => void;
 }
 
-export function LiveScoreboard({ homeName, awayName, homeScore, awayScore, period, onPeriodChange, minute, onMinuteChange }: Props) {
+export function LiveScoreboard({ homeName, awayName, homeScore, awayScore, period, onPeriodChange, minute, onMinuteChange, seconds, onSecondsChange }: Props) {
   const [running, setRunning] = useState(false);
   const tickRef = useRef<number | null>(null);
   const startRef = useRef<{ at: number; baseSec: number } | null>(null);
-  const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
     if (running) {
@@ -31,7 +32,7 @@ export function LiveScoreboard({ homeName, awayName, homeScore, awayScore, perio
         const total = startRef.current.baseSec + elapsed;
         const m = Math.floor(total / 60);
         const s = total % 60;
-        setSeconds(s);
+        onSecondsChange(s);
         onMinuteChange(m);
       }, 500);
     } else if (tickRef.current) {
