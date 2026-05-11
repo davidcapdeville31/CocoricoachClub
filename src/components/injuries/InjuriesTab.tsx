@@ -89,6 +89,22 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
     },
   });
 
+  const deleteInjury = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("injuries").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["injuries", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["recovering-injuries-no-protocol", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["active-rehab-protocols", categoryId] });
+      toast.success("Blessure supprimée");
+    },
+    onError: (error: any) => {
+      toast.error(`Erreur: ${error?.message || "suppression impossible"}`);
+    },
+  });
+
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case "légère":
