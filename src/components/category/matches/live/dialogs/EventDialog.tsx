@@ -131,7 +131,7 @@ export function EventDialog(props: EventDialogProps) {
     if (!open) return;
 
     setDraft(createDraft({ initial, defaultMinute, defaultSecond, defaultPeriod, defaultSide }));
-  }, [open, eventType, initial?.id, defaultMinute, defaultSecond, defaultPeriod, defaultSide]);
+  }, [open, eventType, initial?.id]);
 
   const setField = <K extends keyof EventDialogDraft,>(field: K, value: EventDialogDraft[K]) => {
     setDraft((prev) => ({ ...prev, [field]: value }));
