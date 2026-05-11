@@ -295,10 +295,8 @@ export function AddPlayerDialogWithInvite({
       return;
     }
 
-    if (sendInvitation && !playerEmail.trim()) {
-      setValidationError("L'email est obligatoire pour envoyer une invitation");
-      return;
-    }
+    // Email facultatif : si l'invitation est cochée mais qu'aucun email n'est fourni,
+    // on crée simplement l'athlète sans envoyer d'invitation.
 
     const birthYearNum = birthYear ? parseInt(birthYear) : undefined;
     const result = playerSchema.safeParse({ 
@@ -659,14 +657,13 @@ export function AddPlayerDialogWithInvite({
 
             {/* Email */}
             <div className="space-y-2">
-              <Label htmlFor="playerEmail">Email {sendInvitation && "*"}</Label>
+              <Label htmlFor="playerEmail">Email</Label>
               <Input
                 id="playerEmail"
                 type="email"
                 value={playerEmail}
                 onChange={(e) => setPlayerEmail(e.target.value)}
-                placeholder="athlete@email.com"
-                required={sendInvitation}
+                placeholder="athlete@email.com (optionnel)"
               />
             </div>
 
