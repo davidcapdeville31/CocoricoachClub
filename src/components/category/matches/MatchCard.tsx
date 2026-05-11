@@ -33,7 +33,9 @@ import {
 } from "lucide-react";
 import { MedalsDialog } from "./MedalsDialog";
 import { MatchLineupDialog } from "./MatchLineupDialog";
-import { isSurfCategory, isSkiCategory, getMainSportFromType } from "@/lib/constants/sportTypes";
+import { isSurfCategory, isSkiCategory, getMainSportFromType, isRugbyType } from "@/lib/constants/sportTypes";
+import { useNavigate } from "react-router-dom";
+import { Play } from "lucide-react";
 import { FisPreCompetitionForm } from "@/components/planning/FisPreCompetitionForm";
 import { SurfConditionsForm } from "@/components/surf/SurfConditionsForm";
 import { SkiConditionsForm } from "@/components/ski/SkiConditionsForm";
