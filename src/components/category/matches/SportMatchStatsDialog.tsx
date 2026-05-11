@@ -137,6 +137,8 @@ export function SportMatchStatsDialog({
       setAveragePlaySequence(aps);
       setLongestPlaySequenceText(lps ? formatSecondsToMinutes(lps) : "");
       setAveragePlaySequenceText(aps ? formatSecondsToMinutes(aps) : "");
+      const tms = ((matchData as { team_match_stats?: Record<string, number> }).team_match_stats) || {};
+      setTeamMatchStats(tms);
     }
   }, [matchData]);
 
