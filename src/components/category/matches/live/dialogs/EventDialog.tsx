@@ -128,7 +128,7 @@ export function EventDialog(props: EventDialogProps) {
     setDraft(createDraft({ initial, defaultMinute, defaultSecond, defaultPeriod }));
   }, [open, eventType, initial?.id]);
 
-  const setField = <K extends keyof EventDialogDraft>(field: K, value: EventDialogDraft[K]) => {
+  const setField = <K extends keyof EventDialogDraft,>(field: K, value: EventDialogDraft[K]) => {
     setDraft((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -177,9 +177,9 @@ export function EventDialog(props: EventDialogProps) {
   const selOff = "bg-transparent border-border hover:bg-accent hover:text-accent-foreground";
   const cls = (active: boolean) => `${selBase} ${active ? selOn : selOff}`;
 
-  const okOn = "bg-green-600 text-white border-green-600 ring-2 ring-green-400/50 shadow-md hover:bg-green-600";
-  const koOn = "bg-red-600 text-white border-red-600 ring-2 ring-red-400/50 shadow-md hover:bg-red-600";
-  const warnOn = "bg-amber-500 text-white border-amber-500 ring-2 ring-amber-300/50 shadow-md hover:bg-amber-500";
+  const okOn = "bg-success text-success-foreground border-success ring-2 ring-success/40 shadow-md hover:bg-success";
+  const koOn = "bg-destructive text-destructive-foreground border-destructive ring-2 ring-destructive/40 shadow-md hover:bg-destructive";
+  const warnOn = "bg-warning text-warning-foreground border-warning ring-2 ring-warning/40 shadow-md hover:bg-warning";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
