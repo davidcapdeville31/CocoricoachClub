@@ -560,6 +560,7 @@ interface DimensionBlockProps {
     weight?: number | null;
     metadata?: any;
   }) => void;
+  onUpdateValue: (id: string, value: string) => void;
   onTogglePrimary: (id: string) => void;
   onUpdateWeight: (id: string, weight: number | null) => void;
   onUpdateMetadata: (id: string, metadata: any) => void;
