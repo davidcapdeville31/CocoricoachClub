@@ -374,18 +374,18 @@ export function SportFieldLineup({
                     ) : (
                       <span className="text-xs font-bold">{pos.id}</span>
                     )}
-                    {/* Number badge - à côté */}
-                    {assignedPlayer && (
-                      <span className="absolute -top-2 -right-3 text-[11px] font-extrabold text-white bg-primary border-2 border-white rounded-full w-6 h-6 flex items-center justify-center shadow-md">
-                        {pos.id}
-                      </span>
-                    )}
-                    {playerId && (
-                      <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-medium text-white bg-black/60 px-1 rounded whitespace-nowrap max-w-[70px] truncate">
-                        {getPlayerName(playerId)}
-                      </span>
-                    )}
                   </button>
+                  {/* Number badge - hors photo, à côté */}
+                  {assignedPlayer && (
+                    <span className="absolute -top-2 -right-3 z-10 text-[11px] font-extrabold text-white bg-primary border-2 border-white rounded-full w-6 h-6 flex items-center justify-center shadow-md pointer-events-none">
+                      {pos.id}
+                    </span>
+                  )}
+                  {playerId && (
+                    <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-medium text-white bg-black/60 px-1 rounded whitespace-nowrap max-w-[70px] truncate pointer-events-none">
+                      {getPlayerName(playerId)}
+                    </span>
+                  )}
                 </div>
               );
             })}
