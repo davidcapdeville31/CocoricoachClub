@@ -736,6 +736,21 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                   <Bell className="h-4 w-4 mr-2" />
                   Notifier les athlètes
                 </DropdownMenuItem>
+                {canExport && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => { setExportScope("single"); setIsExportOpen(true); }}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Exporter ce match (PDF / Excel)
+                    </DropdownMenuItem>
+                    {hasSubMatches && (
+                      <DropdownMenuItem onClick={() => { setExportScope("competition"); setIsExportOpen(true); }}>
+                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                        Exporter toute la compétition ({(subMatches?.length || 0) + 1})
+                      </DropdownMenuItem>
+                    )}
+                  </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={() => {
