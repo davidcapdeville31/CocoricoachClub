@@ -105,7 +105,7 @@ export function EventDialog(props: EventDialogProps) {
 
   const showOutcomeWonLost = ["lineout", "scrum"].includes(eventType);
   const showOutcomeSuccessFail = ["conversion", "penalty_kick", "drop"].includes(eventType) || (eventType === "penalty_kick" && penaltyMode === "kick");
-  const showZone = ["try", "lineout", "kick", "occupation"].includes(eventType);
+  const showZone = ["lineout", "kick", "occupation"].includes(eventType);
   const showKickDistance = ["conversion", "penalty_kick", "drop", "kick"].includes(eventType);
   const showContested = ["lineout"].includes(eventType);
   const showPenaltyMode = eventType === "penalty_kick";
@@ -140,118 +140,124 @@ export function EventDialog(props: EventDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">{EVENT_LABELS[eventType] ?? eventType}</DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-4">
+          {/* Équipe : 2 gros boutons */}
           <div>
-            <Label className="text-xs">Équipe</Label>
-            <Select value={side} onValueChange={(v) => setSide(v as TeamSide)}>
-              <SelectTrigger className="h-9 mt-1"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="home">{homeName}</SelectItem>
-                <SelectItem value="away">{awayName}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <div>
-              <Label className="text-xs">Min</Label>
-              <Input type="number" min={0} max={120} value={minute} onChange={(e) => setMinute(parseInt(e.target.value) || 0)} className="h-9 mt-1" />
-            </div>
-            <div>
-              <Label className="text-xs">Sec</Label>
-              <Input type="number" min={0} max={59} value={second} onChange={(e) => setSecond(parseInt(e.target.value) || 0)} className="h-9 mt-1" />
-            </div>
-            <div>
-              <Label className="text-xs">Période</Label>
-              <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
-                <SelectTrigger className="h-9 mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="H1">1ère MT</SelectItem>
-                  <SelectItem value="HT">Mi-temps</SelectItem>
-                  <SelectItem value="H2">2ème MT</SelectItem>
-                  <SelectItem value="ET">Prolongation</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-
-        {side === "home" && players.length > 0 && (
-          <div>
-            <Label className="text-xs">Joueur</Label>
-            <Select value={playerId} onValueChange={setPlayerId}>
-              <SelectTrigger className="h-9 mt-1"><SelectValue placeholder="Sélectionner…" /></SelectTrigger>
-              <SelectContent>
-                {players.map((p) => <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {subtypes.length > 0 && (
-          <div>
-            <Label className="text-xs">Type</Label>
-            <Select value={subtype} onValueChange={setSubtype}>
-              <SelectTrigger className="h-9 mt-1"><SelectValue placeholder="Sélectionner…" /></SelectTrigger>
-              <SelectContent>
-                {subtypes.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {showPenaltyMode && (
-          <div>
-            <Label className="text-xs">Pénalité jouée</Label>
-            <div className="grid grid-cols-4 gap-1 mt-1">
-              {[
-                { v: "kick", l: "Au pied" },
-                { v: "penaltouche", l: "Pénaltouche" },
-                { v: "scrum", l: "Mêlée" },
-                { v: "quick", l: "Rapide" },
-              ].map((o) => (
-                <Button key={o.v} type="button" variant={penaltyMode === o.v ? "default" : "outline"} size="sm" onClick={() => setPenaltyMode(o.v)} className="text-xs">{o.l}</Button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {(showOutcomeSuccessFail && (eventType !== "penalty_kick" || penaltyMode === "kick")) && (
-          <div>
-            <Label className="text-xs">Résultat</Label>
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Équipe</Label>
             <div className="grid grid-cols-2 gap-2 mt-1">
-              <Button type="button" variant={outcome === "success" ? "default" : "outline"} onClick={() => setOutcome("success")} className="bg-green-600/90 hover:bg-green-600 data-[variant=outline]:bg-transparent">Réussi</Button>
-              <Button type="button" variant={outcome === "fail" ? "destructive" : "outline"} onClick={() => setOutcome("fail")}>Manqué</Button>
+              <Button type="button" size="lg" variant={side === "home" ? "default" : "outline"} onClick={() => setSide("home")} className="h-12">{homeName}</Button>
+              <Button type="button" size="lg" variant={side === "away" ? "default" : "outline"} onClick={() => setSide("away")} className="h-12">{awayName}</Button>
             </div>
           </div>
-        )}
 
-        {showOutcomeWonLost && (
-          <div>
-            <Label className="text-xs">Résultat</Label>
-            <div className="grid grid-cols-3 gap-2 mt-1">
-              <Button type="button" variant={outcome === "won" ? "default" : "outline"} onClick={() => setOutcome("won")}>Gagnée</Button>
-              <Button type="button" variant={outcome === "lost" ? "destructive" : "outline"} onClick={() => setOutcome("lost")}>Perdue</Button>
-              <Button type="button" variant={outcome === "contested" ? "secondary" : "outline"} onClick={() => setOutcome("contested")}>Contestée</Button>
+          {/* Chrono + période */}
+          <div className="grid grid-cols-[auto_1fr] gap-3 items-end">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Min</Label>
+                <Input type="number" min={0} max={120} value={minute} onChange={(e) => setMinute(parseInt(e.target.value) || 0)} className="h-10 mt-1 w-20" />
+              </div>
+              <div>
+                <Label className="text-xs">Sec</Label>
+                <Input type="number" min={0} max={59} value={second} onChange={(e) => setSecond(parseInt(e.target.value) || 0)} className="h-10 mt-1 w-20" />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Période</Label>
+              <div className="grid grid-cols-4 gap-1 mt-1">
+                {[
+                  { v: "H1", l: "1ère MT" },
+                  { v: "HT", l: "Mi-temps" },
+                  { v: "H2", l: "2ème MT" },
+                  { v: "ET", l: "Prolong." },
+                ].map((o) => (
+                  <Button key={o.v} type="button" size="sm" variant={period === o.v ? "default" : "outline"} onClick={() => setPeriod(o.v as Period)} className="text-xs h-10">{o.l}</Button>
+                ))}
+              </div>
             </div>
           </div>
-        )}
 
-        {showZone && (
-          <div>
-            <Label className="text-xs">Zone du terrain</Label>
-            <Select value={zone} onValueChange={setZone}>
-              <SelectTrigger className="h-9 mt-1"><SelectValue placeholder="Sélectionner…" /></SelectTrigger>
-              <SelectContent>
-                {ZONES.map((z) => <SelectItem key={z.value} value={z.value}>{z.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+          {/* Joueur : grille de boutons */}
+          {players.length > 0 && (
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Joueur</Label>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 mt-1">
+                {players.map((p) => (
+                  <Button key={p.id} type="button" size="sm" variant={playerId === p.id ? "default" : "outline"} onClick={() => setPlayerId(playerId === p.id ? "" : p.id)} className="text-xs h-10 truncate justify-start px-2">
+                    {p.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Subtype : grille de boutons */}
+          {subtypes.length > 0 && (
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Type</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 mt-1">
+                {subtypes.map((s) => (
+                  <Button key={s.value} type="button" size="sm" variant={subtype === s.value ? "default" : "outline"} onClick={() => setSubtype(subtype === s.value ? "" : s.value)} className="text-xs h-10">
+                    {s.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {showPenaltyMode && (
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Pénalité jouée</Label>
+              <div className="grid grid-cols-4 gap-1.5 mt-1">
+                {[
+                  { v: "kick", l: "Au pied" },
+                  { v: "penaltouche", l: "Pénaltouche" },
+                  { v: "scrum", l: "Mêlée" },
+                  { v: "quick", l: "Rapide" },
+                ].map((o) => (
+                  <Button key={o.v} type="button" variant={penaltyMode === o.v ? "default" : "outline"} size="sm" onClick={() => setPenaltyMode(o.v)} className="text-xs h-10">{o.l}</Button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {(showOutcomeSuccessFail && (eventType !== "penalty_kick" || penaltyMode === "kick")) && (
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Résultat</Label>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                <Button type="button" variant={outcome === "success" ? "default" : "outline"} onClick={() => setOutcome("success")} className={outcome === "success" ? "bg-green-600 hover:bg-green-600 h-11" : "h-11"}>Réussi</Button>
+                <Button type="button" variant={outcome === "fail" ? "destructive" : "outline"} onClick={() => setOutcome("fail")} className="h-11">Manqué</Button>
+              </div>
+            </div>
+          )}
+
+          {showOutcomeWonLost && (
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Résultat</Label>
+              <div className="grid grid-cols-3 gap-2 mt-1">
+                <Button type="button" variant={outcome === "won" ? "default" : "outline"} onClick={() => setOutcome("won")} className={outcome === "won" ? "bg-green-600 hover:bg-green-600 h-11" : "h-11"}>Gagnée</Button>
+                <Button type="button" variant={outcome === "lost" ? "destructive" : "outline"} onClick={() => setOutcome("lost")} className="h-11">Perdue</Button>
+                <Button type="button" variant={outcome === "contested" ? "secondary" : "outline"} onClick={() => setOutcome("contested")} className="h-11">Contestée</Button>
+              </div>
+            </div>
+          )}
+
+          {showZone && (
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Zone du terrain</Label>
+              <div className="grid grid-cols-2 gap-1.5 mt-1">
+                {ZONES.map((z) => (
+                  <Button key={z.value} type="button" size="sm" variant={zone === z.value ? "default" : "outline"} onClick={() => setZone(zone === z.value ? "" : z.value)} className="text-xs h-10">{z.label}</Button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         {showKickDistance && (
           <div>
