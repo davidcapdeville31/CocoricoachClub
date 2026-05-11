@@ -657,14 +657,13 @@ export function AddPlayerDialogWithInvite({
 
             {/* Email */}
             <div className="space-y-2">
-              <Label htmlFor="playerEmail">Email {sendInvitation && "*"}</Label>
+              <Label htmlFor="playerEmail">Email</Label>
               <Input
                 id="playerEmail"
                 type="email"
                 value={playerEmail}
                 onChange={(e) => setPlayerEmail(e.target.value)}
-                placeholder="athlete@email.com"
-                required={sendInvitation}
+                placeholder="athlete@email.com (optionnel)"
               />
             </div>
 
