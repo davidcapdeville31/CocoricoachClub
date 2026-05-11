@@ -98,6 +98,7 @@ interface EventDialogDraft {
   kickX: number | null;
   kickY: number | null;
   kickingSide: "left" | "right";
+  setPieceResult: "" | "won" | "stolen_us" | "lost" | "stolen_opp";
 }
 
 function createDraft(params: {
