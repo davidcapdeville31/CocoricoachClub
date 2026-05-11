@@ -6,6 +6,9 @@ import { Label } from "@/components/ui/label";
 import type { EventType, MatchEvent, Outcome, Period, TeamSide } from "../types";
 import { EVENT_LABELS } from "../types";
 import { isLight } from "./TeamColorsDialog";
+import { RugbyFieldSVG } from "@/components/rugby/RugbyFieldSVG";
+import { getKickDistances, getPositionLabel } from "@/lib/utils/kickingFieldZones";
+import { MapPin } from "lucide-react";
 
 export interface EventDialogPlayer { id: string; label: string }
 
@@ -92,6 +95,9 @@ interface EventDialogDraft {
   motif: string;
   penaltyMode: string;
   tryAttemptConv: boolean;
+  kickX: number | null;
+  kickY: number | null;
+  kickingSide: "left" | "right";
 }
 
 function createDraft(params: {
@@ -117,6 +123,9 @@ function createDraft(params: {
     motif: initial?.metadata?.motif ?? "",
     penaltyMode: initial?.metadata?.penaltyMode ?? "kick",
     tryAttemptConv: true,
+    kickX: typeof initial?.metadata?.kickX === "number" ? initial.metadata.kickX : null,
+    kickY: typeof initial?.metadata?.kickY === "number" ? initial.metadata.kickY : null,
+    kickingSide: initial?.metadata?.kickingSide === "left" ? "left" : "right",
   };
 }
 
@@ -144,12 +153,25 @@ export function EventDialog(props: EventDialogProps) {
   const isOpponentSide = !canSelectPlayer && oppositePlayers.length > 0;
 
   const showOutcomeWonLost = ["lineout", "scrum"].includes(eventType);
+  const isKickAttempt =
+    eventType === "conversion" ||
+    eventType === "drop" ||
+    (eventType === "penalty_kick" && draft.penaltyMode === "kick");
   const showOutcomeSuccessFail = ["conversion", "penalty_kick", "drop"].includes(eventType) || (eventType === "penalty_kick" && draft.penaltyMode === "kick");
   const showZone = ["lineout", "kick", "occupation"].includes(eventType);
-  const showKickDistance = ["conversion", "penalty_kick", "drop", "kick"].includes(eventType);
+  const showKickDistance = eventType === "kick"; // pour les jeux au pied (chandelles, etc.) — les tirs au but utilisent le terrain
   const showContested = ["lineout"].includes(eventType);
   const showPenaltyMode = eventType === "penalty_kick";
   const showCardMotif = ["yellow_card", "red_card"].includes(eventType);
+
+  const kickDistanceFromField =
+    isKickAttempt && draft.kickX !== null && draft.kickY !== null
+      ? Math.round(getKickDistances(draft.kickX, draft.kickY, draft.kickingSide === "right").distFromPosts)
+      : null;
+  const kickPositionLabel =
+    isKickAttempt && draft.kickX !== null && draft.kickY !== null
+      ? getPositionLabel(draft.kickX, draft.kickY, draft.kickingSide === "right")
+      : "";
 
   const submit = () => {
     const metadata: Record<string, any> = {};
@@ -158,6 +180,12 @@ export function EventDialog(props: EventDialogProps) {
     if (draft.contested) metadata.contested = true;
     if (draft.motif) metadata.motif = draft.motif;
     if (showPenaltyMode) metadata.penaltyMode = draft.penaltyMode;
+    if (isKickAttempt && draft.kickX !== null && draft.kickY !== null) {
+      metadata.kickX = draft.kickX;
+      metadata.kickY = draft.kickY;
+      metadata.kickingSide = draft.kickingSide;
+      if (kickDistanceFromField !== null) metadata.kickDistance = kickDistanceFromField;
+    }
 
     const payload: Partial<MatchEvent> = {
       team_side: draft.side,
@@ -301,6 +329,75 @@ export function EventDialog(props: EventDialogProps) {
                   <Button key={o.v} type="button" variant="outline" onClick={() => setField("penaltyMode", o.v)} className={cls(draft.penaltyMode === o.v)}>{o.l}</Button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {isKickAttempt && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Position du tir
+                </Label>
+                <div className="flex gap-1">
+                  <Button
+                    type="button"
+                    variant={draft.kickingSide === "left" ? "default" : "outline"}
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => setField("kickingSide", "left")}
+                  >
+                    ← Gauche
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={draft.kickingSide === "right" ? "default" : "outline"}
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => setField("kickingSide", "right")}
+                  >
+                    Droite →
+                  </Button>
+                </div>
+              </div>
+              <div className="relative w-full">
+                <RugbyFieldSVG
+                  goalsOnRight={draft.kickingSide === "right"}
+                  showCursorTracker
+                  onClick={(x, y) => {
+                    setDraft((prev) => ({ ...prev, kickX: x, kickY: y }));
+                  }}
+                >
+                  {draft.kickX !== null && draft.kickY !== null && (
+                    <g>
+                      <circle
+                        cx={(draft.kickX / 100) * 600}
+                        cy={(draft.kickY / 100) * 400}
+                        r={14}
+                        fill={draft.outcome === "success" ? "#22c55e" : draft.outcome === "fail" ? "#ef4444" : "none"}
+                        opacity={0.85}
+                        stroke="white"
+                        strokeWidth={3}
+                        strokeDasharray={draft.outcome ? undefined : "4 4"}
+                      />
+                      {draft.outcome && (
+                        <text x={(draft.kickX / 100) * 600} y={(draft.kickY / 100) * 400 + 4} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">
+                          {draft.outcome === "success" ? "✓" : "✗"}
+                        </text>
+                      )}
+                    </g>
+                  )}
+                </RugbyFieldSVG>
+              </div>
+              {draft.kickX !== null && draft.kickY !== null && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <MapPin className="h-3 w-3" />
+                  <span>{kickPositionLabel}</span>
+                  {kickDistanceFromField !== null && <span className="ml-2">≈ {kickDistanceFromField}m des poteaux</span>}
+                </div>
+              )}
+              <p className="text-[11px] text-muted-foreground">
+                Cliquez sur le terrain pour placer le tir, puis sélectionnez Réussi ou Manqué.
+              </p>
             </div>
           )}
 
