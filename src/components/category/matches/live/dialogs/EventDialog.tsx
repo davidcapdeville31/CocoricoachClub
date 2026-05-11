@@ -127,6 +127,7 @@ function createDraft(params: {
     kickX: typeof initial?.metadata?.kickX === "number" ? initial.metadata.kickX : null,
     kickY: typeof initial?.metadata?.kickY === "number" ? initial.metadata.kickY : null,
     kickingSide: initial?.metadata?.kickingSide === "left" ? "left" : "right",
+    setPieceResult: (initial?.metadata?.setPieceResult as any) ?? "",
   };
 }
 
