@@ -159,9 +159,14 @@ export function EventDialog(props: EventDialogProps) {
     eventType === "conversion" ||
     eventType === "drop" ||
     (eventType === "penalty_kick" && draft.penaltyMode === "kick");
+  const isPenaltouche = eventType === "penalty_kick" && draft.penaltyMode === "penaltouche";
   const isSetPiece = eventType === "lineout" || eventType === "scrum";
-  const showField = isKickAttempt || isSetPiece;
-  const showOutcomeSuccessFail = ["conversion", "penalty_kick", "drop"].includes(eventType) || (eventType === "penalty_kick" && draft.penaltyMode === "kick");
+  // Terrain visible : tirs au but, set-pieces, OU pénaltouche réussie (pour placer le point de chute)
+  const showField = isKickAttempt || isSetPiece || (isPenaltouche && draft.outcome === "success");
+  const showOutcomeSuccessFail =
+    eventType === "conversion" ||
+    eventType === "drop" ||
+    (eventType === "penalty_kick" && (draft.penaltyMode === "kick" || draft.penaltyMode === "penaltouche"));
   const showZone = ["kick", "occupation"].includes(eventType); // touche utilise désormais le terrain
   const showKickDistance = eventType === "kick";
   const showContested = false; // remplacé par "Volée" dans les outcomes set-piece
@@ -221,7 +226,7 @@ export function EventDialog(props: EventDialogProps) {
     // Try → ask conversion next
     let chain: { type: EventType } | undefined;
     if (eventType === "try" && draft.tryAttemptConv) chain = { type: "conversion" };
-    if (eventType === "penalty_kick" && draft.penaltyMode !== "kick") {
+    if (eventType === "penalty_kick" && draft.penaltyMode !== "kick" && draft.penaltyMode !== "penaltouche") {
       payload.outcome = null;
     }
     onSubmit(payload, chain);
@@ -357,6 +362,8 @@ export function EventDialog(props: EventDialogProps) {
                 <Label className="text-xs uppercase tracking-wider text-muted-foreground">
                   {isKickAttempt
                     ? "Position du tir"
+                    : isPenaltouche
+                    ? "Point de chute en touche"
                     : eventType === "lineout"
                     ? "Position de la touche"
                     : "Position de la mêlée"}
@@ -378,15 +385,15 @@ export function EventDialog(props: EventDialogProps) {
                         cx={(draft.kickX / 100) * 600}
                         cy={(draft.kickY / 100) * 400}
                         r={14}
-                        fill={markerFill}
+                        fill={isPenaltouche ? "#22c55e" : markerFill}
                         opacity={0.85}
                         stroke="white"
                         strokeWidth={3}
-                        strokeDasharray={markerFill === "none" ? "4 4" : undefined}
+                        strokeDasharray={!isPenaltouche && markerFill === "none" ? "4 4" : undefined}
                       />
-                      {markerSymbol && (
+                      {(isPenaltouche || markerSymbol) && (
                         <text x={(draft.kickX / 100) * 600} y={(draft.kickY / 100) * 400 + 4} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">
-                          {markerSymbol}
+                          {isPenaltouche ? "✓" : markerSymbol}
                         </text>
                       )}
                     </g>
@@ -403,6 +410,8 @@ export function EventDialog(props: EventDialogProps) {
               <p className="text-[11px] text-muted-foreground">
                 {isKickAttempt
                   ? "Cliquez sur le terrain pour placer le tir, puis sélectionnez Réussi ou Manqué."
+                  : isPenaltouche
+                  ? "Cliquez sur le bord du terrain où le ballon est tombé en touche."
                   : "Cliquez sur le terrain pour placer la conquête, puis indiquez le résultat."}
               </p>
             </div>
