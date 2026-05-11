@@ -256,18 +256,16 @@ export function EventDialog(props: EventDialogProps) {
 
           {/* Joueur : sélection limitée à mon équipe (feuille de match) */}
           {canSelectPlayer ? (
-              <div>
-                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Joueur</Label>
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 mt-1">
-                  {players.map((p) => (
-                    <Button key={p.id} type="button" variant="outline" onClick={() => setField("playerId", draft.playerId === p.id ? "" : p.id)} className={`${cls(draft.playerId === p.id)} truncate justify-start px-2`}>
-                      {p.label}
-                    </Button>
-                  ))}
-                </div>
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Joueur</Label>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 mt-1">
+                {players.map((p) => (
+                  <Button key={p.id} type="button" variant="outline" onClick={() => setField("playerId", draft.playerId === p.id ? "" : p.id)} className={`${cls(draft.playerId === p.id)} truncate justify-start px-2`}>
+                    {p.label}
+                  </Button>
+                ))}
               </div>
-            ) : (
-              </div>
+            </div>
           ) : (
             <div className="rounded-md border border-dashed border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
               {isOpponentSide
