@@ -551,6 +551,15 @@ export function SportMatchStatsDialog({
                 />
               </div>
             </div>
+
+            {isRugbyType(sportType) && (
+              <RugbyTeamStatsBlock
+                value={teamMatchStats}
+                onChange={(key, val) =>
+                  setTeamMatchStats((prev) => ({ ...prev, [key]: val }))
+                }
+              />
+            )}
           </div>
         )}
 
