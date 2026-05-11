@@ -380,11 +380,25 @@ export function EventDialog(props: EventDialogProps) {
                   onClick={(x, y) => {
                     let snappedX = x;
                     let snappedY = y;
-                    // Touche : snap sur la ligne de touche la plus proche (haut ou bas)
+                    // Touche / pénaltouche : snap sur le rectangle extérieur du terrain
                     if (eventType === "lineout" || isPenaltouche) {
+                      const leftPct = (20 / 600) * 100;    // ~3.33%
+                      const rightPct = (580 / 600) * 100;  // ~96.67%
                       const topPct = (14 / 400) * 100;     // ~3.5%
                       const bottomPct = (386 / 400) * 100; // ~96.5%
-                      snappedY = Math.abs(y - topPct) < Math.abs(y - bottomPct) ? topPct : bottomPct;
+                      // Clamp à l'intérieur du rectangle
+                      const cx = Math.min(Math.max(x, leftPct), rightPct);
+                      const cy = Math.min(Math.max(y, topPct), bottomPct);
+                      // Distance à chaque bord
+                      const dTop = Math.abs(cy - topPct);
+                      const dBot = Math.abs(cy - bottomPct);
+                      const dLeft = Math.abs(cx - leftPct);
+                      const dRight = Math.abs(cx - rightPct);
+                      const minD = Math.min(dTop, dBot, dLeft, dRight);
+                      if (minD === dTop)        { snappedX = cx; snappedY = topPct; }
+                      else if (minD === dBot)   { snappedX = cx; snappedY = bottomPct; }
+                      else if (minD === dLeft)  { snappedX = leftPct; snappedY = cy; }
+                      else                      { snappedX = rightPct; snappedY = cy; }
                     }
                     setDraft((prev) => ({ ...prev, kickX: snappedX, kickY: snappedY }));
                   }}
