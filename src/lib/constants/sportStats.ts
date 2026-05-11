@@ -42,32 +42,11 @@ export const RUGBY_STATS: StatField[] = [
   { key: "penaltiesConceded", label: "Pénalités concédées", shortLabel: "Pén. conc.", category: "defense", type: "number" },
   { key: "jackalWins", label: "Grattages réussis", shortLabel: "Grattages", category: "defense", type: "number" },
   { key: "defenseCollisions", label: "Nombre de collisions", shortLabel: "Collisions", category: "defense", type: "number" },
-  // Scrum & Lineout - Our scrums/lineouts (Général)
-  { key: "scrumTotal", label: "Mêlées introduites", shortLabel: "Mêl. intro.", category: "general", type: "number" },
-  { key: "scrumWon", label: "Mêlées conservées", shortLabel: "Mêl. cons.", category: "general", type: "number" },
-  { key: "scrumSuccessRate", label: "% Mêlées conservées", shortLabel: "% Mêl.", category: "general", type: "percentage", max: 100, computedFrom: { successKey: "scrumWon", totalKey: "scrumTotal" } },
-  { key: "scrumPenaltiesWon", label: "Pén. mêlées gagnées", shortLabel: "Pén. mêl.", category: "general", type: "number" },
-  { key: "lineoutTotal", label: "Touches introduites", shortLabel: "T. intro.", category: "general", type: "number" },
-  { key: "lineoutWon", label: "Touches conservées", shortLabel: "T. cons.", category: "general", type: "number" },
-  { key: "lineoutSuccessRate", label: "% Touches conservées", shortLabel: "% Touch.", category: "general", type: "percentage", max: 100, computedFrom: { successKey: "lineoutWon", totalKey: "lineoutTotal" } },
-  // Scrum & Lineout - Opponent scrums/lineouts (Général)
-  { key: "scrumDefenseTotal", label: "Mêlées adverses", shortLabel: "Mêl. adv.", category: "general", type: "number" },
-  { key: "scrumDefenseWon", label: "Mêlées adverses gagnées", shortLabel: "Mêl. adv. G.", category: "general", type: "number" },
-  { key: "scrumDefenseRate", label: "% Mêlées adverses gagnées", shortLabel: "% Mêl. D.", category: "general", type: "percentage", max: 100, computedFrom: { successKey: "scrumDefenseWon", totalKey: "scrumDefenseTotal" } },
-  { key: "lineoutDefenseTotal", label: "Touches adverses", shortLabel: "T. adv.", category: "general", type: "number" },
-  { key: "lineoutSteals", label: "Touches adverses volées", shortLabel: "T. volées", category: "general", type: "number" },
-  { key: "lineoutDefenseRate", label: "% Touches adverses volées", shortLabel: "% T. vol.", category: "general", type: "percentage", max: 100, computedFrom: { successKey: "lineoutSteals", totalKey: "lineoutDefenseTotal" } },
   // Individual Stats - General
   { key: "minutesPlayed", label: "Minutes jouées", shortLabel: "Min.", category: "general", type: "number" },
-  { key: "effectivePlayingTime", label: "Temps de jeu effectif (min)", shortLabel: "TJE", category: "general", type: "number" },
-  { key: "longestSequence", label: "Séquence la plus longue (min)", shortLabel: "Séq. max", category: "general", type: "number" },
-  { key: "averageSequence", label: "Séquence moyenne (min)", shortLabel: "Séq. moy.", category: "general", type: "number" },
   { key: "totalCollisions", label: "Collisions totales", shortLabel: "Collisions", category: "general", type: "number" },
   { key: "collisionsOver5m", label: "Collision +5m (élan ≥5m)", shortLabel: "Coll. +5m", category: "general", type: "number" },
   { key: "collisionsUnder5m", label: "Collision -5m (quasi statique)", shortLabel: "Coll. -5m", category: "general", type: "number" },
-  { key: "yellowCards", label: "Cartons jaunes", shortLabel: "Jaunes", category: "general", type: "number" },
-  { key: "redCards", label: "Cartons rouges", shortLabel: "Rouges", category: "general", type: "number" },
-  { key: "fouls", label: "Fautes", shortLabel: "Fautes", category: "general", type: "number" },
 ];
 
 // Football stats - Enriched
