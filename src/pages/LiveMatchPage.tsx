@@ -202,7 +202,8 @@ export default function LiveMatchPage() {
       {openType && (
         <EventDialog
           open={!!openType}
-          onOpenChange={(o) => { if (!o) { setOpenType(null); setEditing(null); } }}
+          onOpenChange={(o) => { if (!o) { setOpenType(null); setEditing(null); setChainSide(null); } }}
+          defaultSide={chainSide ?? undefined}
           eventType={openType}
           defaultMinute={minute}
           defaultSecond={seconds}
