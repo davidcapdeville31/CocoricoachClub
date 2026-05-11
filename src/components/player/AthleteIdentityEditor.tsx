@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, Star, Loader2, User, Cake, Footprints } from "lucide-react";
+import { Plus, X, Star, Loader2, User, Cake, Footprints, Trophy } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { toast } from "sonner";
@@ -299,6 +299,22 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
     ? getAgeCategoryLabel(sportType, ageCategoryAttr.value)
     : null;
 
+  // Poste (sport collectif uniquement) — affiché aussi dans la barre "Identité de base"
+  const isTeam = isTeamSport(sportType);
+  const positionAttr = isTeam
+    ? (attributes.find((a) => a.dimension === "position" && a.is_primary) ??
+       attributes.find((a) => a.dimension === "position"))
+    : undefined;
+  const positionOpts = isTeam
+    ? getPositionsForSport(sportType as any).map((p) => ({
+        value: p.name,
+        label: `${p.id}. ${p.name}`,
+      }))
+    : [];
+  const positionLabel = positionAttr
+    ? positionOpts.find((o) => o.value === positionAttr.value)?.label ?? positionAttr.value
+    : null;
+
   const requestEditPersonalInfo = () => {
     window.dispatchEvent(
       new CustomEvent("player:edit-personal-info", { detail: { playerId } }),
@@ -410,6 +426,56 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
                 >
                   Retirer
                 </button>
+              </SelectContent>
+            </Select>
+          )}
+          {isTeam && positionOpts.length > 0 && (
+            <Select
+              value={positionAttr?.value ?? ""}
+              onValueChange={(v) => {
+                if (!v) return;
+                if (positionAttr) {
+                  if (v === positionAttr.value) return;
+                  addMut.mutate({
+                    dimension: "position",
+                    value: v,
+                    is_primary: true,
+                    weight: null,
+                    metadata: {},
+                  });
+                  deleteMut.mutate(positionAttr.id);
+                } else {
+                  addMut.mutate({
+                    dimension: "position",
+                    value: v,
+                    is_primary: true,
+                    weight: null,
+                    metadata: {},
+                  });
+                }
+              }}
+            >
+              <SelectTrigger className="h-7 w-auto gap-1 px-2 py-0 text-xs bg-secondary border-transparent hover:bg-secondary/80 rounded-md">
+                <Trophy className="h-3 w-3" />
+                <SelectValue placeholder="Choisir un poste…">
+                  {positionLabel}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-background border z-[200] max-h-[300px]">
+                {positionOpts.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+                {positionAttr && (
+                  <button
+                    type="button"
+                    onClick={() => deleteMut.mutate(positionAttr.id)}
+                    className="w-full text-left text-xs text-destructive px-2 py-1.5 hover:bg-muted border-t mt-1"
+                  >
+                    Retirer
+                  </button>
+                )}
               </SelectContent>
             </Select>
           )}
