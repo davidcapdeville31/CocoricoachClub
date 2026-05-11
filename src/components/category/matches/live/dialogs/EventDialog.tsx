@@ -153,12 +153,25 @@ export function EventDialog(props: EventDialogProps) {
   const isOpponentSide = !canSelectPlayer && oppositePlayers.length > 0;
 
   const showOutcomeWonLost = ["lineout", "scrum"].includes(eventType);
+  const isKickAttempt =
+    eventType === "conversion" ||
+    eventType === "drop" ||
+    (eventType === "penalty_kick" && draft.penaltyMode === "kick");
   const showOutcomeSuccessFail = ["conversion", "penalty_kick", "drop"].includes(eventType) || (eventType === "penalty_kick" && draft.penaltyMode === "kick");
   const showZone = ["lineout", "kick", "occupation"].includes(eventType);
-  const showKickDistance = ["conversion", "penalty_kick", "drop", "kick"].includes(eventType);
+  const showKickDistance = eventType === "kick"; // pour les jeux au pied (chandelles, etc.) — les tirs au but utilisent le terrain
   const showContested = ["lineout"].includes(eventType);
   const showPenaltyMode = eventType === "penalty_kick";
   const showCardMotif = ["yellow_card", "red_card"].includes(eventType);
+
+  const kickDistanceFromField =
+    isKickAttempt && draft.kickX !== null && draft.kickY !== null
+      ? Math.round(getKickDistances(draft.kickX, draft.kickY, draft.kickingSide === "right").distFromPosts)
+      : null;
+  const kickPositionLabel =
+    isKickAttempt && draft.kickX !== null && draft.kickY !== null
+      ? getPositionLabel(draft.kickX, draft.kickY, draft.kickingSide === "right")
+      : "";
 
   const submit = () => {
     const metadata: Record<string, any> = {};
@@ -167,6 +180,12 @@ export function EventDialog(props: EventDialogProps) {
     if (draft.contested) metadata.contested = true;
     if (draft.motif) metadata.motif = draft.motif;
     if (showPenaltyMode) metadata.penaltyMode = draft.penaltyMode;
+    if (isKickAttempt && draft.kickX !== null && draft.kickY !== null) {
+      metadata.kickX = draft.kickX;
+      metadata.kickY = draft.kickY;
+      metadata.kickingSide = draft.kickingSide;
+      if (kickDistanceFromField !== null) metadata.kickDistance = kickDistanceFromField;
+    }
 
     const payload: Partial<MatchEvent> = {
       team_side: draft.side,
