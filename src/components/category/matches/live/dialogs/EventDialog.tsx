@@ -94,11 +94,11 @@ export function EventDialog(props: EventDialogProps) {
 
   useEffect(() => {
     if (open && !initial) {
-      setSide("home"); setMinute(defaultMinute); setPeriod(defaultPeriod);
+      setSide("home"); setMinute(defaultMinute); setSecond(defaultSecond); setPeriod(defaultPeriod);
       setPlayerId(""); setSubtype(""); setOutcome("");
       setZone(""); setKickDistance(""); setContested(false); setMotif(""); setPenaltyMode("kick"); setTryAttemptConv(true);
     }
-  }, [open, defaultMinute, defaultPeriod, initial]);
+  }, [open, defaultMinute, defaultSecond, defaultPeriod, initial]);
 
   const subtypes = SUBTYPES[eventType] ?? [];
   const players = side === "home" ? homePlayers : awayPlayers;
