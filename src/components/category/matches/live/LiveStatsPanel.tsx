@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { TeamStats } from "./hooks/useMatchStats";
 
 const pct = (won: number, lost: number) => {
@@ -17,14 +18,13 @@ function Row({ label, h, a, suffix }: { label: string; h: any; a: any; suffix?: 
   );
 }
 
-export function LiveStatsPanel({ home, away }: { home: TeamStats; away: TeamStats }) {
+function StatsBlock({ home, away }: { home: TeamStats; away: TeamStats }) {
   return (
-    <Card className="p-4 space-y-1">
-      <h3 className="text-sm font-bold uppercase tracking-wider mb-2 text-center">Statistiques live</h3>
+    <div className="space-y-1">
       <Row label="Essais" h={home.tries} a={away.tries} />
-      <Row label="Transfo (réussies/tentées)" h={`${home.conversionsMade}/${home.conversionsAttempted}`} a={`${away.conversionsMade}/${away.conversionsAttempted}`} />
+      <Row label="Transfo (R/T)" h={`${home.conversionsMade}/${home.conversionsAttempted}`} a={`${away.conversionsMade}/${away.conversionsAttempted}`} />
       <Row label="% transfo réussies" h={pctMade(home.conversionsMade, home.conversionsAttempted)} a={pctMade(away.conversionsMade, away.conversionsAttempted)} suffix="%" />
-      <Row label="Pénalités (réussies/tentées)" h={`${home.penaltiesMade}/${home.penaltiesAttempted}`} a={`${away.penaltiesMade}/${away.penaltiesAttempted}`} />
+      <Row label="Pénalités (R/T)" h={`${home.penaltiesMade}/${home.penaltiesAttempted}`} a={`${away.penaltiesMade}/${away.penaltiesAttempted}`} />
       <Row label="% pénalités réussies" h={pctMade(home.penaltiesMade, home.penaltiesAttempted)} a={pctMade(away.penaltiesMade, away.penaltiesAttempted)} suffix="%" />
       <Row label="Drops" h={home.drops} a={away.drops} />
       <div className="border-t my-2" />
@@ -41,6 +41,30 @@ export function LiveStatsPanel({ home, away }: { home: TeamStats; away: TeamStat
       <Row label="Fautes" h={home.fouls} a={away.fouls} />
       <Row label="Cartons jaunes" h={home.yellowCards} a={away.yellowCards} />
       <Row label="Cartons rouges" h={home.redCards} a={away.redCards} />
+    </div>
+  );
+}
+
+interface Props {
+  home: TeamStats; away: TeamStats;
+  homeH1: TeamStats; awayH1: TeamStats;
+  homeH2: TeamStats; awayH2: TeamStats;
+}
+
+export function LiveStatsPanel({ home, away, homeH1, awayH1, homeH2, awayH2 }: Props) {
+  return (
+    <Card className="p-4">
+      <h3 className="text-sm font-bold uppercase tracking-wider mb-2 text-center">Statistiques live</h3>
+      <Tabs defaultValue="total">
+        <TabsList className="grid grid-cols-3 w-full mb-3">
+          <TabsTrigger value="total">Total</TabsTrigger>
+          <TabsTrigger value="h1">1ère MT</TabsTrigger>
+          <TabsTrigger value="h2">2ème MT</TabsTrigger>
+        </TabsList>
+        <TabsContent value="total"><StatsBlock home={home} away={away} /></TabsContent>
+        <TabsContent value="h1"><StatsBlock home={homeH1} away={awayH1} /></TabsContent>
+        <TabsContent value="h2"><StatsBlock home={homeH2} away={awayH2} /></TabsContent>
+      </Tabs>
     </Card>
   );
 }

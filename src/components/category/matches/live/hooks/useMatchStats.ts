@@ -63,16 +63,25 @@ export function useMatchStats(events: MatchEvent[]) {
   return useMemo(() => {
     const home = empty();
     const away = empty();
+    const homeH1 = empty();
+    const awayH1 = empty();
+    const homeH2 = empty();
+    const awayH2 = empty();
     const players: Record<string, TeamStats & { events: number }> = {};
     for (const e of events) {
-      (e.team_side === "home" ? home : away);
       add(e.team_side === "home" ? home : away, e);
+      const isH1 = e.period === "H1" || e.period === "HT";
+      const periodTarget = isH1
+        ? (e.team_side === "home" ? homeH1 : awayH1)
+        : (e.team_side === "home" ? homeH2 : awayH2);
+      add(periodTarget, e);
       if (e.player_id) {
         const p = (players[e.player_id] ||= { ...empty(), events: 0 });
         add(p, e);
         p.events += 1;
       }
     }
-    return { home, away, players };
+    return { home, away, homeH1, awayH1, homeH2, awayH2, players };
   }, [events]);
 }
+
