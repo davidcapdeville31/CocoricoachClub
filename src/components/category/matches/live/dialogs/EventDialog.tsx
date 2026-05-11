@@ -98,6 +98,7 @@ interface EventDialogDraft {
   kickX: number | null;
   kickY: number | null;
   kickingSide: "left" | "right";
+  setPieceResult: "" | "won" | "stolen_us" | "lost" | "stolen_opp";
 }
 
 function createDraft(params: {
@@ -126,6 +127,7 @@ function createDraft(params: {
     kickX: typeof initial?.metadata?.kickX === "number" ? initial.metadata.kickX : null,
     kickY: typeof initial?.metadata?.kickY === "number" ? initial.metadata.kickY : null,
     kickingSide: initial?.metadata?.kickingSide === "left" ? "left" : "right",
+    setPieceResult: (initial?.metadata?.setPieceResult as any) ?? "",
   };
 }
 
@@ -157,10 +159,12 @@ export function EventDialog(props: EventDialogProps) {
     eventType === "conversion" ||
     eventType === "drop" ||
     (eventType === "penalty_kick" && draft.penaltyMode === "kick");
+  const isSetPiece = eventType === "lineout" || eventType === "scrum";
+  const showField = isKickAttempt || isSetPiece;
   const showOutcomeSuccessFail = ["conversion", "penalty_kick", "drop"].includes(eventType) || (eventType === "penalty_kick" && draft.penaltyMode === "kick");
-  const showZone = ["lineout", "kick", "occupation"].includes(eventType);
-  const showKickDistance = eventType === "kick"; // pour les jeux au pied (chandelles, etc.) — les tirs au but utilisent le terrain
-  const showContested = ["lineout"].includes(eventType);
+  const showZone = ["kick", "occupation"].includes(eventType); // touche utilise désormais le terrain
+  const showKickDistance = eventType === "kick";
+  const showContested = false; // remplacé par "Volée" dans les outcomes set-piece
   const showPenaltyMode = eventType === "penalty_kick";
   const showCardMotif = ["yellow_card", "red_card"].includes(eventType);
 
@@ -169,8 +173,22 @@ export function EventDialog(props: EventDialogProps) {
       ? Math.round(getKickDistances(draft.kickX, draft.kickY, draft.kickingSide === "right").distFromPosts)
       : null;
   const kickPositionLabel =
-    isKickAttempt && draft.kickX !== null && draft.kickY !== null
+    showField && draft.kickX !== null && draft.kickY !== null
       ? getPositionLabel(draft.kickX, draft.kickY, draft.kickingSide === "right")
+      : "";
+
+  // Couleur du marqueur sur le terrain selon l'outcome
+  const markerFill =
+    draft.outcome === "success" || draft.outcome === "won"
+      ? "#22c55e"
+      : draft.outcome === "fail" || draft.outcome === "lost"
+      ? "#ef4444"
+      : "none";
+  const markerSymbol =
+    draft.outcome === "success" || draft.outcome === "won"
+      ? "✓"
+      : draft.outcome === "fail" || draft.outcome === "lost"
+      ? "✗"
       : "";
 
   const submit = () => {
@@ -180,12 +198,13 @@ export function EventDialog(props: EventDialogProps) {
     if (draft.contested) metadata.contested = true;
     if (draft.motif) metadata.motif = draft.motif;
     if (showPenaltyMode) metadata.penaltyMode = draft.penaltyMode;
-    if (isKickAttempt && draft.kickX !== null && draft.kickY !== null) {
+    if (showField && draft.kickX !== null && draft.kickY !== null) {
       metadata.kickX = draft.kickX;
       metadata.kickY = draft.kickY;
       metadata.kickingSide = draft.kickingSide;
-      if (kickDistanceFromField !== null) metadata.kickDistance = kickDistanceFromField;
+      if (isKickAttempt && kickDistanceFromField !== null) metadata.kickDistance = kickDistanceFromField;
     }
+    if (isSetPiece && draft.setPieceResult) metadata.setPieceResult = draft.setPieceResult;
 
     const payload: Partial<MatchEvent> = {
       team_side: draft.side,
@@ -332,40 +351,26 @@ export function EventDialog(props: EventDialogProps) {
             </div>
           )}
 
-          {isKickAttempt && (
+          {showField && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                  Position du tir
+                  {isKickAttempt
+                    ? "Position du tir"
+                    : eventType === "lineout"
+                    ? "Position de la touche"
+                    : "Position de la mêlée"}
                 </Label>
                 <div className="flex gap-1">
-                  <Button
-                    type="button"
-                    variant={draft.kickingSide === "left" ? "default" : "outline"}
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => setField("kickingSide", "left")}
-                  >
-                    ← Gauche
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={draft.kickingSide === "right" ? "default" : "outline"}
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => setField("kickingSide", "right")}
-                  >
-                    Droite →
-                  </Button>
+                  <Button type="button" variant={draft.kickingSide === "left" ? "default" : "outline"} size="sm" className="h-7 text-xs" onClick={() => setField("kickingSide", "left")}>← Gauche</Button>
+                  <Button type="button" variant={draft.kickingSide === "right" ? "default" : "outline"} size="sm" className="h-7 text-xs" onClick={() => setField("kickingSide", "right")}>Droite →</Button>
                 </div>
               </div>
               <div className="relative w-full">
                 <RugbyFieldSVG
                   goalsOnRight={draft.kickingSide === "right"}
                   showCursorTracker
-                  onClick={(x, y) => {
-                    setDraft((prev) => ({ ...prev, kickX: x, kickY: y }));
-                  }}
+                  onClick={(x, y) => setDraft((prev) => ({ ...prev, kickX: x, kickY: y }))}
                 >
                   {draft.kickX !== null && draft.kickY !== null && (
                     <g>
@@ -373,15 +378,15 @@ export function EventDialog(props: EventDialogProps) {
                         cx={(draft.kickX / 100) * 600}
                         cy={(draft.kickY / 100) * 400}
                         r={14}
-                        fill={draft.outcome === "success" ? "#22c55e" : draft.outcome === "fail" ? "#ef4444" : "none"}
+                        fill={markerFill}
                         opacity={0.85}
                         stroke="white"
                         strokeWidth={3}
-                        strokeDasharray={draft.outcome ? undefined : "4 4"}
+                        strokeDasharray={markerFill === "none" ? "4 4" : undefined}
                       />
-                      {draft.outcome && (
+                      {markerSymbol && (
                         <text x={(draft.kickX / 100) * 600} y={(draft.kickY / 100) * 400 + 4} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">
-                          {draft.outcome === "success" ? "✓" : "✗"}
+                          {markerSymbol}
                         </text>
                       )}
                     </g>
@@ -392,11 +397,13 @@ export function EventDialog(props: EventDialogProps) {
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <MapPin className="h-3 w-3" />
                   <span>{kickPositionLabel}</span>
-                  {kickDistanceFromField !== null && <span className="ml-2">≈ {kickDistanceFromField}m des poteaux</span>}
+                  {isKickAttempt && kickDistanceFromField !== null && <span className="ml-2">≈ {kickDistanceFromField}m des poteaux</span>}
                 </div>
               )}
               <p className="text-[11px] text-muted-foreground">
-                Cliquez sur le terrain pour placer le tir, puis sélectionnez Réussi ou Manqué.
+                {isKickAttempt
+                  ? "Cliquez sur le terrain pour placer le tir, puis sélectionnez Réussi ou Manqué."
+                  : "Cliquez sur le terrain pour placer la conquête, puis indiquez le résultat."}
               </p>
             </div>
           )}
@@ -414,10 +421,27 @@ export function EventDialog(props: EventDialogProps) {
           {showOutcomeWonLost && (
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Résultat</Label>
-              <div className="grid grid-cols-3 gap-2 mt-1">
-                <Button type="button" variant="outline" onClick={() => setField("outcome", "won")} className={`h-11 text-sm border-2 ${draft.outcome === "won" ? okOn : selOff}`}>Gagnée</Button>
-                <Button type="button" variant="outline" onClick={() => setField("outcome", "lost")} className={`h-11 text-sm border-2 ${draft.outcome === "lost" ? koOn : selOff}`}>Perdue</Button>
-                <Button type="button" variant="outline" onClick={() => setField("outcome", "contested")} className={`h-11 text-sm border-2 ${draft.outcome === "contested" ? warnOn : selOff}`}>Contestée</Button>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1">
+                <Button type="button" variant="outline"
+                  onClick={() => setDraft((p) => ({ ...p, outcome: "won", setPieceResult: "won" }))}
+                  className={`h-11 text-xs border-2 ${draft.setPieceResult === "won" ? okOn : selOff}`}>
+                  {eventType === "lineout" ? "Touche gagnée" : "Mêlée gagnée"}
+                </Button>
+                <Button type="button" variant="outline"
+                  onClick={() => setDraft((p) => ({ ...p, outcome: "won", setPieceResult: "stolen_us" }))}
+                  className={`h-11 text-xs border-2 ${draft.setPieceResult === "stolen_us" ? okOn : selOff}`}>
+                  Volée à l'adv.
+                </Button>
+                <Button type="button" variant="outline"
+                  onClick={() => setDraft((p) => ({ ...p, outcome: "lost", setPieceResult: "lost" }))}
+                  className={`h-11 text-xs border-2 ${draft.setPieceResult === "lost" ? koOn : selOff}`}>
+                  {eventType === "lineout" ? "Touche perdue" : "Mêlée perdue"}
+                </Button>
+                <Button type="button" variant="outline"
+                  onClick={() => setDraft((p) => ({ ...p, outcome: "lost", setPieceResult: "stolen_opp" }))}
+                  className={`h-11 text-xs border-2 ${draft.setPieceResult === "stolen_opp" ? koOn : selOff}`}>
+                  Volée par adv.
+                </Button>
               </div>
             </div>
           )}
