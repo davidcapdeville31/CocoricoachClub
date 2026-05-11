@@ -29,7 +29,7 @@ import {
   Bell,
   FileSpreadsheet,
   Award,
-} from "lucide-react";
+  Download,
 import { MedalsDialog } from "./MedalsDialog";
 import { MatchLineupDialog } from "./MatchLineupDialog";
 import { isSurfCategory, isSkiCategory, getMainSportFromType } from "@/lib/constants/sportTypes";
