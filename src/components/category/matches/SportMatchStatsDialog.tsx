@@ -512,109 +512,109 @@ export function SportMatchStatsDialog({
           <span>{statsData.length} joueurs</span>
         </div>
 
-        {/* Match-level general stats (only on "general" category) */}
-        {activeCategory?.key === "general" && !isIndividual && (
-          <div className="p-3 rounded-lg border bg-card flex-shrink-0">
-            <h4 className="font-semibold mb-2 text-sm text-primary">Infos match</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <Label className="text-xs">Temps effectif (min)</Label>
-                <Input
-                  type="number"
-                  value={effectivePlayTime || ""}
-                  onChange={(e) => setEffectivePlayTime(parseInt(e.target.value) || 0)}
-                  min={0}
-                  max={120}
-                  className="h-8 mt-1"
-                  placeholder="80"
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Séquence max</Label>
-                <Input
-                  type="text"
-                  value={longestPlaySequenceText}
-                  onChange={(e) => setLongestPlaySequenceText(e.target.value)}
-                  onBlur={() => setLongestPlaySequence(parseMinutesToSeconds(longestPlaySequenceText))}
-                  className="h-8 mt-1"
-                  placeholder="3'00"
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Séquence moyenne</Label>
-                <Input
-                  type="text"
-                  value={averagePlaySequenceText}
-                  onChange={(e) => setAveragePlaySequenceText(e.target.value)}
-                  onBlur={() => setAveragePlaySequence(parseMinutesToSeconds(averagePlaySequenceText))}
-                  className="h-8 mt-1"
-                  placeholder="0'45"
-                />
-              </div>
-            </div>
-
-            {isRugbyType(sportType) && (
-              <RugbyTeamStatsBlock
-                value={teamMatchStats}
-                onChange={(key, val) =>
-                  setTeamMatchStats((prev) => ({ ...prev, [key]: val }))
-                }
-              />
-            )}
-          </div>
-        )}
-
-        {/* Goalkeeper toggles if sport supports it */}
-        {supportsGoalkeeper && activeCategory?.key === "general" && (
-          <div className="flex flex-wrap gap-2 flex-shrink-0">
-            {statsData
-              .filter((p) => p.isGoalkeeper)
-              .map((p) => (
-                <Badge key={p.playerId} variant="secondary" className="text-xs gap-1">
-                  🧤 {p.playerName}
-                  <button
-                    className="ml-1 text-destructive hover:text-destructive/80"
-                    onClick={() =>
-                      setStatsData((prev) =>
-                        prev.map((pl) =>
-                          pl.playerId === p.playerId ? { ...pl, isGoalkeeper: false } : pl
-                        )
-                      )
-                    }
-                  >
-                    ✕
-                  </button>
-                </Badge>
-              ))}
-            {statsData.some((p) => !p.isGoalkeeper) && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>Marquer comme gardien :</span>
-                {statsData
-                  .filter((p) => !p.isGoalkeeper)
-                  .slice(0, 3)
-                  .map((p) => (
-                    <button
-                      key={p.playerId}
-                      className="underline hover:text-foreground"
-                      onClick={() =>
-                        setStatsData((prev) =>
-                          prev.map((pl) =>
-                            pl.playerId === p.playerId ? { ...pl, isGoalkeeper: true } : pl
-                          )
-                        )
-                      }
-                    >
-                      #{p.position || "?"} {p.playerName.split(" ")[0]}
-                    </button>
-                  ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Player stats grid - scrollable area takes all remaining space */}
+        {/* Scrollable content: Infos match + goalkeeper toggles + player grid */}
         <ScrollArea className="flex-1 min-h-0 max-h-full">
-          <div className="pr-2 pb-4">
+          <div className="pr-2 pb-4 space-y-3">
+            {/* Match-level general stats (only on "general" category) */}
+            {activeCategory?.key === "general" && !isIndividual && (
+              <div className="p-3 rounded-lg border bg-card">
+                <h4 className="font-semibold mb-2 text-sm text-primary">Infos match</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <Label className="text-xs">Temps effectif (min)</Label>
+                    <Input
+                      type="number"
+                      value={effectivePlayTime || ""}
+                      onChange={(e) => setEffectivePlayTime(parseInt(e.target.value) || 0)}
+                      min={0}
+                      max={120}
+                      className="h-8 mt-1"
+                      placeholder="80"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Séquence max</Label>
+                    <Input
+                      type="text"
+                      value={longestPlaySequenceText}
+                      onChange={(e) => setLongestPlaySequenceText(e.target.value)}
+                      onBlur={() => setLongestPlaySequence(parseMinutesToSeconds(longestPlaySequenceText))}
+                      className="h-8 mt-1"
+                      placeholder="3'00"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Séquence moyenne</Label>
+                    <Input
+                      type="text"
+                      value={averagePlaySequenceText}
+                      onChange={(e) => setAveragePlaySequenceText(e.target.value)}
+                      onBlur={() => setAveragePlaySequence(parseMinutesToSeconds(averagePlaySequenceText))}
+                      className="h-8 mt-1"
+                      placeholder="0'45"
+                    />
+                  </div>
+                </div>
+
+                {isRugbyType(sportType) && (
+                  <RugbyTeamStatsBlock
+                    value={teamMatchStats}
+                    onChange={(key, val) =>
+                      setTeamMatchStats((prev) => ({ ...prev, [key]: val }))
+                    }
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Goalkeeper toggles if sport supports it */}
+            {supportsGoalkeeper && activeCategory?.key === "general" && (
+              <div className="flex flex-wrap gap-2">
+                {statsData
+                  .filter((p) => p.isGoalkeeper)
+                  .map((p) => (
+                    <Badge key={p.playerId} variant="secondary" className="text-xs gap-1">
+                      🧤 {p.playerName}
+                      <button
+                        className="ml-1 text-destructive hover:text-destructive/80"
+                        onClick={() =>
+                          setStatsData((prev) =>
+                            prev.map((pl) =>
+                              pl.playerId === p.playerId ? { ...pl, isGoalkeeper: false } : pl
+                            )
+                          )
+                        }
+                      >
+                        ✕
+                      </button>
+                    </Badge>
+                  ))}
+                {statsData.some((p) => !p.isGoalkeeper) && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>Marquer comme gardien :</span>
+                    {statsData
+                      .filter((p) => !p.isGoalkeeper)
+                      .slice(0, 3)
+                      .map((p) => (
+                        <button
+                          key={p.playerId}
+                          className="underline hover:text-foreground"
+                          onClick={() =>
+                            setStatsData((prev) =>
+                              prev.map((pl) =>
+                                pl.playerId === p.playerId ? { ...pl, isGoalkeeper: true } : pl
+                              )
+                            )
+                          }
+                        >
+                          #{p.position || "?"} {p.playerName.split(" ")[0]}
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             <PlayerStatsGrid
               players={statsData}
               stats={activeCategoryStats}
