@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useEffect, useState } from "react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { EventType, MatchEvent, Outcome, Period, TeamSide } from "../types";
 import { EVENT_LABELS } from "../types";
 
@@ -75,36 +74,69 @@ const ZONES = [
   { value: "in_22_opp", label: "Dans les 22m adverse" },
 ];
 
+interface EventDialogDraft {
+  side: TeamSide;
+  minute: number;
+  second: number;
+  period: Period;
+  playerId: string | "";
+  subtype: string;
+  outcome: string;
+  zone: string;
+  kickDistance: string;
+  contested: boolean;
+  motif: string;
+  penaltyMode: string;
+  tryAttemptConv: boolean;
+}
+
+function createDraft(params: {
+  initial?: MatchEvent | null;
+  defaultMinute: number;
+  defaultSecond: number;
+  defaultPeriod: Period;
+}): EventDialogDraft {
+  const { initial, defaultMinute, defaultSecond, defaultPeriod } = params;
+
+  return {
+    side: initial?.team_side ?? "home",
+    minute: initial?.minute ?? defaultMinute,
+    second: initial?.second ?? defaultSecond,
+    period: initial?.period ?? defaultPeriod,
+    playerId: initial?.player_id ?? "",
+    subtype: initial?.event_subtype ?? "",
+    outcome: initial?.outcome ?? "",
+    zone: initial?.metadata?.zone ?? "",
+    kickDistance: initial?.metadata?.kickDistance?.toString() ?? "",
+    contested: !!initial?.metadata?.contested,
+    motif: initial?.metadata?.motif ?? "",
+    penaltyMode: initial?.metadata?.penaltyMode ?? "kick",
+    tryAttemptConv: true,
+  };
+}
+
 export function EventDialog(props: EventDialogProps) {
   const { open, onOpenChange, eventType, defaultMinute, defaultSecond = 0, defaultPeriod, homeName, awayName, homePlayers, awayPlayers, initial, onSubmit } = props;
 
-  const [side, setSide] = useState<TeamSide>(initial?.team_side ?? "home");
-  const [minute, setMinute] = useState<number>(initial?.minute ?? defaultMinute);
-  const [second, setSecond] = useState<number>(initial?.second ?? defaultSecond);
-  const [period, setPeriod] = useState<Period>(initial?.period ?? defaultPeriod);
-  const [playerId, setPlayerId] = useState<string | "">(initial?.player_id ?? "");
-  const [subtype, setSubtype] = useState<string>(initial?.event_subtype ?? "");
-  const [outcome, setOutcome] = useState<string>(initial?.outcome ?? "");
-  const [zone, setZone] = useState<string>(initial?.metadata?.zone ?? "");
-  const [kickDistance, setKickDistance] = useState<string>(initial?.metadata?.kickDistance?.toString() ?? "");
-  const [contested, setContested] = useState<boolean>(!!initial?.metadata?.contested);
-  const [motif, setMotif] = useState<string>(initial?.metadata?.motif ?? "");
-  const [penaltyMode, setPenaltyMode] = useState<string>(initial?.metadata?.penaltyMode ?? "kick");
-  const [tryAttemptConv, setTryAttemptConv] = useState<boolean>(true);
+  const [draft, setDraft] = useState<EventDialogDraft>(() =>
+    createDraft({ initial, defaultMinute, defaultSecond, defaultPeriod })
+  );
 
   useEffect(() => {
-    if (open && !initial) {
-      setSide("home"); setMinute(defaultMinute); setSecond(defaultSecond); setPeriod(defaultPeriod);
-      setPlayerId(""); setSubtype(""); setOutcome("");
-      setZone(""); setKickDistance(""); setContested(false); setMotif(""); setPenaltyMode("kick"); setTryAttemptConv(true);
-    }
-  }, [open, defaultMinute, defaultSecond, defaultPeriod, initial]);
+    if (!open) return;
+
+    setDraft(createDraft({ initial, defaultMinute, defaultSecond, defaultPeriod }));
+  }, [open, eventType, initial?.id]);
+
+  const setField = <K extends keyof EventDialogDraft,>(field: K, value: EventDialogDraft[K]) => {
+    setDraft((prev) => ({ ...prev, [field]: value }));
+  };
 
   const subtypes = SUBTYPES[eventType] ?? [];
-  const players = side === "home" ? homePlayers : awayPlayers;
+  const players = draft.side === "home" ? homePlayers : awayPlayers;
 
   const showOutcomeWonLost = ["lineout", "scrum"].includes(eventType);
-  const showOutcomeSuccessFail = ["conversion", "penalty_kick", "drop"].includes(eventType) || (eventType === "penalty_kick" && penaltyMode === "kick");
+  const showOutcomeSuccessFail = ["conversion", "penalty_kick", "drop"].includes(eventType) || (eventType === "penalty_kick" && draft.penaltyMode === "kick");
   const showZone = ["lineout", "kick", "occupation"].includes(eventType);
   const showKickDistance = ["conversion", "penalty_kick", "drop", "kick"].includes(eventType);
   const showContested = ["lineout"].includes(eventType);
@@ -113,26 +145,28 @@ export function EventDialog(props: EventDialogProps) {
 
   const submit = () => {
     const metadata: Record<string, any> = {};
-    if (zone) metadata.zone = zone;
-    if (kickDistance) metadata.kickDistance = parseInt(kickDistance) || null;
-    if (contested) metadata.contested = true;
-    if (motif) metadata.motif = motif;
-    if (showPenaltyMode) metadata.penaltyMode = penaltyMode;
+    if (draft.zone) metadata.zone = draft.zone;
+    if (draft.kickDistance) metadata.kickDistance = parseInt(draft.kickDistance) || null;
+    if (draft.contested) metadata.contested = true;
+    if (draft.motif) metadata.motif = draft.motif;
+    if (showPenaltyMode) metadata.penaltyMode = draft.penaltyMode;
 
     const payload: Partial<MatchEvent> = {
-      team_side: side,
-      minute, second, period,
+      team_side: draft.side,
+      minute: draft.minute,
+      second: draft.second,
+      period: draft.period,
       event_type: eventType,
-      event_subtype: subtype || null,
-      outcome: (outcome || null) as Outcome,
-      player_id: playerId || null,
+      event_subtype: draft.subtype || null,
+      outcome: (draft.outcome || null) as Outcome,
+      player_id: draft.playerId || null,
       metadata,
     };
 
     // Try → ask conversion next
     let chain: { type: EventType } | undefined;
-    if (eventType === "try" && tryAttemptConv) chain = { type: "conversion" };
-    if (eventType === "penalty_kick" && penaltyMode !== "kick") {
+    if (eventType === "try" && draft.tryAttemptConv) chain = { type: "conversion" };
+    if (eventType === "penalty_kick" && draft.penaltyMode !== "kick") {
       payload.outcome = null;
     }
     onSubmit(payload, chain);
@@ -143,9 +177,9 @@ export function EventDialog(props: EventDialogProps) {
   const selOff = "bg-transparent border-border hover:bg-accent hover:text-accent-foreground";
   const cls = (active: boolean) => `${selBase} ${active ? selOn : selOff}`;
 
-  const okOn = "bg-green-600 text-white border-green-600 ring-2 ring-green-400/50 shadow-md hover:bg-green-600";
-  const koOn = "bg-red-600 text-white border-red-600 ring-2 ring-red-400/50 shadow-md hover:bg-red-600";
-  const warnOn = "bg-amber-500 text-white border-amber-500 ring-2 ring-amber-300/50 shadow-md hover:bg-amber-500";
+  const okOn = "bg-success text-success-foreground border-success ring-2 ring-success/40 shadow-md hover:bg-success";
+  const koOn = "bg-destructive text-destructive-foreground border-destructive ring-2 ring-destructive/40 shadow-md hover:bg-destructive";
+  const warnOn = "bg-warning text-warning-foreground border-warning ring-2 ring-warning/40 shadow-md hover:bg-warning";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -159,8 +193,8 @@ export function EventDialog(props: EventDialogProps) {
           <div>
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">Équipe</Label>
             <div className="grid grid-cols-2 gap-2 mt-1">
-              <Button type="button" variant="outline" onClick={() => setSide("home")} className={`h-12 text-sm border-2 ${side === "home" ? selOn : selOff}`}>{homeName}</Button>
-              <Button type="button" variant="outline" onClick={() => setSide("away")} className={`h-12 text-sm border-2 ${side === "away" ? selOn : selOff}`}>{awayName}</Button>
+              <Button type="button" variant="outline" onClick={() => setField("side", "home")} className={`h-12 text-sm border-2 ${draft.side === "home" ? selOn : selOff}`}>{homeName}</Button>
+              <Button type="button" variant="outline" onClick={() => setField("side", "away")} className={`h-12 text-sm border-2 ${draft.side === "away" ? selOn : selOff}`}>{awayName}</Button>
             </div>
           </div>
 
@@ -169,11 +203,11 @@ export function EventDialog(props: EventDialogProps) {
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <Label className="text-xs">Min</Label>
-                <Input type="number" min={0} max={120} value={minute} onChange={(e) => setMinute(parseInt(e.target.value) || 0)} className="h-10 mt-1 w-20" />
+                <Input type="number" min={0} max={120} value={draft.minute} onChange={(e) => setField("minute", parseInt(e.target.value) || 0)} className="h-10 mt-1 w-20" />
               </div>
               <div>
                 <Label className="text-xs">Sec</Label>
-                <Input type="number" min={0} max={59} value={second} onChange={(e) => setSecond(parseInt(e.target.value) || 0)} className="h-10 mt-1 w-20" />
+                <Input type="number" min={0} max={59} value={draft.second} onChange={(e) => setField("second", parseInt(e.target.value) || 0)} className="h-10 mt-1 w-20" />
               </div>
             </div>
             <div>
@@ -185,7 +219,7 @@ export function EventDialog(props: EventDialogProps) {
                   { v: "H2", l: "2ème MT" },
                   { v: "ET", l: "Prolong." },
                 ].map((o) => (
-                  <Button key={o.v} type="button" variant="outline" onClick={() => setPeriod(o.v as Period)} className={cls(period === o.v)}>{o.l}</Button>
+                  <Button key={o.v} type="button" variant="outline" onClick={() => setField("period", o.v as Period)} className={cls(draft.period === o.v)}>{o.l}</Button>
                 ))}
               </div>
             </div>
@@ -197,7 +231,7 @@ export function EventDialog(props: EventDialogProps) {
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Joueur</Label>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 mt-1">
                 {players.map((p) => (
-                  <Button key={p.id} type="button" variant="outline" onClick={() => setPlayerId(playerId === p.id ? "" : p.id)} className={`${cls(playerId === p.id)} truncate justify-start px-2`}>
+                <Button key={p.id} type="button" variant="outline" onClick={() => setField("playerId", draft.playerId === p.id ? "" : p.id)} className={`${cls(draft.playerId === p.id)} truncate justify-start px-2`}>
                     {p.label}
                   </Button>
                 ))}
@@ -211,7 +245,7 @@ export function EventDialog(props: EventDialogProps) {
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Type</Label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 mt-1">
                 {subtypes.map((s) => (
-                  <Button key={s.value} type="button" variant="outline" onClick={() => setSubtype(subtype === s.value ? "" : s.value)} className={cls(subtype === s.value)}>
+                <Button key={s.value} type="button" variant="outline" onClick={() => setField("subtype", draft.subtype === s.value ? "" : s.value)} className={cls(draft.subtype === s.value)}>
                     {s.label}
                   </Button>
                 ))}
@@ -229,18 +263,18 @@ export function EventDialog(props: EventDialogProps) {
                   { v: "scrum", l: "Mêlée" },
                   { v: "quick", l: "Rapide" },
                 ].map((o) => (
-                  <Button key={o.v} type="button" variant="outline" onClick={() => setPenaltyMode(o.v)} className={cls(penaltyMode === o.v)}>{o.l}</Button>
+                  <Button key={o.v} type="button" variant="outline" onClick={() => setField("penaltyMode", o.v)} className={cls(draft.penaltyMode === o.v)}>{o.l}</Button>
                 ))}
               </div>
             </div>
           )}
 
-          {(showOutcomeSuccessFail && (eventType !== "penalty_kick" || penaltyMode === "kick")) && (
+          {(showOutcomeSuccessFail && (eventType !== "penalty_kick" || draft.penaltyMode === "kick")) && (
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Résultat</Label>
               <div className="grid grid-cols-2 gap-2 mt-1">
-                <Button type="button" variant="outline" onClick={() => setOutcome("success")} className={`h-11 text-sm border-2 ${outcome === "success" ? okOn : selOff}`}>Réussi</Button>
-                <Button type="button" variant="outline" onClick={() => setOutcome("fail")} className={`h-11 text-sm border-2 ${outcome === "fail" ? koOn : selOff}`}>Manqué</Button>
+                <Button type="button" variant="outline" onClick={() => setField("outcome", "success")} className={`h-11 text-sm border-2 ${draft.outcome === "success" ? okOn : selOff}`}>Réussi</Button>
+                <Button type="button" variant="outline" onClick={() => setField("outcome", "fail")} className={`h-11 text-sm border-2 ${draft.outcome === "fail" ? koOn : selOff}`}>Manqué</Button>
               </div>
             </div>
           )}
@@ -249,9 +283,9 @@ export function EventDialog(props: EventDialogProps) {
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Résultat</Label>
               <div className="grid grid-cols-3 gap-2 mt-1">
-                <Button type="button" variant="outline" onClick={() => setOutcome("won")} className={`h-11 text-sm border-2 ${outcome === "won" ? okOn : selOff}`}>Gagnée</Button>
-                <Button type="button" variant="outline" onClick={() => setOutcome("lost")} className={`h-11 text-sm border-2 ${outcome === "lost" ? koOn : selOff}`}>Perdue</Button>
-                <Button type="button" variant="outline" onClick={() => setOutcome("contested")} className={`h-11 text-sm border-2 ${outcome === "contested" ? warnOn : selOff}`}>Contestée</Button>
+                <Button type="button" variant="outline" onClick={() => setField("outcome", "won")} className={`h-11 text-sm border-2 ${draft.outcome === "won" ? okOn : selOff}`}>Gagnée</Button>
+                <Button type="button" variant="outline" onClick={() => setField("outcome", "lost")} className={`h-11 text-sm border-2 ${draft.outcome === "lost" ? koOn : selOff}`}>Perdue</Button>
+                <Button type="button" variant="outline" onClick={() => setField("outcome", "contested")} className={`h-11 text-sm border-2 ${draft.outcome === "contested" ? warnOn : selOff}`}>Contestée</Button>
               </div>
             </div>
           )}
@@ -261,7 +295,7 @@ export function EventDialog(props: EventDialogProps) {
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Zone du terrain</Label>
               <div className="grid grid-cols-2 gap-1.5 mt-1">
                 {ZONES.map((z) => (
-                  <Button key={z.value} type="button" variant="outline" onClick={() => setZone(zone === z.value ? "" : z.value)} className={cls(zone === z.value)}>{z.label}</Button>
+                  <Button key={z.value} type="button" variant="outline" onClick={() => setField("zone", draft.zone === z.value ? "" : z.value)} className={cls(draft.zone === z.value)}>{z.label}</Button>
                 ))}
               </div>
             </div>
@@ -271,13 +305,13 @@ export function EventDialog(props: EventDialogProps) {
         {showKickDistance && (
           <div>
             <Label className="text-xs">Distance du tir (m)</Label>
-            <Input type="number" min={0} max={80} value={kickDistance} onChange={(e) => setKickDistance(e.target.value)} className="h-9 mt-1" />
+            <Input type="number" min={0} max={80} value={draft.kickDistance} onChange={(e) => setField("kickDistance", e.target.value)} className="h-9 mt-1" />
           </div>
         )}
 
         {showContested && (
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={contested} onChange={(e) => setContested(e.target.checked)} />
+            <input type="checkbox" checked={draft.contested} onChange={(e) => setField("contested", e.target.checked)} />
             Contre adverse
           </label>
         )}
@@ -285,13 +319,13 @@ export function EventDialog(props: EventDialogProps) {
         {showCardMotif && (
           <div>
             <Label className="text-xs">Motif libre</Label>
-            <Input value={motif} onChange={(e) => setMotif(e.target.value)} placeholder="Ex : plaquage haut" className="h-9 mt-1" />
+            <Input value={draft.motif} onChange={(e) => setField("motif", e.target.value)} placeholder="Ex : plaquage haut" className="h-9 mt-1" />
           </div>
         )}
 
         {eventType === "try" && !initial && (
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={tryAttemptConv} onChange={(e) => setTryAttemptConv(e.target.checked)} />
+            <input type="checkbox" checked={draft.tryAttemptConv} onChange={(e) => setField("tryAttemptConv", e.target.checked)} />
             Enchaîner sur la transformation
           </label>
         )}
