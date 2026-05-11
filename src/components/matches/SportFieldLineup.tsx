@@ -381,9 +381,9 @@ export function SportFieldLineup({
                       {pos.id}
                     </span>
                   )}
-                  {playerId && (
-                    <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-medium text-white bg-black/60 px-1 rounded whitespace-nowrap max-w-[70px] truncate pointer-events-none">
-                      {getPlayerName(playerId)}
+                  {playerId && assignedPlayer && (
+                    <span className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 text-[8px] font-semibold text-white bg-black/70 px-1 rounded whitespace-nowrap max-w-[60px] truncate pointer-events-none">
+                      {(assignedPlayer.name || "").toUpperCase()}
                     </span>
                   )}
                 </div>
