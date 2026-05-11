@@ -21,21 +21,14 @@ const ACTIONS: Action[] = [
   { type: "drop", label: "Drop", shortcut: "D", group: "score", icon: Zap },
   { type: "lineout", label: "Touche", shortcut: "T", group: "conquete", icon: Anchor },
   { type: "scrum", label: "Mêlée", shortcut: "M", group: "conquete", icon: Shield },
-  { type: "ruck", label: "Ruck", group: "conquete", icon: RefreshCw },
-  { type: "maul", label: "Ballon porté", group: "conquete", icon: Move },
   { type: "tackle", label: "Plaquage", group: "defense", icon: Footprints },
-  { type: "turnover", label: "Turnover", group: "defense", icon: RefreshCw },
   { type: "knock_on", label: "En-avant", group: "defense", icon: Hand },
   { type: "foul", label: "Faute", group: "discipline", icon: AlertTriangle },
   { type: "yellow_card", label: "Jaune", shortcut: "C", group: "discipline", icon: Square },
   { type: "red_card", label: "Rouge", group: "discipline", icon: Square },
   { type: "substitution", label: "Remplacement", group: "discipline", icon: RefreshCw },
   { type: "injury", label: "Blessure", group: "discipline", icon: Activity },
-  { type: "kickoff", label: "Coup d'envoi", group: "jeu", icon: Flag },
-  { type: "restart", label: "Renvoi", group: "jeu", icon: Flag },
   { type: "kick", label: "Jeu au pied", group: "jeu", icon: Footprints },
-  { type: "occupation", label: "Occupation", group: "jeu", icon: MapPin },
-  { type: "exit_22", label: "Sortie 22", group: "jeu", icon: MapPin },
 ];
 
 const GROUP_STYLES: Record<Action["group"], string> = {
