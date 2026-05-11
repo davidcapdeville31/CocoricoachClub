@@ -295,10 +295,8 @@ export function AddPlayerDialogWithInvite({
       return;
     }
 
-    if (sendInvitation && !playerEmail.trim()) {
-      setValidationError("L'email est obligatoire pour envoyer une invitation");
-      return;
-    }
+    // Email facultatif : si l'invitation est cochée mais qu'aucun email n'est fourni,
+    // on crée simplement l'athlète sans envoyer d'invitation.
 
     const birthYearNum = birthYear ? parseInt(birthYear) : undefined;
     const result = playerSchema.safeParse({ 
