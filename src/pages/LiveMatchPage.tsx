@@ -11,6 +11,7 @@ import { LiveTimeline } from "@/components/category/matches/live/LiveTimeline";
 import { LiveQuickActions } from "@/components/category/matches/live/LiveQuickActions";
 import { LiveStatsPanel } from "@/components/category/matches/live/LiveStatsPanel";
 import { EventDialog } from "@/components/category/matches/live/dialogs/EventDialog";
+import { TacklePanel } from "@/components/category/matches/live/dialogs/TacklePanel";
 import { TeamColorsDialog } from "@/components/category/matches/live/dialogs/TeamColorsDialog";
 import { useMatchEvents } from "@/components/category/matches/live/hooks/useMatchEvents";
 import { useMatchStats } from "@/components/category/matches/live/hooks/useMatchStats";
@@ -26,6 +27,7 @@ export default function LiveMatchPage() {
   const [openType, setOpenType] = useState<EventType | null>(null);
   const [editing, setEditing] = useState<MatchEvent | null>(null);
   const [chainNext, setChainNext] = useState<EventType | null>(null);
+  const [tacklePanelOpen, setTacklePanelOpen] = useState(false);
 
   const colorsKey = `match-team-colors-${matchId}`;
   const [teamColors, setTeamColors] = useState<{ home: string; away: string } | null>(() => {
