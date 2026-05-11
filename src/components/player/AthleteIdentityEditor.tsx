@@ -528,6 +528,7 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
             sportType={sportType}
             singleValue={singleValue}
             onAdd={(payload) => addMut.mutate(payload)}
+            onUpdateValue={(id, value) => updateMut.mutate({ id, patch: { value } })}
             onTogglePrimary={(id) => updateMut.mutate({ id, patch: { is_primary: true } })}
             onUpdateWeight={(id, weight) =>
               updateMut.mutate({ id, patch: { weight } })
