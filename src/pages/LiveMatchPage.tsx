@@ -114,6 +114,7 @@ export default function LiveMatchPage() {
         homeScore={stats.home.points} awayScore={stats.away.points}
         period={period} onPeriodChange={setPeriod}
         minute={minute} onMinuteChange={setMinute}
+        seconds={seconds} onSecondsChange={setSeconds}
       />
 
       <div className="px-4 py-3 flex items-center justify-between">
