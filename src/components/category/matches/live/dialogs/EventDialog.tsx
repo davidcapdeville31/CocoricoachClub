@@ -76,10 +76,11 @@ const ZONES = [
 ];
 
 export function EventDialog(props: EventDialogProps) {
-  const { open, onOpenChange, eventType, defaultMinute, defaultPeriod, homeName, awayName, homePlayers, awayPlayers, initial, onSubmit } = props;
+  const { open, onOpenChange, eventType, defaultMinute, defaultSecond = 0, defaultPeriod, homeName, awayName, homePlayers, awayPlayers, initial, onSubmit } = props;
 
   const [side, setSide] = useState<TeamSide>(initial?.team_side ?? "home");
   const [minute, setMinute] = useState<number>(initial?.minute ?? defaultMinute);
+  const [second, setSecond] = useState<number>(initial?.second ?? defaultSecond);
   const [period, setPeriod] = useState<Period>(initial?.period ?? defaultPeriod);
   const [playerId, setPlayerId] = useState<string | "">(initial?.player_id ?? "");
   const [subtype, setSubtype] = useState<string>(initial?.event_subtype ?? "");
