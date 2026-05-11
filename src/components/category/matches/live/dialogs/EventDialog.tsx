@@ -157,10 +157,12 @@ export function EventDialog(props: EventDialogProps) {
     eventType === "conversion" ||
     eventType === "drop" ||
     (eventType === "penalty_kick" && draft.penaltyMode === "kick");
+  const isSetPiece = eventType === "lineout" || eventType === "scrum";
+  const showField = isKickAttempt || isSetPiece;
   const showOutcomeSuccessFail = ["conversion", "penalty_kick", "drop"].includes(eventType) || (eventType === "penalty_kick" && draft.penaltyMode === "kick");
-  const showZone = ["lineout", "kick", "occupation"].includes(eventType);
-  const showKickDistance = eventType === "kick"; // pour les jeux au pied (chandelles, etc.) — les tirs au but utilisent le terrain
-  const showContested = ["lineout"].includes(eventType);
+  const showZone = ["kick", "occupation"].includes(eventType); // touche utilise désormais le terrain
+  const showKickDistance = eventType === "kick";
+  const showContested = false; // remplacé par "Volée" dans les outcomes set-piece
   const showPenaltyMode = eventType === "penalty_kick";
   const showCardMotif = ["yellow_card", "red_card"].includes(eventType);
 
@@ -169,23 +171,39 @@ export function EventDialog(props: EventDialogProps) {
       ? Math.round(getKickDistances(draft.kickX, draft.kickY, draft.kickingSide === "right").distFromPosts)
       : null;
   const kickPositionLabel =
-    isKickAttempt && draft.kickX !== null && draft.kickY !== null
+    showField && draft.kickX !== null && draft.kickY !== null
       ? getPositionLabel(draft.kickX, draft.kickY, draft.kickingSide === "right")
       : "";
 
+  // Couleur du marqueur sur le terrain selon l'outcome
+  const markerFill =
+    draft.outcome === "success" || draft.outcome === "won"
+      ? "#22c55e"
+      : draft.outcome === "fail" || draft.outcome === "lost"
+      ? "#ef4444"
+      : "none";
+  const markerSymbol =
+    draft.outcome === "success" || draft.outcome === "won"
+      ? "✓"
+      : draft.outcome === "fail" || draft.outcome === "lost"
+      ? "✗"
+      : "";
+
   const submit = () => {
-    const metadata: Record<string, any> = {};
+    const metadata: Record<string, any> = { ...(draft as any).extraMeta };
     if (draft.zone) metadata.zone = draft.zone;
     if (draft.kickDistance) metadata.kickDistance = parseInt(draft.kickDistance) || null;
     if (draft.contested) metadata.contested = true;
     if (draft.motif) metadata.motif = draft.motif;
     if (showPenaltyMode) metadata.penaltyMode = draft.penaltyMode;
-    if (isKickAttempt && draft.kickX !== null && draft.kickY !== null) {
+    if (showField && draft.kickX !== null && draft.kickY !== null) {
       metadata.kickX = draft.kickX;
       metadata.kickY = draft.kickY;
       metadata.kickingSide = draft.kickingSide;
-      if (kickDistanceFromField !== null) metadata.kickDistance = kickDistanceFromField;
+      if (isKickAttempt && kickDistanceFromField !== null) metadata.kickDistance = kickDistanceFromField;
     }
+    if (initial?.metadata?.setPieceResult) metadata.setPieceResult = initial.metadata.setPieceResult;
+    if ((draft as any).setPieceResult) metadata.setPieceResult = (draft as any).setPieceResult;
 
     const payload: Partial<MatchEvent> = {
       team_side: draft.side,
