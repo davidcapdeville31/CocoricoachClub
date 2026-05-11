@@ -209,7 +209,7 @@ export function EventDialog(props: EventDialogProps) {
                     key={side}
                     type="button"
                     variant="outline"
-                    onClick={() => setField("side", side)}
+                    onClick={() => setDraft((prev) => ({ ...prev, side, playerId: side === prev.side ? prev.playerId : "" }))}
                     className={`h-12 text-sm border-2 transition-all ${active ? "ring-2 ring-offset-2 shadow-md" : "bg-transparent border-border hover:bg-accent"}`}
                     style={active && color ? {
                       backgroundColor: color,
