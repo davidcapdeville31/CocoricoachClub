@@ -251,7 +251,12 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   const hasSubMatches = subMatches && subMatches.length > 0;
   const canHaveSubMatches = (!isIndividual || hasTournamentBracket) && !isSubMatch && !match.parent_match_id;
   const isTeamSport = !isIndividual;
-  
+  const isJudo = sportType.toLowerCase().includes("judo");
+  const isAthletics = sportType.toLowerCase().includes("athl");
+  // Export available for team sports + Judo + Athletics (per user request).
+  // Sub-matches/parents are kept consistent so the menu always appears.
+  const canExport = (isTeamSport || isJudo || isAthletics) && !isSubMatch;
+  const competitionLabel = match.competition || match.opponent || "Compétition";
   // Check if match is within 3 days (for pre-competition form)
   const fisMatchDate = new Date(match.match_date);
   const now = new Date();
