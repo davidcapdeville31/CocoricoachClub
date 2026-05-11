@@ -330,7 +330,7 @@ export function SportFieldLineup({
           {/* Sport Field */}
           <div 
             className={`relative w-full bg-gradient-to-b ${fieldConfig.bgColor} rounded-lg overflow-hidden`}
-            style={{ aspectRatio: fieldConfig.aspectRatio, maxHeight: "400px" }}
+            style={{ aspectRatio: fieldConfig.aspectRatio, maxHeight: "640px" }}
           >
             {/* Field markings */}
             {renderFieldMarkings()}
