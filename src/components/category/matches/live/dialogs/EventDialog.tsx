@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { EventType, MatchEvent, Outcome, Period, TeamSide } from "../types";
 import { EVENT_LABELS } from "../types";
+import { isLight } from "./TeamColorsDialog";
 
 export interface EventDialogPlayer { id: string; label: string }
 
@@ -18,6 +19,8 @@ export interface EventDialogProps {
   defaultPeriod: Period;
   homeName: string;
   awayName: string;
+  homeColor?: string;
+  awayColor?: string;
   homePlayers: EventDialogPlayer[];
   awayPlayers: EventDialogPlayer[];
   /** Editing existing event */
@@ -116,7 +119,7 @@ function createDraft(params: {
 }
 
 export function EventDialog(props: EventDialogProps) {
-  const { open, onOpenChange, eventType, defaultMinute, defaultSecond = 0, defaultPeriod, homeName, awayName, homePlayers, awayPlayers, initial, onSubmit } = props;
+  const { open, onOpenChange, eventType, defaultMinute, defaultSecond = 0, defaultPeriod, homeName, awayName, homeColor, awayColor, homePlayers, awayPlayers, initial, onSubmit } = props;
 
   const [draft, setDraft] = useState<EventDialogDraft>(() =>
     createDraft({ initial, defaultMinute, defaultSecond, defaultPeriod })
@@ -189,12 +192,33 @@ export function EventDialog(props: EventDialogProps) {
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Équipe : 2 gros boutons */}
+          {/* Équipe : 2 gros boutons aux couleurs choisies */}
           <div>
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">Équipe</Label>
             <div className="grid grid-cols-2 gap-2 mt-1">
-              <Button type="button" variant="outline" onClick={() => setField("side", "home")} className={`h-12 text-sm border-2 ${draft.side === "home" ? selOn : selOff}`}>{homeName}</Button>
-              <Button type="button" variant="outline" onClick={() => setField("side", "away")} className={`h-12 text-sm border-2 ${draft.side === "away" ? selOn : selOff}`}>{awayName}</Button>
+              {([
+                { side: "home" as TeamSide, name: homeName, color: homeColor },
+                { side: "away" as TeamSide, name: awayName, color: awayColor },
+              ]).map(({ side, name, color }) => {
+                const active = draft.side === side;
+                const light = color ? isLight(color) : false;
+                return (
+                  <Button
+                    key={side}
+                    type="button"
+                    variant="outline"
+                    onClick={() => setField("side", side)}
+                    className={`h-12 text-sm border-2 transition-all ${active ? "ring-2 ring-offset-2 shadow-md" : "bg-transparent border-border hover:bg-accent"}`}
+                    style={active && color ? {
+                      backgroundColor: color,
+                      borderColor: color,
+                      color: light ? "#0f172a" : "#fff",
+                    } : undefined}
+                  >
+                    {name}
+                  </Button>
+                );
+              })}
             </div>
           </div>
 
