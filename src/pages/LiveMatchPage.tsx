@@ -200,12 +200,26 @@ export default function LiveMatchPage() {
           defaultSecond={seconds}
           defaultPeriod={period}
           homeName={homeName} awayName={awayName}
+          homeColor={teamColors?.home} awayColor={teamColors?.away}
           homePlayers={homePlayers}
           awayPlayers={[]}
           initial={editing}
           onSubmit={handleSubmit}
         />
       )}
+
+      <TeamColorsDialog
+        open={colorsOpen}
+        onOpenChange={setColorsOpen}
+        homeName={homeName}
+        awayName={awayName}
+        initialHome={teamColors?.home}
+        initialAway={teamColors?.away}
+        onConfirm={(c) => {
+          setTeamColors(c);
+          try { localStorage.setItem(colorsKey, JSON.stringify(c)); } catch {}
+        }}
+      />
     </div>
   );
 }
