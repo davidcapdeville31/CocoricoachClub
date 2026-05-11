@@ -682,6 +682,21 @@ export function AddPlayerDialogWithInvite({
               </p>
             </div>
 
+            {/* Sexe */}
+            <div className="space-y-2">
+              <Label htmlFor="gender">Sexe</Label>
+              <Select value={gender} onValueChange={(v) => setGender(v as any)}>
+                <SelectTrigger className="w-full bg-background">
+                  <SelectValue placeholder="Sélectionner un sexe" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border z-50">
+                  <SelectItem value="male">Masculin</SelectItem>
+                  <SelectItem value="female">Féminin</SelectItem>
+                  <SelectItem value="other">Autre</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Position selector for team sports */}
             {isTeamSport && positions.length > 0 && (
               <div className="space-y-2">
