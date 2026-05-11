@@ -63,7 +63,7 @@ export function LiveScoreboard({ homeName, awayName, homeScore, awayScore, perio
             <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setRunning((r) => !r)}>
               {running ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             </Button>
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setRunning(false); setSeconds(0); onMinuteChange(0); }}>
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setRunning(false); onSecondsChange(0); onMinuteChange(0); }}>
               <RotateCcw className="h-4 w-4" />
             </Button>
             <Select value={period} onValueChange={(v) => onPeriodChange(v as Period)}>
