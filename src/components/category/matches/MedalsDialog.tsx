@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Award, Trash2, Plus, Medal, Trophy } from "lucide-react";
+import { Award, Trash2, Plus, Medal, Trophy, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 
 
@@ -60,8 +60,46 @@ export function MedalsDialog({
   const [notes, setNotes] = useState("");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [isCollective, setIsCollective] = useState(false);
+  // editingKey: medal.id (single) or `group:${group_id}` (group). Null = create mode.
+  const [editingKey, setEditingKey] = useState<string | null>(null);
 
-  const { data: players } = useQuery({
+  // Get all relevant match IDs: this match + any sub-matches (parent_match_id = matchId)
+  const { data: relevantMatchIds = [] } = useQuery({
+    queryKey: ["medal-relevant-match-ids", matchId],
+    queryFn: async () => {
+      const { data: subs } = await supabase
+        .from("matches")
+        .select("id")
+        .eq("parent_match_id", matchId);
+      return [matchId, ...(subs?.map((s) => s.id) || [])];
+    },
+    enabled: open,
+  });
+
+  // Fetch participants from player_match_stats + competition_rounds across all relevant matches
+  const { data: participantIds = [] } = useQuery({
+    queryKey: ["medal-participants", matchId, relevantMatchIds.join(",")],
+    queryFn: async () => {
+      if (relevantMatchIds.length === 0) return [];
+      const ids = new Set<string>();
+      const { data: pms } = await supabase
+        .from("player_match_stats")
+        .select("player_id")
+        .in("match_id", relevantMatchIds);
+      (pms || []).forEach((r: any) => r.player_id && ids.add(r.player_id));
+
+      const { data: rounds } = await supabase
+        .from("competition_rounds")
+        .select("player_id")
+        .in("match_id", relevantMatchIds);
+      (rounds || []).forEach((r: any) => r.player_id && ids.add(r.player_id));
+
+      return Array.from(ids);
+    },
+    enabled: open && relevantMatchIds.length > 0,
+  });
+
+  const { data: allPlayers } = useQuery({
     queryKey: ["players-for-medals", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -74,6 +112,15 @@ export function MedalsDialog({
     },
     enabled: open,
   });
+
+  // Only show players who actually participated in this competition (or its sub-matches).
+  // Fallback: if no participation data is recorded yet, show all (so the user is not blocked).
+  const players = useMemo(() => {
+    if (!allPlayers) return [];
+    if (participantIds.length === 0) return allPlayers;
+    const set = new Set(participantIds);
+    return allPlayers.filter((p) => set.has(p.id));
+  }, [allPlayers, participantIds]);
 
   const { data: medals } = useQuery({
     queryKey: ["match-medals", matchId],
@@ -89,7 +136,23 @@ export function MedalsDialog({
     enabled: open,
   });
 
-  const addMedal = useMutation({
+  const resetForm = () => {
+    setMedalType("gold");
+    setRank("");
+    setCustomTitle("");
+    setTeamLabel("");
+    setNotes("");
+    setSelectedPlayerIds([]);
+    setIsCollective(false);
+    setEditingKey(null);
+  };
+
+  // Reset when dialog closes
+  useEffect(() => {
+    if (!open) resetForm();
+  }, [open]);
+
+  const saveMedal = useMutation({
     mutationFn: async () => {
       if (selectedPlayerIds.length === 0) {
         throw new Error("Sélectionne au moins un athlète");
@@ -104,8 +167,19 @@ export function MedalsDialog({
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData.user?.id;
 
-      const groupId = selectedPlayerIds.length > 1 ? crypto.randomUUID() : null;
+      // EDIT: delete old rows for this medal then re-insert
+      if (editingKey) {
+        if (editingKey.startsWith("group:")) {
+          const gid = editingKey.slice(6);
+          const { error } = await supabase.from("player_medals").delete().eq("group_id", gid);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.from("player_medals").delete().eq("id", editingKey);
+          if (error) throw error;
+        }
+      }
 
+      const groupId = selectedPlayerIds.length > 1 ? crypto.randomUUID() : null;
       const rows = selectedPlayerIds.map((pid) => ({
         match_id: matchId,
         player_id: pid,
@@ -126,13 +200,8 @@ export function MedalsDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["match-medals", matchId] });
       queryClient.invalidateQueries({ queryKey: ["player-medals"] });
-      toast.success("Médaille ajoutée au palmarès");
-      setRank("");
-      setCustomTitle("");
-      setTeamLabel("");
-      setNotes("");
-      setSelectedPlayerIds([]);
-      setIsCollective(false);
+      toast.success(editingKey ? "Médaille mise à jour" : "Médaille ajoutée au palmarès");
+      resetForm();
     },
     onError: (e: Error) => toast.error(e.message || "Erreur"),
   });
@@ -160,6 +229,18 @@ export function MedalsDialog({
     setSelectedPlayerIds((prev) =>
       prev.includes(pid) ? prev.filter((id) => id !== pid) : [...prev, pid]
     );
+  };
+
+  const startEdit = (group: { kind: "group" | "single"; items: any[] }) => {
+    const first = group.items[0];
+    setEditingKey(group.kind === "group" ? `group:${first.group_id}` : first.id);
+    setMedalType(first.medal_type);
+    setRank(first.rank ? String(first.rank) : "");
+    setCustomTitle(first.custom_title || "");
+    setTeamLabel(first.team_label || "");
+    setNotes(first.notes || "");
+    setIsCollective(group.items.length > 1 || !!first.team_label);
+    setSelectedPlayerIds(group.items.map((m: any) => m.player_id));
   };
 
   const groupedMedals = (() => {
@@ -208,10 +289,14 @@ export function MedalsDialog({
                 <div className="space-y-2">
                   {groupedMedals.map((g, idx) => {
                     const first = g.items[0];
+                    const editKey = g.kind === "group" ? `group:${first.group_id}` : first.id;
+                    const isBeingEdited = editingKey === editKey;
                     return (
                       <div
                         key={idx}
-                        className="flex items-start justify-between gap-3 p-3 rounded-lg border bg-card"
+                        className={`flex items-start justify-between gap-3 p-3 rounded-lg border bg-card ${
+                          isBeingEdited ? "ring-2 ring-primary" : ""
+                        }`}
                       >
                         <div className="flex-1 space-y-1">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -245,16 +330,27 @@ export function MedalsDialog({
                             <p className="text-xs text-muted-foreground italic">{first.notes}</p>
                           )}
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive shrink-0"
-                          onClick={() =>
-                            deleteMedal.mutate({ id: first.id, group_id: first.group_id })
-                          }
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex flex-col gap-1 shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => startEdit(g)}
+                            title="Modifier"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() =>
+                              deleteMedal.mutate({ id: first.id, group_id: first.group_id })
+                            }
+                            title="Supprimer"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
@@ -263,10 +359,26 @@ export function MedalsDialog({
             )}
 
             <div className="space-y-4 p-4 rounded-lg border-2 border-dashed">
-              <h3 className="text-sm font-semibold flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Ajouter une médaille
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  {editingKey ? (
+                    <>
+                      <Pencil className="h-4 w-4" />
+                      Modifier la médaille
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4" />
+                      Ajouter une médaille
+                    </>
+                  )}
+                </h3>
+                {editingKey && (
+                  <Button variant="ghost" size="sm" onClick={resetForm}>
+                    <X className="h-3.5 w-3.5 mr-1" /> Annuler
+                  </Button>
+                )}
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
@@ -346,22 +458,33 @@ export function MedalsDialog({
                     </span>
                   )}
                 </Label>
+                <p className="text-xs text-muted-foreground">
+                  {participantIds.length > 0
+                    ? `Seuls les athlètes ayant participé à cette compétition (${players.length}) sont listés.`
+                    : "Aucune participation enregistrée — tous les athlètes de la catégorie sont affichés."}
+                </p>
                 <div className="max-h-40 overflow-y-auto rounded border p-2">
                   <div className="space-y-1">
-                    {players?.map((p) => (
-                      <label
-                        key={p.id}
-                        className="flex items-center gap-2 p-1.5 rounded hover:bg-accent cursor-pointer"
-                      >
-                        <Checkbox
-                          checked={selectedPlayerIds.includes(p.id)}
-                          onCheckedChange={() => togglePlayer(p.id)}
-                        />
-                        <span className="text-sm">
-                          {[p.first_name, p.name].filter(Boolean).join(" ")}
-                        </span>
-                      </label>
-                    ))}
+                    {players.length === 0 ? (
+                      <p className="text-xs text-muted-foreground text-center py-2">
+                        Aucun athlète disponible.
+                      </p>
+                    ) : (
+                      players.map((p) => (
+                        <label
+                          key={p.id}
+                          className="flex items-center gap-2 p-1.5 rounded hover:bg-accent cursor-pointer"
+                        >
+                          <Checkbox
+                            checked={selectedPlayerIds.includes(p.id)}
+                            onCheckedChange={() => togglePlayer(p.id)}
+                          />
+                          <span className="text-sm">
+                            {[p.first_name, p.name].filter(Boolean).join(" ")}
+                          </span>
+                        </label>
+                      ))
+                    )}
                   </div>
                 </div>
               </div>
@@ -378,11 +501,11 @@ export function MedalsDialog({
 
               <Button
                 className="w-full"
-                onClick={() => addMedal.mutate()}
-                disabled={addMedal.isPending}
+                onClick={() => saveMedal.mutate()}
+                disabled={saveMedal.isPending}
               >
                 <Trophy className="h-4 w-4 mr-2" />
-                Ajouter au palmarès
+                {editingKey ? "Mettre à jour la médaille" : "Ajouter au palmarès"}
               </Button>
             </div>
           </div>
