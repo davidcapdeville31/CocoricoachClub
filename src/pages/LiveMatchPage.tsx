@@ -95,6 +95,8 @@ export default function LiveMatchPage() {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
+  const [chainSide, setChainSide] = useState<"home" | "away" | null>(null);
+
   // After try, chain conversion
   useEffect(() => {
     if (chainNext && !openType) {
@@ -115,7 +117,12 @@ export default function LiveMatchPage() {
         toast.success("Événement enregistré");
       }
       setOpenType(null); setEditing(null);
-      if (chain) setChainNext(chain.type);
+      if (chain) {
+        setChainSide((payload.team_side as "home" | "away") ?? null);
+        setChainNext(chain.type);
+      } else {
+        setChainSide(null);
+      }
     } catch {/* toast handled */}
   };
 
@@ -195,7 +202,8 @@ export default function LiveMatchPage() {
       {openType && (
         <EventDialog
           open={!!openType}
-          onOpenChange={(o) => { if (!o) { setOpenType(null); setEditing(null); } }}
+          onOpenChange={(o) => { if (!o) { setOpenType(null); setEditing(null); setChainSide(null); } }}
+          defaultSide={chainSide ?? undefined}
           eventType={openType}
           defaultMinute={minute}
           defaultSecond={seconds}
