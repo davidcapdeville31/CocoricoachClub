@@ -54,7 +54,7 @@ export default function LiveMatchPage() {
     enabled: !!matchId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("match_lineups").select("player_id, players(id, name, first_name, jersey_number)").eq("match_id", matchId!);
+        .from("match_lineups").select("player_id, position, is_starter, players(id, name, first_name)").eq("match_id", matchId!);
       if (error) throw error;
       return data as any[];
     },
@@ -67,10 +67,13 @@ export default function LiveMatchPage() {
   const awayName = match?.is_home ? (match?.opponent ?? "Extérieur") : (match?.categories?.name ?? "Domicile");
 
   const homePlayers = useMemo(
-    () => (lineup ?? []).map((l: any) => ({
-      id: l.player_id,
-      label: `${l.players?.jersey_number ? `#${l.players.jersey_number} ` : ""}${[l.players?.first_name, l.players?.name].filter(Boolean).join(" ")}`,
-    })),
+    () => (lineup ?? [])
+      .slice()
+      .sort((a: any, b: any) => (a.position ?? 99) - (b.position ?? 99))
+      .map((l: any) => ({
+        id: l.player_id,
+        label: `${l.position ? `#${l.position} ` : ""}${[l.players?.first_name, l.players?.name].filter(Boolean).join(" ")}`,
+      })),
     [lineup]
   );
   const playerNames = useMemo(() => {
