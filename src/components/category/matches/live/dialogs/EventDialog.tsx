@@ -6,6 +6,9 @@ import { Label } from "@/components/ui/label";
 import type { EventType, MatchEvent, Outcome, Period, TeamSide } from "../types";
 import { EVENT_LABELS } from "../types";
 import { isLight } from "./TeamColorsDialog";
+import { RugbyFieldSVG } from "@/components/rugby/RugbyFieldSVG";
+import { getKickDistances, getPositionLabel } from "@/lib/utils/kickingFieldZones";
+import { MapPin } from "lucide-react";
 
 export interface EventDialogPlayer { id: string; label: string }
 
