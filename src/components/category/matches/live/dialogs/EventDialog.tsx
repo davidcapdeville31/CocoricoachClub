@@ -209,7 +209,7 @@ export function EventDialog(props: EventDialogProps) {
                     key={side}
                     type="button"
                     variant="outline"
-                    onClick={() => setField("side", side)}
+                    onClick={() => setDraft((prev) => ({ ...prev, side, playerId: side === prev.side ? prev.playerId : "" }))}
                     className={`h-12 text-sm border-2 transition-all ${active ? "ring-2 ring-offset-2 shadow-md" : "bg-transparent border-border hover:bg-accent"}`}
                     style={active && color ? {
                       backgroundColor: color,
@@ -251,17 +251,27 @@ export function EventDialog(props: EventDialogProps) {
             </div>
           </div>
 
-          {/* Joueur : grille de boutons */}
-          {players.length > 0 && (
-            <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Joueur</Label>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 mt-1">
-                {players.map((p) => (
-                <Button key={p.id} type="button" variant="outline" onClick={() => setField("playerId", draft.playerId === p.id ? "" : p.id)} className={`${cls(draft.playerId === p.id)} truncate justify-start px-2`}>
-                    {p.label}
-                  </Button>
-                ))}
+          {/* Joueur : sélection limitée à mon équipe (feuille de match) */}
+          {draft.side === "home" ? (
+            players.length > 0 ? (
+              <div>
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Joueur</Label>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 mt-1">
+                  {players.map((p) => (
+                    <Button key={p.id} type="button" variant="outline" onClick={() => setField("playerId", draft.playerId === p.id ? "" : p.id)} className={`${cls(draft.playerId === p.id)} truncate justify-start px-2`}>
+                      {p.label}
+                    </Button>
+                  ))}
+                </div>
               </div>
+            ) : (
+              <div className="rounded-md border border-dashed border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+                Aucun joueur dans la feuille de match. Renseigne la composition pour pouvoir cocher l'auteur de l'action.
+              </div>
+            )
+          ) : (
+            <div className="rounded-md border border-dashed border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+              Action adverse — sélection du joueur non disponible (effectif adverse non saisi).
             </div>
           )}
 
