@@ -374,9 +374,9 @@ export function SportFieldLineup({
                     ) : (
                       <span className="text-xs font-bold">{pos.id}</span>
                     )}
-                    {/* Number badge */}
+                    {/* Number badge - à côté */}
                     {assignedPlayer && (
-                      <span className="absolute -top-1 -right-1 text-[9px] font-bold text-white bg-primary border border-white rounded-full w-4 h-4 flex items-center justify-center shadow">
+                      <span className="absolute -top-2 -right-3 text-[11px] font-extrabold text-white bg-primary border-2 border-white rounded-full w-6 h-6 flex items-center justify-center shadow-md">
                         {pos.id}
                       </span>
                     )}
