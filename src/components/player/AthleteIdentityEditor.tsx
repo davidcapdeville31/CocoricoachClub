@@ -436,14 +436,7 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
                 if (!v) return;
                 if (positionAttr) {
                   if (v === positionAttr.value) return;
-                  addMut.mutate({
-                    dimension: "position",
-                    value: v,
-                    is_primary: true,
-                    weight: null,
-                    metadata: {},
-                  });
-                  deleteMut.mutate(positionAttr.id);
+                  updateMut.mutate({ id: positionAttr.id, patch: { value: v, is_primary: true } });
                 } else {
                   addMut.mutate({
                     dimension: "position",
