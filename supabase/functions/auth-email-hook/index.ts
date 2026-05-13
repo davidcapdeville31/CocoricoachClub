@@ -17,12 +17,12 @@ const corsHeaders = {
 }
 
 const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Confirm your email',
-  invite: "You've been invited",
-  magiclink: 'Your login link',
-  recovery: 'Reset your password',
-  email_change: 'Confirm your new email',
-  reauthentication: 'Your verification code',
+  signup: 'Confirme ton inscription à CocoriCoach Club',
+  invite: 'Tu es invité à rejoindre CocoriCoach Club',
+  magiclink: 'Ton lien de connexion CocoriCoach Club',
+  recovery: 'Réinitialisation de ton mot de passe',
+  email_change: 'Confirme ta nouvelle adresse email',
+  reauthentication: 'Ton code de vérification',
 }
 
 // Template mapping
@@ -36,7 +36,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "cocoricoachclub"
+const SITE_NAME = "CocoriCoach Club"
 const SENDER_DOMAIN = "notify.cocoricoachclub.com"
 const ROOT_DOMAIN = "cocoricoachclub.com"
 const FROM_DOMAIN = "cocoricoachclub.com" // Domain shown in From address (may be root or sender subdomain)
