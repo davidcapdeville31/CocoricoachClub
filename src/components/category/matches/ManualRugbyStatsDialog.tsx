@@ -47,13 +47,18 @@ type StatRow = {
 };
 
 type PositionableStatKey =
-  | "conversionsMade" | "penaltiesMade" | "drops"
+  | "conversionsMade" | "conversionsMissed"
+  | "penaltiesMade" | "penaltiesMissed"
+  | "drops" | "dropsMissed"
   | "scrumsWon" | "scrumsLost" | "lineoutsWon" | "lineoutsLost";
 
 const POSITIONABLE_KIND: Record<PositionableStatKey, PositionableKind> = {
   conversionsMade: "conversion",
+  conversionsMissed: "conversion",
   penaltiesMade: "penalty_kick",
+  penaltiesMissed: "penalty_kick",
   drops: "drop",
+  dropsMissed: "drop",
   scrumsWon: "scrum_won",
   scrumsLost: "scrum_lost",
   lineoutsWon: "lineout_won",
@@ -208,15 +213,15 @@ export function ManualRugbyStatsDialog({
         case "try": case "penalty_try": target.tries += 1; break;
         case "conversion":
           if (e.outcome === "success") { target.conversionsMade += 1; pushPos("conversionsMade"); }
-          else if (e.outcome === "fail") target.conversionsMissed += 1;
+          else if (e.outcome === "fail") { target.conversionsMissed += 1; pushPos("conversionsMissed"); }
           break;
         case "penalty_kick":
           if (e.outcome === "success") { target.penaltiesMade += 1; pushPos("penaltiesMade"); }
-          else if (e.outcome === "fail") target.penaltiesMissed += 1;
+          else if (e.outcome === "fail") { target.penaltiesMissed += 1; pushPos("penaltiesMissed"); }
           break;
         case "drop":
           if (e.outcome === "success") { target.drops += 1; pushPos("drops"); }
-          else if (e.outcome === "fail") target.dropsMissed += 1;
+          else if (e.outcome === "fail") { target.dropsMissed += 1; pushPos("dropsMissed"); }
           break;
         case "scrum":
           if (e.outcome === "fail") { target.scrumsLost += 1; pushPos("scrumsLost"); }
@@ -408,11 +413,11 @@ export function ManualRugbyStatsDialog({
         r.positions?.[key]?.[i];
       for (let i = 0; i < r.tries; i++) push(side, pid, per, "try", null, 5, attach());
       for (let i = 0; i < r.conversionsMade; i++) push(side, pid, per, "conversion", "success", 2, attach(), posAt("conversionsMade", i));
-      for (let i = 0; i < r.conversionsMissed; i++) push(side, pid, per, "conversion", "fail", 0, attach());
+      for (let i = 0; i < r.conversionsMissed; i++) push(side, pid, per, "conversion", "fail", 0, attach(), posAt("conversionsMissed", i));
       for (let i = 0; i < r.penaltiesMade; i++) push(side, pid, per, "penalty_kick", "success", 3, attach(), posAt("penaltiesMade", i));
-      for (let i = 0; i < r.penaltiesMissed; i++) push(side, pid, per, "penalty_kick", "fail", 0, attach());
+      for (let i = 0; i < r.penaltiesMissed; i++) push(side, pid, per, "penalty_kick", "fail", 0, attach(), posAt("penaltiesMissed", i));
       for (let i = 0; i < r.drops; i++) push(side, pid, per, "drop", "success", 3, attach(), posAt("drops", i));
-      for (let i = 0; i < r.dropsMissed; i++) push(side, pid, per, "drop", "fail", 0, attach());
+      for (let i = 0; i < r.dropsMissed; i++) push(side, pid, per, "drop", "fail", 0, attach(), posAt("dropsMissed", i));
       for (let i = 0; i < r.scrumsWon; i++) push(side, pid, per, "scrum", "success", 0, attach(), posAt("scrumsWon", i));
       for (let i = 0; i < r.scrumsLost; i++) push(side, pid, per, "scrum", "fail", 0, attach(), posAt("scrumsLost", i));
       for (let i = 0; i < r.lineoutsWon; i++) push(side, pid, per, "lineout", "success", 0, attach(), posAt("lineoutsWon", i));
