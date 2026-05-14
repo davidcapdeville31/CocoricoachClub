@@ -316,14 +316,14 @@ function StatBlock({
 }) {
   const tone = BLOCK_ACCENTS[accent];
   return (
-    <div className="rounded-xl border border-border/60 bg-surface-elevated/40 p-3">
-      <div className="flex items-center gap-2 mb-2.5 px-1">
+    <div className="rounded-lg border border-border/60 bg-surface-elevated/40 p-2">
+      <div className="flex items-center gap-1.5 mb-1.5 px-1">
         <span className={cn("h-1.5 w-1.5 rounded-full", tone.dot)} />
-        <h4 className={cn("text-[11px] font-semibold uppercase tracking-wider", tone.text)}>
+        <h4 className={cn("text-[10px] font-semibold uppercase tracking-wider", tone.text)}>
           {title}
         </h4>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
         {children}
       </div>
     </div>
