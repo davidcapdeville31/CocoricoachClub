@@ -213,15 +213,15 @@ export function ManualRugbyStatsDialog({
         case "try": case "penalty_try": target.tries += 1; break;
         case "conversion":
           if (e.outcome === "success") { target.conversionsMade += 1; pushPos("conversionsMade"); }
-          else if (e.outcome === "fail") target.conversionsMissed += 1;
+          else if (e.outcome === "fail") { target.conversionsMissed += 1; pushPos("conversionsMissed"); }
           break;
         case "penalty_kick":
           if (e.outcome === "success") { target.penaltiesMade += 1; pushPos("penaltiesMade"); }
-          else if (e.outcome === "fail") target.penaltiesMissed += 1;
+          else if (e.outcome === "fail") { target.penaltiesMissed += 1; pushPos("penaltiesMissed"); }
           break;
         case "drop":
           if (e.outcome === "success") { target.drops += 1; pushPos("drops"); }
-          else if (e.outcome === "fail") target.dropsMissed += 1;
+          else if (e.outcome === "fail") { target.dropsMissed += 1; pushPos("dropsMissed"); }
           break;
         case "scrum":
           if (e.outcome === "fail") { target.scrumsLost += 1; pushPos("scrumsLost"); }
