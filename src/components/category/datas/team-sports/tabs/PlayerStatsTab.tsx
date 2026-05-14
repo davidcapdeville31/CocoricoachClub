@@ -57,14 +57,14 @@ const fullName = (p: PlayerLite) =>
 type StatKey =
   | "playTimeMinutes"
   | "tries"
-  | "passes"
-  | "carries"
-  | "meters"
-  | "offloads"
+  | "conversions"
+  | "penalties"
+  | "drops"
   | "tackles"
   | "missedTackles"
   | "tackleEff"
-  | "turnovers"
+  | "knockOns"
+  | "fouls"
   | "cards"
   | "score";
 
