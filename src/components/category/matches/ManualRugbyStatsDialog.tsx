@@ -11,7 +11,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Loader2, Save, Shield } from "lucide-react";
+import { Loader2, Save, Shield, MapPin } from "lucide-react";
+import { ManualRugbyPositionDialog, type FieldPosition, type PositionableKind } from "./ManualRugbyPositionDialog";
 
 interface ManualRugbyStatsDialogProps {
   open: boolean;
