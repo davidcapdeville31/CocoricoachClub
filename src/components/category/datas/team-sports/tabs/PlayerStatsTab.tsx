@@ -273,7 +273,7 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
     return (
       <Card className="rounded-2xl">
         <CardContent className="p-10 text-center text-muted-foreground">
-          Aucun joueur n'a d'événement dans ce match.
+          Aucun joueur n'a d'événement sur les matchs sélectionnés.
         </CardContent>
       </Card>
     );
