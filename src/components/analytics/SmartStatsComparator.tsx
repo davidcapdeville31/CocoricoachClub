@@ -249,8 +249,9 @@ export function SmartStatsComparator({
     const filtered = playersWithValue.filter((p) => effectiveSelection.includes(p.id));
     return filtered
       .map((p) => {
+        const baseName = [p.first_name, p.name].filter(Boolean).join(" ") || p.name;
         const row: Record<string, any> = {
-          name: [p.first_name, p.name].filter(Boolean).join(" ") || p.name,
+          name: p.position ? `${baseName} · #${p.position}` : baseName,
         };
         for (const m of selectedMetrics) {
           const v = valuesByMetric.get(m.key)?.get(p.id);
