@@ -55,8 +55,7 @@ export function BasketballTrainingEntryDialog({
     BASKETBALL_PRECISION_EXERCISES[0].value as string,
   );
   const [pending, setPending] = useState<{ x: number; y: number; zone: string } | null>(null);
-  const [attempts, setAttempts] = useState("10");
-  const [successes, setSuccesses] = useState("0");
+  const [pendingResult, setPendingResult] = useState<"success" | "miss" | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Sync date when dialog reopens with a different default (e.g. another day clicked)
@@ -105,19 +104,9 @@ export function BasketballTrainingEntryDialog({
     [entries, exercise.label],
   );
 
-  const livePct = (() => {
-    const a = parseInt(attempts);
-    const s = parseInt(successes);
-    if (a > 0 && s >= 0 && s <= a) return ((s / a) * 100).toFixed(1);
-    return null;
-  })();
-
   const handleSave = async () => {
     if (!pending) return toast.error("Clique d'abord sur le terrain");
-    const a = parseInt(attempts);
-    const s = parseInt(successes);
-    if (isNaN(a) || a <= 0) return toast.error("Tentatives invalides");
-    if (isNaN(s) || s < 0 || s > a) return toast.error("Réussites invalides");
+    if (!pendingResult) return toast.error("Indique si le tir est Réussi ou Manqué");
 
     setSubmitting(true);
     const { data, error } = await supabase.functions.invoke(
@@ -130,8 +119,8 @@ export function BasketballTrainingEntryDialog({
           exercise_label: exercise.label,
           zone_x: pending.x,
           zone_y: pending.y,
-          attempts: a,
-          successes: s,
+          attempts: 1,
+          successes: pendingResult === "success" ? 1 : 0,
         },
       },
     );
@@ -140,10 +129,9 @@ export function BasketballTrainingEntryDialog({
       toast.error((data as any)?.error || error?.message || "Erreur");
       return;
     }
-    toast.success("Exercice enregistré, le staff a été notifié");
+    toast.success("Tir enregistré");
     setPending(null);
-    setAttempts("10");
-    setSuccesses("0");
+    setPendingResult(null);
     qc.invalidateQueries({ queryKey: ["basket-athlete-precision"] });
     qc.invalidateQueries({ queryKey: ["precision-training-stats"] });
   };
