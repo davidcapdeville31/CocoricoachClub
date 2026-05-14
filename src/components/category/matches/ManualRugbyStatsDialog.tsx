@@ -151,7 +151,7 @@ export function ManualRugbyStatsDialog({
   );
 
   const emptyNotesByCat = (): Record<Category, NotesByPeriod> => ({
-    points: emptyNotes(), conquest: emptyNotes(), defense: emptyNotes(), discipline: emptyNotes(),
+    points: emptyNotes(), attack: emptyNotes(), conquest: emptyNotes(), defense: emptyNotes(), discipline: emptyNotes(),
   });
 
   // Pre-populate from existing events
