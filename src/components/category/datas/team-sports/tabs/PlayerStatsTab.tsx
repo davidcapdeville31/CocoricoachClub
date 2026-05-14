@@ -177,7 +177,7 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
   const [posFilter, setPosFilter] = useState<string>("all");
   const [selected, setSelected] = useState<string[]>([]);
   const [drawerId, setDrawerId] = useState<string | null>(null);
-  const [sortKey, setSortKey] = useState<StatKey>("score");
+  const [sortKey, setSortKey] = useState<StatKey>("playTimeMinutes");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   const matchIds = useMemo(() => matches.map(m => m.id), [matches]);
