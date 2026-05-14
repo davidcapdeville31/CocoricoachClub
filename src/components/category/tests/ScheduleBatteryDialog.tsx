@@ -13,13 +13,39 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CalendarPlus, Plus, X, Users } from "lucide-react";
+import { CalendarPlus, Plus, X, Users, Repeat } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, addWeeks, isBefore, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
+
+function generateSessionDates(
+  startDate: string,
+  frequencyWeeks: number,
+  endDate?: string | null,
+): string[] {
+  const dates: string[] = [];
+  const start = new Date(startDate);
+  const hardCap = addWeeks(start, 104);
+  const limit = endDate ? new Date(endDate) : addWeeks(startOfDay(new Date()), 26);
+  const maxDate = isBefore(limit, hardCap) ? limit : hardCap;
+  let current = start;
+  while (!isBefore(maxDate, current)) {
+    dates.push(format(current, "yyyy-MM-dd"));
+    current = addWeeks(current, frequencyWeeks);
+  }
+  return dates;
+}
 
 interface ScheduleBatteryDialogProps {
   open: boolean;
@@ -56,12 +82,21 @@ export function ScheduleBatteryDialog({
   const [slots, setSlots] = useState<DateSlot[]>([newSlot()]);
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(true);
+  const [recurring, setRecurring] = useState(false);
+  const [frequencyWeeks, setFrequencyWeeks] = useState(4);
+  const [endMode, setEndMode] = useState<"date" | "duration" | "never">("date");
+  const [endDate, setEndDate] = useState<string>(format(new Date(Date.now() + 8 * 7 * 86400000), "yyyy-MM-dd"));
+  const [durationCount, setDurationCount] = useState(2);
+  const [durationUnit, setDurationUnit] = useState<"weeks" | "months">("months");
 
   useEffect(() => {
     if (!open) {
       setSlots([newSlot()]);
       setSelectAll(true);
       setSelectedPlayers([]);
+      setRecurring(false);
+      setFrequencyWeeks(4);
+      setEndMode("date");
     }
   }, [open]);
 
@@ -121,11 +156,26 @@ export function ScheduleBatteryDialog({
     else setSelectedPlayers([]);
   };
 
+  const computedEndDate = useMemo(() => {
+    if (!recurring) return null;
+    if (endMode === "never") return null;
+    const startStr = slots[0]?.date;
+    if (!startStr) return null;
+    if (endMode === "duration") {
+      const weeks = durationUnit === "months" ? durationCount * 4 : durationCount;
+      return format(addWeeks(new Date(startStr), weeks), "yyyy-MM-dd");
+    }
+    return endDate;
+  }, [recurring, endMode, slots, durationCount, durationUnit, endDate]);
+
+  const recurringPreview = useMemo(() => {
+    if (!recurring || !slots[0]?.date) return [] as string[];
+    return generateSessionDates(slots[0].date, frequencyWeeks, computedEndDate);
+  }, [recurring, slots, frequencyWeeks, computedEndDate]);
+
   const schedule = useMutation({
     mutationFn: async () => {
       if (!battery) throw new Error("Batterie introuvable");
-      if (slots.length === 0) throw new Error("Ajoutez au moins une date");
-      if (slots.some((s) => !s.date)) throw new Error("Toutes les dates doivent être renseignées");
       if (selectedPlayers.length === 0) throw new Error("Sélectionnez au moins un athlète");
 
       const testsMeta = (battery.items || []).map((it: any) => ({
@@ -136,9 +186,50 @@ export function ScheduleBatteryDialog({
       const title = `Batterie : ${battery.name}`;
       const fullNotes = `${title}\n<!--TESTS:${JSON.stringify(testsMeta)}-->`;
 
+      // Build effective slots: recurring => generate from first slot
+      let effectiveSlots: DateSlot[];
+      let reminderId: string | null = null;
+      if (recurring) {
+        const base = slots[0];
+        if (!base?.date) throw new Error("Date de départ requise");
+        const dates = generateSessionDates(base.date, frequencyWeeks, computedEndDate);
+        if (dates.length === 0) throw new Error("Aucune date à planifier");
+        effectiveSlots = dates.map((d) => ({
+          id: crypto.randomUUID(),
+          date: d,
+          startTime: base.startTime,
+          endTime: base.endTime,
+        }));
+
+        // Create test_reminder so it appears in "Rappels de tests récurrents"
+        const { data: reminder, error: rErr } = await supabase
+          .from("test_reminders")
+          .insert({
+            category_id: categoryId,
+            test_type: title,
+            test_metadata: testsMeta as any,
+            frequency_weeks: frequencyWeeks,
+            start_date: base.date,
+            end_date: computedEndDate,
+            session_start_time: base.startTime || null,
+            session_end_time: base.endTime || null,
+            duration_minutes: 60,
+            auto_assign_athletes: selectAll,
+            is_active: true,
+          } as any)
+          .select("id")
+          .single();
+        if (rErr) throw rErr;
+        reminderId = reminder.id;
+      } else {
+        if (slots.length === 0) throw new Error("Ajoutez au moins une date");
+        if (slots.some((s) => !s.date)) throw new Error("Toutes les dates doivent être renseignées");
+        effectiveSlots = slots;
+      }
+
       const created: Array<{ id: string; date: string; startTime: string }> = [];
 
-      for (const slot of slots) {
+      for (const slot of effectiveSlots) {
         const { data: session, error } = await supabase
           .from("training_sessions")
           .insert({
@@ -149,7 +240,8 @@ export function ScheduleBatteryDialog({
             training_type: "test",
             notes: fullNotes,
             intensity: 1,
-          })
+            test_reminder_id: reminderId,
+          } as any)
           .select("id")
           .single();
         if (error) throw error;
@@ -170,6 +262,8 @@ export function ScheduleBatteryDialog({
       queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["plan-tests-reminders", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["test-reminders", categoryId] });
       toast.success(
         created.length === 1
           ? "Batterie planifiée au calendrier"
@@ -218,14 +312,18 @@ export function ScheduleBatteryDialog({
             {/* Dates list */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold">Dates planifiées</Label>
-                <Button type="button" size="sm" variant="outline" onClick={addSlot} className="gap-1.5">
-                  <Plus className="h-3.5 w-3.5" /> Ajouter une date
-                </Button>
+                <Label className="text-sm font-semibold">
+                  {recurring ? "Date de départ" : "Dates planifiées"}
+                </Label>
+                {!recurring && (
+                  <Button type="button" size="sm" variant="outline" onClick={addSlot} className="gap-1.5">
+                    <Plus className="h-3.5 w-3.5" /> Ajouter une date
+                  </Button>
+                )}
               </div>
 
               <div className="space-y-2">
-                {slots.map((slot, idx) => (
+                {(recurring ? slots.slice(0, 1) : slots).map((slot, idx) => (
                   <div
                     key={slot.id}
                     className="rounded-2xl border bg-muted/30 p-3 grid grid-cols-1 md:grid-cols-[auto_1fr_auto_auto_auto] gap-2 items-end"
@@ -271,6 +369,97 @@ export function ScheduleBatteryDialog({
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Recurrence */}
+            <div className="rounded-2xl border bg-muted/30 p-4 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <Repeat className="h-4 w-4" /> Récurrence
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Crée automatiquement les sessions suivantes selon la fréquence et la durée choisies.
+                  </p>
+                </div>
+                <Switch checked={recurring} onCheckedChange={setRecurring} />
+              </div>
+
+              {recurring && (
+                <div className="space-y-3 pt-1">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Fréquence</Label>
+                    <Select value={String(frequencyWeeks)} onValueChange={(v) => setFrequencyWeeks(parseInt(v))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">Toutes les semaines</SelectItem>
+                        <SelectItem value="2">Toutes les 2 semaines</SelectItem>
+                        <SelectItem value="3">Toutes les 3 semaines</SelectItem>
+                        <SelectItem value="4">Toutes les 4 semaines</SelectItem>
+                        <SelectItem value="6">Toutes les 6 semaines</SelectItem>
+                        <SelectItem value="8">Toutes les 8 semaines</SelectItem>
+                        <SelectItem value="12">Toutes les 12 semaines</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Fin de la récurrence</Label>
+                    <Select value={endMode} onValueChange={(v) => setEndMode(v as any)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="date">Jusqu'à une date</SelectItem>
+                        <SelectItem value="duration">Pendant une durée</SelectItem>
+                        <SelectItem value="never">Sans fin (max 2 ans)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {endMode === "date" && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Jusqu'au</Label>
+                      <Input
+                        type="date"
+                        value={endDate}
+                        min={slots[0]?.date}
+                        onChange={(e) => setEndDate(e.target.value)}
+                      />
+                    </div>
+                  )}
+
+                  {endMode === "duration" && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Pendant</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={durationCount}
+                          onChange={(e) => setDurationCount(parseInt(e.target.value) || 1)}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Unité</Label>
+                        <Select value={durationUnit} onValueChange={(v) => setDurationUnit(v as any)}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="weeks">Semaines</SelectItem>
+                            <SelectItem value="months">Mois</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+
+                  {recurringPreview.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {recurringPreview.length} session{recurringPreview.length > 1 ? "s" : ""} prévue{recurringPreview.length > 1 ? "s" : ""} • Aperçu :{" "}
+                      {recurringPreview.slice(0, 4).map((d) => format(new Date(d), "dd MMM", { locale: fr })).join(", ")}
+                      {recurringPreview.length > 4 ? "…" : ""}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Athletes */}
