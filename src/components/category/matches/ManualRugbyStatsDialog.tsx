@@ -197,10 +197,17 @@ export function ManualRugbyStatsDialog({
         const { error: insErr } = await supabase.from("match_events" as any).insert(events);
         if (insErr) throw insErr;
       }
+      // Persist computed club score + opponent score on the match
+      const scorePatch = isHome
+        ? { score_home: clubScore, score_away: opponentScore }
+        : { score_away: clubScore, score_home: opponentScore };
+      const { error: matchErr } = await supabase.from("matches").update(scorePatch as any).eq("id", matchId);
+      if (matchErr) throw matchErr;
       toast.success("Statistiques enregistrées");
       qc.invalidateQueries({ queryKey: ["match_events", matchId] });
       qc.invalidateQueries({ queryKey: ["analytics_match_events", matchId] });
       qc.invalidateQueries({ queryKey: ["manual-stats-events", matchId] });
+      qc.invalidateQueries({ queryKey: ["matches"] });
       onOpenChange(false);
     } catch (e: any) {
       toast.error(e?.message ?? "Erreur lors de l'enregistrement");
