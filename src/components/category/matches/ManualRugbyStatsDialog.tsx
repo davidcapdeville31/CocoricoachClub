@@ -24,42 +24,71 @@ interface ManualRugbyStatsDialogProps {
 }
 
 type StatRow = {
+  // Points
   tries: number;
   conversionsMade: number; conversionsMissed: number;
   penaltiesMade: number; penaltiesMissed: number;
   drops: number; dropsMissed: number;
-  tackles: number; missedTackles: number;
-  knockOns: number; fouls: number;
-  yellowCards: number; redCards: number;
+  // Conquête
+  scrumsWon: number; scrumsLost: number;
+  lineoutsWon: number; lineoutsLost: number;
+  mauls: number; rucks: number;
+  // Défense
+  tackles: number; missedTackles: number; knockOns: number;
+  // Discipline
+  fouls: number; yellowCards: number; redCards: number;
 };
 
 type Period = "H1" | "H2";
+type Category = "points" | "conquest" | "defense" | "discipline";
 type PeriodStats = { H1: StatRow; H2: StatRow };
+type NotesByPeriod = { H1: string; H2: string };
 
 const EMPTY: StatRow = {
   tries: 0, conversionsMade: 0, conversionsMissed: 0,
   penaltiesMade: 0, penaltiesMissed: 0, drops: 0, dropsMissed: 0,
-  tackles: 0, missedTackles: 0, knockOns: 0, fouls: 0,
-  yellowCards: 0, redCards: 0,
+  scrumsWon: 0, scrumsLost: 0, lineoutsWon: 0, lineoutsLost: 0, mauls: 0, rucks: 0,
+  tackles: 0, missedTackles: 0, knockOns: 0,
+  fouls: 0, yellowCards: 0, redCards: 0,
 };
 
 const emptyPeriodStats = (): PeriodStats => ({ H1: { ...EMPTY }, H2: { ...EMPTY } });
+const emptyNotes = (): NotesByPeriod => ({ H1: "", H2: "" });
 
-const FIELDS: { key: keyof StatRow; label: string; short: string }[] = [
-  { key: "tries", label: "Essais", short: "Essais" },
-  { key: "conversionsMade", label: "Transformations réussies", short: "Tr ✓" },
-  { key: "conversionsMissed", label: "Transformations manquées", short: "Tr ✗" },
-  { key: "penaltiesMade", label: "Pénalités réussies", short: "Pén ✓" },
-  { key: "penaltiesMissed", label: "Pénalités manquées", short: "Pén ✗" },
-  { key: "drops", label: "Drops réussis", short: "Drop ✓" },
-  { key: "dropsMissed", label: "Drops manqués", short: "Drop ✗" },
-  { key: "tackles", label: "Plaquages", short: "Plaq" },
-  { key: "missedTackles", label: "Plaquages manqués", short: "Plaq ✗" },
-  { key: "knockOns", label: "En-avants", short: "En-av" },
-  { key: "fouls", label: "Fautes", short: "Fautes" },
-  { key: "yellowCards", label: "Cartons jaunes", short: "J" },
-  { key: "redCards", label: "Cartons rouges", short: "R" },
+type FieldDef = { key: keyof StatRow; label: string; short: string; category: Category };
+
+const FIELDS: FieldDef[] = [
+  // Points
+  { key: "tries", label: "Essais", short: "Ess", category: "points" },
+  { key: "conversionsMade", label: "Transformations réussies", short: "Tr ✓", category: "points" },
+  { key: "conversionsMissed", label: "Transformations manquées", short: "Tr ✗", category: "points" },
+  { key: "penaltiesMade", label: "Pénalités réussies", short: "Pén ✓", category: "points" },
+  { key: "penaltiesMissed", label: "Pénalités manquées", short: "Pén ✗", category: "points" },
+  { key: "drops", label: "Drops réussis", short: "Drop ✓", category: "points" },
+  { key: "dropsMissed", label: "Drops manqués", short: "Drop ✗", category: "points" },
+  // Conquête
+  { key: "scrumsWon", label: "Mêlées gagnées", short: "Mêlée ✓", category: "conquest" },
+  { key: "scrumsLost", label: "Mêlées perdues", short: "Mêlée ✗", category: "conquest" },
+  { key: "lineoutsWon", label: "Touches gagnées", short: "Touche ✓", category: "conquest" },
+  { key: "lineoutsLost", label: "Touches perdues", short: "Touche ✗", category: "conquest" },
+  { key: "mauls", label: "Ballons portés", short: "Maul", category: "conquest" },
+  { key: "rucks", label: "Rucks", short: "Ruck", category: "conquest" },
+  // Défense
+  { key: "tackles", label: "Plaquages réussis", short: "Plaq", category: "defense" },
+  { key: "missedTackles", label: "Plaquages manqués", short: "Plaq ✗", category: "defense" },
+  { key: "knockOns", label: "En-avants", short: "En-av", category: "defense" },
+  // Discipline
+  { key: "fouls", label: "Fautes", short: "Fautes", category: "discipline" },
+  { key: "yellowCards", label: "Cartons jaunes", short: "J", category: "discipline" },
+  { key: "redCards", label: "Cartons rouges", short: "R", category: "discipline" },
 ];
+
+const CATEGORY_LABELS: Record<Category, string> = {
+  points: "Points",
+  conquest: "Conquête",
+  defense: "Défense",
+  discipline: "Discipline",
+};
 
 const computePoints = (r: StatRow) =>
   r.tries * 5 + r.conversionsMade * 2 + r.penaltiesMade * 3 + r.drops * 3;
@@ -75,8 +104,11 @@ export function ManualRugbyStatsDialog({
   const oppSide: "home" | "away" = isHome ? "away" : "home";
 
   const [period, setPeriod] = useState<Period>("H1");
+  const [category, setCategory] = useState<Category>("points");
   const [stats, setStats] = useState<Record<string, PeriodStats>>({});
   const [opponent, setOpponent] = useState<PeriodStats>(emptyPeriodStats());
+  // Notes "minutes" libres : par joueur (et "opp" pour l'adversaire), par mi-temps, par catégorie
+  const [notes, setNotes] = useState<Record<string, Record<Category, NotesByPeriod>>>({});
   const [saving, setSaving] = useState(false);
   const [confirmLiveOverwrite, setConfirmLiveOverwrite] = useState(false);
 
@@ -111,11 +143,20 @@ export function ManualRugbyStatsDialog({
     [existingEvents]
   );
 
+  const emptyNotesByCat = (): Record<Category, NotesByPeriod> => ({
+    points: emptyNotes(), conquest: emptyNotes(), defense: emptyNotes(), discipline: emptyNotes(),
+  });
+
   // Pre-populate from existing events
   useEffect(() => {
     if (!open) return;
     const init: Record<string, PeriodStats> = {};
-    lineup.forEach((l) => { init[l.player_id] = emptyPeriodStats(); });
+    const initNotes: Record<string, Record<Category, NotesByPeriod>> = {};
+    lineup.forEach((l) => {
+      init[l.player_id] = emptyPeriodStats();
+      initNotes[l.player_id] = emptyNotesByCat();
+    });
+    initNotes["opp"] = emptyNotesByCat();
     const opp: PeriodStats = emptyPeriodStats();
 
     const applyEvent = (target: StatRow, e: any) => {
@@ -133,6 +174,18 @@ export function ManualRugbyStatsDialog({
           if (e.outcome === "success") target.drops += 1;
           else if (e.outcome === "fail") target.dropsMissed += 1;
           break;
+        case "scrum":
+          if (e.outcome === "fail") target.scrumsLost += 1; else target.scrumsWon += 1;
+          break;
+        case "scrum_won": target.scrumsWon += 1; break;
+        case "scrum_lost": target.scrumsLost += 1; break;
+        case "lineout":
+          if (e.outcome === "fail") target.lineoutsLost += 1; else target.lineoutsWon += 1;
+          break;
+        case "lineout_won": target.lineoutsWon += 1; break;
+        case "lineout_lost": target.lineoutsLost += 1; break;
+        case "maul": target.mauls += 1; break;
+        case "ruck": target.rucks += 1; break;
         case "tackle":
           if (e.outcome === "fail") target.missedTackles += 1; else target.tackles += 1;
           break;
@@ -151,10 +204,25 @@ export function ManualRugbyStatsDialog({
       } else if (e.player_id && init[e.player_id]) {
         applyEvent(init[e.player_id][per], e);
       }
+      // restitution des notes minutes
+      const notesMap = e.metadata?.minutes_notes;
+      if (notesMap && typeof notesMap === "object") {
+        const targetKey = e.team_side === oppSide ? "opp" : (e.player_id || null);
+        if (targetKey && initNotes[targetKey]) {
+          (Object.keys(notesMap) as Category[]).forEach((cat) => {
+            const v = notesMap[cat];
+            if (v && typeof v === "string" && !initNotes[targetKey][cat]?.[per]) {
+              initNotes[targetKey][cat][per] = v;
+            }
+          });
+        }
+      }
     });
     setStats(init);
     setOpponent(opp);
+    setNotes(initNotes);
     setPeriod("H1");
+    setCategory("points");
   }, [open, lineup, existingEvents, oppSide]);
 
   const sortedLineup = useMemo(
@@ -179,6 +247,19 @@ export function ManualRugbyStatsDialog({
     }));
   };
 
+  const updateNote = (targetKey: string, value: string) => {
+    setNotes((prev) => {
+      const cur = prev[targetKey] ?? emptyNotesByCat();
+      return {
+        ...prev,
+        [targetKey]: {
+          ...cur,
+          [category]: { ...cur[category], [period]: value },
+        },
+      };
+    });
+  };
+
   // Live computed scores (sum of both halves)
   const clubScore = useMemo(
     () => Object.values(stats).reduce((s, ps) => s + sumPeriods(ps, computePoints), 0),
@@ -186,40 +267,71 @@ export function ManualRugbyStatsDialog({
   );
   const opponentScore = useMemo(() => sumPeriods(opponent, computePoints), [opponent]);
 
+  const visibleFields = useMemo(() => FIELDS.filter((f) => f.category === category), [category]);
+
   const buildEvents = () => {
     const events: any[] = [];
+    const buildMinutesMeta = (targetKey: string, per: Period) => {
+      const n = notes[targetKey];
+      if (!n) return undefined;
+      const byCat: Record<string, string> = {};
+      (Object.keys(n) as Category[]).forEach((c) => {
+        const v = n[c]?.[per];
+        if (v && v.trim()) byCat[c] = v.trim();
+      });
+      return Object.keys(byCat).length > 0 ? byCat : undefined;
+    };
     const push = (
       side: "home" | "away", player_id: string | null, per: Period,
-      event_type: string, outcome: string | null, points = 0
+      event_type: string, outcome: string | null, points = 0,
+      minutesMeta?: Record<string, string>,
     ) => {
+      const metadata: any = { source: "manual" };
+      if (minutesMeta) metadata.minutes_notes = minutesMeta;
       events.push({
         match_id: matchId, team_side: side, player_id,
         minute: 0, second: 0, period: per, event_type, outcome, points,
-        metadata: { source: "manual" },
+        metadata,
       });
     };
-    const pushAll = (side: "home" | "away", pid: string | null, per: Period, r: StatRow) => {
-      for (let i = 0; i < r.tries; i++) push(side, pid, per, "try", null, 5);
-      for (let i = 0; i < r.conversionsMade; i++) push(side, pid, per, "conversion", "success", 2);
-      for (let i = 0; i < r.conversionsMissed; i++) push(side, pid, per, "conversion", "fail", 0);
-      for (let i = 0; i < r.penaltiesMade; i++) push(side, pid, per, "penalty_kick", "success", 3);
-      for (let i = 0; i < r.penaltiesMissed; i++) push(side, pid, per, "penalty_kick", "fail", 0);
-      for (let i = 0; i < r.drops; i++) push(side, pid, per, "drop", "success", 3);
-      for (let i = 0; i < r.dropsMissed; i++) push(side, pid, per, "drop", "fail", 0);
-      for (let i = 0; i < r.tackles; i++) push(side, pid, per, "tackle", "success", 0);
-      for (let i = 0; i < r.missedTackles; i++) push(side, pid, per, "tackle", "fail", 0);
-      for (let i = 0; i < r.knockOns; i++) push(side, pid, per, "knock_on", null, 0);
-      for (let i = 0; i < r.fouls; i++) push(side, pid, per, "foul", null, 0);
-      for (let i = 0; i < r.yellowCards; i++) push(side, pid, per, "yellow_card", null, 0);
-      for (let i = 0; i < r.redCards; i++) push(side, pid, per, "red_card", null, 0);
+    const pushAll = (
+      side: "home" | "away", pid: string | null, per: Period, r: StatRow,
+      targetKey: string,
+    ) => {
+      const minutesMeta = buildMinutesMeta(targetKey, per);
+      let firstAttached = false;
+      const attach = () => {
+        if (firstAttached || !minutesMeta) return undefined;
+        firstAttached = true;
+        return minutesMeta;
+      };
+      for (let i = 0; i < r.tries; i++) push(side, pid, per, "try", null, 5, attach());
+      for (let i = 0; i < r.conversionsMade; i++) push(side, pid, per, "conversion", "success", 2, attach());
+      for (let i = 0; i < r.conversionsMissed; i++) push(side, pid, per, "conversion", "fail", 0, attach());
+      for (let i = 0; i < r.penaltiesMade; i++) push(side, pid, per, "penalty_kick", "success", 3, attach());
+      for (let i = 0; i < r.penaltiesMissed; i++) push(side, pid, per, "penalty_kick", "fail", 0, attach());
+      for (let i = 0; i < r.drops; i++) push(side, pid, per, "drop", "success", 3, attach());
+      for (let i = 0; i < r.dropsMissed; i++) push(side, pid, per, "drop", "fail", 0, attach());
+      for (let i = 0; i < r.scrumsWon; i++) push(side, pid, per, "scrum", "success", 0, attach());
+      for (let i = 0; i < r.scrumsLost; i++) push(side, pid, per, "scrum", "fail", 0, attach());
+      for (let i = 0; i < r.lineoutsWon; i++) push(side, pid, per, "lineout", "success", 0, attach());
+      for (let i = 0; i < r.lineoutsLost; i++) push(side, pid, per, "lineout", "fail", 0, attach());
+      for (let i = 0; i < r.mauls; i++) push(side, pid, per, "maul", null, 0, attach());
+      for (let i = 0; i < r.rucks; i++) push(side, pid, per, "ruck", null, 0, attach());
+      for (let i = 0; i < r.tackles; i++) push(side, pid, per, "tackle", "success", 0, attach());
+      for (let i = 0; i < r.missedTackles; i++) push(side, pid, per, "tackle", "fail", 0, attach());
+      for (let i = 0; i < r.knockOns; i++) push(side, pid, per, "knock_on", null, 0, attach());
+      for (let i = 0; i < r.fouls; i++) push(side, pid, per, "foul", null, 0, attach());
+      for (let i = 0; i < r.yellowCards; i++) push(side, pid, per, "yellow_card", null, 0, attach());
+      for (let i = 0; i < r.redCards; i++) push(side, pid, per, "red_card", null, 0, attach());
     };
 
     Object.entries(stats).forEach(([pid, ps]) => {
-      pushAll(clubSide, pid, "H1", ps.H1);
-      pushAll(clubSide, pid, "H2", ps.H2);
+      pushAll(clubSide, pid, "H1", ps.H1, pid);
+      pushAll(clubSide, pid, "H2", ps.H2, pid);
     });
-    pushAll(oppSide, null, "H1", opponent.H1);
-    pushAll(oppSide, null, "H2", opponent.H2);
+    pushAll(oppSide, null, "H1", opponent.H1, "opp");
+    pushAll(oppSide, null, "H2", opponent.H2, "opp");
     return events;
   };
 
@@ -267,12 +379,13 @@ export function ManualRugbyStatsDialog({
           <DialogHeader>
             <DialogTitle>Saisie manuelle des statistiques</DialogTitle>
             <DialogDescription>
-              Renseignez les totaux par mi-temps. Les scores sont calculés automatiquement à partir
-              des essais, transformations, pénalités et drops des deux équipes.
+              Choisissez la mi-temps puis la catégorie. Les scores se calculent automatiquement
+              à partir des essais, transformations, pénalités et drops des deux équipes.
+              Le champ « Minutes » accepte les moments libres (ex. <em>12', 34'</em>).
             </DialogDescription>
           </DialogHeader>
 
-          {/* Live score header (sum of both halves) */}
+          {/* Live score header */}
           <div className="rounded-lg border bg-muted/40 p-3 flex items-center justify-around gap-4">
             <div className="text-center">
               <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{clubName}</div>
@@ -293,6 +406,15 @@ export function ManualRugbyStatsDialog({
             </TabsList>
           </Tabs>
 
+          {/* Category selector */}
+          <Tabs value={category} onValueChange={(v) => setCategory(v as Category)}>
+            <TabsList className="grid w-full grid-cols-4">
+              {(Object.keys(CATEGORY_LABELS) as Category[]).map((c) => (
+                <TabsTrigger key={c} value={c}>{CATEGORY_LABELS[c]}</TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+
           <div className="flex-1 overflow-auto space-y-4">
             {isLoading ? (
               <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
@@ -306,11 +428,12 @@ export function ManualRugbyStatsDialog({
                   <thead className="sticky top-0 bg-background z-10">
                     <tr className="border-b">
                       <th className="text-left px-2 py-2 sticky left-0 bg-background z-10 min-w-[160px]">Joueur</th>
-                      {FIELDS.map((f) => (
+                      {visibleFields.map((f) => (
                         <th key={f.key} className="px-1 py-2 text-center text-xs font-medium text-muted-foreground" title={f.label}>
                           {f.short}
                         </th>
                       ))}
+                      <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground min-w-[140px]">Minutes</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -319,6 +442,7 @@ export function ManualRugbyStatsDialog({
                       const name = [p?.first_name, p?.name].filter(Boolean).join(" ") || "Joueur";
                       const row = (stats[l.player_id] ?? emptyPeriodStats())[period];
                       const isSub = !l.is_starter;
+                      const noteVal = notes[l.player_id]?.[category]?.[period] ?? "";
                       return (
                         <tr key={l.player_id} className={`border-b hover:bg-muted/30 ${isSub ? "bg-orange-50/30 dark:bg-orange-950/10" : ""}`}>
                           <td className="px-2 py-1.5 sticky left-0 bg-background z-10 border-r">
@@ -329,7 +453,7 @@ export function ManualRugbyStatsDialog({
                               <span className="text-xs font-medium truncate max-w-[140px]">{name}</span>
                             </div>
                           </td>
-                          {FIELDS.map((f) => (
+                          {visibleFields.map((f) => (
                             <td key={f.key} className="px-0.5 py-0.5 text-center">
                               <Input
                                 type="number"
@@ -341,6 +465,14 @@ export function ManualRugbyStatsDialog({
                               />
                             </td>
                           ))}
+                          <td className="px-2 py-0.5">
+                            <Input
+                              value={noteVal}
+                              onChange={(e) => updateNote(l.player_id, e.target.value)}
+                              placeholder="ex. 12', 34'"
+                              className="h-7 text-xs"
+                            />
+                          </td>
                         </tr>
                       );
                     })}
@@ -348,14 +480,16 @@ export function ManualRugbyStatsDialog({
                 </table>
 
                 {/* Opponent block */}
-                <div className="rounded-lg border-2 border-rose-300 dark:border-rose-800 bg-rose-50/40 dark:bg-rose-950/20 p-3">
-                  <div className="flex items-center gap-2 mb-2">
+                <div className="rounded-lg border-2 border-rose-300 dark:border-rose-800 bg-rose-50/40 dark:bg-rose-950/20 p-3 space-y-3">
+                  <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-rose-600 dark:text-rose-400" />
                     <h3 className="text-sm font-semibold">Équipe adverse — {opponentName}</h3>
-                    <span className="text-xs text-muted-foreground ml-auto">{period === "H1" ? "1ʳᵉ MT" : "2ᵉ MT"}</span>
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      {period === "H1" ? "1ʳᵉ MT" : "2ᵉ MT"} · {CATEGORY_LABELS[category]}
+                    </span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2">
-                    {FIELDS.map((f) => (
+                    {visibleFields.map((f) => (
                       <div key={f.key} className="flex flex-col items-center gap-1">
                         <label className="text-[10px] text-muted-foreground text-center" title={f.label}>{f.short}</label>
                         <Input
@@ -368,6 +502,15 @@ export function ManualRugbyStatsDialog({
                         />
                       </div>
                     ))}
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Minutes</label>
+                    <Input
+                      value={notes["opp"]?.[category]?.[period] ?? ""}
+                      onChange={(e) => updateNote("opp", e.target.value)}
+                      placeholder="ex. 18', 52'"
+                      className="h-8 text-xs mt-1"
+                    />
                   </div>
                 </div>
               </>
