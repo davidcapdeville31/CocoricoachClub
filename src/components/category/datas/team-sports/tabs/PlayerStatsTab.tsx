@@ -207,8 +207,11 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
 
   const positions = useMemo(() => {
     const set = new Set<string>();
-    involved.forEach((p) => p.position && set.add(p.position));
-    return Array.from(set).sort();
+    involved.forEach((p) => {
+      const g = normalizeRugbyPosition(p.position);
+      if (g) set.add(g);
+    });
+    return RUGBY_POSITION_GROUPS.filter(g => set.has(g));
   }, [involved]);
 
   const rows: Row[] = useMemo(() => {
