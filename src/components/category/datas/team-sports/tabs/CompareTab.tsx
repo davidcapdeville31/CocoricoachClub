@@ -23,6 +23,10 @@ const TEAM_METRICS: MetricDef[] = [
   { key: "drops", label: "Drops", group: "Attaque", decimals: 0 },
   { key: "lineBreaks", label: "Franchissements", group: "Attaque", decimals: 0 },
   { key: "knockOns", label: "En-avants", group: "Attaque", decimals: 0, direction: "lower" },
+  { key: "passes", label: "Passes réussies", group: "Attaque", decimals: 0 },
+  { key: "passesMissed", label: "Passes manquées", group: "Attaque", decimals: 0, direction: "lower" },
+  { key: "kicks", label: "Passes au pied", group: "Attaque", decimals: 0 },
+  { key: "kicksMissed", label: "P. au pied manquées", group: "Attaque", decimals: 0, direction: "lower" },
   // Défense
   { key: "tackles", label: "Plaquages", group: "Défense", decimals: 0 },
   { key: "missedTackles", label: "Plaq. manqués", group: "Défense", decimals: 0, direction: "lower" },
