@@ -191,30 +191,40 @@ export function ManualRugbyStatsDialog({
     const opp: PeriodStats = emptyPeriodStats();
 
     const applyEvent = (target: StatRow, e: any) => {
+      const pushPos = (key: PositionableStatKey) => {
+        if (typeof e.metadata?.kickX !== "number" || typeof e.metadata?.kickY !== "number") return;
+        const side: "left" | "right" = e.metadata?.kickingSide === "left" ? "left" : "right";
+        target.positions = target.positions ?? {};
+        const arr = target.positions[key] ?? [];
+        arr.push({ kickX: e.metadata.kickX, kickY: e.metadata.kickY, kickingSide: side });
+        target.positions[key] = arr;
+      };
       switch (e.event_type) {
         case "try": case "penalty_try": target.tries += 1; break;
         case "conversion":
-          if (e.outcome === "success") target.conversionsMade += 1;
+          if (e.outcome === "success") { target.conversionsMade += 1; pushPos("conversionsMade"); }
           else if (e.outcome === "fail") target.conversionsMissed += 1;
           break;
         case "penalty_kick":
-          if (e.outcome === "success") target.penaltiesMade += 1;
+          if (e.outcome === "success") { target.penaltiesMade += 1; pushPos("penaltiesMade"); }
           else if (e.outcome === "fail") target.penaltiesMissed += 1;
           break;
         case "drop":
-          if (e.outcome === "success") target.drops += 1;
+          if (e.outcome === "success") { target.drops += 1; pushPos("drops"); }
           else if (e.outcome === "fail") target.dropsMissed += 1;
           break;
         case "scrum":
-          if (e.outcome === "fail") target.scrumsLost += 1; else target.scrumsWon += 1;
+          if (e.outcome === "fail") { target.scrumsLost += 1; pushPos("scrumsLost"); }
+          else { target.scrumsWon += 1; pushPos("scrumsWon"); }
           break;
-        case "scrum_won": target.scrumsWon += 1; break;
-        case "scrum_lost": target.scrumsLost += 1; break;
+        case "scrum_won": target.scrumsWon += 1; pushPos("scrumsWon"); break;
+        case "scrum_lost": target.scrumsLost += 1; pushPos("scrumsLost"); break;
         case "lineout":
-          if (e.outcome === "fail") target.lineoutsLost += 1; else target.lineoutsWon += 1;
+          if (e.outcome === "fail") { target.lineoutsLost += 1; pushPos("lineoutsLost"); }
+          else { target.lineoutsWon += 1; pushPos("lineoutsWon"); }
           break;
-        case "lineout_won": target.lineoutsWon += 1; break;
-        case "lineout_lost": target.lineoutsLost += 1; break;
+        case "lineout_won": target.lineoutsWon += 1; pushPos("lineoutsWon"); break;
+        case "lineout_lost": target.lineoutsLost += 1; pushPos("lineoutsLost"); break;
         case "maul": target.mauls += 1; break;
         case "ruck": target.rucks += 1; break;
         case "tackle":
