@@ -72,6 +72,7 @@ const EMPTY: StatRow = {
   knockOns: 0, lineBreaks: 0, passesMade: 0, passesMissed: 0, kicksMade: 0, kicksMissed: 0,
   tackles: 0, missedTackles: 0, turnoversWon: 0,
   fouls: 0, yellowCards: 0, redCards: 0,
+  positions: {},
 };
 
 const emptyPeriodStats = (): PeriodStats => ({ H1: { ...EMPTY }, H2: { ...EMPTY } });
