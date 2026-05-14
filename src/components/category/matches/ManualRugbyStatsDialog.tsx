@@ -585,21 +585,35 @@ export function ManualRugbyStatsDialog({
                                     className="h-7 w-14 text-xs text-center"
                                     placeholder="0"
                                   />
-                                  {isPositionable && (
-                                    <button
-                                      type="button"
-                                      onClick={() => setPosDialog({ targetKey: l.player_id, statKey: f.key as PositionableStatKey, contextLabel: `${name} · ${period === "H1" ? "1ʳᵉ MT" : "2ᵉ MT"} · ${f.label}` })}
-                                      title={count > 0 ? `Placer sur le terrain (${placed}/${count})` : "Placer sur le terrain"}
-                                      className={`relative shrink-0 rounded-md p-1 ring-1 transition-all hover:scale-110 ${allPlaced ? "bg-emerald-500 text-white ring-emerald-600 shadow-md shadow-emerald-500/40" : placed > 0 ? "bg-primary text-primary-foreground ring-primary shadow-md shadow-primary/40" : "bg-amber-400/90 text-amber-950 ring-amber-500 shadow-sm shadow-amber-500/40 animate-pulse hover:animate-none"}`}
-                                    >
-                                      <MapPin className="h-4 w-4" strokeWidth={2.5} />
-                                      {placed > 0 && (
-                                        <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-background text-[9px] font-bold leading-[14px] text-center ring-1 ring-current">
-                                          {placed}
-                                        </span>
-                                      )}
-                                    </button>
-                                  )}
+                                  {isPositionable && (() => {
+                                    const isMissed = MISSED_POSITIONABLE.has(f.key as PositionableStatKey);
+                                    const cls = isMissed
+                                      ? (allPlaced
+                                          ? "bg-rose-600 text-white ring-rose-700 shadow-md shadow-rose-500/40"
+                                          : placed > 0
+                                            ? "bg-rose-500 text-white ring-rose-600 shadow-md shadow-rose-500/40"
+                                            : "bg-rose-500/90 text-white ring-rose-600 shadow-sm shadow-rose-500/40 animate-pulse hover:animate-none")
+                                      : (allPlaced
+                                          ? "bg-emerald-500 text-white ring-emerald-600 shadow-md shadow-emerald-500/40"
+                                          : placed > 0
+                                            ? "bg-primary text-primary-foreground ring-primary shadow-md shadow-primary/40"
+                                            : "bg-amber-400/90 text-amber-950 ring-amber-500 shadow-sm shadow-amber-500/40 animate-pulse hover:animate-none");
+                                    return (
+                                      <button
+                                        type="button"
+                                        onClick={() => setPosDialog({ targetKey: l.player_id, statKey: f.key as PositionableStatKey, contextLabel: `${name} · ${period === "H1" ? "1ʳᵉ MT" : "2ᵉ MT"} · ${f.label}` })}
+                                        title={count > 0 ? `Placer sur le terrain (${placed}/${count})` : "Placer sur le terrain"}
+                                        className={`relative shrink-0 rounded-md p-1 ring-1 transition-all hover:scale-110 ${cls}`}
+                                      >
+                                        <MapPin className="h-4 w-4" strokeWidth={2.5} />
+                                        {placed > 0 && (
+                                          <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-background text-[9px] font-bold leading-[14px] text-center ring-1 ring-current">
+                                            {placed}
+                                          </span>
+                                        )}
+                                      </button>
+                                    );
+                                  })()}
                                 </div>
                               </td>
                             );
