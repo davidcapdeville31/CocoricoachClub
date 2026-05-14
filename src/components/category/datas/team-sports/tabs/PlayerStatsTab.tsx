@@ -509,7 +509,7 @@ function InsightCard({
   );
 }
 
-const COMPARE_KEYS: StatKey[] = ["tries", "meters", "passes", "carries", "tackles", "turnovers"];
+const COMPARE_KEYS: StatKey[] = ["tries", "conversions", "penalties", "drops", "tackles", "tackleEff"];
 
 function CompareView({ rows }: { rows: Row[] }) {
   if (rows.length < 2) {
