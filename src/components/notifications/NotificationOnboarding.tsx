@@ -110,22 +110,47 @@ export function NotificationOnboarding() {
     if (!user || isHandling) return;
     setIsHandling(true);
 
-    try {
-      await initOneSignal();
-      const granted = await requestOneSignalPermission();
-      if (granted) {
-        // Record permission in our own storage (survives browser quirks)
-        markPermissionGranted(user.id);
-        const tags = await buildUserTags(user.id);
-        await oneSignalLogin(user.id, user.email || "", tags);
-        console.log("[NotificationOnboarding] Push permission granted & synced");
-      }
+    // Safety net: never let the button stay stuck on "Activation en cours..."
+    // (iOS PWA / reconnections can hang OneSignal calls indefinitely)
+    const safetyTimeout = setTimeout(() => {
+      console.warn("[NotificationOnboarding] Activation timeout — closing modal");
+      setIsHandling(false);
       markDone();
+    }, 8000);
+
+    const withTimeout = <T,>(p: Promise<T>, ms: number, label: string): Promise<T | null> =>
+      Promise.race<T | null>([
+        p,
+        new Promise<null>((resolve) =>
+          setTimeout(() => {
+            console.warn(`[NotificationOnboarding] ${label} timed out`);
+            resolve(null);
+          }, ms)
+        ),
+      ]);
+
+    try {
+      await withTimeout(initOneSignal(), 5000, "initOneSignal");
+      const granted = await withTimeout(requestOneSignalPermission(), 6000, "requestPermission");
+      if (granted) {
+        markPermissionGranted(user.id);
+        // Fire-and-forget background sync — don't block the UI
+        (async () => {
+          try {
+            const tags = await buildUserTags(user.id);
+            await oneSignalLogin(user.id, user.email || "", tags);
+            console.log("[NotificationOnboarding] Push permission granted & synced");
+          } catch (err) {
+            console.error("[NotificationOnboarding] Background sync error:", err);
+          }
+        })();
+      }
     } catch (err) {
       console.error("[NotificationOnboarding] Error:", err);
-      markDone();
     } finally {
+      clearTimeout(safetyTimeout);
       setIsHandling(false);
+      markDone();
     }
   };
 
