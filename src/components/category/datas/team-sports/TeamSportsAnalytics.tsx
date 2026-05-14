@@ -3,12 +3,11 @@ import { useCategoryMatches } from "@/hooks/analytics/useTeamSportsAnalytics";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart3, Users, History, GitCompare } from "lucide-react";
+import { BarChart3, Users, GitCompare } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { GeneralTab } from "./tabs/GeneralTab";
 import { PlayerStatsTab } from "./tabs/PlayerStatsTab";
-import { HistoryTab } from "./tabs/HistoryTab";
 import { CompareTab } from "./tabs/CompareTab";
 
 interface Props {
@@ -27,10 +26,6 @@ export function TeamSportsAnalytics({ categoryId }: Props) {
     [playable, selectedMatchId]
   );
 
-  const handleOpenFromHistory = (matchId: string, target: "general" | "players" | "compare") => {
-    setSelectedMatchId(matchId);
-    setActiveTab(target);
-  };
 
   if (isLoading) return <p className="text-sm text-muted-foreground py-8 text-center">Chargement…</p>;
 
@@ -56,9 +51,6 @@ export function TeamSportsAnalytics({ categoryId }: Props) {
             </ColoredSubTabsTrigger>
             <ColoredSubTabsTrigger value="players" colorKey="competition" icon={<Users className="h-4 w-4" />} tooltip="Statistiques individuelles par joueur">
               Statistiques par joueur
-            </ColoredSubTabsTrigger>
-            <ColoredSubTabsTrigger value="history" colorKey="competition" icon={<History className="h-4 w-4" />} tooltip="Historique de tous les matchs">
-              Historique
             </ColoredSubTabsTrigger>
             <ColoredSubTabsTrigger value="compare" colorKey="competition" icon={<GitCompare className="h-4 w-4" />} tooltip="Comparer les performances entre joueurs">
               Comparer les stats
@@ -89,9 +81,6 @@ export function TeamSportsAnalytics({ categoryId }: Props) {
         </TabsContent>
         <TabsContent value="players">
           {currentMatch && <PlayerStatsTab match={currentMatch} categoryId={categoryId} />}
-        </TabsContent>
-        <TabsContent value="history">
-          <HistoryTab matches={playable} onOpen={handleOpenFromHistory} />
         </TabsContent>
         <TabsContent value="compare">
           <CompareTab categoryId={categoryId} matches={playable} />
