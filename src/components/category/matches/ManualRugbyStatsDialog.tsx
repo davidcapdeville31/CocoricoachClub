@@ -142,6 +142,11 @@ export function ManualRugbyStatsDialog({
   const [notes, setNotes] = useState<Record<string, Record<Category, NotesByPeriod>>>({});
   const [saving, setSaving] = useState(false);
   const [confirmLiveOverwrite, setConfirmLiveOverwrite] = useState(false);
+  const [posDialog, setPosDialog] = useState<{
+    targetKey: string; // playerId or "opp"
+    statKey: PositionableStatKey;
+    contextLabel: string;
+  } | null>(null);
 
   const { data: lineup = [], isLoading } = useQuery({
     queryKey: ["manual-stats-lineup", matchId],
