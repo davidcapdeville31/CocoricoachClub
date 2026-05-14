@@ -277,6 +277,38 @@ function StatBar({
   );
 }
 
+const BLOCK_ACCENTS: Record<string, { dot: string; text: string }> = {
+  emerald: { dot: "bg-emerald-500", text: "text-emerald-500" },
+  sky: { dot: "bg-sky-500", text: "text-sky-500" },
+  amber: { dot: "bg-amber-500", text: "text-amber-500" },
+  rose: { dot: "bg-rose-500", text: "text-rose-500" },
+};
+
+function StatBlock({
+  title,
+  accent,
+  children,
+}: {
+  title: string;
+  accent: keyof typeof BLOCK_ACCENTS;
+  children: React.ReactNode;
+}) {
+  const tone = BLOCK_ACCENTS[accent];
+  return (
+    <div className="rounded-xl border border-border/60 bg-surface-elevated/40 p-3">
+      <div className="flex items-center gap-2 mb-2.5 px-1">
+        <span className={cn("h-1.5 w-1.5 rounded-full", tone.dot)} />
+        <h4 className={cn("text-[11px] font-semibold uppercase tracking-wider", tone.text)}>
+          {title}
+        </h4>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function InsightCard({ insight }: { insight: Insight }) {
   const TONE: Record<Insight["tone"], { bg: string; border: string; icon: JSX.Element; text: string }> = {
     positive: { bg: "bg-emerald-500/5", border: "border-emerald-500/30", icon: <TrendingUp className="h-4 w-4" />, text: "text-emerald-600 dark:text-emerald-400" },
