@@ -234,6 +234,14 @@ export function SmartStatsComparator({
     });
   };
 
+  const selectAllPlayers = () => {
+    setSelectedPlayerIds(players.map((p) => p.id));
+  };
+
+  const clearSelectedPlayers = () => {
+    setSelectedPlayerIds([]);
+  };
+
   // ========== Données graphique ==========
   // Pour chaque joueur (ou groupe identité) on construit un objet { name, [metricKey]: value, ... }
   const playersData = useMemo(() => {
@@ -533,7 +541,7 @@ export function SmartStatsComparator({
         )}
 
         {(() => {
-          const playerSelector = mode === "players" && players.length > 0 ? (
+          const playerSelector = mode === "players" ? (
             <div className="rounded-xl border bg-muted/20 p-2">
               <div className="flex items-center justify-between px-1 pb-1.5">
                 <span className="text-[11px] font-semibold text-muted-foreground">
@@ -545,9 +553,7 @@ export function SmartStatsComparator({
                     size="sm"
                     variant="ghost"
                     className="h-6 px-2 text-[10px]"
-                    onClick={() =>
-                      setSelectedPlayerIds(players.map((p) => p.id))
-                    }
+                    onClick={selectAllPlayers}
                   >
                     Tous
                   </Button>
@@ -556,38 +562,44 @@ export function SmartStatsComparator({
                     size="sm"
                     variant="ghost"
                     className="h-6 px-2 text-[10px]"
-                    onClick={() => setSelectedPlayerIds([])}
+                    onClick={clearSelectedPlayers}
                   >
                     Aucun
                   </Button>
                 </div>
               </div>
               <ScrollArea className="h-[300px] pr-2">
-                <div className="space-y-1">
-                  {players.map((p) => {
-                    const checked = effectiveSelection.includes(p.id);
-                    const hasData = playersWithValue.some((x) => x.id === p.id);
-                    const label =
-                      [p.first_name, p.name].filter(Boolean).join(" ") || p.name;
-                    return (
-                      <label
-                        key={p.id}
-                        className="flex items-center gap-2 rounded-lg px-2 py-1 text-xs hover:bg-muted/50 cursor-pointer"
-                      >
-                        <Checkbox
-                          checked={checked}
-                          onCheckedChange={() => togglePlayer(p.id)}
-                        />
-                        <span
-                          className={`truncate ${hasData ? "" : "text-muted-foreground/60 italic"}`}
-                          title={hasData ? undefined : "Aucune donnée pour ce scope"}
+                {players.length === 0 ? (
+                  <div className="px-2 py-6 text-center text-xs text-muted-foreground">
+                    Aucun joueur disponible.
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {players.map((p) => {
+                      const checked = effectiveSelection.includes(p.id);
+                      const hasData = playersWithValue.some((x) => x.id === p.id);
+                      const label =
+                        [p.first_name, p.name].filter(Boolean).join(" ") || p.name;
+                      return (
+                        <label
+                          key={p.id}
+                          className="flex items-center gap-2 rounded-lg px-2 py-1 text-xs hover:bg-muted/50 cursor-pointer"
                         >
-                          {label}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={() => togglePlayer(p.id)}
+                          />
+                          <span
+                            className={`truncate ${hasData ? "" : "text-muted-foreground/60 italic"}`}
+                            title={hasData ? undefined : "Aucune donnée pour ce scope"}
+                          >
+                            {label}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
               </ScrollArea>
             </div>
           ) : null;
