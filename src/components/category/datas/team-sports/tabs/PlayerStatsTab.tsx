@@ -98,48 +98,49 @@ interface Row {
   values: Record<StatKey, number>;
 }
 
-/** Normalise une position rugby en groupe de poste */
-function normalizeRugbyPosition(pos?: string | null): string | null {
-  if (!pos) return null;
+/** Retourne tous les groupes de poste auxquels appartient une position rugby */
+function getRugbyPositionGroups(pos?: string | null): string[] {
+  if (!pos) return [];
   const p = pos.toLowerCase().replace(/[èéê]/g, "e").replace(/[à]/g, "a").replace(/[û]/g, "u");
   const numMatch = p.match(/\d+/);
   const num = numMatch ? parseInt(numMatch[0]) : null;
-  // Numéros
+  const groups: string[] = [];
   if (num) {
-    if (num === 1 || num === 3) return "Piliers";
-    if (num === 2) return "Talonneur";
-    if (num === 4 || num === 5) return "2e ligne";
-    if (num === 6 || num === 7 || num === 8) return "3e ligne";
-    if (num === 9) return "Demi de melee";
-    if (num === 10) return "Demi d'ouverture";
-    if (num === 11 || num === 14) return "Ailiers";
-    if (num === 12 || num === 13) return "Centres";
-    if (num === 15) return "Arriere";
-    return p;
+    if (num === 1 || num === 3) { groups.push("Piliers"); groups.push("1re ligne"); }
+    if (num === 2) { groups.push("Talonneur"); groups.push("1re ligne"); }
+    if (num === 4 || num === 5) groups.push("2e ligne");
+    if (num === 6 || num === 7 || num === 8) groups.push("3e ligne");
+    if (num === 9) groups.push("Demi de mêlée");
+    if (num === 10) groups.push("Demi d'ouverture");
+    if (num === 11 || num === 14) groups.push("Ailiers");
+    if (num === 12 || num === 13) groups.push("Centres");
+    if (num === 15) groups.push("Arrière");
+    return groups;
   }
   // Noms
-  if (p.includes("pilier")) return "Piliers";
-  if (p.includes("talon")) return "Talonneur";
-  if (p.includes("2e ligne") || p.includes("deuxieme ligne")) return "2e ligne";
-  if (p.includes("3e ligne") || p.includes("troisieme ligne")) return "3e ligne";
-  if (p.includes("demi de melee") || p.includes("melee") || p.includes("9")) return "Demi de melee";
-  if (p.includes("demi d'ouverture") || p.includes("ouverture") || p.includes("10")) return "Demi d'ouverture";
-  if (p.includes("ailier")) return "Ailiers";
-  if (p.includes("centre")) return "Centres";
-  if (p.includes("arriere")) return "Arriere";
-  return p;
+  if (p.includes("pilier")) { groups.push("Piliers"); groups.push("1re ligne"); }
+  if (p.includes("talon")) { groups.push("Talonneur"); groups.push("1re ligne"); }
+  if (p.includes("2e ligne") || p.includes("deuxieme ligne")) groups.push("2e ligne");
+  if (p.includes("3e ligne") || p.includes("troisieme ligne")) groups.push("3e ligne");
+  if (p.includes("demi de melee") || p.includes("melee")) groups.push("Demi de mêlée");
+  if (p.includes("demi d'ouverture") || p.includes("ouverture")) groups.push("Demi d'ouverture");
+  if (p.includes("ailier")) groups.push("Ailiers");
+  if (p.includes("centre")) groups.push("Centres");
+  if (p.includes("arriere")) groups.push("Arrière");
+  return groups;
 }
 
-const RUGBY_POSITION_GROUPS = [
+const RUGBY_POSITION_ORDER = [
+  "1re ligne",
   "Piliers",
   "Talonneur",
   "2e ligne",
   "3e ligne",
-  "Demi de melee",
+  "Demi de mêlée",
   "Demi d'ouverture",
-  "Ailiers",
   "Centres",
-  "Arriere",
+  "Ailiers",
+  "Arrière",
 ];
 
 const POSITION_WEIGHTS: Record<string, Partial<Record<StatKey, number>>> = {
