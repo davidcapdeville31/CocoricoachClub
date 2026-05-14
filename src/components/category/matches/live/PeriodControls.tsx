@@ -15,7 +15,7 @@ interface Props {
   matchId: string;
   period: Period;
   onPeriodChange: (p: Period) => void;
-  onResetClock: () => void;
+  onResetClock: (minute?: number) => void;
   isFinalized: boolean;
   homeScore: number;
   awayScore: number;
@@ -43,9 +43,9 @@ export function PeriodControls({ matchId, period, onPeriodChange, onResetClock, 
         toast.success("1ère mi-temps validée");
       } else if (confirm === "start_h2") {
         onPeriodChange("H2");
-        onResetClock();
+        onResetClock(40);
         onStartClock?.();
-        toast.success("2ème mi-temps démarrée");
+        toast.success("2ème mi-temps démarrée à 40'");
       } else if (confirm === "finalize") {
         await updateMatch({ is_finalized: true, score_home: homeScore, score_away: awayScore });
         onStopClock?.();
@@ -68,7 +68,7 @@ export function PeriodControls({ matchId, period, onPeriodChange, onResetClock, 
     },
     start_h2: {
       title: "Démarrer la 2ème mi-temps ?",
-      desc: "Le chronomètre repartira de 00'00. Les événements de la 1ère mi-temps restent inchangés.",
+      desc: "Le chronomètre démarrera à 40'00 et ira jusqu'à 80'. Les événements de la 1ère mi-temps restent inchangés.",
     },
     finalize: {
       title: "Finaliser le match ?",
