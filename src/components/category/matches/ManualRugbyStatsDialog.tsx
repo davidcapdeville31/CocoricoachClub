@@ -35,6 +35,8 @@ type StatRow = {
   mauls: number; rucks: number;
   // Attaque
   knockOns: number; lineBreaks: number;
+  passesMade: number; passesMissed: number;
+  kicksMade: number; kicksMissed: number;
   // Défense
   tackles: number; missedTackles: number; turnoversWon: number;
   // Discipline
