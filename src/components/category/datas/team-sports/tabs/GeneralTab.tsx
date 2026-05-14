@@ -241,19 +241,22 @@ function StatBar({
   a: number;
   hTotal?: number;
   aTotal?: number;
-  /** "count" => % part de chaque équipe sur le total ; "ratio" => % de réussite */
+  /** "count" => relative split between teams ; "ratio" => global success rate (sum) */
   kind?: "count" | "ratio";
   reverse?: boolean;
   suffix?: string;
   onShowPositions?: () => void;
 }) {
   const isRatio = kind === "ratio";
-  const hPct = isRatio
-    ? (hTotal && hTotal > 0 ? (h / hTotal) * 100 : 0)
-    : (h + a > 0 ? (h / (h + a)) * 100 : 50);
-  const aPct = isRatio
-    ? (aTotal && aTotal > 0 ? (a / aTotal) * 100 : 0)
-    : 100 - hPct;
+  // Center % :
+  // - ratio  => global success rate across both teams
+  // - count  => share of home in (h + a)
+  const centerPct = isRatio
+    ? (((hTotal || 0) + (aTotal || 0)) > 0
+        ? ((h + a) / ((hTotal || 0) + (aTotal || 0))) * 100
+        : null)
+    : (h + a > 0 ? (h / (h + a)) * 100 : null);
+
   const homeBetter = reverse ? h < a : h > a;
   const awayBetter = reverse ? a < h : a > h;
   const equal = h === a;
@@ -262,59 +265,34 @@ function StatBar({
   const aLabel = isRatio ? `${a}/${aTotal ?? 0}` : `${a}${suffix}`;
 
   return (
-    <div className="rounded-xl bg-surface-sunken/40 px-3 py-2">
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-        {/* Home value */}
-        <div className="flex flex-col items-end">
-          <span className={cn(
-            "text-base font-bold tabular-nums leading-none",
-            !equal && homeBetter ? "text-primary" : "text-foreground/80"
-          )}>{hLabel}</span>
-          <span className="text-[10px] tabular-nums text-muted-foreground mt-0.5">
-            {Math.round(hPct)}%
-          </span>
-        </div>
-        {/* Label */}
-        <div className="flex items-center justify-center gap-1">
-          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground text-center whitespace-nowrap">
-            {label}
-          </span>
-          {onShowPositions && (
-            <button
-              type="button"
-              onClick={onShowPositions}
-              className="p-0.5 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-              title="Voir les positions sur le terrain"
-            >
-              <MapPin className="h-3 w-3" />
-            </button>
-          )}
-        </div>
-        {/* Away value */}
-        <div className="flex flex-col items-start">
-          <span className={cn(
-            "text-base font-bold tabular-nums leading-none",
-            !equal && awayBetter ? "text-primary" : "text-foreground/80"
-          )}>{aLabel}</span>
-          <span className="text-[10px] tabular-nums text-muted-foreground mt-0.5">
-            {Math.round(aPct)}%
-          </span>
-        </div>
+    <div className="rounded-lg bg-surface-sunken/40 px-2 py-1.5">
+      <div className="flex items-center justify-center gap-1 mb-1">
+        <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground text-center whitespace-nowrap">
+          {label}
+        </span>
+        {onShowPositions && (
+          <button
+            type="button"
+            onClick={onShowPositions}
+            className="p-0.5 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+            title="Voir les positions sur le terrain"
+          >
+            <MapPin className="h-3 w-3" />
+          </button>
+        )}
       </div>
-      {/* Bar */}
-      <div className="mt-2 flex items-center gap-1 h-1.5">
-        <div className="flex-1 flex justify-end">
-          <div
-            className={cn("h-full rounded-l-full transition-all", !equal && homeBetter ? "bg-primary" : "bg-foreground/40")}
-            style={{ width: `${isRatio ? hPct : hPct}%` }}
-          />
-        </div>
-        <div className="flex-1">
-          <div
-            className={cn("h-full rounded-r-full transition-all", !equal && awayBetter ? "bg-primary" : "bg-foreground/40")}
-            style={{ width: `${isRatio ? aPct : aPct}%` }}
-          />
-        </div>
+      <div className="grid grid-cols-3 items-center gap-2">
+        <span className={cn(
+          "text-sm font-bold tabular-nums leading-none text-left",
+          !equal && homeBetter ? "text-primary" : "text-foreground/80"
+        )}>{hLabel}</span>
+        <span className="text-xs tabular-nums text-muted-foreground text-center font-semibold">
+          {centerPct !== null ? `${Math.round(centerPct)}%` : "—"}
+        </span>
+        <span className={cn(
+          "text-sm font-bold tabular-nums leading-none text-right",
+          !equal && awayBetter ? "text-primary" : "text-foreground/80"
+        )}>{aLabel}</span>
       </div>
     </div>
   );
