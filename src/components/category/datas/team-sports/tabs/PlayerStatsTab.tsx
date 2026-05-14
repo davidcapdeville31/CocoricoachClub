@@ -294,9 +294,9 @@ export function PlayerStatsTab({ match, categoryId }: Props) {
       {insights && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <InsightCard icon={<Crown className="h-3.5 w-3.5" />} label="Top performance" player={insights.top[0]?.player} hint={`Score ${insights.top[0]?.values.score}`} tone="primary" />
-          <InsightCard icon={<Trophy className="h-3.5 w-3.5" />} label="Meilleur offensif" player={insights.bestOff?.player} hint={`${insights.bestOff?.values.tries} ess. · ${insights.bestOff?.values.meters} m`} tone="success" />
-          <InsightCard icon={<Shield className="h-3.5 w-3.5" />} label="Meilleur défenseur" player={insights.bestDef?.player} hint={`${insights.bestDef?.values.tackles} plq. · ${insights.bestDef?.values.turnovers} turn.`} tone="info" />
-          <InsightCard icon={<Activity className="h-3.5 w-3.5" />} label="Plus actif" player={insights.mostActive?.player} hint={`${insights.mostActive?.values.playTimeMinutes}' · ${insights.mostActive?.values.passes + insights.mostActive?.values.carries} actions`} tone="warning" />
+          <InsightCard icon={<Trophy className="h-3.5 w-3.5" />} label="Meilleur offensif" player={insights.bestOff?.player} hint={`${insights.bestOff?.values.tries} ess. · ${insights.bestOff?.values.conversions + insights.bestOff?.values.penalties + insights.bestOff?.values.drops} buts`} tone="success" />
+          <InsightCard icon={<Shield className="h-3.5 w-3.5" />} label="Meilleur défenseur" player={insights.bestDef?.player} hint={`${insights.bestDef?.values.tackles} plq. · ${insights.bestDef?.values.tackleEff}% eff.`} tone="info" />
+          <InsightCard icon={<Activity className="h-3.5 w-3.5" />} label="Plus actif" player={insights.mostActive?.player} hint={`${insights.mostActive?.values.playTimeMinutes}' · ${insights.mostActive?.values.tackles} plq.`} tone="warning" />
         </div>
       )}
 
