@@ -10,6 +10,7 @@ export interface TeamStats {
   lineoutsWon: number; lineoutsLost: number;
   scrumsWon: number; scrumsLost: number;
   tackles: number; missedTackles: number;
+  passes: number; missedPasses: number;
   turnovers: number;
   fouls: number;
   yellowCards: number; redCards: number;
@@ -24,6 +25,7 @@ const empty = (): TeamStats => ({
   lineoutsWon: 0, lineoutsLost: 0,
   scrumsWon: 0, scrumsLost: 0,
   tackles: 0, missedTackles: 0,
+  passes: 0, missedPasses: 0,
   turnovers: 0, fouls: 0,
   yellowCards: 0, redCards: 0, knockOns: 0,
 });
@@ -51,6 +53,10 @@ function add(s: TeamStats, e: MatchEvent) {
       else s.tackles += 1;
       break;
     case "missed_tackle": s.missedTackles += 1; break;
+    case "pass":
+      if (e.outcome === "fail") s.missedPasses += 1;
+      else s.passes += 1;
+      break;
     case "turnover": s.turnovers += 1; break;
     case "foul": s.fouls += 1; break;
     case "yellow_card": s.yellowCards += 1; break;
