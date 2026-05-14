@@ -581,9 +581,14 @@ export function ManualRugbyStatsDialog({
                                       type="button"
                                       onClick={() => setPosDialog({ targetKey: l.player_id, statKey: f.key as PositionableStatKey, contextLabel: `${name} · ${period === "H1" ? "1ʳᵉ MT" : "2ᵉ MT"} · ${f.label}` })}
                                       title={count > 0 ? `Placer sur le terrain (${placed}/${count})` : "Placer sur le terrain"}
-                                      className={`shrink-0 rounded p-0.5 transition-colors ${allPlaced ? "text-emerald-600 dark:text-emerald-400" : placed > 0 ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+                                      className={`relative shrink-0 rounded-md p-1 ring-1 transition-all hover:scale-110 ${allPlaced ? "bg-emerald-500 text-white ring-emerald-600 shadow-md shadow-emerald-500/40" : placed > 0 ? "bg-primary text-primary-foreground ring-primary shadow-md shadow-primary/40" : "bg-amber-400/90 text-amber-950 ring-amber-500 shadow-sm shadow-amber-500/40 animate-pulse hover:animate-none"}`}
                                     >
-                                      <MapPin className="h-3.5 w-3.5" />
+                                      <MapPin className="h-4 w-4" strokeWidth={2.5} />
+                                      {placed > 0 && (
+                                        <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-background text-[9px] font-bold leading-[14px] text-center ring-1 ring-current">
+                                          {placed}
+                                        </span>
+                                      )}
                                     </button>
                                   )}
                                 </div>
@@ -636,9 +641,14 @@ export function ManualRugbyStatsDialog({
                                 type="button"
                                 onClick={() => setPosDialog({ targetKey: "opp", statKey: f.key as PositionableStatKey, contextLabel: `${opponentName} · ${period === "H1" ? "1ʳᵉ MT" : "2ᵉ MT"} · ${f.label}` })}
                                 title={count > 0 ? `Placer sur le terrain (${placed}/${count})` : "Placer sur le terrain"}
-                                className={`shrink-0 rounded p-0.5 transition-colors ${allPlaced ? "text-emerald-600 dark:text-emerald-400" : placed > 0 ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+                                className={`relative shrink-0 rounded-md p-1 ring-1 transition-all hover:scale-110 ${allPlaced ? "bg-emerald-500 text-white ring-emerald-600 shadow-md shadow-emerald-500/40" : placed > 0 ? "bg-primary text-primary-foreground ring-primary shadow-md shadow-primary/40" : "bg-amber-400/90 text-amber-950 ring-amber-500 shadow-sm shadow-amber-500/40 animate-pulse hover:animate-none"}`}
                               >
-                                <MapPin className="h-3.5 w-3.5" />
+                                <MapPin className="h-4 w-4" strokeWidth={2.5} />
+                                {placed > 0 && (
+                                  <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-background text-[9px] font-bold leading-[14px] text-center ring-1 ring-current">
+                                    {placed}
+                                  </span>
+                                )}
                               </button>
                             )}
                           </div>
