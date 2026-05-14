@@ -224,12 +224,12 @@ export function SmartStatsComparator({
 
   const effectiveSelection = useMemo(() => {
     if (selectedPlayerIds !== null) return selectedPlayerIds;
-    return playersWithValue.map((p) => p.id);
-  }, [selectedPlayerIds, playersWithValue]);
+    return players.map((p) => p.id);
+  }, [selectedPlayerIds, players]);
 
   const togglePlayer = (id: string) => {
     setSelectedPlayerIds((prev) => {
-      const base = prev ?? playersWithValue.map((p) => p.id);
+      const base = prev ?? players.map((p) => p.id);
       return base.includes(id) ? base.filter((x) => x !== id) : [...base, id];
     });
   };
