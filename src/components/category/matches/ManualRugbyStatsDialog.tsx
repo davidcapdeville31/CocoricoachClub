@@ -713,6 +713,8 @@ export function ManualRugbyStatsDialog({
         const row = isOpp ? opponent[period] : (stats[posDialog.targetKey] ?? emptyPeriodStats())[period];
         const count = (row[posDialog.statKey] as number) ?? 0;
         const positions = row.positions?.[posDialog.statKey] ?? [];
+        const missedKeys: PositionableStatKey[] = ["conversionsMissed", "penaltiesMissed", "dropsMissed", "scrumsLost", "lineoutsLost"];
+        const isMissed = missedKeys.includes(posDialog.statKey);
         return (
           <ManualRugbyPositionDialog
             open
@@ -721,6 +723,7 @@ export function ManualRugbyStatsDialog({
             count={count}
             positions={positions}
             contextLabel={posDialog.contextLabel}
+            missed={isMissed}
             onSave={(list) => {
               if (isOpp) updateOpponentPositions(posDialog.statKey, list);
               else updatePlayerPositions(posDialog.targetKey, posDialog.statKey, list);
