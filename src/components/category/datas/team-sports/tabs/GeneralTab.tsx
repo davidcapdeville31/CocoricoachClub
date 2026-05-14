@@ -125,8 +125,13 @@ export function GeneralTab({ match, categoryId }: Props) {
           </StatBlock>
 
           <StatBlock title="Défense" accent="sky">
-            <StatBar label="Plaquages réussis" h={home.tackles} a={away.tackles} />
-            <StatBar label="Plaquages manqués" h={home.missedTackles} a={away.missedTackles} reverse />
+            <StatBar
+              label="Plaquages"
+              h={home.tackles} a={away.tackles}
+              hTotal={home.tackles + home.missedTackles}
+              aTotal={away.tackles + away.missedTackles}
+              kind="ratio"
+            />
           </StatBlock>
 
           <StatBlock title="Conquête" accent="amber">
