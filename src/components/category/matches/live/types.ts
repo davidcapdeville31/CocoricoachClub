@@ -3,7 +3,8 @@ export type EventType =
   | "lineout" | "scrum" | "ruck" | "maul"
   | "tackle" | "missed_tackle" | "turnover" | "knock_on" | "foul"
   | "yellow_card" | "red_card" | "substitution" | "injury"
-  | "kickoff" | "restart" | "kick" | "occupation" | "exit_22";
+  | "kickoff" | "restart" | "kick" | "occupation" | "exit_22"
+  | "pass" | "line_break";
 
 export type Period = "H1" | "HT" | "H2" | "ET";
 export type TeamSide = "home" | "away";
