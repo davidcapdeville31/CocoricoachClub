@@ -47,7 +47,7 @@ import {
 } from "recharts";
 
 interface Props {
-  match: MatchRow;
+  matches: MatchRow[];
   categoryId: string;
 }
 
