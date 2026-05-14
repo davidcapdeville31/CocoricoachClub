@@ -392,22 +392,34 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
               <thead className="bg-muted/40">
                 <tr>
                   <th className="sticky left-0 bg-muted/40 z-[1] text-left px-3 py-2 font-medium w-[220px]">Joueur</th>
-                  {COLUMNS.map((c) => (
-                    <th key={c.key} className="px-2 py-2 text-right font-medium whitespace-nowrap">
-                      <button
-                        onClick={() => toggleSort(c.key)}
-                        className="inline-flex items-center gap-1 hover:text-primary transition-colors"
-                        title={c.label}
-                      >
-                        {c.short}
-                        {sortKey === c.key ? (
-                          sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
-                        ) : (
-                          <ArrowUpDown className="h-3 w-3 opacity-30" />
+                  {COLUMNS.map((c) => {
+                    const isActive = sortKey === c.key;
+                    return (
+                      <th
+                        key={c.key}
+                        className={cn(
+                          "px-2 py-2 text-right font-medium whitespace-nowrap transition-colors",
+                          isActive && "bg-primary/15 text-primary border-b-2 border-primary"
                         )}
-                      </button>
-                    </th>
-                  ))}
+                      >
+                        <button
+                          onClick={() => toggleSort(c.key)}
+                          className={cn(
+                            "inline-flex items-center gap-1 transition-colors",
+                            isActive ? "font-semibold" : "hover:text-primary"
+                          )}
+                          title={`Trier par ${c.label}`}
+                        >
+                          {c.short}
+                          {isActive ? (
+                            sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 opacity-30" />
+                          )}
+                        </button>
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
@@ -448,12 +460,14 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
                       {COLUMNS.map((c) => {
                         const v = r.values[c.key];
                         const all = filteredRows.map((x) => x.values[c.key]);
+                        const isActive = sortKey === c.key;
                         return (
                           <td
                             key={c.key}
                             className={cn(
                               "px-2 py-2 text-right tabular-nums whitespace-nowrap",
-                              heatClass(v, c, all)
+                              heatClass(v, c, all),
+                              isActive && "bg-primary/10 font-semibold"
                             )}
                           >
                             {c.format ? c.format(v) : v}
