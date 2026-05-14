@@ -312,10 +312,14 @@ export function ScheduleBatteryDialog({
             {/* Dates list */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold">Dates planifiées</Label>
-                <Button type="button" size="sm" variant="outline" onClick={addSlot} className="gap-1.5">
-                  <Plus className="h-3.5 w-3.5" /> Ajouter une date
-                </Button>
+                <Label className="text-sm font-semibold">
+                  {recurring ? "Date de départ" : "Dates planifiées"}
+                </Label>
+                {!recurring && (
+                  <Button type="button" size="sm" variant="outline" onClick={addSlot} className="gap-1.5">
+                    <Plus className="h-3.5 w-3.5" /> Ajouter une date
+                  </Button>
+                )}
               </div>
 
               <div className="space-y-2">
