@@ -19,6 +19,22 @@ export interface MatchRow {
   event_type: string | null;
 }
 
+export function useCategoryTeamName(categoryId: string) {
+  return useQuery({
+    queryKey: ["analytics_team_name", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("name, clubs(name)")
+        .eq("id", categoryId)
+        .maybeSingle();
+      if (error) throw error;
+      const club = (data as any)?.clubs?.name as string | undefined;
+      return club || (data as any)?.name || "Notre équipe";
+    },
+  });
+}
+
 export function useCategoryMatches(categoryId: string) {
   return useQuery({
     queryKey: ["analytics_matches", categoryId],
