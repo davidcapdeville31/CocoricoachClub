@@ -82,12 +82,21 @@ export function ScheduleBatteryDialog({
   const [slots, setSlots] = useState<DateSlot[]>([newSlot()]);
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(true);
+  const [recurring, setRecurring] = useState(false);
+  const [frequencyWeeks, setFrequencyWeeks] = useState(4);
+  const [endMode, setEndMode] = useState<"date" | "duration" | "never">("date");
+  const [endDate, setEndDate] = useState<string>(format(new Date(Date.now() + 8 * 7 * 86400000), "yyyy-MM-dd"));
+  const [durationCount, setDurationCount] = useState(2);
+  const [durationUnit, setDurationUnit] = useState<"weeks" | "months">("months");
 
   useEffect(() => {
     if (!open) {
       setSlots([newSlot()]);
       setSelectAll(true);
       setSelectedPlayers([]);
+      setRecurring(false);
+      setFrequencyWeeks(4);
+      setEndMode("date");
     }
   }, [open]);
 
