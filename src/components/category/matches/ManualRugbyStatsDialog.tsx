@@ -554,18 +554,36 @@ export function ManualRugbyStatsDialog({
                               <span className="text-xs font-medium truncate max-w-[140px]">{name}</span>
                             </div>
                           </td>
-                          {visibleFields.map((f) => (
-                            <td key={f.key} className="px-0.5 py-0.5 text-center">
-                              <Input
-                                type="number"
-                                min={0}
-                                value={row[f.key] === 0 ? "" : String(row[f.key])}
-                                onChange={(e) => updatePlayerStat(l.player_id, f.key, parseInt(e.target.value) || 0)}
-                                className="h-7 w-14 text-xs text-center mx-auto"
-                                placeholder="0"
-                              />
-                            </td>
-                          ))}
+                          {visibleFields.map((f) => {
+                            const isPositionable = (f.key as string) in POSITIONABLE_KIND;
+                            const count = row[f.key] as number;
+                            const placed = isPositionable ? (row.positions?.[f.key as PositionableStatKey]?.length ?? 0) : 0;
+                            const allPlaced = isPositionable && count > 0 && placed >= count;
+                            return (
+                              <td key={f.key} className="px-0.5 py-0.5 text-center">
+                                <div className="flex items-center justify-center gap-0.5">
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    value={count === 0 ? "" : String(count)}
+                                    onChange={(e) => updatePlayerStat(l.player_id, f.key, parseInt(e.target.value) || 0)}
+                                    className="h-7 w-14 text-xs text-center"
+                                    placeholder="0"
+                                  />
+                                  {isPositionable && count > 0 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setPosDialog({ targetKey: l.player_id, statKey: f.key as PositionableStatKey, contextLabel: `${name} · ${period === "H1" ? "1ʳᵉ MT" : "2ᵉ MT"} · ${f.label}` })}
+                                      title={`Placer sur le terrain (${placed}/${count})`}
+                                      className={`shrink-0 rounded p-0.5 transition-colors ${allPlaced ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground hover:text-primary"}`}
+                                    >
+                                      <MapPin className="h-3.5 w-3.5" />
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            );
+                          })}
                           <td className="px-2 py-0.5">
                             <Input
                               value={noteVal}
