@@ -81,6 +81,10 @@ const FIELDS: FieldDef[] = [
   // Attaque
   { key: "knockOns", label: "En-avants", short: "En-av", category: "attack" },
   { key: "lineBreaks", label: "Franchissements", short: "Franch.", category: "attack" },
+  { key: "passesMade", label: "Passes réussies", short: "Passe ✓", category: "attack" },
+  { key: "passesMissed", label: "Passes manquées", short: "Passe ✗", category: "attack" },
+  { key: "kicksMade", label: "Passes au pied réussies", short: "Pied ✓", category: "attack" },
+  { key: "kicksMissed", label: "Passes au pied manquées", short: "Pied ✗", category: "attack" },
   // Défense
   { key: "tackles", label: "Plaquages réussis", short: "Plaq", category: "defense" },
   { key: "missedTackles", label: "Plaquages manqués", short: "Plaq ✗", category: "defense" },
