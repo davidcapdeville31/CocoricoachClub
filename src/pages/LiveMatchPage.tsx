@@ -268,6 +268,18 @@ export default function LiveMatchPage() {
         onRecord={(payload) => create.mutate(payload)}
       />
 
+      <SubstitutionDialog
+        open={subOpen}
+        onOpenChange={setSubOpen}
+        matchId={matchId!}
+        lineup={(lineup ?? []) as any}
+        teamSide={clubSide}
+        period={period}
+        defaultMinute={minute}
+        defaultSecond={seconds}
+        onCreateEvent={(payload) => create.mutateAsync(payload)}
+      />
+
       <TeamColorsDialog
         open={colorsOpen}
         onOpenChange={setColorsOpen}
