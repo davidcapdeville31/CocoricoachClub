@@ -86,6 +86,8 @@ interface SmartStatsComparatorProps {
   description?: string;
   /** Dimensions d'identité à masquer en plus des dimensions par défaut */
   hiddenDimensions?: string[];
+  /** Si défini, restreint les dimensions d'identité à cette liste (whitelist) */
+  allowedDimensions?: string[];
   /** Métriques cochées par défaut (si non défini, toutes les métriques) */
   defaultMetricKeys?: string[];
 }
