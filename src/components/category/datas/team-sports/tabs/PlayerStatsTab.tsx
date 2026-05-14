@@ -432,13 +432,6 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
                         )}
                       >
                         <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onClick={(e) => e.stopPropagation()}
-                            onChange={() => toggleSelect(r.player.id)}
-                            className="h-3.5 w-3.5 accent-primary"
-                          />
                           <Avatar className="h-7 w-7">
                             <AvatarImage src={r.player.avatar_url || undefined} />
                             <AvatarFallback className="text-[10px]">
