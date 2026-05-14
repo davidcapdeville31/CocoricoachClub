@@ -118,9 +118,9 @@ export function GeneralTab({ match, categoryId }: Props) {
           </div>
 
           <StatBlock title="Attaque" accent="emerald">
-            <StatBar label="Transformations" h={home.conversionsMade} a={away.conversionsMade} hTotal={home.conversionsAttempted} aTotal={away.conversionsAttempted} kind="ratio" />
-            <StatBar label="Pénalités (tirs)" h={home.penaltiesMade} a={away.penaltiesMade} hTotal={home.penaltiesAttempted} aTotal={away.penaltiesAttempted} kind="ratio" />
-            <StatBar label="Drops" h={home.drops} a={away.drops} />
+            <StatBar label="Transformations" h={home.conversionsMade} a={away.conversionsMade} hTotal={home.conversionsAttempted} aTotal={away.conversionsAttempted} kind="ratio" onShowPositions={() => setPosKind("conversion")} />
+            <StatBar label="Pénalités (tirs)" h={home.penaltiesMade} a={away.penaltiesMade} hTotal={home.penaltiesAttempted} aTotal={away.penaltiesAttempted} kind="ratio" onShowPositions={() => setPosKind("penalty_kick")} />
+            <StatBar label="Drops" h={home.drops} a={away.drops} onShowPositions={() => setPosKind("drop")} />
             <StatBar label="Mètres gagnés" h={home.meters} a={away.meters} suffix="m" />
           </StatBlock>
 
@@ -130,8 +130,8 @@ export function GeneralTab({ match, categoryId }: Props) {
           </StatBlock>
 
           <StatBlock title="Conquête" accent="amber">
-            <StatBar label="Touches gagnées" h={home.lineoutsWon} a={away.lineoutsWon} hTotal={home.lineoutsWon + home.lineoutsLost} aTotal={away.lineoutsWon + away.lineoutsLost} kind="ratio" />
-            <StatBar label="Mêlées gagnées" h={home.scrumsWon} a={away.scrumsWon} hTotal={home.scrumsWon + home.scrumsLost} aTotal={away.scrumsWon + away.scrumsLost} kind="ratio" />
+            <StatBar label="Touches gagnées" h={home.lineoutsWon} a={away.lineoutsWon} hTotal={home.lineoutsWon + home.lineoutsLost} aTotal={away.lineoutsWon + away.lineoutsLost} kind="ratio" onShowPositions={() => setPosKind("lineout")} />
+            <StatBar label="Mêlées gagnées" h={home.scrumsWon} a={away.scrumsWon} hTotal={home.scrumsWon + home.scrumsLost} aTotal={away.scrumsWon + away.scrumsLost} kind="ratio" onShowPositions={() => setPosKind("scrum")} />
           </StatBlock>
 
           <StatBlock title="Discipline" accent="rose">
