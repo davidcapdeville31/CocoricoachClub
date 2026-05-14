@@ -81,14 +81,14 @@ interface Column {
 const COLUMNS: Column[] = [
   { key: "playTimeMinutes", label: "Temps de jeu", short: "Min", group: "activity", format: (v) => `${v}'` },
   { key: "tries", label: "Essais", short: "Ess", group: "off" },
-  { key: "passes", label: "Passes", short: "Pas", group: "off" },
-  { key: "carries", label: "Courses", short: "Cou", group: "off" },
-  { key: "meters", label: "Mètres gagnés", short: "Mèt", group: "off" },
-  { key: "offloads", label: "Offloads", short: "Off", group: "off" },
+  { key: "conversions", label: "Transformations", short: "Tr", group: "off" },
+  { key: "penalties", label: "Pénalités", short: "Pé", group: "off" },
+  { key: "drops", label: "Drops", short: "Dp", group: "off" },
   { key: "tackles", label: "Plaquages", short: "Plq", group: "def" },
   { key: "missedTackles", label: "Plq. manqués", short: "Plq✗", group: "def", invert: true },
   { key: "tackleEff", label: "% Efficacité", short: "Eff%", group: "def", format: (v) => `${v}%` },
-  { key: "turnovers", label: "Turnovers", short: "Tur", group: "def" },
+  { key: "knockOns", label: "En-avants", short: "EnAv", group: "disc", invert: true },
+  { key: "fouls", label: "Fautes", short: "Fte", group: "disc", invert: true },
   { key: "cards", label: "Cartons", short: "Crt", group: "disc", invert: true },
   { key: "score", label: "Score perf.", short: "Perf", group: "score" },
 ];
@@ -99,7 +99,7 @@ interface Row {
 }
 
 const POSITION_WEIGHTS: Record<string, Partial<Record<StatKey, number>>> = {
-  default: { tries: 3, meters: 0.05, passes: 0.3, carries: 0.4, offloads: 1, tackles: 1.2, tackleEff: 0.4, turnovers: 2, missedTackles: -1.5, cards: -3 },
+  default: { tries: 5, conversions: 1, penalties: 1.5, drops: 2, tackles: 1.2, tackleEff: 0.4, missedTackles: -1.5, knockOns: -1, fouls: -0.5, cards: -3 },
 };
 
 function computeScore(values: Record<StatKey, number>, position?: string | null): number {
