@@ -159,7 +159,7 @@ export default function LiveMatchPage() {
           matchId={matchId}
           period={period}
           onPeriodChange={setPeriod}
-          onResetClock={() => { setMinute(0); setSeconds(0); }}
+          onResetClock={(m = 0) => { setMinute(m); setSeconds(0); }}
           isFinalized={!!match?.is_finalized}
           homeScore={stats.home.points}
           awayScore={stats.away.points}
