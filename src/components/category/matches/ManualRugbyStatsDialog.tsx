@@ -33,14 +33,16 @@ type StatRow = {
   scrumsWon: number; scrumsLost: number;
   lineoutsWon: number; lineoutsLost: number;
   mauls: number; rucks: number;
+  // Attaque
+  knockOns: number; lineBreaks: number;
   // Défense
-  tackles: number; missedTackles: number; knockOns: number;
+  tackles: number; missedTackles: number; turnoversWon: number;
   // Discipline
   fouls: number; yellowCards: number; redCards: number;
 };
 
 type Period = "H1" | "H2";
-type Category = "points" | "conquest" | "defense" | "discipline";
+type Category = "points" | "attack" | "conquest" | "defense" | "discipline";
 type PeriodStats = { H1: StatRow; H2: StatRow };
 type NotesByPeriod = { H1: string; H2: string };
 
