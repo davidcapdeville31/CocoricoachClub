@@ -219,9 +219,8 @@ export default function LiveMatchPage() {
       {/* Mobile layout */}
       <div className="px-4 pb-8 md:hidden">
         <Tabs defaultValue="actions">
-          <TabsList className="grid grid-cols-3 w-full">
+          <TabsList className="grid grid-cols-2 w-full">
             <TabsTrigger value="actions">Actions</TabsTrigger>
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
             <TabsTrigger value="stats">Stats</TabsTrigger>
           </TabsList>
           <TabsContent value="actions">
@@ -236,20 +235,33 @@ export default function LiveMatchPage() {
               onRecord={(payload) => create.mutate(payload)}
             />
           </TabsContent>
-          <TabsContent value="timeline">
-            <LiveTimeline events={events} homeName={homeName} awayName={awayName} playerNames={playerNames}
-              onEdit={(e) => { setEditing(e); setOpenType(e.event_type as EventType); }}
-              onDelete={(e) => remove.mutate(e.id)}
-              onDuplicate={(e) => create.mutate({
-                team_side: e.team_side, player_id: e.player_id, minute: e.minute, second: e.second,
-                period: e.period, event_type: e.event_type, event_subtype: e.event_subtype,
-                outcome: e.outcome as any, metadata: e.metadata,
-              })}
-            />
-          </TabsContent>
           <TabsContent value="stats"><LiveStatsPanel home={stats.home} away={stats.away} homeH1={stats.homeH1} awayH1={stats.awayH1} homeH2={stats.homeH2} awayH2={stats.awayH2} /></TabsContent>
         </Tabs>
       </div>
+
+      {/* Timeline dialog (déclenché via le bouton "Timeline") */}
+      <Dialog open={timelineOpen} onOpenChange={setTimelineOpen}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ListOrdered className="h-5 w-5" />
+              Timeline · {events.length} événement{events.length > 1 ? "s" : ""}
+            </DialogTitle>
+          </DialogHeader>
+          <LiveTimeline
+            events={events}
+            homeName={homeName} awayName={awayName}
+            playerNames={playerNames}
+            onEdit={(e) => { setTimelineOpen(false); setEditing(e); setOpenType(e.event_type as EventType); }}
+            onDelete={(e) => remove.mutate(e.id)}
+            onDuplicate={(e) => create.mutate({
+              team_side: e.team_side, player_id: e.player_id, minute: e.minute, second: e.second,
+              period: e.period, event_type: e.event_type, event_subtype: e.event_subtype,
+              outcome: e.outcome as any, metadata: e.metadata,
+            })}
+          />
+        </DialogContent>
+      </Dialog>
 
       {openType && (
         <EventDialog
