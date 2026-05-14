@@ -109,7 +109,7 @@ export function ManualRugbyPositionDialog({
           </DialogTitle>
           <DialogDescription>
             {contextLabel ? <span className="block text-xs">{contextLabel}</span> : null}
-            Cliquez sur le terrain pour placer la position. {list.length}/{count} placée{count > 1 ? "s" : ""}.
+            Cliquez sur le terrain pour placer la position. {list.length} placée{list.length > 1 ? "s" : ""}{count > 0 ? ` / ${count} attendue${count > 1 ? "s" : ""}` : ""}.
             {remaining > 0 ? ` (${remaining} restante${remaining > 1 ? "s" : ""})` : ""}
           </DialogDescription>
         </DialogHeader>
