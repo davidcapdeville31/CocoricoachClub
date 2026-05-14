@@ -8,21 +8,24 @@ interface Props {
 }
 
 const OPTIONS: { value: AnalyticsPeriod; label: string }[] = [
-  { value: "all", label: "Match complet" },
+  { value: "all", label: "Match" },
   { value: "H1", label: "1ère MT" },
   { value: "H2", label: "2ème MT" },
 ];
 
 export function PeriodToggle({ value, onChange }: Props) {
   return (
-    <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-surface-sunken border">
+    <div className="inline-flex items-center gap-0.5 p-0.5 rounded-lg bg-surface-sunken border text-xs">
       {OPTIONS.map((o) => (
         <Button
           key={o.value}
-          variant={value === o.value ? "default" : "ghost"}
+          variant="ghost"
           size="sm"
           onClick={() => onChange(o.value)}
-          className={cn("rounded-xl", value === o.value && "shadow")}
+          className={cn(
+            "h-7 px-3 rounded-md text-xs font-medium",
+            value === o.value ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+          )}
         >
           {o.label}
         </Button>
