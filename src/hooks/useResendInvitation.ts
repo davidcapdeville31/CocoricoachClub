@@ -48,17 +48,31 @@ export function useResendInvitation() {
       // 2. Build the new invitation link
       const invitationLink = getInvitationLink(options.tableName, result.token);
 
-      // 3. Resend the email
+      // 3. Resend the email via Lovable transactional email (branded "CocoriCoach Club")
+      const roleLabels: Record<string, string> = {
+        admin: "Administrateur",
+        coach: "Coach",
+        viewer: "Viewer (lecture seule)",
+        physio: "Kinésithérapeute",
+        doctor: "Médecin",
+        mental_coach: "Préparateur Mental",
+        prepa_physique: "Préparateur Physique",
+        administratif: "Administratif",
+      };
       try {
-        await supabase.functions.invoke("send-invitation-email", {
+        await supabase.functions.invoke("send-transactional-email", {
           body: {
-            email: result.email,
-            invitationType: options.invitationType,
-            inviterName: options.inviterName || "CocoriCoach",
-            clubName: options.clubName,
-            categoryName: options.categoryName,
-            role: options.role,
-            invitationLink,
+            templateName: "invitation",
+            recipientEmail: result.email,
+            idempotencyKey: `invitation-resend-${options.invitationId}-${result.token}`,
+            templateData: {
+              invitationType: options.invitationType,
+              inviterName: options.inviterName || "CocoriCoach Club",
+              clubName: options.clubName,
+              categoryName: options.categoryName,
+              roleLabel: options.role ? roleLabels[options.role] || options.role : undefined,
+              invitationLink,
+            },
           },
         });
       } catch (e) {
