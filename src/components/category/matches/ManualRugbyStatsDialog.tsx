@@ -279,12 +279,24 @@ export function ManualRugbyStatsDialog({
     [lineup]
   );
 
+  const truncatePositions = (row: StatRow, key: keyof StatRow, value: number): StatRow => {
+    if (!(key in POSITIONABLE_KIND)) return { ...row, [key]: Math.max(0, value || 0) };
+    const pk = key as PositionableStatKey;
+    const cur = row.positions?.[pk] ?? [];
+    const next = cur.length > value ? cur.slice(0, Math.max(0, value)) : cur;
+    return {
+      ...row,
+      [key]: Math.max(0, value || 0),
+      positions: { ...(row.positions ?? {}), [pk]: next },
+    };
+  };
+
   const updatePlayerStat = (playerId: string, key: keyof StatRow, value: number) => {
     setStats((prev) => {
       const cur = prev[playerId] ?? emptyPeriodStats();
       return {
         ...prev,
-        [playerId]: { ...cur, [period]: { ...cur[period], [key]: Math.max(0, value || 0) } },
+        [playerId]: { ...cur, [period]: truncatePositions(cur[period], key, value) },
       };
     });
   };
@@ -292,7 +304,28 @@ export function ManualRugbyStatsDialog({
   const updateOpponentStat = (key: keyof StatRow, value: number) => {
     setOpponent((prev) => ({
       ...prev,
-      [period]: { ...prev[period], [key]: Math.max(0, value || 0) },
+      [period]: truncatePositions(prev[period], key, value),
+    }));
+  };
+
+  const updatePlayerPositions = (playerId: string, key: PositionableStatKey, list: FieldPosition[]) => {
+    setStats((prev) => {
+      const cur = prev[playerId] ?? emptyPeriodStats();
+      const row = cur[period];
+      return {
+        ...prev,
+        [playerId]: {
+          ...cur,
+          [period]: { ...row, positions: { ...(row.positions ?? {}), [key]: list } },
+        },
+      };
+    });
+  };
+
+  const updateOpponentPositions = (key: PositionableStatKey, list: FieldPosition[]) => {
+    setOpponent((prev) => ({
+      ...prev,
+      [period]: { ...prev[period], positions: { ...(prev[period].positions ?? {}), [key]: list } },
     }));
   };
 
