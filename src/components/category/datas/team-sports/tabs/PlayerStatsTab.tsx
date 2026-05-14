@@ -205,9 +205,9 @@ export function PlayerStatsTab({ match, categoryId }: Props) {
   const insights = useMemo(() => {
     if (rows.length === 0) return null;
     const top = [...rows].sort((a, b) => b.values.score - a.values.score).slice(0, 3);
-    const bestDef = [...rows].sort((a, b) => (b.values.tackles + b.values.turnovers) - (a.values.tackles + a.values.turnovers))[0];
-    const bestOff = [...rows].sort((a, b) => (b.values.tries * 5 + b.values.meters * 0.05 + b.values.offloads) - (a.values.tries * 5 + a.values.meters * 0.05 + a.values.offloads))[0];
-    const mostActive = [...rows].sort((a, b) => (b.values.playTimeMinutes + b.values.passes + b.values.carries) - (a.values.playTimeMinutes + a.values.passes + a.values.carries))[0];
+    const bestDef = [...rows].sort((a, b) => (b.values.tackles + b.values.tackleEff * 0.1) - (a.values.tackles + a.values.tackleEff * 0.1))[0];
+    const bestOff = [...rows].sort((a, b) => (b.values.tries * 5 + b.values.conversions + b.values.penalties + b.values.drops) - (a.values.tries * 5 + a.values.conversions + a.values.penalties + a.values.drops))[0];
+    const mostActive = [...rows].sort((a, b) => (b.values.playTimeMinutes + b.values.tackles) - (a.values.playTimeMinutes + a.values.tackles))[0];
     const struggling = [...rows].sort((a, b) => a.values.score - b.values.score)[0];
     return { top, bestDef, bestOff, mostActive, struggling };
   }, [rows]);
