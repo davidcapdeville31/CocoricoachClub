@@ -396,10 +396,10 @@ export function ManualRugbyStatsDialog({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => { setConfirmLiveOverwrite(false); onOpenChange(false); }}>
+            <AlertDialogCancel onClick={() => setConfirmLiveOverwrite(false)}>
               Annuler
             </AlertDialogCancel>
-            <AlertDialogAction onClick={() => setConfirmLiveOverwrite(false)}>
+            <AlertDialogAction onClick={() => { setConfirmLiveOverwrite(false); performSave(); }}>
               Continuer
             </AlertDialogAction>
           </AlertDialogFooter>
