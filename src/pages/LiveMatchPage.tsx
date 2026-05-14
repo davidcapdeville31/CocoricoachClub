@@ -203,29 +203,31 @@ export default function LiveMatchPage() {
 
       {/* Layout unifié — Stats déplacées dans un dialog */}
       <div className="px-4 pb-8 space-y-4">
-        <div>
-          <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Plaquages</h2>
-          <TackleInlinePanel
-            players={tacklePlayers}
-            teamSide={clubSide}
-            period={period}
-            minute={minute}
-            second={seconds}
-            counts={Object.fromEntries(Object.entries(stats.players).map(([id, s]) => [id, { tackles: s.tackles, missedTackles: s.missedTackles }]))}
-            onRecord={(payload) => create.mutate(payload)}
-          />
-        </div>
-        <div>
-          <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Passes</h2>
-          <PassInlinePanel
-            players={tacklePlayers}
-            teamSide={clubSide}
-            period={period}
-            minute={minute}
-            second={seconds}
-            counts={Object.fromEntries(Object.entries(stats.players).map(([id, s]) => [id, { passes: s.passes, missedPasses: s.missedPasses }]))}
-            onRecord={(payload) => create.mutate(payload)}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Plaquages</h2>
+            <TackleInlinePanel
+              players={tacklePlayers}
+              teamSide={clubSide}
+              period={period}
+              minute={minute}
+              second={seconds}
+              counts={Object.fromEntries(Object.entries(stats.players).map(([id, s]) => [id, { tackles: s.tackles, missedTackles: s.missedTackles }]))}
+              onRecord={(payload) => create.mutate(payload)}
+            />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Passes</h2>
+            <PassInlinePanel
+              players={tacklePlayers}
+              teamSide={clubSide}
+              period={period}
+              minute={minute}
+              second={seconds}
+              counts={Object.fromEntries(Object.entries(stats.players).map(([id, s]) => [id, { passes: s.passes, missedPasses: s.missedPasses }]))}
+              onRecord={(payload) => create.mutate(payload)}
+            />
+          </div>
         </div>
         <div>
           <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Actions rapides</h2>
