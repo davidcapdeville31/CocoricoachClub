@@ -175,6 +175,7 @@ const App = () => (
                     <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
                     <Route path="/cgu" element={<CGU />} />
                     <Route path="/politique-cookies" element={<PolitiqueCookies />} />
+                    <Route path="/unsubscribe" element={<UnsubscribePage />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </MaintenanceGate>
