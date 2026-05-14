@@ -218,7 +218,7 @@ function TeamSide({ name, score, winner, align }: { name: string; score: number;
 }
 
 function StatBar({
-  label, h, a, hTotal, aTotal, kind = "count", reverse = false, suffix = "",
+  label, h, a, hTotal, aTotal, kind = "count", reverse = false, suffix = "", onShowPositions,
 }: {
   label: string;
   h: number;
@@ -229,6 +229,7 @@ function StatBar({
   kind?: "count" | "ratio";
   reverse?: boolean;
   suffix?: string;
+  onShowPositions?: () => void;
 }) {
   const isRatio = kind === "ratio";
   const hPct = isRatio
