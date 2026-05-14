@@ -154,7 +154,7 @@ export function GeneralTab({ match, categoryId }: Props) {
 }
 
 function KpiTile({
-  label, h, a, suffix = "", reverse = false, homeName, awayName,
+  label, h, a, suffix = "", reverse = false, homeName, awayName, onShowPositions,
 }: {
   label: string;
   h: number | string;
@@ -163,6 +163,7 @@ function KpiTile({
   reverse?: boolean;
   homeName: string;
   awayName: string;
+  onShowPositions?: () => void;
 }) {
   const hNum = typeof h === "number" ? h : parseFloat(String(h).split("/")[0]) || 0;
   const aNum = typeof a === "number" ? a : parseFloat(String(a).split("/")[0]) || 0;
@@ -170,7 +171,17 @@ function KpiTile({
   const awayBetter = reverse ? aNum < hNum : aNum > hNum;
   const equal = hNum === aNum;
   return (
-    <div className="rounded-xl border bg-surface px-3 py-2.5">
+    <div className="rounded-xl border bg-surface px-3 py-2.5 relative">
+      {onShowPositions && (
+        <button
+          type="button"
+          onClick={onShowPositions}
+          className="absolute top-1.5 right-1.5 p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+          title="Voir les positions sur le terrain"
+        >
+          <MapPin className="h-3 w-3" />
+        </button>
+      )}
       <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground text-center mb-1.5">
         {label}
       </p>
