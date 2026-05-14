@@ -66,7 +66,7 @@ export function CompareTab({ categoryId, matches }: Props) {
     for (const m of Object.values(statsByMatch)) for (const pid of Object.keys(m)) ids.add(pid);
     return players
       .filter((p) => ids.has(p.id))
-      .map((p) => ({ id: p.id, first_name: p.first_name, name: p.name || "Joueur" }));
+      .map((p) => ({ id: p.id, first_name: p.first_name, name: p.name || "Joueur", position: p.position }));
   }, [players, statsByMatch]);
 
   // Scopes
