@@ -278,22 +278,6 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
     sportType.toLowerCase().includes("athlétisme") ||
     sportType.toLowerCase().includes("aviron");
 
-  // Detect if the rugby match has stats entered via manual mode (to confirm before live overwrite)
-  const { data: rugbyEventSources } = useQuery({
-    queryKey: ["rugby-events-source", match.id],
-    enabled: isRugby,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("match_events" as any)
-        .select("metadata")
-        .eq("match_id", match.id);
-      if (error) throw error;
-      const list = (data ?? []) as any[];
-      const hasManual = list.some((e) => e.metadata?.source === "manual");
-      const hasLive = list.some((e) => (e.metadata?.source ?? null) !== "manual");
-      return { hasManual, hasLive, total: list.length };
-    },
-  });
 
   const getCompetitionStageLabel = (stage: string): string => {
     return getCompetitionStageLabelUtil(stage);
