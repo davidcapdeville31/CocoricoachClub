@@ -55,12 +55,27 @@ const FIELDS: { key: keyof StatRow; label: string; short: string }[] = [
   { key: "redCards", label: "Cartons rouges", short: "R" },
 ];
 
-export function ManualRugbyStatsDialog({ open, onOpenChange, matchId, isHome }: ManualRugbyStatsDialogProps) {
+export function ManualRugbyStatsDialog({
+  open, onOpenChange, matchId, isHome,
+  opponentName = "Adversaire", initialOpponentScore = null, clubName = "Notre équipe",
+}: ManualRugbyStatsDialogProps) {
   const qc = useQueryClient();
   const clubSide: "home" | "away" = isHome ? "home" : "away";
   const [stats, setStats] = useState<Record<string, StatRow>>({});
+  const [opponentScore, setOpponentScore] = useState<number>(initialOpponentScore ?? 0);
   const [saving, setSaving] = useState(false);
   const [confirmLiveOverwrite, setConfirmLiveOverwrite] = useState(false);
+
+  // Sync opponent score when prop updates / dialog reopens
+  useEffect(() => {
+    if (open) setOpponentScore(initialOpponentScore ?? 0);
+  }, [open, initialOpponentScore]);
+
+  // Live computed club score from manual entries
+  const clubScore = useMemo(() => {
+    return Object.values(stats).reduce((sum, r) => sum +
+      r.tries * 5 + r.conversionsMade * 2 + r.penaltiesMade * 3 + r.drops * 3, 0);
+  }, [stats]);
 
   const { data: lineup = [], isLoading } = useQuery({
     queryKey: ["manual-stats-lineup", matchId],
