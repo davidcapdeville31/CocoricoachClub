@@ -4,13 +4,14 @@ import type { EventType } from "./types";
 import {
   Trophy, Zap, Target, Crosshair, Shield, Anchor, Footprints, Flag,
   AlertTriangle, RefreshCw, Activity, MapPin, Move, Square, Hand,
+  Repeat, ArrowRightLeft, Layers, Send, Wind,
 } from "lucide-react";
 
 interface Action {
   type: EventType;
   label: string;
   shortcut?: string;
-  group: "score" | "conquete" | "defense" | "discipline" | "jeu" | "changement";
+  group: "score" | "conquete" | "attaque" | "defense" | "discipline" | "jeu" | "changement";
   icon: any;
 }
 
@@ -21,8 +22,13 @@ const ACTIONS: Action[] = [
   { type: "drop", label: "Drop", shortcut: "D", group: "score", icon: Zap },
   { type: "lineout", label: "Touche", shortcut: "T", group: "conquete", icon: Anchor },
   { type: "scrum", label: "Mêlée", shortcut: "M", group: "conquete", icon: Shield },
+  { type: "maul", label: "Maul", group: "conquete", icon: Layers },
+  { type: "ruck", label: "Ruck", group: "conquete", icon: Repeat },
   // Plaquage géré via panneau inline dédié (TackleInlinePanel)
+  { type: "pass", label: "Passe", group: "attaque", icon: Send },
+  { type: "line_break", label: "Franchissement", group: "attaque", icon: Wind },
   { type: "knock_on", label: "En-avant", group: "defense", icon: Hand },
+  { type: "turnover", label: "Ballon gratté", group: "defense", icon: ArrowRightLeft },
   { type: "foul", label: "Faute", group: "discipline", icon: AlertTriangle },
   { type: "yellow_card", label: "Jaune", shortcut: "C", group: "discipline", icon: Square },
   { type: "red_card", label: "Rouge", group: "discipline", icon: Square },
@@ -34,6 +40,7 @@ const ACTIONS: Action[] = [
 const GROUP_STYLES: Record<Action["group"], string> = {
   score: "bg-green-600 hover:bg-green-700 text-white",
   conquete: "bg-purple-600 hover:bg-purple-700 text-white",
+  attaque: "bg-amber-600 hover:bg-amber-700 text-white",
   defense: "bg-blue-600 hover:bg-blue-700 text-white",
   discipline: "bg-orange-600 hover:bg-orange-700 text-white",
   jeu: "bg-slate-600 hover:bg-slate-700 text-white",
@@ -43,6 +50,7 @@ const GROUP_STYLES: Record<Action["group"], string> = {
 const GROUP_LABELS: Record<Action["group"], string> = {
   score: "Marqué",
   conquete: "Conquête",
+  attaque: "Attaque",
   defense: "Défense",
   discipline: "Discipline",
   jeu: "Jeu",

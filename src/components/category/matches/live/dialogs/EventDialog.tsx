@@ -186,6 +186,8 @@ export function EventDialog(props: EventDialogProps) {
     eventType === "conversion" ||
     eventType === "drop" ||
     eventType === "tackle" ||
+    eventType === "pass" ||
+    eventType === "kick" ||
     (eventType === "penalty_kick" && (draft.penaltyMode === "kick" || draft.penaltyMode === "penaltouche"));
   const showZone = ["kick", "occupation"].includes(eventType); // touche utilise désormais le terrain
   const showKickDistance = eventType === "kick";
