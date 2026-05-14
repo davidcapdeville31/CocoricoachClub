@@ -57,29 +57,41 @@ const GROUP_LABELS: Record<Action["group"], string> = {
   changement: "Changements",
 };
 
+const GROUP_PAIRS: Action["group"][][] = [
+  ["score", "conquete"],
+  ["attaque", "defense"],
+  ["discipline", "jeu"],
+  ["changement"],
+];
+
 export function LiveQuickActions({ onSelect }: { onSelect: (t: EventType) => void }) {
-  const groups = (Object.keys(GROUP_LABELS) as Action["group"][]);
+  const renderGroup = (g: Action["group"]) => (
+    <div key={g}>
+      <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">{GROUP_LABELS[g]}</div>
+      <div className="grid grid-cols-2 gap-1.5">
+        {ACTIONS.filter((a) => a.group === g).map((a) => {
+          const Icon = a.icon;
+          return (
+            <Button
+              key={a.type}
+              onClick={() => onSelect(a.type)}
+              className={`${GROUP_STYLES[g]} h-14 flex-col gap-0.5 px-2 relative shadow-md`}
+            >
+              <Icon className="h-4 w-4" />
+              <span className="text-[11px] font-semibold leading-none">{a.label}</span>
+              {a.shortcut && <kbd className="absolute top-1 right-1 text-[9px] bg-black/20 rounded px-1">{a.shortcut}</kbd>}
+            </Button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
   return (
     <Card className="p-3 space-y-3">
-      {groups.map((g) => (
-        <div key={g}>
-          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">{GROUP_LABELS[g]}</div>
-          <div className="grid grid-cols-2 gap-1.5">
-            {ACTIONS.filter((a) => a.group === g).map((a) => {
-              const Icon = a.icon;
-              return (
-                <Button
-                  key={a.type}
-                  onClick={() => onSelect(a.type)}
-                  className={`${GROUP_STYLES[g]} h-14 flex-col gap-0.5 px-2 relative shadow-md`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="text-[11px] font-semibold leading-none">{a.label}</span>
-                  {a.shortcut && <kbd className="absolute top-1 right-1 text-[9px] bg-black/20 rounded px-1">{a.shortcut}</kbd>}
-                </Button>
-              );
-            })}
-          </div>
+      {GROUP_PAIRS.map((pair, i) => (
+        <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {pair.map(renderGroup)}
         </div>
       ))}
     </Card>
