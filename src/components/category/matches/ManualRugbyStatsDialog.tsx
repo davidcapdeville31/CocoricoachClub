@@ -110,10 +110,6 @@ export function ManualRugbyStatsDialog({
     [existingEvents]
   );
 
-  useEffect(() => {
-    if (open && hasLiveEvents) setConfirmLiveOverwrite(true);
-  }, [open, hasLiveEvents]);
-
   // Pre-populate from existing events
   useEffect(() => {
     if (!open) return;
