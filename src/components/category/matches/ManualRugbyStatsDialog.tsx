@@ -222,7 +222,7 @@ export function ManualRugbyStatsDialog({
     return events;
   };
 
-  const handleSave = async () => {
+  const performSave = async () => {
     setSaving(true);
     try {
       const { data: u } = await supabase.auth.getUser();
@@ -249,6 +249,14 @@ export function ManualRugbyStatsDialog({
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSave = () => {
+    if (hasLiveEvents) {
+      setConfirmLiveOverwrite(true);
+      return;
+    }
+    performSave();
   };
 
   return (
