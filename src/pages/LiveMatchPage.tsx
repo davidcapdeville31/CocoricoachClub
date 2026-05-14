@@ -12,6 +12,7 @@ import { LiveQuickActions } from "@/components/category/matches/live/LiveQuickAc
 import { LiveStatsPanel } from "@/components/category/matches/live/LiveStatsPanel";
 import { EventDialog } from "@/components/category/matches/live/dialogs/EventDialog";
 import { TacklePanel } from "@/components/category/matches/live/dialogs/TacklePanel";
+import { SubstitutionDialog } from "@/components/category/matches/live/dialogs/SubstitutionDialog";
 import { TackleInlinePanel } from "@/components/category/matches/live/TackleInlinePanel";
 import { TeamColorsDialog } from "@/components/category/matches/live/dialogs/TeamColorsDialog";
 import { useMatchEvents } from "@/components/category/matches/live/hooks/useMatchEvents";
