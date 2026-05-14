@@ -108,7 +108,7 @@ export function GeneralTab({ match, categoryId }: Props) {
 
       {/* SECTION 4 — DÉTAIL par thème */}
       <Card className="rounded-2xl">
-        <CardContent className="p-4 sm:p-5 space-y-4">
+        <CardContent className="p-3 sm:p-4 space-y-2.5">
           <div className="flex items-center justify-between">
             <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Détail</h3>
             <div className="hidden sm:flex items-center gap-4 text-[10px] uppercase tracking-wider text-muted-foreground">
