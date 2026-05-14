@@ -945,7 +945,6 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
           matchId={match.id}
           isHome={match.is_home}
           opponentName={match.opponent || "Adversaire"}
-          initialOpponentScore={match.is_home ? match.score_away : match.score_home}
           clubName="Notre équipe"
         />
       )}
