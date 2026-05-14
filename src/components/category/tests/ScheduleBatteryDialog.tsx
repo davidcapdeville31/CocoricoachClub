@@ -156,11 +156,26 @@ export function ScheduleBatteryDialog({
     else setSelectedPlayers([]);
   };
 
+  const computedEndDate = useMemo(() => {
+    if (!recurring) return null;
+    if (endMode === "never") return null;
+    const startStr = slots[0]?.date;
+    if (!startStr) return null;
+    if (endMode === "duration") {
+      const weeks = durationUnit === "months" ? durationCount * 4 : durationCount;
+      return format(addWeeks(new Date(startStr), weeks), "yyyy-MM-dd");
+    }
+    return endDate;
+  }, [recurring, endMode, slots, durationCount, durationUnit, endDate]);
+
+  const recurringPreview = useMemo(() => {
+    if (!recurring || !slots[0]?.date) return [] as string[];
+    return generateSessionDates(slots[0].date, frequencyWeeks, computedEndDate);
+  }, [recurring, slots, frequencyWeeks, computedEndDate]);
+
   const schedule = useMutation({
     mutationFn: async () => {
       if (!battery) throw new Error("Batterie introuvable");
-      if (slots.length === 0) throw new Error("Ajoutez au moins une date");
-      if (slots.some((s) => !s.date)) throw new Error("Toutes les dates doivent être renseignées");
       if (selectedPlayers.length === 0) throw new Error("Sélectionnez au moins un athlète");
 
       const testsMeta = (battery.items || []).map((it: any) => ({
@@ -171,9 +186,50 @@ export function ScheduleBatteryDialog({
       const title = `Batterie : ${battery.name}`;
       const fullNotes = `${title}\n<!--TESTS:${JSON.stringify(testsMeta)}-->`;
 
+      // Build effective slots: recurring => generate from first slot
+      let effectiveSlots: DateSlot[];
+      let reminderId: string | null = null;
+      if (recurring) {
+        const base = slots[0];
+        if (!base?.date) throw new Error("Date de départ requise");
+        const dates = generateSessionDates(base.date, frequencyWeeks, computedEndDate);
+        if (dates.length === 0) throw new Error("Aucune date à planifier");
+        effectiveSlots = dates.map((d) => ({
+          id: crypto.randomUUID(),
+          date: d,
+          startTime: base.startTime,
+          endTime: base.endTime,
+        }));
+
+        // Create test_reminder so it appears in "Rappels de tests récurrents"
+        const { data: reminder, error: rErr } = await supabase
+          .from("test_reminders")
+          .insert({
+            category_id: categoryId,
+            test_type: title,
+            test_metadata: testsMeta as any,
+            frequency_weeks: frequencyWeeks,
+            start_date: base.date,
+            end_date: computedEndDate,
+            session_start_time: base.startTime || null,
+            session_end_time: base.endTime || null,
+            duration_minutes: 60,
+            auto_assign_athletes: selectAll,
+            is_active: true,
+          } as any)
+          .select("id")
+          .single();
+        if (rErr) throw rErr;
+        reminderId = reminder.id;
+      } else {
+        if (slots.length === 0) throw new Error("Ajoutez au moins une date");
+        if (slots.some((s) => !s.date)) throw new Error("Toutes les dates doivent être renseignées");
+        effectiveSlots = slots;
+      }
+
       const created: Array<{ id: string; date: string; startTime: string }> = [];
 
-      for (const slot of slots) {
+      for (const slot of effectiveSlots) {
         const { data: session, error } = await supabase
           .from("training_sessions")
           .insert({
@@ -184,7 +240,8 @@ export function ScheduleBatteryDialog({
             training_type: "test",
             notes: fullNotes,
             intensity: 1,
-          })
+            test_reminder_id: reminderId,
+          } as any)
           .select("id")
           .single();
         if (error) throw error;
