@@ -90,7 +90,7 @@ export function GeneralTab({ match, categoryId }: Props) {
           Chiffres clés
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          <KpiTile label="Essais" h={home.tries} a={away.tries} homeName={homeName} awayName={awayName} />
+          <KpiTile label="Essais" h={home.tries} a={away.tries} homeName={homeName} awayName={awayName} onShowPositions={() => setPosKind("try")} />
           <KpiTile label="Plaquages" h={tackleRatio(home)} a={tackleRatio(away)} suffix="%" homeName={homeName} awayName={awayName} />
           <KpiTile label="Turnovers" h={home.turnovers} a={away.turnovers} homeName={homeName} awayName={awayName} />
           <KpiTile label="Ballons perdus" h={home.ballsLost} a={away.ballsLost} reverse homeName={homeName} awayName={awayName} />
@@ -101,6 +101,7 @@ export function GeneralTab({ match, categoryId }: Props) {
             a={`${away.penaltiesMade}/${away.penaltiesAttempted}`}
             homeName={homeName}
             awayName={awayName}
+            onShowPositions={() => setPosKind("penalty_kick")}
           />
         </div>
       </div>
