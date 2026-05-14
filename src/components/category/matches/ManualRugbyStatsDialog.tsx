@@ -330,6 +330,8 @@ export function ManualRugbyStatsDialog({
       for (let i = 0; i < r.tackles; i++) push(side, pid, per, "tackle", "success", 0, attach());
       for (let i = 0; i < r.missedTackles; i++) push(side, pid, per, "tackle", "fail", 0, attach());
       for (let i = 0; i < r.knockOns; i++) push(side, pid, per, "knock_on", null, 0, attach());
+      for (let i = 0; i < r.lineBreaks; i++) push(side, pid, per, "line_break", null, 0, attach());
+      for (let i = 0; i < r.turnoversWon; i++) push(side, pid, per, "turnover", null, 0, attach());
       for (let i = 0; i < r.fouls; i++) push(side, pid, per, "foul", null, 0, attach());
       for (let i = 0; i < r.yellowCards; i++) push(side, pid, per, "yellow_card", null, 0, attach());
       for (let i = 0; i < r.redCards; i++) push(side, pid, per, "red_card", null, 0, attach());
