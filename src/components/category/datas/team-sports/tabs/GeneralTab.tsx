@@ -197,43 +197,6 @@ function TeamSide({ name, score, winner, align }: { name: string; score: number;
   );
 }
 
-function VsRow({
-  label, home, away, suffix = "", reverse = false, highlightHome,
-}: {
-  label: string;
-  home: number | string;
-  away: number | string;
-  suffix?: string;
-  /** if true, lower is better */
-  reverse?: boolean;
-  highlightHome: boolean | null;
-}) {
-  const hNum = typeof home === "number" ? home : parseFloat(String(home).split("/")[0]) || 0;
-  const aNum = typeof away === "number" ? away : parseFloat(String(away).split("/")[0]) || 0;
-  const homeBetter = reverse ? hNum < aNum : hNum > aNum;
-  const awayBetter = reverse ? aNum < hNum : aNum > hNum;
-  const total = Math.max(1, hNum + aNum);
-  const homePct = (hNum / total) * 100;
-
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-sm">
-        <span className={cn("font-semibold tabular-nums w-14 text-left", homeBetter && "text-primary")}>
-          {home}{suffix}
-        </span>
-        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</span>
-        <span className={cn("font-semibold tabular-nums w-14 text-right", awayBetter && "text-primary")}>
-          {away}{suffix}
-        </span>
-      </div>
-      <div className="flex h-1 rounded-full overflow-hidden bg-surface-sunken">
-        <div className="bg-primary/70" style={{ width: `${homePct}%` }} />
-        <div className="bg-destructive/50 flex-1" />
-      </div>
-    </div>
-  );
-}
-
 function Row({ label, h, a, sub, reverse = false }: { label: string; h: number | string; a: number | string; sub?: string; reverse?: boolean }) {
   const hNum = typeof h === "number" ? h : parseFloat(String(h).split("/")[0]) || 0;
   const aNum = typeof a === "number" ? a : parseFloat(String(a).split("/")[0]) || 0;
