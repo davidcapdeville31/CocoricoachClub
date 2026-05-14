@@ -10,7 +10,7 @@ interface Action {
   type: EventType;
   label: string;
   shortcut?: string;
-  group: "score" | "conquete" | "defense" | "discipline" | "jeu";
+  group: "score" | "conquete" | "defense" | "discipline" | "jeu" | "changement";
   icon: any;
 }
 
@@ -26,9 +26,9 @@ const ACTIONS: Action[] = [
   { type: "foul", label: "Faute", group: "discipline", icon: AlertTriangle },
   { type: "yellow_card", label: "Jaune", shortcut: "C", group: "discipline", icon: Square },
   { type: "red_card", label: "Rouge", group: "discipline", icon: Square },
-  { type: "substitution", label: "Remplacement", group: "discipline", icon: RefreshCw },
   { type: "injury", label: "Blessure", group: "discipline", icon: Activity },
   { type: "kick", label: "Jeu au pied", group: "jeu", icon: Footprints },
+  { type: "substitution", label: "Changement", group: "changement", icon: RefreshCw },
 ];
 
 const GROUP_STYLES: Record<Action["group"], string> = {
@@ -37,6 +37,7 @@ const GROUP_STYLES: Record<Action["group"], string> = {
   defense: "bg-blue-600 hover:bg-blue-700 text-white",
   discipline: "bg-orange-600 hover:bg-orange-700 text-white",
   jeu: "bg-slate-600 hover:bg-slate-700 text-white",
+  changement: "bg-indigo-600 hover:bg-indigo-700 text-white",
 };
 
 const GROUP_LABELS: Record<Action["group"], string> = {
@@ -45,6 +46,7 @@ const GROUP_LABELS: Record<Action["group"], string> = {
   defense: "Défense",
   discipline: "Discipline",
   jeu: "Jeu",
+  changement: "Changements",
 };
 
 export function LiveQuickActions({ onSelect }: { onSelect: (t: EventType) => void }) {
