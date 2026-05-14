@@ -35,6 +35,8 @@ type StatRow = {
   mauls: number; rucks: number;
   // Attaque
   knockOns: number; lineBreaks: number;
+  passesMade: number; passesMissed: number;
+  kicksMade: number; kicksMissed: number;
   // Défense
   tackles: number; missedTackles: number; turnoversWon: number;
   // Discipline
@@ -50,7 +52,7 @@ const EMPTY: StatRow = {
   tries: 0, conversionsMade: 0, conversionsMissed: 0,
   penaltiesMade: 0, penaltiesMissed: 0, drops: 0, dropsMissed: 0,
   scrumsWon: 0, scrumsLost: 0, lineoutsWon: 0, lineoutsLost: 0, mauls: 0, rucks: 0,
-  knockOns: 0, lineBreaks: 0,
+  knockOns: 0, lineBreaks: 0, passesMade: 0, passesMissed: 0, kicksMade: 0, kicksMissed: 0,
   tackles: 0, missedTackles: 0, turnoversWon: 0,
   fouls: 0, yellowCards: 0, redCards: 0,
 };
@@ -79,6 +81,10 @@ const FIELDS: FieldDef[] = [
   // Attaque
   { key: "knockOns", label: "En-avants", short: "En-av", category: "attack" },
   { key: "lineBreaks", label: "Franchissements", short: "Franch.", category: "attack" },
+  { key: "passesMade", label: "Passes réussies", short: "Passe ✓", category: "attack" },
+  { key: "passesMissed", label: "Passes manquées", short: "Passe ✗", category: "attack" },
+  { key: "kicksMade", label: "Passes au pied réussies", short: "Pied ✓", category: "attack" },
+  { key: "kicksMissed", label: "Passes au pied manquées", short: "Pied ✗", category: "attack" },
   // Défense
   { key: "tackles", label: "Plaquages réussis", short: "Plaq", category: "defense" },
   { key: "missedTackles", label: "Plaquages manqués", short: "Plaq ✗", category: "defense" },
@@ -200,6 +206,12 @@ export function ManualRugbyStatsDialog({
         case "knock_on": target.knockOns += 1; break;
         case "line_break": target.lineBreaks += 1; break;
         case "turnover": target.turnoversWon += 1; break;
+        case "pass":
+          if (e.outcome === "fail") target.passesMissed += 1; else target.passesMade += 1;
+          break;
+        case "kick":
+          if (e.outcome === "fail") target.kicksMissed += 1; else target.kicksMade += 1;
+          break;
         case "foul": target.fouls += 1; break;
         case "yellow_card": target.yellowCards += 1; break;
         case "red_card": target.redCards += 1; break;
@@ -332,6 +344,10 @@ export function ManualRugbyStatsDialog({
       for (let i = 0; i < r.knockOns; i++) push(side, pid, per, "knock_on", null, 0, attach());
       for (let i = 0; i < r.lineBreaks; i++) push(side, pid, per, "line_break", null, 0, attach());
       for (let i = 0; i < r.turnoversWon; i++) push(side, pid, per, "turnover", null, 0, attach());
+      for (let i = 0; i < r.passesMade; i++) push(side, pid, per, "pass", "success", 0, attach());
+      for (let i = 0; i < r.passesMissed; i++) push(side, pid, per, "pass", "fail", 0, attach());
+      for (let i = 0; i < r.kicksMade; i++) push(side, pid, per, "kick", "success", 0, attach());
+      for (let i = 0; i < r.kicksMissed; i++) push(side, pid, per, "kick", "fail", 0, attach());
       for (let i = 0; i < r.fouls; i++) push(side, pid, per, "foul", null, 0, attach());
       for (let i = 0; i < r.yellowCards; i++) push(side, pid, per, "yellow_card", null, 0, attach());
       for (let i = 0; i < r.redCards; i++) push(side, pid, per, "red_card", null, 0, attach());

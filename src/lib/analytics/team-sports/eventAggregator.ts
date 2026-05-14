@@ -39,9 +39,14 @@ function applyEvent(s: TeamStats, e: MatchEvent) {
   }
   // Optional metadata-based stats
   if (typeof m.meters === "number") s.meters += m.meters;
-  if (m.lineBreak === true || e.event_type === "linebreak") s.lineBreaks += 1;
+  if (m.lineBreak === true || e.event_type === "linebreak" || e.event_type === "line_break") s.lineBreaks += 1;
   if (e.event_type === "offload") s.offloads += 1;
-  if (e.event_type === "pass") s.passes += 1;
+  if (e.event_type === "pass") {
+    if (e.outcome === "fail") s.passesMissed += 1; else s.passes += 1;
+  }
+  if (e.event_type === "kick") {
+    if (e.outcome === "fail") s.kicksMissed += 1; else s.kicks += 1;
+  }
   if (e.event_type === "carry") s.carries += 1;
 }
 
