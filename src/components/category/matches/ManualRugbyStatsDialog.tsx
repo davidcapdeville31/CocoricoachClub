@@ -42,6 +42,22 @@ type StatRow = {
   tackles: number; missedTackles: number; turnoversWon: number;
   // Discipline
   fouls: number; yellowCards: number; redCards: number;
+  // Positions par stat positionable
+  positions?: Partial<Record<PositionableStatKey, FieldPosition[]>>;
+};
+
+type PositionableStatKey =
+  | "conversionsMade" | "penaltiesMade" | "drops"
+  | "scrumsWon" | "scrumsLost" | "lineoutsWon" | "lineoutsLost";
+
+const POSITIONABLE_KIND: Record<PositionableStatKey, PositionableKind> = {
+  conversionsMade: "conversion",
+  penaltiesMade: "penalty_kick",
+  drops: "drop",
+  scrumsWon: "scrum_won",
+  scrumsLost: "scrum_lost",
+  lineoutsWon: "lineout_won",
+  lineoutsLost: "lineout_lost",
 };
 
 type Period = "H1" | "H2";
