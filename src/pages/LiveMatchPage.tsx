@@ -30,6 +30,7 @@ export default function LiveMatchPage() {
   const [editing, setEditing] = useState<MatchEvent | null>(null);
   const [chainNext, setChainNext] = useState<EventType | null>(null);
   const [tacklePanelOpen, setTacklePanelOpen] = useState(false);
+  const [subOpen, setSubOpen] = useState(false);
 
   const colorsKey = `match-team-colors-${matchId}`;
   const [teamColors, setTeamColors] = useState<{ home: string; away: string } | null>(() => {
