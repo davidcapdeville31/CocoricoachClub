@@ -16,16 +16,25 @@ interface Props {
 }
 
 const TEAM_METRICS: MetricDef[] = [
+  // Attaque
   { key: "tries", label: "Essais", group: "Attaque", decimals: 0 },
+  { key: "conversionsMade", label: "Transformations", group: "Attaque", decimals: 0 },
+  { key: "penaltiesMade", label: "Pénalités", group: "Attaque", decimals: 0 },
+  { key: "drops", label: "Drops", group: "Attaque", decimals: 0 },
   { key: "lineBreaks", label: "Franchissements", group: "Attaque", decimals: 0 },
-  { key: "meters", label: "Mètres", group: "Attaque", decimals: 0 },
-  { key: "carries", label: "Courses", group: "Attaque", decimals: 0 },
-  { key: "passes", label: "Passes", group: "Attaque", decimals: 0 },
-  { key: "offloads", label: "Offloads", group: "Attaque", decimals: 0 },
+  { key: "knockOns", label: "En-avants", group: "Attaque", decimals: 0, direction: "lower" },
+  // Défense
   { key: "tackles", label: "Plaquages", group: "Défense", decimals: 0 },
   { key: "missedTackles", label: "Plaq. manqués", group: "Défense", decimals: 0, direction: "lower" },
-  { key: "turnovers", label: "Turnovers", group: "Jeu", decimals: 0 },
+  { key: "turnovers", label: "Ballons grattés", group: "Défense", decimals: 0 },
+  // Conquête
+  { key: "scrumsWon", label: "Mêlées gagnées", group: "Conquête", decimals: 0 },
+  { key: "lineoutsWon", label: "Touches gagnées", group: "Conquête", decimals: 0 },
+  // Discipline
   { key: "fouls", label: "Pénalités conc.", group: "Discipline", decimals: 0, direction: "lower" },
+  { key: "yellowCards", label: "Cartons jaunes", group: "Discipline", decimals: 0, direction: "lower" },
+  { key: "redCards", label: "Cartons rouges", group: "Discipline", decimals: 0, direction: "lower" },
+  // Volume
   { key: "playTimeMinutes", label: "Temps de jeu", group: "Volume", decimals: 0, unit: " min" },
 ];
 
