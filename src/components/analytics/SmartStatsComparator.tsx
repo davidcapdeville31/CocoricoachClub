@@ -592,9 +592,14 @@ export function SmartStatsComparator({
                             onCheckedChange={() => togglePlayer(p.id)}
                           />
                           <span
-                            className={`truncate ${hasData ? "" : "text-muted-foreground/60 italic"}`}
+                            className={`truncate flex items-center gap-1.5 ${hasData ? "" : "text-muted-foreground/60 italic"}`}
                             title={hasData ? undefined : "Aucune donnée pour ce scope"}
                           >
+                            {p.position && (
+                              <span className="inline-flex items-center justify-center min-w-[22px] h-[18px] rounded bg-primary/15 text-primary text-[10px] font-mono font-semibold px-1">
+                                {p.position}
+                              </span>
+                            )}
                             {label}
                           </span>
                         </label>
