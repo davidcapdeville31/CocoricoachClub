@@ -25,7 +25,7 @@ interface Props {
 
 type Confirm = null | "end_h1" | "start_h2" | "finalize" | "reopen";
 
-export function PeriodControls({ matchId, period, onPeriodChange, onResetClock, isFinalized, homeScore, awayScore }: Props) {
+export function PeriodControls({ matchId, period, onPeriodChange, onResetClock, isFinalized, homeScore, awayScore, onStartClock, onStopClock }: Props) {
   const [confirm, setConfirm] = useState<Confirm>(null);
   const qc = useQueryClient();
 
@@ -39,13 +39,16 @@ export function PeriodControls({ matchId, period, onPeriodChange, onResetClock, 
     try {
       if (confirm === "end_h1") {
         onPeriodChange("HT");
+        onStopClock?.();
         toast.success("1ère mi-temps validée");
       } else if (confirm === "start_h2") {
         onPeriodChange("H2");
         onResetClock();
+        onStartClock?.();
         toast.success("2ème mi-temps démarrée");
       } else if (confirm === "finalize") {
         await updateMatch({ is_finalized: true, score_home: homeScore, score_away: awayScore });
+        onStopClock?.();
         toast.success("Match finalisé");
       } else if (confirm === "reopen") {
         await updateMatch({ is_finalized: false });
