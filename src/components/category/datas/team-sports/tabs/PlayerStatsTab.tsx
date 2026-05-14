@@ -90,7 +90,7 @@ const COLUMNS: Column[] = [
   { key: "knockOns", label: "En-avants", short: "EnAv", group: "disc", invert: true },
   { key: "fouls", label: "Fautes", short: "Fte", group: "disc", invert: true },
   { key: "cards", label: "Cartons", short: "Crt", group: "disc", invert: true },
-  { key: "score", label: "Score perf.", short: "Perf", group: "score" },
+  
 ];
 
 interface Row {
@@ -177,7 +177,7 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
   const [posFilter, setPosFilter] = useState<string>("all");
   const [selected, setSelected] = useState<string[]>([]);
   const [drawerId, setDrawerId] = useState<string | null>(null);
-  const [sortKey, setSortKey] = useState<StatKey>("score");
+  const [sortKey, setSortKey] = useState<StatKey>("playTimeMinutes");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   const matchIds = useMemo(() => matches.map(m => m.id), [matches]);
@@ -380,8 +380,7 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
 
       {/* INSIGHTS BAND */}
       {insights && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          <InsightCard icon={<Crown className="h-3.5 w-3.5" />} label="Top performance" player={insights.top[0]?.player} hint={`Score ${insights.top[0]?.values.score}`} tone="primary" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
           <InsightCard icon={<Trophy className="h-3.5 w-3.5" />} label="Meilleur offensif" player={insights.bestOff?.player} hint={`${insights.bestOff?.values.tries} ess. · ${insights.bestOff?.values.conversions + insights.bestOff?.values.penalties + insights.bestOff?.values.drops} buts`} tone="success" />
           <InsightCard icon={<Shield className="h-3.5 w-3.5" />} label="Meilleur défenseur" player={insights.bestDef?.player} hint={`${insights.bestDef?.values.tackles} plq. · ${insights.bestDef?.values.tackleEff}% eff.`} tone="info" />
           <InsightCard icon={<Activity className="h-3.5 w-3.5" />} label="Plus actif" player={insights.mostActive?.player} hint={`${insights.mostActive?.values.playTimeMinutes}' · ${insights.mostActive?.values.tackles} plq.`} tone="warning" />
@@ -636,28 +635,6 @@ function CompareView({ rows }: { rows: Row[] }) {
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl">
-        <CardHeader><CardTitle className="text-sm">Score de performance</CardTitle></CardHeader>
-        <CardContent className="space-y-3 pt-2">
-          {rows.map((r, i) => (
-            <div key={r.player.id} className="space-y-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full" style={{ background: colors[i % colors.length] }} />
-                  {fullName(r.player)}
-                </span>
-                <span className="tabular-nums font-semibold">{r.values.score}/100</span>
-              </div>
-              <div className="h-2 rounded-full bg-muted overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{ width: `${r.values.score}%`, background: colors[i % colors.length] }}
-                />
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
     </div>
   );
 }
