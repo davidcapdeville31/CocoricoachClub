@@ -15,6 +15,7 @@ import { AthleticsSprintStats } from "@/components/athletics/AthleticsSprintStat
 import { BasketballPrecisionTracker } from "@/components/basketball/BasketballPrecisionTracker";
 import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
 import { isRugbyType, isAthletismeCategory } from "@/lib/constants/sportTypes";
+import { TeamSportsAnalytics } from "@/components/category/datas/team-sports/TeamSportsAnalytics";
 import { getAthleteGroups, type AthleticsGroup } from "@/lib/athletics/athleteDisciplines";
 
 interface DatasTabProps {
@@ -151,6 +152,8 @@ export function DatasTab({ categoryId, sportType }: DatasTabProps) {
       <TabsContent value="competition">
         {isBowling ? (
           <BowlingCumulativeStats categoryId={categoryId} />
+        ) : isRugby ? (
+          <TeamSportsAnalytics categoryId={categoryId} sportType={sportType} />
         ) : (
           <PlayerCumulativeStats categoryId={categoryId} sportType={sportType} />
         )}
