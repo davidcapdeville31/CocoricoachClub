@@ -160,7 +160,7 @@ export function GeneralTab({ match, categoryId }: Props) {
           open={!!posKind}
           onOpenChange={(o) => !o && setPosKind(null)}
           kind={posKind}
-          events={filtered}
+          events={events}
           homeName={homeName}
           awayName={awayName}
         />
