@@ -57,14 +57,14 @@ const fullName = (p: PlayerLite) =>
 type StatKey =
   | "playTimeMinutes"
   | "tries"
-  | "passes"
-  | "carries"
-  | "meters"
-  | "offloads"
+  | "conversions"
+  | "penalties"
+  | "drops"
   | "tackles"
   | "missedTackles"
   | "tackleEff"
-  | "turnovers"
+  | "knockOns"
+  | "fouls"
   | "cards"
   | "score";
 
@@ -81,14 +81,14 @@ interface Column {
 const COLUMNS: Column[] = [
   { key: "playTimeMinutes", label: "Temps de jeu", short: "Min", group: "activity", format: (v) => `${v}'` },
   { key: "tries", label: "Essais", short: "Ess", group: "off" },
-  { key: "passes", label: "Passes", short: "Pas", group: "off" },
-  { key: "carries", label: "Courses", short: "Cou", group: "off" },
-  { key: "meters", label: "Mètres gagnés", short: "Mèt", group: "off" },
-  { key: "offloads", label: "Offloads", short: "Off", group: "off" },
+  { key: "conversions", label: "Transformations", short: "Tr", group: "off" },
+  { key: "penalties", label: "Pénalités", short: "Pé", group: "off" },
+  { key: "drops", label: "Drops", short: "Dp", group: "off" },
   { key: "tackles", label: "Plaquages", short: "Plq", group: "def" },
   { key: "missedTackles", label: "Plq. manqués", short: "Plq✗", group: "def", invert: true },
   { key: "tackleEff", label: "% Efficacité", short: "Eff%", group: "def", format: (v) => `${v}%` },
-  { key: "turnovers", label: "Turnovers", short: "Tur", group: "def" },
+  { key: "knockOns", label: "En-avants", short: "EnAv", group: "disc", invert: true },
+  { key: "fouls", label: "Fautes", short: "Fte", group: "disc", invert: true },
   { key: "cards", label: "Cartons", short: "Crt", group: "disc", invert: true },
   { key: "score", label: "Score perf.", short: "Perf", group: "score" },
 ];
@@ -99,7 +99,7 @@ interface Row {
 }
 
 const POSITION_WEIGHTS: Record<string, Partial<Record<StatKey, number>>> = {
-  default: { tries: 3, meters: 0.05, passes: 0.3, carries: 0.4, offloads: 1, tackles: 1.2, tackleEff: 0.4, turnovers: 2, missedTackles: -1.5, cards: -3 },
+  default: { tries: 5, conversions: 1, penalties: 1.5, drops: 2, tackles: 1.2, tackleEff: 0.4, missedTackles: -1.5, knockOns: -1, fouls: -0.5, cards: -3 },
 };
 
 function computeScore(values: Record<StatKey, number>, position?: string | null): number {
@@ -158,14 +158,14 @@ export function PlayerStatsTab({ match, categoryId }: Props) {
         const values: Record<StatKey, number> = {
           playTimeMinutes: s.playTimeMinutes,
           tries: s.tries,
-          passes: s.passes,
-          carries: s.carries,
-          meters: s.meters,
-          offloads: s.offloads,
+          conversions: s.conversionsMade,
+          penalties: s.penaltiesMade,
+          drops: s.drops,
           tackles: s.tackles,
           missedTackles: s.missedTackles,
           tackleEff: tackleRatio(s),
-          turnovers: s.turnovers,
+          knockOns: s.knockOns,
+          fouls: s.fouls,
           cards: s.yellowCards + s.redCards,
           score: 0,
         };
@@ -205,9 +205,9 @@ export function PlayerStatsTab({ match, categoryId }: Props) {
   const insights = useMemo(() => {
     if (rows.length === 0) return null;
     const top = [...rows].sort((a, b) => b.values.score - a.values.score).slice(0, 3);
-    const bestDef = [...rows].sort((a, b) => (b.values.tackles + b.values.turnovers) - (a.values.tackles + a.values.turnovers))[0];
-    const bestOff = [...rows].sort((a, b) => (b.values.tries * 5 + b.values.meters * 0.05 + b.values.offloads) - (a.values.tries * 5 + a.values.meters * 0.05 + a.values.offloads))[0];
-    const mostActive = [...rows].sort((a, b) => (b.values.playTimeMinutes + b.values.passes + b.values.carries) - (a.values.playTimeMinutes + a.values.passes + a.values.carries))[0];
+    const bestDef = [...rows].sort((a, b) => (b.values.tackles + b.values.tackleEff * 0.1) - (a.values.tackles + a.values.tackleEff * 0.1))[0];
+    const bestOff = [...rows].sort((a, b) => (b.values.tries * 5 + b.values.conversions + b.values.penalties + b.values.drops) - (a.values.tries * 5 + a.values.conversions + a.values.penalties + a.values.drops))[0];
+    const mostActive = [...rows].sort((a, b) => (b.values.playTimeMinutes + b.values.tackles) - (a.values.playTimeMinutes + a.values.tackles))[0];
     const struggling = [...rows].sort((a, b) => a.values.score - b.values.score)[0];
     return { top, bestDef, bestOff, mostActive, struggling };
   }, [rows]);
@@ -294,9 +294,9 @@ export function PlayerStatsTab({ match, categoryId }: Props) {
       {insights && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <InsightCard icon={<Crown className="h-3.5 w-3.5" />} label="Top performance" player={insights.top[0]?.player} hint={`Score ${insights.top[0]?.values.score}`} tone="primary" />
-          <InsightCard icon={<Trophy className="h-3.5 w-3.5" />} label="Meilleur offensif" player={insights.bestOff?.player} hint={`${insights.bestOff?.values.tries} ess. · ${insights.bestOff?.values.meters} m`} tone="success" />
-          <InsightCard icon={<Shield className="h-3.5 w-3.5" />} label="Meilleur défenseur" player={insights.bestDef?.player} hint={`${insights.bestDef?.values.tackles} plq. · ${insights.bestDef?.values.turnovers} turn.`} tone="info" />
-          <InsightCard icon={<Activity className="h-3.5 w-3.5" />} label="Plus actif" player={insights.mostActive?.player} hint={`${insights.mostActive?.values.playTimeMinutes}' · ${insights.mostActive?.values.passes + insights.mostActive?.values.carries} actions`} tone="warning" />
+          <InsightCard icon={<Trophy className="h-3.5 w-3.5" />} label="Meilleur offensif" player={insights.bestOff?.player} hint={`${insights.bestOff?.values.tries} ess. · ${insights.bestOff?.values.conversions + insights.bestOff?.values.penalties + insights.bestOff?.values.drops} buts`} tone="success" />
+          <InsightCard icon={<Shield className="h-3.5 w-3.5" />} label="Meilleur défenseur" player={insights.bestDef?.player} hint={`${insights.bestDef?.values.tackles} plq. · ${insights.bestDef?.values.tackleEff}% eff.`} tone="info" />
+          <InsightCard icon={<Activity className="h-3.5 w-3.5" />} label="Plus actif" player={insights.mostActive?.player} hint={`${insights.mostActive?.values.playTimeMinutes}' · ${insights.mostActive?.values.tackles} plq.`} tone="warning" />
         </div>
       )}
 
@@ -509,7 +509,7 @@ function InsightCard({
   );
 }
 
-const COMPARE_KEYS: StatKey[] = ["tries", "meters", "passes", "carries", "tackles", "turnovers"];
+const COMPARE_KEYS: StatKey[] = ["tries", "conversions", "penalties", "drops", "tackles", "tackleEff"];
 
 function CompareView({ rows }: { rows: Row[] }) {
   if (rows.length < 2) {
