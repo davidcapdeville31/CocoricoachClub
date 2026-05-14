@@ -98,6 +98,50 @@ interface Row {
   values: Record<StatKey, number>;
 }
 
+/** Normalise une position rugby en groupe de poste */
+function normalizeRugbyPosition(pos?: string | null): string | null {
+  if (!pos) return null;
+  const p = pos.toLowerCase().replace(/[èéê]/g, "e").replace(/[à]/g, "a").replace(/[û]/g, "u");
+  const numMatch = p.match(/\d+/);
+  const num = numMatch ? parseInt(numMatch[0]) : null;
+  // Numéros
+  if (num) {
+    if (num === 1 || num === 3) return "Piliers";
+    if (num === 2) return "Talonneur";
+    if (num === 4 || num === 5) return "2e ligne";
+    if (num === 6 || num === 7 || num === 8) return "3e ligne";
+    if (num === 9) return "Demi de melee";
+    if (num === 10) return "Demi d'ouverture";
+    if (num === 11 || num === 14) return "Ailiers";
+    if (num === 12 || num === 13) return "Centres";
+    if (num === 15) return "Arriere";
+    return p;
+  }
+  // Noms
+  if (p.includes("pilier")) return "Piliers";
+  if (p.includes("talon")) return "Talonneur";
+  if (p.includes("2e ligne") || p.includes("deuxieme ligne")) return "2e ligne";
+  if (p.includes("3e ligne") || p.includes("troisieme ligne")) return "3e ligne";
+  if (p.includes("demi de melee") || p.includes("melee") || p.includes("9")) return "Demi de melee";
+  if (p.includes("demi d'ouverture") || p.includes("ouverture") || p.includes("10")) return "Demi d'ouverture";
+  if (p.includes("ailier")) return "Ailiers";
+  if (p.includes("centre")) return "Centres";
+  if (p.includes("arriere")) return "Arriere";
+  return p;
+}
+
+const RUGBY_POSITION_GROUPS = [
+  "Piliers",
+  "Talonneur",
+  "2e ligne",
+  "3e ligne",
+  "Demi de melee",
+  "Demi d'ouverture",
+  "Ailiers",
+  "Centres",
+  "Arriere",
+];
+
 const POSITION_WEIGHTS: Record<string, Partial<Record<StatKey, number>>> = {
   default: { tries: 5, conversions: 1, penalties: 1.5, drops: 2, tackles: 1.2, tackleEff: 0.4, missedTackles: -1.5, knockOns: -1, fouls: -0.5, cards: -3 },
 };
