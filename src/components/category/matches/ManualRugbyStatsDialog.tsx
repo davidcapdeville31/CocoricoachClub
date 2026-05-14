@@ -20,6 +20,7 @@ interface ManualRugbyStatsDialogProps {
   isHome: boolean;
   opponentName?: string;
   clubName?: string;
+  initialOpponentScore?: number;
 }
 
 type StatRow = {
