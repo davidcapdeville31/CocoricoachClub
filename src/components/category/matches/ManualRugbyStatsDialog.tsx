@@ -76,10 +76,13 @@ const FIELDS: FieldDef[] = [
   { key: "lineoutsLost", label: "Touches perdues", short: "Touche ✗", category: "conquest" },
   { key: "mauls", label: "Ballons portés", short: "Maul", category: "conquest" },
   { key: "rucks", label: "Rucks", short: "Ruck", category: "conquest" },
+  // Attaque
+  { key: "knockOns", label: "En-avants", short: "En-av", category: "attack" },
+  { key: "lineBreaks", label: "Franchissements", short: "Franch.", category: "attack" },
   // Défense
   { key: "tackles", label: "Plaquages réussis", short: "Plaq", category: "defense" },
   { key: "missedTackles", label: "Plaquages manqués", short: "Plaq ✗", category: "defense" },
-  { key: "knockOns", label: "En-avants", short: "En-av", category: "defense" },
+  { key: "turnoversWon", label: "Ballons grattés", short: "Grattés", category: "defense" },
   // Discipline
   { key: "fouls", label: "Fautes", short: "Fautes", category: "discipline" },
   { key: "yellowCards", label: "Cartons jaunes", short: "J", category: "discipline" },
@@ -88,6 +91,7 @@ const FIELDS: FieldDef[] = [
 
 const CATEGORY_LABELS: Record<Category, string> = {
   points: "Points",
+  attack: "Attaque",
   conquest: "Conquête",
   defense: "Défense",
   discipline: "Discipline",
