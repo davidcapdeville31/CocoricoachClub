@@ -708,7 +708,21 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                 </Button>
               </>
             ) : (
-              <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start relative z-20" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsStatsOpen(true); }}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs w-full justify-start relative z-20"
+                onPointerDown={stopCardAction}
+                onClick={(e) => {
+                  stopCardAction(e);
+                  if (isRugby) {
+                    navigate(`/categories/${categoryId}/match/${match.id}/live`);
+                    return;
+                  }
+                  setIsStatsOpen(true);
+                }}
+              >
                 <BarChart3 className="h-3.5 w-3.5" />
                 Statistiques
               </Button>
@@ -885,7 +899,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
       />
 
       {/* For non-round-based sports, use SportMatchStatsDialog */}
-      {!hasRoundBasedStats && (
+      {!hasRoundBasedStats && !isRugby && (
         <SportMatchStatsDialog
           open={isStatsOpen}
           onOpenChange={setIsStatsOpen}
