@@ -128,22 +128,33 @@ export function ManualRugbyPositionDialog({
 
         <div className="relative w-full">
           <RugbyFieldSVG goalsOnRight={side === "right"} showCursorTracker onClick={handleClick}>
-            {list.map((p, i) => (
-              <g key={i} style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); removeAt(i); }}>
-                <circle
-                  cx={(p.kickX / 100) * 600}
-                  cy={(p.kickY / 100) * 400}
-                  r={14}
-                  fill={markerColor}
-                  opacity={0.85}
-                  stroke="white"
-                  strokeWidth={3}
-                />
-                <text x={(p.kickX / 100) * 600} y={(p.kickY / 100) * 400 + 4} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">
-                  {i + 1}
-                </text>
-              </g>
-            ))}
+            {list.map((p, i) => {
+              const cx = (p.kickX / 100) * 600;
+              const cy = (p.kickY / 100) * 400;
+              return (
+                <g key={i} style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); removeAt(i); }}>
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={14}
+                    fill={markerColor}
+                    opacity={0.85}
+                    stroke="white"
+                    strokeWidth={3}
+                  />
+                  {missed ? (
+                    <>
+                      <line x1={cx - 6} y1={cy - 6} x2={cx + 6} y2={cy + 6} stroke="white" strokeWidth={2.5} strokeLinecap="round" />
+                      <line x1={cx + 6} y1={cy - 6} x2={cx - 6} y2={cy + 6} stroke="white" strokeWidth={2.5} strokeLinecap="round" />
+                    </>
+                  ) : (
+                    <text x={cx} y={cy + 4} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">
+                      {i + 1}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
           </RugbyFieldSVG>
         </div>
 
