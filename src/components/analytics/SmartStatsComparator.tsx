@@ -64,6 +64,7 @@ export interface PlayerLite {
   id: string;
   name: string;
   first_name?: string | null;
+  position?: string | null;
 }
 
 interface SmartStatsComparatorProps {
