@@ -177,56 +177,71 @@ export function BasketballTrainingEntryDialog({
           <BasketballHalfCourtSVG
             exercise={exercise}
             points={points}
-            onClickZone={(x, y, zone) => setPending({ x, y, zone })}
+            pending={pending ? { x: pending.x, y: pending.y } : null}
+            pendingResult={pendingResult}
+            onClickZone={(x, y, zone) => {
+              setPending({ x, y, zone });
+              setPendingResult(null);
+            }}
           />
           <p className="text-xs text-muted-foreground text-center">
-            Clique dans la zone surlignée pour ajouter une saisie.
+            {pending
+              ? "Sélectionne Réussi ou Manqué puis Enregistrer."
+              : "Clique dans la zone surlignée pour placer ton tir."}
           </p>
 
           {pending && (
             <Card>
               <CardContent className="pt-4 space-y-3">
                 <p className="text-sm font-medium">{pending.zone}</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Lancers</Label>
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      value={attempts}
-                      onChange={(e) => setAttempts(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label>Réussis</Label>
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      value={successes}
-                      onChange={(e) => setSuccesses(e.target.value)}
-                    />
+
+                <div>
+                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Résultat
+                  </Label>
+                  <div className="grid grid-cols-2 gap-3 mt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setPendingResult("success")}
+                      className={
+                        pendingResult === "success"
+                          ? "bg-green-500 hover:bg-green-500/90 text-white border-green-600"
+                          : ""
+                      }
+                    >
+                      ✓ Réussi
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setPendingResult("miss")}
+                      className={
+                        pendingResult === "miss"
+                          ? "bg-red-500 hover:bg-red-500/90 text-white border-red-600"
+                          : ""
+                      }
+                    >
+                      ✗ Manqué
+                    </Button>
                   </div>
                 </div>
-                {livePct && (
-                  <div className="text-center p-3 rounded-lg bg-primary/10">
-                    <p className="text-2xl font-bold text-primary">{livePct}%</p>
-                    <p className="text-xs text-muted-foreground">
-                      Taux de réussite
-                    </p>
-                  </div>
-                )}
-                <div className="flex gap-2">
+
+                <div className="flex gap-2 pt-1">
                   <Button
                     variant="outline"
                     className="flex-1"
-                    onClick={() => setPending(null)}
+                    onClick={() => {
+                      setPending(null);
+                      setPendingResult(null);
+                    }}
                   >
                     Annuler
                   </Button>
                   <Button
                     className="flex-1"
                     onClick={handleSave}
-                    disabled={submitting}
+                    disabled={submitting || !pendingResult}
                   >
                     {submitting ? "..." : "Enregistrer"}
                   </Button>
