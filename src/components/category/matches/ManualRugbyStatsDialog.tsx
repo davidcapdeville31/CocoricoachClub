@@ -11,7 +11,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Loader2, Save, Shield } from "lucide-react";
+import { Loader2, Save, Shield, MapPin } from "lucide-react";
+import { ManualRugbyPositionDialog, type FieldPosition, type PositionableKind } from "./ManualRugbyPositionDialog";
 
 interface ManualRugbyStatsDialogProps {
   open: boolean;
@@ -41,6 +42,22 @@ type StatRow = {
   tackles: number; missedTackles: number; turnoversWon: number;
   // Discipline
   fouls: number; yellowCards: number; redCards: number;
+  // Positions par stat positionable
+  positions?: Partial<Record<PositionableStatKey, FieldPosition[]>>;
+};
+
+type PositionableStatKey =
+  | "conversionsMade" | "penaltiesMade" | "drops"
+  | "scrumsWon" | "scrumsLost" | "lineoutsWon" | "lineoutsLost";
+
+const POSITIONABLE_KIND: Record<PositionableStatKey, PositionableKind> = {
+  conversionsMade: "conversion",
+  penaltiesMade: "penalty_kick",
+  drops: "drop",
+  scrumsWon: "scrum_won",
+  scrumsLost: "scrum_lost",
+  lineoutsWon: "lineout_won",
+  lineoutsLost: "lineout_lost",
 };
 
 type Period = "H1" | "H2";
@@ -55,6 +72,7 @@ const EMPTY: StatRow = {
   knockOns: 0, lineBreaks: 0, passesMade: 0, passesMissed: 0, kicksMade: 0, kicksMissed: 0,
   tackles: 0, missedTackles: 0, turnoversWon: 0,
   fouls: 0, yellowCards: 0, redCards: 0,
+  positions: {},
 };
 
 const emptyPeriodStats = (): PeriodStats => ({ H1: { ...EMPTY }, H2: { ...EMPTY } });
@@ -124,6 +142,11 @@ export function ManualRugbyStatsDialog({
   const [notes, setNotes] = useState<Record<string, Record<Category, NotesByPeriod>>>({});
   const [saving, setSaving] = useState(false);
   const [confirmLiveOverwrite, setConfirmLiveOverwrite] = useState(false);
+  const [posDialog, setPosDialog] = useState<{
+    targetKey: string; // playerId or "opp"
+    statKey: PositionableStatKey;
+    contextLabel: string;
+  } | null>(null);
 
   const { data: lineup = [], isLoading } = useQuery({
     queryKey: ["manual-stats-lineup", matchId],
@@ -173,30 +196,40 @@ export function ManualRugbyStatsDialog({
     const opp: PeriodStats = emptyPeriodStats();
 
     const applyEvent = (target: StatRow, e: any) => {
+      const pushPos = (key: PositionableStatKey) => {
+        if (typeof e.metadata?.kickX !== "number" || typeof e.metadata?.kickY !== "number") return;
+        const side: "left" | "right" = e.metadata?.kickingSide === "left" ? "left" : "right";
+        target.positions = target.positions ?? {};
+        const arr = target.positions[key] ?? [];
+        arr.push({ kickX: e.metadata.kickX, kickY: e.metadata.kickY, kickingSide: side });
+        target.positions[key] = arr;
+      };
       switch (e.event_type) {
         case "try": case "penalty_try": target.tries += 1; break;
         case "conversion":
-          if (e.outcome === "success") target.conversionsMade += 1;
+          if (e.outcome === "success") { target.conversionsMade += 1; pushPos("conversionsMade"); }
           else if (e.outcome === "fail") target.conversionsMissed += 1;
           break;
         case "penalty_kick":
-          if (e.outcome === "success") target.penaltiesMade += 1;
+          if (e.outcome === "success") { target.penaltiesMade += 1; pushPos("penaltiesMade"); }
           else if (e.outcome === "fail") target.penaltiesMissed += 1;
           break;
         case "drop":
-          if (e.outcome === "success") target.drops += 1;
+          if (e.outcome === "success") { target.drops += 1; pushPos("drops"); }
           else if (e.outcome === "fail") target.dropsMissed += 1;
           break;
         case "scrum":
-          if (e.outcome === "fail") target.scrumsLost += 1; else target.scrumsWon += 1;
+          if (e.outcome === "fail") { target.scrumsLost += 1; pushPos("scrumsLost"); }
+          else { target.scrumsWon += 1; pushPos("scrumsWon"); }
           break;
-        case "scrum_won": target.scrumsWon += 1; break;
-        case "scrum_lost": target.scrumsLost += 1; break;
+        case "scrum_won": target.scrumsWon += 1; pushPos("scrumsWon"); break;
+        case "scrum_lost": target.scrumsLost += 1; pushPos("scrumsLost"); break;
         case "lineout":
-          if (e.outcome === "fail") target.lineoutsLost += 1; else target.lineoutsWon += 1;
+          if (e.outcome === "fail") { target.lineoutsLost += 1; pushPos("lineoutsLost"); }
+          else { target.lineoutsWon += 1; pushPos("lineoutsWon"); }
           break;
-        case "lineout_won": target.lineoutsWon += 1; break;
-        case "lineout_lost": target.lineoutsLost += 1; break;
+        case "lineout_won": target.lineoutsWon += 1; pushPos("lineoutsWon"); break;
+        case "lineout_lost": target.lineoutsLost += 1; pushPos("lineoutsLost"); break;
         case "maul": target.mauls += 1; break;
         case "ruck": target.rucks += 1; break;
         case "tackle":
@@ -251,12 +284,24 @@ export function ManualRugbyStatsDialog({
     [lineup]
   );
 
+  const truncatePositions = (row: StatRow, key: keyof StatRow, value: number): StatRow => {
+    if (!(key in POSITIONABLE_KIND)) return { ...row, [key]: Math.max(0, value || 0) };
+    const pk = key as PositionableStatKey;
+    const cur = row.positions?.[pk] ?? [];
+    const next = cur.length > value ? cur.slice(0, Math.max(0, value)) : cur;
+    return {
+      ...row,
+      [key]: Math.max(0, value || 0),
+      positions: { ...(row.positions ?? {}), [pk]: next },
+    };
+  };
+
   const updatePlayerStat = (playerId: string, key: keyof StatRow, value: number) => {
     setStats((prev) => {
       const cur = prev[playerId] ?? emptyPeriodStats();
       return {
         ...prev,
-        [playerId]: { ...cur, [period]: { ...cur[period], [key]: Math.max(0, value || 0) } },
+        [playerId]: { ...cur, [period]: truncatePositions(cur[period], key, value) },
       };
     });
   };
@@ -264,7 +309,28 @@ export function ManualRugbyStatsDialog({
   const updateOpponentStat = (key: keyof StatRow, value: number) => {
     setOpponent((prev) => ({
       ...prev,
-      [period]: { ...prev[period], [key]: Math.max(0, value || 0) },
+      [period]: truncatePositions(prev[period], key, value),
+    }));
+  };
+
+  const updatePlayerPositions = (playerId: string, key: PositionableStatKey, list: FieldPosition[]) => {
+    setStats((prev) => {
+      const cur = prev[playerId] ?? emptyPeriodStats();
+      const row = cur[period];
+      return {
+        ...prev,
+        [playerId]: {
+          ...cur,
+          [period]: { ...row, positions: { ...(row.positions ?? {}), [key]: list } },
+        },
+      };
+    });
+  };
+
+  const updateOpponentPositions = (key: PositionableStatKey, list: FieldPosition[]) => {
+    setOpponent((prev) => ({
+      ...prev,
+      [period]: { ...prev[period], positions: { ...(prev[period].positions ?? {}), [key]: list } },
     }));
   };
 
@@ -306,9 +372,15 @@ export function ManualRugbyStatsDialog({
       side: "home" | "away", player_id: string | null, per: Period,
       event_type: string, outcome: string | null, points = 0,
       minutesMeta?: Record<string, string>,
+      pos?: FieldPosition,
     ) => {
       const metadata: any = { source: "manual" };
       if (minutesMeta) metadata.minutes_notes = minutesMeta;
+      if (pos) {
+        metadata.kickX = pos.kickX;
+        metadata.kickY = pos.kickY;
+        metadata.kickingSide = pos.kickingSide;
+      }
       events.push({
         match_id: matchId, team_side: side, player_id,
         minute: 0, second: 0, period: per, event_type, outcome, points,
@@ -326,17 +398,19 @@ export function ManualRugbyStatsDialog({
         firstAttached = true;
         return minutesMeta;
       };
+      const posAt = (key: PositionableStatKey, i: number): FieldPosition | undefined =>
+        r.positions?.[key]?.[i];
       for (let i = 0; i < r.tries; i++) push(side, pid, per, "try", null, 5, attach());
-      for (let i = 0; i < r.conversionsMade; i++) push(side, pid, per, "conversion", "success", 2, attach());
+      for (let i = 0; i < r.conversionsMade; i++) push(side, pid, per, "conversion", "success", 2, attach(), posAt("conversionsMade", i));
       for (let i = 0; i < r.conversionsMissed; i++) push(side, pid, per, "conversion", "fail", 0, attach());
-      for (let i = 0; i < r.penaltiesMade; i++) push(side, pid, per, "penalty_kick", "success", 3, attach());
+      for (let i = 0; i < r.penaltiesMade; i++) push(side, pid, per, "penalty_kick", "success", 3, attach(), posAt("penaltiesMade", i));
       for (let i = 0; i < r.penaltiesMissed; i++) push(side, pid, per, "penalty_kick", "fail", 0, attach());
-      for (let i = 0; i < r.drops; i++) push(side, pid, per, "drop", "success", 3, attach());
+      for (let i = 0; i < r.drops; i++) push(side, pid, per, "drop", "success", 3, attach(), posAt("drops", i));
       for (let i = 0; i < r.dropsMissed; i++) push(side, pid, per, "drop", "fail", 0, attach());
-      for (let i = 0; i < r.scrumsWon; i++) push(side, pid, per, "scrum", "success", 0, attach());
-      for (let i = 0; i < r.scrumsLost; i++) push(side, pid, per, "scrum", "fail", 0, attach());
-      for (let i = 0; i < r.lineoutsWon; i++) push(side, pid, per, "lineout", "success", 0, attach());
-      for (let i = 0; i < r.lineoutsLost; i++) push(side, pid, per, "lineout", "fail", 0, attach());
+      for (let i = 0; i < r.scrumsWon; i++) push(side, pid, per, "scrum", "success", 0, attach(), posAt("scrumsWon", i));
+      for (let i = 0; i < r.scrumsLost; i++) push(side, pid, per, "scrum", "fail", 0, attach(), posAt("scrumsLost", i));
+      for (let i = 0; i < r.lineoutsWon; i++) push(side, pid, per, "lineout", "success", 0, attach(), posAt("lineoutsWon", i));
+      for (let i = 0; i < r.lineoutsLost; i++) push(side, pid, per, "lineout", "fail", 0, attach(), posAt("lineoutsLost", i));
       for (let i = 0; i < r.mauls; i++) push(side, pid, per, "maul", null, 0, attach());
       for (let i = 0; i < r.rucks; i++) push(side, pid, per, "ruck", null, 0, attach());
       for (let i = 0; i < r.tackles; i++) push(side, pid, per, "tackle", "success", 0, attach());
@@ -480,18 +554,36 @@ export function ManualRugbyStatsDialog({
                               <span className="text-xs font-medium truncate max-w-[140px]">{name}</span>
                             </div>
                           </td>
-                          {visibleFields.map((f) => (
-                            <td key={f.key} className="px-0.5 py-0.5 text-center">
-                              <Input
-                                type="number"
-                                min={0}
-                                value={row[f.key] === 0 ? "" : String(row[f.key])}
-                                onChange={(e) => updatePlayerStat(l.player_id, f.key, parseInt(e.target.value) || 0)}
-                                className="h-7 w-14 text-xs text-center mx-auto"
-                                placeholder="0"
-                              />
-                            </td>
-                          ))}
+                          {visibleFields.map((f) => {
+                            const isPositionable = (f.key as string) in POSITIONABLE_KIND;
+                            const count = row[f.key] as number;
+                            const placed = isPositionable ? (row.positions?.[f.key as PositionableStatKey]?.length ?? 0) : 0;
+                            const allPlaced = isPositionable && count > 0 && placed >= count;
+                            return (
+                              <td key={f.key} className="px-0.5 py-0.5 text-center">
+                                <div className="flex items-center justify-center gap-0.5">
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    value={count === 0 ? "" : String(count)}
+                                    onChange={(e) => updatePlayerStat(l.player_id, f.key, parseInt(e.target.value) || 0)}
+                                    className="h-7 w-14 text-xs text-center"
+                                    placeholder="0"
+                                  />
+                                  {isPositionable && count > 0 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setPosDialog({ targetKey: l.player_id, statKey: f.key as PositionableStatKey, contextLabel: `${name} · ${period === "H1" ? "1ʳᵉ MT" : "2ᵉ MT"} · ${f.label}` })}
+                                      title={`Placer sur le terrain (${placed}/${count})`}
+                                      className={`shrink-0 rounded p-0.5 transition-colors ${allPlaced ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground hover:text-primary"}`}
+                                    >
+                                      <MapPin className="h-3.5 w-3.5" />
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            );
+                          })}
                           <td className="px-2 py-0.5">
                             <Input
                               value={noteVal}
@@ -516,19 +608,37 @@ export function ManualRugbyStatsDialog({
                     </span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2">
-                    {visibleFields.map((f) => (
-                      <div key={f.key} className="flex flex-col items-center gap-1">
-                        <label className="text-[10px] text-muted-foreground text-center" title={f.label}>{f.short}</label>
-                        <Input
-                          type="number"
-                          min={0}
-                          value={opponent[period][f.key] === 0 ? "" : String(opponent[period][f.key])}
-                          onChange={(e) => updateOpponentStat(f.key, parseInt(e.target.value) || 0)}
-                          className="h-8 w-16 text-xs text-center"
-                          placeholder="0"
-                        />
-                      </div>
-                    ))}
+                    {visibleFields.map((f) => {
+                      const isPositionable = (f.key as string) in POSITIONABLE_KIND;
+                      const count = opponent[period][f.key] as number;
+                      const placed = isPositionable ? (opponent[period].positions?.[f.key as PositionableStatKey]?.length ?? 0) : 0;
+                      const allPlaced = isPositionable && count > 0 && placed >= count;
+                      return (
+                        <div key={f.key} className="flex flex-col items-center gap-1">
+                          <label className="text-[10px] text-muted-foreground text-center" title={f.label}>{f.short}</label>
+                          <div className="flex items-center gap-0.5">
+                            <Input
+                              type="number"
+                              min={0}
+                              value={count === 0 ? "" : String(count)}
+                              onChange={(e) => updateOpponentStat(f.key, parseInt(e.target.value) || 0)}
+                              className="h-8 w-16 text-xs text-center"
+                              placeholder="0"
+                            />
+                            {isPositionable && count > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setPosDialog({ targetKey: "opp", statKey: f.key as PositionableStatKey, contextLabel: `${opponentName} · ${period === "H1" ? "1ʳᵉ MT" : "2ᵉ MT"} · ${f.label}` })}
+                                title={`Placer sur le terrain (${placed}/${count})`}
+                                className={`shrink-0 rounded p-0.5 transition-colors ${allPlaced ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground hover:text-primary"}`}
+                              >
+                                <MapPin className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                   <div>
                     <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Minutes</label>
@@ -576,6 +686,28 @@ export function ManualRugbyStatsDialog({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {posDialog && (() => {
+        const isOpp = posDialog.targetKey === "opp";
+        const row = isOpp ? opponent[period] : (stats[posDialog.targetKey] ?? emptyPeriodStats())[period];
+        const count = (row[posDialog.statKey] as number) ?? 0;
+        const positions = row.positions?.[posDialog.statKey] ?? [];
+        return (
+          <ManualRugbyPositionDialog
+            open
+            onOpenChange={(o) => { if (!o) setPosDialog(null); }}
+            kind={POSITIONABLE_KIND[posDialog.statKey]}
+            count={count}
+            positions={positions}
+            contextLabel={posDialog.contextLabel}
+            onSave={(list) => {
+              if (isOpp) updateOpponentPositions(posDialog.statKey, list);
+              else updatePlayerPositions(posDialog.targetKey, posDialog.statKey, list);
+              setPosDialog(null);
+            }}
+          />
+        );
+      })()}
     </>
   );
 }
