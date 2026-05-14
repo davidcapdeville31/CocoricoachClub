@@ -85,7 +85,7 @@ export function TeamSportsAnalytics({ categoryId }: Props) {
         )}
 
         <TabsContent value="general">
-          {currentMatch && <GeneralTab match={currentMatch} />}
+          {currentMatch && <GeneralTab match={currentMatch} categoryId={categoryId} />}
         </TabsContent>
         <TabsContent value="players">
           {currentMatch && <PlayerStatsTab match={currentMatch} categoryId={categoryId} />}
