@@ -84,6 +84,17 @@ export default function LiveMatchPage() {
       })),
     [lineup]
   );
+  // Pour les plaquages : prénom + numéro uniquement (boutons compacts)
+  const tacklePlayers = useMemo(
+    () => (lineup ?? [])
+      .slice()
+      .sort((a: any, b: any) => (a.position ?? 99) - (b.position ?? 99))
+      .map((l: any) => ({
+        id: l.player_id,
+        label: `${l.players?.first_name ?? ""}${l.position ? ` #${l.position}` : ""}`.trim(),
+      })),
+    [lineup]
+  );
   const playerNames = useMemo(() => {
     const m: Record<string, string> = {};
     (lineup ?? []).forEach((l: any) => {
