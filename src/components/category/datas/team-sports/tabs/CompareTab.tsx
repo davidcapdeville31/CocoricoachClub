@@ -3,12 +3,11 @@ import { useCategoryPlayers, useMultiMatchEvents, type MatchRow, type PlayerLite
 import { computeMatchAnalytics } from "@/lib/analytics/team-sports/eventAggregator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
-import { GitCompare, Users } from "lucide-react";
+import { GitCompare } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Props {

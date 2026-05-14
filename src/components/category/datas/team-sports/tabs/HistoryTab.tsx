@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
-import { useCategoryMatches, useMultiMatchEvents, type MatchRow } from "@/hooks/analytics/useTeamSportsAnalytics";
-import { computeMatchAnalytics } from "@/lib/analytics/team-sports/eventAggregator";
+import type { MatchRow } from "@/hooks/analytics/useTeamSportsAnalytics";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
