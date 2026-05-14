@@ -608,19 +608,37 @@ export function ManualRugbyStatsDialog({
                     </span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2">
-                    {visibleFields.map((f) => (
-                      <div key={f.key} className="flex flex-col items-center gap-1">
-                        <label className="text-[10px] text-muted-foreground text-center" title={f.label}>{f.short}</label>
-                        <Input
-                          type="number"
-                          min={0}
-                          value={opponent[period][f.key] === 0 ? "" : String(opponent[period][f.key])}
-                          onChange={(e) => updateOpponentStat(f.key, parseInt(e.target.value) || 0)}
-                          className="h-8 w-16 text-xs text-center"
-                          placeholder="0"
-                        />
-                      </div>
-                    ))}
+                    {visibleFields.map((f) => {
+                      const isPositionable = (f.key as string) in POSITIONABLE_KIND;
+                      const count = opponent[period][f.key] as number;
+                      const placed = isPositionable ? (opponent[period].positions?.[f.key as PositionableStatKey]?.length ?? 0) : 0;
+                      const allPlaced = isPositionable && count > 0 && placed >= count;
+                      return (
+                        <div key={f.key} className="flex flex-col items-center gap-1">
+                          <label className="text-[10px] text-muted-foreground text-center" title={f.label}>{f.short}</label>
+                          <div className="flex items-center gap-0.5">
+                            <Input
+                              type="number"
+                              min={0}
+                              value={count === 0 ? "" : String(count)}
+                              onChange={(e) => updateOpponentStat(f.key, parseInt(e.target.value) || 0)}
+                              className="h-8 w-16 text-xs text-center"
+                              placeholder="0"
+                            />
+                            {isPositionable && count > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setPosDialog({ targetKey: "opp", statKey: f.key as PositionableStatKey, contextLabel: `${opponentName} · ${period === "H1" ? "1ʳᵉ MT" : "2ᵉ MT"} · ${f.label}` })}
+                                title={`Placer sur le terrain (${placed}/${count})`}
+                                className={`shrink-0 rounded p-0.5 transition-colors ${allPlaced ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground hover:text-primary"}`}
+                              >
+                                <MapPin className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                   <div>
                     <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Minutes</label>
