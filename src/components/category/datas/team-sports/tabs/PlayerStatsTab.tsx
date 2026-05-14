@@ -460,12 +460,14 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
                       {COLUMNS.map((c) => {
                         const v = r.values[c.key];
                         const all = filteredRows.map((x) => x.values[c.key]);
+                        const isActive = sortKey === c.key;
                         return (
                           <td
                             key={c.key}
                             className={cn(
                               "px-2 py-2 text-right tabular-nums whitespace-nowrap",
-                              heatClass(v, c, all)
+                              heatClass(v, c, all),
+                              isActive && "bg-primary/10 font-semibold"
                             )}
                           >
                             {c.format ? c.format(v) : v}
