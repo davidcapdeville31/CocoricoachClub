@@ -17,6 +17,7 @@ interface Props {
 
 export function GeneralTab({ match, categoryId }: Props) {
   const [period, setPeriod] = useState<AnalyticsPeriod>("all");
+  const [posKind, setPosKind] = useState<PositionStatKind | null>(null);
   const { data: events = [], isLoading } = useMatchEventsAnalytics(match.id);
   const { data: ourName = "Notre équipe" } = useCategoryTeamName(categoryId || "");
 
