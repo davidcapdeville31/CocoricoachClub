@@ -13,13 +13,39 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CalendarPlus, Plus, X, Users } from "lucide-react";
+import { CalendarPlus, Plus, X, Users, Repeat } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, addWeeks, isBefore, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
+
+function generateSessionDates(
+  startDate: string,
+  frequencyWeeks: number,
+  endDate?: string | null,
+): string[] {
+  const dates: string[] = [];
+  const start = new Date(startDate);
+  const hardCap = addWeeks(start, 104);
+  const limit = endDate ? new Date(endDate) : addWeeks(startOfDay(new Date()), 26);
+  const maxDate = isBefore(limit, hardCap) ? limit : hardCap;
+  let current = start;
+  while (!isBefore(maxDate, current)) {
+    dates.push(format(current, "yyyy-MM-dd"));
+    current = addWeeks(current, frequencyWeeks);
+  }
+  return dates;
+}
 
 interface ScheduleBatteryDialogProps {
   open: boolean;
