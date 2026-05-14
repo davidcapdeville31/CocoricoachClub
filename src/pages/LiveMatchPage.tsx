@@ -163,6 +163,8 @@ export default function LiveMatchPage() {
           isFinalized={!!match?.is_finalized}
           homeScore={stats.home.points}
           awayScore={stats.away.points}
+          onStartClock={() => setIsRunning(true)}
+          onStopClock={() => setIsRunning(false)}
         />
         <div className="text-xs text-muted-foreground hidden lg:block">
           Mode analyste · raccourcis : <kbd className="bg-muted rounded px-1">E</kbd> essai · <kbd className="bg-muted rounded px-1">P</kbd> pénalité · <kbd className="bg-muted rounded px-1">T</kbd> touche · <kbd className="bg-muted rounded px-1">M</kbd> mêlée · <kbd className="bg-muted rounded px-1">C</kbd> carton · <kbd className="bg-muted rounded px-1">D</kbd> drop
