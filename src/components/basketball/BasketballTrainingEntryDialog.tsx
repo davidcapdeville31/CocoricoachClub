@@ -55,8 +55,7 @@ export function BasketballTrainingEntryDialog({
     BASKETBALL_PRECISION_EXERCISES[0].value as string,
   );
   const [pending, setPending] = useState<{ x: number; y: number; zone: string } | null>(null);
-  const [attempts, setAttempts] = useState("10");
-  const [successes, setSuccesses] = useState("0");
+  const [pendingResult, setPendingResult] = useState<"success" | "miss" | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Sync date when dialog reopens with a different default (e.g. another day clicked)
@@ -105,19 +104,9 @@ export function BasketballTrainingEntryDialog({
     [entries, exercise.label],
   );
 
-  const livePct = (() => {
-    const a = parseInt(attempts);
-    const s = parseInt(successes);
-    if (a > 0 && s >= 0 && s <= a) return ((s / a) * 100).toFixed(1);
-    return null;
-  })();
-
   const handleSave = async () => {
     if (!pending) return toast.error("Clique d'abord sur le terrain");
-    const a = parseInt(attempts);
-    const s = parseInt(successes);
-    if (isNaN(a) || a <= 0) return toast.error("Tentatives invalides");
-    if (isNaN(s) || s < 0 || s > a) return toast.error("Réussites invalides");
+    if (!pendingResult) return toast.error("Indique si le tir est Réussi ou Manqué");
 
     setSubmitting(true);
     const { data, error } = await supabase.functions.invoke(
@@ -130,8 +119,8 @@ export function BasketballTrainingEntryDialog({
           exercise_label: exercise.label,
           zone_x: pending.x,
           zone_y: pending.y,
-          attempts: a,
-          successes: s,
+          attempts: 1,
+          successes: pendingResult === "success" ? 1 : 0,
         },
       },
     );
@@ -140,10 +129,9 @@ export function BasketballTrainingEntryDialog({
       toast.error((data as any)?.error || error?.message || "Erreur");
       return;
     }
-    toast.success("Exercice enregistré, le staff a été notifié");
+    toast.success("Tir enregistré");
     setPending(null);
-    setAttempts("10");
-    setSuccesses("0");
+    setPendingResult(null);
     qc.invalidateQueries({ queryKey: ["basket-athlete-precision"] });
     qc.invalidateQueries({ queryKey: ["precision-training-stats"] });
   };
@@ -189,56 +177,71 @@ export function BasketballTrainingEntryDialog({
           <BasketballHalfCourtSVG
             exercise={exercise}
             points={points}
-            onClickZone={(x, y, zone) => setPending({ x, y, zone })}
+            pending={pending ? { x: pending.x, y: pending.y } : null}
+            pendingResult={pendingResult}
+            onClickZone={(x, y, zone) => {
+              setPending({ x, y, zone });
+              setPendingResult(null);
+            }}
           />
           <p className="text-xs text-muted-foreground text-center">
-            Clique dans la zone surlignée pour ajouter une saisie.
+            {pending
+              ? "Sélectionne Réussi ou Manqué puis Enregistrer."
+              : "Clique dans la zone surlignée pour placer ton tir."}
           </p>
 
           {pending && (
             <Card>
               <CardContent className="pt-4 space-y-3">
                 <p className="text-sm font-medium">{pending.zone}</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Lancers</Label>
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      value={attempts}
-                      onChange={(e) => setAttempts(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label>Réussis</Label>
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      value={successes}
-                      onChange={(e) => setSuccesses(e.target.value)}
-                    />
+
+                <div>
+                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Résultat
+                  </Label>
+                  <div className="grid grid-cols-2 gap-3 mt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setPendingResult("success")}
+                      className={
+                        pendingResult === "success"
+                          ? "bg-green-500 hover:bg-green-500/90 text-white border-green-600"
+                          : ""
+                      }
+                    >
+                      ✓ Réussi
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setPendingResult("miss")}
+                      className={
+                        pendingResult === "miss"
+                          ? "bg-red-500 hover:bg-red-500/90 text-white border-red-600"
+                          : ""
+                      }
+                    >
+                      ✗ Manqué
+                    </Button>
                   </div>
                 </div>
-                {livePct && (
-                  <div className="text-center p-3 rounded-lg bg-primary/10">
-                    <p className="text-2xl font-bold text-primary">{livePct}%</p>
-                    <p className="text-xs text-muted-foreground">
-                      Taux de réussite
-                    </p>
-                  </div>
-                )}
-                <div className="flex gap-2">
+
+                <div className="flex gap-2 pt-1">
                   <Button
                     variant="outline"
                     className="flex-1"
-                    onClick={() => setPending(null)}
+                    onClick={() => {
+                      setPending(null);
+                      setPendingResult(null);
+                    }}
                   >
                     Annuler
                   </Button>
                   <Button
                     className="flex-1"
                     onClick={handleSave}
-                    disabled={submitting}
+                    disabled={submitting || !pendingResult}
                   >
                     {submitting ? "..." : "Enregistrer"}
                   </Button>
