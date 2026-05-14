@@ -106,6 +106,7 @@ export function SmartStatsComparator({
   title = "Comparateur intelligent",
   description = "Compare n'importe quelle statistique entre athlètes",
   hiddenDimensions = [],
+  allowedDimensions,
   defaultMetricKeys,
 }: SmartStatsComparatorProps) {
   const { availableDimensions, aggregateByDimension } = useComparisonGroups(categoryId);
