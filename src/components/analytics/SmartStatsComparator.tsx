@@ -459,7 +459,7 @@ export function SmartStatsComparator({
             "position_all",
             ...hiddenDimensions,
           ]);
-          const visibleDims = dims.filter((d) => !HIDDEN_DIMS.has(d));
+          const visibleDims = dims.filter((d) => !HIDDEN_DIMS.has(d) && (!allowedDimensions || allowedDimensions.includes(d)));
           if (visibleDims.length === 0) return null;
           const labelFor = (d: string) =>
             DIM_LABELS[d] ??
