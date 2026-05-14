@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import {
-  useMatchEventsAnalytics,
+  useMultiMatchEvents,
   useCategoryPlayers,
   type MatchRow,
   type PlayerLite,
