@@ -198,6 +198,8 @@ export function ManualRugbyStatsDialog({
           break;
         case "missed_tackle": target.missedTackles += 1; break;
         case "knock_on": target.knockOns += 1; break;
+        case "line_break": target.lineBreaks += 1; break;
+        case "turnover": target.turnoversWon += 1; break;
         case "foul": target.fouls += 1; break;
         case "yellow_card": target.yellowCards += 1; break;
         case "red_card": target.redCards += 1; break;
