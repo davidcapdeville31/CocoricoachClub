@@ -90,7 +90,7 @@ const COLUMNS: Column[] = [
   { key: "knockOns", label: "En-avants", short: "EnAv", group: "disc", invert: true },
   { key: "fouls", label: "Fautes", short: "Fte", group: "disc", invert: true },
   { key: "cards", label: "Cartons", short: "Crt", group: "disc", invert: true },
-  { key: "score", label: "Score perf.", short: "Perf", group: "score" },
+  
 ];
 
 interface Row {
