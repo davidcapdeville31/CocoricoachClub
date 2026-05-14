@@ -317,21 +317,27 @@ export function ManualRugbyStatsDialog({
     setStats((prev) => {
       const cur = prev[playerId] ?? emptyPeriodStats();
       const row = cur[period];
+      // Si l'utilisateur a placé des marqueurs sans renseigner le compteur, on aligne le compteur.
+      const newCount = Math.max((row[key] as number) ?? 0, list.length);
       return {
         ...prev,
         [playerId]: {
           ...cur,
-          [period]: { ...row, positions: { ...(row.positions ?? {}), [key]: list } },
+          [period]: { ...row, [key]: newCount, positions: { ...(row.positions ?? {}), [key]: list } },
         },
       };
     });
   };
 
   const updateOpponentPositions = (key: PositionableStatKey, list: FieldPosition[]) => {
-    setOpponent((prev) => ({
-      ...prev,
-      [period]: { ...prev[period], positions: { ...(prev[period].positions ?? {}), [key]: list } },
-    }));
+    setOpponent((prev) => {
+      const row = prev[period];
+      const newCount = Math.max((row[key] as number) ?? 0, list.length);
+      return {
+        ...prev,
+        [period]: { ...row, [key]: newCount, positions: { ...(row.positions ?? {}), [key]: list } },
+      };
+    });
   };
 
   const updateNote = (targetKey: string, value: string) => {
@@ -570,12 +576,12 @@ export function ManualRugbyStatsDialog({
                                     className="h-7 w-14 text-xs text-center"
                                     placeholder="0"
                                   />
-                                  {isPositionable && count > 0 && (
+                                  {isPositionable && (
                                     <button
                                       type="button"
                                       onClick={() => setPosDialog({ targetKey: l.player_id, statKey: f.key as PositionableStatKey, contextLabel: `${name} · ${period === "H1" ? "1ʳᵉ MT" : "2ᵉ MT"} · ${f.label}` })}
-                                      title={`Placer sur le terrain (${placed}/${count})`}
-                                      className={`shrink-0 rounded p-0.5 transition-colors ${allPlaced ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground hover:text-primary"}`}
+                                      title={count > 0 ? `Placer sur le terrain (${placed}/${count})` : "Placer sur le terrain"}
+                                      className={`shrink-0 rounded p-0.5 transition-colors ${allPlaced ? "text-emerald-600 dark:text-emerald-400" : placed > 0 ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
                                     >
                                       <MapPin className="h-3.5 w-3.5" />
                                     </button>
@@ -625,12 +631,12 @@ export function ManualRugbyStatsDialog({
                               className="h-8 w-16 text-xs text-center"
                               placeholder="0"
                             />
-                            {isPositionable && count > 0 && (
+                            {isPositionable && (
                               <button
                                 type="button"
                                 onClick={() => setPosDialog({ targetKey: "opp", statKey: f.key as PositionableStatKey, contextLabel: `${opponentName} · ${period === "H1" ? "1ʳᵉ MT" : "2ᵉ MT"} · ${f.label}` })}
-                                title={`Placer sur le terrain (${placed}/${count})`}
-                                className={`shrink-0 rounded p-0.5 transition-colors ${allPlaced ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground hover:text-primary"}`}
+                                title={count > 0 ? `Placer sur le terrain (${placed}/${count})` : "Placer sur le terrain"}
+                                className={`shrink-0 rounded p-0.5 transition-colors ${allPlaced ? "text-emerald-600 dark:text-emerald-400" : placed > 0 ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
                               >
                                 <MapPin className="h-3.5 w-3.5" />
                               </button>
