@@ -949,6 +949,41 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         />
       )}
 
+      {isRugby && (
+        <ManualRugbyStatsDialog
+          open={isManualRugbyOpen}
+          onOpenChange={setIsManualRugbyOpen}
+          matchId={match.id}
+          isHome={match.is_home}
+        />
+      )}
+
+      <AlertDialog open={confirmLiveStart} onOpenChange={setConfirmLiveStart}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Saisie manuelle déjà existante</AlertDialogTitle>
+            <AlertDialogDescription>
+              Des statistiques ont été saisies manuellement pour ce match. Démarrer la saisie en
+              temps réel <strong>remplacera</strong> les données existantes. Continuer ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                await supabase.from("match_events" as any).delete().eq("match_id", match.id);
+                queryClient.invalidateQueries({ queryKey: ["rugby-events-source", match.id] });
+                setConfirmLiveStart(false);
+                navigate(`/categories/${categoryId}/match/${match.id}/live`);
+              }}
+            >
+              Démarrer et remplacer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
       {/* For round-based sports, use AggregatedRoundStatsDialog */}
       {hasRoundBasedStats && (
         <AggregatedRoundStatsDialog
