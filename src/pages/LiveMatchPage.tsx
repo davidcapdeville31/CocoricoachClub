@@ -15,6 +15,7 @@ import { EventDialog } from "@/components/category/matches/live/dialogs/EventDia
 import { TacklePanel } from "@/components/category/matches/live/dialogs/TacklePanel";
 import { SubstitutionDialog } from "@/components/category/matches/live/dialogs/SubstitutionDialog";
 import { TackleInlinePanel } from "@/components/category/matches/live/TackleInlinePanel";
+import { PassInlinePanel } from "@/components/category/matches/live/PassInlinePanel";
 import { TeamColorsDialog } from "@/components/category/matches/live/dialogs/TeamColorsDialog";
 import { useMatchEvents } from "@/components/category/matches/live/hooks/useMatchEvents";
 import { useMatchStats } from "@/components/category/matches/live/hooks/useMatchStats";
@@ -211,6 +212,18 @@ export default function LiveMatchPage() {
             minute={minute}
             second={seconds}
             counts={Object.fromEntries(Object.entries(stats.players).map(([id, s]) => [id, { tackles: s.tackles, missedTackles: s.missedTackles }]))}
+            onRecord={(payload) => create.mutate(payload)}
+          />
+        </div>
+        <div>
+          <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Passes</h2>
+          <PassInlinePanel
+            players={tacklePlayers}
+            teamSide={clubSide}
+            period={period}
+            minute={minute}
+            second={seconds}
+            counts={Object.fromEntries(Object.entries(stats.players).map(([id, s]) => [id, { passes: s.passes, missedPasses: s.missedPasses }]))}
             onRecord={(payload) => create.mutate(payload)}
           />
         </div>
