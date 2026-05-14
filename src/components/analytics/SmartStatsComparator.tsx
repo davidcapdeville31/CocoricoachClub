@@ -86,6 +86,8 @@ interface SmartStatsComparatorProps {
   description?: string;
   /** Dimensions d'identité à masquer en plus des dimensions par défaut */
   hiddenDimensions?: string[];
+  /** Si défini, restreint les dimensions d'identité à cette liste (whitelist) */
+  allowedDimensions?: string[];
   /** Métriques cochées par défaut (si non défini, toutes les métriques) */
   defaultMetricKeys?: string[];
 }
@@ -104,6 +106,7 @@ export function SmartStatsComparator({
   title = "Comparateur intelligent",
   description = "Compare n'importe quelle statistique entre athlètes",
   hiddenDimensions = [],
+  allowedDimensions,
   defaultMetricKeys,
 }: SmartStatsComparatorProps) {
   const { availableDimensions, aggregateByDimension } = useComparisonGroups(categoryId);
@@ -278,7 +281,7 @@ export function SmartStatsComparator({
     "position_all",
     ...hiddenDimensions,
   ]);
-  const visibleDimsAll = dims.filter((d) => !GLOBAL_HIDDEN_DIMS.has(d));
+  const visibleDimsAll = dims.filter((d) => !GLOBAL_HIDDEN_DIMS.has(d) && (!allowedDimensions || allowedDimensions.includes(d)));
   const activeDim = selectedDim ?? visibleDimsAll[0] ?? dims[0] ?? null;
   // Traduction FR des valeurs de dimension (genre, latéralité, catégorie d'âge, etc.)
   const VALUE_LABELS: Record<string, string> = {
@@ -456,7 +459,7 @@ export function SmartStatsComparator({
             "position_all",
             ...hiddenDimensions,
           ]);
-          const visibleDims = dims.filter((d) => !HIDDEN_DIMS.has(d));
+          const visibleDims = dims.filter((d) => !HIDDEN_DIMS.has(d) && (!allowedDimensions || allowedDimensions.includes(d)));
           if (visibleDims.length === 0) return null;
           const labelFor = (d: string) =>
             DIM_LABELS[d] ??
