@@ -60,14 +60,10 @@ export function CompareTab({ categoryId, matches }: Props) {
     return result;
   }, [eventsByMatch]);
 
-  // Players with at least one event
+  // Tous les joueurs de la catégorie (même ceux sans actions enregistrées)
   const involvedPlayers: SmartPlayerLite[] = useMemo(() => {
-    const ids = new Set<string>();
-    for (const m of Object.values(statsByMatch)) for (const pid of Object.keys(m)) ids.add(pid);
-    return players
-      .filter((p) => ids.has(p.id))
-      .map((p) => ({ id: p.id, first_name: p.first_name, name: p.name || "Joueur", position: p.position }));
-  }, [players, statsByMatch]);
+    return players.map((p) => ({ id: p.id, first_name: p.first_name, name: p.name || "Joueur", position: p.position }));
+  }, [players]);
 
   // Scopes
   const scopes: ScopeDef[] = useMemo(() => {
