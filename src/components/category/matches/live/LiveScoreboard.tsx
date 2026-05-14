@@ -32,8 +32,7 @@ function isLight(hex?: string) {
   return (r * 299 + g * 587 + b * 114) / 1000 >= 160;
 }
 
-export function LiveScoreboard({ homeName, awayName, homeScore, awayScore, period, onPeriodChange, minute, onMinuteChange, seconds, onSecondsChange, homeColor, awayColor }: Props) {
-  const [running, setRunning] = useState(false);
+export function LiveScoreboard({ homeName, awayName, homeScore, awayScore, period, onPeriodChange, minute, onMinuteChange, seconds, onSecondsChange, homeColor, awayColor, running, onRunningChange }: Props) {
   const tickRef = useRef<number | null>(null);
   const startRef = useRef<{ at: number; baseSec: number } | null>(null);
 
