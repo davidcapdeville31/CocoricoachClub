@@ -103,8 +103,10 @@ export function useMatchEventsAnalytics(matchId: string | null) {
 
 /** Fetches events for a list of matches (used by Compare across multiple matches). */
 export function useMultiMatchEvents(matchIds: string[]) {
-  return useQuery({
-    queryKey: ["analytics_multi_events", [...matchIds].sort().join(",")],
+  const qc = useQueryClient();
+  const sortedKey = [...matchIds].sort().join(",");
+  const q = useQuery({
+    queryKey: ["analytics_multi_events", sortedKey],
     enabled: matchIds.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -116,6 +118,26 @@ export function useMultiMatchEvents(matchIds: string[]) {
       return (data ?? []) as unknown as MatchEvent[];
     },
   });
+
+  useEffect(() => {
+    if (matchIds.length === 0) return;
+    const ch = supabase
+      .channel(`analytics_multi_events:${sortedKey}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "match_events" },
+        (payload: any) => {
+          const mid = payload?.new?.match_id ?? payload?.old?.match_id;
+          if (mid && matchIds.includes(mid)) {
+            qc.invalidateQueries({ queryKey: ["analytics_multi_events", sortedKey] });
+          }
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [sortedKey, matchIds, qc]);
+
+  return q;
 }
 
 export interface PlayerLite {
