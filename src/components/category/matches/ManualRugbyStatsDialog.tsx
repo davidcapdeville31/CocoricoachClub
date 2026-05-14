@@ -17,6 +17,9 @@ interface ManualRugbyStatsDialogProps {
   onOpenChange: (o: boolean) => void;
   matchId: string;
   isHome: boolean;
+  opponentName?: string;
+  initialOpponentScore?: number | null;
+  clubName?: string;
 }
 
 type StatRow = {
