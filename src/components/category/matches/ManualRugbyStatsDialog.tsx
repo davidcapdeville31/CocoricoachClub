@@ -223,10 +223,32 @@ export function ManualRugbyStatsDialog({
           <DialogHeader>
             <DialogTitle>Saisie manuelle des statistiques</DialogTitle>
             <DialogDescription>
-              Renseignez les totaux par joueur. À la sauvegarde, toutes les statistiques précédentes
-              de ce match seront remplacées.
+              Renseignez les totaux par joueur. Le score de notre équipe est calculé
+              automatiquement à partir des essais, transformations, pénalités et drops.
             </DialogDescription>
           </DialogHeader>
+
+          {/* Live score header */}
+          <div className="rounded-lg border bg-muted/40 p-3 flex items-center justify-around gap-4">
+            <div className="text-center">
+              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{clubName}</div>
+              <div className="text-3xl font-bold tabular-nums text-primary">{clubScore}</div>
+              <div className="text-[10px] text-muted-foreground">auto</div>
+            </div>
+            <div className="text-2xl font-bold text-muted-foreground">–</div>
+            <div className="text-center">
+              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{opponentName}</div>
+              <Input
+                type="number"
+                min={0}
+                value={opponentScore === 0 ? "" : String(opponentScore)}
+                onChange={(e) => setOpponentScore(parseInt(e.target.value) || 0)}
+                className="h-10 w-20 text-3xl font-bold text-center tabular-nums mx-auto p-1"
+                placeholder="0"
+              />
+              <div className="text-[10px] text-muted-foreground">manuel</div>
+            </div>
+          </div>
 
           <div className="flex-1 overflow-auto">
             {isLoading ? (
