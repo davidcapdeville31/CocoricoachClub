@@ -18,6 +18,8 @@ interface Props {
   onSecondsChange: (s: number) => void;
   homeColor?: string;
   awayColor?: string;
+  running: boolean;
+  onRunningChange: (r: boolean) => void;
 }
 
 function isLight(hex?: string) {
