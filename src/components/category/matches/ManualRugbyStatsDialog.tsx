@@ -65,6 +65,10 @@ const POSITIONABLE_KIND: Record<PositionableStatKey, PositionableKind> = {
   lineoutsLost: "lineout_lost",
 };
 
+const MISSED_POSITIONABLE: ReadonlySet<PositionableStatKey> = new Set([
+  "conversionsMissed", "penaltiesMissed", "dropsMissed", "scrumsLost", "lineoutsLost",
+]);
+
 type Period = "H1" | "H2";
 type Category = "points" | "attack" | "conquest" | "defense" | "discipline";
 type PeriodStats = { H1: StatRow; H2: StatRow };
