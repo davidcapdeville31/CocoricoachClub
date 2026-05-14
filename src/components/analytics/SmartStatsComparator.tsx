@@ -281,7 +281,7 @@ export function SmartStatsComparator({
     "position_all",
     ...hiddenDimensions,
   ]);
-  const visibleDimsAll = dims.filter((d) => !GLOBAL_HIDDEN_DIMS.has(d));
+  const visibleDimsAll = dims.filter((d) => !GLOBAL_HIDDEN_DIMS.has(d) && (!allowedDimensions || allowedDimensions.includes(d)));
   const activeDim = selectedDim ?? visibleDimsAll[0] ?? dims[0] ?? null;
   // Traduction FR des valeurs de dimension (genre, latéralité, catégorie d'âge, etc.)
   const VALUE_LABELS: Record<string, string> = {
