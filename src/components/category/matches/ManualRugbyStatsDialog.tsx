@@ -47,13 +47,18 @@ type StatRow = {
 };
 
 type PositionableStatKey =
-  | "conversionsMade" | "penaltiesMade" | "drops"
+  | "conversionsMade" | "conversionsMissed"
+  | "penaltiesMade" | "penaltiesMissed"
+  | "drops" | "dropsMissed"
   | "scrumsWon" | "scrumsLost" | "lineoutsWon" | "lineoutsLost";
 
 const POSITIONABLE_KIND: Record<PositionableStatKey, PositionableKind> = {
   conversionsMade: "conversion",
+  conversionsMissed: "conversion",
   penaltiesMade: "penalty_kick",
+  penaltiesMissed: "penalty_kick",
   drops: "drop",
+  dropsMissed: "drop",
   scrumsWon: "scrum_won",
   scrumsLost: "scrum_lost",
   lineoutsWon: "lineout_won",
