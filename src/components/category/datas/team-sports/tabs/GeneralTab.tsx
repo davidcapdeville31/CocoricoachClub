@@ -105,31 +105,27 @@ export function GeneralTab({ match, categoryId }: Props) {
 
       {/* SECTION 4 — DÉTAIL */}
       <Card className="rounded-2xl">
-        <CardContent className="p-0">
-          <div className="px-4 pt-3 pb-2">
+        <CardContent className="p-4 sm:p-5">
+          <div className="flex items-center justify-between mb-3">
             <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Détail</h3>
+            <div className="hidden sm:flex items-center gap-4 text-[10px] uppercase tracking-wider text-muted-foreground">
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary inline-block" />{homeName}</span>
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-foreground/30 inline-block" />{awayName}</span>
+            </div>
           </div>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-[10px] uppercase tracking-wide text-muted-foreground border-y bg-surface-sunken/50">
-                <th className="text-left font-medium px-4 py-1.5">Statistique</th>
-                <th className="text-right font-medium px-3 py-1.5 truncate max-w-[120px]">{homeName}</th>
-                <th className="text-right font-medium px-4 py-1.5 truncate max-w-[120px]">{awayName}</th>
-              </tr>
-            </thead>
-            <tbody className="[&>tr:nth-child(odd)]:bg-surface-sunken/30">
-              <Row label="Plaquages réussis" h={home.tackles} a={away.tackles} />
-              <Row label="Plaquages manqués" h={home.missedTackles} a={away.missedTackles} reverse />
-              <Row label="Transformations" h={`${home.conversionsMade}/${home.conversionsAttempted}`} a={`${away.conversionsMade}/${away.conversionsAttempted}`} />
-              <Row label="Drops" h={home.drops} a={away.drops} />
-              <Row label="Mètres gagnés" h={home.meters} a={away.meters} />
-              <Row label="Touches G/P" h={`${home.lineoutsWon}/${home.lineoutsLost}`} a={`${away.lineoutsWon}/${away.lineoutsLost}`} />
-              <Row label="Mêlées G/P" h={`${home.scrumsWon}/${home.scrumsLost}`} a={`${away.scrumsWon}/${away.scrumsLost}`} />
-              <Row label="Pénalités concédées" h={home.fouls} a={away.fouls} reverse />
-              <Row label="Cartons jaunes" h={home.yellowCards} a={away.yellowCards} reverse />
-              <Row label="Cartons rouges" h={home.redCards} a={away.redCards} reverse />
-            </tbody>
-          </table>
+          <div className="space-y-2.5">
+            <StatBar label="Plaquages réussis" h={home.tackles} a={away.tackles} />
+            <StatBar label="Plaquages manqués" h={home.missedTackles} a={away.missedTackles} reverse />
+            <StatBar label="Transformations" h={home.conversionsMade} a={away.conversionsMade} hTotal={home.conversionsAttempted} aTotal={away.conversionsAttempted} kind="ratio" />
+            <StatBar label="Pénalités (tirs)" h={home.penaltiesMade} a={away.penaltiesMade} hTotal={home.penaltiesAttempted} aTotal={away.penaltiesAttempted} kind="ratio" />
+            <StatBar label="Drops" h={home.drops} a={away.drops} />
+            <StatBar label="Mètres gagnés" h={home.meters} a={away.meters} suffix="m" />
+            <StatBar label="Touches gagnées" h={home.lineoutsWon} a={away.lineoutsWon} hTotal={home.lineoutsWon + home.lineoutsLost} aTotal={away.lineoutsWon + away.lineoutsLost} kind="ratio" />
+            <StatBar label="Mêlées gagnées" h={home.scrumsWon} a={away.scrumsWon} hTotal={home.scrumsWon + home.scrumsLost} aTotal={away.scrumsWon + away.scrumsLost} kind="ratio" />
+            <StatBar label="Pénalités concédées" h={home.fouls} a={away.fouls} reverse />
+            <StatBar label="Cartons jaunes" h={home.yellowCards} a={away.yellowCards} reverse />
+            <StatBar label="Cartons rouges" h={home.redCards} a={away.redCards} reverse />
+          </div>
         </CardContent>
       </Card>
 
