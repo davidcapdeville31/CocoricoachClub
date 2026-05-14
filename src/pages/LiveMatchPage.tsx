@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ArrowLeft, ListOrdered } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LiveScoreboard } from "@/components/category/matches/live/LiveScoreboard";
 import { PeriodControls } from "@/components/category/matches/live/PeriodControls";
@@ -32,6 +33,7 @@ export default function LiveMatchPage() {
   const [tacklePanelOpen, setTacklePanelOpen] = useState(false);
   const [subOpen, setSubOpen] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
+  const [timelineOpen, setTimelineOpen] = useState(false);
 
   const colorsKey = `match-team-colors-${matchId}`;
   const [teamColors, setTeamColors] = useState<{ home: string; away: string } | null>(() => {
@@ -177,29 +179,25 @@ export default function LiveMatchPage() {
           onStartClock={() => setIsRunning(true)}
           onStopClock={() => setIsRunning(false)}
         />
-        <div className="text-xs text-muted-foreground hidden lg:block">
-          Mode analyste · raccourcis : <kbd className="bg-muted rounded px-1">E</kbd> essai · <kbd className="bg-muted rounded px-1">P</kbd> pénalité · <kbd className="bg-muted rounded px-1">T</kbd> touche · <kbd className="bg-muted rounded px-1">M</kbd> mêlée · <kbd className="bg-muted rounded px-1">C</kbd> carton · <kbd className="bg-muted rounded px-1">D</kbd> drop
+        <div className="flex items-center gap-3 flex-wrap">
+          <Button variant="outline" size="sm" onClick={() => setTimelineOpen(true)} className="gap-1.5">
+            <ListOrdered className="h-4 w-4" />
+            Timeline
+            {events.length > 0 && (
+              <span className="ml-1 rounded-full bg-primary/15 text-primary text-[10px] font-mono px-1.5 py-0.5">
+                {events.length}
+              </span>
+            )}
+          </Button>
+          <div className="text-xs text-muted-foreground hidden lg:block">
+            Mode analyste · raccourcis : <kbd className="bg-muted rounded px-1">E</kbd> essai · <kbd className="bg-muted rounded px-1">P</kbd> pénalité · <kbd className="bg-muted rounded px-1">T</kbd> touche · <kbd className="bg-muted rounded px-1">M</kbd> mêlée · <kbd className="bg-muted rounded px-1">C</kbd> carton · <kbd className="bg-muted rounded px-1">D</kbd> drop
+          </div>
         </div>
       </div>
 
       {/* Desktop / tablet layout */}
       <div className="px-4 pb-8 hidden md:grid md:grid-cols-12 gap-4">
-        <div className="md:col-span-5 lg:col-span-5">
-          <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Timeline</h2>
-          <LiveTimeline
-            events={events}
-            homeName={homeName} awayName={awayName}
-            playerNames={playerNames}
-            onEdit={(e) => { setEditing(e); setOpenType(e.event_type as EventType); }}
-            onDelete={(e) => remove.mutate(e.id)}
-            onDuplicate={(e) => create.mutate({
-              team_side: e.team_side, player_id: e.player_id, minute: e.minute, second: e.second,
-              period: e.period, event_type: e.event_type, event_subtype: e.event_subtype,
-              outcome: e.outcome as any, metadata: e.metadata,
-            })}
-          />
-        </div>
-        <div className="md:col-span-4 lg:col-span-4">
+        <div className="md:col-span-8 lg:col-span-8">
           <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Actions rapides</h2>
           <LiveQuickActions onSelect={(t) => { setEditing(null); if (t === "substitution") { setSubOpen(true); } else { setOpenType(t); } }} />
           <TackleInlinePanel
@@ -212,7 +210,7 @@ export default function LiveMatchPage() {
             onRecord={(payload) => create.mutate(payload)}
           />
         </div>
-        <div className="md:col-span-3 lg:col-span-3">
+        <div className="md:col-span-4 lg:col-span-4">
           <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Stats</h2>
           <LiveStatsPanel home={stats.home} away={stats.away} homeH1={stats.homeH1} awayH1={stats.awayH1} homeH2={stats.homeH2} awayH2={stats.awayH2} />
         </div>
@@ -221,9 +219,8 @@ export default function LiveMatchPage() {
       {/* Mobile layout */}
       <div className="px-4 pb-8 md:hidden">
         <Tabs defaultValue="actions">
-          <TabsList className="grid grid-cols-3 w-full">
+          <TabsList className="grid grid-cols-2 w-full">
             <TabsTrigger value="actions">Actions</TabsTrigger>
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
             <TabsTrigger value="stats">Stats</TabsTrigger>
           </TabsList>
           <TabsContent value="actions">
@@ -238,20 +235,33 @@ export default function LiveMatchPage() {
               onRecord={(payload) => create.mutate(payload)}
             />
           </TabsContent>
-          <TabsContent value="timeline">
-            <LiveTimeline events={events} homeName={homeName} awayName={awayName} playerNames={playerNames}
-              onEdit={(e) => { setEditing(e); setOpenType(e.event_type as EventType); }}
-              onDelete={(e) => remove.mutate(e.id)}
-              onDuplicate={(e) => create.mutate({
-                team_side: e.team_side, player_id: e.player_id, minute: e.minute, second: e.second,
-                period: e.period, event_type: e.event_type, event_subtype: e.event_subtype,
-                outcome: e.outcome as any, metadata: e.metadata,
-              })}
-            />
-          </TabsContent>
           <TabsContent value="stats"><LiveStatsPanel home={stats.home} away={stats.away} homeH1={stats.homeH1} awayH1={stats.awayH1} homeH2={stats.homeH2} awayH2={stats.awayH2} /></TabsContent>
         </Tabs>
       </div>
+
+      {/* Timeline dialog (déclenché via le bouton "Timeline") */}
+      <Dialog open={timelineOpen} onOpenChange={setTimelineOpen}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ListOrdered className="h-5 w-5" />
+              Timeline · {events.length} événement{events.length > 1 ? "s" : ""}
+            </DialogTitle>
+          </DialogHeader>
+          <LiveTimeline
+            events={events}
+            homeName={homeName} awayName={awayName}
+            playerNames={playerNames}
+            onEdit={(e) => { setTimelineOpen(false); setEditing(e); setOpenType(e.event_type as EventType); }}
+            onDelete={(e) => remove.mutate(e.id)}
+            onDuplicate={(e) => create.mutate({
+              team_side: e.team_side, player_id: e.player_id, minute: e.minute, second: e.second,
+              period: e.period, event_type: e.event_type, event_subtype: e.event_subtype,
+              outcome: e.outcome as any, metadata: e.metadata,
+            })}
+          />
+        </DialogContent>
+      </Dialog>
 
       {openType && (
         <EventDialog
