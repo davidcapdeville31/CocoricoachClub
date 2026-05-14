@@ -317,21 +317,27 @@ export function ManualRugbyStatsDialog({
     setStats((prev) => {
       const cur = prev[playerId] ?? emptyPeriodStats();
       const row = cur[period];
+      // Si l'utilisateur a placé des marqueurs sans renseigner le compteur, on aligne le compteur.
+      const newCount = Math.max((row[key] as number) ?? 0, list.length);
       return {
         ...prev,
         [playerId]: {
           ...cur,
-          [period]: { ...row, positions: { ...(row.positions ?? {}), [key]: list } },
+          [period]: { ...row, [key]: newCount, positions: { ...(row.positions ?? {}), [key]: list } },
         },
       };
     });
   };
 
   const updateOpponentPositions = (key: PositionableStatKey, list: FieldPosition[]) => {
-    setOpponent((prev) => ({
-      ...prev,
-      [period]: { ...prev[period], positions: { ...(prev[period].positions ?? {}), [key]: list } },
-    }));
+    setOpponent((prev) => {
+      const row = prev[period];
+      const newCount = Math.max((row[key] as number) ?? 0, list.length);
+      return {
+        ...prev,
+        [period]: { ...row, [key]: newCount, positions: { ...(row.positions ?? {}), [key]: list } },
+      };
+    });
   };
 
   const updateNote = (targetKey: string, value: string) => {
