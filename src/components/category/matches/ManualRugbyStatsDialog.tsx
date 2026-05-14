@@ -413,11 +413,11 @@ export function ManualRugbyStatsDialog({
         r.positions?.[key]?.[i];
       for (let i = 0; i < r.tries; i++) push(side, pid, per, "try", null, 5, attach());
       for (let i = 0; i < r.conversionsMade; i++) push(side, pid, per, "conversion", "success", 2, attach(), posAt("conversionsMade", i));
-      for (let i = 0; i < r.conversionsMissed; i++) push(side, pid, per, "conversion", "fail", 0, attach());
+      for (let i = 0; i < r.conversionsMissed; i++) push(side, pid, per, "conversion", "fail", 0, attach(), posAt("conversionsMissed", i));
       for (let i = 0; i < r.penaltiesMade; i++) push(side, pid, per, "penalty_kick", "success", 3, attach(), posAt("penaltiesMade", i));
-      for (let i = 0; i < r.penaltiesMissed; i++) push(side, pid, per, "penalty_kick", "fail", 0, attach());
+      for (let i = 0; i < r.penaltiesMissed; i++) push(side, pid, per, "penalty_kick", "fail", 0, attach(), posAt("penaltiesMissed", i));
       for (let i = 0; i < r.drops; i++) push(side, pid, per, "drop", "success", 3, attach(), posAt("drops", i));
-      for (let i = 0; i < r.dropsMissed; i++) push(side, pid, per, "drop", "fail", 0, attach());
+      for (let i = 0; i < r.dropsMissed; i++) push(side, pid, per, "drop", "fail", 0, attach(), posAt("dropsMissed", i));
       for (let i = 0; i < r.scrumsWon; i++) push(side, pid, per, "scrum", "success", 0, attach(), posAt("scrumsWon", i));
       for (let i = 0; i < r.scrumsLost; i++) push(side, pid, per, "scrum", "fail", 0, attach(), posAt("scrumsLost", i));
       for (let i = 0; i < r.lineoutsWon; i++) push(side, pid, per, "lineout", "success", 0, attach(), posAt("lineoutsWon", i));
