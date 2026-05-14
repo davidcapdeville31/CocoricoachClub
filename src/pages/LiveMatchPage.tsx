@@ -203,7 +203,7 @@ export default function LiveMatchPage() {
           <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Actions rapides</h2>
           <LiveQuickActions onSelect={(t) => { setEditing(null); if (t === "substitution") { setSubOpen(true); } else { setOpenType(t); } }} />
           <TackleInlinePanel
-            players={homePlayers}
+            players={tacklePlayers}
             teamSide={clubSide}
             period={period}
             minute={minute}
@@ -229,7 +229,7 @@ export default function LiveMatchPage() {
           <TabsContent value="actions">
             <LiveQuickActions onSelect={(t) => { setEditing(null); if (t === "substitution") { setSubOpen(true); } else { setOpenType(t); } }} />
             <TackleInlinePanel
-              players={homePlayers}
+              players={tacklePlayers}
               teamSide={clubSide}
               period={period}
               minute={minute}
@@ -274,7 +274,7 @@ export default function LiveMatchPage() {
       <TacklePanel
         open={tacklePanelOpen}
         onOpenChange={setTacklePanelOpen}
-        players={homePlayers}
+        players={tacklePlayers}
         teamSide={clubSide}
         period={period}
         minute={minute}
