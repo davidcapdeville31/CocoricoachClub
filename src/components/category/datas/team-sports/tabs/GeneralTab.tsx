@@ -103,29 +103,39 @@ export function GeneralTab({ match, categoryId }: Props) {
         </div>
       </div>
 
-      {/* SECTION 4 — DÉTAIL */}
+      {/* SECTION 4 — DÉTAIL par thème */}
       <Card className="rounded-2xl">
-        <CardContent className="p-4 sm:p-5">
-          <div className="flex items-center justify-between mb-3">
+        <CardContent className="p-4 sm:p-5 space-y-4">
+          <div className="flex items-center justify-between">
             <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Détail</h3>
             <div className="hidden sm:flex items-center gap-4 text-[10px] uppercase tracking-wider text-muted-foreground">
               <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary inline-block" />{homeName}</span>
               <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-foreground/30 inline-block" />{awayName}</span>
             </div>
           </div>
-          <div className="space-y-2.5">
-            <StatBar label="Plaquages réussis" h={home.tackles} a={away.tackles} />
-            <StatBar label="Plaquages manqués" h={home.missedTackles} a={away.missedTackles} reverse />
+
+          <StatBlock title="Attaque" accent="emerald">
             <StatBar label="Transformations" h={home.conversionsMade} a={away.conversionsMade} hTotal={home.conversionsAttempted} aTotal={away.conversionsAttempted} kind="ratio" />
             <StatBar label="Pénalités (tirs)" h={home.penaltiesMade} a={away.penaltiesMade} hTotal={home.penaltiesAttempted} aTotal={away.penaltiesAttempted} kind="ratio" />
             <StatBar label="Drops" h={home.drops} a={away.drops} />
             <StatBar label="Mètres gagnés" h={home.meters} a={away.meters} suffix="m" />
+          </StatBlock>
+
+          <StatBlock title="Défense" accent="sky">
+            <StatBar label="Plaquages réussis" h={home.tackles} a={away.tackles} />
+            <StatBar label="Plaquages manqués" h={home.missedTackles} a={away.missedTackles} reverse />
+          </StatBlock>
+
+          <StatBlock title="Conquête" accent="amber">
             <StatBar label="Touches gagnées" h={home.lineoutsWon} a={away.lineoutsWon} hTotal={home.lineoutsWon + home.lineoutsLost} aTotal={away.lineoutsWon + away.lineoutsLost} kind="ratio" />
             <StatBar label="Mêlées gagnées" h={home.scrumsWon} a={away.scrumsWon} hTotal={home.scrumsWon + home.scrumsLost} aTotal={away.scrumsWon + away.scrumsLost} kind="ratio" />
+          </StatBlock>
+
+          <StatBlock title="Discipline" accent="rose">
             <StatBar label="Pénalités concédées" h={home.fouls} a={away.fouls} reverse />
             <StatBar label="Cartons jaunes" h={home.yellowCards} a={away.yellowCards} reverse />
             <StatBar label="Cartons rouges" h={home.redCards} a={away.redCards} reverse />
-          </div>
+          </StatBlock>
         </CardContent>
       </Card>
 
@@ -262,6 +272,38 @@ function StatBar({
             style={{ width: `${isRatio ? aPct : aPct}%` }}
           />
         </div>
+      </div>
+    </div>
+  );
+}
+
+const BLOCK_ACCENTS: Record<string, { dot: string; text: string }> = {
+  emerald: { dot: "bg-emerald-500", text: "text-emerald-500" },
+  sky: { dot: "bg-sky-500", text: "text-sky-500" },
+  amber: { dot: "bg-amber-500", text: "text-amber-500" },
+  rose: { dot: "bg-rose-500", text: "text-rose-500" },
+};
+
+function StatBlock({
+  title,
+  accent,
+  children,
+}: {
+  title: string;
+  accent: keyof typeof BLOCK_ACCENTS;
+  children: React.ReactNode;
+}) {
+  const tone = BLOCK_ACCENTS[accent];
+  return (
+    <div className="rounded-xl border border-border/60 bg-surface-elevated/40 p-3">
+      <div className="flex items-center gap-2 mb-2.5 px-1">
+        <span className={cn("h-1.5 w-1.5 rounded-full", tone.dot)} />
+        <h4 className={cn("text-[11px] font-semibold uppercase tracking-wider", tone.text)}>
+          {title}
+        </h4>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {children}
       </div>
     </div>
   );
