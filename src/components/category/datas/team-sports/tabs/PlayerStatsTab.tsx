@@ -265,7 +265,7 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
 
   const filteredRows = useMemo(() => {
     return rows.filter((r) => {
-      if (posFilter !== "all" && normalizeRugbyPosition(r.player.position) !== posFilter) return false;
+      if (posFilter !== "all" && !getRugbyPositionGroups(r.player.position).includes(posFilter)) return false;
       if (search && !fullName(r.player).toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
