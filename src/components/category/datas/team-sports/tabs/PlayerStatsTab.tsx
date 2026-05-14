@@ -125,7 +125,7 @@ function heatClass(value: number, col: Column, allValues: number[]): string {
   return "text-rose-600 dark:text-rose-400";
 }
 
-export function PlayerStatsTab({ match, categoryId }: Props) {
+export function PlayerStatsTab({ matches, categoryId }: Props) {
   const [period, setPeriod] = useState<AnalyticsPeriod>("all");
   const [view, setView] = useState<"table" | "compare" | "radar">("table");
   const [search, setSearch] = useState("");
@@ -135,12 +135,29 @@ export function PlayerStatsTab({ match, categoryId }: Props) {
   const [sortKey, setSortKey] = useState<StatKey>("score");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
-  const { data: events = [] } = useMatchEventsAnalytics(match.id);
+  const matchIds = useMemo(() => matches.map(m => m.id), [matches]);
+  const isMulti = matches.length > 1;
+  const { data: events = [] } = useMultiMatchEvents(matchIds);
   const { data: players = [] } = useCategoryPlayers(categoryId);
-  const analytics = useMemo(() => computeMatchAnalytics(events, period), [events, period]);
+
+  // Regroupe les events par match pour calculer les analytics par match,
+  // puis moyenner les valeurs par joueur sur les matchs auxquels il a participé.
+  const eventsByMatch = useMemo(() => {
+    const map = new Map<string, typeof events>();
+    matchIds.forEach(id => map.set(id, [] as any));
+    events.forEach((e: any) => {
+      const arr = map.get(e.match_id);
+      if (arr) (arr as any[]).push(e);
+    });
+    return map;
+  }, [events, matchIds]);
+
+  const perMatchAnalytics = useMemo(() => {
+    return matchIds.map(id => computeMatchAnalytics((eventsByMatch.get(id) || []) as any, period));
+  }, [matchIds, eventsByMatch, period]);
 
   const involved = useMemo(() => {
-    const ids = new Set(events.map((e) => e.player_id).filter(Boolean) as string[]);
+    const ids = new Set(events.map((e: any) => e.player_id).filter(Boolean) as string[]);
     return players.filter((p) => ids.has(p.id));
   }, [events, players]);
 
@@ -153,27 +170,50 @@ export function PlayerStatsTab({ match, categoryId }: Props) {
   const rows: Row[] = useMemo(() => {
     return involved
       .map((player) => {
-        const s = analytics.players[player.id];
-        if (!s) return null;
+        // Aggrège les valeurs sur tous les matchs où le joueur a joué
+        const acc: Record<StatKey, number> = {
+          playTimeMinutes: 0, tries: 0, conversions: 0, penalties: 0, drops: 0,
+          tackles: 0, missedTackles: 0, tackleEff: 0, knockOns: 0, fouls: 0, cards: 0, score: 0,
+        };
+        let participations = 0;
+        perMatchAnalytics.forEach((analytics) => {
+          const s = analytics.players[player.id];
+          if (!s) return;
+          participations += 1;
+          acc.playTimeMinutes += s.playTimeMinutes;
+          acc.tries += s.tries;
+          acc.conversions += s.conversionsMade;
+          acc.penalties += s.penaltiesMade;
+          acc.drops += s.drops;
+          acc.tackles += s.tackles;
+          acc.missedTackles += s.missedTackles;
+          acc.tackleEff += tackleRatio(s);
+          acc.knockOns += s.knockOns;
+          acc.fouls += s.fouls;
+          acc.cards += s.yellowCards + s.redCards;
+        });
+        if (participations === 0) return null;
+        // Moyenne sur les matchs joués (sauf tackleEff qui est déjà un %)
+        const div = participations;
         const values: Record<StatKey, number> = {
-          playTimeMinutes: s.playTimeMinutes,
-          tries: s.tries,
-          conversions: s.conversionsMade,
-          penalties: s.penaltiesMade,
-          drops: s.drops,
-          tackles: s.tackles,
-          missedTackles: s.missedTackles,
-          tackleEff: tackleRatio(s),
-          knockOns: s.knockOns,
-          fouls: s.fouls,
-          cards: s.yellowCards + s.redCards,
+          playTimeMinutes: Math.round(acc.playTimeMinutes / div),
+          tries: Math.round((acc.tries / div) * 10) / 10,
+          conversions: Math.round((acc.conversions / div) * 10) / 10,
+          penalties: Math.round((acc.penalties / div) * 10) / 10,
+          drops: Math.round((acc.drops / div) * 10) / 10,
+          tackles: Math.round((acc.tackles / div) * 10) / 10,
+          missedTackles: Math.round((acc.missedTackles / div) * 10) / 10,
+          tackleEff: Math.round(acc.tackleEff / div),
+          knockOns: Math.round((acc.knockOns / div) * 10) / 10,
+          fouls: Math.round((acc.fouls / div) * 10) / 10,
+          cards: Math.round((acc.cards / div) * 10) / 10,
           score: 0,
         };
         values.score = computeScore(values, player.position);
         return { player, values };
       })
       .filter(Boolean) as Row[];
-  }, [involved, analytics]);
+  }, [involved, perMatchAnalytics]);
 
   const filteredRows = useMemo(() => {
     return rows.filter((r) => {
