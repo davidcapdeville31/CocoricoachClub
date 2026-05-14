@@ -262,6 +262,8 @@ export function ScheduleBatteryDialog({
       queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["plan-tests-reminders", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["test-reminders", categoryId] });
       toast.success(
         created.length === 1
           ? "Batterie planifiée au calendrier"
