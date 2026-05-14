@@ -19,6 +19,8 @@ interface Props {
   isFinalized: boolean;
   homeScore: number;
   awayScore: number;
+  onStartClock?: () => void;
+  onStopClock?: () => void;
 }
 
 type Confirm = null | "end_h1" | "start_h2" | "finalize" | "reopen";
