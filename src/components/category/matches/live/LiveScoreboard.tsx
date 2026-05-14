@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, RotateCcw, Trophy } from "lucide-react";
@@ -18,6 +18,8 @@ interface Props {
   onSecondsChange: (s: number) => void;
   homeColor?: string;
   awayColor?: string;
+  running: boolean;
+  onRunningChange: (r: boolean) => void;
 }
 
 function isLight(hex?: string) {
@@ -30,8 +32,7 @@ function isLight(hex?: string) {
   return (r * 299 + g * 587 + b * 114) / 1000 >= 160;
 }
 
-export function LiveScoreboard({ homeName, awayName, homeScore, awayScore, period, onPeriodChange, minute, onMinuteChange, seconds, onSecondsChange, homeColor, awayColor }: Props) {
-  const [running, setRunning] = useState(false);
+export function LiveScoreboard({ homeName, awayName, homeScore, awayScore, period, onPeriodChange, minute, onMinuteChange, seconds, onSecondsChange, homeColor, awayColor, running, onRunningChange }: Props) {
   const tickRef = useRef<number | null>(null);
   const startRef = useRef<{ at: number; baseSec: number } | null>(null);
 
@@ -75,10 +76,10 @@ export function LiveScoreboard({ homeName, awayName, homeScore, awayScore, perio
             <div className="font-mono text-sm tabular-nums bg-muted px-2 py-0.5 rounded-md">
               {String(minute).padStart(2, "0")}'{String(seconds).padStart(2, "0")}
             </div>
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setRunning((r) => !r)}>
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onRunningChange(!running)}>
               {running ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             </Button>
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setRunning(false); onSecondsChange(0); onMinuteChange(0); }}>
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { onRunningChange(false); onSecondsChange(0); onMinuteChange(0); }}>
               <RotateCcw className="h-4 w-4" />
             </Button>
             <Select value={period} onValueChange={(v) => onPeriodChange(v as Period)}>

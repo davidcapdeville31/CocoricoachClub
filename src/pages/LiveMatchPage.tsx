@@ -31,6 +31,7 @@ export default function LiveMatchPage() {
   const [chainNext, setChainNext] = useState<EventType | null>(null);
   const [tacklePanelOpen, setTacklePanelOpen] = useState(false);
   const [subOpen, setSubOpen] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
 
   const colorsKey = `match-team-colors-${matchId}`;
   const [teamColors, setTeamColors] = useState<{ home: string; away: string } | null>(() => {
@@ -147,6 +148,7 @@ export default function LiveMatchPage() {
         minute={minute} onMinuteChange={setMinute}
         seconds={seconds} onSecondsChange={setSeconds}
         homeColor={teamColors?.home} awayColor={teamColors?.away}
+        running={isRunning} onRunningChange={setIsRunning}
       />
 
       <div className="px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
@@ -161,6 +163,8 @@ export default function LiveMatchPage() {
           isFinalized={!!match?.is_finalized}
           homeScore={stats.home.points}
           awayScore={stats.away.points}
+          onStartClock={() => setIsRunning(true)}
+          onStopClock={() => setIsRunning(false)}
         />
         <div className="text-xs text-muted-foreground hidden lg:block">
           Mode analyste · raccourcis : <kbd className="bg-muted rounded px-1">E</kbd> essai · <kbd className="bg-muted rounded px-1">P</kbd> pénalité · <kbd className="bg-muted rounded px-1">T</kbd> touche · <kbd className="bg-muted rounded px-1">M</kbd> mêlée · <kbd className="bg-muted rounded px-1">C</kbd> carton · <kbd className="bg-muted rounded px-1">D</kbd> drop
