@@ -50,11 +50,13 @@ export function ManualRugbyPositionDialog({
 
   useEffect(() => {
     if (!open) return;
-    setList(initial.slice(0, count));
+    setList(initial.slice());
     setSide(initial[0]?.kickingSide ?? "right");
-  }, [open, initial, count]);
+  }, [open, initial]);
 
-  const remaining = Math.max(0, count - list.length);
+  // count agit comme objectif indicatif ; on autorise toujours le placement libre
+  const target = Math.max(count, list.length);
+  const remaining = Math.max(0, target - list.length);
   const kick = isKick(kind);
   const lineout = isLineout(kind);
 
@@ -78,7 +80,6 @@ export function ManualRugbyPositionDialog({
   };
 
   const handleClick = (xPct: number, yPct: number) => {
-    if (list.length >= count) return;
     const { x, y } = snapToTouchline(xPct, yPct);
     setList((prev) => [...prev, { kickX: x, kickY: y, kickingSide: side }]);
   };
