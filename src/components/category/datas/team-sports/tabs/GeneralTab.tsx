@@ -7,7 +7,8 @@ import { PeriodToggle } from "../shared/PeriodToggle";
 import { EventTimeline } from "../shared/EventTimeline";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { TrendingUp, TrendingDown, AlertTriangle, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, AlertTriangle, Minus, MapPin } from "lucide-react";
+import { MatchEventPositionsDialog, type PositionStatKind } from "../MatchEventPositionsDialog";
 
 interface Props {
   match: MatchRow;
