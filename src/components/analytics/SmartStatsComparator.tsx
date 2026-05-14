@@ -64,6 +64,7 @@ export interface PlayerLite {
   id: string;
   name: string;
   first_name?: string | null;
+  position?: string | null;
 }
 
 interface SmartStatsComparatorProps {
@@ -248,8 +249,9 @@ export function SmartStatsComparator({
     const filtered = playersWithValue.filter((p) => effectiveSelection.includes(p.id));
     return filtered
       .map((p) => {
+        const baseName = [p.first_name, p.name].filter(Boolean).join(" ") || p.name;
         const row: Record<string, any> = {
-          name: [p.first_name, p.name].filter(Boolean).join(" ") || p.name,
+          name: p.position ? `${baseName} · #${p.position}` : baseName,
         };
         for (const m of selectedMetrics) {
           const v = valuesByMetric.get(m.key)?.get(p.id);
@@ -590,9 +592,14 @@ export function SmartStatsComparator({
                             onCheckedChange={() => togglePlayer(p.id)}
                           />
                           <span
-                            className={`truncate ${hasData ? "" : "text-muted-foreground/60 italic"}`}
+                            className={`truncate flex items-center gap-1.5 ${hasData ? "" : "text-muted-foreground/60 italic"}`}
                             title={hasData ? undefined : "Aucune donnée pour ce scope"}
                           >
+                            {p.position && (
+                              <span className="inline-flex items-center justify-center min-w-[22px] h-[18px] rounded bg-primary/15 text-primary text-[10px] font-mono font-semibold px-1">
+                                {p.position}
+                              </span>
+                            )}
                             {label}
                           </span>
                         </label>
