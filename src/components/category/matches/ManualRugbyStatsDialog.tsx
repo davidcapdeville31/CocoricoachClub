@@ -52,7 +52,7 @@ const EMPTY: StatRow = {
   tries: 0, conversionsMade: 0, conversionsMissed: 0,
   penaltiesMade: 0, penaltiesMissed: 0, drops: 0, dropsMissed: 0,
   scrumsWon: 0, scrumsLost: 0, lineoutsWon: 0, lineoutsLost: 0, mauls: 0, rucks: 0,
-  knockOns: 0, lineBreaks: 0,
+  knockOns: 0, lineBreaks: 0, passesMade: 0, passesMissed: 0, kicksMade: 0, kicksMissed: 0,
   tackles: 0, missedTackles: 0, turnoversWon: 0,
   fouls: 0, yellowCards: 0, redCards: 0,
 };
