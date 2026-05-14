@@ -149,6 +149,17 @@ export function GeneralTab({ match, categoryId }: Props) {
         </h3>
         <EventTimeline events={filtered} homeLabel={homeName} awayLabel={awayName} />
       </div>
+
+      {posKind && (
+        <MatchEventPositionsDialog
+          open={!!posKind}
+          onOpenChange={(o) => !o && setPosKind(null)}
+          kind={posKind}
+          events={filtered}
+          homeName={homeName}
+          awayName={awayName}
+        />
+      )}
     </div>
   );
 }
