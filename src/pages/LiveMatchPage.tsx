@@ -212,7 +212,7 @@ export default function LiveMatchPage() {
             <TabsTrigger value="stats">Stats</TabsTrigger>
           </TabsList>
           <TabsContent value="actions">
-            <LiveQuickActions onSelect={(t) => { setEditing(null); setOpenType(t); }} />
+            <LiveQuickActions onSelect={(t) => { setEditing(null); if (t === "substitution") { setSubOpen(true); } else { setOpenType(t); } }} />
             <TackleInlinePanel
               players={homePlayers}
               teamSide={clubSide}
