@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, ListOrdered } from "lucide-react";
+import { ArrowLeft, ListOrdered, BarChart3 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LiveScoreboard } from "@/components/category/matches/live/LiveScoreboard";
 import { PeriodControls } from "@/components/category/matches/live/PeriodControls";
@@ -34,6 +34,7 @@ export default function LiveMatchPage() {
   const [subOpen, setSubOpen] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
 
   const colorsKey = `match-team-colors-${matchId}`;
   const [teamColors, setTeamColors] = useState<{ home: string; away: string } | null>(() => {
@@ -189,55 +190,43 @@ export default function LiveMatchPage() {
               </span>
             )}
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setStatsOpen(true)} className="gap-1.5">
+            <BarChart3 className="h-4 w-4" />
+            Stats live
+          </Button>
           <div className="text-xs text-muted-foreground hidden lg:block">
             Mode analyste · raccourcis : <kbd className="bg-muted rounded px-1">E</kbd> essai · <kbd className="bg-muted rounded px-1">P</kbd> pénalité · <kbd className="bg-muted rounded px-1">T</kbd> touche · <kbd className="bg-muted rounded px-1">M</kbd> mêlée · <kbd className="bg-muted rounded px-1">C</kbd> carton · <kbd className="bg-muted rounded px-1">D</kbd> drop
           </div>
         </div>
       </div>
 
-      {/* Desktop / tablet layout */}
-      <div className="px-4 pb-8 hidden md:grid md:grid-cols-12 gap-4">
-        <div className="md:col-span-8 lg:col-span-8">
-          <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Actions rapides</h2>
-          <LiveQuickActions onSelect={(t) => { setEditing(null); if (t === "substitution") { setSubOpen(true); } else { setOpenType(t); } }} />
-          <TackleInlinePanel
-            players={tacklePlayers}
-            teamSide={clubSide}
-            period={period}
-            minute={minute}
-            second={seconds}
-            counts={Object.fromEntries(Object.entries(stats.players).map(([id, s]) => [id, { tackles: s.tackles, missedTackles: s.missedTackles }]))}
-            onRecord={(payload) => create.mutate(payload)}
-          />
-        </div>
-        <div className="md:col-span-4 lg:col-span-4">
-          <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Stats</h2>
-          <LiveStatsPanel home={stats.home} away={stats.away} homeH1={stats.homeH1} awayH1={stats.awayH1} homeH2={stats.homeH2} awayH2={stats.awayH2} />
-        </div>
+      {/* Layout unifié — Stats déplacées dans un dialog */}
+      <div className="px-4 pb-8">
+        <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Actions rapides</h2>
+        <LiveQuickActions onSelect={(t) => { setEditing(null); if (t === "substitution") { setSubOpen(true); } else { setOpenType(t); } }} />
+        <TackleInlinePanel
+          players={tacklePlayers}
+          teamSide={clubSide}
+          period={period}
+          minute={minute}
+          second={seconds}
+          counts={Object.fromEntries(Object.entries(stats.players).map(([id, s]) => [id, { tackles: s.tackles, missedTackles: s.missedTackles }]))}
+          onRecord={(payload) => create.mutate(payload)}
+        />
       </div>
 
-      {/* Mobile layout */}
-      <div className="px-4 pb-8 md:hidden">
-        <Tabs defaultValue="actions">
-          <TabsList className="grid grid-cols-2 w-full">
-            <TabsTrigger value="actions">Actions</TabsTrigger>
-            <TabsTrigger value="stats">Stats</TabsTrigger>
-          </TabsList>
-          <TabsContent value="actions">
-            <LiveQuickActions onSelect={(t) => { setEditing(null); if (t === "substitution") { setSubOpen(true); } else { setOpenType(t); } }} />
-            <TackleInlinePanel
-              players={tacklePlayers}
-              teamSide={clubSide}
-              period={period}
-              minute={minute}
-              second={seconds}
-              counts={Object.fromEntries(Object.entries(stats.players).map(([id, s]) => [id, { tackles: s.tackles, missedTackles: s.missedTackles }]))}
-              onRecord={(payload) => create.mutate(payload)}
-            />
-          </TabsContent>
-          <TabsContent value="stats"><LiveStatsPanel home={stats.home} away={stats.away} homeH1={stats.homeH1} awayH1={stats.awayH1} homeH2={stats.homeH2} awayH2={stats.awayH2} /></TabsContent>
-        </Tabs>
-      </div>
+      {/* Stats live dialog */}
+      <Dialog open={statsOpen} onOpenChange={setStatsOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Statistiques live
+            </DialogTitle>
+          </DialogHeader>
+          <LiveStatsPanel home={stats.home} away={stats.away} homeH1={stats.homeH1} awayH1={stats.awayH1} homeH2={stats.homeH2} awayH2={stats.awayH2} />
+        </DialogContent>
+      </Dialog>
 
       {/* Timeline dialog (déclenché via le bouton "Timeline") */}
       <Dialog open={timelineOpen} onOpenChange={setTimelineOpen}>
