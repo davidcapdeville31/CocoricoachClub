@@ -86,7 +86,7 @@ const COLUMNS: Column[] = [
   { key: "drops", label: "Drops", short: "Dp", group: "off" },
   { key: "tackles", label: "Plaquages", short: "Plq", group: "def" },
   { key: "missedTackles", label: "Plq. manqués", short: "Plq✗", group: "def", invert: true },
-  { key: "tackleEff", label: "% Efficacité", short: "Eff%", group: "def", format: (v) => `${v}%` },
+  { key: "tackleEff", label: "% Plq", short: "%Plq", group: "def", format: (v) => `${v}%` },
   { key: "knockOns", label: "En-avants", short: "EnAv", group: "disc", invert: true },
   { key: "fouls", label: "Fautes", short: "Fte", group: "disc", invert: true },
   { key: "cards", label: "Cartons", short: "Crt", group: "disc", invert: true },
