@@ -12,7 +12,7 @@ export interface TeamStats {
   tackles: number; missedTackles: number;
   // Game
   turnovers: number; ballsWon: number; ballsLost: number;
-  meters: number; lineBreaks: number; offloads: number; passes: number; carries: number;
+  meters: number; lineBreaks: number; offloads: number; passes: number; passesMissed: number; carries: number; kicks: number; kicksMissed: number;
   // Discipline
   fouls: number; yellowCards: number; redCards: number; knockOns: number;
   // Set piece
