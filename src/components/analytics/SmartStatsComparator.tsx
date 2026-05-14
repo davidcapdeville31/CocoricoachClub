@@ -767,41 +767,6 @@ export function SmartStatsComparator({
           }
           return renderChartArea();
         })()}
-
-              {mode === "players" && data.length > 0 && metric && (
-                <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <BarChart3 className="h-3 w-3" />
-                    {data.length} athlète{data.length > 1 ? "s" : ""} · {selectedMetrics.length} stat{selectedMetrics.length > 1 ? "s" : ""}
-                  </span>
-                  <span>
-                    {metric.label} — Min :{" "}
-                    <strong className="text-foreground">
-                      {fmt(Math.min(...data.map((d: any) => Number(d[metric.key] ?? 0))), metric)}
-                    </strong>
-                  </span>
-                  <span>
-                    Max :{" "}
-                    <strong className="text-foreground">
-                      {fmt(Math.max(...data.map((d: any) => Number(d[metric.key] ?? 0))), metric)}
-                    </strong>
-                  </span>
-                  <span>
-                    Moyenne :{" "}
-                    <strong className="text-foreground">
-                      {fmt(
-                        data.reduce((s: number, d: any) => s + Number(d[metric.key] ?? 0), 0) / data.length,
-                        metric,
-                      )}
-                    </strong>
-                  </span>
-                </div>
-              )}
-            </div>
-              );
-            })()}
-          </div>
-        )}
       </CardContent>
     </Card>
   );
