@@ -130,7 +130,7 @@ export function CompareTab({ categoryId, matches }: Props) {
       getValue={getValue}
       title="Comparer les stats"
       description="Choisis une statistique et une période (toute la saison ou un match précis)"
-      defaultMetricKeys={["tries", "tackles", "passes", "lineBreaks"]}
+      defaultMetricKeys={["tries", "tackles", "lineBreaks", "turnovers"]}
       allowedDimensions={["position", "laterality", "lateralite", "age_category"]}
     />
   );
