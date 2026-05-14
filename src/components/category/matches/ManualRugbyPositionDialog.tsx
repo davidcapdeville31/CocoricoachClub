@@ -89,6 +89,7 @@ export function ManualRugbyPositionDialog({
   const clearAll = () => setList([]);
 
   const markerColor = useMemo(() => {
+    if (missed) return "#ef4444";
     switch (kind) {
       case "conversion": return "#22c55e";
       case "penalty_kick": return "#3b82f6";
@@ -98,7 +99,7 @@ export function ManualRugbyPositionDialog({
       case "scrum_lost":
       case "lineout_lost": return "#ef4444";
     }
-  }, [kind]);
+  }, [kind, missed]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
