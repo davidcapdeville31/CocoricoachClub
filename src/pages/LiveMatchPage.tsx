@@ -12,6 +12,7 @@ import { LiveQuickActions } from "@/components/category/matches/live/LiveQuickAc
 import { LiveStatsPanel } from "@/components/category/matches/live/LiveStatsPanel";
 import { EventDialog } from "@/components/category/matches/live/dialogs/EventDialog";
 import { TacklePanel } from "@/components/category/matches/live/dialogs/TacklePanel";
+import { SubstitutionDialog } from "@/components/category/matches/live/dialogs/SubstitutionDialog";
 import { TackleInlinePanel } from "@/components/category/matches/live/TackleInlinePanel";
 import { TeamColorsDialog } from "@/components/category/matches/live/dialogs/TeamColorsDialog";
 import { useMatchEvents } from "@/components/category/matches/live/hooks/useMatchEvents";
@@ -29,6 +30,7 @@ export default function LiveMatchPage() {
   const [editing, setEditing] = useState<MatchEvent | null>(null);
   const [chainNext, setChainNext] = useState<EventType | null>(null);
   const [tacklePanelOpen, setTacklePanelOpen] = useState(false);
+  const [subOpen, setSubOpen] = useState(false);
 
   const colorsKey = `match-team-colors-${matchId}`;
   const [teamColors, setTeamColors] = useState<{ home: string; away: string } | null>(() => {
@@ -184,7 +186,7 @@ export default function LiveMatchPage() {
         </div>
         <div className="md:col-span-4 lg:col-span-4">
           <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Actions rapides</h2>
-          <LiveQuickActions onSelect={(t) => { setEditing(null); setOpenType(t); }} />
+          <LiveQuickActions onSelect={(t) => { setEditing(null); if (t === "substitution") { setSubOpen(true); } else { setOpenType(t); } }} />
           <TackleInlinePanel
             players={homePlayers}
             teamSide={clubSide}
@@ -210,7 +212,7 @@ export default function LiveMatchPage() {
             <TabsTrigger value="stats">Stats</TabsTrigger>
           </TabsList>
           <TabsContent value="actions">
-            <LiveQuickActions onSelect={(t) => { setEditing(null); setOpenType(t); }} />
+            <LiveQuickActions onSelect={(t) => { setEditing(null); if (t === "substitution") { setSubOpen(true); } else { setOpenType(t); } }} />
             <TackleInlinePanel
               players={homePlayers}
               teamSide={clubSide}
@@ -264,6 +266,18 @@ export default function LiveMatchPage() {
         second={seconds}
         counts={Object.fromEntries(Object.entries(stats.players).map(([id, s]) => [id, { tackles: s.tackles, missedTackles: s.missedTackles }]))}
         onRecord={(payload) => create.mutate(payload)}
+      />
+
+      <SubstitutionDialog
+        open={subOpen}
+        onOpenChange={setSubOpen}
+        matchId={matchId!}
+        lineup={(lineup ?? []) as any}
+        teamSide={clubSide}
+        period={period}
+        defaultMinute={minute}
+        defaultSecond={seconds}
+        onCreateEvent={(payload) => create.mutateAsync(payload)}
       />
 
       <TeamColorsDialog
