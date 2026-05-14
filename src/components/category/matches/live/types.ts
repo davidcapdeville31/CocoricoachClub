@@ -50,4 +50,6 @@ export const EVENT_LABELS: Record<string, string> = {
   kick: "Jeu au pied",
   occupation: "Occupation",
   exit_22: "Sortie de camp",
+  pass: "Passe",
+  line_break: "Franchissement",
 };
