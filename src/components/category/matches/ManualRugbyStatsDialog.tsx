@@ -33,14 +33,16 @@ type StatRow = {
   scrumsWon: number; scrumsLost: number;
   lineoutsWon: number; lineoutsLost: number;
   mauls: number; rucks: number;
+  // Attaque
+  knockOns: number; lineBreaks: number;
   // Défense
-  tackles: number; missedTackles: number; knockOns: number;
+  tackles: number; missedTackles: number; turnoversWon: number;
   // Discipline
   fouls: number; yellowCards: number; redCards: number;
 };
 
 type Period = "H1" | "H2";
-type Category = "points" | "conquest" | "defense" | "discipline";
+type Category = "points" | "attack" | "conquest" | "defense" | "discipline";
 type PeriodStats = { H1: StatRow; H2: StatRow };
 type NotesByPeriod = { H1: string; H2: string };
 
@@ -48,7 +50,8 @@ const EMPTY: StatRow = {
   tries: 0, conversionsMade: 0, conversionsMissed: 0,
   penaltiesMade: 0, penaltiesMissed: 0, drops: 0, dropsMissed: 0,
   scrumsWon: 0, scrumsLost: 0, lineoutsWon: 0, lineoutsLost: 0, mauls: 0, rucks: 0,
-  tackles: 0, missedTackles: 0, knockOns: 0,
+  knockOns: 0, lineBreaks: 0,
+  tackles: 0, missedTackles: 0, turnoversWon: 0,
   fouls: 0, yellowCards: 0, redCards: 0,
 };
 
@@ -73,10 +76,13 @@ const FIELDS: FieldDef[] = [
   { key: "lineoutsLost", label: "Touches perdues", short: "Touche ✗", category: "conquest" },
   { key: "mauls", label: "Ballons portés", short: "Maul", category: "conquest" },
   { key: "rucks", label: "Rucks", short: "Ruck", category: "conquest" },
+  // Attaque
+  { key: "knockOns", label: "En-avants", short: "En-av", category: "attack" },
+  { key: "lineBreaks", label: "Franchissements", short: "Franch.", category: "attack" },
   // Défense
   { key: "tackles", label: "Plaquages réussis", short: "Plaq", category: "defense" },
   { key: "missedTackles", label: "Plaquages manqués", short: "Plaq ✗", category: "defense" },
-  { key: "knockOns", label: "En-avants", short: "En-av", category: "defense" },
+  { key: "turnoversWon", label: "Ballons grattés", short: "Grattés", category: "defense" },
   // Discipline
   { key: "fouls", label: "Fautes", short: "Fautes", category: "discipline" },
   { key: "yellowCards", label: "Cartons jaunes", short: "J", category: "discipline" },
@@ -85,6 +91,7 @@ const FIELDS: FieldDef[] = [
 
 const CATEGORY_LABELS: Record<Category, string> = {
   points: "Points",
+  attack: "Attaque",
   conquest: "Conquête",
   defense: "Défense",
   discipline: "Discipline",
@@ -144,7 +151,7 @@ export function ManualRugbyStatsDialog({
   );
 
   const emptyNotesByCat = (): Record<Category, NotesByPeriod> => ({
-    points: emptyNotes(), conquest: emptyNotes(), defense: emptyNotes(), discipline: emptyNotes(),
+    points: emptyNotes(), attack: emptyNotes(), conquest: emptyNotes(), defense: emptyNotes(), discipline: emptyNotes(),
   });
 
   // Pre-populate from existing events
@@ -191,6 +198,8 @@ export function ManualRugbyStatsDialog({
           break;
         case "missed_tackle": target.missedTackles += 1; break;
         case "knock_on": target.knockOns += 1; break;
+        case "line_break": target.lineBreaks += 1; break;
+        case "turnover": target.turnoversWon += 1; break;
         case "foul": target.fouls += 1; break;
         case "yellow_card": target.yellowCards += 1; break;
         case "red_card": target.redCards += 1; break;
@@ -321,6 +330,8 @@ export function ManualRugbyStatsDialog({
       for (let i = 0; i < r.tackles; i++) push(side, pid, per, "tackle", "success", 0, attach());
       for (let i = 0; i < r.missedTackles; i++) push(side, pid, per, "tackle", "fail", 0, attach());
       for (let i = 0; i < r.knockOns; i++) push(side, pid, per, "knock_on", null, 0, attach());
+      for (let i = 0; i < r.lineBreaks; i++) push(side, pid, per, "line_break", null, 0, attach());
+      for (let i = 0; i < r.turnoversWon; i++) push(side, pid, per, "turnover", null, 0, attach());
       for (let i = 0; i < r.fouls; i++) push(side, pid, per, "foul", null, 0, attach());
       for (let i = 0; i < r.yellowCards; i++) push(side, pid, per, "yellow_card", null, 0, attach());
       for (let i = 0; i < r.redCards; i++) push(side, pid, per, "red_card", null, 0, attach());
@@ -408,7 +419,7 @@ export function ManualRugbyStatsDialog({
 
           {/* Category selector */}
           <Tabs value={category} onValueChange={(v) => setCategory(v as Category)}>
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               {(Object.keys(CATEGORY_LABELS) as Category[]).map((c) => (
                 <TabsTrigger key={c} value={c}>{CATEGORY_LABELS[c]}</TabsTrigger>
               ))}
