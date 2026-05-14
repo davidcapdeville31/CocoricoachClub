@@ -148,6 +148,7 @@ export default function LiveMatchPage() {
         minute={minute} onMinuteChange={setMinute}
         seconds={seconds} onSecondsChange={setSeconds}
         homeColor={teamColors?.home} awayColor={teamColors?.away}
+        running={isRunning} onRunningChange={setIsRunning}
       />
 
       <div className="px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
