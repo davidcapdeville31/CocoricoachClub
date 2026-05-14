@@ -224,12 +224,12 @@ export function SmartStatsComparator({
 
   const effectiveSelection = useMemo(() => {
     if (selectedPlayerIds !== null) return selectedPlayerIds;
-    return playersWithValue.map((p) => p.id);
-  }, [selectedPlayerIds, playersWithValue]);
+    return players.map((p) => p.id);
+  }, [selectedPlayerIds, players]);
 
   const togglePlayer = (id: string) => {
     setSelectedPlayerIds((prev) => {
-      const base = prev ?? playersWithValue.map((p) => p.id);
+      const base = prev ?? players.map((p) => p.id);
       return base.includes(id) ? base.filter((x) => x !== id) : [...base, id];
     });
   };
@@ -532,220 +532,241 @@ export function SmartStatsComparator({
           </div>
         )}
 
-        {metrics.length === 0 ? (
-          <div className="text-center py-8 text-sm text-muted-foreground">
-            Aucune statistique disponible.
-          </div>
-        ) : metricKeys.length === 0 ? (
-          <div className="text-center py-8 text-sm text-muted-foreground">
-            Sélectionne au moins une statistique ci-dessus pour afficher le graphique.
-          </div>
-        ) : !metric ? (
-          <div className="text-center py-8 text-sm text-muted-foreground">
-            Aucune statistique disponible.
-          </div>
-        ) : data.length === 0 ? (
-          <div className="text-center py-8 text-sm text-muted-foreground">
-            {mode === "identity"
-              ? dims.length === 0
-                ? "Aucune identité athlète renseignée. Remplis les fiches pour activer la comparaison par groupe."
-                : "Pas assez de données pour cette dimension."
-              : playersWithValue.length === 0
-                ? "Aucun athlète n'a de valeur pour les statistiques sélectionnées dans ce scope."
-                : "Sélectionne au moins un athlète."}
-          </div>
-        ) : (
-          <div className={mode === "players" ? "grid gap-4 md:grid-cols-[240px_1fr]" : ""}>
-            {/* Sélecteur joueurs */}
-            {mode === "players" && (
-              <div className="rounded-xl border bg-muted/20 p-2">
-                <div className="flex items-center justify-between px-1 pb-1.5">
-                  <span className="text-[11px] font-semibold text-muted-foreground">
-                    {effectiveSelection.length}/{playersWithValue.length}
-                  </span>
-                  <div className="flex gap-1">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 px-2 text-[10px]"
-                      onClick={() =>
-                        setSelectedPlayerIds(playersWithValue.map((p) => p.id))
-                      }
-                    >
-                      Tous
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 px-2 text-[10px]"
-                      onClick={() => setSelectedPlayerIds([])}
-                    >
-                      Aucun
-                    </Button>
-                  </div>
-                </div>
-                <ScrollArea className="h-[300px] pr-2">
-                  <div className="space-y-1">
-                    {playersWithValue.map((p) => {
-                      const checked = effectiveSelection.includes(p.id);
-                      const label =
-                        [p.first_name, p.name].filter(Boolean).join(" ") || p.name;
-                      return (
-                        <label
-                          key={p.id}
-                          className="flex items-center gap-2 rounded-lg px-2 py-1 text-xs hover:bg-muted/50 cursor-pointer"
-                        >
-                          <Checkbox
-                            checked={checked}
-                            onCheckedChange={() => togglePlayer(p.id)}
-                          />
-                          <span className="truncate">{label}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </ScrollArea>
-              </div>
-            )}
-
-            {(() => {
-              // Densité : nb d'athlètes × nb de métriques sélectionnées
-              const density = data.length * Math.max(1, selectedMetrics.length);
-              // Au-delà de ce seuil, les labels horizontaux deviennent illisibles : on les masque.
-              const hideLabels = density > 18;
-              return (
-            <div>
-              <div className="h-[340px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={data}
-                    margin={{ top: 16, right: 12, left: 0, bottom: 36 }}
-                    barCategoryGap="20%"
-                    barGap={2}
+        {(() => {
+          const playerSelector = mode === "players" && players.length > 0 ? (
+            <div className="rounded-xl border bg-muted/20 p-2">
+              <div className="flex items-center justify-between px-1 pb-1.5">
+                <span className="text-[11px] font-semibold text-muted-foreground">
+                  {effectiveSelection.length}/{players.length}
+                </span>
+                <div className="flex gap-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 px-2 text-[10px]"
+                    onClick={() =>
+                      setSelectedPlayerIds(players.map((p) => p.id))
+                    }
                   >
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                    <XAxis
-                      dataKey="name"
-                      tick={{ fontSize: 12, fontWeight: 500 }}
-                      angle={0}
-                      textAnchor="middle"
-                      height={36}
-                      interval={0}
-                    />
-                    <YAxis
-                      tick={{ fontSize: 11 }}
-                      domain={(() => {
-                        // Domaine Y resserré autour des valeurs pour amplifier
-                        // visuellement les écarts entre les barres.
-                        const vals: number[] = [];
-                        for (const row of data as any[]) {
-                          for (const m of selectedMetrics) {
-                            const v = Number(row[m.key]);
-                            if (Number.isFinite(v)) vals.push(v);
-                          }
-                        }
-                        if (vals.length === 0) return [0, "auto"] as any;
-                        const min = Math.min(...vals);
-                        const max = Math.max(...vals);
-                        if (max === min) return [Math.max(0, min - 1), max + 1] as any;
-                        const pad = (max - min) * 0.25;
-                        const lower = Math.max(0, Math.floor(min - pad));
-                        const upper = Math.ceil(max + pad);
-                        return [lower, upper] as any;
-                      })()}
-                    />
-                    <Tooltip
-                      cursor={false}
-                      contentStyle={{
-                        borderRadius: 12,
-                        backdropFilter: "blur(8px)",
-                        background: "hsl(var(--background) / 0.92)",
-                        border: "1px solid hsl(var(--border))",
-                      }}
-                      formatter={(val: any, _name: any, props: any) => {
-                        const m = metrics.find((x) => x.key === props?.dataKey);
-                        return [m ? fmt(Number(val), m) : Number(val).toFixed(1), m?.label ?? props?.dataKey];
-                      }}
-                    />
-                    <Legend wrapperStyle={{ fontSize: 11 }} />
-                    {selectedMetrics.map((m) => (
-                      <Bar
-                        key={m.key}
-                        dataKey={m.key}
-                        name={m.label}
-                        fill={metricColor(m.key)}
-                        maxBarSize={18}
-                        radius={[4, 4, 0, 0]}
-                      >
-                        {!hideLabels && (
-                          <LabelList
-                            dataKey={m.key}
-                            position="top"
-                            formatter={(val: any) =>
-                              val === 0 || val === null || val === undefined
-                                ? ""
-                                : fmt(Number(val), m)
-                            }
-                            style={{
-                              fontSize: 10,
-                              fontWeight: 600,
-                              fill: "hsl(var(--foreground))",
-                            }}
-                          />
-                        )}
-                      </Bar>
-                    ))}
-                  </BarChart>
-                </ResponsiveContainer>
+                    Tous
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 px-2 text-[10px]"
+                    onClick={() => setSelectedPlayerIds([])}
+                  >
+                    Aucun
+                  </Button>
+                </div>
               </div>
-
-              {mode === "identity" && (
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {(identityData as any[]).map((d) => (
-                    <Badge key={d.name} variant="outline" className="text-[10px] gap-1">
-                      <Users className="h-3 w-3" />
-                      {d.name}: {d.count ?? "—"}
-                    </Badge>
-                  ))}
+              <ScrollArea className="h-[300px] pr-2">
+                <div className="space-y-1">
+                  {players.map((p) => {
+                    const checked = effectiveSelection.includes(p.id);
+                    const hasData = playersWithValue.some((x) => x.id === p.id);
+                    const label =
+                      [p.first_name, p.name].filter(Boolean).join(" ") || p.name;
+                    return (
+                      <label
+                        key={p.id}
+                        className="flex items-center gap-2 rounded-lg px-2 py-1 text-xs hover:bg-muted/50 cursor-pointer"
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={() => togglePlayer(p.id)}
+                        />
+                        <span
+                          className={`truncate ${hasData ? "" : "text-muted-foreground/60 italic"}`}
+                          title={hasData ? undefined : "Aucune donnée pour ce scope"}
+                        >
+                          {label}
+                        </span>
+                      </label>
+                    );
+                  })}
                 </div>
-              )}
-
-              {mode === "players" && data.length > 0 && metric && (
-                <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <BarChart3 className="h-3 w-3" />
-                    {data.length} athlète{data.length > 1 ? "s" : ""} · {selectedMetrics.length} stat{selectedMetrics.length > 1 ? "s" : ""}
-                  </span>
-                  <span>
-                    {metric.label} — Min :{" "}
-                    <strong className="text-foreground">
-                      {fmt(Math.min(...data.map((d: any) => Number(d[metric.key] ?? 0))), metric)}
-                    </strong>
-                  </span>
-                  <span>
-                    Max :{" "}
-                    <strong className="text-foreground">
-                      {fmt(Math.max(...data.map((d: any) => Number(d[metric.key] ?? 0))), metric)}
-                    </strong>
-                  </span>
-                  <span>
-                    Moyenne :{" "}
-                    <strong className="text-foreground">
-                      {fmt(
-                        data.reduce((s: number, d: any) => s + Number(d[metric.key] ?? 0), 0) / data.length,
-                        metric,
-                      )}
-                    </strong>
-                  </span>
-                </div>
-              )}
+              </ScrollArea>
             </div>
+          ) : null;
+
+          const renderChartArea = () => {
+            if (metrics.length === 0) {
+              return (
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  Aucune statistique disponible.
+                </div>
               );
-            })()}
-          </div>
-        )}
+            }
+            if (metricKeys.length === 0) {
+              return (
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  Sélectionne au moins une statistique ci-dessus pour afficher le graphique.
+                </div>
+              );
+            }
+            if (!metric) {
+              return (
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  Aucune statistique disponible.
+                </div>
+              );
+            }
+            if (data.length === 0) {
+              return (
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                  {mode === "identity"
+                    ? dims.length === 0
+                      ? "Aucune identité athlète renseignée. Remplis les fiches pour activer la comparaison par groupe."
+                      : "Pas assez de données pour cette dimension."
+                    : playersWithValue.length === 0
+                      ? "Aucun athlète n'a de valeur pour les statistiques sélectionnées dans ce scope."
+                      : "Sélectionne au moins un athlète."}
+                </div>
+              );
+            }
+            const density = data.length * Math.max(1, selectedMetrics.length);
+            const hideLabels = density > 18;
+            return (
+              <div>
+                <div className="h-[340px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={data}
+                      margin={{ top: 16, right: 12, left: 0, bottom: 36 }}
+                      barCategoryGap="20%"
+                      barGap={2}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                      <XAxis
+                        dataKey="name"
+                        tick={{ fontSize: 12, fontWeight: 500 }}
+                        angle={0}
+                        textAnchor="middle"
+                        height={36}
+                        interval={0}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 11 }}
+                        domain={(() => {
+                          const vals: number[] = [];
+                          for (const row of data as any[]) {
+                            for (const m of selectedMetrics) {
+                              const v = Number(row[m.key]);
+                              if (Number.isFinite(v)) vals.push(v);
+                            }
+                          }
+                          if (vals.length === 0) return [0, "auto"] as any;
+                          const min = Math.min(...vals);
+                          const max = Math.max(...vals);
+                          if (max === min) return [Math.max(0, min - 1), max + 1] as any;
+                          const pad = (max - min) * 0.25;
+                          const lower = Math.max(0, Math.floor(min - pad));
+                          const upper = Math.ceil(max + pad);
+                          return [lower, upper] as any;
+                        })()}
+                      />
+                      <Tooltip
+                        cursor={false}
+                        contentStyle={{
+                          borderRadius: 12,
+                          backdropFilter: "blur(8px)",
+                          background: "hsl(var(--background) / 0.92)",
+                          border: "1px solid hsl(var(--border))",
+                        }}
+                        formatter={(val: any, _name: any, props: any) => {
+                          const m = metrics.find((x) => x.key === props?.dataKey);
+                          return [m ? fmt(Number(val), m) : Number(val).toFixed(1), m?.label ?? props?.dataKey];
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                      {selectedMetrics.map((m) => (
+                        <Bar
+                          key={m.key}
+                          dataKey={m.key}
+                          name={m.label}
+                          fill={metricColor(m.key)}
+                          maxBarSize={18}
+                          radius={[4, 4, 0, 0]}
+                        >
+                          {!hideLabels && (
+                            <LabelList
+                              dataKey={m.key}
+                              position="top"
+                              formatter={(val: any) =>
+                                val === 0 || val === null || val === undefined
+                                  ? ""
+                                  : fmt(Number(val), m)
+                              }
+                              style={{
+                                fontSize: 10,
+                                fontWeight: 600,
+                                fill: "hsl(var(--foreground))",
+                              }}
+                            />
+                          )}
+                        </Bar>
+                      ))}
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {mode === "identity" && (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {(identityData as any[]).map((d) => (
+                      <Badge key={d.name} variant="outline" className="text-[10px] gap-1">
+                        <Users className="h-3 w-3" />
+                        {d.name}: {d.count ?? "—"}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+
+                {mode === "players" && data.length > 0 && metric && (
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <BarChart3 className="h-3 w-3" />
+                      {data.length} athlète{data.length > 1 ? "s" : ""} · {selectedMetrics.length} stat{selectedMetrics.length > 1 ? "s" : ""}
+                    </span>
+                    <span>
+                      {metric.label} — Min :{" "}
+                      <strong className="text-foreground">
+                        {fmt(Math.min(...data.map((d: any) => Number(d[metric.key] ?? 0))), metric)}
+                      </strong>
+                    </span>
+                    <span>
+                      Max :{" "}
+                      <strong className="text-foreground">
+                        {fmt(Math.max(...data.map((d: any) => Number(d[metric.key] ?? 0))), metric)}
+                      </strong>
+                    </span>
+                    <span>
+                      Moyenne :{" "}
+                      <strong className="text-foreground">
+                        {fmt(
+                          data.reduce((s: number, d: any) => s + Number(d[metric.key] ?? 0), 0) / data.length,
+                          metric,
+                        )}
+                      </strong>
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          };
+
+          if (playerSelector) {
+            return (
+              <div className="grid gap-4 md:grid-cols-[240px_1fr]">
+                {playerSelector}
+                <div>{renderChartArea()}</div>
+              </div>
+            );
+          }
+          return renderChartArea();
+        })()}
       </CardContent>
     </Card>
   );
