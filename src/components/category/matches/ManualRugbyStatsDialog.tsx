@@ -419,7 +419,7 @@ export function ManualRugbyStatsDialog({
 
           {/* Category selector */}
           <Tabs value={category} onValueChange={(v) => setCategory(v as Category)}>
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               {(Object.keys(CATEGORY_LABELS) as Category[]).map((c) => (
                 <TabsTrigger key={c} value={c}>{CATEGORY_LABELS[c]}</TabsTrigger>
               ))}
