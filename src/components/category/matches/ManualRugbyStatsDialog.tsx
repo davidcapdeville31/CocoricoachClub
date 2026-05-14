@@ -367,9 +367,15 @@ export function ManualRugbyStatsDialog({
       side: "home" | "away", player_id: string | null, per: Period,
       event_type: string, outcome: string | null, points = 0,
       minutesMeta?: Record<string, string>,
+      pos?: FieldPosition,
     ) => {
       const metadata: any = { source: "manual" };
       if (minutesMeta) metadata.minutes_notes = minutesMeta;
+      if (pos) {
+        metadata.kickX = pos.kickX;
+        metadata.kickY = pos.kickY;
+        metadata.kickingSide = pos.kickingSide;
+      }
       events.push({
         match_id: matchId, team_side: side, player_id,
         minute: 0, second: 0, period: per, event_type, outcome, points,
@@ -387,17 +393,19 @@ export function ManualRugbyStatsDialog({
         firstAttached = true;
         return minutesMeta;
       };
+      const posAt = (key: PositionableStatKey, i: number): FieldPosition | undefined =>
+        r.positions?.[key]?.[i];
       for (let i = 0; i < r.tries; i++) push(side, pid, per, "try", null, 5, attach());
-      for (let i = 0; i < r.conversionsMade; i++) push(side, pid, per, "conversion", "success", 2, attach());
+      for (let i = 0; i < r.conversionsMade; i++) push(side, pid, per, "conversion", "success", 2, attach(), posAt("conversionsMade", i));
       for (let i = 0; i < r.conversionsMissed; i++) push(side, pid, per, "conversion", "fail", 0, attach());
-      for (let i = 0; i < r.penaltiesMade; i++) push(side, pid, per, "penalty_kick", "success", 3, attach());
+      for (let i = 0; i < r.penaltiesMade; i++) push(side, pid, per, "penalty_kick", "success", 3, attach(), posAt("penaltiesMade", i));
       for (let i = 0; i < r.penaltiesMissed; i++) push(side, pid, per, "penalty_kick", "fail", 0, attach());
-      for (let i = 0; i < r.drops; i++) push(side, pid, per, "drop", "success", 3, attach());
+      for (let i = 0; i < r.drops; i++) push(side, pid, per, "drop", "success", 3, attach(), posAt("drops", i));
       for (let i = 0; i < r.dropsMissed; i++) push(side, pid, per, "drop", "fail", 0, attach());
-      for (let i = 0; i < r.scrumsWon; i++) push(side, pid, per, "scrum", "success", 0, attach());
-      for (let i = 0; i < r.scrumsLost; i++) push(side, pid, per, "scrum", "fail", 0, attach());
-      for (let i = 0; i < r.lineoutsWon; i++) push(side, pid, per, "lineout", "success", 0, attach());
-      for (let i = 0; i < r.lineoutsLost; i++) push(side, pid, per, "lineout", "fail", 0, attach());
+      for (let i = 0; i < r.scrumsWon; i++) push(side, pid, per, "scrum", "success", 0, attach(), posAt("scrumsWon", i));
+      for (let i = 0; i < r.scrumsLost; i++) push(side, pid, per, "scrum", "fail", 0, attach(), posAt("scrumsLost", i));
+      for (let i = 0; i < r.lineoutsWon; i++) push(side, pid, per, "lineout", "success", 0, attach(), posAt("lineoutsWon", i));
+      for (let i = 0; i < r.lineoutsLost; i++) push(side, pid, per, "lineout", "fail", 0, attach(), posAt("lineoutsLost", i));
       for (let i = 0; i < r.mauls; i++) push(side, pid, per, "maul", null, 0, attach());
       for (let i = 0; i < r.rucks; i++) push(side, pid, per, "ruck", null, 0, attach());
       for (let i = 0; i < r.tackles; i++) push(side, pid, per, "tackle", "success", 0, attach());
