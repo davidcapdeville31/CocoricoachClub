@@ -32,7 +32,7 @@ export const emptyTeamStats = (): TeamStats => ({
   drops: 0, dropsAttempted: 0,
   tackles: 0, missedTackles: 0,
   turnovers: 0, ballsWon: 0, ballsLost: 0,
-  meters: 0, lineBreaks: 0, offloads: 0, passes: 0, carries: 0,
+  meters: 0, lineBreaks: 0, offloads: 0, passes: 0, passesMissed: 0, carries: 0, kicks: 0, kicksMissed: 0,
   fouls: 0, yellowCards: 0, redCards: 0, knockOns: 0,
   lineoutsWon: 0, lineoutsLost: 0,
   scrumsWon: 0, scrumsLost: 0,
