@@ -98,6 +98,51 @@ interface Row {
   values: Record<StatKey, number>;
 }
 
+/** Retourne tous les groupes de poste auxquels appartient une position rugby */
+function getRugbyPositionGroups(pos?: string | null): string[] {
+  if (!pos) return [];
+  const p = pos.toLowerCase().replace(/[èéê]/g, "e").replace(/[à]/g, "a").replace(/[û]/g, "u");
+  const numMatch = p.match(/\d+/);
+  const num = numMatch ? parseInt(numMatch[0]) : null;
+  const groups: string[] = [];
+  if (num) {
+    if (num === 1 || num === 3) { groups.push("Piliers"); groups.push("1re ligne"); }
+    if (num === 2) { groups.push("Talonneur"); groups.push("1re ligne"); }
+    if (num === 4 || num === 5) groups.push("2e ligne");
+    if (num === 6 || num === 7 || num === 8) groups.push("3e ligne");
+    if (num === 9) groups.push("Demi de mêlée");
+    if (num === 10) groups.push("Demi d'ouverture");
+    if (num === 11 || num === 14) groups.push("Ailiers");
+    if (num === 12 || num === 13) groups.push("Centres");
+    if (num === 15) groups.push("Arrière");
+    return groups;
+  }
+  // Noms
+  if (p.includes("pilier")) { groups.push("Piliers"); groups.push("1re ligne"); }
+  if (p.includes("talon")) { groups.push("Talonneur"); groups.push("1re ligne"); }
+  if (p.includes("2e ligne") || p.includes("deuxieme ligne")) groups.push("2e ligne");
+  if (p.includes("3e ligne") || p.includes("troisieme ligne")) groups.push("3e ligne");
+  if (p.includes("demi de melee") || p.includes("melee")) groups.push("Demi de mêlée");
+  if (p.includes("demi d'ouverture") || p.includes("ouverture")) groups.push("Demi d'ouverture");
+  if (p.includes("ailier")) groups.push("Ailiers");
+  if (p.includes("centre")) groups.push("Centres");
+  if (p.includes("arriere")) groups.push("Arrière");
+  return groups;
+}
+
+const RUGBY_POSITION_ORDER = [
+  "1re ligne",
+  "Piliers",
+  "Talonneur",
+  "2e ligne",
+  "3e ligne",
+  "Demi de mêlée",
+  "Demi d'ouverture",
+  "Centres",
+  "Ailiers",
+  "Arrière",
+];
+
 const POSITION_WEIGHTS: Record<string, Partial<Record<StatKey, number>>> = {
   default: { tries: 5, conversions: 1, penalties: 1.5, drops: 2, tackles: 1.2, tackleEff: 0.4, missedTackles: -1.5, knockOns: -1, fouls: -0.5, cards: -3 },
 };
@@ -163,8 +208,11 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
 
   const positions = useMemo(() => {
     const set = new Set<string>();
-    involved.forEach((p) => p.position && set.add(p.position));
-    return Array.from(set).sort();
+    involved.forEach((p) => {
+      const groups = getRugbyPositionGroups(p.position);
+      groups.forEach(g => set.add(g));
+    });
+    return RUGBY_POSITION_ORDER.filter(g => set.has(g));
   }, [involved]);
 
   const rows: Row[] = useMemo(() => {
@@ -217,7 +265,7 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
 
   const filteredRows = useMemo(() => {
     return rows.filter((r) => {
-      if (posFilter !== "all" && r.player.position !== posFilter) return false;
+      if (posFilter !== "all" && !getRugbyPositionGroups(r.player.position).includes(posFilter)) return false;
       if (search && !fullName(r.player).toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
