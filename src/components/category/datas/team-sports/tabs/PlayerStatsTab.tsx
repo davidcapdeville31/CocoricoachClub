@@ -201,10 +201,8 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
     return matchIds.map(id => computeMatchAnalytics((eventsByMatch.get(id) || []) as any, period));
   }, [matchIds, eventsByMatch, period]);
 
-  const involved = useMemo(() => {
-    const ids = new Set(events.map((e: any) => e.player_id).filter(Boolean) as string[]);
-    return players.filter((p) => ids.has(p.id));
-  }, [events, players]);
+  // Affiche tous les joueurs de la catégorie, même ceux sans actions enregistrées
+  const involved = useMemo(() => players, [players]);
 
   const positions = useMemo(() => {
     const set = new Set<string>();
@@ -240,9 +238,8 @@ export function PlayerStatsTab({ matches, categoryId }: Props) {
           acc.fouls += s.fouls;
           acc.cards += s.yellowCards + s.redCards;
         });
-        if (participations === 0) return null;
         // Moyenne sur les matchs joués (sauf tackleEff qui est déjà un %)
-        const div = participations;
+        const div = participations || 1;
         const values: Record<StatKey, number> = {
           playTimeMinutes: Math.round(acc.playTimeMinutes / div),
           tries: Math.round((acc.tries / div) * 10) / 10,
