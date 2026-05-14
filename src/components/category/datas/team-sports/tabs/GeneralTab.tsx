@@ -7,7 +7,8 @@ import { PeriodToggle } from "../shared/PeriodToggle";
 import { EventTimeline } from "../shared/EventTimeline";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { TrendingUp, TrendingDown, AlertTriangle, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, AlertTriangle, Minus, MapPin } from "lucide-react";
+import { MatchEventPositionsDialog, type PositionStatKind } from "../MatchEventPositionsDialog";
 
 interface Props {
   match: MatchRow;
@@ -16,6 +17,7 @@ interface Props {
 
 export function GeneralTab({ match, categoryId }: Props) {
   const [period, setPeriod] = useState<AnalyticsPeriod>("all");
+  const [posKind, setPosKind] = useState<PositionStatKind | null>(null);
   const { data: events = [], isLoading } = useMatchEventsAnalytics(match.id);
   const { data: ourName = "Notre équipe" } = useCategoryTeamName(categoryId || "");
 
@@ -88,7 +90,7 @@ export function GeneralTab({ match, categoryId }: Props) {
           Chiffres clés
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          <KpiTile label="Essais" h={home.tries} a={away.tries} homeName={homeName} awayName={awayName} />
+          <KpiTile label="Essais" h={home.tries} a={away.tries} homeName={homeName} awayName={awayName} onShowPositions={() => setPosKind("try")} />
           <KpiTile label="Plaquages" h={tackleRatio(home)} a={tackleRatio(away)} suffix="%" homeName={homeName} awayName={awayName} />
           <KpiTile label="Turnovers" h={home.turnovers} a={away.turnovers} homeName={homeName} awayName={awayName} />
           <KpiTile label="Ballons perdus" h={home.ballsLost} a={away.ballsLost} reverse homeName={homeName} awayName={awayName} />
@@ -99,6 +101,7 @@ export function GeneralTab({ match, categoryId }: Props) {
             a={`${away.penaltiesMade}/${away.penaltiesAttempted}`}
             homeName={homeName}
             awayName={awayName}
+            onShowPositions={() => setPosKind("penalty_kick")}
           />
         </div>
       </div>
@@ -115,9 +118,9 @@ export function GeneralTab({ match, categoryId }: Props) {
           </div>
 
           <StatBlock title="Attaque" accent="emerald">
-            <StatBar label="Transformations" h={home.conversionsMade} a={away.conversionsMade} hTotal={home.conversionsAttempted} aTotal={away.conversionsAttempted} kind="ratio" />
-            <StatBar label="Pénalités (tirs)" h={home.penaltiesMade} a={away.penaltiesMade} hTotal={home.penaltiesAttempted} aTotal={away.penaltiesAttempted} kind="ratio" />
-            <StatBar label="Drops" h={home.drops} a={away.drops} />
+            <StatBar label="Transformations" h={home.conversionsMade} a={away.conversionsMade} hTotal={home.conversionsAttempted} aTotal={away.conversionsAttempted} kind="ratio" onShowPositions={() => setPosKind("conversion")} />
+            <StatBar label="Pénalités (tirs)" h={home.penaltiesMade} a={away.penaltiesMade} hTotal={home.penaltiesAttempted} aTotal={away.penaltiesAttempted} kind="ratio" onShowPositions={() => setPosKind("penalty_kick")} />
+            <StatBar label="Drops" h={home.drops} a={away.drops} onShowPositions={() => setPosKind("drop")} />
             <StatBar label="Mètres gagnés" h={home.meters} a={away.meters} suffix="m" />
           </StatBlock>
 
@@ -127,8 +130,8 @@ export function GeneralTab({ match, categoryId }: Props) {
           </StatBlock>
 
           <StatBlock title="Conquête" accent="amber">
-            <StatBar label="Touches gagnées" h={home.lineoutsWon} a={away.lineoutsWon} hTotal={home.lineoutsWon + home.lineoutsLost} aTotal={away.lineoutsWon + away.lineoutsLost} kind="ratio" />
-            <StatBar label="Mêlées gagnées" h={home.scrumsWon} a={away.scrumsWon} hTotal={home.scrumsWon + home.scrumsLost} aTotal={away.scrumsWon + away.scrumsLost} kind="ratio" />
+            <StatBar label="Touches gagnées" h={home.lineoutsWon} a={away.lineoutsWon} hTotal={home.lineoutsWon + home.lineoutsLost} aTotal={away.lineoutsWon + away.lineoutsLost} kind="ratio" onShowPositions={() => setPosKind("lineout")} />
+            <StatBar label="Mêlées gagnées" h={home.scrumsWon} a={away.scrumsWon} hTotal={home.scrumsWon + home.scrumsLost} aTotal={away.scrumsWon + away.scrumsLost} kind="ratio" onShowPositions={() => setPosKind("scrum")} />
           </StatBlock>
 
           <StatBlock title="Discipline" accent="rose">
@@ -146,12 +149,23 @@ export function GeneralTab({ match, categoryId }: Props) {
         </h3>
         <EventTimeline events={filtered} homeLabel={homeName} awayLabel={awayName} />
       </div>
+
+      {posKind && (
+        <MatchEventPositionsDialog
+          open={!!posKind}
+          onOpenChange={(o) => !o && setPosKind(null)}
+          kind={posKind}
+          events={filtered}
+          homeName={homeName}
+          awayName={awayName}
+        />
+      )}
     </div>
   );
 }
 
 function KpiTile({
-  label, h, a, suffix = "", reverse = false, homeName, awayName,
+  label, h, a, suffix = "", reverse = false, homeName, awayName, onShowPositions,
 }: {
   label: string;
   h: number | string;
@@ -160,6 +174,7 @@ function KpiTile({
   reverse?: boolean;
   homeName: string;
   awayName: string;
+  onShowPositions?: () => void;
 }) {
   const hNum = typeof h === "number" ? h : parseFloat(String(h).split("/")[0]) || 0;
   const aNum = typeof a === "number" ? a : parseFloat(String(a).split("/")[0]) || 0;
@@ -167,7 +182,17 @@ function KpiTile({
   const awayBetter = reverse ? aNum < hNum : aNum > hNum;
   const equal = hNum === aNum;
   return (
-    <div className="rounded-xl border bg-surface px-3 py-2.5">
+    <div className="rounded-xl border bg-surface px-3 py-2.5 relative">
+      {onShowPositions && (
+        <button
+          type="button"
+          onClick={onShowPositions}
+          className="absolute top-1.5 right-1.5 p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+          title="Voir les positions sur le terrain"
+        >
+          <MapPin className="h-3 w-3" />
+        </button>
+      )}
       <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground text-center mb-1.5">
         {label}
       </p>
@@ -204,7 +229,7 @@ function TeamSide({ name, score, winner, align }: { name: string; score: number;
 }
 
 function StatBar({
-  label, h, a, hTotal, aTotal, kind = "count", reverse = false, suffix = "",
+  label, h, a, hTotal, aTotal, kind = "count", reverse = false, suffix = "", onShowPositions,
 }: {
   label: string;
   h: number;
@@ -215,6 +240,7 @@ function StatBar({
   kind?: "count" | "ratio";
   reverse?: boolean;
   suffix?: string;
+  onShowPositions?: () => void;
 }) {
   const isRatio = kind === "ratio";
   const hPct = isRatio
@@ -244,9 +270,21 @@ function StatBar({
           </span>
         </div>
         {/* Label */}
-        <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground text-center whitespace-nowrap">
-          {label}
-        </span>
+        <div className="flex items-center justify-center gap-1">
+          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground text-center whitespace-nowrap">
+            {label}
+          </span>
+          {onShowPositions && (
+            <button
+              type="button"
+              onClick={onShowPositions}
+              className="p-0.5 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+              title="Voir les positions sur le terrain"
+            >
+              <MapPin className="h-3 w-3" />
+            </button>
+          )}
+        </div>
         {/* Away value */}
         <div className="flex flex-col items-start">
           <span className={cn(
