@@ -259,9 +259,21 @@ function StatBar({
           </span>
         </div>
         {/* Label */}
-        <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground text-center whitespace-nowrap">
-          {label}
-        </span>
+        <div className="flex items-center justify-center gap-1">
+          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground text-center whitespace-nowrap">
+            {label}
+          </span>
+          {onShowPositions && (
+            <button
+              type="button"
+              onClick={onShowPositions}
+              className="p-0.5 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+              title="Voir les positions sur le terrain"
+            >
+              <MapPin className="h-3 w-3" />
+            </button>
+          )}
+        </div>
         {/* Away value */}
         <div className="flex flex-col items-start">
           <span className={cn(
