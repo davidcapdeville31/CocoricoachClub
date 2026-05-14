@@ -671,11 +671,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                   onPointerDown={stopCardAction}
                   onClick={(e) => {
                     stopCardAction(e);
-                    if (rugbyEventSources?.hasManual) {
-                      setConfirmLiveStart(true);
-                    } else {
-                      navigate(`/categories/${categoryId}/match/${match.id}/live`);
-                    }
+                    navigate(`/categories/${categoryId}/match/${match.id}/live`);
                   }}
                 >
                   <Play className="h-5 w-5 fill-white" />
