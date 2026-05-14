@@ -635,28 +635,6 @@ function CompareView({ rows }: { rows: Row[] }) {
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl">
-        <CardHeader><CardTitle className="text-sm">Score de performance</CardTitle></CardHeader>
-        <CardContent className="space-y-3 pt-2">
-          {rows.map((r, i) => (
-            <div key={r.player.id} className="space-y-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full" style={{ background: colors[i % colors.length] }} />
-                  {fullName(r.player)}
-                </span>
-                <span className="tabular-nums font-semibold">{r.values.score}/100</span>
-              </div>
-              <div className="h-2 rounded-full bg-muted overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{ width: `${r.values.score}%`, background: colors[i % colors.length] }}
-                />
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
     </div>
   );
 }
