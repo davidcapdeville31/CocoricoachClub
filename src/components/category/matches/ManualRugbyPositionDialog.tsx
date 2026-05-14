@@ -40,10 +40,11 @@ interface Props {
   positions: FieldPosition[];
   onSave: (positions: FieldPosition[]) => void;
   contextLabel?: string;
+  missed?: boolean;
 }
 
 export function ManualRugbyPositionDialog({
-  open, onOpenChange, kind, count, positions: initial, onSave, contextLabel,
+  open, onOpenChange, kind, count, positions: initial, onSave, contextLabel, missed = false,
 }: Props) {
   const [side, setSide] = useState<"left" | "right">("right");
   const [list, setList] = useState<FieldPosition[]>([]);
