@@ -85,7 +85,7 @@ export function useMultiMatchEvents(matchIds: string[]) {
 export interface PlayerLite {
   id: string;
   first_name: string | null;
-  last_name?: string | null;
+  name: string | null;
   position: string | null;
   avatar_url: string | null;
 }
@@ -96,9 +96,9 @@ export function useCategoryPlayers(categoryId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, first_name, last_name, position, avatar_url")
+        .select("id, first_name, name, position, avatar_url")
         .eq("category_id", categoryId)
-        .order("last_name", { ascending: true });
+        .order("name", { ascending: true });
       if (error) throw error;
       return (data ?? []) as PlayerLite[];
     },
