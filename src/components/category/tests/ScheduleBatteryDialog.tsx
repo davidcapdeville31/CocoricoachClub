@@ -371,6 +371,97 @@ export function ScheduleBatteryDialog({
               </div>
             </div>
 
+            {/* Recurrence */}
+            <div className="rounded-2xl border bg-muted/30 p-4 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <Repeat className="h-4 w-4" /> Récurrence
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Crée automatiquement les sessions suivantes selon la fréquence et la durée choisies.
+                  </p>
+                </div>
+                <Switch checked={recurring} onCheckedChange={setRecurring} />
+              </div>
+
+              {recurring && (
+                <div className="space-y-3 pt-1">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Fréquence</Label>
+                    <Select value={String(frequencyWeeks)} onValueChange={(v) => setFrequencyWeeks(parseInt(v))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">Toutes les semaines</SelectItem>
+                        <SelectItem value="2">Toutes les 2 semaines</SelectItem>
+                        <SelectItem value="3">Toutes les 3 semaines</SelectItem>
+                        <SelectItem value="4">Toutes les 4 semaines</SelectItem>
+                        <SelectItem value="6">Toutes les 6 semaines</SelectItem>
+                        <SelectItem value="8">Toutes les 8 semaines</SelectItem>
+                        <SelectItem value="12">Toutes les 12 semaines</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Fin de la récurrence</Label>
+                    <Select value={endMode} onValueChange={(v) => setEndMode(v as any)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="date">Jusqu'à une date</SelectItem>
+                        <SelectItem value="duration">Pendant une durée</SelectItem>
+                        <SelectItem value="never">Sans fin (max 2 ans)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {endMode === "date" && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Jusqu'au</Label>
+                      <Input
+                        type="date"
+                        value={endDate}
+                        min={slots[0]?.date}
+                        onChange={(e) => setEndDate(e.target.value)}
+                      />
+                    </div>
+                  )}
+
+                  {endMode === "duration" && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Pendant</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={durationCount}
+                          onChange={(e) => setDurationCount(parseInt(e.target.value) || 1)}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Unité</Label>
+                        <Select value={durationUnit} onValueChange={(v) => setDurationUnit(v as any)}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="weeks">Semaines</SelectItem>
+                            <SelectItem value="months">Mois</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+
+                  {recurringPreview.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {recurringPreview.length} session{recurringPreview.length > 1 ? "s" : ""} prévue{recurringPreview.length > 1 ? "s" : ""} • Aperçu :{" "}
+                      {recurringPreview.slice(0, 4).map((d) => format(new Date(d), "dd MMM", { locale: fr })).join(", ")}
+                      {recurringPreview.length > 4 ? "…" : ""}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Athletes */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
