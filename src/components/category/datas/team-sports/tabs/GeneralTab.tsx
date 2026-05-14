@@ -108,7 +108,7 @@ export function GeneralTab({ match, categoryId }: Props) {
 
       {/* SECTION 4 — DÉTAIL par thème */}
       <Card className="rounded-2xl">
-        <CardContent className="p-4 sm:p-5 space-y-4">
+        <CardContent className="p-3 sm:p-4 space-y-2.5">
           <div className="flex items-center justify-between">
             <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Détail</h3>
             <div className="hidden sm:flex items-center gap-4 text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -125,8 +125,13 @@ export function GeneralTab({ match, categoryId }: Props) {
           </StatBlock>
 
           <StatBlock title="Défense" accent="sky">
-            <StatBar label="Plaquages réussis" h={home.tackles} a={away.tackles} />
-            <StatBar label="Plaquages manqués" h={home.missedTackles} a={away.missedTackles} reverse />
+            <StatBar
+              label="Plaquages"
+              h={home.tackles} a={away.tackles}
+              hTotal={home.tackles + home.missedTackles}
+              aTotal={away.tackles + away.missedTackles}
+              kind="ratio"
+            />
           </StatBlock>
 
           <StatBlock title="Conquête" accent="amber">
@@ -236,19 +241,22 @@ function StatBar({
   a: number;
   hTotal?: number;
   aTotal?: number;
-  /** "count" => % part de chaque équipe sur le total ; "ratio" => % de réussite */
+  /** "count" => relative split between teams ; "ratio" => global success rate (sum) */
   kind?: "count" | "ratio";
   reverse?: boolean;
   suffix?: string;
   onShowPositions?: () => void;
 }) {
   const isRatio = kind === "ratio";
-  const hPct = isRatio
-    ? (hTotal && hTotal > 0 ? (h / hTotal) * 100 : 0)
-    : (h + a > 0 ? (h / (h + a)) * 100 : 50);
-  const aPct = isRatio
-    ? (aTotal && aTotal > 0 ? (a / aTotal) * 100 : 0)
-    : 100 - hPct;
+  // Center % :
+  // - ratio  => global success rate across both teams
+  // - count  => share of home in (h + a)
+  const centerPct = isRatio
+    ? (((hTotal || 0) + (aTotal || 0)) > 0
+        ? ((h + a) / ((hTotal || 0) + (aTotal || 0))) * 100
+        : null)
+    : (h + a > 0 ? (h / (h + a)) * 100 : null);
+
   const homeBetter = reverse ? h < a : h > a;
   const awayBetter = reverse ? a < h : a > h;
   const equal = h === a;
@@ -257,59 +265,34 @@ function StatBar({
   const aLabel = isRatio ? `${a}/${aTotal ?? 0}` : `${a}${suffix}`;
 
   return (
-    <div className="rounded-xl bg-surface-sunken/40 px-3 py-2">
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-        {/* Home value */}
-        <div className="flex flex-col items-end">
-          <span className={cn(
-            "text-base font-bold tabular-nums leading-none",
-            !equal && homeBetter ? "text-primary" : "text-foreground/80"
-          )}>{hLabel}</span>
-          <span className="text-[10px] tabular-nums text-muted-foreground mt-0.5">
-            {Math.round(hPct)}%
-          </span>
-        </div>
-        {/* Label */}
-        <div className="flex items-center justify-center gap-1">
-          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground text-center whitespace-nowrap">
-            {label}
-          </span>
-          {onShowPositions && (
-            <button
-              type="button"
-              onClick={onShowPositions}
-              className="p-0.5 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-              title="Voir les positions sur le terrain"
-            >
-              <MapPin className="h-3 w-3" />
-            </button>
-          )}
-        </div>
-        {/* Away value */}
-        <div className="flex flex-col items-start">
-          <span className={cn(
-            "text-base font-bold tabular-nums leading-none",
-            !equal && awayBetter ? "text-primary" : "text-foreground/80"
-          )}>{aLabel}</span>
-          <span className="text-[10px] tabular-nums text-muted-foreground mt-0.5">
-            {Math.round(aPct)}%
-          </span>
-        </div>
+    <div className="rounded-lg bg-surface-sunken/40 px-2 py-1.5">
+      <div className="flex items-center justify-center gap-1 mb-1">
+        <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground text-center whitespace-nowrap">
+          {label}
+        </span>
+        {onShowPositions && (
+          <button
+            type="button"
+            onClick={onShowPositions}
+            className="p-0.5 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+            title="Voir les positions sur le terrain"
+          >
+            <MapPin className="h-3 w-3" />
+          </button>
+        )}
       </div>
-      {/* Bar */}
-      <div className="mt-2 flex items-center gap-1 h-1.5">
-        <div className="flex-1 flex justify-end">
-          <div
-            className={cn("h-full rounded-l-full transition-all", !equal && homeBetter ? "bg-primary" : "bg-foreground/40")}
-            style={{ width: `${isRatio ? hPct : hPct}%` }}
-          />
-        </div>
-        <div className="flex-1">
-          <div
-            className={cn("h-full rounded-r-full transition-all", !equal && awayBetter ? "bg-primary" : "bg-foreground/40")}
-            style={{ width: `${isRatio ? aPct : aPct}%` }}
-          />
-        </div>
+      <div className="grid grid-cols-3 items-center gap-2">
+        <span className={cn(
+          "text-sm font-bold tabular-nums leading-none text-left",
+          !equal && homeBetter ? "text-primary" : "text-foreground/80"
+        )}>{hLabel}</span>
+        <span className="text-xs tabular-nums text-muted-foreground text-center font-semibold">
+          {centerPct !== null ? `${Math.round(centerPct)}%` : "—"}
+        </span>
+        <span className={cn(
+          "text-sm font-bold tabular-nums leading-none text-right",
+          !equal && awayBetter ? "text-primary" : "text-foreground/80"
+        )}>{aLabel}</span>
       </div>
     </div>
   );
@@ -333,14 +316,14 @@ function StatBlock({
 }) {
   const tone = BLOCK_ACCENTS[accent];
   return (
-    <div className="rounded-xl border border-border/60 bg-surface-elevated/40 p-3">
-      <div className="flex items-center gap-2 mb-2.5 px-1">
+    <div className="rounded-lg border border-border/60 bg-surface-elevated/40 p-2">
+      <div className="flex items-center gap-1.5 mb-1.5 px-1">
         <span className={cn("h-1.5 w-1.5 rounded-full", tone.dot)} />
-        <h4 className={cn("text-[11px] font-semibold uppercase tracking-wider", tone.text)}>
+        <h4 className={cn("text-[10px] font-semibold uppercase tracking-wider", tone.text)}>
           {title}
         </h4>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
         {children}
       </div>
     </div>
