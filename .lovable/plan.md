@@ -1,69 +1,48 @@
-# Module Datas — Sports collectifs (rugby d'abord)
+## Refonte du dialog de saisie manuelle des statistiques rugby
 
-Objectif : créer un moteur analytics qui lit **directement** la table `match_events` (alimentée par Compétition → Démarrer le match) et recalcule tout dynamiquement, dans l'esprit du module bowling. Aucun stockage en double.
+### Objectif
+Restructurer `ManualRugbyStatsDialog` en onglets thématiques, ajouter les phases de conquête, et permettre de noter à quel moment les actions ont eu lieu — pour notre équipe **et** l'équipe adverse, par mi-temps.
 
-## Architecture
+### Structure d'interface
 
-### 1. Moteur de calcul (pur, côté front)
-Nouveau dossier `src/lib/analytics/team-sports/` :
-- `eventAggregator.ts` — agrège un `MatchEvent[]` filtré par période en `TeamStats` (étend l'existant `useMatchStats`) : score, essais, transfos, pénalités, drops, plaquages R/M + ratio, turnovers, ballons gagnés/perdus, mètres, franchissements, pénalités concédées, cartons, touches/mêlées G/L.
-- `playerAggregator.ts` — `PlayerStats` par joueur (offensif / défensif / discipline / activité + temps de jeu déduit des `substitution`).
-- `historyAggregator.ts` — pour un `categoryId`, joint `matches` + `match_events` et calcule par match : score final, V/D/N, lieu, possession, top stats.
-- `comparisonEngine.ts` — sélection multi-joueurs/multi-matchs → datasets pour radar / bars / lignes.
-- `momentum.ts` — série temporelle (cumul score par minute pour timeline et momentum).
-
-### 2. Hooks React Query
-`src/hooks/analytics/` :
-- `useMatchAnalytics(matchId, period)` — fetch events + agrège.
-- `useCategoryMatchHistory(categoryId)` — fetch matches + events agrégés.
-- `usePlayerAnalytics(matchId, playerId, period)`.
-- `useComparisonData(playerIds[], scope)`.
-
-Tout passe par `match_events` existant (realtime déjà en place) — **pas de migration DB**.
-
-### 3. UI — onglet Datas refondu pour rugby
-Modifier `src/components/category/tabs/DatasTab.tsx` : si `isRugbyType`, monter le nouveau `<TeamSportsAnalytics categoryId sportType />`.
-
-Nouveau dossier `src/components/category/datas/team-sports/` :
-
-```
-TeamSportsAnalytics.tsx     ← shell + sélecteur de match + 4 sous-onglets
-├─ MatchSelector.tsx        ← liste déroulante des matchs joués
-├─ tabs/
-│   ├─ GeneralTab.tsx       ← KPI cards + diagrammes + timeline + momentum
-│   ├─ PlayerStatsTab.tsx   ← liste joueurs (photo, poste, badges) + détail
-│   ├─ HistoryTab.tsx       ← timeline chrono + recherche + filtres
-│   └─ CompareTab.tsx       ← multi-select + radar/bar/lignes + filtres identité
-└─ shared/
-    ├─ PeriodToggle.tsx     ← [Match complet][1ère MT][2ème MT]
-    ├─ KpiCard.tsx
-    ├─ MomentumChart.tsx
-    ├─ EventTimeline.tsx
-    └─ PlayerIdentityBadges.tsx (réutilise badges existants)
+```text
+┌──────────────────────────────────────────────────────────┐
+│  Score live :   Notre équipe  X  –  Y  Adversaire        │
+├──────────────────────────────────────────────────────────┤
+│  [ 1ʳᵉ mi-temps ] [ 2ᵉ mi-temps ]                        │
+├──────────────────────────────────────────────────────────┤
+│  [ Points ] [ Conquête ] [ Défense ] [ Discipline ]      │
+├──────────────────────────────────────────────────────────┤
+│  Tableau joueurs (colonnes filtrées par onglet)          │
+│  + colonne « Minutes » (texte libre : "12', 34'…")       │
+├──────────────────────────────────────────────────────────┤
+│  Bloc équipe adverse (mêmes colonnes que l'onglet)       │
+│  + champ Minutes                                          │
+└──────────────────────────────────────────────────────────┘
 ```
 
-### 4. Onglets — détail
+### Onglets et champs
 
-**Général** : `PeriodToggle` en tête. KPIs score/essais/transfos/pénalités/drops, blocs Défense (plaquages + ratio), Jeu (turnovers, ballons G/P, mètres, franchissements), Discipline (pénalités, jaunes, rouges), Conquête (touches, mêlées). Timeline événements + courbe momentum (score cumulé domicile/extérieur).
+- **Points** : Essais, Tr ✓, Tr ✗, Pén ✓, Pén ✗, Drop ✓, Drop ✗
+- **Conquête** : Mêlées gagnées, Mêlées perdues, Touches gagnées, Touches perdues, Ballons portés, Rucks
+- **Défense** : Plaquages réussis, Plaquages manqués, En-avants
+- **Discipline** : Fautes, Jaunes, Rouges
 
-**Statistiques par joueur** : colonne gauche scrollable (avatar, nom, poste, badges identité depuis `useAthleteAttributes`). Zone droite : `PeriodToggle` + sections Offensif/Défensif/Discipline/Activité + mini-timeline du joueur.
+### Notation des moments
+Chaque ligne (joueur ou adversaire) gagne un champ texte libre **Minutes** par mi-temps, où le staff peut taper p. ex. `12', 34', 56'`. Stocké dans `metadata.minutes_note` du premier événement de la ligne ou dans une nouvelle colonne dédiée si plus simple — voir détails techniques.
 
-**Historique** : timeline verticale chrono, recherche (adversaire, compét, score, saison), filtres (dom/ext, V/D, compétition, sous-catégorie). Chaque carte → boutons "Général", "Joueurs", "Comparer" qui rechargent le match dans les autres onglets.
+### Détails techniques
+- Étendre `StatRow` avec : `scrumsWon, scrumsLost, lineoutsWon, lineoutsLost, mauls, rucks` (les autres champs existent déjà).
+- Ajouter une constante `CATEGORIES` qui groupe les `FIELDS` par onglet (`points` / `conquest` / `defense` / `discipline`).
+- Ajouter un state `category: "points" | "conquest" | "defense" | "discipline"` avec `Tabs` sous le sélecteur de mi-temps. Le tableau et le bloc adverse n'affichent que les colonnes de la catégorie active.
+- Le sélecteur de mi-temps reste tel quel (déjà partagé entre nos joueurs et l'équipe adverse).
+- Notes de minutes : ajouter `notes: { H1: Record<playerId|"opp", string>, H2: ... }` en state. À la sauvegarde, joindre la note dans `metadata.minutes_note` sur les events de la ligne (ou un event de type `note` si la table le permet sans casser l'agrégation).
+- Mapper les nouveaux types d'événements (`scrum_won`, `scrum_lost`, `lineout_won`, `lineout_lost`, `maul`, `ruck`) côté `applyEvent` et `pushAll`. Ces types existent déjà côté analytics rugby (conquêtes), à vérifier rapidement avant d'écrire.
+- Score live inchangé (toujours basé sur `computePoints`).
 
-**Comparer** : multi-select joueurs (Tous / Aucun / par tag identité — 3e ligne, U18, gaucher…). Choix stats (chips comme bowling). Radar (recharts), bar chart, courbes d'évolution multi-matchs. Bouton "Par identité" pour grouper plutôt que joueur par joueur.
+### Fichier modifié
+- `src/components/category/matches/ManualRugbyStatsDialog.tsx`
 
-### 5. Réutilisations
-- `useMatchEvents`, `useMatchStats` existants (étendus, pas remplacés).
-- Recharts (déjà utilisé partout).
-- `ColoredSubTabsList` pour les 4 onglets (cohérence bowling).
-- `useAthleteAttributes` pour les badges identité.
-
-### 6. Hors scope (pour l'instant)
-- Football/basket/hand/volley/water-polo : l'architecture est générique mais seuls les libellés/types rugby existent. On expose le moteur comme générique ; l'adaptation par sport viendra quand chaque sport aura son flow live.
-- Aucune modif des écrans de saisie live (Compétition → Démarrer reste tel quel).
-
-## Livrables
-- Moteur analytics pur + hooks
-- 4 onglets premium recalculés à la volée
-- Aucune nouvelle table, aucune migration
-- Branchement automatique pour catégories rugby ; bowling et autres sports inchangés
+### Hors-scope
+- Pas de changement à `MatchCard` ni au mode live.
+- Pas de schéma DB modifié — on réutilise `match_events.metadata` pour stocker les minutes.
