@@ -36,7 +36,8 @@ export function useCategoryTeamName(categoryId: string) {
 }
 
 export function useCategoryMatches(categoryId: string) {
-  return useQuery({
+  const qc = useQueryClient();
+  const q = useQuery({
     queryKey: ["analytics_matches", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -48,6 +49,25 @@ export function useCategoryMatches(categoryId: string) {
       return (data ?? []) as MatchRow[];
     },
   });
+
+  useEffect(() => {
+    if (!categoryId) return;
+    const ch = supabase
+      .channel(`analytics_matches:${categoryId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "matches", filter: `category_id=eq.${categoryId}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["analytics_matches", categoryId] });
+          // Aussi rafraîchir les events multi-matchs (compare/general)
+          qc.invalidateQueries({ queryKey: ["analytics_multi_events"] });
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [categoryId, qc]);
+
+  return q;
 }
 
 export function useMatchEventsAnalytics(matchId: string | null) {
