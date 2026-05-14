@@ -323,7 +323,7 @@ export function ScheduleBatteryDialog({
               </div>
 
               <div className="space-y-2">
-                {slots.map((slot, idx) => (
+                {(recurring ? slots.slice(0, 1) : slots).map((slot, idx) => (
                   <div
                     key={slot.id}
                     className="rounded-2xl border bg-muted/30 p-3 grid grid-cols-1 md:grid-cols-[auto_1fr_auto_auto_auto] gap-2 items-end"
