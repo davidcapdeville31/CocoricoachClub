@@ -686,6 +686,28 @@ export function ManualRugbyStatsDialog({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {posDialog && (() => {
+        const isOpp = posDialog.targetKey === "opp";
+        const row = isOpp ? opponent[period] : (stats[posDialog.targetKey] ?? emptyPeriodStats())[period];
+        const count = (row[posDialog.statKey] as number) ?? 0;
+        const positions = row.positions?.[posDialog.statKey] ?? [];
+        return (
+          <ManualRugbyPositionDialog
+            open
+            onOpenChange={(o) => { if (!o) setPosDialog(null); }}
+            kind={POSITIONABLE_KIND[posDialog.statKey]}
+            count={count}
+            positions={positions}
+            contextLabel={posDialog.contextLabel}
+            onSave={(list) => {
+              if (isOpp) updateOpponentPositions(posDialog.statKey, list);
+              else updatePlayerPositions(posDialog.targetKey, posDialog.statKey, list);
+              setPosDialog(null);
+            }}
+          />
+        );
+      })()}
     </>
   );
 }
