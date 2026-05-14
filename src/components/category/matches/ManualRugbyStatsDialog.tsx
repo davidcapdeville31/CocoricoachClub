@@ -110,10 +110,6 @@ export function ManualRugbyStatsDialog({
     [existingEvents]
   );
 
-  useEffect(() => {
-    if (open && hasLiveEvents) setConfirmLiveOverwrite(true);
-  }, [open, hasLiveEvents]);
-
   // Pre-populate from existing events
   useEffect(() => {
     if (!open) return;
@@ -226,7 +222,7 @@ export function ManualRugbyStatsDialog({
     return events;
   };
 
-  const handleSave = async () => {
+  const performSave = async () => {
     setSaving(true);
     try {
       const { data: u } = await supabase.auth.getUser();
@@ -253,6 +249,14 @@ export function ManualRugbyStatsDialog({
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSave = () => {
+    if (hasLiveEvents) {
+      setConfirmLiveOverwrite(true);
+      return;
+    }
+    performSave();
   };
 
   return (
@@ -392,10 +396,10 @@ export function ManualRugbyStatsDialog({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => { setConfirmLiveOverwrite(false); onOpenChange(false); }}>
+            <AlertDialogCancel onClick={() => setConfirmLiveOverwrite(false)}>
               Annuler
             </AlertDialogCancel>
-            <AlertDialogAction onClick={() => setConfirmLiveOverwrite(false)}>
+            <AlertDialogAction onClick={() => { setConfirmLiveOverwrite(false); performSave(); }}>
               Continuer
             </AlertDialogAction>
           </AlertDialogFooter>

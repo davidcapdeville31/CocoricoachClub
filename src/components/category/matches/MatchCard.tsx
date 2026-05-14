@@ -114,7 +114,6 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   const [isLineupOpen, setIsLineupOpen] = useState(false);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [isManualRugbyOpen, setIsManualRugbyOpen] = useState(false);
-  const [confirmLiveStart, setConfirmLiveStart] = useState(false);
   const [isAggregatedStatsOpen, setIsAggregatedStatsOpen] = useState(false);
   const [isRoundsOpen, setIsRoundsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -279,22 +278,6 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
     sportType.toLowerCase().includes("athlétisme") ||
     sportType.toLowerCase().includes("aviron");
 
-  // Detect if the rugby match has stats entered via manual mode (to confirm before live overwrite)
-  const { data: rugbyEventSources } = useQuery({
-    queryKey: ["rugby-events-source", match.id],
-    enabled: isRugby,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("match_events" as any)
-        .select("metadata")
-        .eq("match_id", match.id);
-      if (error) throw error;
-      const list = (data ?? []) as any[];
-      const hasManual = list.some((e) => e.metadata?.source === "manual");
-      const hasLive = list.some((e) => (e.metadata?.source ?? null) !== "manual");
-      return { hasManual, hasLive, total: list.length };
-    },
-  });
 
   const getCompetitionStageLabel = (stage: string): string => {
     return getCompetitionStageLabelUtil(stage);
@@ -671,11 +654,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                   onPointerDown={stopCardAction}
                   onClick={(e) => {
                     stopCardAction(e);
-                    if (rugbyEventSources?.hasManual) {
-                      setConfirmLiveStart(true);
-                    } else {
-                      navigate(`/categories/${categoryId}/match/${match.id}/live`);
-                    }
+                    navigate(`/categories/${categoryId}/match/${match.id}/live`);
                   }}
                 >
                   <Play className="h-5 w-5 fill-white" />
@@ -948,31 +927,6 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
           clubName="Notre équipe"
         />
       )}
-
-      <AlertDialog open={confirmLiveStart} onOpenChange={setConfirmLiveStart}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Saisie manuelle déjà existante</AlertDialogTitle>
-            <AlertDialogDescription>
-              Des statistiques ont été saisies manuellement pour ce match. Démarrer la saisie en
-              temps réel <strong>remplacera</strong> les données existantes. Continuer ?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                await supabase.from("match_events" as any).delete().eq("match_id", match.id);
-                queryClient.invalidateQueries({ queryKey: ["rugby-events-source", match.id] });
-                setConfirmLiveStart(false);
-                navigate(`/categories/${categoryId}/match/${match.id}/live`);
-              }}
-            >
-              Démarrer et remplacer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
 
       {/* For round-based sports, use AggregatedRoundStatsDialog */}
