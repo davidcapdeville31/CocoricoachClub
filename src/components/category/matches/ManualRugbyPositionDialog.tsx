@@ -135,7 +135,7 @@ export function ManualRugbyPositionDialog({
   }, [kind, missed]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -144,8 +144,22 @@ export function ManualRugbyPositionDialog({
           </DialogTitle>
           <DialogDescription>
             {contextLabel ? <span className="block text-xs">{contextLabel}</span> : null}
-            Cliquez sur le terrain pour placer la position. {list.length} placée{list.length > 1 ? "s" : ""}{count > 0 ? ` / ${count} attendue${count > 1 ? "s" : ""}` : ""}.
-            {remaining > 0 ? ` (${remaining} restante${remaining > 1 ? "s" : ""})` : ""}
+            <span className="inline-flex items-center gap-2 mt-1">
+              <span>{list.length} placée{list.length > 1 ? "s" : ""}{count > 0 ? ` / ${count} attendue${count > 1 ? "s" : ""}` : ""}.</span>
+              <span
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold ring-1"
+                style={{ background: `${markerColor}20`, color: markerColor, borderColor: markerColor }}
+              >
+                <MapPin className="h-3 w-3" />
+                Prochain : <span className="tabular-nums">{list.length + 1}</span>
+              </span>
+              {initialCountRef.current > 0 && (
+                <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                  <History className="h-3 w-3" />
+                  {initialCountRef.current} déjà placé{initialCountRef.current > 1 ? "s" : ""}
+                </span>
+              )}
+            </span>
           </DialogDescription>
         </DialogHeader>
 
