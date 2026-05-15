@@ -95,15 +95,10 @@ export const InvitationEmail = (props: InvitationEmailProps) => {
           <Heading style={h1}>{copy.heading}</Heading>
           <Text style={text}>{copy.intro}</Text>
           <Text style={text}>{copy.details}</Text>
-          <Section style={{ textAlign: 'center', margin: '28px 0 8px' }}>
-            <Button style={button} href={ctaUrl}>
-              {copy.cta}
-            </Button>
-          </Section>
+          <Button style={button} href={ctaUrl}>
+            {copy.cta}
+          </Button>
           <Text style={footer}>
-            Si le bouton ne fonctionne pas, copie ce lien dans ton navigateur :{' '}
-            <a href={ctaUrl} style={link}>{ctaUrl}</a>
-            <br /><br />
             Ce lien d'invitation est valable 48 heures. Si tu n'as pas demandé cette invitation, tu peux ignorer cet email.
           </Text>
         </Container>
