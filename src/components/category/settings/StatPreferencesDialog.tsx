@@ -148,36 +148,61 @@ export function StatPreferencesDialog({
   const doSave = useCallback(async (stats: string[]) => {
     setIsSaving(true);
     try {
-      const { data: existing } = await supabase
-        .from("category_stat_preferences")
-        .select("id")
-        .eq("category_id", categoryId)
-        .maybeSingle();
+      if (isMatchScope && matchId) {
+        // Per-match override — upsert by match_id
+        const { data: existing } = await supabase
+          .from("match_stat_overrides")
+          .select("id")
+          .eq("match_id", matchId)
+          .maybeSingle();
 
-      if (existing) {
-        const { error } = await supabase
-          .from("category_stat_preferences")
-          .update({
-            enabled_stats: stats,
-            sport_type: sportType,
-            updated_by: user?.id,
-          })
-          .eq("id", existing.id);
-        if (error) throw error;
+        if (existing) {
+          const { error } = await supabase
+            .from("match_stat_overrides")
+            .update({ enabled_stats: stats, updated_by: user?.id })
+            .eq("id", existing.id);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase
+            .from("match_stat_overrides")
+            .insert({ match_id: matchId, enabled_stats: stats, updated_by: user?.id });
+          if (error) throw error;
+        }
+        queryClient.invalidateQueries({ queryKey: ["match-stat-override-raw", matchId] });
+        queryClient.invalidateQueries({ queryKey: ["match-stat-overrides", matchId] });
       } else {
-        const { error } = await supabase
+        // Category-level defaults
+        const { data: existing } = await supabase
           .from("category_stat_preferences")
-          .insert({
-            category_id: categoryId,
-            sport_type: sportType,
-            enabled_stats: stats,
-            updated_by: user?.id,
-          });
-        if (error) throw error;
+          .select("id")
+          .eq("category_id", categoryId)
+          .maybeSingle();
+
+        if (existing) {
+          const { error } = await supabase
+            .from("category_stat_preferences")
+            .update({
+              enabled_stats: stats,
+              sport_type: sportType,
+              updated_by: user?.id,
+            })
+            .eq("id", existing.id);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase
+            .from("category_stat_preferences")
+            .insert({
+              category_id: categoryId,
+              sport_type: sportType,
+              enabled_stats: stats,
+              updated_by: user?.id,
+            });
+          if (error) throw error;
+        }
+        queryClient.invalidateQueries({ queryKey: ["stat-preferences-raw", categoryId] });
+        queryClient.invalidateQueries({ queryKey: ["stat-preferences", categoryId] });
       }
-      // Invalidate all related queries for immediate updates across the app
-      queryClient.invalidateQueries({ queryKey: ["stat-preferences-raw", categoryId] });
-      queryClient.invalidateQueries({ queryKey: ["stat-preferences", categoryId] });
+      // Always refresh dependent views
       queryClient.invalidateQueries({ queryKey: ["custom-stats", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["player_match_stats"] });
       queryClient.invalidateQueries({ queryKey: ["cumulative_player_stats"] });
@@ -190,7 +215,7 @@ export function StatPreferencesDialog({
     } finally {
       setIsSaving(false);
     }
-  }, [categoryId, sportType, user?.id, queryClient]);
+  }, [isMatchScope, matchId, categoryId, sportType, user?.id, queryClient]);
 
   // Initialize enabled stats from existing prefs or all stats
   useEffect(() => {
@@ -207,9 +232,21 @@ export function StatPreferencesDialog({
     }
     if (isInitialized.current) return;
     if (isLoading) return;
+    if (isMatchScope && loadingOverride) return;
 
-    if (existingPrefs?.enabled_stats && existingPrefs.enabled_stats.length > 0) {
-      setEnabledStats(existingPrefs.enabled_stats);
+    // Priority: match override → category prefs → all stats
+    const overrideStats = isMatchScope
+      ? (matchOverride?.enabled_stats as string[] | undefined)
+      : undefined;
+    const categoryStats = existingPrefs?.enabled_stats as string[] | undefined;
+
+    if (overrideStats && overrideStats.length > 0) {
+      setEnabledStats(overrideStats);
+    } else if (!isMatchScope && categoryStats && categoryStats.length > 0) {
+      setEnabledStats(categoryStats);
+    } else if (isMatchScope && categoryStats && categoryStats.length > 0) {
+      // Per-match dialog with no override yet → start from category defaults
+      setEnabledStats(categoryStats);
     } else {
       const allStatKeys = [...allStats, ...goalkeeperStats].map(s => s.key);
       const customStatKeys = customStats.map(s => s.key);
@@ -217,7 +254,7 @@ export function StatPreferencesDialog({
       setEnabledStats(uniqueKeys);
     }
     isInitialized.current = true;
-  }, [open, isLoading, existingPrefs, allStats, goalkeeperStats, customStats, doSave]);
+  }, [open, isLoading, loadingOverride, isMatchScope, matchOverride, existingPrefs, allStats, goalkeeperStats, customStats, doSave]);
 
   // Set default selected category
   useEffect(() => {
