@@ -76,8 +76,16 @@ export function StatPreferencesDialog({
   
   // Get all available stats for this sport (memoized to avoid infinite loops)
   // For athletics: use tagged stats with discipline-based categories
-  const allStats = useMemo(() => isAthletics ? getAllAthletismeStatsTagged() : getStatsForSport(sportType, false), [sportType, isAthletics]);
-  const goalkeeperStats = useMemo(() => isAthletics ? [] : getStatsForSport(sportType, true), [sportType, isAthletics]);
+  // Filter out non-enterable stats (display-only / derived) — they have no
+  // counterpart in manual or live entry, so toggling them would be misleading.
+  const allStats = useMemo(() => {
+    const raw = isAthletics ? getAllAthletismeStatsTagged() : getStatsForSport(sportType, false);
+    return raw.filter((s) => s.enterable !== false);
+  }, [sportType, isAthletics]);
+  const goalkeeperStats = useMemo(() => {
+    if (isAthletics) return [];
+    return getStatsForSport(sportType, true).filter((s) => s.enterable !== false);
+  }, [sportType, isAthletics]);
   const statCategories = useMemo(() => getStatCategories(sportType), [sportType]);
 
   // Fetch existing preferences
