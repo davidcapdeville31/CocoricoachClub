@@ -104,8 +104,11 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Send SMS
+    // Send SMS (still via OneSignal)
     if (channels.includes("sms") && phone) {
+      if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
+        throw new Error("OneSignal credentials not configured for SMS");
+      }
       let formattedPhone = phone.replace(/\s+/g, "").replace(/[^\d+]/g, "");
 
       // Add French country code if missing
