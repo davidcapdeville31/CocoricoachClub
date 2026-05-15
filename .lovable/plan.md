@@ -1,106 +1,40 @@
-# Refonte UX/UI — Onglet "Statistiques" du match
-
-## Contexte
-
-Aujourd'hui, depuis la card d'un match, le bouton **Statistiques** (sous "Composition") :
-- **Rugby (match officiel)** : redirige vers `/categories/:id/match/:id/live` (page live, pas une vraie consultation post-match)
-- **Autres sports** : ouvre `SportMatchStatsDialog` (formulaire de saisie basique)
-- **Sports à rounds** (judo/bowling/aviron/athlétisme) : ouvre `AggregatedRoundStatsDialog`
-
-L'expérience est hétérogène, vieillissante, et ne propose pas de vraie lecture analytique. On refond l'expérience consultation en gardant 100% de la logique métier (calculs, persistance, schémas).
+# Mode consultation : accès complet en lecture via lien public
 
 ## Objectif
+Quand quelqu'un ouvre un lien `/public-view?token=...`, il est automatiquement connecté à un compte invité ayant le rôle `viewer` sur le club ou la catégorie ciblée. Toutes les pages de l'application (Datas, Tests, Effectif, Santé, Planification, Programme, Workload, Compétitions, Communication…) s'affichent comme pour un membre interne — mais en lecture seule, exactement comme aujourd'hui pour les utilisateurs avec rôle `viewer`.
 
-Une **interface unique de consultation post-match**, moderne, fluide, dans l'esprit du redesign de la saisie manuelle :
-- En-tête match (score, équipes, lieu, date, statut)
-- Onglets **Équipe** / **Joueurs** (+ **Timeline** + **Pied** si rugby)
-- Lecture rapide, faible charge cognitive, dense mais aérée
-- Compatible desktop + tablette, responsive mobile
+## Pourquoi ce changement
+Aujourd'hui le visiteur public n'est pas authentifié. Toutes les RLS basées sur `auth.uid()` retournent vide → l'utilisateur voit "0 joueurs / 0 séances / Aucune statistique". Seules quelques sections passent par l'edge function `public-data` (overview, joueurs basiques, matchs basiques). Étendre cette edge function à toutes les sections impliquerait de réécrire la moitié de l'app — non maintenable.
 
-Hors périmètre : la **saisie** (live + manuelle) reste sur ses outils existants. Cette refonte concerne uniquement la **consultation** depuis le bouton "Statistiques".
+La solution la plus propre est de transformer le visiteur en véritable utilisateur authentifié avec rôle `viewer`, ce qui réutilise tout le système RLS existant.
 
-## Architecture cible
+## Étapes
 
-### Nouveau composant : `MatchStatsDialog.tsx`
+### 1. Migration DB
+Ajouter à `public_access_tokens` :
+- `auth_user_id uuid` — l'utilisateur invité associé (créé à la première utilisation)
+- `auth_password text` — mot de passe aléatoire généré côté serveur, stocké pour permettre la reconnexion
 
-Dialog plein écran (`max-w-7xl`, `h-[90vh]`) qui devient le point d'entrée unique pour la consultation des stats d'un match (tous sports confondus, sauf rounds qui gardent `AggregatedRoundStatsDialog`).
+### 2. Nouvelle edge function `redeem-public-token`
+- Valide le token (actif, non expiré)
+- Si premier usage : crée un user Supabase invité (`viewer-<tokenId>@guest.cocoricoachclub.com`), génère un mot de passe aléatoire, le stocke
+- Insère/met à jour l'entrée `club_members` (ou `category_members`) avec `role = 'viewer'` pour ce user et le club/catégorie cible
+- Retourne `{ email, password, club_id, category_id }`
 
-```
-┌────────────────────────────────────────────────────────────┐
-│  HEADER — gradient brand                                   │
-│  [Logo] Mon Équipe  24 — 17  @ Adversaire                  │
-│  Fédérale 1 · 11 mai 2026 · Dax · Finalisé · Extérieur     │
-│  [Export PDF] [Saisie manuelle] [Live] [Personnaliser]    │
-├────────────────────────────────────────────────────────────┤
-│  [ Équipe ] [ Joueurs ] [ Timeline ] [ Pied ]*             │
-├────────────────────────────────────────────────────────────┤
-│  Contenu de l'onglet                                       │
-└────────────────────────────────────────────────────────────┘
-```
-\* Onglets Timeline / Pied uniquement rugby.
+### 3. Refonte du flow côté client
+- `PublicView.handleContinue` appelle l'edge function puis fait `supabase.auth.signInWithPassword` avec les identifiants retournés
+- Une fois connecté, redirection vers `/categories/:id` ou `/clubs/:id` — l'utilisateur voit absolument tout via les RLS existantes
+- `ViewerModeContext` détecte déjà le rôle `viewer` → la bannière "Mode consultation" et le blocage des actions d'édition fonctionnent automatiquement
+- `PublicAccessContext` est conservé pour afficher la bannière et empêcher tout bouton d'édition (déjà en place)
 
-### Onglet **Équipe** (`MatchTeamStatsView.tsx`)
+### 4. Vérifications RLS
+La majorité des tables (sessions, tests, players, injuries, etc.) ont déjà des politiques basées sur `is_club_member()` ou `is_category_member()`. Un `viewer` membre du club passe ces checks. Les rares tables qui n'auraient pas ces politiques seront ajustées après un audit rapide.
 
-- **KPI cards top** (grid 4-6 cols) : Essais, Transformations, Pénalités, Drops, % Réussite tirs au but, Points totaux (rugby). Pour autres sports : KPIs adaptés via `getStatsForSport`.
-- **Bloc Conquête** (rugby uniquement) : Mêlées intro/contre, Touches intro/contre, % gagnées (déjà existant dans `LiveStatsPanel`).
-- **Bloc Discipline** : Pénalités concédées, Cartons.
-- **Bloc Attaque/Défense** : Plaquages réussis/manqués, Franchissements, En-avants, Turnovers.
-- Filtré par `useStatPreferences({ categoryId, sportType, matchId })` → masque les stats désactivées.
+### 5. Sécurité
+- Tokens expirés / désactivés → la function refuse la connexion et désactive le user invité si besoin
+- Le user invité a un email factice non confirmable, le mot de passe ne sort jamais (utilisé uniquement par le retour de l'edge function et oublié immédiatement après le signIn)
+- Les RLS empêchent toute écriture pour le rôle `viewer` (déjà le cas)
 
-### Onglet **Joueurs** (`MatchPlayerStatsView.tsx`)
-
-- **Header tableau sticky** avec recherche + filtre poste (rugby).
-- Une **ligne par joueur titulaire/remplaçant**, format compact :
-  ```
-  [#10 Pivert M.]  Min:62  Ess:1  Tr:2/3  Pén:1/2  Pl:8  Fr:3
-  ```
-- Cellules cliquables → ouvre un side panel avec détails (terrain, minutes, contexte).
-- Tri colonnes, pagination/scroll virtualisé si > 25 joueurs.
-- Colonnes adaptées au poste rugby (avants vs lignes arrière) — en s'appuyant sur `positionToActions.ts` du redesign saisie manuelle (créé en parallèle).
-
-### Onglet **Timeline** (rugby seulement)
-
-- Bande horizontale 0-80', pastilles colorées par type d'événement (essais, transfos, pénalités, cartons), regroupement par mi-temps.
-- Hover → tooltip joueur+minute. Click → side panel détail.
-- Source : `match_events` déjà persistés.
-
-### Onglet **Pied** (rugby seulement)
-
-- Mini-map terrain SVG (réutilise `CumulativeKickingMap` déjà existant).
-- Stats par buteur, % réussite par zone.
-
-## Intégration dans `MatchCard`
-
-- Le bouton "Statistiques" (rugby et non-rugby, hors rounds) ouvre désormais `MatchStatsDialog` au lieu de naviguer vers `/live` ou d'ouvrir `SportMatchStatsDialog`.
-- Le dialog inclut un bouton **"Saisie manuelle"** (ouvre `ManualRugbyStatsDialog`) et **"Mode Live"** (navigate `/live`) pour préserver les flux d'entrée.
-- Pour les sports à rounds, on continue d'utiliser `AggregatedRoundStatsDialog` (ne change pas).
-
-## Fichiers
-
-**Nouveaux**
-- `src/components/category/matches/stats/MatchStatsDialog.tsx`
-- `src/components/category/matches/stats/MatchStatsHeader.tsx`
-- `src/components/category/matches/stats/MatchTeamStatsView.tsx`
-- `src/components/category/matches/stats/MatchPlayerStatsView.tsx`
-- `src/components/category/matches/stats/MatchTimelineView.tsx` (rugby)
-- `src/components/category/matches/stats/MatchKickingView.tsx` (rugby — wrapper de `CumulativeKickingMap`)
-- `src/components/category/matches/stats/StatKpiCard.tsx`
-- `src/components/category/matches/stats/PlayerStatRow.tsx`
-
-**Modifiés**
-- `src/components/category/matches/MatchCard.tsx` :
-  - Le bouton "Statistiques" (lignes ~732-749) ouvre `MatchStatsDialog` (non-rugby et rugby), au lieu de nav `/live` ou `SportMatchStatsDialog`.
-  - Conserver `SportMatchStatsDialog` accessible uniquement via "Saisie" depuis le nouveau dialog.
-
-## Hors scope (strictement inchangé)
-
-- Schémas DB (`match_events`, `player_match_stats`, `category_stat_preferences`, `match_stat_overrides`)
-- Calculs de score, agrégations existantes
-- `LiveMatchPage`, `ManualRugbyStatsDialog`, `AggregatedRoundStatsDialog` (réutilisés tels quels)
-- Permissions / RLS
-
-## Validation
-
-- Build OK
-- Visual QA via screenshot du nouveau dialog (vue équipe + vue joueurs) sur le match Dax existant
-- Confirmer que le score et le nombre d'événements correspondent à ce qui est déjà affiché en live
+## Hors périmètre
+- Pas de modification du flow d'invitation par email (collaborateurs internes invités via Settings → People restent inchangés)
+- Pas de changement des permissions des autres rôles (admin, coach, doctor, etc.)
