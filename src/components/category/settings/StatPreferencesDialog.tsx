@@ -62,7 +62,9 @@ export function StatPreferencesDialog({
   onOpenChange,
   categoryId,
   sportType,
+  matchId,
 }: StatPreferencesDialogProps) {
+  const isMatchScope = !!matchId;
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [enabledStats, setEnabledStats] = useState<string[]>([]);
