@@ -183,8 +183,14 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
               {notifications?.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 hover:bg-accent/50 transition-colors cursor-pointer ${
-                    !notification.is_read ? "bg-accent/20" : ""
+                  className={`p-4 hover:bg-accent/50 transition-colors cursor-pointer border-l-4 ${
+                    notification.notification_type === "global"
+                      ? !notification.is_read
+                        ? "bg-amber-50 dark:bg-amber-500/10 border-amber-500"
+                        : "border-amber-500/40"
+                      : !notification.is_read
+                        ? "bg-accent/20 border-transparent"
+                        : "border-transparent"
                   }`}
                   onClick={() => {
                     if (!notification.is_read) {
@@ -198,9 +204,16 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <h4 className="font-medium text-sm">
-                          {notification.title}
-                        </h4>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-medium text-sm">
+                            {notification.title}
+                          </h4>
+                          {notification.notification_type === "global" && (
+                            <Badge className="bg-amber-500 hover:bg-amber-500 text-white border-0 text-[10px] h-4 px-1.5">
+                              Support
+                            </Badge>
+                          )}
+                        </div>
                         <div className="flex gap-1 flex-shrink-0">
                           {!notification.is_read && (
                             <Button
