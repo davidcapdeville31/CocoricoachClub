@@ -672,6 +672,17 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                   <ClipboardEdit className="h-4 w-4" />
                   Saisie manuelle
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full gap-2 text-xs"
+                  onPointerDown={stopCardAction}
+                  onClick={(e) => { stopCardAction(e); setIsMatchStatPrefsOpen(true); }}
+                  title="Choisir les stats à afficher pour ce match uniquement"
+                >
+                  <Settings2 className="h-3.5 w-3.5" />
+                  Personnaliser les stats de ce match
+                </Button>
               </>
             )}
             {/* Direct action buttons */}
