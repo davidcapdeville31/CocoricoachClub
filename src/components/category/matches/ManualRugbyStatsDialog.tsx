@@ -676,14 +676,6 @@ export function ManualRugbyStatsDialog({
                               </td>
                             );
                           })}
-                          <td className="px-2 py-0.5">
-                            <Input
-                              value={noteVal}
-                              onChange={(e) => updateNote(l.player_id, e.target.value)}
-                              placeholder="ex. 12', 34'"
-                              className="h-7 text-xs"
-                            />
-                          </td>
                         </tr>
                       );
                     })}
