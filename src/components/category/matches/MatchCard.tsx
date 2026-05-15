@@ -51,6 +51,7 @@ import { EditMatchDialog } from "./EditMatchDialog";
 import { AddSubMatchDialog } from "./AddSubMatchDialog";
 import { MatchExportDialog } from "./MatchExportDialog";
 import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesDialog";
+import { PrepareMatchButton } from "@/components/PrepareMatchButton";
 import {
   Dialog,
   DialogContent,
