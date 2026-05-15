@@ -243,7 +243,12 @@ export default function LiveMatchPage() {
         </div>
         <div>
           <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Actions rapides</h2>
-          <LiveQuickActions onSelect={(t) => { setEditing(null); if (t === "substitution") { setSubOpen(true); } else { setOpenType(t); } }} />
+          <LiveQuickActions
+            onSelect={(t) => { setEditing(null); if (t === "substitution") { setSubOpen(true); } else { setOpenType(t); } }}
+            categoryId={categoryId}
+            sportType={match?.categories?.rugby_type || "rugby_xv"}
+            matchId={matchId}
+          />
         </div>
       </div>
 
