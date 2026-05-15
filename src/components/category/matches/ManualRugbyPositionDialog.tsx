@@ -4,6 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RugbyFieldSVG } from "@/components/rugby/RugbyFieldSVG";
 import { MapPin, Trash2, Clock } from "lucide-react";
+import { toast } from "sonner";
+
+// In-goal zone bounds in % (matches FIELD_LEFT=20, FIELD_RIGHT=580, in-play 0.05→0.95 of FIELD_W=560)
+const INGOAL_LEFT_X = [20 / 600 * 100, (20 + 0.05 * 560) / 600 * 100] as const; // ~3.33% → 8%
+const INGOAL_RIGHT_X = [(20 + 0.95 * 560) / 600 * 100, 580 / 600 * 100] as const; // ~92% → 96.67%
+const FIELD_Y = [14 / 400 * 100, 386 / 400 * 100] as const; // 3.5% → 96.5%
 
 export type FieldPosition = {
   kickX: number;
