@@ -163,12 +163,12 @@ export function ManualRugbyPositionDialog({
                 style={{ background: `${markerColor}20`, color: markerColor, borderColor: markerColor }}
               >
                 <MapPin className="h-3 w-3" />
-                Prochain : <span className="tabular-nums">{list.length + 1}</span>
+                Prochain : <span className="tabular-nums">{list.length + 1 + ctxOffset}</span>
               </span>
-              {initialCountRef.current > 0 && (
+              {ctxOffset > 0 && (
                 <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                   <History className="h-3 w-3" />
-                  {initialCountRef.current} déjà placé{initialCountRef.current > 1 ? "s" : ""}
+                  {ctxOffset} marqueur{ctxOffset > 1 ? "s" : ""} de contexte (équipe)
                 </span>
               )}
             </span>
