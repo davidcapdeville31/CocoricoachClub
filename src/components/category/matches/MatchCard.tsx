@@ -51,6 +51,7 @@ import { EditMatchDialog } from "./EditMatchDialog";
 import { AddSubMatchDialog } from "./AddSubMatchDialog";
 import { MatchExportDialog } from "./MatchExportDialog";
 import { NotifyAthletesDialog } from "@/components/notifications/NotifyAthletesDialog";
+import { PrepareMatchButton } from "@/components/PrepareMatchButton";
 import {
   Dialog,
   DialogContent,
@@ -707,6 +708,9 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
               <Users className="h-3.5 w-3.5" />
               {isDoublesMatch ? `Paire (${lineupCount || 0}/2)` : isIndividual ? `Participants (${lineupCount || 0})` : `Composition (${lineupCount || 0})`}
             </Button>
+            {(isTeamSport || isJudo) && !isFinalized && (
+              <PrepareMatchButton matchId={match.id} />
+            )}
             {hasRoundBasedStats ? (
               <>
                 {isTrainingMatch && !sportType.toLowerCase().includes("bowling") ? (
