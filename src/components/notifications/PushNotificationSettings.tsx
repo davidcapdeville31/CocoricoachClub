@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { initOneSignal, oneSignalLogin, buildUserTags, requestOneSignalPermission, getOneSignalPermission, checkOneSignalSubscriptionStatus } from "@/lib/onesignal";
 
 const ONBOARDING_KEY = "notification_onboarding_done";
+const PERMISSION_GRANTED_KEY = "notification_permission_granted";
 
 export function PushNotificationSettings() {
   const { user } = useAuth();
@@ -34,6 +35,7 @@ export function PushNotificationSettings() {
     if (!user) return;
     setIsLoading(true);
     try {
+      localStorage.setItem(`${PERMISSION_GRANTED_KEY}_${user.id}`, "true");
       await initOneSignal();
       const granted = await requestOneSignalPermission();
       if (granted) {

@@ -44,16 +44,17 @@ export function NotificationReminderModal() {
     // If denied by the browser — nothing we can do programmatically
     if (perm === "denied") return;
 
-    // Permission still "default" — check if we should show the reminder
-    const lastShown = localStorage.getItem(`${LAST_SHOWN_KEY}_${user.id}`);
-    if (lastShown) {
-      const lastShownTime = parseInt(lastShown, 10);
-      if (Date.now() - lastShownTime < ONE_DAY_MS) return;
-    }
-
     // If onboarding fullscreen popup hasn't been shown yet, let it handle it
     const onboardingDone = localStorage.getItem(`${ONBOARDING_KEY}_${user.id}`);
-    if (!onboardingDone && !lastShown) return;
+    if (!onboardingDone) return;
+
+    // Never show a reminder immediately after the first onboarding.
+    // Wait until we have a recorded display time and at least 24h elapsed.
+    const lastShown = localStorage.getItem(`${LAST_SHOWN_KEY}_${user.id}`);
+    if (!lastShown) return;
+
+    const lastShownTime = parseInt(lastShown, 10);
+    if (Number.isNaN(lastShownTime) || Date.now() - lastShownTime < ONE_DAY_MS) return;
 
     // Show after a short delay
     const t = setTimeout(() => setOpen(true), 2000);
@@ -69,6 +70,10 @@ export function NotificationReminderModal() {
   const handleActivate = async () => {
     if (!user || isHandling) return;
     setIsHandling(true);
+
+    // Sticky acknowledgement: if the user already accepted once, do not ask again.
+    localStorage.setItem(`${PERMISSION_GRANTED_KEY}_${user.id}`, "true");
+    localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, "done");
 
     try {
       await initOneSignal();
