@@ -250,6 +250,26 @@ export function SecuritySettingsPanel() {
             )}
           </div>
 
+          {/* Change Password */}
+          <div className="p-4 rounded-2xl bg-muted/40 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3 flex-1 min-w-0">
+                <div className="p-2 rounded-xl bg-background">
+                  <Lock className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold">Mot de passe</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Change ton mot de passe pour sécuriser ton compte.
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" onClick={() => setPwdOpen(true)} className="w-full sm:w-auto">
+                Modifier
+              </Button>
+            </div>
+          </div>
+
           {/* Session timeout */}
           <div className="p-4 rounded-2xl bg-muted/40 space-y-3">
             <div className="flex items-start gap-3">
