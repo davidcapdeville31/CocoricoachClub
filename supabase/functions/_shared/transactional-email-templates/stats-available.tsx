@@ -56,9 +56,6 @@ export const StatsAvailableEmail = ({
           Voir les stats dans l'app
         </Button>
         <Text style={footer}>
-          Si le bouton ne fonctionne pas, copie ce lien :{' '}
-          <a href={appUrl} style={link}>{appUrl}</a>
-          <br /><br />
           Tu reçois cet email car les notifications de compétitions sont activées dans tes préférences.
         </Text>
       </Container>
