@@ -258,8 +258,10 @@ export function ManualRugbyPositionDialog({
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
-          <Button onClick={() => { onSave(list); onOpenChange(false); }}>Valider</Button>
+          <p className="text-[11px] text-muted-foreground mr-auto self-center">
+            Vos marqueurs sont sauvegardés automatiquement.
+          </p>
+          <Button onClick={() => handleOpenChange(false)}>Fermer</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
