@@ -9,67 +9,76 @@ export interface StatField {
   min?: number;
   max?: number;
   isMatchLevel?: boolean;
+  /** When false, the stat is shown in displays but cannot be toggled in the
+   *  preferences dialog (no manual/live entry counterpart). Default: true. */
+  enterable?: boolean;
   // For auto-computed percentage stats: defines source keys
   // successKey = numerator, totalKey = denominator (if explicit), failureKey = if set, total = successKey + failureKey
   computedFrom?: { successKey: string; totalKey?: string; failureKey?: string };
 }
 
-// Rugby stats (XV, 7s, XIII) - Enriched
+// Rugby stats — uniquement les clés réellement saisissables en manuel + temps réel.
+// Les autres champs présents dans certains rapports (totaux dérivés, etc.) sont
+// marqués enterable:false : ils restent connus du référentiel mais n'apparaissent
+// pas dans le dialogue de personnalisation.
 export const RUGBY_STATS: StatField[] = [
-  // Individual Stats - Scoring
+  // === Points (scoring) ===
   { key: "tries", label: "Essais", shortLabel: "Essais", category: "scoring", type: "number" },
-  { key: "tryAssists", label: "Passes décisives (essai)", shortLabel: "Assists", category: "scoring", type: "number" },
-  { key: "conversions", label: "Transformations", shortLabel: "Transfo.", category: "scoring", type: "number" },
-  { key: "conversionAttempts", label: "Tentatives transfo.", shortLabel: "Tent. tr.", category: "scoring", type: "number" },
   { key: "conversionsMade", label: "Transformations réussies", shortLabel: "Tr ✓", category: "scoring", type: "number" },
   { key: "conversionsMissed", label: "Transformations manquées", shortLabel: "Tr ✗", category: "scoring", type: "number" },
-  { key: "penaltiesScored", label: "Pénalités marquées", shortLabel: "Pénalités", category: "scoring", type: "number" },
-  { key: "penaltyAttempts", label: "Tentatives pénalités", shortLabel: "Tent. pén.", category: "scoring", type: "number" },
   { key: "penaltiesMade", label: "Pénalités réussies", shortLabel: "Pén ✓", category: "scoring", type: "number" },
   { key: "penaltiesMissed", label: "Pénalités manquées", shortLabel: "Pén ✗", category: "scoring", type: "number" },
-  { key: "dropGoals", label: "Drop goals", shortLabel: "Drops", category: "scoring", type: "number" },
-  { key: "dropAttempts", label: "Tentatives drops", shortLabel: "Tent. drop", category: "scoring", type: "number" },
   { key: "dropsMade", label: "Drops réussis", shortLabel: "Drop ✓", category: "scoring", type: "number" },
   { key: "dropsMissed", label: "Drops manqués", shortLabel: "Drop ✗", category: "scoring", type: "number" },
-  { key: "points", label: "Points marqués", shortLabel: "Points", category: "scoring", type: "number" },
-  // Conquête
+
+  // === Attaque (conquête + jeu offensif) ===
   { key: "scrumsWon", label: "Mêlées gagnées", shortLabel: "Mêlée ✓", category: "attack", type: "number" },
-  { key: "scrumsLost", label: "Mêlées perdues", shortLabel: "Mêlée ✗", category: "defense", type: "number" },
   { key: "lineoutsWon", label: "Touches gagnées", shortLabel: "Touche ✓", category: "attack", type: "number" },
-  { key: "lineoutsLost", label: "Touches perdues", shortLabel: "Touche ✗", category: "defense", type: "number" },
   { key: "mauls", label: "Ballons portés (maul)", shortLabel: "Maul", category: "attack", type: "number" },
   { key: "rucks", label: "Rucks", shortLabel: "Ruck", category: "attack", type: "number" },
-  // Jeu / Attaque (manquants)
-  { key: "knockOns", label: "En-avants", shortLabel: "En-av", category: "general", type: "number" },
-  { key: "lineBreaks", label: "Franchissements (line breaks)", shortLabel: "Franch.", category: "attack", type: "number" },
+  { key: "lineBreaks", label: "Franchissements", shortLabel: "Franch.", category: "attack", type: "number" },
   { key: "passesMade", label: "Passes réussies", shortLabel: "Passe ✓", category: "attack", type: "number" },
   { key: "passesMissed", label: "Passes manquées", shortLabel: "Passe ✗", category: "attack", type: "number" },
   { key: "kicksMade", label: "Coups de pied réussis", shortLabel: "Pied ✓", category: "attack", type: "number" },
   { key: "kicksMissed", label: "Coups de pied manqués", shortLabel: "Pied ✗", category: "attack", type: "number" },
-  // Individual Stats - Attack
-  { key: "postContactMeters", label: "Mètres après contact", shortLabel: "Post-contact", category: "attack", type: "number" },
-  { key: "offloads", label: "Offloads", shortLabel: "Offloads", category: "attack", type: "number" },
-  { key: "breakthroughs", label: "Franchissements", shortLabel: "Franch.", category: "attack", type: "number" },
-  { key: "turnoversWon", label: "Turnovers gagnés", shortLabel: "Turnovers", category: "attack", type: "number" },
-  { key: "totalContacts", label: "Contacts totaux", shortLabel: "Contacts", category: "attack", type: "number" },
-  { key: "cleanBreaks", label: "Percées nettes", shortLabel: "Percées", category: "attack", type: "number" },
-  // Individual Stats - Defense
-  { key: "tackles", label: "Plaquages réalisés", shortLabel: "Plaquages", category: "defense", type: "number" },
-  { key: "tacklesMissed", label: "Plaquages ratés", shortLabel: "Ratés", category: "defense", type: "number" },
-  { key: "tackleSuccess", label: "% plaquages réussis", shortLabel: "% Plaq.", category: "defense", type: "percentage", max: 100, computedFrom: { successKey: "tackles", failureKey: "tacklesMissed" } },
-  { key: "defensiveRecoveries", label: "Ballons récupérés", shortLabel: "Récup.", category: "defense", type: "number" },
-  { key: "turnoversLost", label: "Ballons perdus", shortLabel: "Pertes", category: "defense", type: "number" },
-  { key: "penaltiesConceded", label: "Pénalités concédées", shortLabel: "Pén. conc.", category: "defense", type: "number" },
-  { key: "jackalWins", label: "Grattages réussis", shortLabel: "Grattages", category: "defense", type: "number" },
-  { key: "defenseCollisions", label: "Nombre de collisions", shortLabel: "Collisions", category: "defense", type: "number" },
-  // Individual Stats - General
-  { key: "minutesPlayed", label: "Minutes jouées", shortLabel: "Min.", category: "general", type: "number" },
+
+  // === Défense (conquête perdue + plaquages + pertes) ===
+  { key: "scrumsLost", label: "Mêlées perdues", shortLabel: "Mêlée ✗", category: "defense", type: "number" },
+  { key: "lineoutsLost", label: "Touches perdues", shortLabel: "Touche ✗", category: "defense", type: "number" },
+  { key: "knockOns", label: "En-avants", shortLabel: "En-av", category: "defense", type: "number" },
+  { key: "tackles", label: "Plaquages réussis", shortLabel: "Plaquages", category: "defense", type: "number" },
+  { key: "tacklesMissed", label: "Plaquages manqués", shortLabel: "Plaq ✗", category: "defense", type: "number" },
+  { key: "turnoversWon", label: "Ballons grattés", shortLabel: "Grattés", category: "defense", type: "number" },
+
+  // === Discipline (general) ===
   { key: "fouls", label: "Fautes", shortLabel: "Fautes", category: "general", type: "number" },
   { key: "yellowCards", label: "Cartons jaunes", shortLabel: "Jaunes", category: "general", type: "number" },
   { key: "redCards", label: "Cartons rouges", shortLabel: "Rouges", category: "general", type: "number" },
-  { key: "totalCollisions", label: "Collisions totales", shortLabel: "Collisions", category: "general", type: "number" },
-  { key: "collisionsOver5m", label: "Collision +5m (élan ≥5m)", shortLabel: "Coll. +5m", category: "general", type: "number" },
-  { key: "collisionsUnder5m", label: "Collision -5m (quasi statique)", shortLabel: "Coll. -5m", category: "general", type: "number" },
+
+  // === Champs dérivés / d'affichage uniquement (non saisissables) ===
+  { key: "tryAssists", label: "Passes décisives (essai)", shortLabel: "Assists", category: "scoring", type: "number", enterable: false },
+  { key: "conversions", label: "Transformations", shortLabel: "Transfo.", category: "scoring", type: "number", enterable: false },
+  { key: "conversionAttempts", label: "Tentatives transfo.", shortLabel: "Tent. tr.", category: "scoring", type: "number", enterable: false },
+  { key: "penaltiesScored", label: "Pénalités marquées", shortLabel: "Pénalités", category: "scoring", type: "number", enterable: false },
+  { key: "penaltyAttempts", label: "Tentatives pénalités", shortLabel: "Tent. pén.", category: "scoring", type: "number", enterable: false },
+  { key: "dropGoals", label: "Drop goals", shortLabel: "Drops", category: "scoring", type: "number", enterable: false },
+  { key: "dropAttempts", label: "Tentatives drops", shortLabel: "Tent. drop", category: "scoring", type: "number", enterable: false },
+  { key: "points", label: "Points marqués", shortLabel: "Points", category: "scoring", type: "number", enterable: false },
+  { key: "postContactMeters", label: "Mètres après contact", shortLabel: "Post-contact", category: "attack", type: "number", enterable: false },
+  { key: "offloads", label: "Offloads", shortLabel: "Offloads", category: "attack", type: "number", enterable: false },
+  { key: "breakthroughs", label: "Franchissements (legacy)", shortLabel: "Franch.", category: "attack", type: "number", enterable: false },
+  { key: "totalContacts", label: "Contacts totaux", shortLabel: "Contacts", category: "attack", type: "number", enterable: false },
+  { key: "cleanBreaks", label: "Percées nettes", shortLabel: "Percées", category: "attack", type: "number", enterable: false },
+  { key: "tackleSuccess", label: "% plaquages réussis", shortLabel: "% Plaq.", category: "defense", type: "percentage", max: 100, computedFrom: { successKey: "tackles", failureKey: "tacklesMissed" }, enterable: false },
+  { key: "defensiveRecoveries", label: "Ballons récupérés", shortLabel: "Récup.", category: "defense", type: "number", enterable: false },
+  { key: "turnoversLost", label: "Ballons perdus", shortLabel: "Pertes", category: "defense", type: "number", enterable: false },
+  { key: "penaltiesConceded", label: "Pénalités concédées", shortLabel: "Pén. conc.", category: "defense", type: "number", enterable: false },
+  { key: "jackalWins", label: "Grattages réussis", shortLabel: "Grattages", category: "defense", type: "number", enterable: false },
+  { key: "defenseCollisions", label: "Nombre de collisions", shortLabel: "Collisions", category: "defense", type: "number", enterable: false },
+  { key: "minutesPlayed", label: "Minutes jouées", shortLabel: "Min.", category: "general", type: "number", enterable: false },
+  { key: "totalCollisions", label: "Collisions totales", shortLabel: "Collisions", category: "general", type: "number", enterable: false },
+  { key: "collisionsOver5m", label: "Collision +5m (élan ≥5m)", shortLabel: "Coll. +5m", category: "general", type: "number", enterable: false },
+  { key: "collisionsUnder5m", label: "Collision -5m (quasi statique)", shortLabel: "Coll. -5m", category: "general", type: "number", enterable: false },
 ];
 
 // Football stats - Enriched
