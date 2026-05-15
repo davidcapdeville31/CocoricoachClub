@@ -714,15 +714,6 @@ export function ManualRugbyStatsDialog({
                       );
                     })}
                   </div>
-                  <div>
-                    <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Minutes</label>
-                    <Input
-                      value={notes["opp"]?.[category]?.[period] ?? ""}
-                      onChange={(e) => updateNote("opp", e.target.value)}
-                      placeholder="ex. 18', 52'"
-                      className="h-8 text-xs mt-1"
-                    />
-                  </div>
                 </div>
               </>
             )}
