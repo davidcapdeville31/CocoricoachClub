@@ -42,6 +42,13 @@ const TITLES: Record<PositionableKind, string> = {
 const isKick = (k: PositionableKind) => k === "conversion" || k === "penalty_kick" || k === "drop";
 const isLineout = (k: PositionableKind) => k === "lineout_won" || k === "lineout_lost";
 
+export type ContextMarker = {
+  kickX: number;
+  kickY: number;
+  missed?: boolean;
+  label?: string; // ex: "Joueur · 12'"
+};
+
 interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -51,10 +58,13 @@ interface Props {
   onSave: (positions: FieldPosition[]) => void;
   contextLabel?: string;
   missed?: boolean;
+  /** Marqueurs déjà placés ailleurs (autres joueurs, autres mi-temps, réussis/manqués du même type) */
+  contextMarkers?: ContextMarker[];
 }
 
 export function ManualRugbyPositionDialog({
   open, onOpenChange, kind, count, positions: initial, onSave, contextLabel, missed = false,
+  contextMarkers = [],
 }: Props) {
   const [side, setSide] = useState<"left" | "right">("right");
   const [list, setList] = useState<FieldPosition[]>([]);
@@ -120,9 +130,9 @@ export function ManualRugbyPositionDialog({
   const removeAt = (i: number) => setList((prev) => prev.filter((_, idx) => idx !== i));
   const clearAll = () => setList([]);
 
-  const markerColor = useMemo(() => {
-    if (missed) return "#ef4444";
-    switch (kind) {
+  const colorFor = (k: PositionableKind, miss: boolean) => {
+    if (miss) return "#ef4444";
+    switch (k) {
       case "try": return "#16a34a";
       case "conversion": return "#22c55e";
       case "penalty_kick": return "#3b82f6";
@@ -132,7 +142,9 @@ export function ManualRugbyPositionDialog({
       case "scrum_lost":
       case "lineout_lost": return "#ef4444";
     }
-  }, [kind, missed]);
+  };
+  const markerColor = useMemo(() => colorFor(kind, missed), [kind, missed]);
+  const ctxOffset = contextMarkers.length;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -151,12 +163,12 @@ export function ManualRugbyPositionDialog({
                 style={{ background: `${markerColor}20`, color: markerColor, borderColor: markerColor }}
               >
                 <MapPin className="h-3 w-3" />
-                Prochain : <span className="tabular-nums">{list.length + 1}</span>
+                Prochain : <span className="tabular-nums">{list.length + 1 + ctxOffset}</span>
               </span>
-              {initialCountRef.current > 0 && (
+              {ctxOffset > 0 && (
                 <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                   <History className="h-3 w-3" />
-                  {initialCountRef.current} déjà placé{initialCountRef.current > 1 ? "s" : ""}
+                  {ctxOffset} marqueur{ctxOffset > 1 ? "s" : ""} de contexte (équipe)
                 </span>
               )}
             </span>
@@ -190,9 +202,29 @@ export function ManualRugbyPositionDialog({
                 </g>
               );
             })()}
+            {/* Marqueurs de contexte (autres joueurs / autres mi-temps / réussis ou manqués du même type) */}
+            {contextMarkers.map((m, i) => {
+              const cx = (m.kickX / 100) * 600;
+              const cy = (m.kickY / 100) * 400;
+              const c = colorFor(kind, !!m.missed);
+              return (
+                <g key={`ctx-${i}`} pointerEvents="none" opacity={0.55}>
+                  <circle cx={cx} cy={cy} r={12} fill={c} stroke="white" strokeWidth={2} strokeDasharray="3 2" />
+                  <text x={cx} y={cy + 4} textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">
+                    {i + 1}
+                  </text>
+                  {m.missed && (
+                    <text x={cx + 11} y={cy - 8} textAnchor="middle" fill="#ef4444" stroke="white" strokeWidth={0.6} fontSize="12" fontWeight="bold">
+                      ✗
+                    </text>
+                  )}
+                </g>
+              );
+            })}
             {list.map((p, i) => {
               const cx = (p.kickX / 100) * 600;
               const cy = (p.kickY / 100) * 400;
+              const num = i + 1 + ctxOffset;
               return (
                 <g key={i} style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); removeAt(i); }}>
                   <circle
@@ -200,12 +232,12 @@ export function ManualRugbyPositionDialog({
                     cy={cy}
                     r={14}
                     fill={markerColor}
-                    opacity={0.85}
+                    opacity={0.95}
                     stroke="white"
                     strokeWidth={3}
                   />
                   <text x={cx} y={cy + 4} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">
-                    {i + 1}
+                    {num}
                   </text>
                   {missed && (
                     <text x={cx + 12} y={cy - 9} textAnchor="middle" fill="#ef4444" stroke="white" strokeWidth={0.6} fontSize="13" fontWeight="bold">
@@ -237,7 +269,7 @@ export function ManualRugbyPositionDialog({
                     className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
                     style={{ background: markerColor }}
                   >
-                    {i + 1}
+                    {i + 1 + ctxOffset}
                   </span>
                   <Input
                     type="number"

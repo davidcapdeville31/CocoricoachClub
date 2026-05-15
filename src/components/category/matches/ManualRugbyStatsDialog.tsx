@@ -758,15 +758,42 @@ export function ManualRugbyStatsDialog({
         const positions = row.positions?.[posDialog.statKey] ?? [];
         const missedKeys: PositionableStatKey[] = ["conversionsMissed", "penaltiesMissed", "dropsMissed", "scrumsLost", "lineoutsLost"];
         const isMissed = missedKeys.includes(posDialog.statKey);
+        const activeKind = POSITIONABLE_KIND[posDialog.statKey];
+
+        // Construit les marqueurs de contexte : toutes les positions du même KIND
+        // (ex: pénalités réussies + manquées de tous les joueurs et de l'adversaire,
+        // sur les deux mi-temps), à l'exception de la sélection active en cours d'édition.
+        const ctx: { kickX: number; kickY: number; missed: boolean }[] = [];
+        const periods: Period[] = ["H1", "H2"];
+        const statKeysSameKind = (Object.keys(POSITIONABLE_KIND) as PositionableStatKey[])
+          .filter((k) => POSITIONABLE_KIND[k] === activeKind);
+        const targets: { key: string; periodStats: PeriodStats }[] = [
+          ...sortedLineup.map((l) => ({ key: l.player_id as string, periodStats: stats[l.player_id] ?? emptyPeriodStats() })),
+          { key: "opp", periodStats: opponent },
+        ];
+        for (const t of targets) {
+          for (const per of periods) {
+            const r = t.periodStats[per];
+            for (const sk of statKeysSameKind) {
+              const isActive = t.key === posDialog.targetKey && per === period && sk === posDialog.statKey;
+              if (isActive) continue;
+              const arr = r.positions?.[sk] ?? [];
+              const miss = MISSED_POSITIONABLE.has(sk);
+              for (const p of arr) ctx.push({ kickX: p.kickX, kickY: p.kickY, missed: miss });
+            }
+          }
+        }
+
         return (
           <ManualRugbyPositionDialog
             open
             onOpenChange={(o) => { if (!o) setPosDialog(null); }}
-            kind={POSITIONABLE_KIND[posDialog.statKey]}
+            kind={activeKind}
             count={count}
             positions={positions}
             contextLabel={posDialog.contextLabel}
             missed={isMissed}
+            contextMarkers={ctx}
             onSave={(list) => {
               if (isOpp) updateOpponentPositions(posDialog.statKey, list);
               else updatePlayerPositions(posDialog.targetKey, posDialog.statKey, list);
