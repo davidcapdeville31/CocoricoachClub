@@ -144,14 +144,12 @@ export function ManualRugbyPositionDialog({
                     stroke="white"
                     strokeWidth={3}
                   />
-                  {missed ? (
-                    <>
-                      <line x1={cx - 6} y1={cy - 6} x2={cx + 6} y2={cy + 6} stroke="white" strokeWidth={2.5} strokeLinecap="round" />
-                      <line x1={cx + 6} y1={cy - 6} x2={cx - 6} y2={cy + 6} stroke="white" strokeWidth={2.5} strokeLinecap="round" />
-                    </>
-                  ) : (
-                    <text x={cx} y={cy + 4} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">
-                      {i + 1}
+                  <text x={cx} y={cy + 4} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">
+                    {i + 1}
+                  </text>
+                  {missed && (
+                    <text x={cx + 12} y={cy - 9} textAnchor="middle" fill="#ef4444" stroke="white" strokeWidth={0.6} fontSize="13" fontWeight="bold">
+                      ✗
                     </text>
                   )}
                 </g>
