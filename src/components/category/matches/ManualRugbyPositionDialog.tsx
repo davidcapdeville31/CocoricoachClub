@@ -202,9 +202,29 @@ export function ManualRugbyPositionDialog({
                 </g>
               );
             })()}
+            {/* Marqueurs de contexte (autres joueurs / autres mi-temps / réussis ou manqués du même type) */}
+            {contextMarkers.map((m, i) => {
+              const cx = (m.kickX / 100) * 600;
+              const cy = (m.kickY / 100) * 400;
+              const c = colorFor(kind, !!m.missed);
+              return (
+                <g key={`ctx-${i}`} pointerEvents="none" opacity={0.55}>
+                  <circle cx={cx} cy={cy} r={12} fill={c} stroke="white" strokeWidth={2} strokeDasharray="3 2" />
+                  <text x={cx} y={cy + 4} textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">
+                    {i + 1}
+                  </text>
+                  {m.missed && (
+                    <text x={cx + 11} y={cy - 8} textAnchor="middle" fill="#ef4444" stroke="white" strokeWidth={0.6} fontSize="12" fontWeight="bold">
+                      ✗
+                    </text>
+                  )}
+                </g>
+              );
+            })}
             {list.map((p, i) => {
               const cx = (p.kickX / 100) * 600;
               const cy = (p.kickY / 100) * 400;
+              const num = i + 1 + ctxOffset;
               return (
                 <g key={i} style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); removeAt(i); }}>
                   <circle
@@ -212,12 +232,12 @@ export function ManualRugbyPositionDialog({
                     cy={cy}
                     r={14}
                     fill={markerColor}
-                    opacity={0.85}
+                    opacity={0.95}
                     stroke="white"
                     strokeWidth={3}
                   />
                   <text x={cx} y={cy + 4} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">
-                    {i + 1}
+                    {num}
                   </text>
                   {missed && (
                     <text x={cx + 12} y={cy - 9} textAnchor="middle" fill="#ef4444" stroke="white" strokeWidth={0.6} fontSize="13" fontWeight="bold">
