@@ -81,10 +81,10 @@ const EMPTY: StatRow = {
   knockOns: 0, lineBreaks: 0, passesMade: 0, passesMissed: 0, kicksMade: 0, kicksMissed: 0,
   tackles: 0, missedTackles: 0, turnoversWon: 0,
   fouls: 0, yellowCards: 0, redCards: 0,
-  positions: {},
 };
 
-const emptyPeriodStats = (): PeriodStats => ({ H1: { ...EMPTY }, H2: { ...EMPTY } });
+const emptyStatRow = (): StatRow => ({ ...EMPTY, positions: {} });
+const emptyPeriodStats = (): PeriodStats => ({ H1: emptyStatRow(), H2: emptyStatRow() });
 const emptyNotes = (): NotesByPeriod => ({ H1: "", H2: "" });
 
 type FieldDef = { key: keyof StatRow; label: string; short: string; category: Category };
