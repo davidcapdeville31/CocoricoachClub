@@ -10245,6 +10245,8 @@ export type Database = {
       public_access_tokens: {
         Row: {
           access_type: string
+          auth_password: string | null
+          auth_user_id: string | null
           category_id: string | null
           club_id: string | null
           created_at: string
@@ -10258,6 +10260,8 @@ export type Database = {
         }
         Insert: {
           access_type?: string
+          auth_password?: string | null
+          auth_user_id?: string | null
           category_id?: string | null
           club_id?: string | null
           created_at?: string
@@ -10271,6 +10275,8 @@ export type Database = {
         }
         Update: {
           access_type?: string
+          auth_password?: string | null
+          auth_user_id?: string | null
           category_id?: string | null
           club_id?: string | null
           created_at?: string
