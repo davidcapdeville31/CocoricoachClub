@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Shield, ShieldCheck, KeyRound, Clock, Smartphone, Eye, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Shield, ShieldCheck, KeyRound, Clock, Smartphone, Eye, AlertTriangle, CheckCircle2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
