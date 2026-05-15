@@ -417,7 +417,7 @@ export function ManualRugbyStatsDialog({
       };
       const posAt = (key: PositionableStatKey, i: number): FieldPosition | undefined =>
         r.positions?.[key]?.[i];
-      for (let i = 0; i < r.tries; i++) push(side, pid, per, "try", null, 5, attach());
+      for (let i = 0; i < r.tries; i++) push(side, pid, per, "try", null, 5, attach(), posAt("tries", i));
       for (let i = 0; i < r.conversionsMade; i++) push(side, pid, per, "conversion", "success", 2, attach(), posAt("conversionsMade", i));
       for (let i = 0; i < r.conversionsMissed; i++) push(side, pid, per, "conversion", "fail", 0, attach(), posAt("conversionsMissed", i));
       for (let i = 0; i < r.penaltiesMade; i++) push(side, pid, per, "penalty_kick", "success", 3, attach(), posAt("penaltiesMade", i));
