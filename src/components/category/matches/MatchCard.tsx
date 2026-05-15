@@ -950,6 +950,8 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
           isHome={match.is_home}
           opponentName={match.opponent || "Adversaire"}
           clubName="Notre équipe"
+          categoryId={categoryId}
+          sportType={category?.rugby_type || "rugby_xv"}
         />
       )}
 
