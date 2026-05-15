@@ -140,7 +140,9 @@ export function ManualRugbyPositionDialog({
 
         <div className="flex items-center justify-between">
           <div className="text-xs text-muted-foreground">
-            {lineout ? "Cliquez près d'une ligne de touche : la position se calera dessus." : kick ? "Sens du tir : choisir le côté des poteaux." : "Choisir le sens du jeu."}
+            {kind === "try"
+              ? "Cliquez dans la zone d'en-but adverse (surlignée) pour placer l'essai."
+              : lineout ? "Cliquez près d'une ligne de touche : la position se calera dessus." : kick ? "Sens du tir : choisir le côté des poteaux." : "Choisir le sens du jeu."}
           </div>
           <div className="flex gap-1">
             <Button type="button" variant={side === "left" ? "default" : "outline"} size="sm" className="h-7 text-xs" onClick={() => setSide("left")}>← Gauche</Button>
