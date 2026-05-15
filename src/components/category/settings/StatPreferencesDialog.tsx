@@ -43,6 +43,8 @@ interface StatPreferencesDialogProps {
   onOpenChange: (open: boolean) => void;
   categoryId: string;
   sportType: string;
+  /** When provided, the dialog edits an override scoped to this match instead of category defaults. */
+  matchId?: string;
 }
 
 interface CustomStat {
