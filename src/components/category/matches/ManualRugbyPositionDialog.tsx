@@ -42,6 +42,13 @@ const TITLES: Record<PositionableKind, string> = {
 const isKick = (k: PositionableKind) => k === "conversion" || k === "penalty_kick" || k === "drop";
 const isLineout = (k: PositionableKind) => k === "lineout_won" || k === "lineout_lost";
 
+export type ContextMarker = {
+  kickX: number;
+  kickY: number;
+  missed?: boolean;
+  label?: string; // ex: "Joueur · 12'"
+};
+
 interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -51,6 +58,8 @@ interface Props {
   onSave: (positions: FieldPosition[]) => void;
   contextLabel?: string;
   missed?: boolean;
+  /** Marqueurs déjà placés ailleurs (autres joueurs, autres mi-temps, réussis/manqués du même type) */
+  contextMarkers?: ContextMarker[];
 }
 
 export function ManualRugbyPositionDialog({
