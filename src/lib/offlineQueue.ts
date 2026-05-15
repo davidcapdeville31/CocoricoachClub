@@ -32,18 +32,19 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
-// Add operation to queue
+// Add operation to queue. Returns the local id assigned to the queued operation.
 export async function queueOperation(
   table: string,
   operation: "insert" | "update" | "delete",
   data: Record<string, unknown>
-): Promise<void> {
+): Promise<string> {
   const db = await openDB();
   const tx = db.transaction(STORE_NAME, "readwrite");
   const store = tx.objectStore(STORE_NAME);
 
+  const localId = `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   const pendingOp: PendingOperation = {
-    id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    id: localId,
     table,
     operation,
     data,
@@ -52,7 +53,26 @@ export async function queueOperation(
   };
 
   store.add(pendingOp);
+
+  // Try to register a Background Sync (no-op on unsupported browsers like iOS Safari).
+  try {
+    if (typeof navigator !== "undefined" && "serviceWorker" in navigator && "SyncManager" in window) {
+      const reg = await navigator.serviceWorker.ready;
+      // @ts-expect-error sync is part of the Background Sync API, not yet in lib.dom
+      await reg.sync?.register("sync-pending-data");
+    }
+  } catch {
+    /* ignore — fallback handled by the online listener in useOfflineSync */
+  }
+
   db.close();
+  return localId;
+}
+
+// Get pending operations filtered by table (for hydrating UI lists offline)
+export async function getPendingOperationsByTable(table: string): Promise<PendingOperation[]> {
+  const ops = await getPendingOperations();
+  return ops.filter((o) => o.table === table);
 }
 
 // Get all pending operations
