@@ -423,11 +423,14 @@ export function StatPreferencesDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings2 className="h-5 w-5" />
-              Personnaliser les statistiques
+              {isMatchScope
+                ? "Personnaliser les statistiques pour ce match"
+                : "Modifier les stats par défaut"}
             </DialogTitle>
             <DialogDescription>
-              Sélectionnez les statistiques à afficher et saisir pour cette catégorie.
-              Vous pouvez également créer des statistiques personnalisées.
+              {isMatchScope
+                ? "Ces réglages remplacent les stats par défaut pour ce match uniquement, en saisie temps réel comme en saisie manuelle."
+                : "Sélectionnez les statistiques à afficher et saisir pour cette catégorie. Ces réglages s'appliquent à toutes les nouvelles compétitions, en saisie temps réel comme en saisie manuelle."}
               {isAthletics && (
                 <span className="block mt-1 text-xs">
                   ℹ️ Les statistiques sont organisées par discipline. Activez uniquement celles correspondant aux disciplines de vos athlètes. Lors de la saisie en compétition, seules les statistiques de la discipline de chaque athlète seront affichées.
@@ -444,10 +447,40 @@ export function StatPreferencesDialog({
             <Button variant="outline" size="sm" onClick={selectNone}>
               Tout désélectionner
             </Button>
-            <Button variant="default" size="sm" onClick={() => setShowAddCustomDialog(true)}>
-              <Plus className="h-4 w-4 mr-1" />
-              Ajouter une statistique
-            </Button>
+            {!isMatchScope && (
+              <Button variant="default" size="sm" onClick={() => setShowAddCustomDialog(true)}>
+                <Plus className="h-4 w-4 mr-1" />
+                Ajouter une statistique
+              </Button>
+            )}
+            {isMatchScope && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  if (!matchId) return;
+                  try {
+                    await supabase.from("match_stat_overrides").delete().eq("match_id", matchId);
+                    queryClient.invalidateQueries({ queryKey: ["match-stat-override-raw", matchId] });
+                    queryClient.invalidateQueries({ queryKey: ["match-stat-overrides", matchId] });
+                    // Reset local state to category prefs
+                    const catKeys = (existingPrefs?.enabled_stats as string[] | undefined) ?? [
+                      ...allStats.map(s => s.key),
+                      ...goalkeeperStats.map(s => s.key),
+                      ...customStats.map(s => s.key),
+                    ];
+                    userHasEdited.current = false;
+                    setEnabledStats(catKeys);
+                    toast.success("Override supprimé — défauts catégorie restaurés");
+                  } catch (err) {
+                    console.error(err);
+                    toast.error("Erreur lors de la réinitialisation");
+                  }
+                }}
+              >
+                Réinitialiser aux défauts catégorie
+              </Button>
+            )}
           </div>
 
           {/* Category dropdown selector */}
