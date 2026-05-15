@@ -1,80 +1,106 @@
-# Stats par défaut + override par match — plan
+# Refonte UX/UI — Onglet "Statistiques" du match
 
-## Contexte trouvé dans le code
+## Contexte
 
-- Table `category_stat_preferences` (existe) : prefs au niveau catégorie.
-- Table `match_stat_overrides` (existe déjà) : prefs au niveau match.
-- Hook `useStatPreferences({ categoryId, sportType, matchId? })` (existe) : applique déjà la priorité **match > catégorie > tout**.
-- `StatPreferencesDialog` : aujourd'hui sauvegarde uniquement en catégorie.
-- Consommateurs de `useStatPreferences` : `SportMatchStatsDialog`, `CompetitionRoundsDialog`, `AggregatedRoundStatsDialog`, `PlayerCumulativeStats`, `PlayerMatchesTab`.
-- ❌ `ManualRugbyStatsDialog` (saisie manuelle rugby) **n'utilise pas** `useStatPreferences` — ses colonnes sont en dur.
-- ❌ `LiveMatchPage` (Démarrer temps réel) **n'utilise pas** non plus `useStatPreferences`.
+Aujourd'hui, depuis la card d'un match, le bouton **Statistiques** (sous "Composition") :
+- **Rugby (match officiel)** : redirige vers `/categories/:id/match/:id/live` (page live, pas une vraie consultation post-match)
+- **Autres sports** : ouvre `SportMatchStatsDialog` (formulaire de saisie basique)
+- **Sports à rounds** (judo/bowling/aviron/athlétisme) : ouvre `AggregatedRoundStatsDialog`
 
-## Travail à faire
+L'expérience est hétérogène, vieillissante, et ne propose pas de vraie lecture analytique. On refond l'expérience consultation en gardant 100% de la logique métier (calculs, persistance, schémas).
 
-### 1. Renommage UI
-- Bouton dans `MatchesTab.tsx` (ligne 157) : "Personnaliser stats" → **"Modifier les stats par défaut"**.
-- Titre dialog `StatPreferencesDialog` : "Personnaliser les statistiques" → **"Modifier les stats par défaut"** quand on est en mode catégorie.
-- Quand le dialog est ouvert en mode **match override**, titre **"Personnaliser les statistiques pour ce match"** + sous-titre indiquant "Ces réglages remplacent ceux de la catégorie pour cette compétition uniquement."
+## Objectif
 
-### 2. Faire de `StatPreferencesDialog` un composant à 2 modes
+Une **interface unique de consultation post-match**, moderne, fluide, dans l'esprit du redesign de la saisie manuelle :
+- En-tête match (score, équipes, lieu, date, statut)
+- Onglets **Équipe** / **Joueurs** (+ **Timeline** + **Pied** si rugby)
+- Lecture rapide, faible charge cognitive, dense mais aérée
+- Compatible desktop + tablette, responsive mobile
 
-Ajouter prop optionnelle `matchId?: string`.
+Hors périmètre : la **saisie** (live + manuelle) reste sur ses outils existants. Cette refonte concerne uniquement la **consultation** depuis le bouton "Statistiques".
 
-- Si `matchId` **absent** → comportement actuel (sauvegarde dans `category_stat_preferences`).
-- Si `matchId` **présent** :
-  - Init des cases à cocher : lit `match_stat_overrides.enabled_stats` ; si null, prend les prefs catégorie comme point de départ (l'utilisateur part des défauts pour personnaliser).
-  - Sauvegarde dans `match_stat_overrides` (upsert sur `match_id`).
-  - Bouton supplémentaire **"Réinitialiser aux défauts catégorie"** qui supprime la ligne d'override.
-- Invalidation queries : `["match-stat-overrides", matchId]` en plus.
+## Architecture cible
 
-### 3. Ajouter le bouton "Personnaliser pour ce match"
+### Nouveau composant : `MatchStatsDialog.tsx`
 
-Dans `MatchCard.tsx`, sous le bouton "Démarrer (temps réel)" (ligne 661) :
-- Nouveau bouton **"⚙️ Personnaliser les stats de ce match"** (variant outline, style discret).
-- Ouvre `StatPreferencesDialog` avec `matchId` du match courant.
-- Visible uniquement aux rôles autorisés (mêmes règles que "Démarrer temps réel").
+Dialog plein écran (`max-w-7xl`, `h-[90vh]`) qui devient le point d'entrée unique pour la consultation des stats d'un match (tous sports confondus, sauf rounds qui gardent `AggregatedRoundStatsDialog`).
 
-### 4. Parité des stats — Saisie manuelle rugby
+```
+┌────────────────────────────────────────────────────────────┐
+│  HEADER — gradient brand                                   │
+│  [Logo] Mon Équipe  24 — 17  @ Adversaire                  │
+│  Fédérale 1 · 11 mai 2026 · Dax · Finalisé · Extérieur     │
+│  [Export PDF] [Saisie manuelle] [Live] [Personnaliser]    │
+├────────────────────────────────────────────────────────────┤
+│  [ Équipe ] [ Joueurs ] [ Timeline ] [ Pied ]*             │
+├────────────────────────────────────────────────────────────┤
+│  Contenu de l'onglet                                       │
+└────────────────────────────────────────────────────────────┘
+```
+\* Onglets Timeline / Pied uniquement rugby.
 
-`ManualRugbyStatsDialog` doit cacher les colonnes désactivées dans les prefs.
-- Brancher `useStatPreferences({ categoryId, sportType: "rugby", matchId })`.
-- Map des `statKey` rugby → colonnes du tableau (essais, transformations, pénalités, drops, en-avants, plaquages, etc.).
-- Si une colonne est désactivée → masquer l'entête + cellules + skip dans `buildEvents`.
-- ⚠️ La logique de calcul du score reste inchangée : un essai désactivé n'est juste pas saisissable, mais le calcul score = essais×5 + transfo×2 + pén×3 + drop×3 reste identique sur les valeurs présentes.
+### Onglet **Équipe** (`MatchTeamStatsView.tsx`)
 
-### 5. Parité des stats — Live (Démarrer temps réel)
+- **KPI cards top** (grid 4-6 cols) : Essais, Transformations, Pénalités, Drops, % Réussite tirs au but, Points totaux (rugby). Pour autres sports : KPIs adaptés via `getStatsForSport`.
+- **Bloc Conquête** (rugby uniquement) : Mêlées intro/contre, Touches intro/contre, % gagnées (déjà existant dans `LiveStatsPanel`).
+- **Bloc Discipline** : Pénalités concédées, Cartons.
+- **Bloc Attaque/Défense** : Plaquages réussis/manqués, Franchissements, En-avants, Turnovers.
+- Filtré par `useStatPreferences({ categoryId, sportType, matchId })` → masque les stats désactivées.
 
-Idem : `LiveMatchPage` (et ses sous-composants de boutons rugby) doit filtrer les boutons d'action via `useStatPreferences({ categoryId, sportType, matchId })`.
-- Identifier le composant qui rend les boutons rapides (en avant, plaquage, mêlée, etc.).
-- Filtrer la liste des actions disponibles selon `enabledStatKeys`.
+### Onglet **Joueurs** (`MatchPlayerStatsView.tsx`)
 
-### 6. Vérification du référentiel commun
+- **Header tableau sticky** avec recherche + filtre poste (rugby).
+- Une **ligne par joueur titulaire/remplaçant**, format compact :
+  ```
+  [#10 Pivert M.]  Min:62  Ess:1  Tr:2/3  Pén:1/2  Pl:8  Fr:3
+  ```
+- Cellules cliquables → ouvre un side panel avec détails (terrain, minutes, contexte).
+- Tri colonnes, pagination/scroll virtualisé si > 25 joueurs.
+- Colonnes adaptées au poste rugby (avants vs lignes arrière) — en s'appuyant sur `positionToActions.ts` du redesign saisie manuelle (créé en parallèle).
 
-- S'assurer que `getStatsForSport("rugby")` (dans `lib/constants/sportStats.ts`) liste bien **toutes** les actions utilisables en live + en manuel (en-avant, mêlée, touche, plaquage, ruck, etc.). Si manquantes → les ajouter (juste dans le référentiel, sans changer les calculs).
-- Ainsi décocher "En avant" enlève simultanément la colonne en saisie manuelle ET le bouton en live.
+### Onglet **Timeline** (rugby seulement)
 
-### 7. Application aux nouvelles compétitions
+- Bande horizontale 0-80', pastilles colorées par type d'événement (essais, transfos, pénalités, cartons), regroupement par mi-temps.
+- Hover → tooltip joueur+minute. Click → side panel détail.
+- Source : `match_events` déjà persistés.
 
-- ✅ Pas de migration nécessaire : la priorité `match override → category prefs → tout` est déjà appliquée au runtime. Toute nouvelle compétition prend automatiquement les prefs catégorie.
+### Onglet **Pied** (rugby seulement)
 
-## Fichiers modifiés
+- Mini-map terrain SVG (réutilise `CumulativeKickingMap` déjà existant).
+- Stats par buteur, % réussite par zone.
 
-- `src/components/category/MatchesTab.tsx` — label bouton.
-- `src/components/category/settings/StatPreferencesDialog.tsx` — ajouter `matchId`, dual-mode save, titre dynamique, bouton reset défauts.
-- `src/components/category/matches/MatchCard.tsx` — bouton "Personnaliser pour ce match" + state pour ouvrir le dialog.
-- `src/components/category/matches/ManualRugbyStatsDialog.tsx` — brancher `useStatPreferences` et filtrer colonnes/events.
-- `src/pages/LiveMatchPage.tsx` (+ sous-composants des boutons rapides) — brancher `useStatPreferences` et filtrer boutons.
-- `src/lib/constants/sportStats.ts` — compléter le référentiel rugby si nécessaire.
+## Intégration dans `MatchCard`
 
-## Hors scope (confirmé inchangé)
+- Le bouton "Statistiques" (rugby et non-rugby, hors rounds) ouvre désormais `MatchStatsDialog` au lieu de naviguer vers `/live` ou d'ouvrir `SportMatchStatsDialog`.
+- Le dialog inclut un bouton **"Saisie manuelle"** (ouvre `ManualRugbyStatsDialog`) et **"Mode Live"** (navigate `/live`) pour préserver les flux d'entrée.
+- Pour les sports à rounds, on continue d'utiliser `AggregatedRoundStatsDialog` (ne change pas).
 
-- Tables `category_stat_preferences` et `match_stat_overrides` : structure inchangée.
-- RLS, calcul score, structure events `rugby_match_stats`.
-- Bouton "Saisie manuelle" et "Démarrer (temps réel)" : positions inchangées, juste filtrés.
+## Fichiers
 
-## Confirmations rapides avant code
+**Nouveaux**
+- `src/components/category/matches/stats/MatchStatsDialog.tsx`
+- `src/components/category/matches/stats/MatchStatsHeader.tsx`
+- `src/components/category/matches/stats/MatchTeamStatsView.tsx`
+- `src/components/category/matches/stats/MatchPlayerStatsView.tsx`
+- `src/components/category/matches/stats/MatchTimelineView.tsx` (rugby)
+- `src/components/category/matches/stats/MatchKickingView.tsx` (rugby — wrapper de `CumulativeKickingMap`)
+- `src/components/category/matches/stats/StatKpiCard.tsx`
+- `src/components/category/matches/stats/PlayerStatRow.tsx`
 
-1. **Bouton match-scope** : tu le veux à côté de "Démarrer (temps réel)" dans la card match ? Ou plutôt dans un menu "⋯ Plus" pour ne pas surcharger ?
-2. **Mode match** : si l'utilisateur n'a jamais touché aux prefs match, on **part des prefs catégorie** (UX la plus évidente) — OK ?
-3. **Périmètre Live (étape 5)** : aujourd'hui le bouton "Démarrer temps réel" affiche tous les boutons rugby ? Confirme et je branche le filtre. Sinon je peux faire un PR plus court qui couvre 1-4 + 6-7 et on traite Live dans un second temps.
+**Modifiés**
+- `src/components/category/matches/MatchCard.tsx` :
+  - Le bouton "Statistiques" (lignes ~732-749) ouvre `MatchStatsDialog` (non-rugby et rugby), au lieu de nav `/live` ou `SportMatchStatsDialog`.
+  - Conserver `SportMatchStatsDialog` accessible uniquement via "Saisie" depuis le nouveau dialog.
+
+## Hors scope (strictement inchangé)
+
+- Schémas DB (`match_events`, `player_match_stats`, `category_stat_preferences`, `match_stat_overrides`)
+- Calculs de score, agrégations existantes
+- `LiveMatchPage`, `ManualRugbyStatsDialog`, `AggregatedRoundStatsDialog` (réutilisés tels quels)
+- Permissions / RLS
+
+## Validation
+
+- Build OK
+- Visual QA via screenshot du nouveau dialog (vue équipe + vue joueurs) sur le match Dax existant
+- Confirmer que le score et le nombre d'événements correspondent à ce qui est déjà affiché en live

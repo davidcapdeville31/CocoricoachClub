@@ -42,6 +42,7 @@ import { SkiConditionsForm } from "@/components/ski/SkiConditionsForm";
 import { SessionEquipmentSection } from "@/components/shared/SessionEquipmentSection";
 import { SportMatchStatsDialog } from "./SportMatchStatsDialog";
 import { ManualRugbyStatsDialog } from "./ManualRugbyStatsDialog";
+import { MatchStatsDialog } from "./stats/MatchStatsDialog";
 import { StatPreferencesDialog } from "@/components/category/settings/StatPreferencesDialog";
 import { ClipboardEdit, Settings2 } from "lucide-react";
 import { CompetitionRoundsDialog } from "./CompetitionRoundsDialog";
@@ -737,10 +738,6 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                 onPointerDown={stopCardAction}
                 onClick={(e) => {
                   stopCardAction(e);
-                  if (isRugby) {
-                    navigate(`/categories/${categoryId}/match/${match.id}/live`);
-                    return;
-                  }
                   setIsStatsOpen(true);
                 }}
               >
@@ -919,7 +916,18 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         matchFormat={match.match_format}
       />
 
-      {/* For non-round-based sports, use SportMatchStatsDialog */}
+      {/* Rugby: new consultation dialog (Equipe / Joueurs / Timeline) */}
+      {!hasRoundBasedStats && isRugby && (
+        <MatchStatsDialog
+          open={isStatsOpen}
+          onOpenChange={setIsStatsOpen}
+          matchId={match.id}
+          categoryId={categoryId}
+          onOpenManual={() => setIsManualRugbyOpen(true)}
+        />
+      )}
+
+      {/* For non-round-based / non-rugby sports, keep existing dialog */}
       {!hasRoundBasedStats && !isRugby && (
         <SportMatchStatsDialog
           open={isStatsOpen}
