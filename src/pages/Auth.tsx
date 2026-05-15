@@ -43,16 +43,17 @@ export default function Auth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get("redirect");
+  const isRecoveryMode = searchParams.get("mode") === "recovery";
   const [isLoading, setIsLoading] = useState(false);
 
   // Redirect authenticated users away from auth page
   const { user, loading: authLoading } = useAuth();
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && user && !isRecoveryMode) {
       navigate(redirectUrl || "/", { replace: true });
     }
-  }, [user, authLoading, navigate, redirectUrl]);
-  const [forgotStep, setForgotStep] = useState<"hidden" | "email" | "reset" | "success">("hidden");
+  }, [user, authLoading, navigate, redirectUrl, isRecoveryMode]);
+  const [forgotStep, setForgotStep] = useState<"hidden" | "email" | "reset" | "sent" | "success">(isRecoveryMode ? "reset" : "hidden");
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
   const [newPassword, setNewPassword] = useState("");
@@ -141,22 +142,18 @@ export default function Auth() {
     e.preventDefault();
     setForgotLoading(true);
     try {
-      // Check if email exists via a lightweight query
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("email", forgotEmail)
-        .maybeSingle();
-      
+      const email = forgotEmail.trim().toLowerCase();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?mode=recovery`,
+      });
+
       if (error) throw error;
-      if (!data) {
-        toast.error("Aucun compte trouvé avec cet email");
-        return;
-      }
-      // Email exists, show password reset form
-      setForgotStep("reset");
+
+      setForgotEmail(email);
+      setForgotStep("sent");
+      toast.success("Si un compte existe, un email de réinitialisation a été envoyé.");
     } catch (error: any) {
-      toast.error(error.message || "Erreur lors de la vérification");
+      toast.error(error.message || "Erreur lors de l'envoi de l'email");
     } finally {
       setForgotLoading(false);
     }
@@ -174,15 +171,15 @@ export default function Auth() {
     }
     setForgotLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("reset-password", {
-        body: { email: forgotEmail, newPassword },
-      });
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+
+      await supabase.auth.signOut();
       
       setForgotStep("success");
       toast.success("Mot de passe mis à jour avec succès !");
       setTimeout(() => {
+        navigate("/auth", { replace: true });
         setForgotStep("hidden");
         setForgotEmail("");
         setNewPassword("");
@@ -292,7 +289,7 @@ export default function Auth() {
                     />
                   </div>
                   <Button type="submit" className="w-full" disabled={forgotLoading}>
-                    {forgotLoading ? "Vérification..." : "Continuer"}
+                    {forgotLoading ? "Envoi..." : "Envoyer le lien"}
                   </Button>
                   <Button
                     type="button"
@@ -303,10 +300,25 @@ export default function Auth() {
                     Retour à la connexion
                   </Button>
                 </form>
+              ) : forgotStep === "sent" ? (
+                <div className="text-center space-y-3 py-4">
+                  <p className="text-sm font-medium text-primary">Email envoyé</p>
+                  <p className="text-xs text-muted-foreground">
+                    Si un compte existe pour <span className="font-medium text-foreground">{forgotEmail}</span>, vous recevrez un lien pour réinitialiser votre mot de passe.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => setForgotStep("hidden")}
+                  >
+                    Retour à la connexion
+                  </Button>
+                </div>
               ) : forgotStep === "reset" ? (
                 <form onSubmit={handleResetPassword} className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    Compte trouvé pour <span className="font-medium text-foreground">{forgotEmail}</span>. Choisissez votre nouveau mot de passe.
+                    Choisissez votre nouveau mot de passe.
                   </p>
                   <div className="space-y-2">
                     <Label htmlFor="new-password">Nouveau mot de passe</Label>
