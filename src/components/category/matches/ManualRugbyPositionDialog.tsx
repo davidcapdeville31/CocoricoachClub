@@ -269,7 +269,7 @@ export function ManualRugbyPositionDialog({
                     className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
                     style={{ background: markerColor }}
                   >
-                    {i + 1}
+                    {i + 1 + ctxOffset}
                   </span>
                   <Input
                     type="number"
