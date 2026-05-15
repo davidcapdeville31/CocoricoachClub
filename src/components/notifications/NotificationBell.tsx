@@ -48,6 +48,9 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
   });
 
   const unreadCount = notifications?.filter(n => !n.is_read).length || 0;
+  const hasUnreadSupport = !!notifications?.some(
+    n => !n.is_read && n.notification_type === "global"
+  );
 
   const markAsRead = useMutation({
     mutationFn: async (notificationId: string) => {
