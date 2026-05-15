@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, ListOrdered, BarChart3 } from "lucide-react";
+import { ArrowLeft, ListOrdered, BarChart3, Sun } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LiveScoreboard } from "@/components/category/matches/live/LiveScoreboard";
 import { PeriodControls } from "@/components/category/matches/live/PeriodControls";
@@ -20,6 +20,7 @@ import { TeamColorsDialog } from "@/components/category/matches/live/dialogs/Tea
 import { useMatchEvents } from "@/components/category/matches/live/hooks/useMatchEvents";
 import { useMatchStats } from "@/components/category/matches/live/hooks/useMatchStats";
 import type { EventType, MatchEvent, Period } from "@/components/category/matches/live/types";
+import { useWakeLock } from "@/hooks/useWakeLock";
 import { toast } from "sonner";
 
 export default function LiveMatchPage() {
@@ -195,6 +196,15 @@ export default function LiveMatchPage() {
             <BarChart3 className="h-4 w-4" />
             Stats live
           </Button>
+          {wakeLockActive ? (
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-1 text-[11px] font-medium text-amber-600 ring-1 ring-amber-500/30"
+              title="Écran maintenu allumé pendant le match"
+            >
+              <Sun className="h-3 w-3" />
+              Écran actif
+            </span>
+          ) : null}
           <div className="text-xs text-muted-foreground hidden lg:block">
             Mode analyste · raccourcis : <kbd className="bg-muted rounded px-1">E</kbd> essai · <kbd className="bg-muted rounded px-1">P</kbd> pénalité · <kbd className="bg-muted rounded px-1">T</kbd> touche · <kbd className="bg-muted rounded px-1">M</kbd> mêlée · <kbd className="bg-muted rounded px-1">C</kbd> carton · <kbd className="bg-muted rounded px-1">D</kbd> drop
           </div>
