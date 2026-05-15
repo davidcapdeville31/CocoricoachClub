@@ -99,12 +99,12 @@ export function CollaborationTab({ clubId }: CollaborationTabProps) {
         </CardContent>
       </Card>
 
-      <MembersSection clubId={clubId} canManage={canManageMembers} />
-      <InvitationsSection clubId={clubId} canManage={canManageMembers} />
-      
       {canManageMembers && (
         <PublicLinkSection clubId={clubId} />
       )}
+
+      <MembersSection clubId={clubId} canManage={canManageMembers} />
+      <InvitationsSection clubId={clubId} canManage={canManageMembers} />
 
       <InviteMemberDialog
         open={isInviteDialogOpen}
