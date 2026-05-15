@@ -411,7 +411,23 @@ export function ManualRugbyStatsDialog({
   );
   const opponentScore = useMemo(() => sumPeriods(opponent, computePoints), [opponent]);
 
-  const visibleFields = useMemo(() => FIELDS.filter((f) => f.category === category), [category]);
+  // Préférences statistiques (par catégorie + override par match)
+  const { enabledStatKeys, hasCustomPreferences } = useStatPreferences({
+    categoryId: categoryId ?? "",
+    sportType,
+    matchId,
+  });
+  const enabledSet = useMemo(() => new Set(enabledStatKeys), [enabledStatKeys]);
+
+  const visibleFields = useMemo(() => {
+    const inCat = FIELDS.filter((f) => f.category === category);
+    if (!categoryId || !hasCustomPreferences) return inCat;
+    return inCat.filter((f) => {
+      const refKey = FIELD_TO_REF_KEY[f.key];
+      if (!refKey || refKey === "__ignore__") return true;
+      return enabledSet.has(refKey);
+    });
+  }, [category, categoryId, hasCustomPreferences, enabledSet]);
 
   const buildEvents = () => {
     const events: any[] = [];
