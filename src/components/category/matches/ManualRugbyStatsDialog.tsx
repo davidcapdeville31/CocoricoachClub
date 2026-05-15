@@ -216,7 +216,7 @@ export function ManualRugbyStatsDialog({
         target.positions[key] = arr;
       };
       switch (e.event_type) {
-        case "try": case "penalty_try": target.tries += 1; break;
+        case "try": case "penalty_try": target.tries += 1; pushPos("tries"); break;
         case "conversion":
           if (e.outcome === "success") { target.conversionsMade += 1; pushPos("conversionsMade"); }
           else if (e.outcome === "fail") { target.conversionsMissed += 1; pushPos("conversionsMissed"); }
