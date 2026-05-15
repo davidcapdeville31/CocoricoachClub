@@ -332,45 +332,103 @@ function StatBar({
   const hHasData = isRatio ? (hTotal ?? 0) > 0 : (h !== 0 || a !== 0);
   const aHasData = isRatio ? (aTotal ?? 0) > 0 : (h !== 0 || a !== 0);
 
-  return (
-    <div className="rounded-lg bg-surface-sunken/50 px-2.5 py-2 border border-border/40 hover:border-border/80 transition-colors">
-      <div className="flex items-center justify-center gap-1 mb-1.5">
+  // Tonalité analytique du % (uniquement quand kind === "ratio" — c'est un % de réussite)
+  const pctTone: "success" | "warning" | "danger" | "neutral" =
+    !isRatio || centerPct === null
+      ? "neutral"
+      : centerPct >= 75 ? "success"
+      : centerPct >= 60 ? "neutral"
+      : centerPct >= 40 ? "warning"
+      : "danger";
+
+  const PCT_TONE: Record<typeof pctTone, { text: string; bg: string; ring: string; glow: string }> = {
+    success: { text: "text-emerald-500", bg: "bg-emerald-500/10", ring: "ring-emerald-500/30", glow: "drop-shadow-[0_0_8px_hsl(160_84%_45%/0.55)]" },
+    warning: { text: "text-amber-500",   bg: "bg-amber-500/10",   ring: "ring-amber-500/30",   glow: "drop-shadow-[0_0_8px_hsl(38_92%_55%/0.5)]" },
+    danger:  { text: "text-rose-500",    bg: "bg-rose-500/10",    ring: "ring-rose-500/30",    glow: "drop-shadow-[0_0_8px_hsl(350_84%_55%/0.5)]" },
+    neutral: { text: "text-muted-foreground", bg: "bg-muted/40", ring: "ring-border", glow: "" },
+  };
+  const pt = PCT_TONE[pctTone];
+  const hasPct = centerPct !== null;
+  const interactive = !!onShowPositions;
+
+  const rowContent = (
+    <>
+      {/* En-tête : label + chip "Terrain" si interactif */}
+      <div className="flex items-center justify-center gap-1.5 mb-1.5">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground text-center whitespace-nowrap">
           {label}
         </span>
-        {onShowPositions && (
-          <button
-            type="button"
-            onClick={onShowPositions}
-            className="p-0.5 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-            title="Voir les positions sur le terrain"
+        {interactive && (
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 px-1.5 h-[18px] rounded-md text-[9px] font-bold uppercase tracking-wider",
+              "bg-primary/10 text-primary ring-1 ring-primary/30",
+              "group-hover:bg-primary group-hover:text-primary-foreground group-hover:ring-primary",
+              "transition-colors",
+            )}
           >
-            <MapPin className="h-3 w-3" />
-          </button>
+            <MapPin className="h-2.5 w-2.5" />
+            Terrain
+          </span>
         )}
       </div>
-      <div className="grid grid-cols-3 items-center gap-2">
+
+      {/* Valeurs : home — % central proéminent — away */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <span className={cn(
           "text-base font-extrabold tabular-nums leading-none text-left",
           !equal && homeBetter ? "text-primary" : hHasData ? "text-foreground/70" : "text-foreground/30",
         )}>{hLabel}</span>
-        <span className="text-[11px] tabular-nums text-muted-foreground text-center font-bold">
-          {centerPct !== null ? `${Math.round(centerPct)}%` : "—"}
-        </span>
+
+        {/* % central : grand, lumineux, codé couleur quand kind=ratio */}
+        {hasPct ? (
+          <span className={cn(
+            "inline-flex items-center justify-center min-w-[44px] px-1.5 py-0.5 rounded-md tabular-nums font-extrabold leading-none ring-1 transition-transform",
+            isRatio ? "text-base" : "text-xs",
+            pt.text, pt.bg, pt.ring,
+            isRatio && pctTone !== "neutral" && pt.glow,
+          )}>
+            {Math.round(centerPct)}%
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground/60 text-center font-bold">—</span>
+        )}
+
         <span className={cn(
           "text-base font-extrabold tabular-nums leading-none text-right",
           !equal && awayBetter ? "text-primary" : aHasData ? "text-foreground/70" : "text-foreground/30",
         )}>{aLabel}</span>
       </div>
-    </div>
+    </>
   );
+
+  const baseClass = cn(
+    "group rounded-lg px-2.5 py-2 border transition-all",
+    interactive
+      ? "bg-surface-sunken/60 border-border/50 hover:bg-surface-elevated hover:border-primary/50 hover:shadow-[0_0_0_1px_hsl(var(--primary)/0.25),0_4px_16px_-6px_hsl(var(--primary)/0.35)] cursor-pointer"
+      : "bg-surface-sunken/50 border-border/40 hover:border-border/80",
+  );
+
+  if (interactive) {
+    return (
+      <button
+        type="button"
+        onClick={onShowPositions}
+        className={cn(baseClass, "w-full text-left")}
+        title="Voir les positions sur le terrain"
+      >
+        {rowContent}
+      </button>
+    );
+  }
+  return <div className={baseClass}>{rowContent}</div>;
 }
 
-const BLOCK_ACCENTS: Record<string, { dot: string; text: string; bar: string; bg: string }> = {
-  emerald: { dot: "bg-emerald-500", text: "text-emerald-500", bar: "bg-emerald-500", bg: "from-emerald-500/5" },
-  sky:     { dot: "bg-sky-500",     text: "text-sky-500",     bar: "bg-sky-500",     bg: "from-sky-500/5" },
-  amber:   { dot: "bg-amber-500",   text: "text-amber-500",   bar: "bg-amber-500",   bg: "from-amber-500/5" },
-  rose:    { dot: "bg-rose-500",    text: "text-rose-500",    bar: "bg-rose-500",    bg: "from-rose-500/5" },
+const BLOCK_ACCENTS: Record<string, { dot: string; text: string; bar: string; bg: string; hover: string }> = {
+  emerald: { dot: "bg-emerald-500", text: "text-emerald-500", bar: "bg-emerald-500", bg: "from-emerald-500/[0.07]", hover: "hover:from-emerald-500/[0.12]" },
+  sky:     { dot: "bg-sky-500",     text: "text-sky-500",     bar: "bg-sky-500",     bg: "from-sky-500/[0.07]",     hover: "hover:from-sky-500/[0.12]" },
+  amber:   { dot: "bg-amber-500",   text: "text-amber-500",   bar: "bg-amber-500",   bg: "from-amber-500/[0.07]",   hover: "hover:from-amber-500/[0.12]" },
+  rose:    { dot: "bg-rose-500",    text: "text-rose-500",    bar: "bg-rose-500",    bg: "from-rose-500/[0.07]",    hover: "hover:from-rose-500/[0.12]" },
 };
 
 function StatBlock({
@@ -384,10 +442,13 @@ function StatBlock({
 }) {
   const tone = BLOCK_ACCENTS[accent];
   return (
-    <div className={cn("relative rounded-xl border border-border/60 bg-gradient-to-br to-surface-elevated/40 p-2.5 overflow-hidden", tone.bg)}>
-      <div className={cn("absolute left-0 top-0 bottom-0 w-0.5", tone.bar)} />
+    <div className={cn(
+      "relative rounded-xl border border-border/60 bg-gradient-to-br to-surface-elevated/40 p-2.5 overflow-hidden transition-colors",
+      tone.bg, tone.hover,
+    )}>
+      <div className={cn("absolute left-0 top-0 bottom-0 w-0.5 shadow-[0_0_8px_currentColor]", tone.bar, tone.text)} />
       <div className="flex items-center gap-1.5 mb-2 px-1">
-        <span className={cn("h-2 w-2 rounded-full", tone.dot, "shadow-[0_0_8px_currentColor]")} style={{ color: undefined }} />
+        <span className={cn("h-2 w-2 rounded-full shadow-[0_0_8px_currentColor]", tone.dot, tone.text)} />
         <h4 className={cn("text-[11px] font-bold uppercase tracking-wider", tone.text)}>
           {title}
         </h4>
