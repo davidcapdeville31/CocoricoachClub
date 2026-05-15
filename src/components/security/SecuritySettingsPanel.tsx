@@ -146,6 +146,39 @@ export function SecuritySettingsPanel() {
     }
   };
 
+  const handleChangePassword = async () => {
+    if (!newPwd || !confirmPwd) {
+      toast.error("Remplis tous les champs");
+      return;
+    }
+    if (newPwd !== confirmPwd) {
+      toast.error("Les mots de passe ne correspondent pas");
+      return;
+    }
+    if (newPwd.length < 6) {
+      toast.error("Le mot de passe doit contenir au moins 6 caractères");
+      return;
+    }
+    setPwdLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPwd });
+      if (error) throw error;
+
+      await logSecurityEvent({ eventType: "password_changed", severity: "info" });
+
+      toast.success("Mot de passe mis à jour avec succès");
+      setPwdOpen(false);
+      setCurrentPwd("");
+      setNewPwd("");
+      setConfirmPwd("");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erreur lors du changement de mot de passe";
+      toast.error(msg);
+    } finally {
+      setPwdLoading(false);
+    }
+  };
+
   const handleTimeoutChange = async (value: string) => {
     const minutes = parseInt(value, 10);
     if (isNaN(minutes) || minutes < 5 || minutes > 480) {
