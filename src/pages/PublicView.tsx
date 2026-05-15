@@ -181,9 +181,18 @@ export default function PublicView() {
                   Vous pouvez consulter les données mais pas les modifier.
                 </p>
               </div>
-              <Button onClick={handleContinue} className="w-full gap-2">
-                Accéder aux données
-                <ArrowRight className="h-4 w-4" />
+              <Button onClick={handleContinue} className="w-full gap-2" disabled={redeeming}>
+                {redeeming ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Connexion...
+                  </>
+                ) : (
+                  <>
+                    Accéder aux données
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
               </Button>
             </>
           )}
