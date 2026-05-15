@@ -51,6 +51,8 @@ export default function LiveMatchPage() {
     if (matchId && !teamColors) setColorsOpen(true);
   }, [matchId, teamColors]);
 
+  const { isWakeLockActive: wakeLockActive } = useWakeLock(true);
+
   const { data: match } = useQuery({
     queryKey: ["match-live", matchId],
     enabled: !!matchId,
