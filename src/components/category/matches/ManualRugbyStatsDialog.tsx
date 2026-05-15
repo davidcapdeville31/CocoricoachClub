@@ -607,7 +607,7 @@ export function ManualRugbyStatsDialog({
                           {f.short}
                         </th>
                       ))}
-                      <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground min-w-[140px]">Minutes</th>
+                      
                     </tr>
                   </thead>
                   <tbody>
