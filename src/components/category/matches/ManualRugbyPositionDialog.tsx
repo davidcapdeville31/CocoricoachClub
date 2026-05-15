@@ -4,6 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RugbyFieldSVG } from "@/components/rugby/RugbyFieldSVG";
 import { MapPin, Trash2, Clock } from "lucide-react";
+import { toast } from "sonner";
+
+// In-goal zone bounds in % (matches FIELD_LEFT=20, FIELD_RIGHT=580, in-play 0.05→0.95 of FIELD_W=560)
+const INGOAL_LEFT_X = [20 / 600 * 100, (20 + 0.05 * 560) / 600 * 100] as const; // ~3.33% → 8%
+const INGOAL_RIGHT_X = [(20 + 0.95 * 560) / 600 * 100, 580 / 600 * 100] as const; // ~92% → 96.67%
+const FIELD_Y = [14 / 400 * 100, 386 / 400 * 100] as const; // 3.5% → 96.5%
 
 export type FieldPosition = {
   kickX: number;
@@ -85,6 +91,17 @@ export function ManualRugbyPositionDialog({
   };
 
   const handleClick = (xPct: number, yPct: number) => {
+    // Pour les essais : restreindre à la zone d'en-but adverse (côté attaqué)
+    if (kind === "try") {
+      const [xMin, xMax] = side === "right" ? INGOAL_RIGHT_X : INGOAL_LEFT_X;
+      const [yMin, yMax] = FIELD_Y;
+      if (xPct < xMin || xPct > xMax || yPct < yMin || yPct > yMax) {
+        toast.error("Un essai doit être marqué dans la zone d'en-but (derrière les poteaux).");
+        return;
+      }
+      setList((prev) => [...prev, { kickX: xPct, kickY: yPct, kickingSide: side }]);
+      return;
+    }
     const { x, y } = snapToTouchline(xPct, yPct);
     setList((prev) => [...prev, { kickX: x, kickY: y, kickingSide: side }]);
   };
@@ -123,7 +140,9 @@ export function ManualRugbyPositionDialog({
 
         <div className="flex items-center justify-between">
           <div className="text-xs text-muted-foreground">
-            {lineout ? "Cliquez près d'une ligne de touche : la position se calera dessus." : kick ? "Sens du tir : choisir le côté des poteaux." : "Choisir le sens du jeu."}
+            {kind === "try"
+              ? "Cliquez dans la zone d'en-but adverse (surlignée) pour placer l'essai."
+              : lineout ? "Cliquez près d'une ligne de touche : la position se calera dessus." : kick ? "Sens du tir : choisir le côté des poteaux." : "Choisir le sens du jeu."}
           </div>
           <div className="flex gap-1">
             <Button type="button" variant={side === "left" ? "default" : "outline"} size="sm" className="h-7 text-xs" onClick={() => setSide("left")}>← Gauche</Button>
@@ -133,6 +152,19 @@ export function ManualRugbyPositionDialog({
 
         <div className="relative w-full">
           <RugbyFieldSVG goalsOnRight={side === "right"} showCursorTracker onClick={handleClick}>
+            {kind === "try" && (() => {
+              const x = side === "right" ? (20 + 0.95 * 560) : 20;
+              const w = 0.05 * 560;
+              return (
+                <g pointerEvents="none">
+                  <rect x={x} y={14} width={w} height={372} fill="#16a34a" opacity={0.28} />
+                  <rect x={x} y={14} width={w} height={372} fill="none" stroke="#16a34a" strokeWidth={2} strokeDasharray="6 4" opacity={0.9} />
+                  <text x={x + w / 2} y={200} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold" opacity={0.85} style={{ writingMode: "vertical-rl" } as any}>
+                    EN-BUT
+                  </text>
+                </g>
+              );
+            })()}
             {list.map((p, i) => {
               const cx = (p.kickX / 100) * 600;
               const cy = (p.kickY / 100) * 400;
