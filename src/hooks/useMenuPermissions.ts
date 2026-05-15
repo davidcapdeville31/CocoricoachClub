@@ -99,7 +99,8 @@ export function useMenuPermissions(clubId?: string, categoryId?: string) {
 
   // Build the visibility map
   const menuPermissions: MenuPermissions = {};
-  const isFullAccess = userRole === "super_admin" || userRole === "owner" || userRole === "admin";
+  // Viewer = read-only full visibility (writes blocked by ViewerModeContext + RLS)
+  const isFullAccess = userRole === "super_admin" || userRole === "owner" || userRole === "admin" || userRole === "viewer";
 
   if (permissionsMatrix) {
     const column = userRole ? ROLE_TO_COLUMN[userRole] : null;
