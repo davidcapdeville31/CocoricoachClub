@@ -9,6 +9,9 @@ export interface StatField {
   min?: number;
   max?: number;
   isMatchLevel?: boolean;
+  /** When false, the stat is shown in displays but cannot be toggled in the
+   *  preferences dialog (no manual/live entry counterpart). Default: true. */
+  enterable?: boolean;
   // For auto-computed percentage stats: defines source keys
   // successKey = numerator, totalKey = denominator (if explicit), failureKey = if set, total = successKey + failureKey
   computedFrom?: { successKey: string; totalKey?: string; failureKey?: string };
