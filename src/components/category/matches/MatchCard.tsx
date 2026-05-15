@@ -42,6 +42,7 @@ import { SkiConditionsForm } from "@/components/ski/SkiConditionsForm";
 import { SessionEquipmentSection } from "@/components/shared/SessionEquipmentSection";
 import { SportMatchStatsDialog } from "./SportMatchStatsDialog";
 import { ManualRugbyStatsDialog } from "./ManualRugbyStatsDialog";
+import { MatchStatsDialog } from "./stats/MatchStatsDialog";
 import { StatPreferencesDialog } from "@/components/category/settings/StatPreferencesDialog";
 import { ClipboardEdit, Settings2 } from "lucide-react";
 import { CompetitionRoundsDialog } from "./CompetitionRoundsDialog";
