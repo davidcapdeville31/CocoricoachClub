@@ -491,79 +491,56 @@ export function StatPreferencesDialog({
             )}
           </div>
 
-          {/* Category dropdown selector */}
-          <div className="flex items-center gap-3 mb-4">
-            <Label className="text-sm font-medium whitespace-nowrap">Catégorie :</Label>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Sélectionner une catégorie" />
-              </SelectTrigger>
-              <SelectContent>
-                {statCategories.map(cat => (
-                  <SelectItem key={cat.key} value={cat.key}>
-                    <span className="flex items-center gap-2">
-                      {cat.label}
-                      <Badge variant="secondary" className="text-xs px-1.5">
-                        {getEnabledCountForCategory(cat.key)}/{getTotalCountForCategory(cat.key)}
-                      </Badge>
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Stats list with scroll — toutes les catégories visibles */}
+          <ScrollArea className="h-[calc(60vh-60px)] border rounded-md p-4">
+            <div className="space-y-6">
+              {statCategories.map(cat => {
+                const categoryStats = getCombinedStatsForCategory(cat.key);
+                const customCategoryStats = getCustomStatsForCategory(cat.key);
 
-          {/* Stats list with scroll */}
-          <ScrollArea className="h-[calc(60vh-120px)] border rounded-md p-4">
-            {statCategories.map(cat => {
-              if (cat.key !== selectedCategory) return null;
-              
-              const categoryStats = getCombinedStatsForCategory(cat.key);
-              const customCategoryStats = getCustomStatsForCategory(cat.key);
-              
-              return (
-                <div key={cat.key} className="space-y-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">{cat.label}</span>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => selectCategory(cat.key)}
-                    >
-                      {[...categoryStats, ...customCategoryStats].every(s => enabledStats.includes(s.key)) 
-                        ? "Désélectionner tout" 
-                        : "Sélectionner tout"
-                      }
-                    </Button>
-                  </div>
-                  
-                  {/* Standard stats */}
-                  {categoryStats.length > 0 && (
-                    <div className="grid grid-cols-2 gap-3">
-                      {categoryStats.map(stat => renderStatCheckbox(stat))}
+                if (categoryStats.length === 0 && customCategoryStats.length === 0) return null;
+
+                return (
+                  <div key={cat.key} className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold flex items-center gap-2">
+                        {cat.label}
+                        <Badge variant="secondary" className="text-xs px-1.5">
+                          {getEnabledCountForCategory(cat.key)}/{getTotalCountForCategory(cat.key)}
+                        </Badge>
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => selectCategory(cat.key)}
+                      >
+                        {[...categoryStats, ...customCategoryStats].every(s => enabledStats.includes(s.key))
+                          ? "Désélectionner tout"
+                          : "Sélectionner tout"
+                        }
+                      </Button>
                     </div>
-                  )}
-                  
-                  {/* Custom stats */}
-                  {customCategoryStats.length > 0 && (
-                    <div className="mt-4 pt-4 border-t">
-                      <p className="text-sm font-medium mb-3 text-muted-foreground">
-                        Statistiques personnalisées
-                      </p>
-                      <div className="grid grid-cols-1 gap-2">
-                        {customCategoryStats.map(stat => renderCustomStatCheckbox(stat))}
+
+                    {categoryStats.length > 0 && (
+                      <div className="grid grid-cols-2 gap-3">
+                        {categoryStats.map(stat => renderStatCheckbox(stat))}
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {categoryStats.length === 0 && customCategoryStats.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      Aucune statistique dans cette catégorie
-                    </p>
-                  )}
-                </div>
-              );
-            })}
+                    {customCategoryStats.length > 0 && (
+                      <div className="mt-3 pt-3 border-t">
+                        <p className="text-xs font-medium mb-2 text-muted-foreground">
+                          Statistiques personnalisées
+                        </p>
+                        <div className="grid grid-cols-1 gap-2">
+                          {customCategoryStats.map(stat => renderCustomStatCheckbox(stat))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </ScrollArea>
 
           <DialogFooter className="mt-4">
