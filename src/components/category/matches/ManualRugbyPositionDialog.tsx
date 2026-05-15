@@ -130,9 +130,9 @@ export function ManualRugbyPositionDialog({
   const removeAt = (i: number) => setList((prev) => prev.filter((_, idx) => idx !== i));
   const clearAll = () => setList([]);
 
-  const markerColor = useMemo(() => {
-    if (missed) return "#ef4444";
-    switch (kind) {
+  const colorFor = (k: PositionableKind, miss: boolean) => {
+    if (miss) return "#ef4444";
+    switch (k) {
       case "try": return "#16a34a";
       case "conversion": return "#22c55e";
       case "penalty_kick": return "#3b82f6";
@@ -142,7 +142,9 @@ export function ManualRugbyPositionDialog({
       case "scrum_lost":
       case "lineout_lost": return "#ef4444";
     }
-  }, [kind, missed]);
+  };
+  const markerColor = useMemo(() => colorFor(kind, missed), [kind, missed]);
+  const ctxOffset = contextMarkers.length;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
