@@ -555,7 +555,6 @@ export function ManualRugbyStatsDialog({
             <DialogDescription>
               Choisissez la mi-temps puis la catégorie. Les scores se calculent automatiquement
               à partir des essais, transformations, pénalités et drops des deux équipes.
-              Le champ « Minutes » accepte les moments libres (ex. <em>12', 34'</em>).
             </DialogDescription>
           </DialogHeader>
 
