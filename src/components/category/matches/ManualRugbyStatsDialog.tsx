@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import { Loader2, Save, Shield, MapPin } from "lucide-react";
 import { ManualRugbyPositionDialog, type FieldPosition, type PositionableKind } from "./ManualRugbyPositionDialog";
+import { useStatPreferences } from "@/hooks/use-stat-preferences";
 
 interface ManualRugbyStatsDialogProps {
   open: boolean;
@@ -22,6 +23,10 @@ interface ManualRugbyStatsDialogProps {
   opponentName?: string;
   clubName?: string;
   initialOpponentScore?: number;
+  /** Catégorie (utilisée pour filtrer les stats selon les préférences). */
+  categoryId?: string;
+  /** Type de sport pour résoudre la liste de référence. Defaults to "rugby_xv". */
+  sportType?: string;
 }
 
 type StatRow = {
@@ -132,6 +137,40 @@ const CATEGORY_LABELS: Record<Category, string> = {
   discipline: "Discipline",
 };
 
+/**
+ * Mapping clé interne ManualRugby → clé du référentiel `RUGBY_STATS`
+ * (utilisé par useStatPreferences / cases à cocher du dialogue Préférences).
+ */
+const FIELD_TO_REF_KEY: Record<keyof StatRow, string> = {
+  tries: "tries",
+  conversionsMade: "conversionsMade",
+  conversionsMissed: "conversionsMissed",
+  penaltiesMade: "penaltiesMade",
+  penaltiesMissed: "penaltiesMissed",
+  drops: "dropsMade",
+  dropsMissed: "dropsMissed",
+  scrumsWon: "scrumsWon",
+  scrumsLost: "scrumsLost",
+  lineoutsWon: "lineoutsWon",
+  lineoutsLost: "lineoutsLost",
+  mauls: "mauls",
+  rucks: "rucks",
+  knockOns: "knockOns",
+  lineBreaks: "lineBreaks",
+  passesMade: "passesMade",
+  passesMissed: "passesMissed",
+  kicksMade: "kicksMade",
+  kicksMissed: "kicksMissed",
+  tackles: "tackles",
+  missedTackles: "tacklesMissed",
+  turnoversWon: "turnoversWon",
+  fouls: "fouls",
+  yellowCards: "yellowCards",
+  redCards: "redCards",
+  // 'positions' n'est pas une stat, ignorée
+  positions: "__ignore__",
+};
+
 const computePoints = (r: StatRow) =>
   r.tries * 5 + r.conversionsMade * 2 + r.penaltiesMade * 3 + r.drops * 3;
 
@@ -140,6 +179,7 @@ const sumPeriods = (ps: PeriodStats, fn: (r: StatRow) => number) => fn(ps.H1) + 
 export function ManualRugbyStatsDialog({
   open, onOpenChange, matchId, isHome,
   opponentName = "Adversaire", clubName = "Notre équipe",
+  categoryId, sportType = "rugby_xv",
 }: ManualRugbyStatsDialogProps) {
   const qc = useQueryClient();
   const clubSide: "home" | "away" = isHome ? "home" : "away";
@@ -371,7 +411,23 @@ export function ManualRugbyStatsDialog({
   );
   const opponentScore = useMemo(() => sumPeriods(opponent, computePoints), [opponent]);
 
-  const visibleFields = useMemo(() => FIELDS.filter((f) => f.category === category), [category]);
+  // Préférences statistiques (par catégorie + override par match)
+  const { enabledStatKeys, hasCustomPreferences } = useStatPreferences({
+    categoryId: categoryId ?? "",
+    sportType,
+    matchId,
+  });
+  const enabledSet = useMemo(() => new Set(enabledStatKeys), [enabledStatKeys]);
+
+  const visibleFields = useMemo(() => {
+    const inCat = FIELDS.filter((f) => f.category === category);
+    if (!categoryId || !hasCustomPreferences) return inCat;
+    return inCat.filter((f) => {
+      const refKey = FIELD_TO_REF_KEY[f.key];
+      if (!refKey || refKey === "__ignore__") return true;
+      return enabledSet.has(refKey);
+    });
+  }, [category, categoryId, hasCustomPreferences, enabledSet]);
 
   const buildEvents = () => {
     const events: any[] = [];
