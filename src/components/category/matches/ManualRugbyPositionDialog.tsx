@@ -91,6 +91,17 @@ export function ManualRugbyPositionDialog({
   };
 
   const handleClick = (xPct: number, yPct: number) => {
+    // Pour les essais : restreindre à la zone d'en-but adverse (côté attaqué)
+    if (kind === "try") {
+      const [xMin, xMax] = side === "right" ? INGOAL_RIGHT_X : INGOAL_LEFT_X;
+      const [yMin, yMax] = FIELD_Y;
+      if (xPct < xMin || xPct > xMax || yPct < yMin || yPct > yMax) {
+        toast.error("Un essai doit être marqué dans la zone d'en-but (derrière les poteaux).");
+        return;
+      }
+      setList((prev) => [...prev, { kickX: xPct, kickY: yPct, kickingSide: side }]);
+      return;
+    }
     const { x, y } = snapToTouchline(xPct, yPct);
     setList((prev) => [...prev, { kickX: x, kickY: y, kickingSide: side }]);
   };
