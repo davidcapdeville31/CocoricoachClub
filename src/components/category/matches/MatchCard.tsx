@@ -941,6 +941,16 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         />
       )}
 
+      {isRugby && (
+        <StatPreferencesDialog
+          open={isMatchStatPrefsOpen}
+          onOpenChange={setIsMatchStatPrefsOpen}
+          categoryId={categoryId}
+          sportType={sportType}
+          matchId={match.id}
+        />
+      )}
+
 
       {/* For round-based sports, use AggregatedRoundStatsDialog */}
       {hasRoundBasedStats && (
