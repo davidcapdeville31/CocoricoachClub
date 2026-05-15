@@ -27,8 +27,9 @@ const handler = async (req: Request): Promise<Response> => {
     const authHeader = req.headers.get("Authorization");
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    if (!authHeader || !supabaseUrl || !supabaseAnonKey) {
+    if (!authHeader || !supabaseUrl || !supabaseAnonKey || !serviceRoleKey) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -47,12 +48,9 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // OneSignal is now used ONLY for SMS — email goes through Lovable Emails.
     const ONESIGNAL_APP_ID = Deno.env.get("ONESIGNAL_APP_ID");
     const ONESIGNAL_REST_API_KEY = Deno.env.get("ONESIGNAL_REST_API_KEY");
-
-    if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
-      throw new Error("OneSignal credentials not configured");
-    }
 
     const {
       athleteName,
@@ -71,94 +69,46 @@ const handler = async (req: Request): Promise<Response> => {
 
     const results: { email?: any; sms?: any } = {};
 
-    // Auto-subscribe email to OneSignal before sending
+    // ── EMAIL via Lovable Emails (send-transactional-email) ──────────────
+    // Sends from noreply@cocoricoachclub.com (verified sender) to keep all
+    // outgoing emails consistent across the app — no SSL/sender warnings.
     if (channels.includes("email") && email) {
-      try {
-        await fetch(`https://api.onesignal.com/apps/${ONESIGNAL_APP_ID}/users`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Key ${ONESIGNAL_REST_API_KEY}`,
+      const linkHash = invitationLink.split("token=")[1]?.slice(0, 32) ?? Date.now().toString();
+      const idempotencyKey = `invitation-athlete-${linkHash}`;
+
+      const serviceClient = createClient(supabaseUrl, serviceRoleKey);
+      const { data: emailResult, error: emailError } = await serviceClient.functions.invoke(
+        "send-transactional-email",
+        {
+          body: {
+            templateName: "invitation",
+            recipientEmail: email,
+            idempotencyKey,
+            templateData: {
+              invitationType: "athlete",
+              clubName,
+              categoryName,
+              athleteName: displayName,
+              invitationLink,
+            },
           },
-          body: JSON.stringify({
-            subscriptions: [{
-              type: "Email",
-              token: email,
-            }],
-          }),
-        });
-      } catch (e) {
-        console.log("Email subscription upsert (may already exist):", e);
+        },
+      );
+
+      if (emailError) {
+        console.error("send-transactional-email error:", emailError);
+        results.email = { error: emailError.message };
+      } else {
+        results.email = emailResult;
+        console.log("Email invitation enqueued:", emailResult);
       }
     }
 
-    // Send Email
-    if (channels.includes("email") && email) {
-      const emailHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Invitation à rejoindre ${clubName}</title>
-        </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f4f4f5;">
-          <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-            <div style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 16px 16px 0 0; padding: 40px; text-align: center;">
-              <h1 style="color: white; margin: 0; font-size: 28px;">🏆 Bienvenue dans l'équipe !</h1>
-            </div>
-            <div style="background: white; border-radius: 0 0 16px 16px; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-              <p style="font-size: 18px; color: #18181b; margin-bottom: 20px;">
-                Bonjour <strong>${displayName}</strong>,
-              </p>
-              <p style="font-size: 16px; color: #52525b; line-height: 1.6;">
-                Tu as été invité(e) à rejoindre <strong>${clubName}</strong> dans la catégorie <strong>${categoryName}</strong>.
-              </p>
-              <p style="font-size: 16px; color: #52525b; line-height: 1.6;">
-                Clique sur le bouton ci-dessous pour créer ton compte et accéder à ton espace athlète :
-              </p>
-              <div style="text-align: center; margin: 32px 0;">
-                <a href="${invitationLink}" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                  Rejoindre l'équipe
-                </a>
-              </div>
-              <p style="font-size: 14px; color: #71717a; margin-top: 24px;">
-                Ce lien est valable pendant 7 jours et ne peut être utilisé qu'une seule fois.
-              </p>
-              <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 24px 0;">
-              <p style="font-size: 12px; color: #a1a1aa; text-align: center;">
-                Si tu n'as pas demandé cette invitation, tu peux ignorer cet email.
-              </p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
-
-      const emailResponse = await fetch(
-        "https://api.onesignal.com/notifications",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Key ${ONESIGNAL_REST_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            app_id: ONESIGNAL_APP_ID,
-            include_email_tokens: [email],
-            email_subject: `${clubName} - Invitation à rejoindre l'équipe`,
-            email_body: emailHtml,
-            email_from_name: clubName,
-          }),
-        }
-      );
-
-      results.email = await emailResponse.json();
-      console.log("Email invitation sent:", results.email);
-    }
-
-    // Send SMS
+    // Send SMS (still via OneSignal)
     if (channels.includes("sms") && phone) {
+      if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
+        throw new Error("OneSignal credentials not configured for SMS");
+      }
       let formattedPhone = phone.replace(/\s+/g, "").replace(/[^\d+]/g, "");
 
       // Add French country code if missing
