@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RugbyFieldSVG } from "@/components/rugby/RugbyFieldSVG";
-import { MapPin, Trash2, Clock } from "lucide-react";
+import { MapPin, Trash2, Clock, History } from "lucide-react";
 import { toast } from "sonner";
 
 // In-goal zone bounds in % (matches FIELD_LEFT=20, FIELD_RIGHT=580, in-play 0.05→0.95 of FIELD_W=560)
