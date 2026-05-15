@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Plus, LogOut, Shield, User, Search } from "lucide-react";
+import { Plus, LogOut, Shield, User, Search, Settings } from "lucide-react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AddClubDialog } from "@/components/clubs/AddClubDialog";
@@ -232,6 +232,9 @@ export default function Clubs() {
                   <SuperAdminShieldButton variant="default" />
                 </>
               )}
+              <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="h-9 w-9 sm:h-10 sm:w-10" title="Paramètres">
+                <Settings className="h-5 w-5" />
+              </Button>
               <Button variant="ghost" size="icon" onClick={signOut} className="h-9 w-9 sm:h-10 sm:w-10">
                 <LogOut className="h-5 w-5" />
               </Button>

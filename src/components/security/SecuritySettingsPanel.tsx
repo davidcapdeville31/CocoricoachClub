@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Shield, ShieldCheck, KeyRound, Clock, Smartphone, Eye, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Shield, ShieldCheck, KeyRound, Clock, Smartphone, Eye, AlertTriangle, CheckCircle2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -33,6 +33,12 @@ export function SecuritySettingsPanel() {
   const [enrollData, setEnrollData] = useState<{ qr: string; secret: string; factorId: string } | null>(null);
   const [verifyCode, setVerifyCode] = useState("");
   const [verifying, setVerifying] = useState(false);
+
+  // Password change state
+  const [pwdOpen, setPwdOpen] = useState(false);
+  const [newPwd, setNewPwd] = useState("");
+  const [confirmPwd, setConfirmPwd] = useState("");
+  const [pwdLoading, setPwdLoading] = useState(false);
 
   // Load enrolled factors
   const { data: factors } = useQuery({
@@ -139,6 +145,38 @@ export function SecuritySettingsPanel() {
     }
   };
 
+  const handleChangePassword = async () => {
+    if (!newPwd || !confirmPwd) {
+      toast.error("Remplis tous les champs");
+      return;
+    }
+    if (newPwd !== confirmPwd) {
+      toast.error("Les mots de passe ne correspondent pas");
+      return;
+    }
+    if (newPwd.length < 6) {
+      toast.error("Le mot de passe doit contenir au moins 6 caractères");
+      return;
+    }
+    setPwdLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPwd });
+      if (error) throw error;
+
+      await logSecurityEvent({ eventType: "password_changed", severity: "info" });
+
+      toast.success("Mot de passe mis à jour avec succès");
+      setPwdOpen(false);
+      setNewPwd("");
+      setConfirmPwd("");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erreur lors du changement de mot de passe";
+      toast.error(msg);
+    } finally {
+      setPwdLoading(false);
+    }
+  };
+
   const handleTimeoutChange = async (value: string) => {
     const minutes = parseInt(value, 10);
     if (isNaN(minutes) || minutes < 5 || minutes > 480) {
@@ -208,6 +246,26 @@ export function SecuritySettingsPanel() {
                 Activer le 2FA
               </Button>
             )}
+          </div>
+
+          {/* Change Password */}
+          <div className="p-4 rounded-2xl bg-muted/40 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3 flex-1 min-w-0">
+                <div className="p-2 rounded-xl bg-background">
+                  <Lock className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold">Mot de passe</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Change ton mot de passe pour sécuriser ton compte.
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" onClick={() => setPwdOpen(true)} className="w-full sm:w-auto">
+                Modifier
+              </Button>
+            </div>
           </div>
 
           {/* Session timeout */}
@@ -309,6 +367,49 @@ export function SecuritySettingsPanel() {
             <Button variant="outline" onClick={() => setEnrollOpen(false)}>Annuler</Button>
             <Button onClick={handleVerifyMfa} disabled={verifying}>
               {verifying ? "Vérification…" : "Valider"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Password change dialog */}
+      <Dialog open={pwdOpen} onOpenChange={setPwdOpen}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5" />
+              Modifier le mot de passe
+            </DialogTitle>
+            <DialogDescription>
+              Choisis un nouveau mot de passe sécurisé pour ton compte.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Nouveau mot de passe</Label>
+              <Input
+                type="password"
+                value={newPwd}
+                onChange={(e) => setNewPwd(e.target.value)}
+                placeholder="••••••••"
+                className="rounded-xl bg-muted/40 mt-2"
+              />
+            </div>
+            <div>
+              <Label>Confirmer le mot de passe</Label>
+              <Input
+                type="password"
+                value={confirmPwd}
+                onChange={(e) => setConfirmPwd(e.target.value)}
+                placeholder="••••••••"
+                className="rounded-xl bg-muted/40 mt-2"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPwdOpen(false)}>Annuler</Button>
+            <Button onClick={handleChangePassword} disabled={pwdLoading}>
+              {pwdLoading ? "Mise à jour…" : "Enregistrer"}
             </Button>
           </DialogFooter>
         </DialogContent>
