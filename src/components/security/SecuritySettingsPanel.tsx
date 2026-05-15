@@ -34,6 +34,13 @@ export function SecuritySettingsPanel() {
   const [verifyCode, setVerifyCode] = useState("");
   const [verifying, setVerifying] = useState(false);
 
+  // Password change state
+  const [pwdOpen, setPwdOpen] = useState(false);
+  const [currentPwd, setCurrentPwd] = useState("");
+  const [newPwd, setNewPwd] = useState("");
+  const [confirmPwd, setConfirmPwd] = useState("");
+  const [pwdLoading, setPwdLoading] = useState(false);
+
   // Load enrolled factors
   const { data: factors } = useQuery({
     queryKey: ["mfa-factors"],
