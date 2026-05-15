@@ -106,14 +106,26 @@ const queryClient = new QueryClient({
 function PreviewCacheGuard() {
   useEffect(() => {
     const hostname = window.location.hostname;
-    const isPreviewHost = import.meta.env.DEV || hostname.includes("id-preview--") || hostname.includes("localhost");
+    // ⚠️ Ne désinscris les SW QUE dans les vrais previews/éditeurs Lovable.
+    // Sur le domaine publié (cocoricoachclub.lovable.app / cocoricoachclub.com),
+    // on doit garder le worker OneSignal sous /push/onesignal/ sinon les push échouent
+    // avec une erreur "SSL/registration failed".
+    const isEditorPreview =
+      import.meta.env.DEV ||
+      hostname.startsWith("id-preview--") ||
+      hostname.endsWith("lovableproject.com") ||
+      hostname === "localhost" ||
+      hostname === "127.0.0.1";
 
-    if (!isPreviewHost || !("serviceWorker" in navigator)) {
+    if (!isEditorPreview || !("serviceWorker" in navigator)) {
       return;
     }
 
     navigator.serviceWorker.getRegistrations().then((registrations) => {
       registrations.forEach((registration) => {
+        const url = registration.active?.scriptURL || "";
+        // Ne touche pas au worker OneSignal — indispensable aux notifications push.
+        if (url.includes("/push/onesignal/")) return;
         registration.unregister();
       });
     });
