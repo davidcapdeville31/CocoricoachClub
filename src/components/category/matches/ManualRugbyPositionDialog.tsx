@@ -58,11 +58,16 @@ export function ManualRugbyPositionDialog({
 }: Props) {
   const [side, setSide] = useState<"left" | "right">("right");
   const [list, setList] = useState<FieldPosition[]>([]);
+  // Conserve la liste à jour pour pouvoir auto-sauvegarder à la fermeture
+  const listRef = useRef<FieldPosition[]>([]);
+  const initialCountRef = useRef(0);
+  useEffect(() => { listRef.current = list; }, [list]);
 
   useEffect(() => {
     if (!open) return;
     setList(initial.slice());
     setSide(initial[0]?.kickingSide ?? "right");
+    initialCountRef.current = initial.length;
   }, [open, initial]);
 
   // count agit comme objectif indicatif ; on autorise toujours le placement libre
@@ -70,6 +75,12 @@ export function ManualRugbyPositionDialog({
   const remaining = Math.max(0, target - list.length);
   const kick = isKick(kind);
   const lineout = isLineout(kind);
+
+  // Persiste automatiquement la liste lors de toute fermeture (croix, clic extérieur, Échap)
+  const handleOpenChange = (o: boolean) => {
+    if (!o) onSave(listRef.current);
+    onOpenChange(o);
+  };
 
   const snapToTouchline = (x: number, y: number) => {
     if (!lineout) return { x, y };
