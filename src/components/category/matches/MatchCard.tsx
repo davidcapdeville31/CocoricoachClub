@@ -738,10 +738,6 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                 onPointerDown={stopCardAction}
                 onClick={(e) => {
                   stopCardAction(e);
-                  if (isRugby) {
-                    navigate(`/categories/${categoryId}/match/${match.id}/live`);
-                    return;
-                  }
                   setIsStatsOpen(true);
                 }}
               >
