@@ -115,6 +115,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   const [isLineupOpen, setIsLineupOpen] = useState(false);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [isManualRugbyOpen, setIsManualRugbyOpen] = useState(false);
+  const [isMatchStatPrefsOpen, setIsMatchStatPrefsOpen] = useState(false);
   const [isAggregatedStatsOpen, setIsAggregatedStatsOpen] = useState(false);
   const [isRoundsOpen, setIsRoundsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
