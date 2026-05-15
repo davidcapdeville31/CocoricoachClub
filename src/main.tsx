@@ -13,18 +13,24 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
     try { return window.self !== window.top; } catch { return true; }
   })();
   const host = window.location.hostname;
-  const isPreviewHost =
-    host.includes("lovable.app") ||
-    host.includes("lovableproject.com") ||
-    host.includes("lovable.dev") ||
+
+  // ⚠️ Important: on ne désactive le SW QUE dans les vrais previews/éditeurs Lovable.
+  // Le domaine PUBLIÉ "cocoricoachclub.lovable.app" doit conserver les service workers
+  // (sinon OneSignal ne peut pas enregistrer son worker push → erreur "SSL/Push registration failed").
+  const isLovableEditorPreview =
+    host.endsWith("lovableproject.com") || // sandbox éditeur
+    host.endsWith("lovable.dev") ||        // outils Lovable
+    host.startsWith("id-preview--") ||     // previews jetables
     host === "localhost" ||
     host === "127.0.0.1";
 
-  if (isInIframe || isPreviewHost) {
-    // Nettoyage : si un ancien sw.js avait été enregistré, on le retire ici.
+  if (isInIframe || isLovableEditorPreview) {
+    // Nettoyage : si un ancien sw.js avait été enregistré dans un preview, on le retire.
+    // ⚠️ On ne touche PAS au worker OneSignal, indispensable aux push.
     navigator.serviceWorker.getRegistrations().then((regs) => {
       regs.forEach((r) => {
-        if (r.active && r.active.scriptURL.endsWith("/sw.js")) r.unregister();
+        const url = r.active?.scriptURL || "";
+        if (url.endsWith("/sw.js")) r.unregister();
       });
     }).catch(() => null);
     return;
