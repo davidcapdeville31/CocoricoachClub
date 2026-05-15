@@ -2140,7 +2140,7 @@ export type Database = {
           email: string
           expires_at: string | null
           id: string
-          invited_by: string
+          invited_by: string | null
           role: Database["public"]["Enums"]["app_role"]
           status: string
           token: string
@@ -2152,7 +2152,7 @@ export type Database = {
           email: string
           expires_at?: string | null
           id?: string
-          invited_by: string
+          invited_by?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           status?: string
           token?: string
@@ -2164,7 +2164,7 @@ export type Database = {
           email?: string
           expires_at?: string | null
           id?: string
-          invited_by?: string
+          invited_by?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           status?: string
           token?: string
