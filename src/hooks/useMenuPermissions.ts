@@ -99,7 +99,13 @@ export function useMenuPermissions(clubId?: string, categoryId?: string) {
 
   // Build the visibility map
   const menuPermissions: MenuPermissions = {};
-  const isFullAccess = userRole === "super_admin" || userRole === "owner" || userRole === "admin";
+  // Viewers (compte invité via lien de consultation) doivent VOIR tous les onglets
+  // en lecture seule. Les RLS + ViewerModeContext bloquent toute écriture.
+  const isFullAccess =
+    userRole === "super_admin" ||
+    userRole === "owner" ||
+    userRole === "admin" ||
+    userRole === "viewer";
 
   if (permissionsMatrix) {
     const column = userRole ? ROLE_TO_COLUMN[userRole] : null;
