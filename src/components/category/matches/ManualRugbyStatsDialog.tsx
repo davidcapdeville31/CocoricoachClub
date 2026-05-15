@@ -137,6 +137,40 @@ const CATEGORY_LABELS: Record<Category, string> = {
   discipline: "Discipline",
 };
 
+/**
+ * Mapping clé interne ManualRugby → clé du référentiel `RUGBY_STATS`
+ * (utilisé par useStatPreferences / cases à cocher du dialogue Préférences).
+ */
+const FIELD_TO_REF_KEY: Record<keyof StatRow, string> = {
+  tries: "tries",
+  conversionsMade: "conversionsMade",
+  conversionsMissed: "conversionsMissed",
+  penaltiesMade: "penaltiesMade",
+  penaltiesMissed: "penaltiesMissed",
+  drops: "dropsMade",
+  dropsMissed: "dropsMissed",
+  scrumsWon: "scrumsWon",
+  scrumsLost: "scrumsLost",
+  lineoutsWon: "lineoutsWon",
+  lineoutsLost: "lineoutsLost",
+  mauls: "mauls",
+  rucks: "rucks",
+  knockOns: "knockOns",
+  lineBreaks: "lineBreaks",
+  passesMade: "passesMade",
+  passesMissed: "passesMissed",
+  kicksMade: "kicksMade",
+  kicksMissed: "kicksMissed",
+  tackles: "tackles",
+  missedTackles: "tacklesMissed",
+  turnoversWon: "turnoversWon",
+  fouls: "fouls",
+  yellowCards: "yellowCards",
+  redCards: "redCards",
+  // 'positions' n'est pas une stat, ignorée
+  positions: "__ignore__",
+};
+
 const computePoints = (r: StatRow) =>
   r.tries * 5 + r.conversionsMade * 2 + r.penaltiesMade * 3 + r.drops * 3;
 
