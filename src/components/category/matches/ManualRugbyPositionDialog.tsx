@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { RugbyFieldSVG } from "@/components/rugby/RugbyFieldSVG";
-import { MapPin, Trash2 } from "lucide-react";
+import { MapPin, Trash2, Clock } from "lucide-react";
 
 export type FieldPosition = {
   kickX: number;
   kickY: number;
   kickingSide: "left" | "right";
+  minute?: number | null;
 };
 
 export type PositionableKind =
@@ -164,6 +166,38 @@ export function ManualRugbyPositionDialog({
           </Button>
           <span className="text-muted-foreground">Astuce : cliquez un marqueur pour le supprimer.</span>
         </div>
+
+        {list.length > 0 && (
+          <div className="rounded-md border bg-muted/30 p-2 space-y-1.5">
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
+              <Clock className="h-3 w-3" /> Minute du match (optionnel)
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5">
+              {list.map((p, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <span
+                    className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                    style={{ background: markerColor }}
+                  >
+                    {missed ? "✗" : i + 1}
+                  </span>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={120}
+                    value={p.minute ?? ""}
+                    placeholder="min"
+                    onChange={(e) => {
+                      const v = e.target.value === "" ? null : Math.max(0, parseInt(e.target.value) || 0);
+                      setList((prev) => prev.map((x, idx) => (idx === i ? { ...x, minute: v } : x)));
+                    }}
+                    className="h-7 text-xs"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
