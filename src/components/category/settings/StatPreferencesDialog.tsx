@@ -97,6 +97,24 @@ export function StatPreferencesDialog({
     refetchOnMount: "always",
   });
 
+  // Fetch match-level override (only when matchId provided)
+  const { data: matchOverride, isLoading: loadingOverride } = useQuery({
+    queryKey: ["match-stat-override-raw", matchId],
+    queryFn: async () => {
+      if (!matchId) return null;
+      const { data, error } = await supabase
+        .from("match_stat_overrides")
+        .select("*")
+        .eq("match_id", matchId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: open && isMatchScope,
+    staleTime: 0,
+    refetchOnMount: "always",
+  });
+
   // Fetch custom stats for this category
   const { data: customStats = [] } = useQuery({
     queryKey: ["custom-stats", categoryId],
