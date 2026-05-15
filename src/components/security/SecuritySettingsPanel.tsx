@@ -167,7 +167,6 @@ export function SecuritySettingsPanel() {
 
       toast.success("Mot de passe mis à jour avec succès");
       setPwdOpen(false);
-      setCurrentPwd("");
       setNewPwd("");
       setConfirmPwd("");
     } catch (err: unknown) {
