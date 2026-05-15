@@ -95,6 +95,7 @@ export function ManualRugbyPositionDialog({
   const markerColor = useMemo(() => {
     if (missed) return "#ef4444";
     switch (kind) {
+      case "try": return "#16a34a";
       case "conversion": return "#22c55e";
       case "penalty_kick": return "#3b82f6";
       case "drop": return "#a855f7";
