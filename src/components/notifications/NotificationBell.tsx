@@ -146,8 +146,11 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <Badge
-              variant="destructive"
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+              className={`absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs border-0 text-white ${
+                hasUnreadSupport
+                  ? "bg-amber-500 hover:bg-amber-500 ring-2 ring-amber-300/60 animate-pulse"
+                  : "bg-destructive hover:bg-destructive"
+              }`}
             >
               {unreadCount > 9 ? "9+" : unreadCount}
             </Badge>
