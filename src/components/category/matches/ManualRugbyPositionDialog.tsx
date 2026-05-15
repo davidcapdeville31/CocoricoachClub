@@ -13,6 +13,7 @@ export type FieldPosition = {
 };
 
 export type PositionableKind =
+  | "try"
   | "conversion"
   | "penalty_kick"
   | "drop"
@@ -22,6 +23,7 @@ export type PositionableKind =
   | "lineout_lost";
 
 const TITLES: Record<PositionableKind, string> = {
+  try: "Position des essais",
   conversion: "Position des transformations",
   penalty_kick: "Position des pénalités tirées au pied",
   drop: "Position des drops",
