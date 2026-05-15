@@ -1,0 +1,1 @@
+UPDATE public.email_send_state SET batch_size = 25, send_delay_ms = 50 WHERE id = 1;
