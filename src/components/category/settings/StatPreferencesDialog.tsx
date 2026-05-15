@@ -167,13 +167,13 @@ export function StatPreferencesDialog({
         if (existing) {
           const { error } = await supabase
             .from("match_stat_overrides")
-            .update({ enabled_stats: stats, updated_by: user?.id })
+            .update({ enabled_stats: stats })
             .eq("id", existing.id);
           if (error) throw error;
         } else {
           const { error } = await supabase
             .from("match_stat_overrides")
-            .insert({ match_id: matchId, enabled_stats: stats, updated_by: user?.id });
+            .insert({ match_id: matchId, enabled_stats: stats });
           if (error) throw error;
         }
         queryClient.invalidateQueries({ queryKey: ["match-stat-override-raw", matchId] });
