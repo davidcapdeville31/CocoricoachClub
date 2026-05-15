@@ -36,7 +36,6 @@ export function SecuritySettingsPanel() {
 
   // Password change state
   const [pwdOpen, setPwdOpen] = useState(false);
-  const [currentPwd, setCurrentPwd] = useState("");
   const [newPwd, setNewPwd] = useState("");
   const [confirmPwd, setConfirmPwd] = useState("");
   const [pwdLoading, setPwdLoading] = useState(false);
