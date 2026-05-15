@@ -42,7 +42,8 @@ import { SkiConditionsForm } from "@/components/ski/SkiConditionsForm";
 import { SessionEquipmentSection } from "@/components/shared/SessionEquipmentSection";
 import { SportMatchStatsDialog } from "./SportMatchStatsDialog";
 import { ManualRugbyStatsDialog } from "./ManualRugbyStatsDialog";
-import { ClipboardEdit } from "lucide-react";
+import { StatPreferencesDialog } from "@/components/category/settings/StatPreferencesDialog";
+import { ClipboardEdit, Settings2 } from "lucide-react";
 import { CompetitionRoundsDialog } from "./CompetitionRoundsDialog";
 import { AggregatedRoundStatsDialog } from "./AggregatedRoundStatsDialog";
 import { EditMatchDialog } from "./EditMatchDialog";
@@ -114,6 +115,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   const [isLineupOpen, setIsLineupOpen] = useState(false);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [isManualRugbyOpen, setIsManualRugbyOpen] = useState(false);
+  const [isMatchStatPrefsOpen, setIsMatchStatPrefsOpen] = useState(false);
   const [isAggregatedStatsOpen, setIsAggregatedStatsOpen] = useState(false);
   const [isRoundsOpen, setIsRoundsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -670,6 +672,17 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                   <ClipboardEdit className="h-4 w-4" />
                   Saisie manuelle
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full gap-2 text-xs"
+                  onPointerDown={stopCardAction}
+                  onClick={(e) => { stopCardAction(e); setIsMatchStatPrefsOpen(true); }}
+                  title="Choisir les stats à afficher pour ce match uniquement"
+                >
+                  <Settings2 className="h-3.5 w-3.5" />
+                  Personnaliser les stats de ce match
+                </Button>
               </>
             )}
             {/* Direct action buttons */}
@@ -925,6 +938,16 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
           isHome={match.is_home}
           opponentName={match.opponent || "Adversaire"}
           clubName="Notre équipe"
+        />
+      )}
+
+      {isRugby && (
+        <StatPreferencesDialog
+          open={isMatchStatPrefsOpen}
+          onOpenChange={setIsMatchStatPrefsOpen}
+          categoryId={categoryId}
+          sportType={sportType}
+          matchId={match.id}
         />
       )}
 

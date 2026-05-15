@@ -1,60 +1,80 @@
-## Objectif
+# Stats par défaut + override par match — plan
 
-Dans `ManualRugbyStatsDialog`, ajouter une petite icône 📍 à côté des cellules suivantes (pour chaque joueur / mi-temps) :
-- **Points** : Transformations ✓, Pénalités ✓, Drops ✓ (positions du tir)
-- **Conquête** : Mêlées (gagnées/perdues), Touches (gagnées/perdues), Pénaltouches éventuelles
+## Contexte trouvé dans le code
 
-Cliquer sur l'icône ouvre une mini-popup avec le `RugbyFieldSVG` (côté gauche/droite togglable comme en live), permettant de placer **N marqueurs** correspondant exactement au nombre saisi dans la cellule. Les positions sont sauvegardées par événement individuel dans `match_events.metadata.position = { x, y, side }` — même format que la saisie live, donc compatibles avec `CumulativeKickingMap` et le PDF.
+- Table `category_stat_preferences` (existe) : prefs au niveau catégorie.
+- Table `match_stat_overrides` (existe déjà) : prefs au niveau match.
+- Hook `useStatPreferences({ categoryId, sportType, matchId? })` (existe) : applique déjà la priorité **match > catégorie > tout**.
+- `StatPreferencesDialog` : aujourd'hui sauvegarde uniquement en catégorie.
+- Consommateurs de `useStatPreferences` : `SportMatchStatsDialog`, `CompetitionRoundsDialog`, `AggregatedRoundStatsDialog`, `PlayerCumulativeStats`, `PlayerMatchesTab`.
+- ❌ `ManualRugbyStatsDialog` (saisie manuelle rugby) **n'utilise pas** `useStatPreferences` — ses colonnes sont en dur.
+- ❌ `LiveMatchPage` (Démarrer temps réel) **n'utilise pas** non plus `useStatPreferences`.
 
-## UX
+## Travail à faire
 
-- L'icône (lucide `MapPin`) apparaît seulement si le compteur > 0, en gras coloré quand toutes les positions sont placées, en outline grisé sinon.
-- Tooltip : « Placer la position sur le terrain ».
-- Popup : titre dynamique (« Position des transformations », etc.), toggle Gauche/Droite, terrain interactif. Les marqueurs déjà placés sont cliquables pour suppression. Un compteur « 2/3 placées ».
-- Snap automatique sur la ligne de touche pour les touches (réutiliser la logique snap de `EventDialog`).
-- Pas obligatoire : on peut sauvegarder sans avoir placé toutes les positions (les événements sans `position` resteront comme aujourd'hui).
+### 1. Renommage UI
+- Bouton dans `MatchesTab.tsx` (ligne 157) : "Personnaliser stats" → **"Modifier les stats par défaut"**.
+- Titre dialog `StatPreferencesDialog` : "Personnaliser les statistiques" → **"Modifier les stats par défaut"** quand on est en mode catégorie.
+- Quand le dialog est ouvert en mode **match override**, titre **"Personnaliser les statistiques pour ce match"** + sous-titre indiquant "Ces réglages remplacent ceux de la catégorie pour cette compétition uniquement."
 
-## Refacto data
+### 2. Faire de `StatPreferencesDialog` un composant à 2 modes
 
-Aujourd'hui les events sont reconstruits depuis des compteurs agrégés. Pour préserver les positions on passe à une structure :
+Ajouter prop optionnelle `matchId?: string`.
 
-```ts
-type StatRow = {
-  // compteurs (inchangés, dérivés)
-  ...
-  // nouveau : positions par stat (longueur libre, max = compteur)
-  positions: Partial<Record<PositionableKey, Array<{ x:number; y:number; side:"left"|"right" }>>>
-}
-```
+- Si `matchId` **absent** → comportement actuel (sauvegarde dans `category_stat_preferences`).
+- Si `matchId` **présent** :
+  - Init des cases à cocher : lit `match_stat_overrides.enabled_stats` ; si null, prend les prefs catégorie comme point de départ (l'utilisateur part des défauts pour personnaliser).
+  - Sauvegarde dans `match_stat_overrides` (upsert sur `match_id`).
+  - Bouton supplémentaire **"Réinitialiser aux défauts catégorie"** qui supprime la ligne d'override.
+- Invalidation queries : `["match-stat-overrides", matchId]` en plus.
 
-Où `PositionableKey` ∈ `conversionsMade | penaltiesMade | drops | scrumsWon | scrumsLost | lineoutsWon | lineoutsLost`.
+### 3. Ajouter le bouton "Personnaliser pour ce match"
 
-- À l'incrément de compteur : on n'ajoute pas auto une position vide (laissé null).
-- À la décrémentation : si `positions.length > newCount`, on tronque.
-- Lors de la rehydratation depuis `existingEvents`, on lit `metadata.position` et on remplit le tableau dans l'ordre H1 puis H2.
-- `buildEvents` : pour chaque stat positionable, on émet N events ; les K premiers reçoivent `metadata.position = positions[k]`, les autres restent sans position.
+Dans `MatchCard.tsx`, sous le bouton "Démarrer (temps réel)" (ligne 661) :
+- Nouveau bouton **"⚙️ Personnaliser les stats de ce match"** (variant outline, style discret).
+- Ouvre `StatPreferencesDialog` avec `matchId` du match courant.
+- Visible uniquement aux rôles autorisés (mêmes règles que "Démarrer temps réel").
 
-## Composants à créer / modifier
+### 4. Parité des stats — Saisie manuelle rugby
 
-1. **Nouveau** `src/components/category/matches/ManualRugbyPositionDialog.tsx` — mini-dialog réutilisable (terrain + N markers + side toggle + snap optionnel).
-2. **Modifié** `ManualRugbyStatsDialog.tsx` :
-   - Ajouter le state `positions` dans `StatRow` + EMPTY.
-   - Bouton 📍 dans chaque cellule positionable (rendu inline à droite de l'`Input`).
-   - Nouvelle ligne « Adversaire » (déjà existante) : même icône.
-   - Hydratation et `buildEvents` mis à jour (push `metadata.position` quand dispo, snap pour touches).
-3. **Aucune migration SQL** (le format `metadata.position` est déjà accepté par `match_events`).
+`ManualRugbyStatsDialog` doit cacher les colonnes désactivées dans les prefs.
+- Brancher `useStatPreferences({ categoryId, sportType: "rugby", matchId })`.
+- Map des `statKey` rugby → colonnes du tableau (essais, transformations, pénalités, drops, en-avants, plaquages, etc.).
+- Si une colonne est désactivée → masquer l'entête + cellules + skip dans `buildEvents`.
+- ⚠️ La logique de calcul du score reste inchangée : un essai désactivé n'est juste pas saisissable, mais le calcul score = essais×5 + transfo×2 + pén×3 + drop×3 reste identique sur les valeurs présentes.
 
-## Fichiers techniques
+### 5. Parité des stats — Live (Démarrer temps réel)
 
-```text
-src/components/category/matches/
-├── ManualRugbyStatsDialog.tsx        (modifié)
-└── ManualRugbyPositionDialog.tsx     (nouveau, ~150 lignes)
-```
+Idem : `LiveMatchPage` (et ses sous-composants de boutons rugby) doit filtrer les boutons d'action via `useStatPreferences({ categoryId, sportType, matchId })`.
+- Identifier le composant qui rend les boutons rapides (en avant, plaquage, mêlée, etc.).
+- Filtrer la liste des actions disponibles selon `enabledStatKeys`.
 
-Pas de changement côté `CumulativeKickingMap` / PDF / aggregator : ils consomment déjà `metadata.position`.
+### 6. Vérification du référentiel commun
 
-## Hors scope
+- S'assurer que `getStatsForSport("rugby")` (dans `lib/constants/sportStats.ts`) liste bien **toutes** les actions utilisables en live + en manuel (en-avant, mêlée, touche, plaquage, ruck, etc.). Si manquantes → les ajouter (juste dans le référentiel, sans changer les calculs).
+- Ainsi décocher "En avant" enlève simultanément la colonne en saisie manuelle ET le bouton en live.
 
-- Replay temporel des positions saisies manuellement (on garde `minute=0`).
-- Édition fine du marqueur après placement (drag) — on supprime + reclique.
+### 7. Application aux nouvelles compétitions
+
+- ✅ Pas de migration nécessaire : la priorité `match override → category prefs → tout` est déjà appliquée au runtime. Toute nouvelle compétition prend automatiquement les prefs catégorie.
+
+## Fichiers modifiés
+
+- `src/components/category/MatchesTab.tsx` — label bouton.
+- `src/components/category/settings/StatPreferencesDialog.tsx` — ajouter `matchId`, dual-mode save, titre dynamique, bouton reset défauts.
+- `src/components/category/matches/MatchCard.tsx` — bouton "Personnaliser pour ce match" + state pour ouvrir le dialog.
+- `src/components/category/matches/ManualRugbyStatsDialog.tsx` — brancher `useStatPreferences` et filtrer colonnes/events.
+- `src/pages/LiveMatchPage.tsx` (+ sous-composants des boutons rapides) — brancher `useStatPreferences` et filtrer boutons.
+- `src/lib/constants/sportStats.ts` — compléter le référentiel rugby si nécessaire.
+
+## Hors scope (confirmé inchangé)
+
+- Tables `category_stat_preferences` et `match_stat_overrides` : structure inchangée.
+- RLS, calcul score, structure events `rugby_match_stats`.
+- Bouton "Saisie manuelle" et "Démarrer (temps réel)" : positions inchangées, juste filtrés.
+
+## Confirmations rapides avant code
+
+1. **Bouton match-scope** : tu le veux à côté de "Démarrer (temps réel)" dans la card match ? Ou plutôt dans un menu "⋯ Plus" pour ne pas surcharger ?
+2. **Mode match** : si l'utilisateur n'a jamais touché aux prefs match, on **part des prefs catégorie** (UX la plus évidente) — OK ?
+3. **Périmètre Live (étape 5)** : aujourd'hui le bouton "Démarrer temps réel" affiche tous les boutons rugby ? Confirme et je branche le filtre. Sinon je peux faire un PR plus court qui couvre 1-4 + 6-7 et on traite Live dans un second temps.

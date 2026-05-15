@@ -154,7 +154,7 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
                         className="gap-1 bg-white/15 hover:bg-white/25 text-white border-0 backdrop-blur-sm"
                       >
                         <Settings2 className="h-4 w-4" />
-                        <span className="hidden sm:inline">Personnaliser stats</span>
+                        <span className="hidden sm:inline">Modifier les stats par défaut</span>
                       </Button>
                     )}
                     {showTrainingButton && (
