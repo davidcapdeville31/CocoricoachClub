@@ -65,22 +65,52 @@ export default function PublicView() {
     });
   }, [searchParams, validateToken]);
 
-  const handleContinue = () => {
-    // Navigate to the real category page - it will work in viewer mode
-    // because AuthGuard allows public access
-    if (categoryId) {
-      navigate(`/categories/${categoryId}`);
+  const [redeeming, setRedeeming] = useState(false);
+
+  const handleContinue = async () => {
+    const urlToken = searchParams.get("token") || token;
+    if (!urlToken) {
+      setStatus("error");
+      setErrorMessage("Lien d'accès invalide");
       return;
     }
 
-    // Club-level public pages
-    if (clubId) {
-      navigate(`/clubs/${clubId}`);
-      return;
-    }
+    setRedeeming(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("redeem-public-token", {
+        body: { token: urlToken },
+      });
+      if (error || !data?.success) {
+        throw new Error(data?.error || error?.message || "Échec de la connexion");
+      }
 
-    setStatus("error");
-    setErrorMessage("Lien valide, mais aucune catégorie ou club associé.");
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
+      if (signInErr) throw signInErr;
+
+      const targetCategoryId = data.category_id || categoryId;
+      const targetClubId = data.club_id || clubId;
+
+      if (targetCategoryId) {
+        navigate(`/categories/${targetCategoryId}`);
+        return;
+      }
+      if (targetClubId) {
+        navigate(`/clubs/${targetClubId}`);
+        return;
+      }
+
+      setStatus("error");
+      setErrorMessage("Lien valide, mais aucune catégorie ou club associé.");
+    } catch (e: any) {
+      console.error("redeem-public-token failed", e);
+      setStatus("error");
+      setErrorMessage(e?.message || "Impossible d'ouvrir la consultation");
+    } finally {
+      setRedeeming(false);
+    }
   };
 
   return (
