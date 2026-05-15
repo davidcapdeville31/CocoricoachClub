@@ -48,12 +48,9 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // OneSignal is now used ONLY for SMS — email goes through Lovable Emails.
     const ONESIGNAL_APP_ID = Deno.env.get("ONESIGNAL_APP_ID");
     const ONESIGNAL_REST_API_KEY = Deno.env.get("ONESIGNAL_REST_API_KEY");
-
-    if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
-      throw new Error("OneSignal credentials not configured");
-    }
 
     const {
       athleteName,
