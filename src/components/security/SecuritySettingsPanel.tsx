@@ -373,6 +373,49 @@ export function SecuritySettingsPanel() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Password change dialog */}
+      <Dialog open={pwdOpen} onOpenChange={setPwdOpen}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5" />
+              Modifier le mot de passe
+            </DialogTitle>
+            <DialogDescription>
+              Choisis un nouveau mot de passe sécurisé pour ton compte.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Nouveau mot de passe</Label>
+              <Input
+                type="password"
+                value={newPwd}
+                onChange={(e) => setNewPwd(e.target.value)}
+                placeholder="••••••••"
+                className="rounded-xl bg-muted/40 mt-2"
+              />
+            </div>
+            <div>
+              <Label>Confirmer le mot de passe</Label>
+              <Input
+                type="password"
+                value={confirmPwd}
+                onChange={(e) => setConfirmPwd(e.target.value)}
+                placeholder="••••••••"
+                className="rounded-xl bg-muted/40 mt-2"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPwdOpen(false)}>Annuler</Button>
+            <Button onClick={handleChangePassword} disabled={pwdLoading}>
+              {pwdLoading ? "Mise à jour…" : "Enregistrer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
