@@ -145,7 +145,7 @@ function SnapshotsList() {
             <AlertDialogDescription>
               Cette action va réinjecter <strong>toutes les données</strong> de l'instantané v{confirmRestore?.version} de{" "}
               <strong>{confirmRestore?.entity_name}</strong> (joueurs, tests, charges, compétitions, wellness, médical, vidéos, planning…).
-              Les données existantes ayant le même identifiant ne seront pas écrasées.
+              <strong> Les données existantes ayant le même identifiant seront écrasées par celles de l'instantané.</strong>
               {confirmRestore?.is_archived && <> La catégorie/club sera également désarchivé.</>}
             </AlertDialogDescription>
           </AlertDialogHeader>
