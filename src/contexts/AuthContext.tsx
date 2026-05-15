@@ -88,9 +88,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // OneSignal may throw synchronously on unsupported origins/browsers
     }
 
+    // Helper: switch into "offline grace period" using the cached user.
+    // Used when Supabase fires SIGNED_OUT or TOKEN_REFRESH fails while offline.
+    const enterOfflineGraceIfPossible = (): boolean => {
+      const { user: offlineUser } = loadOfflineSession();
+      if (offlineUser) {
+        setUser(offlineUser);
+        setSession(null);
+        setIsOfflineSession(true);
+        return true;
+      }
+      return false;
+    };
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
+        // OFFLINE GRACE PERIOD:
+        // If Supabase tries to sign us out OR fails to refresh while offline,
+        // do NOT clear the user — keep them logged in with the cached profile.
+        if (!session && !navigator.onLine) {
+          if (enterOfflineGraceIfPossible()) {
+            if (initialSessionRestored) setLoading(false);
+            return;
+          }
+        }
+
         setSession(session);
         setUser(session?.user ?? null);
         setIsOfflineSession(false);
@@ -100,7 +123,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (initialSessionRestored) {
           setLoading(false);
         }
-        
+
         // Save session for offline use
         saveOfflineSession(session, session?.user ?? null);
 
@@ -112,7 +135,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // Restore session from storage
+    // Restore session from storage (Supabase reads tokens from localStorage,
+    // even if expired — refresh is attempted only when online).
     supabase.auth.getSession().then(({ data: { session } }) => {
       initialSessionRestored = true;
       if (session) {
@@ -123,27 +147,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         resetOnboardingIfNeeded(session.user.id);
         setTimeout(() => syncOneSignalUser(session.user), 1000);
       } else if (!navigator.onLine) {
-        const { user: offlineUser } = loadOfflineSession();
-        if (offlineUser) {
-          setUser(offlineUser);
-          setIsOfflineSession(true);
-        }
+        // Offline + no live session → fall back to cached user (grace period)
+        enterOfflineGraceIfPossible();
       }
       setLoading(false);
     }).catch((error) => {
       console.error("Error getting session:", error);
       initialSessionRestored = true;
-      if (!navigator.onLine) {
-        const { user: offlineUser } = loadOfflineSession();
-        if (offlineUser) {
-          setUser(offlineUser);
-          setIsOfflineSession(true);
-        }
-      }
+      // Network error during session restore = treat as offline grace period
+      enterOfflineGraceIfPossible();
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // When the network comes back, try to refresh the token silently.
+    // If refresh succeeds, onAuthStateChange will fire with the new session.
+    // If it fails (e.g. refresh token revoked), we stay in grace mode until
+    // the user explicitly signs out — we never auto-redirect to /auth.
+    const handleOnline = () => {
+      supabase.auth.refreshSession().catch(() => {
+        // Silent — keep current state, do not log the user out
+      });
+    };
+    window.addEventListener("online", handleOnline);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("online", handleOnline);
+    };
   }, []);
 
   const signOut = async () => {
