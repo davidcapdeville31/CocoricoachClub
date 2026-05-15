@@ -152,6 +152,19 @@ export function ManualRugbyPositionDialog({
 
         <div className="relative w-full">
           <RugbyFieldSVG goalsOnRight={side === "right"} showCursorTracker onClick={handleClick}>
+            {kind === "try" && (() => {
+              const x = side === "right" ? (20 + 0.95 * 560) : 20;
+              const w = 0.05 * 560;
+              return (
+                <g pointerEvents="none">
+                  <rect x={x} y={14} width={w} height={372} fill="#16a34a" opacity={0.28} />
+                  <rect x={x} y={14} width={w} height={372} fill="none" stroke="#16a34a" strokeWidth={2} strokeDasharray="6 4" opacity={0.9} />
+                  <text x={x + w / 2} y={200} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold" opacity={0.85} style={{ writingMode: "vertical-rl" } as any}>
+                    EN-BUT
+                  </text>
+                </g>
+              );
+            })()}
             {list.map((p, i) => {
               const cx = (p.kickX / 100) * 600;
               const cy = (p.kickY / 100) * 400;
