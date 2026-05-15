@@ -39,14 +39,12 @@ function markReminderShown(userId: string) {
  */
 export function resetOnboardingIfNeeded(userId: string) {
   try {
-    // If we previously recorded that permission was granted, don't reset
+    // Do not auto-reset the onboarding anymore.
+    // It was causing the full-screen notification page to reappear on every app reopen
+    // for users who had already dismissed it once and were supposed to see only the timed reminder.
     if (wasPermissionGranted(userId)) return;
-    
-    if (!("Notification" in window)) return;
-    const perm = window.Notification.permission;
-    if (perm === "default") {
-      localStorage.removeItem(`${STORAGE_KEY}_${userId}`);
-    }
+    if (localStorage.getItem(`${STORAGE_KEY}_${userId}`) === "done") return;
+    if (localStorage.getItem(`${LAST_SHOWN_KEY}_${userId}`)) return;
   } catch {
     // Silently ignore
   }
@@ -169,9 +167,11 @@ export function NotificationOnboarding() {
     setDeclined(true);
     if (user) {
       markReminderShown(user.id);
+      localStorage.setItem(`${STORAGE_KEY}_${user.id}`, "done");
     }
-    // Mark done so it doesn't re-appear on every page load
-    // The ReminderModal will handle re-asking after 24h
+
+    // Persist immediately so closing/backgrounding the app cannot make the fullscreen
+    // onboarding come back on the next launch. The ReminderModal handles any later re-ask.
     setTimeout(() => {
       markDone();
     }, 2500);
