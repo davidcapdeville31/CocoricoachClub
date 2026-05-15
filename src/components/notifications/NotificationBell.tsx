@@ -48,6 +48,9 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
   });
 
   const unreadCount = notifications?.filter(n => !n.is_read).length || 0;
+  const hasUnreadSupport = !!notifications?.some(
+    n => !n.is_read && n.notification_type === "global"
+  );
 
   const markAsRead = useMutation({
     mutationFn: async (notificationId: string) => {
@@ -102,6 +105,7 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
       case "test_reminder": return "🏃";
       case "category_link_request": return "🔗";
       case "athlete_session": return "🏋️";
+      case "global": return "📣";
       default: return "ℹ️";
     }
   };
@@ -142,8 +146,11 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <Badge
-              variant="destructive"
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+              className={`absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs border-0 text-white ${
+                hasUnreadSupport
+                  ? "bg-amber-500 hover:bg-amber-500 ring-2 ring-amber-300/60 animate-pulse"
+                  : "bg-destructive hover:bg-destructive"
+              }`}
             >
               {unreadCount > 9 ? "9+" : unreadCount}
             </Badge>
@@ -176,8 +183,14 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
               {notifications?.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 hover:bg-accent/50 transition-colors cursor-pointer ${
-                    !notification.is_read ? "bg-accent/20" : ""
+                  className={`p-4 hover:bg-accent/50 transition-colors cursor-pointer border-l-4 ${
+                    notification.notification_type === "global"
+                      ? !notification.is_read
+                        ? "bg-amber-50 dark:bg-amber-500/10 border-amber-500"
+                        : "border-amber-500/40"
+                      : !notification.is_read
+                        ? "bg-accent/20 border-transparent"
+                        : "border-transparent"
                   }`}
                   onClick={() => {
                     if (!notification.is_read) {
@@ -191,9 +204,16 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <h4 className="font-medium text-sm">
-                          {notification.title}
-                        </h4>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-medium text-sm">
+                            {notification.title}
+                          </h4>
+                          {notification.notification_type === "global" && (
+                            <Badge className="bg-amber-500 hover:bg-amber-500 text-white border-0 text-[10px] h-4 px-1.5">
+                              Support
+                            </Badge>
+                          )}
+                        </div>
                         <div className="flex gap-1 flex-shrink-0">
                           {!notification.is_read && (
                             <Button

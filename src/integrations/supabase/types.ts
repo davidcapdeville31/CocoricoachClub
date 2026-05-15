@@ -6455,7 +6455,7 @@ export type Database = {
       }
       notifications: {
         Row: {
-          category_id: string
+          category_id: string | null
           created_at: string
           id: string
           injury_id: string | null
@@ -6470,7 +6470,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          category_id: string
+          category_id?: string | null
           created_at?: string
           id?: string
           injury_id?: string | null
@@ -6485,7 +6485,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          category_id?: string
+          category_id?: string | null
           created_at?: string
           id?: string
           injury_id?: string | null
