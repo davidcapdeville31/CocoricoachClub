@@ -116,7 +116,7 @@ export function NotificationOnboarding() {
       console.warn("[NotificationOnboarding] Activation timeout — closing modal");
       setIsHandling(false);
       markDone();
-    }, 8000);
+    }, 4000);
 
     const withTimeout = <T,>(p: Promise<T>, ms: number, label: string): Promise<T | null> =>
       Promise.race<T | null>([
@@ -130,8 +130,8 @@ export function NotificationOnboarding() {
       ]);
 
     try {
-      await withTimeout(initOneSignal(), 5000, "initOneSignal");
-      const granted = await withTimeout(requestOneSignalPermission(), 6000, "requestPermission");
+      await withTimeout(initOneSignal(), 2000, "initOneSignal");
+      const granted = await withTimeout(requestOneSignalPermission(), 3000, "requestPermission");
       if (granted) {
         markPermissionGranted(user.id);
         // Fire-and-forget background sync — don't block the UI
