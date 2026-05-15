@@ -46,9 +46,6 @@ export const AppNotificationEmail = ({
           {ctaLabel}
         </Button>
         <Text style={footer}>
-          Si le bouton ne fonctionne pas, copie ce lien dans ton navigateur :{' '}
-          <a href={ctaUrl} style={link}>{ctaUrl}</a>
-          <br /><br />
           Tu reçois cet email car tu as activé les notifications par email dans tes préférences.
         </Text>
       </Container>
@@ -90,6 +87,4 @@ const footer = {
   color: '#6B7280',
   margin: '32px 0 0',
   lineHeight: '1.5',
-  borderTop: '1px solid #E5E7EB',
-  paddingTop: '20px',
 }
