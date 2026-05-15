@@ -235,27 +235,41 @@ const handler = async (req: Request): Promise<Response> => {
 
       if (channels.includes("email") && athlete.email && emailAllowed) {
         try {
-          const emailResponse = await fetch("https://api.onesignal.com/notifications", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Key ${ONESIGNAL_REST_API_KEY}`,
-            },
-            body: JSON.stringify({
-              app_id: ONESIGNAL_APP_ID,
-              include_email_tokens: [athlete.email],
-              email_subject: subject,
-              email_body: buildEmailContent(athlete.name),
-              email_from_name: safeFromName,
-            }),
-          });
+          // Build details lines for the message body
+          const detailsLines: string[] = [];
+          if (eventDetails?.date) detailsLines.push(`📅 ${eventDetails.date}`);
+          if (eventDetails?.time) detailsLines.push(`🕐 ${eventDetails.time}`);
+          if (eventDetails?.location) detailsLines.push(`📍 ${eventDetails.location}`);
+          const fullMessage = detailsLines.length
+            ? `Bonjour ${athlete.name},\n\n${message}\n\n${detailsLines.join("\n")}`
+            : `Bonjour ${athlete.name},\n\n${message}`;
 
-          if (emailResponse.ok) {
-            results.emailsSent++;
+          const idemKey = `notify-${eventType}-${athlete.user_id ?? athlete.email}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+          const { error: emailError } = await supabaseService.functions.invoke(
+            "send-transactional-email",
+            {
+              body: {
+                templateName: "app-notification",
+                recipientEmail: athlete.email,
+                idempotencyKey: idemKey,
+                templateData: {
+                  siteName: APP_NAME,
+                  siteUrl: APP_URL,
+                  title: subject,
+                  message: fullMessage,
+                  ctaLabel: "Ouvrir l'application",
+                  ctaUrl: APP_URL,
+                },
+              },
+            }
+          );
+
+          if (emailError) {
+            console.error(`Failed to send email to ${athlete.email}:`, emailError);
+            results.errors.push(`Email ${athlete.email}: ${emailError.message ?? String(emailError)}`);
           } else {
-            const errorData = await emailResponse.json();
-            console.error(`Failed to send email to ${athlete.email}:`, errorData);
-            results.errors.push(`Email ${athlete.email}: ${JSON.stringify(errorData)}`);
+            results.emailsSent++;
           }
         } catch (e: unknown) {
           const errorMessage = e instanceof Error ? e.message : String(e);
