@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePublicAccess } from "@/contexts/PublicAccessContext";
 
 interface MenuPermissions {
   [menuKey: string]: boolean;
@@ -30,6 +31,7 @@ const ROLE_TO_COLUMN: Record<string, string> = {
  */
 export function useMenuPermissions(clubId?: string, categoryId?: string) {
   const { user } = useAuth();
+  const { isPublicAccess } = usePublicAccess();
 
   // Determine the user's effective role
   const { data: userRole, isLoading: roleLoading } = useQuery({
@@ -100,7 +102,12 @@ export function useMenuPermissions(clubId?: string, categoryId?: string) {
   // Build the visibility map
   const menuPermissions: MenuPermissions = {};
   // Viewer = read-only full visibility (writes blocked by ViewerModeContext + RLS)
-  const isFullAccess = userRole === "super_admin" || userRole === "owner" || userRole === "admin" || userRole === "viewer";
+  const isFullAccess =
+    isPublicAccess ||
+    userRole === "super_admin" ||
+    userRole === "owner" ||
+    userRole === "admin" ||
+    userRole === "viewer";
 
   if (permissionsMatrix) {
     const column = userRole ? ROLE_TO_COLUMN[userRole] : null;
