@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import { Loader2, Save, Shield, MapPin } from "lucide-react";
 import { ManualRugbyPositionDialog, type FieldPosition, type PositionableKind } from "./ManualRugbyPositionDialog";
+import { useStatPreferences } from "@/hooks/use-stat-preferences";
 
 interface ManualRugbyStatsDialogProps {
   open: boolean;
@@ -22,6 +23,10 @@ interface ManualRugbyStatsDialogProps {
   opponentName?: string;
   clubName?: string;
   initialOpponentScore?: number;
+  /** Catégorie (utilisée pour filtrer les stats selon les préférences). */
+  categoryId?: string;
+  /** Type de sport pour résoudre la liste de référence. Defaults to "rugby_xv". */
+  sportType?: string;
 }
 
 type StatRow = {
