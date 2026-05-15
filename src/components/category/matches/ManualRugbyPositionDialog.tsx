@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RugbyFieldSVG } from "@/components/rugby/RugbyFieldSVG";
-import { MapPin, Trash2, Clock } from "lucide-react";
+import { MapPin, Trash2, Clock, History } from "lucide-react";
 import { toast } from "sonner";
 
 // In-goal zone bounds in % (matches FIELD_LEFT=20, FIELD_RIGHT=580, in-play 0.05→0.95 of FIELD_W=560)
@@ -58,11 +58,16 @@ export function ManualRugbyPositionDialog({
 }: Props) {
   const [side, setSide] = useState<"left" | "right">("right");
   const [list, setList] = useState<FieldPosition[]>([]);
+  // Conserve la liste à jour pour pouvoir auto-sauvegarder à la fermeture
+  const listRef = useRef<FieldPosition[]>([]);
+  const initialCountRef = useRef(0);
+  useEffect(() => { listRef.current = list; }, [list]);
 
   useEffect(() => {
     if (!open) return;
     setList(initial.slice());
     setSide(initial[0]?.kickingSide ?? "right");
+    initialCountRef.current = initial.length;
   }, [open, initial]);
 
   // count agit comme objectif indicatif ; on autorise toujours le placement libre
@@ -70,6 +75,12 @@ export function ManualRugbyPositionDialog({
   const remaining = Math.max(0, target - list.length);
   const kick = isKick(kind);
   const lineout = isLineout(kind);
+
+  // Persiste automatiquement la liste lors de toute fermeture (croix, clic extérieur, Échap)
+  const handleOpenChange = (o: boolean) => {
+    if (!o) onSave(listRef.current);
+    onOpenChange(o);
+  };
 
   const snapToTouchline = (x: number, y: number) => {
     if (!lineout) return { x, y };
@@ -124,7 +135,7 @@ export function ManualRugbyPositionDialog({
   }, [kind, missed]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -133,8 +144,22 @@ export function ManualRugbyPositionDialog({
           </DialogTitle>
           <DialogDescription>
             {contextLabel ? <span className="block text-xs">{contextLabel}</span> : null}
-            Cliquez sur le terrain pour placer la position. {list.length} placée{list.length > 1 ? "s" : ""}{count > 0 ? ` / ${count} attendue${count > 1 ? "s" : ""}` : ""}.
-            {remaining > 0 ? ` (${remaining} restante${remaining > 1 ? "s" : ""})` : ""}
+            <span className="inline-flex items-center gap-2 mt-1">
+              <span>{list.length} placée{list.length > 1 ? "s" : ""}{count > 0 ? ` / ${count} attendue${count > 1 ? "s" : ""}` : ""}.</span>
+              <span
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold ring-1"
+                style={{ background: `${markerColor}20`, color: markerColor, borderColor: markerColor }}
+              >
+                <MapPin className="h-3 w-3" />
+                Prochain : <span className="tabular-nums">{list.length + 1}</span>
+              </span>
+              {initialCountRef.current > 0 && (
+                <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                  <History className="h-3 w-3" />
+                  {initialCountRef.current} déjà placé{initialCountRef.current > 1 ? "s" : ""}
+                </span>
+              )}
+            </span>
           </DialogDescription>
         </DialogHeader>
 
@@ -233,8 +258,10 @@ export function ManualRugbyPositionDialog({
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
-          <Button onClick={() => { onSave(list); onOpenChange(false); }}>Valider</Button>
+          <p className="text-[11px] text-muted-foreground mr-auto self-center">
+            Vos marqueurs sont sauvegardés automatiquement.
+          </p>
+          <Button onClick={() => handleOpenChange(false)}>Fermer</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
