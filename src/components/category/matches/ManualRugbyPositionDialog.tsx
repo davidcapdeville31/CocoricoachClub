@@ -13,6 +13,7 @@ export type FieldPosition = {
 };
 
 export type PositionableKind =
+  | "try"
   | "conversion"
   | "penalty_kick"
   | "drop"
@@ -22,6 +23,7 @@ export type PositionableKind =
   | "lineout_lost";
 
 const TITLES: Record<PositionableKind, string> = {
+  try: "Position des essais",
   conversion: "Position des transformations",
   penalty_kick: "Position des pénalités tirées au pied",
   drop: "Position des drops",
@@ -93,6 +95,7 @@ export function ManualRugbyPositionDialog({
   const markerColor = useMemo(() => {
     if (missed) return "#ef4444";
     switch (kind) {
+      case "try": return "#16a34a";
       case "conversion": return "#22c55e";
       case "penalty_kick": return "#3b82f6";
       case "drop": return "#a855f7";

@@ -47,12 +47,14 @@ type StatRow = {
 };
 
 type PositionableStatKey =
+  | "tries"
   | "conversionsMade" | "conversionsMissed"
   | "penaltiesMade" | "penaltiesMissed"
   | "drops" | "dropsMissed"
   | "scrumsWon" | "scrumsLost" | "lineoutsWon" | "lineoutsLost";
 
 const POSITIONABLE_KIND: Record<PositionableStatKey, PositionableKind> = {
+  tries: "try",
   conversionsMade: "conversion",
   conversionsMissed: "conversion",
   penaltiesMade: "penalty_kick",
@@ -214,7 +216,7 @@ export function ManualRugbyStatsDialog({
         target.positions[key] = arr;
       };
       switch (e.event_type) {
-        case "try": case "penalty_try": target.tries += 1; break;
+        case "try": case "penalty_try": target.tries += 1; pushPos("tries"); break;
         case "conversion":
           if (e.outcome === "success") { target.conversionsMade += 1; pushPos("conversionsMade"); }
           else if (e.outcome === "fail") { target.conversionsMissed += 1; pushPos("conversionsMissed"); }
@@ -415,7 +417,7 @@ export function ManualRugbyStatsDialog({
       };
       const posAt = (key: PositionableStatKey, i: number): FieldPosition | undefined =>
         r.positions?.[key]?.[i];
-      for (let i = 0; i < r.tries; i++) push(side, pid, per, "try", null, 5, attach());
+      for (let i = 0; i < r.tries; i++) push(side, pid, per, "try", null, 5, attach(), posAt("tries", i));
       for (let i = 0; i < r.conversionsMade; i++) push(side, pid, per, "conversion", "success", 2, attach(), posAt("conversionsMade", i));
       for (let i = 0; i < r.conversionsMissed; i++) push(side, pid, per, "conversion", "fail", 0, attach(), posAt("conversionsMissed", i));
       for (let i = 0; i < r.penaltiesMade; i++) push(side, pid, per, "penalty_kick", "success", 3, attach(), posAt("penaltiesMade", i));
