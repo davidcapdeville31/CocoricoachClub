@@ -555,7 +555,6 @@ export function ManualRugbyStatsDialog({
             <DialogDescription>
               Choisissez la mi-temps puis la catégorie. Les scores se calculent automatiquement
               à partir des essais, transformations, pénalités et drops des deux équipes.
-              Le champ « Minutes » accepte les moments libres (ex. <em>12', 34'</em>).
             </DialogDescription>
           </DialogHeader>
 
@@ -607,7 +606,7 @@ export function ManualRugbyStatsDialog({
                           {f.short}
                         </th>
                       ))}
-                      <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground min-w-[140px]">Minutes</th>
+                      
                     </tr>
                   </thead>
                   <tbody>
@@ -676,14 +675,6 @@ export function ManualRugbyStatsDialog({
                               </td>
                             );
                           })}
-                          <td className="px-2 py-0.5">
-                            <Input
-                              value={noteVal}
-                              onChange={(e) => updateNote(l.player_id, e.target.value)}
-                              placeholder="ex. 12', 34'"
-                              className="h-7 text-xs"
-                            />
-                          </td>
                         </tr>
                       );
                     })}
@@ -721,15 +712,6 @@ export function ManualRugbyStatsDialog({
                         </div>
                       );
                     })}
-                  </div>
-                  <div>
-                    <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Minutes</label>
-                    <Input
-                      value={notes["opp"]?.[category]?.[period] ?? ""}
-                      onChange={(e) => updateNote("opp", e.target.value)}
-                      placeholder="ex. 18', 52'"
-                      className="h-8 text-xs mt-1"
-                    />
                   </div>
                 </div>
               </>
