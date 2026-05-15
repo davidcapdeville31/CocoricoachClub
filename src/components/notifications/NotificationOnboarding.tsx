@@ -5,8 +5,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { initOneSignal, oneSignalLogin, buildUserTags, requestOneSignalPermission, getOneSignalPermission } from "@/lib/onesignal";
 
 const STORAGE_KEY = "notification_onboarding_done";
-/** Tracks that the user actively clicked "Accepter" and the browser prompt was shown */
+/** Sticky flag: once the user clicks "Accepter", never re-show the onboarding automatically. */
 const PERMISSION_GRANTED_KEY = "notification_permission_granted";
+const LAST_SHOWN_KEY = "notification_reminder_last_shown";
 
 /**
  * Check if we've already confirmed permission was granted (survives browser quirks).
@@ -23,6 +24,12 @@ function wasPermissionGranted(userId: string): boolean {
 function markPermissionGranted(userId: string) {
   try {
     localStorage.setItem(`${PERMISSION_GRANTED_KEY}_${userId}`, "true");
+  } catch {}
+}
+
+function markReminderShown(userId: string) {
+  try {
+    localStorage.setItem(`${LAST_SHOWN_KEY}_${userId}`, Date.now().toString());
   } catch {}
 }
 
@@ -110,6 +117,10 @@ export function NotificationOnboarding() {
     if (!user || isHandling) return;
     setIsHandling(true);
 
+    // Sticky acknowledgement: if the user already accepted once, do not ask again.
+    markPermissionGranted(user.id);
+    localStorage.setItem(`${STORAGE_KEY}_${user.id}`, "done");
+
     // Safety net: never let the button stay stuck on "Activation en cours..."
     // (iOS PWA / reconnections can hang OneSignal calls indefinitely)
     const safetyTimeout = setTimeout(() => {
@@ -156,6 +167,9 @@ export function NotificationOnboarding() {
 
   const handleDecline = () => {
     setDeclined(true);
+    if (user) {
+      markReminderShown(user.id);
+    }
     // Mark done so it doesn't re-appear on every page load
     // The ReminderModal will handle re-asking after 24h
     setTimeout(() => {
