@@ -105,6 +105,7 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
       case "test_reminder": return "🏃";
       case "category_link_request": return "🔗";
       case "athlete_session": return "🏋️";
+      case "global": return "📣";
       default: return "ℹ️";
     }
   };
