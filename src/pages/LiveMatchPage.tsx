@@ -57,7 +57,7 @@ export default function LiveMatchPage() {
     queryKey: ["match-live", matchId],
     enabled: !!matchId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("matches").select("*, categories(name)").eq("id", matchId!).single();
+      const { data, error } = await supabase.from("matches").select("*, categories(name, rugby_type)").eq("id", matchId!).single();
       if (error) throw error;
       return data as any;
     },
