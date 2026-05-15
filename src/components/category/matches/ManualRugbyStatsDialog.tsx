@@ -179,6 +179,7 @@ const sumPeriods = (ps: PeriodStats, fn: (r: StatRow) => number) => fn(ps.H1) + 
 export function ManualRugbyStatsDialog({
   open, onOpenChange, matchId, isHome,
   opponentName = "Adversaire", clubName = "Notre équipe",
+  categoryId, sportType = "rugby_xv",
 }: ManualRugbyStatsDialogProps) {
   const qc = useQueryClient();
   const clubSide: "home" | "away" = isHome ? "home" : "away";
