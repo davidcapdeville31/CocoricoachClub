@@ -916,7 +916,18 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
         matchFormat={match.match_format}
       />
 
-      {/* For non-round-based sports, use SportMatchStatsDialog */}
+      {/* Rugby: new consultation dialog (Equipe / Joueurs / Timeline) */}
+      {!hasRoundBasedStats && isRugby && (
+        <MatchStatsDialog
+          open={isStatsOpen}
+          onOpenChange={setIsStatsOpen}
+          matchId={match.id}
+          categoryId={categoryId}
+          onOpenManual={() => setIsManualRugbyOpen(true)}
+        />
+      )}
+
+      {/* For non-round-based / non-rugby sports, keep existing dialog */}
       {!hasRoundBasedStats && !isRugby && (
         <SportMatchStatsDialog
           open={isStatsOpen}
