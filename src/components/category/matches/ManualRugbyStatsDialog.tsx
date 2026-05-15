@@ -631,6 +631,21 @@ export function ManualRugbyStatsDialog({
                             const count = row[f.key] as number;
                             const placed = isPositionable ? (row.positions?.[f.key as PositionableStatKey]?.length ?? 0) : 0;
                             const allPlaced = isPositionable && count > 0 && placed >= count;
+                            // Les avants (postes 1 à 8) ne tirent pas les transformations, pénalités ni drops
+                            const isKickerStat = (
+                              f.key === "conversionsMade" || f.key === "conversionsMissed" ||
+                              f.key === "penaltiesMade" || f.key === "penaltiesMissed" ||
+                              f.key === "drops" || f.key === "dropsMissed"
+                            );
+                            const pos = l.position ?? null;
+                            const isForward = pos !== null && pos >= 1 && pos <= 8;
+                            if (isKickerStat && isForward) {
+                              return (
+                                <td key={f.key} className="px-0.5 py-0.5 text-center text-muted-foreground/40 text-xs" title="Les avants (1-8) ne tirent pas">
+                                  —
+                                </td>
+                              );
+                            }
                             return (
                               <td key={f.key} className="px-0.5 py-0.5 text-center">
                                 <div className="flex items-center justify-center gap-0.5">
