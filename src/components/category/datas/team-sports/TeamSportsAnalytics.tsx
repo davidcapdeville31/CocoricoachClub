@@ -105,8 +105,8 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
                   variant="outline"
                   size="sm"
                   className="gap-1.5 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10"
-                  onClick={() => { setExportOpen(true); }}
-                  title="Export Excel"
+                  onClick={() => { setExportFormat("excel"); }}
+                  title="Export Excel (équipe ou joueurs)"
                 >
                   <FileSpreadsheet className="h-4 w-4" />
                   Excel
@@ -115,7 +115,7 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
                   variant="outline"
                   size="sm"
                   className="gap-1.5 border-rose-500/40 text-rose-700 dark:text-rose-300 hover:bg-rose-500/10"
-                  onClick={() => { setExportOpen(true); }}
+                  onClick={() => { setExportFormat("pdf"); }}
                   title="Exporter en PDF (joueur ou équipe)"
                 >
                   <Download className="h-4 w-4" />
