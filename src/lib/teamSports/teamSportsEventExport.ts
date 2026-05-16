@@ -141,11 +141,11 @@ function drawKickMarker(
   } else if (kickType === "penalty") {
     pdf.rect(cx - r, cy - r, r * 2, r * 2, "FD");
   } else {
-    // diamond
+    // diamond centered at (cx, cy)
     pdf.lines(
-      [[r, -r], [r, r], [-r, r], [-r, -r]],
-      cx - r,
-      cy,
+      [[r, r], [-r, r], [-r, -r], [r, -r]],
+      cx,
+      cy - r,
       [1, 1],
       "FD",
       true,
