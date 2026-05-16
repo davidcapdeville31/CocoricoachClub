@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, User, LogOut, Activity, Heart, BarChart3, Target, Video, Shield, ArrowLeft, Search, ChevronRight, MessageSquare, Settings, CalendarDays, CircleDot, Waves, FileText, Trophy, Medal } from "lucide-react";
+import { Loader2, User, LogOut, Activity, Heart, BarChart3, Target, Video, Shield, ArrowLeft, Search, ChevronRight, MessageSquare, Settings, CalendarDays, CircleDot, Waves, FileText, Trophy, Medal, Users } from "lucide-react";
+import { AthleteOpponentProfiles } from "@/components/athlete-portal/AthleteOpponentProfiles";
 import { PlayerCumulativeStats } from "@/components/category/matches/PlayerCumulativeStats";
 import { BowlingCumulativeStats } from "@/components/bowling/BowlingCumulativeStats";
 import { BowlingTrainingStats } from "@/components/bowling/BowlingTrainingStats";
@@ -441,6 +442,7 @@ export default function AthleteSpace() {
   const isSki = (athleteInfo.sport_type || "").toLowerCase().includes("ski") || (athleteInfo.sport_type || "").toLowerCase().includes("snow");
   const isPadel = (athleteInfo.sport_type || "").toLowerCase().includes("padel");
   const isRugby = ["XV", "7", "XIII", "touch", "15", "academie", "national_team"].includes(athleteInfo.sport_type || "");
+  const isJudo = (athleteInfo.sport_type || "").toLowerCase().startsWith("judo");
 
   const displayName = athleteInfo.player_first_name
     ? `${athleteInfo.player_first_name} ${athleteInfo.player_name}`
@@ -652,6 +654,21 @@ export default function AthleteSpace() {
                  >
                    🏓
                    Matériel
+                 </TabsTrigger>
+                )}
+               {isJudo && (
+                 <TabsTrigger
+                   value="opponents"
+                   className="athlete-tab shrink-0 gap-1 px-2 py-1.5 rounded-xl font-semibold text-xs transition-all duration-200 data-[state=active]:shadow-lg"
+                   style={{
+                     color: NAV_COLORS.competition.base,
+                     backgroundColor: `${NAV_COLORS.competition.base}15`,
+                     borderBottom: `3px solid ${NAV_COLORS.competition.base}`,
+                     ["--tab-color" as string]: NAV_COLORS.competition.base,
+                   }}
+                 >
+                   <Users className="h-3.5 w-3.5" />
+                   Adversaires
                  </TabsTrigger>
                )}
                <TabsTrigger 
@@ -936,6 +953,14 @@ export default function AthleteSpace() {
           {isPadel && (
             <TabsContent value="padel-equipment">
               <PlayerPadelEquipment
+                playerId={athleteInfo.player_id}
+                categoryId={athleteInfo.category_id}
+              />
+            </TabsContent>
+          )}
+          {isJudo && (
+            <TabsContent value="opponents">
+              <AthleteOpponentProfiles
                 playerId={athleteInfo.player_id}
                 categoryId={athleteInfo.category_id}
               />
