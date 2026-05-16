@@ -3,7 +3,7 @@
  * La preview Lovable et les iframes désenregistrent ce SW depuis main.tsx.
  */
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const STATIC_CACHE = `ccc-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `ccc-runtime-${CACHE_VERSION}`;
 const API_CACHE = `ccc-api-${CACHE_VERSION}`;
