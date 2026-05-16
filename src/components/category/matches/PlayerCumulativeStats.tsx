@@ -1735,7 +1735,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
 
       let y = 40;
 
-      // Player info section with avatar
+      // Player info section with circular avatar (bowling-style)
       if (player.avatarUrl) {
         try {
           const response = await fetch(player.avatarUrl + (player.avatarUrl.includes("?") ? "&" : "?") + "t=" + Date.now(), { mode: "cors" });
@@ -1747,7 +1747,22 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
               reader.readAsDataURL(blob);
             });
             const imgFormat = dataUrl.includes("image/png") ? "PNG" : "JPEG";
-            doc.addImage(dataUrl, imgFormat, 14, y, 22, 22);
+            const imgSize = 24, imgX = 14, imgY = y;
+            const cx = imgX + imgSize / 2, cy = imgY + imgSize / 2, r = imgSize / 2;
+            // White ring around the avatar
+            doc.setFillColor(255, 255, 255);
+            doc.circle(cx, cy, r + 1, "F");
+            // Clip image to circle
+            try {
+              doc.saveGraphicsState();
+              doc.circle(cx, cy, r, null as any);
+              (doc as any).clip();
+              (doc as any).discardPath();
+              doc.addImage(dataUrl, imgFormat, imgX, imgY, imgSize, imgSize);
+              doc.restoreGraphicsState();
+            } catch {
+              doc.addImage(dataUrl, imgFormat, imgX, imgY, imgSize, imgSize);
+            }
           }
         } catch { /* skip photo */ }
       }
