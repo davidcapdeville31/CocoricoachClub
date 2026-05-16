@@ -87,9 +87,17 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
   });
 
   const clubId: string | undefined = player?.categories?.club_id;
-  const playerGender: "male" | "female" | null =
-    player?.gender === "male" || player?.gender === "female" ? player.gender : null;
   const playerWeight: string | null = player?.discipline || null;
+  // Infer gender from weight category (men/women lists have no overlap) when not set on profile
+  const inferredGender: "male" | "female" | null = playerWeight
+    ? JUDO_WEIGHT_CATEGORIES_MEN.some((w) => w.value === playerWeight)
+      ? "male"
+      : JUDO_WEIGHT_CATEGORIES_WOMEN.some((w) => w.value === playerWeight)
+      ? "female"
+      : null
+    : null;
+  const playerGender: "male" | "female" | null =
+    player?.gender === "male" || player?.gender === "female" ? player.gender : inferredGender;
 
   const { data: profiles, isLoading } = useQuery({
     queryKey: ["athlete-opp-profiles", clubId, playerGender, playerWeight],
