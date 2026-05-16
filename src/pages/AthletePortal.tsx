@@ -206,7 +206,7 @@ export default function AthletePortal() {
 
         {/* Main Tabs */}
         <Tabs defaultValue="rpe" className="w-full">
-          <TabsList className={`grid w-full ${isBowling ? "grid-cols-4" : isAthletics ? "grid-cols-3" : "grid-cols-2"}`}>
+          <TabsList className={`grid w-full ${isBowling ? "grid-cols-4" : isJudo ? "grid-cols-3" : isAthletics ? "grid-cols-3" : "grid-cols-2"}`}>
             <TabsTrigger value="rpe" className="gap-1 text-xs sm:text-sm">
               <Activity className="h-4 w-4" />
               <span className="hidden sm:inline">Séances & RPE</span>
@@ -222,6 +222,13 @@ export default function AthletePortal() {
                 <Medal className="h-4 w-4" />
                 <span className="hidden sm:inline">Minimas / Records</span>
                 <span className="sm:hidden">Records</span>
+              </TabsTrigger>
+            )}
+            {isJudo && (
+              <TabsTrigger value="opponents" className="gap-1 text-xs sm:text-sm">
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline">Adversaires</span>
+                <span className="sm:hidden">Advers.</span>
               </TabsTrigger>
             )}
             {isBowling && (
