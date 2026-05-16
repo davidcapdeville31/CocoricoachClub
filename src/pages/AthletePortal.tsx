@@ -40,6 +40,7 @@ export default function AthletePortal() {
 
   const isBowling = athleteInfo?.sport_type?.toLowerCase().startsWith("bowling");
   const isAthletics = athleteInfo?.sport_type ? isAthletismeCategory(athleteInfo.sport_type) : false;
+  const isJudo = athleteInfo?.sport_type?.toLowerCase().startsWith("judo");
 
   useEffect(() => {
     if (user && user.user_metadata?.is_athlete) {
