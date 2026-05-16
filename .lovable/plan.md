@@ -1,40 +1,99 @@
-# Mode consultation : accès complet en lecture via lien public
-
 ## Objectif
-Quand quelqu'un ouvre un lien `/public-view?token=...`, il est automatiquement connecté à un compte invité ayant le rôle `viewer` sur le club ou la catégorie ciblée. Toutes les pages de l'application (Datas, Tests, Effectif, Santé, Planification, Programme, Workload, Compétitions, Communication…) s'affichent comme pour un membre interne — mais en lecture seule, exactement comme aujourd'hui pour les utilisateurs avec rôle `viewer`.
 
-## Pourquoi ce changement
-Aujourd'hui le visiteur public n'est pas authentifié. Toutes les RLS basées sur `auth.uid()` retournent vide → l'utilisateur voit "0 joueurs / 0 séances / Aucune statistique". Seules quelques sections passent par l'edge function `public-data` (overview, joueurs basiques, matchs basiques). Étendre cette edge function à toutes les sections impliquerait de réécrire la moitié de l'app — non maintenable.
+Aligner les exports des sports collectifs (rugby, foot, hand, volley, basket) sur la qualité visuelle et le format du PDF bowling (`bowling_equipe_2026-05-16.pdf`) — header club brandé, photo athlète, palmarès, blocs stats colorés par catégorie, cartographies, footer pro — **et** ajouter les boutons "Excel" + "Exporter en PDF" (joueur/équipe) directement sur chaque carte match (`MatchCard.tsx`).
 
-La solution la plus propre est de transformer le visiteur en véritable utilisateur authentifié avec rôle `viewer`, ce qui réutilise tout le système RLS existant.
+---
 
-## Étapes
+## 1. Nouveau module d'export unifié sports collectifs
 
-### 1. Migration DB
-Ajouter à `public_access_tokens` :
-- `auth_user_id uuid` — l'utilisateur invité associé (créé à la première utilisation)
-- `auth_password text` — mot de passe aléatoire généré côté serveur, stocké pour permettre la reconnexion
+Créer `src/lib/teamSports/teamSportsPdfExport.ts` inspiré de `src/lib/bowling/bowlingPdfExport.ts` (1507 lignes) :
 
-### 2. Nouvelle edge function `redeem-public-token`
-- Valide le token (actif, non expiré)
-- Si premier usage : crée un user Supabase invité (`viewer-<tokenId>@guest.cocoricoachclub.com`), génère un mot de passe aléatoire, le stocke
-- Insère/met à jour l'entrée `club_members` (ou `category_members`) avec `role = 'viewer'` pour ce user et le club/catégorie cible
-- Retourne `{ email, password, club_id, category_id }`
+- `exportTeamSportPlayerPdf(playerName, stats, options)` — bilan joueur unique
+- `exportTeamSportTeamPdf(players[], options)` — bilan équipe (un bloc par joueur)
 
-### 3. Refonte du flow côté client
-- `PublicView.handleContinue` appelle l'edge function puis fait `supabase.auth.signInWithPassword` avec les identifiants retournés
-- Une fois connecté, redirection vers `/categories/:id` ou `/clubs/:id` — l'utilisateur voit absolument tout via les RLS existantes
-- `ViewerModeContext` détecte déjà le rôle `viewer` → la bannière "Mode consultation" et le blocage des actions d'édition fonctionnent automatiquement
-- `PublicAccessContext` est conservé pour afficher la bannière et empêcher tout bouton d'édition (déjà en place)
+### Structure de chaque page (style bowling)
+1. **Header club** : bandeau dégradé brand, logo/nom club, nom équipe, date compétition, adversaire & score, lieu, catégorie d'âge, compétition
+2. **Bloc athlète** : photo ronde, nom, poste, n° licence, médailles/palmarès (récup `player_medals` comme bowling)
+3. **Stats clés** : 4 KPI cards en haut (essais, plaquages, mètres, % réussite…) avec couleurs sémantiques selon seuils
+4. **Stats détaillées par catégorie** : tables groupées (Attaque / Défense / Conquête / Discipline / Jeu au pied pour rugby) avec couleurs vert/orange/rouge selon référentiel
+5. **Cartographie** : mini-pitch SVG avec essais marqués / tirs au but (rugby) ou heatmap actions (autres sports) — réutiliser le SVG existant
+6. **Footer** : "CocoriCoach Club" + page X/Y + date génération
 
-### 4. Vérifications RLS
-La majorité des tables (sessions, tests, players, injuries, etc.) ont déjà des politiques basées sur `is_club_member()` ou `is_category_member()`. Un `viewer` membre du club passe ces checks. Les rares tables qui n'auraient pas ces politiques seront ajustées après un audit rapide.
+### Adaptation multi-sport
+Helper `getSportStatGroups(sportType)` qui renvoie la liste des catégories à afficher selon le sport :
+- Rugby : Attaque, Défense, Conquête, Discipline, Jeu au pied
+- Football : Attaque, Défense, Passes, Discipline, Gardien (si applicable)
+- Hand : Tirs, Défense, Passes, 7m, Discipline
+- Volley : Attaque, Réception, Service, Bloc, Défense
+- Basket : Tirs, Rebonds, Passes, Défense, Fautes
 
-### 5. Sécurité
-- Tokens expirés / désactivés → la function refuse la connexion et désactive le user invité si besoin
-- Le user invité a un email factice non confirmable, le mot de passe ne sort jamais (utilisé uniquement par le retour de l'edge function et oublié immédiatement après le signIn)
-- Les RLS empêchent toute écriture pour le rôle `viewer` (déjà le cas)
+Réutiliser `SPORT_STAT_CATEGORIES` existant si déjà défini.
 
-## Hors périmètre
-- Pas de modification du flow d'invitation par email (collaborateurs internes invités via Settings → People restent inchangés)
-- Pas de changement des permissions des autres rôles (admin, coach, doctor, etc.)
+---
+
+## 2. Excel branded sport collectif
+
+Étendre `src/lib/excelExport.ts` (déjà utilisé par bowling) :
+- 1 onglet "Équipe" + 1 onglet par catégorie de stats
+- Header brandé (club logo + couleurs), zebra rows, footer
+- Colorisation cellules selon seuils (vert/orange/rouge)
+- Fonctions : `buildTeamSportExcelTeam(...)`, `buildTeamSportExcelPlayer(...)`
+
+---
+
+## 3. Remplacement dans `PlayerCumulativeStats.tsx`
+
+Les fonctions `handleExportPdf` (lignes 710-1700, ~1000 lignes) et `handleExportExcel` (lignes 557-708) seront **remplacées par des wrappers** qui appellent les nouveaux modules unifiés. On garde l'API publique inchangée (mêmes signatures `mode: "all" | "team" | "individual" | "single"`) pour ne pas casser l'UI.
+
+---
+
+## 4. Boutons d'export sur `MatchCard.tsx`
+
+Dans `src/components/category/matches/MatchCard.tsx`, ajouter dans le footer de la carte (à côté du bouton "Composition" ou près de "Préparer le match") :
+- Bouton **Excel** (icône `FileSpreadsheet`)
+- Bouton **Exporter en PDF** avec dropdown :
+  - Exporter pour le joueur (sous-menu listant les joueurs du match)
+  - Exporter pour l'équipe
+
+Conditions d'affichage : `isTeamSport && match.is_finalized && !isBowling` (le bowling a son propre bouton dans la card bowling).
+
+Les boutons reçoivent `matchId` et appellent les helpers unifiés avec `initialMatchIds: [matchId]` — réutilisation directe du flux existant via un dialog modal ou export direct.
+
+---
+
+## 5. Périmètre techique
+
+- **Aucun changement DB** : on lit les tables existantes (`player_match_stats`, `matches`, `categories`, `players_safe`, `player_medals`, `match_kicking_positions`, `match_try_positions`)
+- **Aucun changement RLS**
+- **Pas de nouvelle dépendance** : `jspdf` + `jspdf-autotable` + `exceljs` déjà installés (utilisés par bowling)
+
+---
+
+## 6. Détails techniques
+
+| Fichier | Action |
+|---|---|
+| `src/lib/teamSports/teamSportsPdfExport.ts` | Nouveau — copie adaptée de `bowlingPdfExport.ts` |
+| `src/lib/teamSports/teamSportsExcelExport.ts` | Nouveau — extraction des helpers Excel actuels |
+| `src/lib/teamSports/statGroupsBySport.ts` | Nouveau — mapping sport → catégories de stats |
+| `src/lib/teamSports/pitchMapRenderer.ts` | Nouveau — rend mini-pitch SVG en image pour PDF (rugby/foot) |
+| `src/components/category/matches/PlayerCumulativeStats.tsx` | Refacto : `handleExportPdf` & `handleExportExcel` deviennent des wrappers |
+| `src/components/category/matches/MatchCard.tsx` | Ajout des 2 boutons + dropdown |
+| `src/components/category/matches/MatchExportButtons.tsx` | Nouveau composant réutilisable pour les boutons (utilisé dans MatchCard) |
+
+---
+
+## 7. QA
+
+- Tester export Joueur + Équipe sur 1 match rugby finalisé (catégorie active)
+- Vérifier ouverture du PDF + visuel cohérent avec bowling
+- Tester export depuis MatchCard ET depuis page Datas → résultat identique
+- Tester sur foot/hand/volley/basket (au moins ouverture PDF sans erreur, catégories de stats adaptées)
+
+---
+
+## Hors scope (peut être fait après)
+
+- Sports individuels (tennis, padel, athlétisme, ski…) — formats déjà spécifiques, à traiter séparément si demandé
+- Modification des templates Excel existants (on les remplace en bloc par le nouveau format unifié)
+- Bowling reste sur son module dédié (pas touché)
