@@ -755,6 +755,35 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                 Ajouter un match
               </Button>
             )}
+            {/* Promoted export buttons — visible directly on the card (Excel + PDF, joueur/équipe inside the dialog) */}
+            {canExport && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs w-full justify-start relative z-20 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10"
+                  onPointerDown={stopCardAction}
+                  onClick={(e) => { stopCardAction(e); setExportScope("single"); setIsExportOpen(true); }}
+                  title="Export Excel (équipe + statistiques individuelles)"
+                >
+                  <FileSpreadsheet className="h-3.5 w-3.5" />
+                  Excel
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs w-full justify-start relative z-20 border-rose-500/40 text-rose-700 dark:text-rose-300 hover:bg-rose-500/10"
+                  onPointerDown={stopCardAction}
+                  onClick={(e) => { stopCardAction(e); setExportScope("single"); setIsExportOpen(true); }}
+                  title="Export PDF (joueur ou équipe)"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Exporter en PDF
+                </Button>
+              </>
+            )}
             {/* Secondary actions menu */}
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
