@@ -81,7 +81,7 @@ export function TeamSportsAnalytics({ categoryId }: Props) {
         </div>
 
         {activeTab === "general" && (
-          <div className="flex justify-center">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-2">
             <Select value={currentMatch?.id || ""} onValueChange={setSelectedMatchId}>
               <SelectTrigger className="w-full max-w-md rounded-2xl">
                 <SelectValue placeholder="Sélectionnez un match" />
@@ -95,6 +95,30 @@ export function TeamSportsAnalytics({ categoryId }: Props) {
                 ))}
               </SelectContent>
             </Select>
+            {currentMatch && (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10"
+                  onClick={() => { setExportInitialTab("excel"); setExportOpen(true); }}
+                  title="Export Excel"
+                >
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Excel
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 border-rose-500/40 text-rose-700 dark:text-rose-300 hover:bg-rose-500/10"
+                  onClick={() => { setExportInitialTab("pdf"); setExportOpen(true); }}
+                  title="Exporter en PDF (joueur ou équipe)"
+                >
+                  <Download className="h-4 w-4" />
+                  Exporter en PDF
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
