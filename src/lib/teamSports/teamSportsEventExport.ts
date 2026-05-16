@@ -699,7 +699,9 @@ export async function exportTeamSportEventExcel(opts: BaseExportOpts): Promise<v
     ];
     let r2 = addBrandedHeader(ps, `Contributions individuelles — ${matchLabel}`, branding);
     const headerRow = ps.getRow(r2);
-    ps.columns.forEach((c, i) => (headerRow.getCell(i + 1).value = c.header));
+    ps.columns.forEach((c, i) => {
+      headerRow.getCell(i + 1).value = (c.header as string) || "";
+    });
     styleDataHeaderRow(ps, r2, ps.columns.length, branding.headerColor);
     let cursor = r2 + 1;
     const sorted = Object.entries(analytics.players)
