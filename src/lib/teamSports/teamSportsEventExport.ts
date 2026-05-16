@@ -568,12 +568,22 @@ export async function exportTeamSportEventPdf(opts: BaseExportOpts): Promise<voi
     );
   };
 
+  // Our team kicks with positions
+  const ourSide: "home" | "away" = match.is_home ? "home" : "away";
+  const ourKicks = extractKicks(events, ourSide);
+
   // ============ TEAM REPORT ============
   if (mode === "team") {
     let y = drawHeader();
     y = drawScoreBanner(pdf, match, ourTeamName, y, headerColor);
 
+    // Kicking cartography (rugby) — placed first as visual recap
+    if (ourKicks.length > 0) {
+      y = drawKickingMapsSection(pdf, ourKicks, y, drawHeader);
+    }
+
     // Section title
+    y = ensureSpace(pdf, y, 30, drawHeader);
     y = drawSectionTitle(pdf, "Statistiques de l'équipe", headerColor, y);
     renderTeamPdfSection(pdf, us, y, drawHeader);
 
@@ -598,6 +608,12 @@ export async function exportTeamSportEventPdf(opts: BaseExportOpts): Promise<voi
         ? players.filter((p) => p.id === playerId)
         : players.filter((p) => analytics.players[p.id]);
 
+    // Pre-load avatars in parallel
+    const avatarEntries = await Promise.all(
+      playerList.map(async (p) => [p.id, await loadImageBase64(p.avatar_url)] as const),
+    );
+    const avatars = new Map(avatarEntries);
+
     if (playerList.length === 0) {
       // Still render an empty PDF with a message
       let y = drawHeader();
@@ -612,21 +628,58 @@ export async function exportTeamSportEventPdf(opts: BaseExportOpts): Promise<voi
         let y = drawHeader();
         y = drawScoreBanner(pdf, match, ourTeamName, y, headerColor);
 
-        // Player banner
+        // Player banner with photo
         const pageWidth = pdf.internal.pageSize.getWidth();
+        const bannerH = 20;
         pdf.setFillColor(...headerColor);
-        pdf.roundedRect(15, y, pageWidth - 30, 14, 2, 2, "F");
+        pdf.roundedRect(15, y, pageWidth - 30, bannerH, 2, 2, "F");
+
+        // Photo (left)
+        const photoSize = 16;
+        const photoX = 17;
+        const photoY = y + 2;
+        const avatar = avatars.get(p.id);
+        if (avatar) {
+          try {
+            // White background circle for clean edges
+            pdf.setFillColor(255, 255, 255);
+            pdf.roundedRect(photoX, photoY, photoSize, photoSize, 2, 2, "F");
+            pdf.addImage(
+              avatar,
+              imageFormatFromDataUrl(avatar),
+              photoX + 0.5,
+              photoY + 0.5,
+              photoSize - 1,
+              photoSize - 1,
+            );
+          } catch {
+            // ignore image failures
+          }
+        } else {
+          // Initials fallback
+          pdf.setFillColor(255, 255, 255);
+          pdf.roundedRect(photoX, photoY, photoSize, photoSize, 2, 2, "F");
+          const initials =
+            ((p.first_name?.[0] || "") + (p.name?.[0] || "")).toUpperCase() || "?";
+          pdf.setTextColor(...headerColor);
+          pdf.setFont("helvetica", "bold");
+          pdf.setFontSize(10);
+          pdf.text(initials, photoX + photoSize / 2, photoY + photoSize / 2 + 2.5, {
+            align: "center",
+          });
+        }
+
+        const textX = photoX + photoSize + 4;
         pdf.setTextColor(255, 255, 255);
         pdf.setFont("helvetica", "bold");
         pdf.setFontSize(13);
-        pdf.text(playerLabel(p), 20, y + 9);
+        pdf.text(playerLabel(p), textX, y + 11);
         if (p.position) {
           pdf.setFont("helvetica", "normal");
           pdf.setFontSize(9);
-          const posText = p.position;
-          pdf.text(posText, pageWidth - 20 - pdf.getTextWidth(posText), y + 9);
+          pdf.text(p.position, textX, y + 16);
         }
-        y += 19;
+        y += bannerH + 5;
 
         const ps = analytics.players[p.id];
         if (!ps) {
