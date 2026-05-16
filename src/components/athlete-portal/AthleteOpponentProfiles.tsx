@@ -108,6 +108,25 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
     },
   });
 
+  // Realtime: refresh list when any opponent is added/edited in this club
+  useEffect(() => {
+    if (!clubId) return;
+    const channel = supabase
+      .channel(`opponent-profiles-athlete-${clubId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "opponent_profiles", filter: `club_id=eq.${clubId}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["athlete-opp-profiles", clubId] });
+          qc.invalidateQueries({ queryKey: ["opponent-profiles", clubId] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [clubId, qc]);
+
   const filtered = useMemo(() => {
     if (!profiles) return [];
     if (!search) return profiles;
