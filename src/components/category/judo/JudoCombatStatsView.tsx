@@ -99,7 +99,6 @@ const STAT_KEYS_BY_WIZARD: Record<WizardCatKey, string[]> = {
   scoring: [
     "victoryModeIppon",
     "victoryModeWazaari",
-    "victoryModeDecision",
     "victoryModeHansoku",
     "victoryModeYuko",
     "finalScore",
