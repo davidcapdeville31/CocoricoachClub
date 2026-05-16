@@ -213,15 +213,24 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
           <CompareTab categoryId={categoryId} matches={playable} />
         </TabsContent>
       </Tabs>
-      {currentMatch && (
-        <MatchExportDialog
-          open={exportOpen}
-          onOpenChange={setExportOpen}
+      {currentMatch && exportFormat && (
+        <MatchEventExportChooser
+          open={!!exportFormat}
+          onOpenChange={(o) => !o && setExportFormat(null)}
+          format={exportFormat}
           categoryId={categoryId}
-          sportType={sportType || ""}
-          matchIds={[currentMatch.id]}
-          title={`${currentMatch.is_home ? "vs" : "@"} ${currentMatch.opponent}`}
-          subtitle={format(new Date(currentMatch.match_date), "d MMMM yyyy", { locale: fr })}
+          ourTeamName={ourTeamName}
+          match={{
+            id: currentMatch.id,
+            match_date: currentMatch.match_date,
+            opponent: currentMatch.opponent,
+            is_home: currentMatch.is_home ?? null,
+            location: (currentMatch as any).location ?? null,
+            competition: (currentMatch as any).competition ?? null,
+            age_category: (currentMatch as any).age_category ?? null,
+            score_home: currentMatch.score_home ?? null,
+            score_away: currentMatch.score_away ?? null,
+          }}
         />
       )}
     </div>
