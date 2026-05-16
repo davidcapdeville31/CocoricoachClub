@@ -79,6 +79,24 @@ export function JudoOpponentsTab({ categoryId }: Props) {
     enabled: !!clubId,
   });
 
+  // Realtime: refresh when athletes or staff add/edit opponents
+  useEffect(() => {
+    if (!clubId) return;
+    const channel = supabase
+      .channel(`opponent-profiles-staff-${clubId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "opponent_profiles", filter: `club_id=eq.${clubId}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["opponent-profiles", clubId] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [clubId, qc]);
+
   const remove = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("opponent_profiles").delete().eq("id", id);
