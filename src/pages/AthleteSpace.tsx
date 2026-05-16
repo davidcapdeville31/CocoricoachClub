@@ -958,6 +958,14 @@ export default function AthleteSpace() {
               />
             </TabsContent>
           )}
+          {isJudo && (
+            <TabsContent value="opponents">
+              <AthleteOpponentProfiles
+                playerId={athleteInfo.player_id}
+                categoryId={athleteInfo.category_id}
+              />
+            </TabsContent>
+          )}
           <TabsContent value="documents">
               <AthleteSpaceDocuments
                 playerId={athleteInfo.player_id}
