@@ -278,6 +278,15 @@ export default function AthletePortal() {
             </TabsContent>
           )}
 
+          {isJudo && (
+            <TabsContent value="opponents" className="mt-6">
+              <AthleteOpponentProfiles
+                playerId={athleteInfo!.player_id}
+                categoryId={athleteInfo!.category_id}
+              />
+            </TabsContent>
+          )}
+
           {isBowling && (
             <>
               <TabsContent value="stats" className="mt-6">
