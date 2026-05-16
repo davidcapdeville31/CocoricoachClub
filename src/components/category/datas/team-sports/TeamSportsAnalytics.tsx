@@ -8,7 +8,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BarChart3, Users, GitCompare, ChevronDown, Check, FileSpreadsheet, Download } from "lucide-react";
-import { MatchExportDialog } from "@/components/category/matches/MatchExportDialog";
+import { MatchEventExportChooser } from "@/components/category/matches/MatchEventExportChooser";
+import { useCategoryTeamName } from "@/hooks/analytics/useTeamSportsAnalytics";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { GeneralTab } from "./tabs/GeneralTab";
@@ -25,7 +26,8 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
   const [activeTab, setActiveTab] = useState("general");
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
-  const [exportOpen, setExportOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | null>(null);
+  const { data: ourTeamName = "Notre équipe" } = useCategoryTeamName(categoryId);
 
   const playable = useMemo(() => matches.filter(m => m.event_type !== "individual"), [matches]);
   const currentMatch = useMemo(
@@ -103,8 +105,8 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
                   variant="outline"
                   size="sm"
                   className="gap-1.5 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10"
-                  onClick={() => { setExportOpen(true); }}
-                  title="Export Excel"
+                  onClick={() => { setExportFormat("excel"); }}
+                  title="Export Excel (équipe ou joueurs)"
                 >
                   <FileSpreadsheet className="h-4 w-4" />
                   Excel
@@ -113,7 +115,7 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
                   variant="outline"
                   size="sm"
                   className="gap-1.5 border-rose-500/40 text-rose-700 dark:text-rose-300 hover:bg-rose-500/10"
-                  onClick={() => { setExportOpen(true); }}
+                  onClick={() => { setExportFormat("pdf"); }}
                   title="Exporter en PDF (joueur ou équipe)"
                 >
                   <Download className="h-4 w-4" />
@@ -211,15 +213,24 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
           <CompareTab categoryId={categoryId} matches={playable} />
         </TabsContent>
       </Tabs>
-      {currentMatch && (
-        <MatchExportDialog
-          open={exportOpen}
-          onOpenChange={setExportOpen}
+      {currentMatch && exportFormat && (
+        <MatchEventExportChooser
+          open={!!exportFormat}
+          onOpenChange={(o) => !o && setExportFormat(null)}
+          format={exportFormat}
           categoryId={categoryId}
-          sportType={sportType || ""}
-          matchIds={[currentMatch.id]}
-          title={`${currentMatch.is_home ? "vs" : "@"} ${currentMatch.opponent}`}
-          subtitle={format(new Date(currentMatch.match_date), "d MMMM yyyy", { locale: fr })}
+          ourTeamName={ourTeamName}
+          match={{
+            id: currentMatch.id,
+            match_date: currentMatch.match_date,
+            opponent: currentMatch.opponent,
+            is_home: currentMatch.is_home ?? null,
+            location: (currentMatch as any).location ?? null,
+            competition: (currentMatch as any).competition ?? null,
+            age_category: (currentMatch as any).age_category ?? null,
+            score_home: currentMatch.score_home ?? null,
+            score_away: currentMatch.score_away ?? null,
+          }}
         />
       )}
     </div>
