@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -107,6 +107,25 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
       return data as any[];
     },
   });
+
+  // Realtime: refresh list when any opponent is added/edited in this club
+  useEffect(() => {
+    if (!clubId) return;
+    const channel = supabase
+      .channel(`opponent-profiles-athlete-${clubId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "opponent_profiles", filter: `club_id=eq.${clubId}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["athlete-opp-profiles", clubId] });
+          qc.invalidateQueries({ queryKey: ["opponent-profiles", clubId] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [clubId, qc]);
 
   const filtered = useMemo(() => {
     if (!profiles) return [];
