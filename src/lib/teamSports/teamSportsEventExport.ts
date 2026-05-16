@@ -70,6 +70,177 @@ const playerLabel = (p?: ExportPlayerInfo) =>
 const slug = (s: string) =>
   s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").toLowerCase().replace(/^-|-$/g, "");
 
+// ----- Image loading (player avatars) -----
+async function loadImageBase64(url: string | null | undefined): Promise<string | null> {
+  if (!url) return null;
+  try {
+    const res = await fetch(url, { mode: "cors" });
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+function imageFormatFromDataUrl(dataUrl: string): "JPEG" | "PNG" | "WEBP" {
+  if (dataUrl.startsWith("data:image/png")) return "PNG";
+  if (dataUrl.startsWith("data:image/webp")) return "WEBP";
+  return "JPEG";
+}
+
+// ----- Kick extraction from match_events -----
+interface KickWithPos { x: number; y: number; success: boolean; kickType: "conversion" | "penalty" | "drop" }
+
+function extractKicks(events: MatchEvent[], side: "home" | "away"): KickWithPos[] {
+  const map: Record<string, "conversion" | "penalty" | "drop"> = {
+    conversion: "conversion",
+    penalty_kick: "penalty",
+    drop: "drop",
+  };
+  const kicks: KickWithPos[] = [];
+  for (const e of events) {
+    const kind = map[e.event_type as string];
+    if (!kind) continue;
+    if (e.team_side !== side) continue;
+    const m = (e.metadata || {}) as any;
+    const x = typeof m.kickX === "number" ? m.kickX : m.position?.x;
+    const y = typeof m.kickY === "number" ? m.kickY : m.position?.y;
+    if (typeof x !== "number" || typeof y !== "number") continue;
+    kicks.push({ x, y, success: e.outcome === "success", kickType: kind });
+  }
+  return kicks;
+}
+
+const KICK_GROUP_LABELS: Record<string, { label: string; color: [number, number, number] }> = {
+  conversion: { label: "Transformations", color: [59, 130, 246] },
+  penalty: { label: "Pénalités au pied", color: [249, 115, 22] },
+  drop: { label: "Drops", color: [139, 92, 246] },
+};
+
+function drawKickMarker(
+  pdf: jsPDF,
+  cx: number,
+  cy: number,
+  kickType: "conversion" | "penalty" | "drop",
+  success: boolean,
+) {
+  const fill = success ? [34, 197, 94] : [239, 68, 68];
+  const stroke = KICK_GROUP_LABELS[kickType].color;
+  pdf.setFillColor(fill[0], fill[1], fill[2]);
+  pdf.setDrawColor(stroke[0], stroke[1], stroke[2]);
+  pdf.setLineWidth(0.6);
+  const r = 2;
+  if (kickType === "conversion") {
+    pdf.circle(cx, cy, r, "FD");
+  } else if (kickType === "penalty") {
+    pdf.rect(cx - r, cy - r, r * 2, r * 2, "FD");
+  } else {
+    // diamond
+    pdf.lines(
+      [[r, -r], [r, r], [-r, r], [-r, -r]],
+      cx - r,
+      cy,
+      [1, 1],
+      "FD",
+      true,
+    );
+  }
+}
+
+function drawKickingMapsSection(
+  pdf: jsPDF,
+  kicks: KickWithPos[],
+  yStart: number,
+  drawHeader: () => number,
+): number {
+  if (kicks.length === 0) return yStart;
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const margin = 15;
+
+  // Group totals
+  const totals = {
+    conversion: { ok: 0, total: 0 },
+    penalty: { ok: 0, total: 0 },
+    drop: { ok: 0, total: 0 },
+  };
+  for (const k of kicks) {
+    totals[k.kickType].total++;
+    if (k.success) totals[k.kickType].ok++;
+  }
+
+  // Section title
+  let y = ensureSpace(pdf, yStart, 80, drawHeader);
+  y = drawSectionTitle(pdf, "Cartographie des coups de pied", [16, 122, 66], y);
+
+  // Recap line
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(9);
+  pdf.setTextColor(71, 85, 105);
+  const recap = (Object.keys(KICK_GROUP_LABELS) as Array<keyof typeof KICK_GROUP_LABELS>)
+    .map((k) => {
+      const t = totals[k as "conversion" | "penalty" | "drop"];
+      const pct = t.total ? Math.round((t.ok / t.total) * 100) : 0;
+      return `${KICK_GROUP_LABELS[k].label}: ${t.ok}/${t.total}${t.total ? ` (${pct}%)` : ""}`;
+    })
+    .join("   •   ");
+  pdf.text(recap, pageW / 2, y, { align: "center" });
+  y += 5;
+
+  // Pitch
+  const pitchH = 60;
+  if (y + pitchH > pageH - 20) {
+    pdf.addPage();
+    y = drawHeader();
+    y = drawSectionTitle(pdf, "Cartographie des coups de pied", [16, 122, 66], y);
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(9);
+    pdf.setTextColor(71, 85, 105);
+    pdf.text(recap, pageW / 2, y, { align: "center" });
+    y += 5;
+  }
+  const fb = drawPdfRugbyField(pdf, margin, y, pageW - margin * 2, pitchH, { showLabels: true });
+
+  // Markers
+  for (const k of kicks) {
+    const { kx, ky } = svgPctToPdfPos(k, fb);
+    drawKickMarker(pdf, kx, ky, k.kickType, k.success);
+  }
+  y += pitchH + 3;
+
+  // Marker legend
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(7.5);
+  pdf.setTextColor(71, 85, 105);
+  let lx = margin;
+  const legendItems: Array<{ kind: "conversion" | "penalty" | "drop"; label: string }> = [
+    { kind: "conversion", label: "Transformation" },
+    { kind: "penalty", label: "Pénalité" },
+    { kind: "drop", label: "Drop" },
+  ];
+  legendItems.forEach((it) => {
+    drawKickMarker(pdf, lx + 2, y + 1.5, it.kind, true);
+    pdf.text(it.label, lx + 6, y + 2.5);
+    lx += 6 + pdf.getTextWidth(it.label) + 6;
+  });
+  // success / fail circles
+  pdf.setFillColor(34, 197, 94);
+  pdf.circle(lx + 2, y + 1.5, 2, "F");
+  pdf.text("Réussi", lx + 6, y + 2.5);
+  lx += 6 + pdf.getTextWidth("Réussi") + 6;
+  pdf.setFillColor(239, 68, 68);
+  pdf.circle(lx + 2, y + 1.5, 2, "F");
+  pdf.text("Raté", lx + 6, y + 2.5);
+  return y + 6;
+}
+
+
 // =================================================================
 // STAT GROUPS — sections affichées dans les rapports
 // =================================================================
