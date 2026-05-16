@@ -20,11 +20,12 @@ interface Props {
   sportType?: string;
 }
 
-export function TeamSportsAnalytics({ categoryId }: Props) {
+export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
   const { data: matches = [], isLoading } = useCategoryMatches(categoryId);
   const [activeTab, setActiveTab] = useState("general");
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const playable = useMemo(() => matches.filter(m => m.event_type !== "individual"), [matches]);
   const currentMatch = useMemo(
