@@ -711,7 +711,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
             {(isTeamSport || isJudo) && !isFinalized && (
               <PrepareMatchButton matchId={match.id} />
             )}
-            {hasRoundBasedStats ? (
+            {hasRoundBasedStats && (
               <>
                 {isTrainingMatch && !sportType.toLowerCase().includes("bowling") ? (
                   <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start opacity-50 cursor-not-allowed" disabled>
@@ -728,26 +728,7 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                      `Épreuves (${roundsCount || 0})`}
                   </Button>
                 )}
-                <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start relative z-20" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsAggregatedStatsOpen(true); }}>
-                  <BarChart3 className="h-3.5 w-3.5" />
-                  Statistiques
-                </Button>
               </>
-            ) : (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="gap-1.5 text-xs w-full justify-start relative z-20"
-                onPointerDown={stopCardAction}
-                onClick={(e) => {
-                  stopCardAction(e);
-                  setIsStatsOpen(true);
-                }}
-              >
-                <BarChart3 className="h-3.5 w-3.5" />
-                Statistiques
-              </Button>
             )}
             {canHaveSubMatches && (
               <Button variant="outline" size="sm" className="gap-1.5 text-xs w-full justify-start" onPointerDown={stopCardAction} onClick={(e) => { stopCardAction(e); setIsAddSubMatchOpen(true); }}>
