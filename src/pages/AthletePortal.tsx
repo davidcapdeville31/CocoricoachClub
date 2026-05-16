@@ -4,11 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Loader2, User, XCircle, Activity, Trophy, LogOut, BarChart3, CalendarPlus, Medal } from "lucide-react";
+import { Loader2, User, XCircle, Activity, Trophy, LogOut, BarChart3, CalendarPlus, Medal, Users } from "lucide-react";
 import { AthleteRpeEntry } from "@/components/athlete-portal/AthleteRpeEntry";
 import { AthleteMatchStats } from "@/components/athlete-portal/AthleteMatchStats";
 import { AthleteTrainingStats } from "@/components/athlete-portal/AthleteTrainingStats";
 import { AthleteCreateSession } from "@/components/athlete-portal/AthleteCreateSession";
+import { AthleteOpponentProfiles } from "@/components/athlete-portal/AthleteOpponentProfiles";
 import { AthletePWAInstallPopup } from "@/components/athlete/AthletePWAInstallPopup";
 import { AthleticsRecordsManager } from "@/components/category/athletics/AthleticsRecordsManager";
 import { isAthletismeCategory } from "@/lib/constants/sportTypes";
@@ -39,6 +40,7 @@ export default function AthletePortal() {
 
   const isBowling = athleteInfo?.sport_type?.toLowerCase().startsWith("bowling");
   const isAthletics = athleteInfo?.sport_type ? isAthletismeCategory(athleteInfo.sport_type) : false;
+  const isJudo = athleteInfo?.sport_type?.toLowerCase().startsWith("judo");
 
   useEffect(() => {
     if (user && user.user_metadata?.is_athlete) {
@@ -204,7 +206,7 @@ export default function AthletePortal() {
 
         {/* Main Tabs */}
         <Tabs defaultValue="rpe" className="w-full">
-          <TabsList className={`grid w-full ${isBowling ? "grid-cols-4" : isAthletics ? "grid-cols-3" : "grid-cols-2"}`}>
+          <TabsList className={`grid w-full ${isBowling ? "grid-cols-4" : isJudo ? "grid-cols-3" : isAthletics ? "grid-cols-3" : "grid-cols-2"}`}>
             <TabsTrigger value="rpe" className="gap-1 text-xs sm:text-sm">
               <Activity className="h-4 w-4" />
               <span className="hidden sm:inline">Séances & RPE</span>
@@ -220,6 +222,13 @@ export default function AthletePortal() {
                 <Medal className="h-4 w-4" />
                 <span className="hidden sm:inline">Minimas / Records</span>
                 <span className="sm:hidden">Records</span>
+              </TabsTrigger>
+            )}
+            {isJudo && (
+              <TabsTrigger value="opponents" className="gap-1 text-xs sm:text-sm">
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline">Adversaires</span>
+                <span className="sm:hidden">Advers.</span>
               </TabsTrigger>
             )}
             {isBowling && (
@@ -265,6 +274,15 @@ export default function AthletePortal() {
                 playerId={athleteInfo!.player_id}
                 singlePlayer
                 canEdit={false}
+              />
+            </TabsContent>
+          )}
+
+          {isJudo && (
+            <TabsContent value="opponents" className="mt-6">
+              <AthleteOpponentProfiles
+                playerId={athleteInfo!.player_id}
+                categoryId={athleteInfo!.category_id}
               />
             </TabsContent>
           )}
