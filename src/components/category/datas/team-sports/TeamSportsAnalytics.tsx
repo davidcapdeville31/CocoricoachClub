@@ -26,7 +26,8 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
   const [activeTab, setActiveTab] = useState("general");
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
-  const [exportOpen, setExportOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | null>(null);
+  const { data: ourTeamName = "Notre équipe" } = useCategoryTeamName(categoryId);
 
   const playable = useMemo(() => matches.filter(m => m.event_type !== "individual"), [matches]);
   const currentMatch = useMemo(
