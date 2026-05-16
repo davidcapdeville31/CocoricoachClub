@@ -7,7 +7,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Users, GitCompare, ChevronDown, Check } from "lucide-react";
+import { BarChart3, Users, GitCompare, ChevronDown, Check, FileSpreadsheet, Download } from "lucide-react";
+import { MatchExportDialog } from "@/components/category/matches/MatchExportDialog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { GeneralTab } from "./tabs/GeneralTab";
