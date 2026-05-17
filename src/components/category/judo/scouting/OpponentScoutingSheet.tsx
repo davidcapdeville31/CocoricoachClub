@@ -758,13 +758,6 @@ export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props)
                   tone="physical"
                 >
                   <ChipGroup
-                    label="Type physique"
-                    multi
-                    options={PHYSICAL_TYPES}
-                    value={profile.physical_profile?.types ?? []}
-                    onChange={(v) => patchPhysical("types", v)}
-                  />
-                  <ChipGroup
                     label="Posture"
                     options={POSTURES}
                     value={profile.physical_profile?.posture ?? null}
