@@ -681,6 +681,16 @@ function CombatPanel({
                         opponent_profile_id: op.id,
                         opponent_name: `${op.last_name}${op.first_name ? " " + op.first_name : ""}`,
                       });
+                      // Auto-remplir l'analyse tactique depuis la fiche adversaire
+                      if (op.combat_profile != null) {
+                        onUpdateStat(K.combatProfile, Number(op.combat_profile));
+                      }
+                      if (op.style_mask != null) {
+                        onUpdateStat(K.opponentStyleMask, Number(op.style_mask));
+                      }
+                      if (op.ground_standing_pref != null) {
+                        onUpdateStat(K.dominanceStanding, Number(op.ground_standing_pref));
+                      }
                     }
                   }
                 }}
