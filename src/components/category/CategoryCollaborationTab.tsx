@@ -26,12 +26,12 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-import { getAppBaseUrl } from "@/lib/appUrl";
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 interface CategoryCollaborationTabProps {
   categoryId: string;

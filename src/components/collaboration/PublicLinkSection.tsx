@@ -20,7 +20,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-import { getAppBaseUrl } from "@/lib/appUrl";
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -30,6 +29,7 @@ import { getAppBaseUrl } from "@/lib/appUrl";
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 interface PublicLinkSectionProps {
   clubId?: string;
