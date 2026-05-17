@@ -450,6 +450,9 @@ export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props)
                   />
                 </div>
 
+                {/* ============ IDENTITÉ ============ */}
+                <IdentitySection profile={profile} update={update} />
+
                 {/* ============ DANGER GLOBAL ============ */}
                 <SectionCard
                   id="danger"
