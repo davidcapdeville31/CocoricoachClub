@@ -690,10 +690,11 @@ function CombatPanel({
           </div>
         </div>
 
-        {/* MÉTHODE DE FIN (manuelle, complète l'auto-calcul) */}
+        {/* MÉTHODE DE FIN (auto-déduite, modifiable manuellement) */}
         <EnumPills
-          label="Méthode de fin"
+          label="Méthode de fin (auto)"
           value={num(round.stats?.[K.endMethod])}
+          color={result.winner === "me" ? "emerald" : result.winner === "opp" ? "red" : "blue"}
           options={[
             { v: 1, label: "Ippon" },
             { v: 2, label: "Waza-ari" },
