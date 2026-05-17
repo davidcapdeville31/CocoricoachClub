@@ -543,6 +543,27 @@ function CombatPanel({
     for (const [k, v] of flags) {
       if (num(round.stats?.[k]) !== v) onUpdateStat(k, v);
     }
+    // Auto-déduire la méthode de fin depuis la cause calculée
+    const autoEnd =
+      result.cause === "ippon_throw" || result.cause === "osaekomi_ippon"
+        ? 1
+        : result.cause === "wazari_score"
+        ? 2
+        : result.cause === "wazari_awasete"
+        ? 3
+        : result.cause === "hansoku_direct" || result.cause === "hansoku_indirect"
+        ? 4
+        : result.cause === "decision" || result.cause === "golden_score"
+        ? 5
+        : result.cause === "submission"
+        ? 6
+        : 0;
+    if (autoEnd > 0 && num(round.stats?.[K.endMethod]) !== autoEnd) {
+      onUpdateStat(K.endMethod, autoEnd);
+    } else if (autoEnd === 0 && result.winner === "pending" && num(round.stats?.[K.endMethod]) > 0) {
+      // Reset si plus aucune cause détectée
+      onUpdateStat(K.endMethod, 0);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result.winner, result.cause]);
 
@@ -669,10 +690,11 @@ function CombatPanel({
           </div>
         </div>
 
-        {/* MÉTHODE DE FIN (manuelle, complète l'auto-calcul) */}
+        {/* MÉTHODE DE FIN (auto-déduite, modifiable manuellement) */}
         <EnumPills
-          label="Méthode de fin"
+          label="Méthode de fin (auto)"
           value={num(round.stats?.[K.endMethod])}
+          color={result.winner === "me" ? "emerald" : result.winner === "opp" ? "red" : "blue"}
           options={[
             { v: 1, label: "Ippon" },
             { v: 2, label: "Waza-ari" },
