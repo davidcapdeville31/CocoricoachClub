@@ -48,6 +48,7 @@ interface ClubMembersManagementProps {
 
 export function ClubMembersManagement({ clubId, categories, canManage }: ClubMembersManagementProps) {
   const queryClient = useQueryClient();
+  useRealtimeMembers(`club-${clubId}`);
   const [editingMember, setEditingMember] = useState<any>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [allCategories, setAllCategories] = useState(true);

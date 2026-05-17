@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getAppBaseUrl } from "@/lib/appUrl";
+import { useRealtimeMembers } from "@/hooks/useRealtimeMembers";
 
 interface MembersSectionProps {
   clubId: string;
@@ -51,6 +52,7 @@ const ROLE_LABELS: Record<string, string> = {
 
 export function MembersSection({ clubId, canManage }: MembersSectionProps) {
   const queryClient = useQueryClient();
+  useRealtimeMembers(`members-${clubId}`);
 
   const { data: members, isLoading } = useQuery({
     queryKey: ["club-members", clubId],

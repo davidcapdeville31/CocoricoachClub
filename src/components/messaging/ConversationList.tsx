@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Plus, MessageSquare, Users, Hash, User, Trash2, MoreVertical } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useRealtimeMembers } from "@/hooks/useRealtimeMembers";
 import {
   Dialog,
   DialogContent,
