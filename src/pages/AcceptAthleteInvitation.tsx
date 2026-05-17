@@ -43,6 +43,33 @@ export default function AcceptAthleteInvitation() {
     }
   }, [token]);
 
+  // Auto-accept if user is already logged in with the matching email
+  useEffect(() => {
+    const autoAccept = async () => {
+      if (!invitation || !token) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      if (user.email?.toLowerCase() !== invitation.email.toLowerCase()) return;
+
+      setSubmitting(true);
+      try {
+        const { data, error: rpcErr } = await supabase.rpc(
+          "accept_athlete_invitation_signup",
+          { _token: token, _user_id: user.id }
+        );
+        if (rpcErr) throw rpcErr;
+        const result = data as any;
+        if (!result?.success) throw new Error(result?.error || "Erreur");
+        toast.success("Invitation acceptée ! Bienvenue dans l'équipe 🏆");
+        navigate("/athlete-space");
+      } catch (e: any) {
+        toast.error(e.message || "Erreur lors de l'acceptation");
+        setSubmitting(false);
+      }
+    };
+    autoAccept();
+  }, [invitation, token, navigate]);
+
   const validateToken = async () => {
     try {
       const { data, error: rpcError } = await supabase.rpc("validate_athlete_invitation", {
@@ -155,8 +182,9 @@ export default function AcceptAthleteInvitation() {
       console.error("Error creating account:", err);
       
       if (err.message?.includes("already registered")) {
-        toast.error("Un compte existe déjà avec cet email. Connecte-toi.");
-        navigate("/auth");
+        toast.error("Un compte existe déjà avec cet email. Connecte-toi pour finaliser l'invitation.");
+        const redirect = `/accept-athlete-invitation?token=${token}`;
+        navigate(`/auth?redirect=${encodeURIComponent(redirect)}`);
       } else {
         toast.error(err.message || "Erreur lors de la création du compte");
       }
