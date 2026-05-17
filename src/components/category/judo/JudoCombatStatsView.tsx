@@ -516,7 +516,7 @@ function CombatPanel({
         : result.winner === "draw"
         ? "draw"
         : "";
-    if (targetResult && targetResult !== round.result) {
+    if (targetResult !== (round.result || "")) {
       onUpdate({ result: targetResult });
     }
     // Compat anciens flags
