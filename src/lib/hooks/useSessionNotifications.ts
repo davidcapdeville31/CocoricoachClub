@@ -206,7 +206,9 @@ export function useSessionNotifications() {
       if (sessionStartTime) message += ` à ${sessionStartTime.substring(0, 5)}`;
       if (action === "cancelled") message += "\nCette séance a été annulée.";
 
-      const url = `${window.location.origin}/`;
+      const url = categoryId
+        ? `${window.location.origin}/categories/${categoryId}?tab=planning${sessionId ? `&session=${sessionId}` : ""}`
+        : `${window.location.origin}/athlete-space`;
 
       // ── Step 0a: Auto-fetch clubId if missing ──────────────────────────────
       if (!clubId && categoryId) {
