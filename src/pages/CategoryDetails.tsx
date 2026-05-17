@@ -621,6 +621,12 @@ function CategoryDetailsContent() {
             </TabsContent>
           )}
 
+          {isJudo && (
+            <TabsContent value="opponents-bank" className="space-y-4">
+              <JudoOpponentsTab categoryId={categoryId!} />
+            </TabsContent>
+          )}
+
           {/* GPS Tab - Only for Football and Rugby + Client option enabled */}
           {showGpsTab && (
             <TabsContent value="gps" className="space-y-4">
