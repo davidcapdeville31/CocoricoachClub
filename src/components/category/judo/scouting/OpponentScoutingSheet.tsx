@@ -229,16 +229,7 @@ function TokuiWazaEditor({
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-3">
-                  <SliderWithLabels
-                    label="Fréquence"
-                    value={it.frequency}
-                    onChange={(v) => update(i, { frequency: v })}
-                    unit="%"
-                    leftLabel="Rare"
-                    rightLabel="Permanente"
-                    tone="control"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3">
                   <SliderWithLabels
                     label="Réussite"
                     value={it.success_rate}
