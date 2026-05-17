@@ -2,7 +2,7 @@
 // OpponentScoutingSheet — Fiche scouting Judo haut niveau
 // Dialog plein écran, 6+ sections accordéon, autosave debouncé
 // ============================================================
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  JUDO_WEIGHT_CATEGORIES,
+  JUDO_WEIGHT_CATEGORIES_MEN,
+  JUDO_WEIGHT_CATEGORIES_WOMEN,
+} from "@/lib/constants/sportTypes";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Camera, Upload, User } from "lucide-react";
 import {
   Activity,
   Brain,
