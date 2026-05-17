@@ -456,23 +456,23 @@ export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props)
                     </div>
                     <div className="flex-1 min-w-[200px]">
                       <SliderWithLabels
-                        label="Difficulté tactique"
+                        label="Niveau de l'adversaire"
                         value={Number(profile.general_profile?.tactical_difficulty ?? 50)}
                         onChange={(v) => patchGeneral("tactical_difficulty", v)}
-                        leftLabel="Facile"
-                        rightLabel="Très difficile"
-                        unit="%"
+                        leftLabel="Adversaire abordable"
+                        rightLabel="Adversaire redoutable"
+                        unit=""
                         tone="danger"
                       />
                     </div>
                     <div className="flex-1 min-w-[200px]">
                       <SliderWithLabels
-                        label="Confiance analyse"
+                        label="Fiabilité des informations"
                         value={Number(profile.general_profile?.analysis_confidence ?? 50)}
                         onChange={(v) => patchGeneral("analysis_confidence", v)}
-                        leftLabel="Hypothèse"
-                        rightLabel="Validée vidéo"
-                        unit="%"
+                        leftLabel="Hypothèse / peu de données"
+                        rightLabel="Confirmé par vidéo"
+                        unit=""
                         tone="control"
                       />
                     </div>
