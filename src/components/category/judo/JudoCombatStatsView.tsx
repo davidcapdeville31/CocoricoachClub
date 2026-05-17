@@ -944,9 +944,11 @@ function CombatPanel({
               num(round.stats?.[K.submissionOpp]) > 0 &&
                 "bg-emerald-600 hover:bg-emerald-700 text-white",
             )}
-            onClick={() =>
-              onUpdateStat(K.submissionOpp, num(round.stats?.[K.submissionOpp]) > 0 ? 0 : 1)
-            }
+            onClick={() => {
+              const nv = num(round.stats?.[K.submissionOpp]) > 0 ? 0 : 1;
+              if (nv > 0) clearLosingFor("me");
+              onUpdateStat(K.submissionOpp, nv);
+            }}
           >
             <Trophy className="h-4 w-4" />
             Soumission adverse
