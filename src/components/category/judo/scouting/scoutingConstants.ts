@@ -17,11 +17,9 @@ export const GLOBAL_STYLES: ChipOption[] = [
 
 export const INTENSITIES: ChipOption[] = [
   { key: "explosive", label: "Explosif", tone: "danger" },
+  { key: "sustained", label: "Soutenu", tone: "danger" },
   { key: "controlled", label: "Contrôlé", tone: "control" },
   { key: "defensive", label: "Défensif" },
-  { key: "hyperactive", label: "Hyperactif", tone: "danger" },
-  { key: "low_volume", label: "Faible volume" },
-  { key: "high_pressure", label: "Haute pression", tone: "danger" },
 ];
 
 export const RHYTHMS: ChipOption[] = [
