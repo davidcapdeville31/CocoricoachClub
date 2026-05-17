@@ -215,9 +215,11 @@ export function JudoOpponentsTab({ categoryId }: Props) {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
                   <tr>
+                    <th className="text-left px-3 py-2 w-12"></th>
                     <th className="text-left px-3 py-2">Nom</th>
                     <th className="text-left px-3 py-2">Sexe</th>
                     <th className="text-left px-3 py-2">Catégorie</th>
+                    <th className="text-left px-3 py-2">Âge</th>
                     <th className="text-left px-3 py-2">Latéralité</th>
                     <th className="text-left px-3 py-2">Profil</th>
                     <th className="text-left px-3 py-2">Club / Pays</th>
@@ -225,8 +227,21 @@ export function JudoOpponentsTab({ categoryId }: Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((p) => (
+                  {filtered.map((p: any) => (
                     <tr key={p.id} className="border-t hover:bg-muted/30">
+                      <td className="px-3 py-2">
+                        {p.photo_url ? (
+                          <img
+                            src={p.photo_url}
+                            alt=""
+                            className="h-9 w-9 rounded-full object-cover ring-1 ring-border"
+                          />
+                        ) : (
+                          <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-[10px] text-muted-foreground font-semibold">
+                            {(p.last_name?.[0] || "?").toUpperCase()}
+                          </div>
+                        )}
+                      </td>
                       <td className="px-3 py-2 font-medium">
                         {p.last_name} {p.first_name || ""}
                         {p.birth_year ? <span className="text-xs text-muted-foreground ml-1">({p.birth_year})</span> : null}
@@ -237,6 +252,7 @@ export function JudoOpponentsTab({ categoryId }: Props) {
                           <Badge variant="secondary">{p.weight_category.replace(/^judo_/, "")}</Badge>
                         ) : "—"}
                       </td>
+                      <td className="px-3 py-2 text-muted-foreground">{p.age_category || "—"}</td>
                       <td className="px-3 py-2">{handLabel(p.handedness)}</td>
                       <td className="px-3 py-2">
                         {p.fighting_style ? (
