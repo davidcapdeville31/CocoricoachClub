@@ -33,6 +33,7 @@ import {
   OpponentProfileDialog,
   type OpponentProfile,
 } from "@/components/category/judo/OpponentProfileDialog";
+import { OpponentScoutingSheet } from "@/components/category/judo/scouting/OpponentScoutingSheet";
 
 interface Props {
   playerId: string;
