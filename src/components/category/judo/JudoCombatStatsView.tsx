@@ -22,6 +22,17 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { X } from "lucide-react";
+import {
   Plus,
   Trash2,
   Trophy,
@@ -323,6 +334,7 @@ export function JudoCombatStatsView({
   updateRound,
   updateRoundStat,
 }: Props) {
+  const [combatToDelete, setCombatToDelete] = useState<number | null>(null);
   const [activeRoundNumber, setActiveRoundNumber] = useState<number | null>(
     selectedPlayer.rounds[0]?.round_number ?? null,
   );
@@ -433,25 +445,38 @@ export function JudoCombatStatsView({
           const c = computeResult(r.stats, r.result);
           const active = r.round_number === activeRoundNumber;
           return (
-            <Button
-              key={r.round_number}
-              variant={active ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActiveRoundNumber(r.round_number)}
-              className={cn(
-                "h-8 gap-1.5 text-xs",
-                !active && c.winner === "me" && "border-emerald-500/60 text-emerald-700 dark:text-emerald-400",
-                !active && c.winner === "opp" && "border-red-500/60 text-red-700 dark:text-red-400",
-              )}
-            >
-              <span className="font-bold">C{r.round_number}</span>
-              {r.opponent_name && (
-                <span className="hidden sm:inline opacity-80 truncate max-w-[120px]">
-                  {r.opponent_name}
-                </span>
-              )}
-              {c.winner === "me" && <Trophy className="h-3 w-3" />}
-            </Button>
+            <div key={r.round_number} className="relative inline-flex group">
+              <Button
+                variant={active ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveRoundNumber(r.round_number)}
+                className={cn(
+                  "h-8 gap-1.5 text-xs pr-7",
+                  !active && c.winner === "me" && "border-emerald-500/60 text-emerald-700 dark:text-emerald-400",
+                  !active && c.winner === "opp" && "border-red-500/60 text-red-700 dark:text-red-400",
+                )}
+              >
+                <span className="font-bold">C{r.round_number}</span>
+                {r.opponent_name && (
+                  <span className="hidden sm:inline opacity-80 truncate max-w-[120px]">
+                    {r.opponent_name}
+                  </span>
+                )}
+                {c.winner === "me" && <Trophy className="h-3 w-3" />}
+              </Button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCombatToDelete(r.round_number);
+                }}
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                aria-label={`Supprimer combat ${r.round_number}`}
+                title="Supprimer ce combat"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
           );
         })}
         <Button
@@ -463,6 +488,32 @@ export function JudoCombatStatsView({
           <Plus className="h-3.5 w-3.5" /> Combat
         </Button>
       </div>
+
+      <AlertDialog open={combatToDelete !== null} onOpenChange={(open) => !open && setCombatToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce combat ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Le combat C{combatToDelete} et toutes ses données seront définitivement supprimés. Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (combatToDelete !== null) {
+                  removeRound(selectedPlayer.entryKey, combatToDelete);
+                  setCombatToDelete(null);
+                }
+              }}
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       {/* ACTIVE COMBAT PANEL */}
       <CombatPanel
