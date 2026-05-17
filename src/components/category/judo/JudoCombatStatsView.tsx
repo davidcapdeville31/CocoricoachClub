@@ -928,6 +928,11 @@ function CombatPanel({
           ]}
           onChange={(m) => onUpdateStat(K.opponentStyleMask, m)}
         />
+        <Separator />
+        <DominanceSlider
+          value={num(round.stats?.[K.dominanceStanding])}
+          onChange={(v) => onUpdateStat(K.dominanceStanding, v)}
+        />
       </Card>
 
       {/* ============== TECHNIQUES OFFENSIVE (DÉTAIL) ============== */}
