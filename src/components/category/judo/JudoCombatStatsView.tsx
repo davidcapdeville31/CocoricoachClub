@@ -88,6 +88,9 @@ interface OpponentProfile {
   gender?: string | null;
   weight_category?: string | null;
   handedness?: string | null;
+  combat_profile?: number | null;
+  style_mask?: number | null;
+  ground_standing_pref?: number | null;
 }
 
 interface SelectedPlayer {
