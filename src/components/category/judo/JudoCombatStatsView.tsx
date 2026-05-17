@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -23,18 +24,39 @@ import {
   Plus,
   Trash2,
   Trophy,
-  Check,
-  ChevronLeft,
-  ChevronRight,
   Timer,
   Swords,
+  Play,
+  Pause,
+  RotateCcw,
+  AlertTriangle,
+  Hand,
+  Flag,
+  Zap,
+  ShieldAlert,
 } from "lucide-react";
-import { JUDO_STATS } from "@/lib/constants/sportStats";
+import { cn } from "@/lib/utils";
 import {
   JUDO_TECHNIQUES,
   JUDO_TECHNIQUE_FAMILIES,
   techStatKey,
 } from "@/lib/constants/judoTechniques";
+
+// ============================================================================
+// JUDO COMBAT — IJF RULE-AWARE SCORING UI
+// ----------------------------------------------------------------------------
+// Tap-based post-combat capture with implicit IJF rule engine:
+//   - 2 Waza-ari → Ippon (waza-ari awasete ippon) → fin immédiate
+//   - 3 Shido    → Hansoku-make → fin immédiate
+//   - Osaekomi   : 10s = Waza-ari, 20s = Ippon
+//   - Soumission : fin immédiate
+//   - Yuko / Koka : SUPPRIMÉS (non disponibles)
+//   - Golden Score : prolongation illimitée, fin sur 1er score / shido décisif
+// ----------------------------------------------------------------------------
+// Persistance : on conserve `stats: Record<string, number>` + `result` + `notes`
+// pour ne pas casser le schéma. Toutes les valeurs sont stockées comme clés
+// numériques ou flags (0/1). Le résultat est recalculé en live.
+// ============================================================================
 
 interface JudoRound {
   round_number: number;
@@ -80,61 +102,174 @@ interface Props {
   ) => void;
 }
 
-// Categories shown as a wizard at the top of the dialog.
-const JUDO_WIZARD_CATEGORIES = [
-  { key: "general", label: "Général" },
-  { key: "scoring", label: "Score & Résultat" },
-  { key: "attack", label: "Attaque" },
-  { key: "defense", label: "Défense" },
-  { key: "penalties", label: "Pénalités" },
-  { key: "newaza", label: "Ne-waza" },
-  { key: "physique", label: "Physique" },
-] as const;
+// ----- Stat keys -----------------------------------------------------------
+const K = {
+  // Scores
+  wazariMe: "ijf_wazari_me",
+  wazariOpp: "ijf_wazari_opp",
+  ipponMe: "ijf_ippon_me",
+  ipponOpp: "ijf_ippon_opp",
+  // Pénalités
+  shidoMe: "ijf_shido_me",
+  shidoOpp: "ijf_shido_opp",
+  hansokuDirectMe: "ijf_hansoku_direct_me",
+  hansokuDirectOpp: "ijf_hansoku_direct_opp",
+  // Ne-waza
+  submissionMe: "ijf_submission_me",
+  submissionOpp: "ijf_submission_opp",
+  osaekomiMeSec: "ijf_osaekomi_me_sec",
+  osaekomiOppSec: "ijf_osaekomi_opp_sec",
+  // Temps
+  combatDuration: "combatDuration",
+  goldenScore: "goldenScore",
+  goldenScoreDuration: "goldenScoreDuration",
+  // Tactique
+  dominanceStanding: "ijf_dominance_standing", // 0..100 (%)
+  // Compat historique
+  victoryModeIppon: "victoryModeIppon",
+  victoryModeWazaari: "victoryModeWazaari",
+  victoryModeHansoku: "victoryModeHansoku",
+  hansokuMake: "hansokuMake",
+} as const;
 
-type WizardCatKey = typeof JUDO_WIZARD_CATEGORIES[number]["key"];
+type EndCause =
+  | "ippon_throw"
+  | "wazari_awasete"
+  | "wazari_score" // décision sur waza-ari en GS / shido décisif inverse
+  | "hansoku_indirect"
+  | "hansoku_direct"
+  | "submission"
+  | "osaekomi_ippon"
+  | "decision"
+  | "golden_score"
+  | "pending";
 
-// Map wizard categories to JUDO_STATS slices
-const STAT_KEYS_BY_WIZARD: Record<WizardCatKey, string[]> = {
-  general: [], // dedicated header inputs (opponent / phase / result)
-  scoring: [
-    "victoryModeIppon",
-    "victoryModeWazaari",
-    "victoryModeHansoku",
-    "victoryModeYuko",
-    "finalScore",
-    "combatDuration",
-  ],
-  attack: [
-    "attackAttempts",
-    "attackEffective",
-    "techniqueNageWaza",
-    "techniqueNeWaza",
-    "dominantSideRight",
-    "dominantSideLeft",
-    "entryTypeDirect",
-    "entryTypeCombo",
-    "entryTypeCounter",
-  ],
-  defense: [
-    "attacksReceived",
-    "scoresConceded",
-    "attacksNeutralized",
-  ],
-  penalties: ["shidoReceived", "shidoProvoked", "hansokuMake"],
-  newaza: [
-    "groundTimeSeconds",
-    "immobilizationAttempts",
-    "armLockAttempts",
-    "chokeAttempts",
-    "neWazaSuccess",
-  ],
-  physique: [
-    "effectiveEngagementTime",
-    "passivityPhases",
-    "goldenScore",
-    "goldenScoreDuration",
-  ],
-};
+interface ComputedResult {
+  winner: "me" | "opp" | "draw" | "pending";
+  cause: EndCause;
+  causeLabel: string;
+  ipponMe: number;
+  ipponOpp: number;
+  wazariMe: number;
+  wazariOpp: number;
+  shidoMe: number;
+  shidoOpp: number;
+  scoreLabel: string; // "I:0 W:1 / S:1" style
+}
+
+const num = (v: unknown) => Number(v) || 0;
+
+function computeResult(stats: Record<string, number> | undefined, manualResult: string): ComputedResult {
+  const s = stats || {};
+  const wazariMe = num(s[K.wazariMe]);
+  const wazariOpp = num(s[K.wazariOpp]);
+  const ipponMe = num(s[K.ipponMe]);
+  const ipponOpp = num(s[K.ipponOpp]);
+  const shidoMe = num(s[K.shidoMe]);
+  const shidoOpp = num(s[K.shidoOpp]);
+  const subMe = num(s[K.submissionMe]) > 0;
+  const subOpp = num(s[K.submissionOpp]) > 0;
+  const hansokuDirectMe = num(s[K.hansokuDirectMe]) > 0;
+  const hansokuDirectOpp = num(s[K.hansokuDirectOpp]) > 0;
+  const osaeMe = num(s[K.osaekomiMeSec]);
+  const osaeOpp = num(s[K.osaekomiOppSec]);
+
+  // Calcul des "effectifs" (osaekomi qui dégénèrent en score)
+  // 10s → waza-ari, 20s → ippon. On ajoute aux compteurs visibles.
+  const wMeEff = wazariMe + (osaeMe >= 10 && osaeMe < 20 ? 1 : 0);
+  const wOppEff = wazariOpp + (osaeOpp >= 10 && osaeOpp < 20 ? 1 : 0);
+  const iMeEff = ipponMe + (osaeMe >= 20 ? 1 : 0);
+  const iOppEff = ipponOpp + (osaeOpp >= 20 ? 1 : 0);
+
+  // Waza-ari awasete ippon
+  const wazariIpponMe = wMeEff >= 2;
+  const wazariIpponOpp = wOppEff >= 2;
+
+  const scoreLabel = `Ippon ${iMeEff}–${iOppEff} · Waza-ari ${wMeEff}–${wOppEff} · Shido ${shidoMe}–${shidoOpp}`;
+
+  // Priorités IJF de fin de combat (premier vrai)
+  // 1) Soumission immédiate
+  if (subMe) return mk("opp", "submission", "Soumission (abandon athlète)");
+  if (subOpp) return mk("me", "submission", "Soumission adverse");
+  // 2) Hansoku-make direct
+  if (hansokuDirectMe) return mk("opp", "hansoku_direct", "Hansoku-make direct (athlète)");
+  if (hansokuDirectOpp) return mk("me", "hansoku_direct", "Hansoku-make direct (adversaire)");
+  // 3) 3 Shido = Hansoku-make indirect
+  if (shidoMe >= 3) return mk("opp", "hansoku_indirect", "Hansoku-make (3 shido athlète)");
+  if (shidoOpp >= 3) return mk("me", "hansoku_indirect", "Hansoku-make (3 shido adversaire)");
+  // 4) Ippon direct (projection / osaekomi 20s)
+  if (iMeEff > 0) {
+    return mk(
+      "me",
+      osaeMe >= 20 ? "osaekomi_ippon" : "ippon_throw",
+      osaeMe >= 20 ? "Ippon — Osaekomi 20s" : "Ippon",
+    );
+  }
+  if (iOppEff > 0) {
+    return mk(
+      "opp",
+      osaeOpp >= 20 ? "osaekomi_ippon" : "ippon_throw",
+      osaeOpp >= 20 ? "Ippon adverse — Osaekomi 20s" : "Ippon adverse",
+    );
+  }
+  // 5) Waza-ari awasete ippon
+  if (wazariIpponMe) return mk("me", "wazari_awasete", "Waza-ari awasete ippon");
+  if (wazariIpponOpp) return mk("opp", "wazari_awasete", "Waza-ari awasete ippon (adverse)");
+
+  // Pas de fin nette → état "en cours" / décision possible
+  // Si manuellement marqué, on respecte
+  if (manualResult === "win" || manualResult === "loss" || manualResult === "draw") {
+    const winner = manualResult === "win" ? "me" : manualResult === "loss" ? "opp" : "draw";
+    // Cause = waza-ari / décision GS
+    const cause: EndCause =
+      num(s[K.goldenScore]) > 0
+        ? "golden_score"
+        : wMeEff !== wOppEff || shidoMe !== shidoOpp
+        ? "decision"
+        : "decision";
+    return {
+      winner,
+      cause,
+      causeLabel:
+        cause === "golden_score" ? "Décision Golden Score" : "Décision (waza-ari / shido)",
+      ipponMe: iMeEff,
+      ipponOpp: iOppEff,
+      wazariMe: wMeEff,
+      wazariOpp: wOppEff,
+      shidoMe,
+      shidoOpp,
+      scoreLabel,
+    };
+  }
+
+  return {
+    winner: "pending",
+    cause: "pending",
+    causeLabel: "Combat en cours / résultat à confirmer",
+    ipponMe: iMeEff,
+    ipponOpp: iOppEff,
+    wazariMe: wMeEff,
+    wazariOpp: wOppEff,
+    shidoMe,
+    shidoOpp,
+    scoreLabel,
+  };
+
+  function mk(winner: "me" | "opp", cause: EndCause, causeLabel: string): ComputedResult {
+    return {
+      winner,
+      cause,
+      causeLabel,
+      ipponMe: iMeEff,
+      ipponOpp: iOppEff,
+      wazariMe: wMeEff,
+      wazariOpp: wOppEff,
+      shidoMe,
+      shidoOpp,
+      scoreLabel,
+    };
+  }
+}
 
 const fmtMMSS = (sec: number) => {
   if (!sec || sec < 0) return "0:00";
@@ -143,6 +278,16 @@ const fmtMMSS = (sec: number) => {
   return `${m}:${s.toString().padStart(2, "0")}`;
 };
 
+const parseMMSS = (txt: string): number => {
+  const m = txt.match(/^\s*(\d+)\s*:\s*(\d{1,2})\s*$/);
+  if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+  const n = parseInt(txt, 10);
+  return Number.isFinite(n) ? n : 0;
+};
+
+// ============================================================================
+// MAIN VIEW
+// ============================================================================
 export function JudoCombatStatsView({
   selectedPlayer,
   phases,
@@ -152,30 +297,52 @@ export function JudoCombatStatsView({
   updateRound,
   updateRoundStat,
 }: Props) {
-  const [activeIdx, setActiveIdx] = useState(0);
-  const activeCat = JUDO_WIZARD_CATEGORIES[activeIdx];
-
-  const totalCombatSeconds = useMemo(
-    () =>
-      selectedPlayer.rounds.reduce(
-        (sum, r) => sum + (Number(r.stats?.combatDuration) || 0),
-        0,
-      ),
-    [selectedPlayer.rounds],
+  const [activeRoundNumber, setActiveRoundNumber] = useState<number | null>(
+    selectedPlayer.rounds[0]?.round_number ?? null,
   );
 
-  const wins = selectedPlayer.rounds.filter((r) => r.result === "win").length;
-  const losses = selectedPlayer.rounds.filter((r) => r.result === "loss").length;
+  // Si on ajoute / supprime, on s'aligne sur un combat existant
+  useEffect(() => {
+    if (selectedPlayer.rounds.length === 0) {
+      setActiveRoundNumber(null);
+      return;
+    }
+    if (!selectedPlayer.rounds.find((r) => r.round_number === activeRoundNumber)) {
+      setActiveRoundNumber(selectedPlayer.rounds[selectedPlayer.rounds.length - 1].round_number);
+    }
+  }, [selectedPlayer.rounds, activeRoundNumber]);
 
-  const goNext = () =>
-    setActiveIdx((i) => Math.min(i + 1, JUDO_WIZARD_CATEGORIES.length - 1));
-  const goPrev = () => setActiveIdx((i) => Math.max(i - 1, 0));
+  const activeRound = selectedPlayer.rounds.find((r) => r.round_number === activeRoundNumber);
 
-  const fmtOpp = (o: OpponentProfile) =>
-    `${o.last_name}${o.first_name ? " " + o.first_name : ""}` +
-    (o.weight_category ? ` (${o.weight_category.replace(/^judo_/, "")})` : "") +
-    (o.handedness === "left" ? " G" : o.handedness === "right" ? " D" : "");
+  // ------- Cumul tournoi --------
+  const totals = useMemo(() => {
+    let wins = 0,
+      losses = 0,
+      draws = 0,
+      totalSec = 0,
+      gsCount = 0,
+      ippon = 0,
+      wazari = 0,
+      shido = 0,
+      hansoku = 0;
+    for (const r of selectedPlayer.rounds) {
+      const c = computeResult(r.stats, r.result);
+      if (c.winner === "me") wins++;
+      else if (c.winner === "opp") losses++;
+      else if (c.winner === "draw") draws++;
+      totalSec += num(r.stats?.[K.combatDuration]);
+      if (num(r.stats?.[K.goldenScore]) > 0) gsCount++;
+      ippon += c.ipponMe;
+      wazari += c.wazariMe;
+      shido += c.shidoMe;
+      if (c.cause === "hansoku_direct" || c.cause === "hansoku_indirect") {
+        if (c.winner === "opp") hansoku++;
+      }
+    }
+    return { wins, losses, draws, totalSec, gsCount, ippon, wazari, shido, hansoku };
+  }, [selectedPlayer.rounds]);
 
+  // ------- Opponents select --------
   const sortedOpps = useMemo(() => {
     const all = opponentProfiles || [];
     const matches = (o: OpponentProfile) =>
@@ -189,388 +356,868 @@ export function JudoCombatStatsView({
     };
   }, [opponentProfiles, selectedPlayer.playerGender, selectedPlayer.playerWeightCategory]);
 
-  const renderOpponentSelect = (round: JudoRound) => (
-    <div className="flex gap-1">
-      <Select
-        value={round.opponent_profile_id || "__manual__"}
-        onValueChange={(v) => {
-          if (v === "__manual__") {
-            updateRound(selectedPlayer.entryKey, round.round_number, {
-              opponent_profile_id: null,
-            });
-          } else {
-            const op = (opponentProfiles || []).find((o) => o.id === v);
-            if (op) {
-              updateRound(selectedPlayer.entryKey, round.round_number, {
-                opponent_profile_id: op.id,
-                opponent_name: `${op.last_name}${op.first_name ? " " + op.first_name : ""}`,
-              });
-            }
-          }
-        }}
-      >
-        <SelectTrigger className="h-8 text-xs">
-          <SelectValue placeholder="Adversaire" />
-        </SelectTrigger>
-        <SelectContent className="z-[200] max-h-[300px]">
-          <SelectItem value="__manual__">— Saisie libre —</SelectItem>
-          {sortedOpps.matched.length > 0 && (
-            <>
-              <div className="px-2 py-1 text-[10px] font-bold uppercase text-muted-foreground">
-                Catégorie de l'athlète
-              </div>
-              {sortedOpps.matched.map((o) => (
-                <SelectItem key={o.id} value={o.id}>
-                  {fmtOpp(o)}
-                </SelectItem>
-              ))}
-            </>
-          )}
-          {sortedOpps.others.length > 0 && (
-            <>
-              <div className="px-2 py-1 text-[10px] font-bold uppercase text-muted-foreground">
-                Autres
-              </div>
-              {sortedOpps.others.map((o) => (
-                <SelectItem key={o.id} value={o.id}>
-                  {fmtOpp(o)}
-                </SelectItem>
-              ))}
-            </>
-          )}
-        </SelectContent>
-      </Select>
-      <Input
-        value={round.opponent_name}
-        onChange={(e) =>
-          updateRound(selectedPlayer.entryKey, round.round_number, {
-            opponent_name: e.target.value,
-            opponent_profile_id: null,
-          })
-        }
-        placeholder="Nom"
-        className="h-8 w-[110px] text-xs"
-      />
-    </div>
-  );
+  const fmtOpp = (o: OpponentProfile) =>
+    `${o.last_name}${o.first_name ? " " + o.first_name : ""}` +
+    (o.weight_category ? ` (${o.weight_category.replace(/^judo_/, "")})` : "") +
+    (o.handedness === "left" ? " G" : o.handedness === "right" ? " D" : "");
 
-  // ======================
-  // Render: empty state
-  // ======================
-  if (selectedPlayer.rounds.length === 0) {
+  // ----- Empty state -----
+  if (selectedPlayer.rounds.length === 0 || !activeRound) {
     return (
-      <div className="text-center py-8 text-muted-foreground space-y-4">
-        <Swords className="h-10 w-10 mx-auto opacity-40" />
+      <div className="text-center py-10 text-muted-foreground space-y-4">
+        <Swords className="h-12 w-12 mx-auto opacity-40" />
         <p>Aucun combat enregistré pour {selectedPlayer.playerName}</p>
         <Button
           size="sm"
           onClick={() => addRound(selectedPlayer.entryKey)}
           className="gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground"
         >
-          <Plus className="h-4 w-4" /> Ajouter un combat
+          <Plus className="h-4 w-4" /> Démarrer un combat
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
-      {/* HEADER: cumul + wizard categories */}
-      <div className="grid grid-cols-3 gap-2">
-        <div className="rounded-lg border p-2 text-center bg-muted/40">
-          <p className="text-lg font-bold">{selectedPlayer.rounds.length}</p>
-          <p className="text-[10px] text-muted-foreground uppercase">Combats</p>
-        </div>
-        <div className="rounded-lg border p-2 text-center bg-green-100 dark:bg-green-900/20">
-          <p className="text-lg font-bold text-green-700 dark:text-green-400">
-            {wins}V / {losses}D
-          </p>
-          <p className="text-[10px] text-muted-foreground uppercase">Bilan</p>
-        </div>
-        <div className="rounded-lg border p-2 text-center bg-blue-100 dark:bg-blue-900/20">
-          <p className="text-lg font-bold text-blue-700 dark:text-blue-400 flex items-center justify-center gap-1">
-            <Timer className="h-4 w-4" />
-            {fmtMMSS(totalCombatSeconds)}
-          </p>
-          <p className="text-[10px] text-muted-foreground uppercase">Temps cumulé</p>
-        </div>
+    <div className="space-y-4">
+      {/* CUMUL TOURNOI */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <StatPill label="Combats" value={selectedPlayer.rounds.length} />
+        <StatPill
+          label="Bilan"
+          value={`${totals.wins}V / ${totals.losses}D${totals.draws ? ` / ${totals.draws}E` : ""}`}
+          accent="success"
+        />
+        <StatPill
+          label="Temps cumulé"
+          value={fmtMMSS(totals.totalSec)}
+          accent="info"
+          icon={<Timer className="h-3.5 w-3.5" />}
+        />
+        <StatPill
+          label="Golden Score"
+          value={`${totals.gsCount} combat${totals.gsCount > 1 ? "s" : ""}`}
+          accent={totals.gsCount > 0 ? "warning" : "muted"}
+        />
       </div>
 
-      <div className="flex items-center gap-1">
-        <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={goPrev} disabled={activeIdx === 0}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <div className="flex-1 flex gap-1 overflow-x-auto pb-1">
-          {JUDO_WIZARD_CATEGORIES.map((c, idx) => (
+      {/* ROUND SELECTOR */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {selectedPlayer.rounds.map((r) => {
+          const c = computeResult(r.stats, r.result);
+          const active = r.round_number === activeRoundNumber;
+          return (
             <Button
-              key={c.key}
-              variant={idx === activeIdx ? "default" : "outline"}
+              key={r.round_number}
+              variant={active ? "default" : "outline"}
               size="sm"
-              className="shrink-0 text-xs h-8 gap-1"
-              onClick={() => setActiveIdx(idx)}
+              onClick={() => setActiveRoundNumber(r.round_number)}
+              className={cn(
+                "h-8 gap-1.5 text-xs",
+                !active && c.winner === "me" && "border-emerald-500/60 text-emerald-700 dark:text-emerald-400",
+                !active && c.winner === "opp" && "border-red-500/60 text-red-700 dark:text-red-400",
+              )}
             >
-              {c.label}
-              {idx < activeIdx && <Check className="h-3 w-3 text-green-400" />}
+              <span className="font-bold">C{r.round_number}</span>
+              {r.opponent_name && (
+                <span className="hidden sm:inline opacity-80 truncate max-w-[120px]">
+                  {r.opponent_name}
+                </span>
+              )}
+              {c.winner === "me" && <Trophy className="h-3 w-3" />}
             </Button>
-          ))}
-        </div>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-8 w-8 shrink-0"
-          onClick={goNext}
-          disabled={activeIdx >= JUDO_WIZARD_CATEGORIES.length - 1}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* CATEGORY CONTENT */}
-      {activeCat.key === "general" ? (
-        <GeneralTable
-          rounds={selectedPlayer.rounds}
-          phases={phases}
-          renderOpponent={renderOpponentSelect}
-          onRemove={(rn) => removeRound(selectedPlayer.entryKey, rn)}
-          onUpdate={(rn, u) => updateRound(selectedPlayer.entryKey, rn, u)}
-        />
-      ) : activeCat.key === "attack" ? (
-        <AttackBlock
-          rounds={selectedPlayer.rounds}
-          onUpdateStat={(rn, k, v) => updateRoundStat(selectedPlayer.entryKey, rn, k, v)}
-        />
-      ) : (
-        <StatsTable
-          rounds={selectedPlayer.rounds}
-          statKeys={STAT_KEYS_BY_WIZARD[activeCat.key]}
-          onUpdateStat={(rn, k, v) => updateRoundStat(selectedPlayer.entryKey, rn, k, v)}
-        />
-      )}
-
-      <div className="flex items-center justify-between pt-2">
+          );
+        })}
         <Button
           size="sm"
-          variant="outline"
+          variant="ghost"
           onClick={() => addRound(selectedPlayer.entryKey)}
-          className="gap-2"
+          className="h-8 gap-1 text-xs"
         >
-          <Plus className="h-4 w-4" /> Ajouter un combat
+          <Plus className="h-3.5 w-3.5" /> Combat
         </Button>
-        {activeIdx < JUDO_WIZARD_CATEGORIES.length - 1 && (
-          <Button size="sm" onClick={goNext} className="gap-1">
-            <Check className="h-4 w-4" />
-            Valider → {JUDO_WIZARD_CATEGORIES[activeIdx + 1].label}
+      </div>
+
+      {/* ACTIVE COMBAT PANEL */}
+      <CombatPanel
+        key={activeRound.round_number}
+        round={activeRound}
+        phases={phases}
+        sortedOpps={sortedOpps}
+        fmtOpp={fmtOpp}
+        opponentProfiles={opponentProfiles}
+        onUpdate={(u) => updateRound(selectedPlayer.entryKey, activeRound.round_number, u)}
+        onUpdateStat={(k, v) =>
+          updateRoundStat(selectedPlayer.entryKey, activeRound.round_number, k, v)
+        }
+        onRemove={() => removeRound(selectedPlayer.entryKey, activeRound.round_number)}
+      />
+    </div>
+  );
+}
+
+// ============================================================================
+// COMBAT PANEL (per round)
+// ============================================================================
+function CombatPanel({
+  round,
+  phases,
+  sortedOpps,
+  fmtOpp,
+  opponentProfiles,
+  onUpdate,
+  onUpdateStat,
+  onRemove,
+}: {
+  round: JudoRound;
+  phases: { value: string; label: string }[];
+  sortedOpps: { matched: OpponentProfile[]; others: OpponentProfile[] };
+  fmtOpp: (o: OpponentProfile) => string;
+  opponentProfiles: OpponentProfile[] | undefined;
+  onUpdate: (u: Partial<JudoRound>) => void;
+  onUpdateStat: (k: string, v: number) => void;
+  onRemove: () => void;
+}) {
+  const result = useMemo(() => computeResult(round.stats, round.result), [round.stats, round.result]);
+
+  // Autosave du résultat calculé dans `result` (et compat victoryMode*)
+  useEffect(() => {
+    const targetResult =
+      result.winner === "me"
+        ? "win"
+        : result.winner === "opp"
+        ? "loss"
+        : result.winner === "draw"
+        ? "draw"
+        : "";
+    if (targetResult && targetResult !== round.result) {
+      onUpdate({ result: targetResult });
+    }
+    // Compat anciens flags
+    const flags: Array<[string, number]> = [
+      [
+        K.victoryModeIppon,
+        result.winner === "me" &&
+        (result.cause === "ippon_throw" || result.cause === "osaekomi_ippon")
+          ? 1
+          : 0,
+      ],
+      [K.victoryModeWazaari, result.winner === "me" && result.cause === "wazari_awasete" ? 1 : 0],
+      [
+        K.victoryModeHansoku,
+        result.winner === "me" &&
+        (result.cause === "hansoku_direct" || result.cause === "hansoku_indirect")
+          ? 1
+          : 0,
+      ],
+      [
+        K.hansokuMake,
+        result.cause === "hansoku_direct" || result.cause === "hansoku_indirect" ? 1 : 0,
+      ],
+    ];
+    for (const [k, v] of flags) {
+      if (num(round.stats?.[k]) !== v) onUpdateStat(k, v);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result.winner, result.cause]);
+
+  return (
+    <div className="space-y-4">
+      {/* ============== HEADER COMBAT ============== */}
+      <Card className="p-3 space-y-3 border-l-4 border-l-destructive">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div className="space-y-1">
+            <Label className="text-[10px] uppercase text-muted-foreground">Phase</Label>
+            <Select value={round.phase} onValueChange={(v) => onUpdate({ phase: v })}>
+              <SelectTrigger className="h-9 text-xs">
+                <SelectValue placeholder="Phase" />
+              </SelectTrigger>
+              <SelectContent className="z-[200]">
+                {phases.map((p) => (
+                  <SelectItem key={p.value} value={p.value}>
+                    {p.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1 md:col-span-2">
+            <Label className="text-[10px] uppercase text-muted-foreground">Adversaire</Label>
+            <div className="flex gap-1">
+              <Select
+                value={round.opponent_profile_id || "__manual__"}
+                onValueChange={(v) => {
+                  if (v === "__manual__") {
+                    onUpdate({ opponent_profile_id: null });
+                  } else {
+                    const op = (opponentProfiles || []).find((o) => o.id === v);
+                    if (op) {
+                      onUpdate({
+                        opponent_profile_id: op.id,
+                        opponent_name: `${op.last_name}${op.first_name ? " " + op.first_name : ""}`,
+                      });
+                    }
+                  }
+                }}
+              >
+                <SelectTrigger className="h-9 text-xs flex-1">
+                  <SelectValue placeholder="Adversaire" />
+                </SelectTrigger>
+                <SelectContent className="z-[200] max-h-[300px]">
+                  <SelectItem value="__manual__">— Saisie libre —</SelectItem>
+                  {sortedOpps.matched.length > 0 && (
+                    <>
+                      <div className="px-2 py-1 text-[10px] font-bold uppercase text-muted-foreground">
+                        Catégorie de l'athlète
+                      </div>
+                      {sortedOpps.matched.map((o) => (
+                        <SelectItem key={o.id} value={o.id}>
+                          {fmtOpp(o)}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                  {sortedOpps.others.length > 0 && (
+                    <>
+                      <div className="px-2 py-1 text-[10px] font-bold uppercase text-muted-foreground">
+                        Autres
+                      </div>
+                      {sortedOpps.others.map((o) => (
+                        <SelectItem key={o.id} value={o.id}>
+                          {fmtOpp(o)}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+              <Input
+                value={round.opponent_name}
+                onChange={(e) =>
+                  onUpdate({ opponent_name: e.target.value, opponent_profile_id: null })
+                }
+                placeholder="Nom"
+                className="h-9 w-[140px] text-xs"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* RESULT BANNER */}
+        <ResultBanner result={result} />
+
+        {/* DURÉES */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <DurationInput
+            label="Durée totale"
+            value={num(round.stats?.[K.combatDuration])}
+            onChange={(v) => onUpdateStat(K.combatDuration, v)}
+          />
+          <DurationInput
+            label="Durée Golden Score"
+            value={num(round.stats?.[K.goldenScoreDuration])}
+            onChange={(v) => {
+              onUpdateStat(K.goldenScoreDuration, v);
+              if (v > 0 && num(round.stats?.[K.goldenScore]) === 0) onUpdateStat(K.goldenScore, 1);
+              if (v === 0 && num(round.stats?.[K.goldenScore]) > 0) onUpdateStat(K.goldenScore, 0);
+            }}
+            disabled={num(round.stats?.[K.goldenScore]) === 0}
+          />
+          <div className="col-span-2 sm:col-span-2 flex items-end">
+            <Button
+              type="button"
+              variant={num(round.stats?.[K.goldenScore]) > 0 ? "default" : "outline"}
+              size="sm"
+              className={cn(
+                "h-9 w-full gap-2 text-xs",
+                num(round.stats?.[K.goldenScore]) > 0 &&
+                  "bg-amber-500 hover:bg-amber-500/90 text-white",
+              )}
+              onClick={() =>
+                onUpdateStat(K.goldenScore, num(round.stats?.[K.goldenScore]) > 0 ? 0 : 1)
+              }
+            >
+              <Flag className="h-4 w-4" />
+              Golden Score {num(round.stats?.[K.goldenScore]) > 0 ? "ON" : "OFF"}
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      {/* ============== SCORES (OFFENSIVE) ============== */}
+      <Card className="p-3 space-y-3">
+        <SectionHeader icon={<Zap className="h-4 w-4 text-emerald-500" />} title="Scores IJF" hint="2 Waza-ari = Ippon automatique" />
+        <div className="grid grid-cols-2 gap-3">
+          <ScoreColumn
+            label="Athlète"
+            color="emerald"
+            ippon={num(round.stats?.[K.ipponMe])}
+            wazari={num(round.stats?.[K.wazariMe])}
+            onIppon={(v) => onUpdateStat(K.ipponMe, Math.max(0, Math.min(1, v)))}
+            onWazari={(v) => onUpdateStat(K.wazariMe, Math.max(0, Math.min(2, v)))}
+          />
+          <ScoreColumn
+            label="Adversaire"
+            color="red"
+            ippon={num(round.stats?.[K.ipponOpp])}
+            wazari={num(round.stats?.[K.wazariOpp])}
+            onIppon={(v) => onUpdateStat(K.ipponOpp, Math.max(0, Math.min(1, v)))}
+            onWazari={(v) => onUpdateStat(K.wazariOpp, Math.max(0, Math.min(2, v)))}
+          />
+        </div>
+      </Card>
+
+      {/* ============== PÉNALITÉS ============== */}
+      <Card className="p-3 space-y-3">
+        <SectionHeader
+          icon={<ShieldAlert className="h-4 w-4 text-amber-500" />}
+          title="Pénalités (Shido)"
+          hint="3 Shido = Hansoku-make"
+        />
+        <div className="grid grid-cols-2 gap-3">
+          <ShidoColumn
+            label="Athlète"
+            color="amber"
+            shido={num(round.stats?.[K.shidoMe])}
+            hansokuDirect={num(round.stats?.[K.hansokuDirectMe]) > 0}
+            onShido={(v) => onUpdateStat(K.shidoMe, Math.max(0, Math.min(3, v)))}
+            onHansokuDirect={(v) => onUpdateStat(K.hansokuDirectMe, v ? 1 : 0)}
+          />
+          <ShidoColumn
+            label="Adversaire"
+            color="amber"
+            shido={num(round.stats?.[K.shidoOpp])}
+            hansokuDirect={num(round.stats?.[K.hansokuDirectOpp]) > 0}
+            onShido={(v) => onUpdateStat(K.shidoOpp, Math.max(0, Math.min(3, v)))}
+            onHansokuDirect={(v) => onUpdateStat(K.hansokuDirectOpp, v ? 1 : 0)}
+          />
+        </div>
+      </Card>
+
+      {/* ============== NE-WAZA ============== */}
+      <Card className="p-3 space-y-3">
+        <SectionHeader
+          icon={<Hand className="h-4 w-4 text-blue-500" />}
+          title="Ne-waza (sol)"
+          hint="Osaekomi : 10s = Waza-ari · 20s = Ippon — Soumission = fin immédiate"
+        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <OsaekomiTimer
+            label="Osaekomi Athlète"
+            color="emerald"
+            seconds={num(round.stats?.[K.osaekomiMeSec])}
+            onChange={(v) => onUpdateStat(K.osaekomiMeSec, v)}
+          />
+          <OsaekomiTimer
+            label="Osaekomi Adversaire"
+            color="red"
+            seconds={num(round.stats?.[K.osaekomiOppSec])}
+            onChange={(v) => onUpdateStat(K.osaekomiOppSec, v)}
+          />
+        </div>
+        <Separator />
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            type="button"
+            variant={num(round.stats?.[K.submissionMe]) > 0 ? "default" : "outline"}
+            className={cn(
+              "h-12 gap-2 text-xs",
+              num(round.stats?.[K.submissionMe]) > 0 && "bg-red-600 hover:bg-red-700 text-white",
+            )}
+            onClick={() =>
+              onUpdateStat(K.submissionMe, num(round.stats?.[K.submissionMe]) > 0 ? 0 : 1)
+            }
+          >
+            <AlertTriangle className="h-4 w-4" />
+            Soumission athlète (abandon)
           </Button>
-        )}
+          <Button
+            type="button"
+            variant={num(round.stats?.[K.submissionOpp]) > 0 ? "default" : "outline"}
+            className={cn(
+              "h-12 gap-2 text-xs",
+              num(round.stats?.[K.submissionOpp]) > 0 &&
+                "bg-emerald-600 hover:bg-emerald-700 text-white",
+            )}
+            onClick={() =>
+              onUpdateStat(K.submissionOpp, num(round.stats?.[K.submissionOpp]) > 0 ? 0 : 1)
+            }
+          >
+            <Trophy className="h-4 w-4" />
+            Soumission adverse
+          </Button>
+        </div>
+      </Card>
+
+      {/* ============== TACTIQUE / DOMINANCE ============== */}
+      <Card className="p-3 space-y-3">
+        <SectionHeader icon={<Swords className="h-4 w-4 text-violet-500" />} title="Tactique" />
+        <DominanceSlider
+          value={num(round.stats?.[K.dominanceStanding])}
+          onChange={(v) => onUpdateStat(K.dominanceStanding, v)}
+        />
+      </Card>
+
+      {/* ============== TECHNIQUES OFFENSIVE (DÉTAIL) ============== */}
+      <Card className="p-3 space-y-3">
+        <SectionHeader
+          icon={<Zap className="h-4 w-4 text-blue-500" />}
+          title="Détail techniques offensives"
+          hint="Saisie optionnelle pour analyse fine"
+        />
+        <AttackBlock round={round} onUpdateStat={onUpdateStat} />
+      </Card>
+
+      {/* ============== NOTES + ACTIONS ============== */}
+      <Card className="p-3 space-y-2">
+        <Label className="text-[10px] uppercase text-muted-foreground">Notes libres</Label>
+        <Input
+          value={round.notes || ""}
+          onChange={(e) => onUpdate({ notes: e.target.value })}
+          placeholder="Observations, plan tactique, points à travailler…"
+          className="h-9 text-xs"
+        />
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onRemove}
+            className="text-destructive hover:text-destructive gap-1"
+          >
+            <Trash2 className="h-3.5 w-3.5" /> Supprimer ce combat
+          </Button>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================================
+// SUB COMPONENTS
+// ============================================================================
+function StatPill({
+  label,
+  value,
+  accent = "muted",
+  icon,
+}: {
+  label: string;
+  value: string | number;
+  accent?: "muted" | "success" | "info" | "warning";
+  icon?: React.ReactNode;
+}) {
+  const cls =
+    accent === "success"
+      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900"
+      : accent === "info"
+      ? "bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-900"
+      : accent === "warning"
+      ? "bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900"
+      : "bg-muted/40";
+  return (
+    <div className={cn("rounded-lg border p-2 text-center", cls)}>
+      <p className="text-lg font-bold flex items-center justify-center gap-1">
+        {icon}
+        {value}
+      </p>
+      <p className="text-[10px] uppercase opacity-80">{label}</p>
+    </div>
+  );
+}
+
+function SectionHeader({
+  icon,
+  title,
+  hint,
+}: {
+  icon?: React.ReactNode;
+  title: string;
+  hint?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2">
+        {icon}
+        <h4 className="text-sm font-bold uppercase tracking-wide">{title}</h4>
+      </div>
+      {hint && <p className="text-[10px] text-muted-foreground hidden sm:block">{hint}</p>}
+    </div>
+  );
+}
+
+function ResultBanner({ result }: { result: ComputedResult }) {
+  const isPending = result.winner === "pending";
+  const winnerColor =
+    result.winner === "me"
+      ? "bg-emerald-500 text-white"
+      : result.winner === "opp"
+      ? "bg-red-500 text-white"
+      : result.winner === "draw"
+      ? "bg-amber-500 text-white"
+      : "bg-muted text-foreground";
+  const winnerLabel =
+    result.winner === "me"
+      ? "VICTOIRE"
+      : result.winner === "opp"
+      ? "DÉFAITE"
+      : result.winner === "draw"
+      ? "ÉGALITÉ"
+      : "EN COURS";
+  return (
+    <div
+      className={cn(
+        "rounded-lg p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2",
+        winnerColor,
+        isPending && "border-2 border-dashed border-border",
+      )}
+    >
+      <div className="flex items-center gap-3">
+        <Badge
+          variant="secondary"
+          className={cn(
+            "h-7 px-3 text-[11px] font-extrabold tracking-wider",
+            !isPending && "bg-white/95 text-foreground",
+          )}
+        >
+          {winnerLabel}
+        </Badge>
+        <div className="leading-tight">
+          <p className="text-xs font-semibold">{result.causeLabel}</p>
+          <p className="text-[11px] opacity-90">{result.scoreLabel}</p>
+        </div>
       </div>
     </div>
   );
 }
 
-// =====================================================================
-// Sub-components
-// =====================================================================
-
-function GeneralTable({
-  rounds,
-  phases,
-  renderOpponent,
-  onRemove,
-  onUpdate,
+function DurationInput({
+  label,
+  value,
+  onChange,
+  disabled,
 }: {
-  rounds: JudoRound[];
-  phases: { value: string; label: string }[];
-  renderOpponent: (r: JudoRound) => React.ReactNode;
-  onRemove: (rn: number) => void;
-  onUpdate: (rn: number, u: Partial<JudoRound>) => void;
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  disabled?: boolean;
 }) {
+  const [text, setText] = useState(fmtMMSS(value));
+  useEffect(() => setText(fmtMMSS(value)), [value]);
   return (
-    <Card className="overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-12 whitespace-nowrap">#</TableHead>
-            <TableHead className="whitespace-nowrap">Phase</TableHead>
-            <TableHead className="whitespace-nowrap">Adversaire</TableHead>
-            <TableHead className="w-40 whitespace-nowrap">Résultat</TableHead>
-            <TableHead className="w-10" />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rounds.map((r) => (
-            <TableRow key={r.round_number}>
-              <TableCell className="font-bold">{r.round_number}</TableCell>
-              <TableCell>
-                <Select
-                  value={r.phase}
-                  onValueChange={(v) => onUpdate(r.round_number, { phase: v })}
-                >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Phase" />
-                  </SelectTrigger>
-                  <SelectContent className="z-[200]">
-                    {phases.map((p) => (
-                      <SelectItem key={p.value} value={p.value}>
-                        {p.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </TableCell>
-              <TableCell>{renderOpponent(r)}</TableCell>
-              <TableCell>
-                <Select
-                  value={r.result}
-                  onValueChange={(v) => onUpdate(r.round_number, { result: v })}
-                >
-                  <SelectTrigger className="h-8 text-xs whitespace-nowrap [&>span]:truncate">
-                    <SelectValue placeholder="—" />
-                  </SelectTrigger>
-                  <SelectContent className="z-[200]">
-                    <SelectItem value="win">
-                      <span className="flex items-center gap-1">
-                        <Trophy className="h-3 w-3 text-green-500" /> Victoire
-                      </span>
-                    </SelectItem>
-                    <SelectItem value="loss">Défaite</SelectItem>
-                    <SelectItem value="draw">Égalité</SelectItem>
-                  </SelectContent>
-                </Select>
-              </TableCell>
-              <TableCell>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => onRemove(r.round_number)}
-                >
-                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </Card>
+    <div className="space-y-1">
+      <Label className="text-[10px] uppercase text-muted-foreground">{label}</Label>
+      <Input
+        value={text}
+        disabled={disabled}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={() => onChange(parseMMSS(text))}
+        placeholder="0:00"
+        className="h-9 text-center text-xs font-mono"
+      />
+    </div>
   );
 }
 
-function StatsTable({
-  rounds,
-  statKeys,
-  onUpdateStat,
+function ScoreColumn({
+  label,
+  color,
+  ippon,
+  wazari,
+  onIppon,
+  onWazari,
 }: {
-  rounds: JudoRound[];
-  statKeys: string[];
-  onUpdateStat: (roundNumber: number, key: string, value: number) => void;
+  label: string;
+  color: "emerald" | "red";
+  ippon: number;
+  wazari: number;
+  onIppon: (v: number) => void;
+  onWazari: (v: number) => void;
 }) {
-  const fields = statKeys
-    .map((k) => JUDO_STATS.find((s) => s.key === k))
-    .filter(Boolean) as typeof JUDO_STATS;
-
-  if (fields.length === 0) {
-    return (
-      <Card className="p-4 text-center text-sm text-muted-foreground">
-        Aucune donnée à saisir dans cette catégorie.
-      </Card>
-    );
-  }
-
+  const palette =
+    color === "emerald"
+      ? {
+          ring: "ring-emerald-500",
+          btn: "bg-emerald-500 hover:bg-emerald-600 text-white",
+          soft: "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300",
+        }
+      : {
+          ring: "ring-red-500",
+          btn: "bg-red-500 hover:bg-red-600 text-white",
+          soft: "bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300",
+        };
   return (
-    <Card className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-20 sticky left-0 bg-card z-10">Combat</TableHead>
-            {fields.map((f) => (
-              <TableHead key={f.key} className="text-center text-[10px] min-w-[90px]">
-                {f.shortLabel}
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rounds.map((r) => (
-            <TableRow key={r.round_number}>
-              <TableCell className="font-semibold sticky left-0 bg-card z-10">
-                #{r.round_number}
-                {r.opponent_name && (
-                  <div className="text-[10px] text-muted-foreground truncate max-w-[80px]">
-                    {r.opponent_name}
-                  </div>
-                )}
-              </TableCell>
-              {fields.map((f) => (
-                <TableCell key={f.key} className="p-1">
-                  <Input
-                    type="number"
-                    value={r.stats?.[f.key] ?? ""}
-                    onChange={(e) =>
-                      onUpdateStat(r.round_number, f.key, parseFloat(e.target.value) || 0)
-                    }
-                    min={0}
-                    max={f.max}
-                    className="h-8 text-xs text-center"
-                    onWheel={(e) => e.currentTarget.blur()}
-                  />
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </Card>
+    <div className={cn("rounded-lg border p-2 space-y-2", palette.soft)}>
+      <p className="text-[11px] font-bold uppercase tracking-wide text-center">{label}</p>
+      <CounterRow label="Ippon" value={ippon} max={1} onChange={onIppon} btnClass={palette.btn} />
+      <CounterRow
+        label="Waza-ari"
+        value={wazari}
+        max={2}
+        onChange={onWazari}
+        btnClass={palette.btn}
+        helper={wazari >= 2 ? "→ Ippon !" : undefined}
+      />
+    </div>
   );
 }
 
+function ShidoColumn({
+  label,
+  color,
+  shido,
+  hansokuDirect,
+  onShido,
+  onHansokuDirect,
+}: {
+  label: string;
+  color: "amber";
+  shido: number;
+  hansokuDirect: boolean;
+  onShido: (v: number) => void;
+  onHansokuDirect: (v: boolean) => void;
+}) {
+  return (
+    <div className="rounded-lg border p-2 space-y-2 bg-amber-50/60 dark:bg-amber-950/20">
+      <p className="text-[11px] font-bold uppercase tracking-wide text-center">{label}</p>
+      <CounterRow
+        label="Shido"
+        value={shido}
+        max={3}
+        onChange={onShido}
+        btnClass="bg-amber-500 hover:bg-amber-600 text-white"
+        helper={
+          shido >= 3
+            ? "→ Hansoku-make !"
+            : shido === 2
+            ? "Pression forte"
+            : shido === 1
+            ? "Avertissement"
+            : undefined
+        }
+      />
+      <Button
+        type="button"
+        size="sm"
+        variant={hansokuDirect ? "default" : "outline"}
+        onClick={() => onHansokuDirect(!hansokuDirect)}
+        className={cn(
+          "w-full h-9 gap-1.5 text-xs",
+          hansokuDirect && "bg-red-600 hover:bg-red-700 text-white",
+        )}
+      >
+        <AlertTriangle className="h-3.5 w-3.5" />
+        Hansoku-make direct
+      </Button>
+    </div>
+  );
+}
+
+function CounterRow({
+  label,
+  value,
+  max,
+  onChange,
+  btnClass,
+  helper,
+}: {
+  label: string;
+  value: number;
+  max: number;
+  onChange: (v: number) => void;
+  btnClass: string;
+  helper?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex-1">
+        <p className="text-xs font-semibold">{label}</p>
+        {helper && <p className="text-[10px] opacity-80">{helper}</p>}
+      </div>
+      <div className="flex items-center gap-1">
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
+          className="h-8 w-8"
+          onClick={() => onChange(value - 1)}
+          disabled={value <= 0}
+        >
+          −
+        </Button>
+        <div className="w-8 text-center font-bold tabular-nums">{value}</div>
+        <Button
+          type="button"
+          size="icon"
+          className={cn("h-8 w-8", btnClass)}
+          onClick={() => onChange(value + 1)}
+          disabled={value >= max}
+        >
+          +
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function OsaekomiTimer({
+  label,
+  color,
+  seconds,
+  onChange,
+}: {
+  label: string;
+  color: "emerald" | "red";
+  seconds: number;
+  onChange: (v: number) => void;
+}) {
+  const [running, setRunning] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (running) {
+      intervalRef.current = setInterval(() => {
+        onChange(seconds + 1);
+      }, 1000);
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running, seconds]);
+
+  const reached = seconds >= 20 ? "ippon" : seconds >= 10 ? "wazari" : "none";
+  const palette =
+    color === "emerald"
+      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300"
+      : "bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300";
+
+  // Progress jusqu'à 20s
+  const pct = Math.min(100, (seconds / 20) * 100);
+
+  return (
+    <div className={cn("rounded-lg border p-2 space-y-2", palette)}>
+      <p className="text-[11px] font-bold uppercase tracking-wide">{label}</p>
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-2xl font-bold font-mono tabular-nums">
+          {seconds}s
+        </div>
+        <div className="flex gap-1">
+          <Button
+            type="button"
+            size="sm"
+            variant={running ? "default" : "outline"}
+            className={cn("h-9 gap-1", running && "bg-emerald-600 text-white")}
+            onClick={() => setRunning((r) => !r)}
+          >
+            {running ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+            {running ? "Stop" : "Start"}
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="h-9 w-9"
+            onClick={() => {
+              setRunning(false);
+              onChange(0);
+            }}
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </div>
+      <div className="h-2 rounded-full bg-white/60 dark:bg-black/40 overflow-hidden relative">
+        <div
+          className={cn(
+            "h-full transition-all",
+            reached === "ippon" ? "bg-red-500" : reached === "wazari" ? "bg-amber-500" : "bg-foreground/30",
+          )}
+          style={{ width: `${pct}%` }}
+        />
+        <div className="absolute inset-y-0 left-[50%] w-px bg-foreground/30" />
+      </div>
+      <p className="text-[10px] font-semibold">
+        {reached === "ippon"
+          ? "✓ Ippon (≥ 20s)"
+          : reached === "wazari"
+          ? "✓ Waza-ari (≥ 10s) — continuer pour Ippon"
+          : `Encore ${10 - seconds}s pour Waza-ari`}
+      </p>
+    </div>
+  );
+}
+
+function DominanceSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  // 0 = 100% sol, 100 = 100% debout, 50 = équilibré
+  const v = Math.max(0, Math.min(100, value || 50));
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-[11px] font-semibold">
+        <span>🤼 Ne-waza (sol)</span>
+        <span className="text-muted-foreground">
+          {v}% debout / {100 - v}% sol
+        </span>
+        <span>🥋 Tachi-waza (debout)</span>
+      </div>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        step={5}
+        value={v}
+        onChange={(e) => onChange(parseInt(e.target.value, 10))}
+        className="w-full accent-violet-500"
+      />
+      <div className="flex flex-wrap gap-1">
+        {[
+          { label: "100% sol", v: 0 },
+          { label: "Sol dominant", v: 25 },
+          { label: "Équilibré", v: 50 },
+          { label: "Debout dominant", v: 75 },
+          { label: "100% debout", v: 100 },
+        ].map((opt) => (
+          <Button
+            key={opt.v}
+            type="button"
+            size="sm"
+            variant={v === opt.v ? "default" : "outline"}
+            className="h-7 text-[10px]"
+            onClick={() => onChange(opt.v)}
+          >
+            {opt.label}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ----- Techniques offensive (table existante allégée) ----------------------
 function AttackBlock({
-  rounds,
+  round,
   onUpdateStat,
 }: {
-  rounds: JudoRound[];
-  onUpdateStat: (roundNumber: number, key: string, value: number) => void;
+  round: JudoRound;
+  onUpdateStat: (key: string, value: number) => void;
 }) {
-  const [selectedRoundNumber, setSelectedRoundNumber] = useState<number>(
-    rounds[0]?.round_number ?? 1,
-  );
   const [familyFilter, setFamilyFilter] = useState<string>("all");
-
-  const round = rounds.find((r) => r.round_number === selectedRoundNumber) || rounds[0];
-
   const STANDING_FAMILIES = ["te", "koshi", "ashi", "sutemi"];
   const GROUND_FAMILIES = ["ne_osae", "ne_shime", "ne_kansetsu"];
-
   const visibleTechniques =
     familyFilter === "all"
       ? JUDO_TECHNIQUES
       : JUDO_TECHNIQUES.filter((t) => t.family === familyFilter);
-
   const standingTechs = visibleTechniques.filter((t) => STANDING_FAMILIES.includes(t.family));
   const groundTechs = visibleTechniques.filter((t) => GROUND_FAMILIES.includes(t.family));
 
-  // Aggregate per-technique totals across all combats (for tournament view).
-  const cumul = useMemo(() => {
-    const out: Record<string, { att: number; suc: number; pts: number }> = {};
-    for (const r of rounds) {
-      for (const t of JUDO_TECHNIQUES) {
-        const att = Number(r.stats?.[techStatKey(t.key, "att")]) || 0;
-        const suc = Number(r.stats?.[techStatKey(t.key, "suc")]) || 0;
-        const pts = Number(r.stats?.[techStatKey(t.key, "pts")]) || 0;
-        if (att || suc || pts) {
-          if (!out[t.key]) out[t.key] = { att: 0, suc: 0, pts: 0 };
-          out[t.key].att += att;
-          out[t.key].suc += suc;
-          out[t.key].pts += pts;
-        }
-      }
-    }
-    return out;
-  }, [rounds]);
-
   const renderTechRow = (t: typeof JUDO_TECHNIQUES[number]) => {
-    const att = Number(round?.stats?.[techStatKey(t.key, "att")]) || 0;
-    const suc = Number(round?.stats?.[techStatKey(t.key, "suc")]) || 0;
-    const pts = Number(round?.stats?.[techStatKey(t.key, "pts")]) || 0;
+    const att = num(round.stats?.[techStatKey(t.key, "att")]);
+    const suc = num(round.stats?.[techStatKey(t.key, "suc")]);
+    const pts = num(round.stats?.[techStatKey(t.key, "pts")]);
     const pct = att > 0 ? Math.round((suc / att) * 100) : null;
     return (
       <TableRow key={t.key}>
@@ -580,43 +1227,24 @@ function AttackBlock({
             {JUDO_TECHNIQUE_FAMILIES.find((f) => f.key === t.family)?.label}
           </div>
         </TableCell>
-        <TableCell className="p-1">
-          <Input
-            type="number"
-            min={0}
-            value={att || ""}
-            onChange={(e) =>
-              onUpdateStat(round!.round_number, techStatKey(t.key, "att"), parseFloat(e.target.value) || 0)
-            }
-            className="h-8 text-xs text-center"
-            onWheel={(e) => e.currentTarget.blur()}
-          />
-        </TableCell>
-        <TableCell className="p-1">
-          <Input
-            type="number"
-            min={0}
-            max={att || undefined}
-            value={suc || ""}
-            onChange={(e) =>
-              onUpdateStat(round!.round_number, techStatKey(t.key, "suc"), parseFloat(e.target.value) || 0)
-            }
-            className="h-8 text-xs text-center"
-            onWheel={(e) => e.currentTarget.blur()}
-          />
-        </TableCell>
-        <TableCell className="p-1">
-          <Input
-            type="number"
-            min={0}
-            value={pts || ""}
-            onChange={(e) =>
-              onUpdateStat(round!.round_number, techStatKey(t.key, "pts"), parseFloat(e.target.value) || 0)
-            }
-            className="h-8 text-xs text-center"
-            onWheel={(e) => e.currentTarget.blur()}
-          />
-        </TableCell>
+        {(["att", "suc", "pts"] as const).map((k) => {
+          const value = k === "att" ? att : k === "suc" ? suc : pts;
+          return (
+            <TableCell key={k} className="p-1">
+              <Input
+                type="number"
+                min={0}
+                max={k === "suc" ? att || undefined : undefined}
+                value={value || ""}
+                onChange={(e) =>
+                  onUpdateStat(techStatKey(t.key, k), parseFloat(e.target.value) || 0)
+                }
+                className="h-8 text-xs text-center"
+                onWheel={(e) => e.currentTarget.blur()}
+              />
+            </TableCell>
+          );
+        })}
         <TableCell className="text-center text-xs">
           {pct !== null ? (
             <Badge variant={pct >= 50 ? "default" : pct >= 25 ? "secondary" : "outline"}>
@@ -630,26 +1258,21 @@ function AttackBlock({
     );
   };
 
-  const renderTechTable = (
-    techs: typeof JUDO_TECHNIQUES,
-    title: string,
-    accentClass: string,
-    headerBg: string,
-  ) => {
+  const renderTechTable = (techs: typeof JUDO_TECHNIQUES, title: string, headerBg: string) => {
     if (techs.length === 0) return null;
     return (
-      <Card className={`overflow-x-auto border-l-4 ${accentClass}`}>
-        <div className={`px-3 py-2 ${headerBg} text-xs font-bold uppercase tracking-wide`}>
+      <Card className="overflow-x-auto">
+        <div className={cn("px-3 py-2 text-xs font-bold uppercase tracking-wide", headerBg)}>
           {title}
         </div>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="min-w-[180px] whitespace-nowrap">Technique</TableHead>
-              <TableHead className="text-center w-24 whitespace-nowrap">Tentatives</TableHead>
-              <TableHead className="text-center w-24 whitespace-nowrap">Réussies</TableHead>
-              <TableHead className="text-center w-24 whitespace-nowrap">Points</TableHead>
-              <TableHead className="text-center w-24 whitespace-nowrap">% réussite</TableHead>
+              <TableHead className="text-center w-20">Tent.</TableHead>
+              <TableHead className="text-center w-20">Réuss.</TableHead>
+              <TableHead className="text-center w-20">Pts</TableHead>
+              <TableHead className="text-center w-20">%</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>{techs.map(renderTechRow)}</TableBody>
@@ -660,25 +1283,7 @@ function AttackBlock({
 
   return (
     <div className="space-y-3">
-      {/* Combat & family selector */}
       <div className="flex flex-wrap items-center gap-2">
-        <Label className="text-xs">Combat :</Label>
-        <Select
-          value={String(selectedRoundNumber)}
-          onValueChange={(v) => setSelectedRoundNumber(Number(v))}
-        >
-          <SelectTrigger className="h-8 w-[180px] text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="z-[200]">
-            {rounds.map((r) => (
-              <SelectItem key={r.round_number} value={String(r.round_number)}>
-                #{r.round_number}
-                {r.opponent_name ? ` — ${r.opponent_name}` : ""}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
         <Label className="text-xs">Famille :</Label>
         <Select value={familyFilter} onValueChange={setFamilyFilter}>
           <SelectTrigger className="h-8 w-[220px] text-xs">
@@ -694,61 +1299,15 @@ function AttackBlock({
           </SelectContent>
         </Select>
       </div>
-
       {renderTechTable(
         standingTechs,
         "Tachi-waza — Attaques debout",
-        "border-l-blue-500",
         "bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-200",
       )}
       {renderTechTable(
         groundTechs,
         "Ne-waza — Attaques au sol",
-        "border-l-amber-500",
         "bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200",
-      )}
-
-      {/* Cumulative recap across all combats */}
-      {Object.keys(cumul).length > 0 && (
-        <div>
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-            Cumul du tournoi (toutes attaques utilisées)
-          </h4>
-          <Card className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="whitespace-nowrap">Technique</TableHead>
-                  <TableHead className="text-center whitespace-nowrap">Tentées</TableHead>
-                  <TableHead className="text-center whitespace-nowrap">Réussies</TableHead>
-                  <TableHead className="text-center whitespace-nowrap">Points</TableHead>
-                  <TableHead className="text-center whitespace-nowrap">% réussite</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Object.entries(cumul)
-                  .sort((a, b) => b[1].pts - a[1].pts || b[1].suc - a[1].suc)
-                  .map(([techKey, c]) => {
-                    const tech = JUDO_TECHNIQUES.find((t) => t.key === techKey);
-                    const pct = c.att > 0 ? Math.round((c.suc / c.att) * 100) : null;
-                    return (
-                      <TableRow key={techKey}>
-                        <TableCell className="text-xs font-medium">
-                          {tech?.label ?? techKey}
-                        </TableCell>
-                        <TableCell className="text-center">{c.att}</TableCell>
-                        <TableCell className="text-center">{c.suc}</TableCell>
-                        <TableCell className="text-center font-bold">{c.pts}</TableCell>
-                        <TableCell className="text-center text-xs">
-                          {pct !== null ? `${pct}%` : "—"}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-              </TableBody>
-            </Table>
-          </Card>
-        </div>
       )}
     </div>
   );
