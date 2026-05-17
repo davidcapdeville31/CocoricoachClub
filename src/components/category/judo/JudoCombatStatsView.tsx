@@ -940,6 +940,7 @@ function CombatPanel({
           title="Détail techniques offensives"
           hint="Saisie optionnelle pour analyse fine"
         />
+        <OffensiveSynthesis round={round} />
         <AttackBlock round={round} onUpdateStat={onUpdateStat} />
       </Card>
 
