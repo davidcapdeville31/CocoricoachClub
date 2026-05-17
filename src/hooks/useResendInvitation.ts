@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 interface ResendOptions {
   tableName: "ambassador_invitations" | "club_invitations" | "category_invitations" | "athlete_invitations";
@@ -14,7 +15,7 @@ interface ResendOptions {
 }
 
 function getInvitationLink(tableName: string, token: string): string {
-  const origin = window.location.origin;
+  const origin = getAppBaseUrl();
   switch (tableName) {
     case "ambassador_invitations":
       return `${origin}/ambassador-invitation?token=${token}`;

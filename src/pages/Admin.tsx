@@ -14,6 +14,7 @@ import { Shield, Users, Building2, ArrowLeft, UserPlus, Trash2, Crown, CheckCirc
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { AuditLogsTab } from "@/components/admin/AuditLogsTab";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 interface AmbassadorInvitation {
   id: string;
@@ -183,7 +184,7 @@ export default function Admin() {
       return data;
     },
     onSuccess: (data) => {
-      const link = `${window.location.origin}/ambassador-invitation?token=${data.token}`;
+      const link = `${getAppBaseUrl()}/ambassador-invitation?token=${data.token}`;
       setCreatedInvitationLink(link);
       toast.success("Invitation créée ! Copiez le lien ci-dessous.");
       queryClient.invalidateQueries({ queryKey: ["ambassador-invitations"] });
@@ -857,7 +858,7 @@ export default function Admin() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => copyToClipboard(`${window.location.origin}/ambassador-invitation?token=${inv.token}`)}
+                                  onClick={() => copyToClipboard(`${getAppBaseUrl()}/ambassador-invitation?token=${inv.token}`)}
                                 >
                                   <Copy className="h-4 w-4 mr-1" />
                                   Copier

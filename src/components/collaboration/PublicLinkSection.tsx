@@ -20,6 +20,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+import { getAppBaseUrl } from "@/lib/appUrl";
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -108,7 +109,7 @@ export function PublicLinkSection({ clubId, categoryId }: PublicLinkSectionProps
   });
 
   const copyLink = (token: string) => {
-    const link = `${window.location.origin}/public-view?token=${token}`;
+    const link = `${getAppBaseUrl()}/public-view?token=${token}`;
     navigator.clipboard.writeText(link);
     toast.success("Lien copié dans le presse-papiers");
   };

@@ -28,6 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { scrapeFisResults, importFisResultsForPlayer } from "@/lib/fis/scrapeFisResults";
 import { useAuth } from "@/contexts/AuthContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 interface AddPlayerDialogWithInviteProps {
   open: boolean;
@@ -489,7 +490,7 @@ export function AddPlayerDialogWithInvite({
         if (invitationError) throw invitationError;
 
         // Send invitation via edge function
-        const invitationLink = `${window.location.origin}/accept-athlete-invitation?token=${invitation.token}`;
+        const invitationLink = `${getAppBaseUrl()}/accept-athlete-invitation?token=${invitation.token}`;
         
         const channels: ("email" | "sms")[] = ["email"];
         if (playerPhone.trim()) {

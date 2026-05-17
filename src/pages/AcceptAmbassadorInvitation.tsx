@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, Shield, CheckCircle, XCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 type InvitationStatus = "loading" | "valid" | "invalid" | "already_used" | "accepting" | "success";
 
@@ -109,7 +110,7 @@ export default function AcceptAmbassadorInvitation() {
           password: formData.password,
           options: {
             data: { full_name: formData.fullName },
-            emailRedirectTo: `${window.location.origin}/ambassador-invitation?token=${token}`,
+            emailRedirectTo: `${getAppBaseUrl()}/ambassador-invitation?token=${token}`,
           },
         });
 

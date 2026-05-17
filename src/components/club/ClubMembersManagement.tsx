@@ -32,6 +32,7 @@ import { Trash2, Crown, Settings2, Users, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 interface Category {
   id: string;
@@ -145,7 +146,7 @@ export function ClubMembersManagement({ clubId, categories, canManage }: ClubMem
       if (!member.profile?.email) throw new Error("no_email");
       const inviterName = club?.profile?.full_name || "CocoriCoach";
       const clubName = (club as any)?.name || "votre club";
-      const invitationLink = `${window.location.origin}/auth?redirect=${encodeURIComponent(`/clubs/${clubId}`)}`;
+      const invitationLink = `${getAppBaseUrl()}/auth?redirect=${encodeURIComponent(`/clubs/${clubId}`)}`;
       await supabase.functions.invoke("send-invitation-email", {
         body: {
           email: member.profile.email,

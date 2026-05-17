@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Copy, Check, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 const invitationSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -182,7 +183,7 @@ export function InviteMemberDialog({ open, onOpenChange, clubId }: InviteMemberD
         throw error;
       }
 
-      const invitationLink = `${window.location.origin}/accept-invitation?token=${invitation.token}`;
+      const invitationLink = `${getAppBaseUrl()}/accept-invitation?token=${invitation.token}`;
       
       try {
         const { error: emailError } = await supabase.functions.invoke("send-invitation-email", {

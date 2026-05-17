@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Copy, Check } from "lucide-react";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 const invitationSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -104,7 +105,7 @@ export function InviteCategoryMemberDialog({ open, onOpenChange, categoryId }: I
       
       if (error) throw error;
 
-      const invitationLink = `${window.location.origin}/accept-invitation?token=${invitation.token}&type=category`;
+      const invitationLink = `${getAppBaseUrl()}/accept-invitation?token=${invitation.token}&type=category`;
       
       try {
         const { error: emailError } = await supabase.functions.invoke("send-invitation-email", {

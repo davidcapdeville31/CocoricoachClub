@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useResendInvitation, getInvitationStatus } from "@/hooks/useResendInvitation";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 interface ClubInvitationsSectionProps {
   clubId: string;
@@ -65,7 +66,7 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
   });
 
   const copyInviteLink = (token: string) => {
-    const link = `${window.location.origin}/accept-invitation?token=${token}`;
+    const link = `${getAppBaseUrl()}/accept-invitation?token=${token}`;
     navigator.clipboard.writeText(link);
     toast.success("Lien copié !");
   };

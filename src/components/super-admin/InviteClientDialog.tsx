@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Mail, UserPlus } from "lucide-react";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 const invitationSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -74,7 +75,7 @@ export function InviteClientDialog({ open, onOpenChange }: InviteClientDialogPro
       if (error) throw error;
 
       // Send invitation email via OneSignal
-      const invitationLink = `${window.location.origin}/ambassador-invitation?token=${invitation.token}`;
+      const invitationLink = `${getAppBaseUrl()}/ambassador-invitation?token=${invitation.token}`;
       
       try {
         const { error: emailError } = await supabase.functions.invoke("send-invitation-email", {
