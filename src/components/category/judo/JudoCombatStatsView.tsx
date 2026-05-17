@@ -903,13 +903,19 @@ function CombatPanel({
             label="Osaekomi Athlète"
             color="emerald"
             seconds={num(round.stats?.[K.osaekomiMeSec])}
-            onChange={(v) => onUpdateStat(K.osaekomiMeSec, v)}
+            onChange={(v) => {
+              if (v >= 20) clearLosingFor("me"); // ippon par osaekomi athlète
+              onUpdateStat(K.osaekomiMeSec, v);
+            }}
           />
           <OsaekomiTimer
             label="Osaekomi Adversaire"
             color="red"
             seconds={num(round.stats?.[K.osaekomiOppSec])}
-            onChange={(v) => onUpdateStat(K.osaekomiOppSec, v)}
+            onChange={(v) => {
+              if (v >= 20) clearLosingFor("opp");
+              onUpdateStat(K.osaekomiOppSec, v);
+            }}
           />
         </div>
         <Separator />
