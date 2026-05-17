@@ -59,6 +59,8 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<OpponentProfile | null>(null);
   const [toDelete, setToDelete] = useState<OpponentProfile | null>(null);
+  const [scoutingId, setScoutingId] = useState<string | null>(null);
+  const [scoutingOpen, setScoutingOpen] = useState(false);
 
   const { data: player } = useQuery({
     queryKey: ["athlete-opp-player", playerId],
