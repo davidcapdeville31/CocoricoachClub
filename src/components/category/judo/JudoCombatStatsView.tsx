@@ -125,6 +125,32 @@ const K = {
   goldenScoreDuration: "goldenScoreDuration",
   // Tactique
   dominanceStanding: "ijf_dominance_standing", // 0..100 (%)
+  // Fin de combat (manuel coach) — enum: 1 ippon · 2 wazari · 3 wazari_awasete · 4 hansoku · 5 decision · 6 abandon · 7 forfait
+  endMethod: "ijf_end_method",
+  // Golden Score — décision en GS : 1 technique · 2 penalty · 3 shido_accumulation
+  gsDecision: "ijf_gs_decision",
+  // Défense
+  defAttacksReceived: "ijf_def_attacks_received",
+  defAttacksNeutralized: "ijf_def_attacks_neutralized",
+  defScoresConceded: "ijf_def_scores_conceded",
+  // Profil d'activité : 1 très actif · 2 actif · 3 neutre · 4 passif
+  activityProfile: "ijf_activity_profile",
+  // Profil combat : 1 dominant · 2 équilibré · 3 dominé · 4 contrôle sans score · 5 explosif · 6 défensif
+  combatProfile: "ijf_combat_profile",
+  // Style adversaire (bitmask) : 1 attaquant · 2 contreur · 4 physique · 8 technique · 16 kumikata · 32 passif
+  opponentStyleMask: "ijf_opp_style_mask",
+  // Ne-waza extended
+  groundTimeSec: "groundTimeSeconds",
+  groundPhases: "ijf_ne_phases",
+  immoAttempts: "immobilizationAttempts",
+  immoSuccess: "ijf_immo_success",
+  immoMaxSec: "ijf_immo_max_sec",
+  chokeAttempts: "chokeAttempts",
+  chokeSuccess: "ijf_choke_success",
+  armlockAttempts: "armLockAttempts",
+  armlockSuccess: "ijf_armlock_success",
+  transitionStandToGround: "ijf_transition_s2g",
+  regainGround: "ijf_regain_ground",
   // Compat historique
   victoryModeIppon: "victoryModeIppon",
   victoryModeWazaari: "victoryModeWazaari",
