@@ -340,6 +340,12 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
         lockedWeight={editing ? null : playerWeight}
       />
 
+      <OpponentScoutingSheet
+        open={scoutingOpen}
+        onOpenChange={setScoutingOpen}
+        opponentId={scoutingId}
+      />
+
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
