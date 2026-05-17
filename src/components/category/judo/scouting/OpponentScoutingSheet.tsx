@@ -876,15 +876,6 @@ export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props)
                   icon={<Layers className="h-4 w-4" />}
                   tone="newaza"
                 >
-                  <SliderWithLabels
-                    label="Répartition debout / sol"
-                    value={Number(profile.newaza_profile?.ground_pct ?? 50)}
-                    onChange={(v) => patchNewaza("ground_pct", v)}
-                    leftLabel="100% debout"
-                    rightLabel="100% sol"
-                    unit="% sol"
-                    tone="newaza"
-                  />
                   <ChipGroup
                     label="Style sol"
                     multi
