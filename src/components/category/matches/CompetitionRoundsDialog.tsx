@@ -447,9 +447,12 @@ export function CompetitionRoundsDialog({
           const rSpecialty = sd?._specialty ?? null;
           // If round has no discipline tag, only attach it to entries whose lineup also has none
           if (!rDiscipline && !rSpecialty) {
-            return !l.discipline && !l.specialty;
+            return !effectiveDiscipline && !effectiveSpecialty;
           }
-          return rDiscipline === (l.discipline || null) && rSpecialty === (l.specialty || null);
+          return (
+            rDiscipline === (effectiveDiscipline || null) &&
+            rSpecialty === (effectiveSpecialty || null)
+          );
         });
         
         // For bowling: reconstruct blocks from existing rounds
