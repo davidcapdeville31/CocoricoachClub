@@ -807,12 +807,129 @@ function CombatPanel({
         </div>
       </Card>
 
+      {/* ============== NE-WAZA DÉTAILLÉ (volumes, transitions) ============== */}
+      <Card className="p-3 space-y-3">
+        <SectionHeader
+          icon={<Hand className="h-4 w-4 text-amber-500" />}
+          title="Ne-waza détaillé"
+          hint="Volumes, transitions, soumissions"
+        />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <CounterStat label="Phases au sol" value={num(round.stats?.[K.groundPhases])} onChange={(v) => onUpdateStat(K.groundPhases, v)} />
+          <CounterStat label="Temps sol (s)" value={num(round.stats?.[K.groundTimeSec])} step={5} onChange={(v) => onUpdateStat(K.groundTimeSec, v)} />
+          <CounterStat label="Transitions debout→sol" value={num(round.stats?.[K.transitionStandToGround])} onChange={(v) => onUpdateStat(K.transitionStandToGround, v)} />
+          <CounterStat label="Reprises au sol" value={num(round.stats?.[K.regainGround])} onChange={(v) => onUpdateStat(K.regainGround, v)} />
+        </div>
+        <Separator />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <AttemptSuccessRow
+            label="Immobilisations"
+            attempts={num(round.stats?.[K.immoAttempts])}
+            success={num(round.stats?.[K.immoSuccess])}
+            extraLabel="Max (s)"
+            extraValue={num(round.stats?.[K.immoMaxSec])}
+            onAttempts={(v) => onUpdateStat(K.immoAttempts, v)}
+            onSuccess={(v) => onUpdateStat(K.immoSuccess, v)}
+            onExtra={(v) => onUpdateStat(K.immoMaxSec, v)}
+            extraStep={5}
+          />
+          <AttemptSuccessRow
+            label="Étranglements"
+            attempts={num(round.stats?.[K.chokeAttempts])}
+            success={num(round.stats?.[K.chokeSuccess])}
+            onAttempts={(v) => onUpdateStat(K.chokeAttempts, v)}
+            onSuccess={(v) => onUpdateStat(K.chokeSuccess, v)}
+          />
+          <AttemptSuccessRow
+            label="Clés articulaires"
+            attempts={num(round.stats?.[K.armlockAttempts])}
+            success={num(round.stats?.[K.armlockSuccess])}
+            onAttempts={(v) => onUpdateStat(K.armlockAttempts, v)}
+            onSuccess={(v) => onUpdateStat(K.armlockSuccess, v)}
+          />
+        </div>
+      </Card>
+
+      {/* ============== DÉFENSE ============== */}
+      <Card className="p-3 space-y-3">
+        <SectionHeader
+          icon={<ShieldAlert className="h-4 w-4 text-red-500" />}
+          title="Défense"
+          hint="Volume défensif et résistance"
+        />
+        <div className="grid grid-cols-3 gap-2">
+          <CounterStat label="Attaques subies" value={num(round.stats?.[K.defAttacksReceived])} onChange={(v) => onUpdateStat(K.defAttacksReceived, v)} color="red" />
+          <CounterStat label="Attaques neutralisées" value={num(round.stats?.[K.defAttacksNeutralized])} onChange={(v) => onUpdateStat(K.defAttacksNeutralized, v)} color="emerald" />
+          <CounterStat label="Scores concédés" value={num(round.stats?.[K.defScoresConceded])} onChange={(v) => onUpdateStat(K.defScoresConceded, v)} color="amber" />
+        </div>
+        {num(round.stats?.[K.defAttacksReceived]) > 0 && (
+          <div className="rounded-lg bg-muted/40 p-2 text-center text-xs">
+            <span className="font-bold">
+              {Math.round(
+                (num(round.stats?.[K.defAttacksNeutralized]) /
+                  Math.max(1, num(round.stats?.[K.defAttacksReceived]))) *
+                  100,
+              )}
+              %
+            </span>{" "}
+            d'attaques neutralisées
+          </div>
+        )}
+        <EnumPills
+          label="Profil d'activité défensive"
+          value={num(round.stats?.[K.activityProfile])}
+          options={[
+            { v: 1, label: "Très actif" },
+            { v: 2, label: "Actif" },
+            { v: 3, label: "Neutre" },
+            { v: 4, label: "Passif" },
+          ]}
+          onChange={(v) => onUpdateStat(K.activityProfile, v)}
+        />
+      </Card>
+
       {/* ============== TACTIQUE / DOMINANCE ============== */}
       <Card className="p-3 space-y-3">
         <SectionHeader icon={<Swords className="h-4 w-4 text-violet-500" />} title="Tactique" />
         <DominanceSlider
           value={num(round.stats?.[K.dominanceStanding])}
           onChange={(v) => onUpdateStat(K.dominanceStanding, v)}
+        />
+      </Card>
+
+      {/* ============== COACH INTELLIGENCE ============== */}
+      <Card className="p-3 space-y-3">
+        <SectionHeader
+          icon={<Swords className="h-4 w-4 text-violet-500" />}
+          title="Analyse tactique"
+          hint="Lecture coach rapide"
+        />
+        <EnumPills
+          label="Profil de combat"
+          value={num(round.stats?.[K.combatProfile])}
+          color="violet"
+          options={[
+            { v: 1, label: "Dominant" },
+            { v: 2, label: "Équilibré" },
+            { v: 3, label: "Dominé" },
+            { v: 4, label: "Contrôle sans score" },
+            { v: 5, label: "Explosif" },
+            { v: 6, label: "Défensif" },
+          ]}
+          onChange={(v) => onUpdateStat(K.combatProfile, v)}
+        />
+        <TagPills
+          label="Style adversaire (multi-sélection)"
+          mask={num(round.stats?.[K.opponentStyleMask])}
+          options={[
+            { bit: 1, label: "Attaquant" },
+            { bit: 2, label: "Contreur" },
+            { bit: 4, label: "Physique" },
+            { bit: 8, label: "Technique" },
+            { bit: 16, label: "Kumikata dominant" },
+            { bit: 32, label: "Passif" },
+          ]}
+          onChange={(m) => onUpdateStat(K.opponentStyleMask, m)}
         />
       </Card>
 
