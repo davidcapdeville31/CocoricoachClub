@@ -120,7 +120,7 @@ export function ChipGroup({ label, options, value, onChange, multi = false, size
       <div className="flex flex-wrap gap-1.5">
         {options.map((opt) => {
           const active = selected.has(opt.key);
-          const toneIdle = opt.tone ? TONE_CLASSES[opt.tone] : "bg-muted/60 text-foreground border-border hover:bg-muted";
+          const toneIdle = "bg-card text-foreground border-border hover:bg-muted/50";
           const toneActive = opt.tone ? TONE_ACTIVE[opt.tone] : "bg-primary text-primary-foreground border-primary";
           return (
             <button
