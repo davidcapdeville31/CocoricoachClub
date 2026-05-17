@@ -4,18 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Users, Info } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Plus, Search, Users, Pencil, Trash2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -24,10 +14,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  JUDO_WEIGHT_CATEGORIES,
   JUDO_WEIGHT_CATEGORIES_MEN,
   JUDO_WEIGHT_CATEGORIES_WOMEN,
 } from "@/lib/constants/sportTypes";
 import { toast } from "sonner";
+import {
+  OpponentProfileDialog,
+  type OpponentProfile,
+} from "@/components/category/judo/OpponentProfileDialog";
 
 interface Props {
   playerId: string;
@@ -40,39 +45,20 @@ const styleLabel = (s?: string | null) =>
   s === "offensive" ? "Offensif" : s === "defensive" ? "Défensif" : s === "balanced" ? "Équilibré" : "—";
 const styleVariant = (s?: string | null) =>
   s === "offensive" ? "destructive" : s === "defensive" ? "secondary" : s === "balanced" ? "default" : "outline";
-const weightLabel = (w?: string | null) => (w ? w.replace(/^judo_/, "") : "—");
-
-interface FormState {
-  last_name: string;
-  first_name: string;
-  handedness: "left" | "right" | "ambidextrous" | "unknown";
-  fighting_style: "" | "offensive" | "defensive" | "balanced";
-  favorite_attacks: string;
-  club_origin: string;
-  country: string;
-  birth_year: string;
-  notes: string;
-}
-
-const emptyForm: FormState = {
-  last_name: "",
-  first_name: "",
-  handedness: "unknown",
-  fighting_style: "",
-  favorite_attacks: "",
-  club_origin: "",
-  country: "",
-  birth_year: "",
-  notes: "",
-};
+const genderLabel = (g?: string | null) =>
+  g === "male" ? "H" : g === "female" ? "F" : g === "other" ? "Autre" : "—";
 
 export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const [genderFilter, setGenderFilter] = useState("all");
+  const [weightFilter, setWeightFilter] = useState("all");
+  const [ageFilter, setAgeFilter] = useState("all");
+  const [handFilter, setHandFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [form, setForm] = useState<FormState>(emptyForm);
+  const [editing, setEditing] = useState<OpponentProfile | null>(null);
+  const [toDelete, setToDelete] = useState<OpponentProfile | null>(null);
 
-  // Player + category info (gender, weight, club)
   const { data: player } = useQuery({
     queryKey: ["athlete-opp-player", playerId],
     queryFn: async () => {
@@ -88,7 +74,6 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
 
   const clubId: string | undefined = player?.categories?.club_id;
   const playerWeight: string | null = player?.discipline || null;
-  // Infer gender from weight category (men/women lists have no overlap) when not set on profile
   const inferredGender: "male" | "female" | null = playerWeight
     ? JUDO_WEIGHT_CATEGORIES_MEN.some((w) => w.value === playerWeight)
       ? "male"
@@ -100,23 +85,19 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
     player?.gender === "male" || player?.gender === "female" ? player.gender : inferredGender;
 
   const { data: profiles, isLoading } = useQuery({
-    queryKey: ["athlete-opp-profiles", clubId, playerGender, playerWeight],
+    queryKey: ["athlete-opp-profiles", clubId],
     enabled: !!clubId,
     queryFn: async () => {
-      let q = supabase
+      const { data, error } = await supabase
         .from("opponent_profiles")
         .select("*")
         .eq("club_id", clubId!)
         .order("last_name", { ascending: true });
-      if (playerGender) q = q.eq("gender", playerGender);
-      if (playerWeight) q = q.eq("weight_category", playerWeight);
-      const { data, error } = await q;
       if (error) throw error;
       return data as any[];
     },
   });
 
-  // Realtime: refresh list when any opponent is added/edited in this club
   useEffect(() => {
     if (!clubId) return;
     const channel = supabase
@@ -135,75 +116,41 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
     };
   }, [clubId, qc]);
 
-  const filtered = useMemo(() => {
-    if (!profiles) return [];
-    if (!search) return profiles;
-    const q = search.toLowerCase();
-    return profiles.filter((p) =>
-      `${p.last_name} ${p.first_name || ""} ${p.club_origin || ""} ${p.country || ""}`
-        .toLowerCase()
-        .includes(q)
-    );
-  }, [profiles, search]);
-
-  const save = useMutation({
-    mutationFn: async () => {
-      if (!form.last_name.trim()) throw new Error("Le nom est obligatoire");
-      if (!clubId) throw new Error("Club introuvable");
-      if (!playerGender || !playerWeight) {
-        throw new Error("Ta catégorie (sexe + poids) doit être renseignée par ton coach avant d'ajouter un adversaire");
-      }
-
-      const { data: existing } = await supabase
-        .from("opponent_profiles")
-        .select("id, last_name, first_name")
-        .eq("club_id", clubId)
-        .eq("gender", playerGender)
-        .eq("weight_category", playerWeight)
-        .ilike("last_name", form.last_name.trim());
-
-      if (existing && existing.length) {
-        const dup = existing.find(
-          (e) => (e.first_name || "").toLowerCase().trim() === form.first_name.toLowerCase().trim()
-        );
-        if (dup) throw new Error("Un adversaire avec ce nom existe déjà dans ta catégorie");
-      }
-
-      const payload = {
-        club_id: clubId,
-        category_id: categoryId,
-        last_name: form.last_name.trim(),
-        first_name: form.first_name.trim() || null,
-        gender: playerGender,
-        weight_category: playerWeight,
-        handedness: form.handedness,
-        fighting_style: form.fighting_style || null,
-        favorite_attacks: form.favorite_attacks.trim() || null,
-        club_origin: form.club_origin.trim() || null,
-        country: form.country.trim() || null,
-        birth_year: form.birth_year ? parseInt(form.birth_year, 10) : null,
-        notes: form.notes.trim() || null,
-      };
-      const { error } = await supabase.from("opponent_profiles").insert(payload);
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("opponent_profiles").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Adversaire ajouté à la liste du club");
+      toast.success("Adversaire supprimé");
       qc.invalidateQueries({ queryKey: ["athlete-opp-profiles", clubId] });
-      qc.invalidateQueries({ queryKey: ["opponent-profiles", clubId] });
-      setDialogOpen(false);
-      setForm(emptyForm);
+      setToDelete(null);
     },
-    onError: (e: any) => toast.error(e?.message || "Erreur lors de l'ajout"),
+    onError: (e: any) => toast.error(e?.message || "Erreur"),
   });
 
-  const allowedWeights =
-    playerGender === "female" ? JUDO_WEIGHT_CATEGORIES_WOMEN : JUDO_WEIGHT_CATEGORIES_MEN;
-  const myWeightLabel =
-    allowedWeights.find((w) => w.value === playerWeight)?.label ||
-    weightLabel(playerWeight);
+  const filtered = useMemo(() => {
+    let list = profiles || [];
+    if (genderFilter !== "all") list = list.filter((p) => p.gender === genderFilter);
+    if (weightFilter !== "all") list = list.filter((p) => p.weight_category === weightFilter);
+    if (ageFilter !== "all") list = list.filter((p) => p.age_category === ageFilter);
+    if (handFilter !== "all") list = list.filter((p) => p.handedness === handFilter);
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter((p) =>
+        `${p.last_name} ${p.first_name || ""} ${p.club_origin || ""} ${p.country || ""}`
+          .toLowerCase()
+          .includes(q),
+      );
+    }
+    return list;
+  }, [profiles, search, genderFilter, weightFilter, ageFilter, handFilter]);
 
-  const canAdd = !!playerGender && !!playerWeight && !!clubId;
+  if (!clubId) {
+    return (
+      <p className="text-sm text-muted-foreground py-6 text-center">Chargement…</p>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -215,9 +162,10 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
                 <Users className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">Profils adversaires</h2>
+                <h2 className="text-lg font-bold text-white tracking-tight">Liste adversaires</h2>
                 <p className="text-xs text-white/85">
-                  Ta catégorie : {playerGender === "female" ? "Féminin" : playerGender === "male" ? "Masculin" : "—"} {playerWeight ? myWeightLabel : ""}
+                  Banque commune du club — {profiles?.length || 0} adversaire
+                  {(profiles?.length || 0) > 1 ? "s" : ""}
                 </p>
               </div>
             </div>
@@ -225,11 +173,7 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
               size="sm"
               className="bg-white text-amber-700 hover:bg-amber-50 shadow-lg font-semibold gap-2"
               onClick={() => {
-                if (!canAdd) {
-                  toast.error("Ta catégorie (sexe + poids) doit être renseignée par ton coach avant d'ajouter un adversaire");
-                  return;
-                }
-                setForm(emptyForm);
+                setEditing(null);
                 setDialogOpen(true);
               }}
             >
@@ -239,22 +183,51 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
           </div>
         </div>
         <CardContent className="p-4 space-y-3">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 rounded-lg px-3 py-2">
-            <Info className="h-3.5 w-3.5 flex-shrink-0" />
-            <span>
-              Tu ne vois que les adversaires de ta catégorie. Toute personne ajoutée sera visible par
-              tout le club pour éviter les doublons.
-            </span>
-          </div>
-
-          <div className="relative">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Rechercher un nom, un club, un pays…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-8"
-            />
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[180px]">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher un nom, un club, un pays…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            <Select value={genderFilter} onValueChange={setGenderFilter}>
+              <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous sexes</SelectItem>
+                <SelectItem value="male">Hommes</SelectItem>
+                <SelectItem value="female">Femmes</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={weightFilter} onValueChange={setWeightFilter}>
+              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes catégories</SelectItem>
+                {JUDO_WEIGHT_CATEGORIES.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={ageFilter} onValueChange={setAgeFilter}>
+              <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous âges</SelectItem>
+                {["Benjamin","Minime","Cadet","Junior","Senior","Vétéran"].map((a) => (
+                  <SelectItem key={a} value={a}>{a}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={handFilter} onValueChange={setHandFilter}>
+              <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Latéralité</SelectItem>
+                <SelectItem value="right">Droitier</SelectItem>
+                <SelectItem value="left">Gaucher</SelectItem>
+                <SelectItem value="ambidextrous">Ambidextre</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {isLoading ? (
@@ -263,8 +236,8 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
             <div className="text-center py-10 rounded-xl bg-muted/30 border border-dashed">
               <p className="text-sm text-muted-foreground">
                 {profiles?.length
-                  ? "Aucun adversaire ne correspond à la recherche."
-                  : "Aucun adversaire enregistré dans ta catégorie pour le moment."}
+                  ? "Aucun adversaire ne correspond aux filtres."
+                  : "Aucun adversaire dans la banque du club pour le moment."}
               </p>
             </div>
           ) : (
@@ -272,33 +245,77 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
                   <tr>
+                    <th className="text-left px-3 py-2 w-12"></th>
                     <th className="text-left px-3 py-2">Nom</th>
+                    <th className="text-left px-3 py-2">Sexe</th>
+                    <th className="text-left px-3 py-2">Catégorie</th>
+                    <th className="text-left px-3 py-2">Âge</th>
                     <th className="text-left px-3 py-2">Latéralité</th>
                     <th className="text-left px-3 py-2">Profil</th>
                     <th className="text-left px-3 py-2">Club / Pays</th>
+                    <th className="text-right px-3 py-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map((p) => (
                     <tr key={p.id} className="border-t hover:bg-muted/30">
+                      <td className="px-3 py-2">
+                        {p.photo_url ? (
+                          <img
+                            src={p.photo_url}
+                            alt=""
+                            className="h-9 w-9 rounded-full object-cover ring-1 ring-border"
+                          />
+                        ) : (
+                          <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-[10px] text-muted-foreground font-semibold">
+                            {(p.last_name?.[0] || "?").toUpperCase()}
+                          </div>
+                        )}
+                      </td>
                       <td className="px-3 py-2 font-medium">
                         {p.last_name} {p.first_name || ""}
                         {p.birth_year ? (
                           <span className="text-xs text-muted-foreground ml-1">({p.birth_year})</span>
                         ) : null}
                       </td>
+                      <td className="px-3 py-2">{genderLabel(p.gender)}</td>
+                      <td className="px-3 py-2">
+                        {p.weight_category ? (
+                          <Badge variant="secondary">{p.weight_category.replace(/^judo_/, "")}</Badge>
+                        ) : "—"}
+                      </td>
+                      <td className="px-3 py-2 text-muted-foreground">{p.age_category || "—"}</td>
                       <td className="px-3 py-2">{handLabel(p.handedness)}</td>
                       <td className="px-3 py-2">
                         {p.fighting_style ? (
                           <Badge variant={styleVariant(p.fighting_style) as any}>
                             {styleLabel(p.fighting_style)}
                           </Badge>
-                        ) : (
-                          "—"
-                        )}
+                        ) : "—"}
                       </td>
                       <td className="px-3 py-2 text-muted-foreground">
                         {[p.club_origin, p.country].filter(Boolean).join(" • ") || "—"}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <div className="inline-flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setEditing(p);
+                              setDialogOpen(true);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setToDelete(p)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -309,119 +326,33 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
         </CardContent>
       </Card>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Ajouter un adversaire</DialogTitle>
-            <DialogDescription>
-              Catégorie : {playerGender === "female" ? "Féminin" : "Masculin"} {myWeightLabel} —
-              visible par tout le club.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Nom *</Label>
-              <Input
-                value={form.last_name}
-                onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-                placeholder="DUPONT"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Prénom</Label>
-              <Input
-                value={form.first_name}
-                onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-                placeholder="Jean"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Latéralité</Label>
-              <Select
-                value={form.handedness}
-                onValueChange={(v) => setForm({ ...form, handedness: v as any })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="right">Droitier</SelectItem>
-                  <SelectItem value="left">Gaucher</SelectItem>
-                  <SelectItem value="ambidextrous">Ambidextre</SelectItem>
-                  <SelectItem value="unknown">Inconnue</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Profil de combat</Label>
-              <Select
-                value={form.fighting_style}
-                onValueChange={(v) => setForm({ ...form, fighting_style: v as any })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="—" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="offensive">Offensif</SelectItem>
-                  <SelectItem value="defensive">Défensif</SelectItem>
-                  <SelectItem value="balanced">Équilibré</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Année de naissance</Label>
-              <Input
-                type="number"
-                value={form.birth_year}
-                onChange={(e) => setForm({ ...form, birth_year: e.target.value })}
-                placeholder="2002"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Club d'origine</Label>
-              <Input
-                value={form.club_origin}
-                onChange={(e) => setForm({ ...form, club_origin: e.target.value })}
-                placeholder="JC Paris"
-              />
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label>Pays</Label>
-              <Input
-                value={form.country}
-                onChange={(e) => setForm({ ...form, country: e.target.value })}
-                placeholder="France"
-              />
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label>Attaques favorites</Label>
-              <Textarea
-                value={form.favorite_attacks}
-                onChange={(e) => setForm({ ...form, favorite_attacks: e.target.value })}
-                rows={2}
-                placeholder="Ex : Uchi-mata, Seoi-nage, Ko-uchi-gari…"
-              />
-            </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label>Notes</Label>
-              <Textarea
-                value={form.notes}
-                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                rows={3}
-                placeholder="Observations tactiques, points forts, faiblesses…"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Annuler
-            </Button>
-            <Button onClick={() => save.mutate()} disabled={save.isPending}>
-              {save.isPending ? "Enregistrement..." : "Enregistrer"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <OpponentProfileDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        clubId={clubId}
+        categoryId={categoryId}
+        initial={editing}
+        lockedGender={editing ? null : playerGender}
+        lockedWeight={editing ? null : playerWeight}
+      />
+
+      <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer cet adversaire ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              L'adversaire sera retiré de la banque du club pour tout le monde.
+              Les combats déjà enregistrés conservent le nom mais perdront le lien.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={() => toDelete?.id && remove.mutate(toDelete.id)}>
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
