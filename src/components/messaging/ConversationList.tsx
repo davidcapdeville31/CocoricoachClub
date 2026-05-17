@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Plus, MessageSquare, Users, Hash, User, Trash2, MoreVertical } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useRealtimeMembers } from "@/hooks/useRealtimeMembers";
 import {
   Dialog,
   DialogContent,
@@ -73,6 +74,7 @@ interface StaffMember {
 }
 
 export function ConversationList({ categoryId, selectedId, onSelect, isAthlete = false }: ConversationListProps) {
+  useRealtimeMembers(`chat-${categoryId ?? "all"}`);
   const [createOpen, setCreateOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState("group");

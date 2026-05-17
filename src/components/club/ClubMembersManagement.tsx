@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getAppBaseUrl } from "@/lib/appUrl";
+import { useRealtimeMembers } from "@/hooks/useRealtimeMembers";
 
 interface Category {
   id: string;
@@ -47,6 +48,7 @@ interface ClubMembersManagementProps {
 
 export function ClubMembersManagement({ clubId, categories, canManage }: ClubMembersManagementProps) {
   const queryClient = useQueryClient();
+  useRealtimeMembers(`club-${clubId}`);
   const [editingMember, setEditingMember] = useState<any>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [allCategories, setAllCategories] = useState(true);
