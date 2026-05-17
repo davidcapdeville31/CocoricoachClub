@@ -304,9 +304,10 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
                           <Button
                             variant="ghost"
                             size="icon"
+                            title="Ouvrir la fiche scouting"
                             onClick={() => {
-                              setEditing(p);
-                              setDialogOpen(true);
+                              setScoutingId(p.id);
+                              setScoutingOpen(true);
                             }}
                           >
                             <Pencil className="h-4 w-4" />
