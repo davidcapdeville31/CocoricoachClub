@@ -162,7 +162,7 @@ const PWAUpdatePrompt = () => {
           aria-label="Rafraîchir l'application"
           variant="outline"
           size="icon"
-          className="fixed z-[51] h-10 w-10 rounded-full shadow-lg md:hidden bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+4.5rem)]"
+          className="fixed z-[51] h-8 w-8 rounded-full shadow-lg md:hidden bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-[calc(env(safe-area-inset-right)+4.5rem)]"
         >
           <RefreshCw className={`h-4 w-4 ${isUpdating ? "animate-spin" : ""}`} />
         </Button>
