@@ -41,6 +41,7 @@ import { getInvitationStatus } from "@/hooks/useResendInvitation";
 
 import { AVIRON_ROLES } from "@/lib/constants/sportTypes";
 import { AthleteIdentityBadges } from "@/components/player/AthleteIdentityBadges";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 function getAvironRoleLabel(role: string | null): string {
   if (!role) return "";
@@ -525,7 +526,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                   .slice(0, 2);
                 const inv = invitationsByPlayer.get(player.id);
                 const status = inv ? getInvitationStatus(inv.status, inv.expires_at) : null;
-                const link = inv ? `${window.location.origin}/accept-athlete-invitation?token=${inv.token}` : "";
+                const link = inv ? `${getAppBaseUrl()}/accept-athlete-invitation?token=${inv.token}` : "";
 
                 return (
                   <div
@@ -684,7 +685,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                                 );
                               }
                               const status = getInvitationStatus(inv.status, inv.expires_at);
-                              const link = `${window.location.origin}/accept-athlete-invitation?token=${inv.token}`;
+                              const link = `${getAppBaseUrl()}/accept-athlete-invitation?token=${inv.token}`;
                               return (
                                 <TooltipProvider>
                                   <div className="flex items-center gap-1.5">

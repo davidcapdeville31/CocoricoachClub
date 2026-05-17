@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 export type SessionNotificationAction = "created" | "updated" | "cancelled";
 
@@ -207,8 +208,8 @@ export function useSessionNotifications() {
       if (action === "cancelled") message += "\nCette séance a été annulée.";
 
       const url = categoryId
-        ? `${window.location.origin}/categories/${categoryId}?tab=planning${sessionId ? `&session=${sessionId}` : ""}`
-        : `${window.location.origin}/athlete-space`;
+        ? `${getAppBaseUrl()}/categories/${categoryId}?tab=planning${sessionId ? `&session=${sessionId}` : ""}`
+        : `${getAppBaseUrl()}/athlete-space`;
 
       // ── Step 0a: Auto-fetch clubId if missing ──────────────────────────────
       if (!clubId && categoryId) {

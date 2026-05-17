@@ -43,6 +43,7 @@ import {
 } from "@/lib/constants/sportTypes";
 import { getPositionsForSport } from "@/lib/constants/sportPositions";
 import * as XLSX from "xlsx";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 interface BulkAddPlayersDialogProps {
   open: boolean;
@@ -299,7 +300,7 @@ export function BulkAddPlayersDialog({
             .single();
 
           if (!invError && invitation) {
-            const invitationLink = `${window.location.origin}/accept-athlete-invitation?token=${invitation.token}`;
+            const invitationLink = `${getAppBaseUrl()}/accept-athlete-invitation?token=${invitation.token}`;
             links.push(invitationLink);
 
             // 3. Send notification via edge function

@@ -10,6 +10,7 @@ import { Link2, Copy, Check, RefreshCw, Mail, Edit2, X, UserCheck, AlertCircle }
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useResendInvitation, getInvitationStatus } from "@/hooks/useResendInvitation";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 interface AthleteAccessSectionProps {
   playerId: string;
@@ -118,7 +119,7 @@ export function AthleteAccessSection({ playerId, categoryId, playerName }: Athle
 
   const invStatus = invitation ? getInvitationStatus(invitation.status, invitation.expires_at) : null;
   const invitationLink = invitation?.token
-    ? `${window.location.origin}/accept-athlete-invitation?token=${invitation.token}`
+    ? `${getAppBaseUrl()}/accept-athlete-invitation?token=${invitation.token}`
     : null;
 
   const copyInvitationLink = () => {

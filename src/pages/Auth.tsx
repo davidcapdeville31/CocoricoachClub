@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { signUpSchema, loginSchema } from "@/lib/validations";
 import { BrandLogo } from "@/components/BrandLogo";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 async function getPostLoginRedirect(userId: string): Promise<string> {
   // Check if user has only athlete role and no clubs
@@ -144,7 +145,7 @@ export default function Auth() {
     try {
       const email = forgotEmail.trim().toLowerCase();
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?mode=recovery`,
+        redirectTo: `${getAppBaseUrl()}/auth?mode=recovery`,
       });
 
       if (error) throw error;
@@ -208,7 +209,7 @@ export default function Auth() {
         email: validated.email,
         password: validated.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${getAppBaseUrl()}/`,
           data: {
             full_name: validated.fullName,
             phone: validated.phone || undefined,

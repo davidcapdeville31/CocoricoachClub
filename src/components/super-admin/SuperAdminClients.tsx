@@ -20,6 +20,7 @@ import { InviteClientDialog } from "./InviteClientDialog";
 import { ClientCategoryOptionsDialog } from "./ClientCategoryOptionsDialog";
 import { CreateClientCategoriesSection, CategoryDraft } from "./CreateClientCategoriesSection";
 import { MainSportCategory } from "@/lib/constants/sportTypes";
+import { getAppBaseUrl } from "@/lib/appUrl";
  
  interface Client {
    id: string;
@@ -232,7 +233,7 @@ export function SuperAdminClients() {
 
             if (invError) throw invError;
 
-            const invitationLink = `${window.location.origin}/ambassador-invitation?token=${invitation.token}`;
+            const invitationLink = `${getAppBaseUrl()}/ambassador-invitation?token=${invitation.token}`;
 
             // Get inviter profile name
             const { data: inviterProfile } = await supabase
@@ -993,7 +994,7 @@ export function SuperAdminClients() {
                                     .limit(1)
                                     .maybeSingle();
                                   if (inv?.token) {
-                                    const link = `${window.location.origin}/ambassador-invitation?token=${inv.token}`;
+                                    const link = `${getAppBaseUrl()}/ambassador-invitation?token=${inv.token}`;
                                     await navigator.clipboard.writeText(link);
                                     toast.success("Lien d'invitation copié !");
                                   } else {

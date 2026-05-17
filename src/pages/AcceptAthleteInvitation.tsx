@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2, CheckCircle, XCircle, Eye, EyeOff } from "lucide-react";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 interface InvitationData {
   id: string;
@@ -132,7 +133,7 @@ export default function AcceptAthleteInvitation() {
         email: invitation.email,
         password,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: getAppBaseUrl(),
           data: {
             is_athlete: true,
             player_id: invitation.player_id,
