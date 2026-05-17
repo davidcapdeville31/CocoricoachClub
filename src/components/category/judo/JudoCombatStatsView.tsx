@@ -669,6 +669,37 @@ function CombatPanel({
             </Button>
           </div>
         </div>
+
+        {/* MÉTHODE DE FIN (manuelle, complète l'auto-calcul) */}
+        <EnumPills
+          label="Méthode de fin"
+          value={num(round.stats?.[K.endMethod])}
+          options={[
+            { v: 1, label: "Ippon" },
+            { v: 2, label: "Waza-ari" },
+            { v: 3, label: "Waza-ari awasete ippon" },
+            { v: 4, label: "Hansoku-make" },
+            { v: 5, label: "Décision" },
+            { v: 6, label: "Abandon" },
+            { v: 7, label: "Forfait" },
+          ]}
+          onChange={(v) => onUpdateStat(K.endMethod, v)}
+        />
+
+        {/* DÉCISION GOLDEN SCORE — visible si GS=ON */}
+        {num(round.stats?.[K.goldenScore]) > 0 && (
+          <EnumPills
+            label="Type de décision en GS"
+            value={num(round.stats?.[K.gsDecision])}
+            color="amber"
+            options={[
+              { v: 1, label: "Technique" },
+              { v: 2, label: "Pénalité décisive" },
+              { v: 3, label: "Accumulation shido" },
+            ]}
+            onChange={(v) => onUpdateStat(K.gsDecision, v)}
+          />
+        )}
       </Card>
 
       {/* ============== SCORES (OFFENSIVE) ============== */}
