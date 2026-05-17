@@ -196,6 +196,7 @@ function CategoryDetailsContent() {
   const showGpsTab = isGpsSportType(category?.rugby_type) && (category?.gps_enabled === true);
   const showVideoTab = hasVideoAnalysis(category?.rugby_type) && (category?.video_enabled === true);
   const isBowling = category?.rugby_type?.toLowerCase().includes("bowling");
+  const isJudo = category?.rugby_type?.toLowerCase().includes("judo");
 
   // Menu permissions based on role_menu_permissions matrix
   const { canSeeMenu } = useMenuPermissions(category?.clubs?.id, categoryId);
