@@ -334,6 +334,7 @@ export function JudoCombatStatsView({
   updateRound,
   updateRoundStat,
 }: Props) {
+  const [combatToDelete, setCombatToDelete] = useState<number | null>(null);
   const [activeRoundNumber, setActiveRoundNumber] = useState<number | null>(
     selectedPlayer.rounds[0]?.round_number ?? null,
   );
