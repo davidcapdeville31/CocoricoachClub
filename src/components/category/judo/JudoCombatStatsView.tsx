@@ -818,16 +818,32 @@ function CombatPanel({
             color="emerald"
             ippon={num(round.stats?.[K.ipponMe])}
             wazari={num(round.stats?.[K.wazariMe])}
-            onIppon={(v) => onUpdateStat(K.ipponMe, Math.max(0, Math.min(1, v)))}
-            onWazari={(v) => onUpdateStat(K.wazariMe, Math.max(0, Math.min(2, v)))}
+            onIppon={(v) => {
+              const nv = Math.max(0, Math.min(1, v));
+              if (nv > 0) clearLosingFor("me");
+              onUpdateStat(K.ipponMe, nv);
+            }}
+            onWazari={(v) => {
+              const nv = Math.max(0, Math.min(2, v));
+              if (nv >= 2) clearLosingFor("me");
+              onUpdateStat(K.wazariMe, nv);
+            }}
           />
           <ScoreColumn
             label="Adversaire"
             color="red"
             ippon={num(round.stats?.[K.ipponOpp])}
             wazari={num(round.stats?.[K.wazariOpp])}
-            onIppon={(v) => onUpdateStat(K.ipponOpp, Math.max(0, Math.min(1, v)))}
-            onWazari={(v) => onUpdateStat(K.wazariOpp, Math.max(0, Math.min(2, v)))}
+            onIppon={(v) => {
+              const nv = Math.max(0, Math.min(1, v));
+              if (nv > 0) clearLosingFor("opp");
+              onUpdateStat(K.ipponOpp, nv);
+            }}
+            onWazari={(v) => {
+              const nv = Math.max(0, Math.min(2, v));
+              if (nv >= 2) clearLosingFor("opp");
+              onUpdateStat(K.wazariOpp, nv);
+            }}
           />
         </div>
       </Card>
