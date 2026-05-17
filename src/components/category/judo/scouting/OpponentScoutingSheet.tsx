@@ -2,7 +2,7 @@
 // OpponentScoutingSheet — Fiche scouting Judo haut niveau
 // Dialog plein écran, 6+ sections accordéon, autosave debouncé
 // ============================================================
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  JUDO_WEIGHT_CATEGORIES,
+  JUDO_WEIGHT_CATEGORIES_MEN,
+  JUDO_WEIGHT_CATEGORIES_WOMEN,
+} from "@/lib/constants/sportTypes";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Camera, Upload, User } from "lucide-react";
 import {
   Activity,
   Brain,
@@ -283,6 +298,231 @@ function TokuiWazaEditor({
 }
 
 // ============================================================
+// IDENTITÉ — bloc éditable (nom, sexe, poids, âge, latéralité, club, pays...)
+// ============================================================
+const AGE_CATEGORIES = ["Benjamin", "Minime", "Cadet", "Junior", "Senior", "Vétéran"];
+
+function IdentitySection({
+  profile,
+  update,
+}: {
+  profile: ScoutingProfile;
+  update: (p: Partial<ScoutingProfile>) => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handlePhotoUpload = async (file: File) => {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Photo trop lourde (max 5 Mo)");
+      return;
+    }
+    try {
+      setUploading(true);
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${profile.club_id}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("opponent-photos")
+        .upload(path, file, { upsert: false, contentType: file.type });
+      if (error) throw error;
+      const { data: pub } = supabase.storage.from("opponent-photos").getPublicUrl(path);
+      update({ photo_url: pub.publicUrl });
+      toast.success("Photo téléchargée");
+    } catch (e: any) {
+      toast.error(e?.message || "Erreur upload");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const weights =
+    profile.gender === "male"
+      ? JUDO_WEIGHT_CATEGORIES_MEN
+      : profile.gender === "female"
+      ? JUDO_WEIGHT_CATEGORIES_WOMEN
+      : JUDO_WEIGHT_CATEGORIES;
+
+  return (
+    <SectionCard
+      id="identity"
+      title="Identité de l'adversaire"
+      subtitle="Informations de base — modifiables ici"
+      icon={<User className="h-4 w-4" />}
+      tone="neutral"
+      defaultOpen={false}
+    >
+      <div className="flex items-center gap-4 p-3 rounded-xl bg-muted/40 border">
+        <div className="relative h-20 w-20 rounded-full overflow-hidden bg-muted flex items-center justify-center ring-2 ring-border">
+          {profile.photo_url ? (
+            <img src={profile.photo_url} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <Camera className="h-8 w-8 text-muted-foreground" />
+          )}
+        </div>
+        <div className="flex-1 space-y-1">
+          <Label className="text-xs">Photo</Label>
+          <div className="flex gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => e.target.files?.[0] && handlePhotoUpload(e.target.files[0])}
+            />
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+            >
+              <Upload className="h-3.5 w-3.5 mr-1" />
+              {uploading ? "Envoi…" : profile.photo_url ? "Changer" : "Ajouter"}
+            </Button>
+            {profile.photo_url && (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => update({ photo_url: null })}
+              >
+                Retirer
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Nom *</Label>
+          <Input
+            value={profile.last_name || ""}
+            onChange={(e) => update({ last_name: e.target.value })}
+            placeholder="DUPONT"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Prénom</Label>
+          <Input
+            value={profile.first_name || ""}
+            onChange={(e) => update({ first_name: e.target.value })}
+            placeholder="Jean"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Sexe</Label>
+          <Select
+            value={profile.gender || ""}
+            onValueChange={(v) => {
+              const g = (v || null) as any;
+              const allowed =
+                g === "male"
+                  ? JUDO_WEIGHT_CATEGORIES_MEN
+                  : g === "female"
+                  ? JUDO_WEIGHT_CATEGORIES_WOMEN
+                  : null;
+              const keepWeight =
+                !allowed ||
+                !profile.weight_category ||
+                allowed.some((c) => c.value === profile.weight_category);
+              update({ gender: g, weight_category: keepWeight ? profile.weight_category : null });
+            }}
+          >
+            <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="male">Homme</SelectItem>
+              <SelectItem value="female">Femme</SelectItem>
+              <SelectItem value="other">Autre</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Catégorie de poids</Label>
+          <Select
+            value={profile.weight_category || ""}
+            onValueChange={(v) => update({ weight_category: v || null })}
+          >
+            <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+            <SelectContent>
+              {weights.map((c) => (
+                <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Catégorie d'âge</Label>
+          <Select
+            value={profile.age_category || ""}
+            onValueChange={(v) => update({ age_category: v || null })}
+          >
+            <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+            <SelectContent>
+              {AGE_CATEGORIES.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Année de naissance</Label>
+          <Input
+            type="number"
+            value={profile.birth_year ?? ""}
+            onChange={(e) =>
+              update({ birth_year: e.target.value ? parseInt(e.target.value, 10) : null })
+            }
+            placeholder="2002"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Latéralité</Label>
+          <Select
+            value={profile.handedness || "unknown"}
+            onValueChange={(v) => update({ handedness: v as any })}
+          >
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="right">Droitier</SelectItem>
+              <SelectItem value="left">Gaucher</SelectItem>
+              <SelectItem value="ambidextrous">Ambidextre</SelectItem>
+              <SelectItem value="unknown">Inconnue</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Club d'origine</Label>
+          <Input
+            value={profile.club_origin || ""}
+            onChange={(e) => update({ club_origin: e.target.value })}
+            placeholder="JC Paris"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Pays</Label>
+          <Input
+            value={profile.country || ""}
+            onChange={(e) => update({ country: e.target.value })}
+            placeholder="France"
+          />
+        </div>
+        <div className="space-y-1.5 sm:col-span-2">
+          <Label>Palmarès</Label>
+          <Textarea
+            value={profile.palmares || ""}
+            onChange={(e) => update({ palmares: e.target.value })}
+            rows={2}
+            placeholder="Champion régional 2023, 3e France Junior 2024…"
+          />
+        </div>
+      </div>
+    </SectionCard>
+  );
+}
+
+// ============================================================
 // HEADER STICKY
 // ============================================================
 function ScoutingHeader({
@@ -434,6 +674,9 @@ export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props)
                     tone="control"
                   />
                 </div>
+
+                {/* ============ IDENTITÉ ============ */}
+                <IdentitySection profile={profile} update={update} />
 
                 {/* ============ DANGER GLOBAL ============ */}
                 <SectionCard
