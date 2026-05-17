@@ -155,8 +155,9 @@ export default function AcceptAthleteInvitation() {
       console.error("Error creating account:", err);
       
       if (err.message?.includes("already registered")) {
-        toast.error("Un compte existe déjà avec cet email. Connecte-toi.");
-        navigate("/auth");
+        toast.error("Un compte existe déjà avec cet email. Connecte-toi pour finaliser l'invitation.");
+        const redirect = `/accept-athlete-invitation?token=${token}`;
+        navigate(`/auth?redirect=${encodeURIComponent(redirect)}`);
       } else {
         toast.error(err.message || "Erreur lors de la création du compte");
       }
