@@ -74,6 +74,7 @@ interface StaffMember {
 }
 
 export function ConversationList({ categoryId, selectedId, onSelect, isAthlete = false }: ConversationListProps) {
+  useRealtimeMembers(`chat-${categoryId ?? "all"}`);
   const [createOpen, setCreateOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState("group");
