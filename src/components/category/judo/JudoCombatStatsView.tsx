@@ -860,7 +860,13 @@ function CombatPanel({
         <div className="grid grid-cols-3 gap-2">
           <CounterStat label="Attaques subies" value={num(round.stats?.[K.defAttacksReceived])} onChange={(v) => onUpdateStat(K.defAttacksReceived, v)} color="red" />
           <CounterStat label="Attaques neutralisées" value={num(round.stats?.[K.defAttacksNeutralized])} onChange={(v) => onUpdateStat(K.defAttacksNeutralized, v)} color="emerald" />
-          <CounterStat label="Scores concédés" value={num(round.stats?.[K.defScoresConceded])} onChange={(v) => onUpdateStat(K.defScoresConceded, v)} color="amber" />
+          <div className="rounded-lg border-2 border-dashed border-amber-500/40 bg-amber-500/5 p-2 flex flex-col items-center justify-center">
+            <p className="text-[10px] uppercase font-bold text-muted-foreground">Scores concédés</p>
+            <p className="text-2xl font-black text-amber-600 dark:text-amber-400 tabular-nums">
+              {num(round.stats?.[K.wazariOpp]) + num(round.stats?.[K.ipponOpp])}
+            </p>
+            <p className="text-[9px] text-muted-foreground">auto (Waza-ari + Ippon adverse)</p>
+          </div>
         </div>
         {num(round.stats?.[K.defAttacksReceived]) > 0 && (
           <div className="rounded-lg bg-muted/40 p-2 text-center text-xs">
@@ -885,15 +891,6 @@ function CombatPanel({
             { v: 4, label: "Passif" },
           ]}
           onChange={(v) => onUpdateStat(K.activityProfile, v)}
-        />
-      </Card>
-
-      {/* ============== TACTIQUE / DOMINANCE ============== */}
-      <Card className="p-3 space-y-3">
-        <SectionHeader icon={<Swords className="h-4 w-4 text-violet-500" />} title="Tactique" />
-        <DominanceSlider
-          value={num(round.stats?.[K.dominanceStanding])}
-          onChange={(v) => onUpdateStat(K.dominanceStanding, v)}
         />
       </Card>
 
@@ -930,6 +927,11 @@ function CombatPanel({
             { bit: 32, label: "Passif" },
           ]}
           onChange={(m) => onUpdateStat(K.opponentStyleMask, m)}
+        />
+        <Separator />
+        <DominanceSlider
+          value={num(round.stats?.[K.dominanceStanding])}
+          onChange={(v) => onUpdateStat(K.dominanceStanding, v)}
         />
       </Card>
 
