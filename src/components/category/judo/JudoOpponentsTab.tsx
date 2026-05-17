@@ -159,14 +159,14 @@ export function JudoOpponentsTab({ categoryId }: Props) {
             <div className="relative flex-1 min-w-[180px]">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Rechercher un nom, un club…"
+                placeholder="Rechercher un nom, un club, un pays…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-8"
               />
             </div>
             <Select value={genderFilter} onValueChange={setGenderFilter}>
-              <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous sexes</SelectItem>
                 <SelectItem value="male">Hommes</SelectItem>
@@ -174,12 +174,30 @@ export function JudoOpponentsTab({ categoryId }: Props) {
               </SelectContent>
             </Select>
             <Select value={weightFilter} onValueChange={setWeightFilter}>
-              <SelectTrigger className="w-[170px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes catégories</SelectItem>
                 {JUDO_WEIGHT_CATEGORIES.map((c) => (
                   <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+            <Select value={ageFilter} onValueChange={setAgeFilter}>
+              <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous âges</SelectItem>
+                {["Benjamin","Minime","Cadet","Junior","Senior","Vétéran"].map((a) => (
+                  <SelectItem key={a} value={a}>{a}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={handFilter} onValueChange={setHandFilter}>
+              <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Latéralité</SelectItem>
+                <SelectItem value="right">Droitier</SelectItem>
+                <SelectItem value="left">Gaucher</SelectItem>
+                <SelectItem value="ambidextrous">Ambidextre</SelectItem>
               </SelectContent>
             </Select>
           </div>
