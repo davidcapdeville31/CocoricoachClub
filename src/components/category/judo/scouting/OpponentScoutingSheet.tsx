@@ -229,16 +229,7 @@ function TokuiWazaEditor({
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-3">
-                  <SliderWithLabels
-                    label="Fréquence"
-                    value={it.frequency}
-                    onChange={(v) => update(i, { frequency: v })}
-                    unit="%"
-                    leftLabel="Rare"
-                    rightLabel="Permanente"
-                    tone="control"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3">
                   <SliderWithLabels
                     label="Réussite"
                     value={it.success_rate}
@@ -629,7 +620,7 @@ export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props)
   const top3 = useMemo(() => {
     if (!profile?.tokui_waza) return [];
     return [...profile.tokui_waza]
-      .sort((a: any, b: any) => (b.danger * b.frequency) - (a.danger * a.frequency))
+      .sort((a: any, b: any) => (b.danger * (b.success_rate ?? 50)) - (a.danger * (a.success_rate ?? 50)))
       .slice(0, 3);
   }, [profile?.tokui_waza]);
 
@@ -662,9 +653,9 @@ export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props)
                   <MiniStat
                     label="Ne-waza"
                     value={
-                      profile.newaza_profile?.ground_pct != null
-                        ? `${100 - (profile.newaza_profile.ground_pct as number)}% sol`
-                        : "—"
+                      (profile.newaza_profile?.styles?.length ?? 0) > 0
+                        ? "Travaille au sol"
+                        : "Peu / pas au sol"
                     }
                     tone="newaza"
                   />
@@ -695,17 +686,6 @@ export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props)
                         value={profile.danger_level ?? null}
                         onChange={(v) => update({ danger_level: v })}
                         size="lg"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-[200px]">
-                      <SliderWithLabels
-                        label="Niveau de l'adversaire"
-                        value={Number(profile.general_profile?.tactical_difficulty ?? 50)}
-                        onChange={(v) => patchGeneral("tactical_difficulty", v)}
-                        leftLabel="Adversaire abordable"
-                        rightLabel="Adversaire redoutable"
-                        unit=""
-                        tone="danger"
                       />
                     </div>
                     <div className="flex-1 min-w-[200px]">
@@ -802,15 +782,6 @@ export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props)
                     value={profile.kumikata_profile?.zones ?? []}
                     onChange={(v) => patchKumikata("zones", v)}
                   />
-                  <SliderWithLabels
-                    label="Domination kumikata"
-                    value={Number(profile.kumikata_profile?.domination ?? 50)}
-                    onChange={(v) => patchKumikata("domination", v)}
-                    leftLabel="Faible"
-                    rightLabel="Extrêmement dominant"
-                    unit="%"
-                    tone="danger"
-                  />
                 </SectionCard>
 
                 {/* ============ 3. TOKUI-WAZA ============ */}
@@ -896,15 +867,6 @@ export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props)
                   icon={<Layers className="h-4 w-4" />}
                   tone="newaza"
                 >
-                  <SliderWithLabels
-                    label="Répartition debout / sol"
-                    value={Number(profile.newaza_profile?.ground_pct ?? 50)}
-                    onChange={(v) => patchNewaza("ground_pct", v)}
-                    leftLabel="100% debout"
-                    rightLabel="100% sol"
-                    unit="% sol"
-                    tone="newaza"
-                  />
                   <ChipGroup
                     label="Style sol"
                     multi
