@@ -412,7 +412,7 @@ export function CompetitionRoundsDialog({
       if (!categoryRow?.club_id) return [];
       const { data, error } = await supabase
         .from("opponent_profiles")
-        .select("id, last_name, first_name, gender, weight_category, handedness, club_origin")
+        .select("id, last_name, first_name, gender, weight_category, handedness, club_origin, combat_profile, style_mask, ground_standing_pref")
         .eq("club_id", categoryRow.club_id)
         .order("last_name");
       if (error) throw error;
