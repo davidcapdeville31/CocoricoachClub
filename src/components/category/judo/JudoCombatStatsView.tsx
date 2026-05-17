@@ -927,9 +927,11 @@ function CombatPanel({
               "h-12 gap-2 text-xs",
               num(round.stats?.[K.submissionMe]) > 0 && "bg-red-600 hover:bg-red-700 text-white",
             )}
-            onClick={() =>
-              onUpdateStat(K.submissionMe, num(round.stats?.[K.submissionMe]) > 0 ? 0 : 1)
-            }
+            onClick={() => {
+              const nv = num(round.stats?.[K.submissionMe]) > 0 ? 0 : 1;
+              if (nv > 0) clearLosingFor("opp"); // athlète abandonne → adv. gagne
+              onUpdateStat(K.submissionMe, nv);
+            }}
           >
             <AlertTriangle className="h-4 w-4" />
             Soumission athlète (abandon)
