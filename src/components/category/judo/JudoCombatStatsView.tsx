@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Plus,
   Trash2,
@@ -723,6 +724,17 @@ function CombatPanel({
         )}
       </Card>
 
+      {/* ============== SOUS-ONGLETS pour éviter le scroll ============== */}
+      <Tabs defaultValue="scores" className="space-y-3">
+        <TabsList className="grid w-full grid-cols-5 h-auto">
+          <TabsTrigger value="scores" className="text-[11px] py-1.5">Scores</TabsTrigger>
+          <TabsTrigger value="newaza" className="text-[11px] py-1.5">Ne-waza</TabsTrigger>
+          <TabsTrigger value="defense" className="text-[11px] py-1.5">Défense</TabsTrigger>
+          <TabsTrigger value="tactique" className="text-[11px] py-1.5">Tactique</TabsTrigger>
+          <TabsTrigger value="notes" className="text-[11px] py-1.5">Détails & Notes</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="scores" className="space-y-3 mt-0">
       {/* ============== SCORES (OFFENSIVE) ============== */}
       <Card className="p-3 space-y-3">
         <SectionHeader icon={<Zap className="h-4 w-4 text-emerald-500" />} title="Scores IJF" hint="2 Waza-ari = Ippon automatique" />
@@ -772,7 +784,9 @@ function CombatPanel({
           />
         </div>
       </Card>
+        </TabsContent>
 
+        <TabsContent value="newaza" className="space-y-3 mt-0">
       {/* ============== NE-WAZA ============== */}
       <Card className="p-3 space-y-3">
         <SectionHeader
@@ -870,7 +884,9 @@ function CombatPanel({
           />
         </div>
       </Card>
+        </TabsContent>
 
+        <TabsContent value="defense" className="space-y-3 mt-0">
       {/* ============== DÉFENSE ============== */}
       <Card className="p-3 space-y-3">
         <SectionHeader
@@ -914,7 +930,9 @@ function CombatPanel({
           onChange={(v) => onUpdateStat(K.activityProfile, v)}
         />
       </Card>
+        </TabsContent>
 
+        <TabsContent value="tactique" className="space-y-3 mt-0">
       {/* ============== COACH INTELLIGENCE ============== */}
       <Card className="p-3 space-y-3">
         <SectionHeader
@@ -955,7 +973,9 @@ function CombatPanel({
           onChange={(v) => onUpdateStat(K.dominanceStanding, v)}
         />
       </Card>
+        </TabsContent>
 
+        <TabsContent value="notes" className="space-y-3 mt-0">
       {/* ============== TECHNIQUES OFFENSIVE (DÉTAIL) ============== */}
       <Card className="p-3 space-y-3">
         <SectionHeader
@@ -987,6 +1007,8 @@ function CombatPanel({
           </Button>
         </div>
       </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
