@@ -115,9 +115,11 @@ export function JudoOpponentsTab({ categoryId }: Props) {
   const filtered = (profiles || []).filter((p) => {
     if (genderFilter !== "all" && p.gender !== genderFilter) return false;
     if (weightFilter !== "all" && p.weight_category !== weightFilter) return false;
+    if (ageFilter !== "all" && p.age_category !== ageFilter) return false;
+    if (handFilter !== "all" && p.handedness !== handFilter) return false;
     if (search) {
       const q = search.toLowerCase();
-      const name = `${p.last_name} ${p.first_name || ""} ${p.club_origin || ""}`.toLowerCase();
+      const name = `${p.last_name} ${p.first_name || ""} ${p.club_origin || ""} ${p.country || ""}`.toLowerCase();
       if (!name.includes(q)) return false;
     }
     return true;
