@@ -1,99 +1,128 @@
-## Objectif
+## Refonte "Liste adversaires" Judo — Système de scouting haut niveau
 
-Aligner les exports des sports collectifs (rugby, foot, hand, volley, basket) sur la qualité visuelle et le format du PDF bowling (`bowling_equipe_2026-05-16.pdf`) — header club brandé, photo athlète, palmarès, blocs stats colorés par catégorie, cartographies, footer pro — **et** ajouter les boutons "Excel" + "Exporter en PDF" (joueur/équipe) directement sur chaque carte match (`MatchCard.tsx`).
+Objectif : transformer l'onglet actuel en véritable plateforme d'analyse tactique adverse niveau IJF/INSEP.
 
----
+### Architecture en 3 niveaux
 
-## 1. Nouveau module d'export unifié sports collectifs
+```
+JudoOpponentsTab (liste + recherche + filtres + comparaison)
+  └─ OpponentScoutingSheet (fiche complète plein écran)
+       └─ 8 sections accordéon + onglet vidéo + onglet plan IA
+```
 
-Créer `src/lib/teamSports/teamSportsPdfExport.ts` inspiré de `src/lib/bowling/bowlingPdfExport.ts` (1507 lignes) :
+### Modèle de données (migration)
 
-- `exportTeamSportPlayerPdf(playerName, stats, options)` — bilan joueur unique
-- `exportTeamSportTeamPdf(players[], options)` — bilan équipe (un bloc par joueur)
+Étendre `opponent_profiles` avec colonnes JSONB structurées (scalable, sans exploser le schéma) :
 
-### Structure de chaque page (style bowling)
-1. **Header club** : bandeau dégradé brand, logo/nom club, nom équipe, date compétition, adversaire & score, lieu, catégorie d'âge, compétition
-2. **Bloc athlète** : photo ronde, nom, poste, n° licence, médailles/palmarès (récup `player_medals` comme bowling)
-3. **Stats clés** : 4 KPI cards en haut (essais, plaquages, mètres, % réussite…) avec couleurs sémantiques selon seuils
-4. **Stats détaillées par catégorie** : tables groupées (Attaque / Défense / Conquête / Discipline / Jeu au pied pour rugby) avec couleurs vert/orange/rouge selon référentiel
-5. **Cartographie** : mini-pitch SVG avec essais marqués / tirs au but (rugby) ou heatmap actions (autres sports) — réutiliser le SVG existant
-6. **Footer** : "CocoriCoach Club" + page X/Y + date génération
+- `general_profile` jsonb — style global, intensité, rythme, mental, gestion score, danger_level (1-5), tactical_difficulty, analysis_confidence
+- `kumikata_profile` jsonb — main forte, styles de garde (multi), objectifs, domination (slider), comportement, zones favorites (heatmap data)
+- `tokui_waza` jsonb[] — array de techniques `{name, category, danger, frequency, success_rate, direction, trigger, ground_transition, score_avg, is_favorite, is_surprise, tags}`
+- `attack_systems` jsonb — enchaînements, directions dominantes, timings, distances, phases dangereuses
+- `newaza_profile` jsonb — répartition (0-100), styles, comportement, sorties, danger
+- `tactical_profile` jsonb — shidos fréquents, arbitrage, réactions, gestion fin de combat
+- `physical_profile` jsonb — type, posture, déplacements, cardio, puissance (slider), explosivité (slider)
+- `tactical_plan` jsonb — généré IA : points forts, faiblesses, danger principal, plan A/B, checklist
+- `video_sequences` jsonb[] — `{url, timestamp_start, timestamp_end, technique, tag, note, score}`
 
-### Adaptation multi-sport
-Helper `getSportStatGroups(sportType)` qui renvoie la liste des catégories à afficher selon le sport :
-- Rugby : Attaque, Défense, Conquête, Discipline, Jeu au pied
-- Football : Attaque, Défense, Passes, Discipline, Gardien (si applicable)
-- Hand : Tirs, Défense, Passes, 7m, Discipline
-- Volley : Attaque, Réception, Service, Bloc, Défense
-- Basket : Tirs, Rebonds, Passes, Défense, Fautes
+Bucket storage : réutiliser `opponent-photos` + nouveau `opponent-videos` (privé, max 200 MB par fichier, RLS club_id).
 
-Réutiliser `SPORT_STAT_CATEGORIES` existant si déjà défini.
+Tables historisation :
+- `opponent_analysis_history` (snapshots datés du profil pour suivre l'évolution)
+- `opponent_match_history` (résultats vs nos athlètes, déjà partiellement via `competition_rounds`)
 
----
+### Composants UI à créer
 
-## 2. Excel branded sport collectif
+```
+src/components/category/judo/scouting/
+  OpponentScoutingSheet.tsx        — Dialog plein écran, header sticky, navigation sections
+  sections/
+    GeneralProfileSection.tsx      — chips + sliders + étoiles danger
+    KumikataSection.tsx            — silhouette SVG zones cliquables + chips
+    TokuiWazaSection.tsx           — table éditable + radar + top 3 + ajout technique
+    AttackSystemsSection.tsx       — enchaînements (flèches), timings, phases
+    NewazaSection.tsx              — slider debout/sol + styles + danger
+    TacticalSection.tsx            — shidos, arbitrage, réactions
+    PhysicalSection.tsx            — radar physique + sliders
+    TacticalPlanSection.tsx        — généré via Lovable AI (Gemini 2.5 flash), édition manuelle
+    VideoAnalysisSection.tsx       — upload + player + timeline tags
+  widgets/
+    DangerStars.tsx                — 1-5 étoiles colorées
+    ChipMultiSelect.tsx            — chips multi-sélection
+    SliderWithLabels.tsx           — slider gradué avec labels
+    GripHeatmapSilhouette.tsx      — SVG judoka cliquable
+    TechniqueRadar.tsx             — Recharts radar
+    EnchainementFlow.tsx           — flèches technique → technique
+    VideoTimeline.tsx              — barre temporelle avec marqueurs
+    OpponentComparePanel.tsx       — 2 ou 3 adversaires côte à côte
+  OpponentScoutingList.tsx         — refonte de l'onglet (cartes premium + filtres avancés)
+  hooks/useOpponentScouting.ts     — fetch/update profil complet + autosave debounced
+```
 
-Étendre `src/lib/excelExport.ts` (déjà utilisé par bowling) :
-- 1 onglet "Équipe" + 1 onglet par catégorie de stats
-- Header brandé (club logo + couleurs), zebra rows, footer
-- Colorisation cellules selon seuils (vert/orange/rouge)
-- Fonctions : `buildTeamSportExcelTeam(...)`, `buildTeamSportExcelPlayer(...)`
+### Refonte `JudoOpponentsTab`
 
----
+- Header : compteur, filtres avancés (sexe, poids, latéralité, danger, style global, technique), recherche full-text.
+- Toggle vue : **Cartes scouting premium** (photo + drapeau + étoiles danger + top 3 techniques + style global badges) / **Tableau dense**.
+- Bouton "Comparer" (sélection multi 2-3 adversaires → panneau comparaison).
+- Bouton "Export PDF" (rapport coach par adversaire).
+- Au clic carte → ouvre `OpponentScoutingSheet` (Dialog full-screen).
 
-## 3. Remplacement dans `PlayerCumulativeStats.tsx`
+### Système couleurs (tokens semantic)
 
-Les fonctions `handleExportPdf` (lignes 710-1700, ~1000 lignes) et `handleExportExcel` (lignes 557-708) seront **remplacées par des wrappers** qui appellent les nouveaux modules unifiés. On garde l'API publique inchangée (mêmes signatures `mode: "all" | "team" | "individual" | "single"`) pour ne pas casser l'UI.
+Ajout dans `index.css` :
+```
+--danger-judo: 0 75% 55%        /* rouge */
+--control-judo: 220 70% 55%     /* bleu */
+--opportunism-judo: 28 90% 55%  /* orange */
+--newaza-judo: 270 65% 55%      /* violet */
+--physical-judo: 145 60% 45%    /* vert */
+```
 
----
+### Plan tactique IA
 
-## 4. Boutons d'export sur `MatchCard.tsx`
+Edge function `generate-opponent-plan` :
+- Input : opponent_id
+- Lit le profil complet + historique matchs vs nos athlètes
+- Appelle Lovable AI Gateway `google/gemini-2.5-flash`
+- Prompt structuré → renvoie `{strengths[], weaknesses[], main_danger, plan_a, plan_b, checklist[], score_strategy}`
+- Sauvegarde dans `tactical_plan` avec `generated_at`, éditable manuellement par coach.
 
-Dans `src/components/category/matches/MatchCard.tsx`, ajouter dans le footer de la carte (à côté du bouton "Composition" ou près de "Préparer le match") :
-- Bouton **Excel** (icône `FileSpreadsheet`)
-- Bouton **Exporter en PDF** avec dropdown :
-  - Exporter pour le joueur (sous-menu listant les joueurs du match)
-  - Exporter pour l'équipe
+### Analyse vidéo
 
-Conditions d'affichage : `isTeamSport && match.is_finalized && !isBowling` (le bowling a son propre bouton dans la card bowling).
+- Upload vers bucket `opponent-videos` (max 200 MB, formats mp4/mov/webm).
+- Possibilité d'ajouter aussi URL externe (YouTube/Vimeo).
+- Player HTML5 + overlay timeline.
+- Tagging : pause vidéo → bouton "Ajouter tag" → modal (technique, tag tactique, note, score).
+- Liste clips en sidebar, clic → seek timestamp.
+- Export "highlights" = playlist séquentielle des clips marqués favoris.
 
-Les boutons reçoivent `matchId` et appellent les helpers unifiés avec `initialMatchIds: [matchId]` — réutilisation directe du flux existant via un dialog modal ou export direct.
+### UX/Performance
 
----
+- Autosave debounced 800 ms par section (mutation isolée par bloc JSONB).
+- Indicateur "Enregistré" / "Synchro…" en haut.
+- Sections accordéon avec mémorisation état (localStorage).
+- Mobile : sections empilées plein écran, swipe entre sections.
+- Mode "Compétition rapide" : affiche uniquement Plan tactique + Top 3 tokui + Kumikata + Danger principal.
 
-## 5. Périmètre techique
+### Sécurité RLS
 
-- **Aucun changement DB** : on lit les tables existantes (`player_match_stats`, `matches`, `categories`, `players_safe`, `player_medals`, `match_kicking_positions`, `match_try_positions`)
-- **Aucun changement RLS**
-- **Pas de nouvelle dépendance** : `jspdf` + `jspdf-autotable` + `exceljs` déjà installés (utilisés par bowling)
+Réutiliser le pattern existant (`club_id` + membres authentifiés du club). Vidéos : signed URLs avec expiration 1h.
 
----
+### Sprint suggéré (livraison en 2 phases)
 
-## 6. Détails techniques
+**Phase 1 (cette PR)** :
+1. Migration : extension `opponent_profiles` + bucket vidéo + tables historique.
+2. `OpponentScoutingSheet` + sections 1, 2, 3, 5, 6, 7 (Profil, Kumikata, Tokui-waza, Ne-waza, Tactique, Physique).
+3. Refonte `JudoOpponentsTab` (cartes premium + filtres avancés).
+4. Tokens couleurs design system.
 
-| Fichier | Action |
-|---|---|
-| `src/lib/teamSports/teamSportsPdfExport.ts` | Nouveau — copie adaptée de `bowlingPdfExport.ts` |
-| `src/lib/teamSports/teamSportsExcelExport.ts` | Nouveau — extraction des helpers Excel actuels |
-| `src/lib/teamSports/statGroupsBySport.ts` | Nouveau — mapping sport → catégories de stats |
-| `src/lib/teamSports/pitchMapRenderer.ts` | Nouveau — rend mini-pitch SVG en image pour PDF (rugby/foot) |
-| `src/components/category/matches/PlayerCumulativeStats.tsx` | Refacto : `handleExportPdf` & `handleExportExcel` deviennent des wrappers |
-| `src/components/category/matches/MatchCard.tsx` | Ajout des 2 boutons + dropdown |
-| `src/components/category/matches/MatchExportButtons.tsx` | Nouveau composant réutilisable pour les boutons (utilisé dans MatchCard) |
+**Phase 2 (PR suivante, sur ton ok après phase 1)** :
+5. Section 4 (enchaînements avec arbre/flèches).
+6. Section 8 + edge function Plan tactique IA.
+7. Analyse vidéo (upload + tagging + timeline).
+8. Comparateur d'adversaires + export PDF.
 
----
+### Risques / points à valider avec toi
 
-## 7. QA
-
-- Tester export Joueur + Équipe sur 1 match rugby finalisé (catégorie active)
-- Vérifier ouverture du PDF + visuel cohérent avec bowling
-- Tester export depuis MatchCard ET depuis page Datas → résultat identique
-- Tester sur foot/hand/volley/basket (au moins ouverture PDF sans erreur, catégories de stats adaptées)
-
----
-
-## Hors scope (peut être fait après)
-
-- Sports individuels (tennis, padel, athlétisme, ski…) — formats déjà spécifiques, à traiter séparément si demandé
-- Modification des templates Excel existants (on les remplace en bloc par le nouveau format unifié)
-- Bowling reste sur son module dédié (pas touché)
+- **Scope** : c'est ~3 000 lignes de code, la phase 1 seule représente déjà ~1 500 lignes. Je propose vraiment de découper en 2 livraisons pour rester maintenable et te laisser valider l'UX au fur et à mesure.
+- **Conservation existant** : les colonnes actuelles (`combat_profile`, `style_mask`, `ground_standing_pref`) restent et seront synchronisées avec les nouveaux JSONB pour ne pas casser la "gestion des combats" qui auto-remplit depuis l'adversaire.
+- **Génération IA** : utilise Lovable AI Gateway (Gemini 2.5 flash) — aucune clé API à fournir.
