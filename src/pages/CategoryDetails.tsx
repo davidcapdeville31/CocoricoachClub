@@ -45,6 +45,7 @@ import { GpsDataTab } from "@/components/category/gps/GpsDataTab";
 import { VideoAnalysisTab } from "@/components/category/video/VideoAnalysisTab";
 import { AdminTab } from "@/components/category/tabs/AdminTab";
 import { BowlingArsenalCatalogTab } from "@/components/bowling/BowlingArsenalCatalogTab";
+import { JudoOpponentsTab } from "@/components/category/judo/JudoOpponentsTab";
 import { DatasTab } from "@/components/category/tabs/DatasTab";
 import { SnapshotCategoryButton } from "@/components/category/SnapshotCategoryButton";
 
@@ -196,6 +197,7 @@ function CategoryDetailsContent() {
   const showGpsTab = isGpsSportType(category?.rugby_type) && (category?.gps_enabled === true);
   const showVideoTab = hasVideoAnalysis(category?.rugby_type) && (category?.video_enabled === true);
   const isBowling = category?.rugby_type?.toLowerCase().includes("bowling");
+  const isJudo = category?.rugby_type?.toLowerCase().includes("judo");
 
   // Menu permissions based on role_menu_permissions matrix
   const { canSeeMenu } = useMenuPermissions(category?.clubs?.id, categoryId);
@@ -507,6 +509,16 @@ function CategoryDetailsContent() {
                   tooltip="Inventaire des boules de bowling : marque, modèle, caractéristiques techniques et surface"
                 />
               )}
+              {isJudo && (
+                <ColoredTabTrigger
+                  value="opponents-bank"
+                  colorKey="performance"
+                  icon={<Users className="h-5 w-5" />}
+                  label="Liste adversaires"
+                  shortLabel="Adversaires"
+                  tooltip="Banque commune des adversaires du club : profil, latéralité, style, palmarès, photo — partagée entre coachs et athlètes"
+                />
+              )}
               {showGpsTab && (
                 <ColoredTabTrigger 
                   value="gps" 
@@ -606,6 +618,12 @@ function CategoryDetailsContent() {
           {isBowling && (
             <TabsContent value="arsenal" className="space-y-4">
               <BowlingArsenalCatalogTab categoryId={categoryId!} />
+            </TabsContent>
+          )}
+
+          {isJudo && (
+            <TabsContent value="opponents-bank" className="space-y-4">
+              <JudoOpponentsTab categoryId={categoryId!} />
             </TabsContent>
           )}
 
