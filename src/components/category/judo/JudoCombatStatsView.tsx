@@ -243,16 +243,15 @@ function computeResult(stats: Record<string, number> | undefined, manualResult: 
   if (wazariIpponOpp) return mk("opp", "wazari_awasete", "Waza-ari awasete ippon (adverse)");
 
   // Pas de fin nette → état "en cours" / décision possible
-  // Si manuellement marqué, on respecte
-  if (manualResult === "win" || manualResult === "loss" || manualResult === "draw") {
+  // On ne respecte manualResult QUE s'il y a au moins un score / pénalité saisi
+  const hasAnyActivity =
+    wMeEff > 0 || wOppEff > 0 || iMeEff > 0 || iOppEff > 0 || shidoMe > 0 || shidoOpp > 0;
+  if (
+    hasAnyActivity &&
+    (manualResult === "win" || manualResult === "loss" || manualResult === "draw")
+  ) {
     const winner = manualResult === "win" ? "me" : manualResult === "loss" ? "opp" : "draw";
-    // Cause = waza-ari / décision GS
-    const cause: EndCause =
-      num(s[K.goldenScore]) > 0
-        ? "golden_score"
-        : wMeEff !== wOppEff || shidoMe !== shidoOpp
-        ? "decision"
-        : "decision";
+    const cause: EndCause = num(s[K.goldenScore]) > 0 ? "golden_score" : "decision";
     return {
       winner,
       cause,
