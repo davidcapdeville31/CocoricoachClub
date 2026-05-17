@@ -861,16 +861,30 @@ function CombatPanel({
             color="amber"
             shido={num(round.stats?.[K.shidoMe])}
             hansokuDirect={num(round.stats?.[K.hansokuDirectMe]) > 0}
-            onShido={(v) => onUpdateStat(K.shidoMe, Math.max(0, Math.min(3, v)))}
-            onHansokuDirect={(v) => onUpdateStat(K.hansokuDirectMe, v ? 1 : 0)}
+            onShido={(v) => {
+              const nv = Math.max(0, Math.min(3, v));
+              if (nv >= 3) clearLosingFor("opp"); // 3 shido athlète → adv. gagne
+              onUpdateStat(K.shidoMe, nv);
+            }}
+            onHansokuDirect={(v) => {
+              if (v) clearLosingFor("opp");
+              onUpdateStat(K.hansokuDirectMe, v ? 1 : 0);
+            }}
           />
           <ShidoColumn
             label="Adversaire"
             color="amber"
             shido={num(round.stats?.[K.shidoOpp])}
             hansokuDirect={num(round.stats?.[K.hansokuDirectOpp]) > 0}
-            onShido={(v) => onUpdateStat(K.shidoOpp, Math.max(0, Math.min(3, v)))}
-            onHansokuDirect={(v) => onUpdateStat(K.hansokuDirectOpp, v ? 1 : 0)}
+            onShido={(v) => {
+              const nv = Math.max(0, Math.min(3, v));
+              if (nv >= 3) clearLosingFor("me"); // 3 shido adv. → athlète gagne
+              onUpdateStat(K.shidoOpp, nv);
+            }}
+            onHansokuDirect={(v) => {
+              if (v) clearLosingFor("me");
+              onUpdateStat(K.hansokuDirectOpp, v ? 1 : 0);
+            }}
           />
         </div>
       </Card>
