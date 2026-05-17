@@ -509,6 +509,16 @@ function CategoryDetailsContent() {
                   tooltip="Inventaire des boules de bowling : marque, modèle, caractéristiques techniques et surface"
                 />
               )}
+              {isJudo && (
+                <ColoredTabTrigger
+                  value="opponents-bank"
+                  colorKey="performance"
+                  icon={<Users className="h-5 w-5" />}
+                  label="Liste adversaires"
+                  shortLabel="Adversaires"
+                  tooltip="Banque commune des adversaires du club : profil, latéralité, style, palmarès, photo — partagée entre coachs et athlètes"
+                />
+              )}
               {showGpsTab && (
                 <ColoredTabTrigger 
                   value="gps" 
