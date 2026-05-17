@@ -6595,10 +6595,12 @@ export type Database = {
       }
       opponent_profiles: {
         Row: {
+          age_category: string | null
           birth_year: number | null
           category_id: string | null
           club_id: string
           club_origin: string | null
+          combat_profile: number | null
           country: string | null
           created_at: string
           created_by: string | null
@@ -6606,18 +6608,24 @@ export type Database = {
           fighting_style: string | null
           first_name: string | null
           gender: string | null
+          ground_standing_pref: number | null
           handedness: string | null
           id: string
           last_name: string
           notes: string | null
+          palmares: string | null
+          photo_url: string | null
+          style_mask: number
           updated_at: string
           weight_category: string | null
         }
         Insert: {
+          age_category?: string | null
           birth_year?: number | null
           category_id?: string | null
           club_id: string
           club_origin?: string | null
+          combat_profile?: number | null
           country?: string | null
           created_at?: string
           created_by?: string | null
@@ -6625,18 +6633,24 @@ export type Database = {
           fighting_style?: string | null
           first_name?: string | null
           gender?: string | null
+          ground_standing_pref?: number | null
           handedness?: string | null
           id?: string
           last_name: string
           notes?: string | null
+          palmares?: string | null
+          photo_url?: string | null
+          style_mask?: number
           updated_at?: string
           weight_category?: string | null
         }
         Update: {
+          age_category?: string | null
           birth_year?: number | null
           category_id?: string | null
           club_id?: string
           club_origin?: string | null
+          combat_profile?: number | null
           country?: string | null
           created_at?: string
           created_by?: string | null
@@ -6644,10 +6658,14 @@ export type Database = {
           fighting_style?: string | null
           first_name?: string | null
           gender?: string | null
+          ground_standing_pref?: number | null
           handedness?: string | null
           id?: string
           last_name?: string
           notes?: string | null
+          palmares?: string | null
+          photo_url?: string | null
+          style_mask?: number
           updated_at?: string
           weight_category?: string | null
         }
