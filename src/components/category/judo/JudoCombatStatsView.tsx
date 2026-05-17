@@ -549,8 +549,8 @@ function CombatPanel({
 
   return (
     <div className="space-y-4">
-      {/* ============== HEADER COMBAT ============== */}
-      <Card className="p-3 space-y-3 border-l-4 border-l-destructive">
+      {/* ============== HEADER COMBAT (sticky) ============== */}
+      <Card className="p-3 space-y-3 border-l-4 border-l-destructive sticky top-0 z-30 bg-card/95 backdrop-blur shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
           <div className="space-y-1">
             <Label className="text-[10px] uppercase text-muted-foreground">Phase</Label>
