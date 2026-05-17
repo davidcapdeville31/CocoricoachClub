@@ -1487,3 +1487,209 @@ function AttackBlock({
     </div>
   );
 }
+
+// ============================================================================
+// Helpers UI ajoutés (v2)
+// ============================================================================
+function EnumPills({
+  label,
+  value,
+  options,
+  onChange,
+  color = "blue",
+}: {
+  label: string;
+  value: number;
+  options: { v: number; label: string }[];
+  onChange: (v: number) => void;
+  color?: "blue" | "amber" | "violet" | "emerald" | "red";
+}) {
+  const activeCls =
+    color === "amber"
+      ? "bg-amber-500 hover:bg-amber-600 text-white border-amber-500"
+      : color === "violet"
+      ? "bg-violet-500 hover:bg-violet-600 text-white border-violet-500"
+      : color === "emerald"
+      ? "bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-500"
+      : color === "red"
+      ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
+      : "bg-blue-500 hover:bg-blue-600 text-white border-blue-500";
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-[10px] uppercase text-muted-foreground">{label}</Label>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((o) => {
+          const active = value === o.v;
+          return (
+            <Button
+              key={o.v}
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => onChange(active ? 0 : o.v)}
+              className={cn("h-8 text-xs", active && activeCls)}
+            >
+              {o.label}
+            </Button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TagPills({
+  label,
+  mask,
+  options,
+  onChange,
+}: {
+  label: string;
+  mask: number;
+  options: { bit: number; label: string }[];
+  onChange: (mask: number) => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-[10px] uppercase text-muted-foreground">{label}</Label>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((o) => {
+          const active = (mask & o.bit) === o.bit;
+          return (
+            <Button
+              key={o.bit}
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => onChange(active ? mask & ~o.bit : mask | o.bit)}
+              className={cn(
+                "h-8 text-xs",
+                active && "bg-violet-500 hover:bg-violet-600 text-white border-violet-500",
+              )}
+            >
+              {o.label}
+            </Button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function CounterStat({
+  label,
+  value,
+  onChange,
+  step = 1,
+  color = "muted",
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  step?: number;
+  color?: "muted" | "red" | "emerald" | "amber";
+}) {
+  const tint =
+    color === "red"
+      ? "bg-red-50 dark:bg-red-950/30"
+      : color === "emerald"
+      ? "bg-emerald-50 dark:bg-emerald-950/30"
+      : color === "amber"
+      ? "bg-amber-50 dark:bg-amber-950/30"
+      : "bg-muted/40";
+  return (
+    <div className={cn("rounded-lg border p-2 space-y-1 text-center", tint)}>
+      <p className="text-[10px] uppercase text-muted-foreground leading-tight">{label}</p>
+      <div className="flex items-center justify-center gap-1">
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
+          className="h-7 w-7"
+          onClick={() => onChange(Math.max(0, value - step))}
+          disabled={value <= 0}
+        >
+          −
+        </Button>
+        <div className="w-10 text-base font-bold tabular-nums">{value}</div>
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
+          className="h-7 w-7"
+          onClick={() => onChange(value + step)}
+        >
+          +
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function AttemptSuccessRow({
+  label,
+  attempts,
+  success,
+  onAttempts,
+  onSuccess,
+  extraLabel,
+  extraValue,
+  onExtra,
+  extraStep = 1,
+}: {
+  label: string;
+  attempts: number;
+  success: number;
+  onAttempts: (v: number) => void;
+  onSuccess: (v: number) => void;
+  extraLabel?: string;
+  extraValue?: number;
+  onExtra?: (v: number) => void;
+  extraStep?: number;
+}) {
+  const pct = attempts > 0 ? Math.round((success / attempts) * 100) : null;
+  return (
+    <div className="rounded-lg border p-2 space-y-2">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-bold uppercase">{label}</p>
+        {pct !== null && (
+          <Badge variant={pct >= 50 ? "default" : pct >= 25 ? "secondary" : "outline"} className="text-[10px]">
+            {pct}%
+          </Badge>
+        )}
+      </div>
+      <div className={cn("grid gap-1.5", extraLabel ? "grid-cols-3" : "grid-cols-2")}>
+        <CounterStat label="Tentatives" value={attempts} onChange={onAttempts} />
+        <CounterStat label="Réussies" value={success} onChange={(v) => onSuccess(Math.min(v, attempts || v))} color="emerald" />
+        {extraLabel && onExtra && (
+          <CounterStat label={extraLabel} value={extraValue || 0} onChange={onExtra} step={extraStep} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function OffensiveSynthesis({ round }: { round: JudoRound }) {
+  const synth = useMemo(() => {
+    let att = 0, suc = 0, pts = 0;
+    for (const t of JUDO_TECHNIQUES) {
+      att += num(round.stats?.[techStatKey(t.key, "att")]);
+      suc += num(round.stats?.[techStatKey(t.key, "suc")]);
+      pts += num(round.stats?.[techStatKey(t.key, "pts")]);
+    }
+    const pct = att > 0 ? Math.round((suc / att) * 100) : null;
+    return { att, suc, pts, pct };
+  }, [round.stats]);
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <StatPill label="Total attaques" value={synth.att} />
+      <StatPill label="Attaques efficaces" value={synth.suc} accent="success" />
+      <StatPill label="Points générés" value={synth.pts} accent="info" />
+      <StatPill
+        label="% efficacité"
+        value={synth.pct !== null ? `${synth.pct}%` : "—"}
+        accent={synth.pct !== null && synth.pct >= 50 ? "success" : synth.pct !== null && synth.pct >= 25 ? "warning" : "muted"}
+      />
+    </div>
+  );
+}
