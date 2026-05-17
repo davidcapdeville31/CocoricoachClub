@@ -620,7 +620,7 @@ export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props)
   const top3 = useMemo(() => {
     if (!profile?.tokui_waza) return [];
     return [...profile.tokui_waza]
-      .sort((a: any, b: any) => (b.danger * b.frequency) - (a.danger * a.frequency))
+      .sort((a: any, b: any) => (b.danger * (b.success_rate ?? 50)) - (a.danger * (a.success_rate ?? 50)))
       .slice(0, 3);
   }, [profile?.tokui_waza]);
 
