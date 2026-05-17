@@ -619,6 +619,29 @@ function CombatPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result.winner, result.cause]);
 
+  // Exclusivité IJF : un combat ne peut avoir qu'un seul vainqueur.
+  // Quand un côté marque une action gagnante, on annule les conditions
+  // qui faisaient perdre ce même côté (ippon adverse, hansoku-make sur soi,
+  // soumission de soi, 3e shido, 2e waza-ari adverse, osaekomi 20s adverse).
+  const clearLosingFor = (winSide: "me" | "opp") => {
+    const s = round.stats || {};
+    if (winSide === "me") {
+      if (num(s[K.ipponOpp]) > 0) onUpdateStat(K.ipponOpp, 0);
+      if (num(s[K.hansokuDirectMe]) > 0) onUpdateStat(K.hansokuDirectMe, 0);
+      if (num(s[K.submissionMe]) > 0) onUpdateStat(K.submissionMe, 0);
+      if (num(s[K.shidoMe]) >= 3) onUpdateStat(K.shidoMe, 2);
+      if (num(s[K.wazariOpp]) >= 2) onUpdateStat(K.wazariOpp, 1);
+      if (num(s[K.osaekomiOppSec]) >= 20) onUpdateStat(K.osaekomiOppSec, 0);
+    } else {
+      if (num(s[K.ipponMe]) > 0) onUpdateStat(K.ipponMe, 0);
+      if (num(s[K.hansokuDirectOpp]) > 0) onUpdateStat(K.hansokuDirectOpp, 0);
+      if (num(s[K.submissionOpp]) > 0) onUpdateStat(K.submissionOpp, 0);
+      if (num(s[K.shidoOpp]) >= 3) onUpdateStat(K.shidoOpp, 2);
+      if (num(s[K.wazariMe]) >= 2) onUpdateStat(K.wazariMe, 1);
+      if (num(s[K.osaekomiMeSec]) >= 20) onUpdateStat(K.osaekomiMeSec, 0);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* ============== HEADER COMBAT ============== */}
