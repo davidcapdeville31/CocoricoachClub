@@ -48,6 +48,8 @@ export function JudoOpponentsTab({ categoryId }: Props) {
   const [search, setSearch] = useState("");
   const [genderFilter, setGenderFilter] = useState<string>("all");
   const [weightFilter, setWeightFilter] = useState<string>("all");
+  const [ageFilter, setAgeFilter] = useState<string>("all");
+  const [handFilter, setHandFilter] = useState<string>("all");
 
   const { data: category } = useQuery({
     queryKey: ["category-club", categoryId],
@@ -113,9 +115,11 @@ export function JudoOpponentsTab({ categoryId }: Props) {
   const filtered = (profiles || []).filter((p) => {
     if (genderFilter !== "all" && p.gender !== genderFilter) return false;
     if (weightFilter !== "all" && p.weight_category !== weightFilter) return false;
+    if (ageFilter !== "all" && p.age_category !== ageFilter) return false;
+    if (handFilter !== "all" && p.handedness !== handFilter) return false;
     if (search) {
       const q = search.toLowerCase();
-      const name = `${p.last_name} ${p.first_name || ""} ${p.club_origin || ""}`.toLowerCase();
+      const name = `${p.last_name} ${p.first_name || ""} ${p.club_origin || ""} ${p.country || ""}`.toLowerCase();
       if (!name.includes(q)) return false;
     }
     return true;
@@ -155,14 +159,14 @@ export function JudoOpponentsTab({ categoryId }: Props) {
             <div className="relative flex-1 min-w-[180px]">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Rechercher un nom, un club…"
+                placeholder="Rechercher un nom, un club, un pays…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-8"
               />
             </div>
             <Select value={genderFilter} onValueChange={setGenderFilter}>
-              <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous sexes</SelectItem>
                 <SelectItem value="male">Hommes</SelectItem>
@@ -170,12 +174,30 @@ export function JudoOpponentsTab({ categoryId }: Props) {
               </SelectContent>
             </Select>
             <Select value={weightFilter} onValueChange={setWeightFilter}>
-              <SelectTrigger className="w-[170px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes catégories</SelectItem>
                 {JUDO_WEIGHT_CATEGORIES.map((c) => (
                   <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+            <Select value={ageFilter} onValueChange={setAgeFilter}>
+              <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous âges</SelectItem>
+                {["Benjamin","Minime","Cadet","Junior","Senior","Vétéran"].map((a) => (
+                  <SelectItem key={a} value={a}>{a}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={handFilter} onValueChange={setHandFilter}>
+              <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Latéralité</SelectItem>
+                <SelectItem value="right">Droitier</SelectItem>
+                <SelectItem value="left">Gaucher</SelectItem>
+                <SelectItem value="ambidextrous">Ambidextre</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -193,9 +215,11 @@ export function JudoOpponentsTab({ categoryId }: Props) {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
                   <tr>
+                    <th className="text-left px-3 py-2 w-12"></th>
                     <th className="text-left px-3 py-2">Nom</th>
                     <th className="text-left px-3 py-2">Sexe</th>
                     <th className="text-left px-3 py-2">Catégorie</th>
+                    <th className="text-left px-3 py-2">Âge</th>
                     <th className="text-left px-3 py-2">Latéralité</th>
                     <th className="text-left px-3 py-2">Profil</th>
                     <th className="text-left px-3 py-2">Club / Pays</th>
@@ -203,8 +227,21 @@ export function JudoOpponentsTab({ categoryId }: Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((p) => (
+                  {filtered.map((p: any) => (
                     <tr key={p.id} className="border-t hover:bg-muted/30">
+                      <td className="px-3 py-2">
+                        {p.photo_url ? (
+                          <img
+                            src={p.photo_url}
+                            alt=""
+                            className="h-9 w-9 rounded-full object-cover ring-1 ring-border"
+                          />
+                        ) : (
+                          <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-[10px] text-muted-foreground font-semibold">
+                            {(p.last_name?.[0] || "?").toUpperCase()}
+                          </div>
+                        )}
+                      </td>
                       <td className="px-3 py-2 font-medium">
                         {p.last_name} {p.first_name || ""}
                         {p.birth_year ? <span className="text-xs text-muted-foreground ml-1">({p.birth_year})</span> : null}
@@ -215,6 +252,7 @@ export function JudoOpponentsTab({ categoryId }: Props) {
                           <Badge variant="secondary">{p.weight_category.replace(/^judo_/, "")}</Badge>
                         ) : "—"}
                       </td>
+                      <td className="px-3 py-2 text-muted-foreground">{p.age_category || "—"}</td>
                       <td className="px-3 py-2">{handLabel(p.handedness)}</td>
                       <td className="px-3 py-2">
                         {p.fighting_style ? (
