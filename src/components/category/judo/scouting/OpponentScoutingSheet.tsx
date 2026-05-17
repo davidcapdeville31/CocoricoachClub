@@ -791,15 +791,6 @@ export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props)
                     value={profile.kumikata_profile?.zones ?? []}
                     onChange={(v) => patchKumikata("zones", v)}
                   />
-                  <SliderWithLabels
-                    label="Domination kumikata"
-                    value={Number(profile.kumikata_profile?.domination ?? 50)}
-                    onChange={(v) => patchKumikata("domination", v)}
-                    leftLabel="Faible"
-                    rightLabel="Extrêmement dominant"
-                    unit="%"
-                    tone="danger"
-                  />
                 </SectionCard>
 
                 {/* ============ 3. TOKUI-WAZA ============ */}
