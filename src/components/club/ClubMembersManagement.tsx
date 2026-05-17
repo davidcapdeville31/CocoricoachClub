@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getAppBaseUrl } from "@/lib/appUrl";
+import { useRealtimeMembers } from "@/hooks/useRealtimeMembers";
 
 interface Category {
   id: string;
