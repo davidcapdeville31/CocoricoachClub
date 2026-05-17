@@ -662,9 +662,9 @@ export function OpponentScoutingSheet({ open, onOpenChange, opponentId }: Props)
                   <MiniStat
                     label="Ne-waza"
                     value={
-                      profile.newaza_profile?.ground_pct != null
-                        ? `${100 - (profile.newaza_profile.ground_pct as number)}% sol`
-                        : "—"
+                      (profile.newaza_profile?.styles?.length ?? 0) > 0
+                        ? "Travaille au sol"
+                        : "Peu / pas au sol"
                     }
                     tone="newaza"
                   />
