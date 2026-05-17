@@ -48,6 +48,8 @@ export function JudoOpponentsTab({ categoryId }: Props) {
   const [search, setSearch] = useState("");
   const [genderFilter, setGenderFilter] = useState<string>("all");
   const [weightFilter, setWeightFilter] = useState<string>("all");
+  const [ageFilter, setAgeFilter] = useState<string>("all");
+  const [handFilter, setHandFilter] = useState<string>("all");
 
   const { data: category } = useQuery({
     queryKey: ["category-club", categoryId],
