@@ -33,6 +33,7 @@ import {
   OpponentProfileDialog,
   type OpponentProfile,
 } from "@/components/category/judo/OpponentProfileDialog";
+import { OpponentScoutingSheet } from "@/components/category/judo/scouting/OpponentScoutingSheet";
 
 interface Props {
   playerId: string;
@@ -58,6 +59,8 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<OpponentProfile | null>(null);
   const [toDelete, setToDelete] = useState<OpponentProfile | null>(null);
+  const [scoutingId, setScoutingId] = useState<string | null>(null);
+  const [scoutingOpen, setScoutingOpen] = useState(false);
 
   const { data: player } = useQuery({
     queryKey: ["athlete-opp-player", playerId],
@@ -301,9 +304,10 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
                           <Button
                             variant="ghost"
                             size="icon"
+                            title="Ouvrir la fiche scouting"
                             onClick={() => {
-                              setEditing(p);
-                              setDialogOpen(true);
+                              setScoutingId(p.id);
+                              setScoutingOpen(true);
                             }}
                           >
                             <Pencil className="h-4 w-4" />
@@ -334,6 +338,12 @@ export function AthleteOpponentProfiles({ playerId, categoryId }: Props) {
         initial={editing}
         lockedGender={editing ? null : playerGender}
         lockedWeight={editing ? null : playerWeight}
+      />
+
+      <OpponentScoutingSheet
+        open={scoutingOpen}
+        onOpenChange={setScoutingOpen}
+        opponentId={scoutingId}
       />
 
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
