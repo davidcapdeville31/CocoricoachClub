@@ -329,17 +329,6 @@ export function JudoOpponentsTab({ categoryId }: Props) {
                       </button>
                       <div className="w-px bg-border" />
                       <button
-                        className="px-3 hover:bg-muted transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditing(p);
-                          setDialogOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                      </button>
-                      <div className="w-px bg-border" />
-                      <button
                         className="px-3 hover:bg-destructive/10 transition-colors"
                         onClick={(e) => {
                           e.stopPropagation();
