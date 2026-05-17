@@ -125,6 +125,32 @@ const K = {
   goldenScoreDuration: "goldenScoreDuration",
   // Tactique
   dominanceStanding: "ijf_dominance_standing", // 0..100 (%)
+  // Fin de combat (manuel coach) — enum: 1 ippon · 2 wazari · 3 wazari_awasete · 4 hansoku · 5 decision · 6 abandon · 7 forfait
+  endMethod: "ijf_end_method",
+  // Golden Score — décision en GS : 1 technique · 2 penalty · 3 shido_accumulation
+  gsDecision: "ijf_gs_decision",
+  // Défense
+  defAttacksReceived: "ijf_def_attacks_received",
+  defAttacksNeutralized: "ijf_def_attacks_neutralized",
+  defScoresConceded: "ijf_def_scores_conceded",
+  // Profil d'activité : 1 très actif · 2 actif · 3 neutre · 4 passif
+  activityProfile: "ijf_activity_profile",
+  // Profil combat : 1 dominant · 2 équilibré · 3 dominé · 4 contrôle sans score · 5 explosif · 6 défensif
+  combatProfile: "ijf_combat_profile",
+  // Style adversaire (bitmask) : 1 attaquant · 2 contreur · 4 physique · 8 technique · 16 kumikata · 32 passif
+  opponentStyleMask: "ijf_opp_style_mask",
+  // Ne-waza extended
+  groundTimeSec: "groundTimeSeconds",
+  groundPhases: "ijf_ne_phases",
+  immoAttempts: "immobilizationAttempts",
+  immoSuccess: "ijf_immo_success",
+  immoMaxSec: "ijf_immo_max_sec",
+  chokeAttempts: "chokeAttempts",
+  chokeSuccess: "ijf_choke_success",
+  armlockAttempts: "armLockAttempts",
+  armlockSuccess: "ijf_armlock_success",
+  transitionStandToGround: "ijf_transition_s2g",
+  regainGround: "ijf_regain_ground",
   // Compat historique
   victoryModeIppon: "victoryModeIppon",
   victoryModeWazaari: "victoryModeWazaari",
@@ -523,8 +549,8 @@ function CombatPanel({
 
   return (
     <div className="space-y-4">
-      {/* ============== HEADER COMBAT ============== */}
-      <Card className="p-3 space-y-3 border-l-4 border-l-destructive">
+      {/* ============== HEADER COMBAT (sticky) ============== */}
+      <Card className="p-3 space-y-3 border-l-4 border-l-destructive sticky top-0 z-30 bg-card/95 backdrop-blur shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
           <div className="space-y-1">
             <Label className="text-[10px] uppercase text-muted-foreground">Phase</Label>
@@ -643,6 +669,37 @@ function CombatPanel({
             </Button>
           </div>
         </div>
+
+        {/* MÉTHODE DE FIN (manuelle, complète l'auto-calcul) */}
+        <EnumPills
+          label="Méthode de fin"
+          value={num(round.stats?.[K.endMethod])}
+          options={[
+            { v: 1, label: "Ippon" },
+            { v: 2, label: "Waza-ari" },
+            { v: 3, label: "Waza-ari awasete ippon" },
+            { v: 4, label: "Hansoku-make" },
+            { v: 5, label: "Décision" },
+            { v: 6, label: "Abandon" },
+            { v: 7, label: "Forfait" },
+          ]}
+          onChange={(v) => onUpdateStat(K.endMethod, v)}
+        />
+
+        {/* DÉCISION GOLDEN SCORE — visible si GS=ON */}
+        {num(round.stats?.[K.goldenScore]) > 0 && (
+          <EnumPills
+            label="Type de décision en GS"
+            value={num(round.stats?.[K.gsDecision])}
+            color="amber"
+            options={[
+              { v: 1, label: "Technique" },
+              { v: 2, label: "Pénalité décisive" },
+              { v: 3, label: "Accumulation shido" },
+            ]}
+            onChange={(v) => onUpdateStat(K.gsDecision, v)}
+          />
+        )}
       </Card>
 
       {/* ============== SCORES (OFFENSIVE) ============== */}
@@ -750,12 +807,129 @@ function CombatPanel({
         </div>
       </Card>
 
+      {/* ============== NE-WAZA DÉTAILLÉ (volumes, transitions) ============== */}
+      <Card className="p-3 space-y-3">
+        <SectionHeader
+          icon={<Hand className="h-4 w-4 text-amber-500" />}
+          title="Ne-waza détaillé"
+          hint="Volumes, transitions, soumissions"
+        />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <CounterStat label="Phases au sol" value={num(round.stats?.[K.groundPhases])} onChange={(v) => onUpdateStat(K.groundPhases, v)} />
+          <CounterStat label="Temps sol (s)" value={num(round.stats?.[K.groundTimeSec])} step={5} onChange={(v) => onUpdateStat(K.groundTimeSec, v)} />
+          <CounterStat label="Transitions debout→sol" value={num(round.stats?.[K.transitionStandToGround])} onChange={(v) => onUpdateStat(K.transitionStandToGround, v)} />
+          <CounterStat label="Reprises au sol" value={num(round.stats?.[K.regainGround])} onChange={(v) => onUpdateStat(K.regainGround, v)} />
+        </div>
+        <Separator />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <AttemptSuccessRow
+            label="Immobilisations"
+            attempts={num(round.stats?.[K.immoAttempts])}
+            success={num(round.stats?.[K.immoSuccess])}
+            extraLabel="Max (s)"
+            extraValue={num(round.stats?.[K.immoMaxSec])}
+            onAttempts={(v) => onUpdateStat(K.immoAttempts, v)}
+            onSuccess={(v) => onUpdateStat(K.immoSuccess, v)}
+            onExtra={(v) => onUpdateStat(K.immoMaxSec, v)}
+            extraStep={5}
+          />
+          <AttemptSuccessRow
+            label="Étranglements"
+            attempts={num(round.stats?.[K.chokeAttempts])}
+            success={num(round.stats?.[K.chokeSuccess])}
+            onAttempts={(v) => onUpdateStat(K.chokeAttempts, v)}
+            onSuccess={(v) => onUpdateStat(K.chokeSuccess, v)}
+          />
+          <AttemptSuccessRow
+            label="Clés articulaires"
+            attempts={num(round.stats?.[K.armlockAttempts])}
+            success={num(round.stats?.[K.armlockSuccess])}
+            onAttempts={(v) => onUpdateStat(K.armlockAttempts, v)}
+            onSuccess={(v) => onUpdateStat(K.armlockSuccess, v)}
+          />
+        </div>
+      </Card>
+
+      {/* ============== DÉFENSE ============== */}
+      <Card className="p-3 space-y-3">
+        <SectionHeader
+          icon={<ShieldAlert className="h-4 w-4 text-red-500" />}
+          title="Défense"
+          hint="Volume défensif et résistance"
+        />
+        <div className="grid grid-cols-3 gap-2">
+          <CounterStat label="Attaques subies" value={num(round.stats?.[K.defAttacksReceived])} onChange={(v) => onUpdateStat(K.defAttacksReceived, v)} color="red" />
+          <CounterStat label="Attaques neutralisées" value={num(round.stats?.[K.defAttacksNeutralized])} onChange={(v) => onUpdateStat(K.defAttacksNeutralized, v)} color="emerald" />
+          <CounterStat label="Scores concédés" value={num(round.stats?.[K.defScoresConceded])} onChange={(v) => onUpdateStat(K.defScoresConceded, v)} color="amber" />
+        </div>
+        {num(round.stats?.[K.defAttacksReceived]) > 0 && (
+          <div className="rounded-lg bg-muted/40 p-2 text-center text-xs">
+            <span className="font-bold">
+              {Math.round(
+                (num(round.stats?.[K.defAttacksNeutralized]) /
+                  Math.max(1, num(round.stats?.[K.defAttacksReceived]))) *
+                  100,
+              )}
+              %
+            </span>{" "}
+            d'attaques neutralisées
+          </div>
+        )}
+        <EnumPills
+          label="Profil d'activité défensive"
+          value={num(round.stats?.[K.activityProfile])}
+          options={[
+            { v: 1, label: "Très actif" },
+            { v: 2, label: "Actif" },
+            { v: 3, label: "Neutre" },
+            { v: 4, label: "Passif" },
+          ]}
+          onChange={(v) => onUpdateStat(K.activityProfile, v)}
+        />
+      </Card>
+
       {/* ============== TACTIQUE / DOMINANCE ============== */}
       <Card className="p-3 space-y-3">
         <SectionHeader icon={<Swords className="h-4 w-4 text-violet-500" />} title="Tactique" />
         <DominanceSlider
           value={num(round.stats?.[K.dominanceStanding])}
           onChange={(v) => onUpdateStat(K.dominanceStanding, v)}
+        />
+      </Card>
+
+      {/* ============== COACH INTELLIGENCE ============== */}
+      <Card className="p-3 space-y-3">
+        <SectionHeader
+          icon={<Swords className="h-4 w-4 text-violet-500" />}
+          title="Analyse tactique"
+          hint="Lecture coach rapide"
+        />
+        <EnumPills
+          label="Profil de combat"
+          value={num(round.stats?.[K.combatProfile])}
+          color="violet"
+          options={[
+            { v: 1, label: "Dominant" },
+            { v: 2, label: "Équilibré" },
+            { v: 3, label: "Dominé" },
+            { v: 4, label: "Contrôle sans score" },
+            { v: 5, label: "Explosif" },
+            { v: 6, label: "Défensif" },
+          ]}
+          onChange={(v) => onUpdateStat(K.combatProfile, v)}
+        />
+        <TagPills
+          label="Style adversaire (multi-sélection)"
+          mask={num(round.stats?.[K.opponentStyleMask])}
+          options={[
+            { bit: 1, label: "Attaquant" },
+            { bit: 2, label: "Contreur" },
+            { bit: 4, label: "Physique" },
+            { bit: 8, label: "Technique" },
+            { bit: 16, label: "Kumikata dominant" },
+            { bit: 32, label: "Passif" },
+          ]}
+          onChange={(m) => onUpdateStat(K.opponentStyleMask, m)}
         />
       </Card>
 
@@ -766,6 +940,7 @@ function CombatPanel({
           title="Détail techniques offensives"
           hint="Saisie optionnelle pour analyse fine"
         />
+        <OffensiveSynthesis round={round} />
         <AttackBlock round={round} onUpdateStat={onUpdateStat} />
       </Card>
 
@@ -1309,6 +1484,212 @@ function AttackBlock({
         "Ne-waza — Attaques au sol",
         "bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200",
       )}
+    </div>
+  );
+}
+
+// ============================================================================
+// Helpers UI ajoutés (v2)
+// ============================================================================
+function EnumPills({
+  label,
+  value,
+  options,
+  onChange,
+  color = "blue",
+}: {
+  label: string;
+  value: number;
+  options: { v: number; label: string }[];
+  onChange: (v: number) => void;
+  color?: "blue" | "amber" | "violet" | "emerald" | "red";
+}) {
+  const activeCls =
+    color === "amber"
+      ? "bg-amber-500 hover:bg-amber-600 text-white border-amber-500"
+      : color === "violet"
+      ? "bg-violet-500 hover:bg-violet-600 text-white border-violet-500"
+      : color === "emerald"
+      ? "bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-500"
+      : color === "red"
+      ? "bg-red-500 hover:bg-red-600 text-white border-red-500"
+      : "bg-blue-500 hover:bg-blue-600 text-white border-blue-500";
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-[10px] uppercase text-muted-foreground">{label}</Label>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((o) => {
+          const active = value === o.v;
+          return (
+            <Button
+              key={o.v}
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => onChange(active ? 0 : o.v)}
+              className={cn("h-8 text-xs", active && activeCls)}
+            >
+              {o.label}
+            </Button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TagPills({
+  label,
+  mask,
+  options,
+  onChange,
+}: {
+  label: string;
+  mask: number;
+  options: { bit: number; label: string }[];
+  onChange: (mask: number) => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-[10px] uppercase text-muted-foreground">{label}</Label>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((o) => {
+          const active = (mask & o.bit) === o.bit;
+          return (
+            <Button
+              key={o.bit}
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => onChange(active ? mask & ~o.bit : mask | o.bit)}
+              className={cn(
+                "h-8 text-xs",
+                active && "bg-violet-500 hover:bg-violet-600 text-white border-violet-500",
+              )}
+            >
+              {o.label}
+            </Button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function CounterStat({
+  label,
+  value,
+  onChange,
+  step = 1,
+  color = "muted",
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  step?: number;
+  color?: "muted" | "red" | "emerald" | "amber";
+}) {
+  const tint =
+    color === "red"
+      ? "bg-red-50 dark:bg-red-950/30"
+      : color === "emerald"
+      ? "bg-emerald-50 dark:bg-emerald-950/30"
+      : color === "amber"
+      ? "bg-amber-50 dark:bg-amber-950/30"
+      : "bg-muted/40";
+  return (
+    <div className={cn("rounded-lg border p-2 space-y-1 text-center", tint)}>
+      <p className="text-[10px] uppercase text-muted-foreground leading-tight">{label}</p>
+      <div className="flex items-center justify-center gap-1">
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
+          className="h-7 w-7"
+          onClick={() => onChange(Math.max(0, value - step))}
+          disabled={value <= 0}
+        >
+          −
+        </Button>
+        <div className="w-10 text-base font-bold tabular-nums">{value}</div>
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
+          className="h-7 w-7"
+          onClick={() => onChange(value + step)}
+        >
+          +
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function AttemptSuccessRow({
+  label,
+  attempts,
+  success,
+  onAttempts,
+  onSuccess,
+  extraLabel,
+  extraValue,
+  onExtra,
+  extraStep = 1,
+}: {
+  label: string;
+  attempts: number;
+  success: number;
+  onAttempts: (v: number) => void;
+  onSuccess: (v: number) => void;
+  extraLabel?: string;
+  extraValue?: number;
+  onExtra?: (v: number) => void;
+  extraStep?: number;
+}) {
+  const pct = attempts > 0 ? Math.round((success / attempts) * 100) : null;
+  return (
+    <div className="rounded-lg border p-2 space-y-2">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-bold uppercase">{label}</p>
+        {pct !== null && (
+          <Badge variant={pct >= 50 ? "default" : pct >= 25 ? "secondary" : "outline"} className="text-[10px]">
+            {pct}%
+          </Badge>
+        )}
+      </div>
+      <div className={cn("grid gap-1.5", extraLabel ? "grid-cols-3" : "grid-cols-2")}>
+        <CounterStat label="Tentatives" value={attempts} onChange={onAttempts} />
+        <CounterStat label="Réussies" value={success} onChange={(v) => onSuccess(Math.min(v, attempts || v))} color="emerald" />
+        {extraLabel && onExtra && (
+          <CounterStat label={extraLabel} value={extraValue || 0} onChange={onExtra} step={extraStep} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function OffensiveSynthesis({ round }: { round: JudoRound }) {
+  const synth = useMemo(() => {
+    let att = 0, suc = 0, pts = 0;
+    for (const t of JUDO_TECHNIQUES) {
+      att += num(round.stats?.[techStatKey(t.key, "att")]);
+      suc += num(round.stats?.[techStatKey(t.key, "suc")]);
+      pts += num(round.stats?.[techStatKey(t.key, "pts")]);
+    }
+    const pct = att > 0 ? Math.round((suc / att) * 100) : null;
+    return { att, suc, pts, pct };
+  }, [round.stats]);
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <StatPill label="Total attaques" value={synth.att} />
+      <StatPill label="Attaques efficaces" value={synth.suc} accent="success" />
+      <StatPill label="Points générés" value={synth.pts} accent="info" />
+      <StatPill
+        label="% efficacité"
+        value={synth.pct !== null ? `${synth.pct}%` : "—"}
+        accent={synth.pct !== null && synth.pct >= 50 ? "success" : synth.pct !== null && synth.pct >= 25 ? "warning" : "muted"}
+      />
     </div>
   );
 }
