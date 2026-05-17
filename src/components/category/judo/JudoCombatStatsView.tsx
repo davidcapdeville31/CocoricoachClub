@@ -619,6 +619,29 @@ function CombatPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result.winner, result.cause]);
 
+  // Exclusivité IJF : un combat ne peut avoir qu'un seul vainqueur.
+  // Quand un côté marque une action gagnante, on annule les conditions
+  // qui faisaient perdre ce même côté (ippon adverse, hansoku-make sur soi,
+  // soumission de soi, 3e shido, 2e waza-ari adverse, osaekomi 20s adverse).
+  const clearLosingFor = (winSide: "me" | "opp") => {
+    const s = round.stats || {};
+    if (winSide === "me") {
+      if (num(s[K.ipponOpp]) > 0) onUpdateStat(K.ipponOpp, 0);
+      if (num(s[K.hansokuDirectMe]) > 0) onUpdateStat(K.hansokuDirectMe, 0);
+      if (num(s[K.submissionMe]) > 0) onUpdateStat(K.submissionMe, 0);
+      if (num(s[K.shidoMe]) >= 3) onUpdateStat(K.shidoMe, 2);
+      if (num(s[K.wazariOpp]) >= 2) onUpdateStat(K.wazariOpp, 1);
+      if (num(s[K.osaekomiOppSec]) >= 20) onUpdateStat(K.osaekomiOppSec, 0);
+    } else {
+      if (num(s[K.ipponMe]) > 0) onUpdateStat(K.ipponMe, 0);
+      if (num(s[K.hansokuDirectOpp]) > 0) onUpdateStat(K.hansokuDirectOpp, 0);
+      if (num(s[K.submissionOpp]) > 0) onUpdateStat(K.submissionOpp, 0);
+      if (num(s[K.shidoOpp]) >= 3) onUpdateStat(K.shidoOpp, 2);
+      if (num(s[K.wazariMe]) >= 2) onUpdateStat(K.wazariMe, 1);
+      if (num(s[K.osaekomiMeSec]) >= 20) onUpdateStat(K.osaekomiMeSec, 0);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* ============== HEADER COMBAT ============== */}
@@ -795,16 +818,32 @@ function CombatPanel({
             color="emerald"
             ippon={num(round.stats?.[K.ipponMe])}
             wazari={num(round.stats?.[K.wazariMe])}
-            onIppon={(v) => onUpdateStat(K.ipponMe, Math.max(0, Math.min(1, v)))}
-            onWazari={(v) => onUpdateStat(K.wazariMe, Math.max(0, Math.min(2, v)))}
+            onIppon={(v) => {
+              const nv = Math.max(0, Math.min(1, v));
+              if (nv > 0) clearLosingFor("me");
+              onUpdateStat(K.ipponMe, nv);
+            }}
+            onWazari={(v) => {
+              const nv = Math.max(0, Math.min(2, v));
+              if (nv >= 2) clearLosingFor("me");
+              onUpdateStat(K.wazariMe, nv);
+            }}
           />
           <ScoreColumn
             label="Adversaire"
             color="red"
             ippon={num(round.stats?.[K.ipponOpp])}
             wazari={num(round.stats?.[K.wazariOpp])}
-            onIppon={(v) => onUpdateStat(K.ipponOpp, Math.max(0, Math.min(1, v)))}
-            onWazari={(v) => onUpdateStat(K.wazariOpp, Math.max(0, Math.min(2, v)))}
+            onIppon={(v) => {
+              const nv = Math.max(0, Math.min(1, v));
+              if (nv > 0) clearLosingFor("opp");
+              onUpdateStat(K.ipponOpp, nv);
+            }}
+            onWazari={(v) => {
+              const nv = Math.max(0, Math.min(2, v));
+              if (nv >= 2) clearLosingFor("opp");
+              onUpdateStat(K.wazariOpp, nv);
+            }}
           />
         </div>
       </Card>
@@ -822,16 +861,30 @@ function CombatPanel({
             color="amber"
             shido={num(round.stats?.[K.shidoMe])}
             hansokuDirect={num(round.stats?.[K.hansokuDirectMe]) > 0}
-            onShido={(v) => onUpdateStat(K.shidoMe, Math.max(0, Math.min(3, v)))}
-            onHansokuDirect={(v) => onUpdateStat(K.hansokuDirectMe, v ? 1 : 0)}
+            onShido={(v) => {
+              const nv = Math.max(0, Math.min(3, v));
+              if (nv >= 3) clearLosingFor("opp"); // 3 shido athlète → adv. gagne
+              onUpdateStat(K.shidoMe, nv);
+            }}
+            onHansokuDirect={(v) => {
+              if (v) clearLosingFor("opp");
+              onUpdateStat(K.hansokuDirectMe, v ? 1 : 0);
+            }}
           />
           <ShidoColumn
             label="Adversaire"
             color="amber"
             shido={num(round.stats?.[K.shidoOpp])}
             hansokuDirect={num(round.stats?.[K.hansokuDirectOpp]) > 0}
-            onShido={(v) => onUpdateStat(K.shidoOpp, Math.max(0, Math.min(3, v)))}
-            onHansokuDirect={(v) => onUpdateStat(K.hansokuDirectOpp, v ? 1 : 0)}
+            onShido={(v) => {
+              const nv = Math.max(0, Math.min(3, v));
+              if (nv >= 3) clearLosingFor("me"); // 3 shido adv. → athlète gagne
+              onUpdateStat(K.shidoOpp, nv);
+            }}
+            onHansokuDirect={(v) => {
+              if (v) clearLosingFor("me");
+              onUpdateStat(K.hansokuDirectOpp, v ? 1 : 0);
+            }}
           />
         </div>
       </Card>
@@ -850,13 +903,19 @@ function CombatPanel({
             label="Osaekomi Athlète"
             color="emerald"
             seconds={num(round.stats?.[K.osaekomiMeSec])}
-            onChange={(v) => onUpdateStat(K.osaekomiMeSec, v)}
+            onChange={(v) => {
+              if (v >= 20) clearLosingFor("me"); // ippon par osaekomi athlète
+              onUpdateStat(K.osaekomiMeSec, v);
+            }}
           />
           <OsaekomiTimer
             label="Osaekomi Adversaire"
             color="red"
             seconds={num(round.stats?.[K.osaekomiOppSec])}
-            onChange={(v) => onUpdateStat(K.osaekomiOppSec, v)}
+            onChange={(v) => {
+              if (v >= 20) clearLosingFor("opp");
+              onUpdateStat(K.osaekomiOppSec, v);
+            }}
           />
         </div>
         <Separator />
@@ -868,9 +927,11 @@ function CombatPanel({
               "h-12 gap-2 text-xs",
               num(round.stats?.[K.submissionMe]) > 0 && "bg-red-600 hover:bg-red-700 text-white",
             )}
-            onClick={() =>
-              onUpdateStat(K.submissionMe, num(round.stats?.[K.submissionMe]) > 0 ? 0 : 1)
-            }
+            onClick={() => {
+              const nv = num(round.stats?.[K.submissionMe]) > 0 ? 0 : 1;
+              if (nv > 0) clearLosingFor("opp"); // athlète abandonne → adv. gagne
+              onUpdateStat(K.submissionMe, nv);
+            }}
           >
             <AlertTriangle className="h-4 w-4" />
             Soumission athlète (abandon)
@@ -883,9 +944,11 @@ function CombatPanel({
               num(round.stats?.[K.submissionOpp]) > 0 &&
                 "bg-emerald-600 hover:bg-emerald-700 text-white",
             )}
-            onClick={() =>
-              onUpdateStat(K.submissionOpp, num(round.stats?.[K.submissionOpp]) > 0 ? 0 : 1)
-            }
+            onClick={() => {
+              const nv = num(round.stats?.[K.submissionOpp]) > 0 ? 0 : 1;
+              if (nv > 0) clearLosingFor("me");
+              onUpdateStat(K.submissionOpp, nv);
+            }}
           >
             <Trophy className="h-4 w-4" />
             Soumission adverse
