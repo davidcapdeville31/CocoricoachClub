@@ -6593,9 +6593,48 @@ export type Database = {
           },
         ]
       }
+      opponent_analysis_history: {
+        Row: {
+          author_id: string | null
+          club_id: string
+          created_at: string
+          id: string
+          note: string | null
+          opponent_id: string
+          snapshot: Json
+        }
+        Insert: {
+          author_id?: string | null
+          club_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          opponent_id: string
+          snapshot: Json
+        }
+        Update: {
+          author_id?: string | null
+          club_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          opponent_id?: string
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opponent_analysis_history_opponent_id_fkey"
+            columns: ["opponent_id"]
+            isOneToOne: false
+            referencedRelation: "opponent_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       opponent_profiles: {
         Row: {
           age_category: string | null
+          attack_systems: Json
           birth_year: number | null
           category_id: string | null
           club_id: string
@@ -6604,23 +6643,35 @@ export type Database = {
           country: string | null
           created_at: string
           created_by: string | null
+          danger_level: number | null
           favorite_attacks: string | null
           fighting_style: string | null
           first_name: string | null
           gender: string | null
+          general_profile: Json
           ground_standing_pref: number | null
           handedness: string | null
           id: string
+          kumikata_profile: Json
+          last_analyzed_at: string | null
           last_name: string
+          newaza_profile: Json
           notes: string | null
           palmares: string | null
           photo_url: string | null
+          physical_profile: Json
+          scouting_notes: string | null
           style_mask: number
+          tactical_plan: Json
+          tactical_profile: Json
+          tokui_waza: Json
           updated_at: string
+          video_sequences: Json
           weight_category: string | null
         }
         Insert: {
           age_category?: string | null
+          attack_systems?: Json
           birth_year?: number | null
           category_id?: string | null
           club_id: string
@@ -6629,23 +6680,35 @@ export type Database = {
           country?: string | null
           created_at?: string
           created_by?: string | null
+          danger_level?: number | null
           favorite_attacks?: string | null
           fighting_style?: string | null
           first_name?: string | null
           gender?: string | null
+          general_profile?: Json
           ground_standing_pref?: number | null
           handedness?: string | null
           id?: string
+          kumikata_profile?: Json
+          last_analyzed_at?: string | null
           last_name: string
+          newaza_profile?: Json
           notes?: string | null
           palmares?: string | null
           photo_url?: string | null
+          physical_profile?: Json
+          scouting_notes?: string | null
           style_mask?: number
+          tactical_plan?: Json
+          tactical_profile?: Json
+          tokui_waza?: Json
           updated_at?: string
+          video_sequences?: Json
           weight_category?: string | null
         }
         Update: {
           age_category?: string | null
+          attack_systems?: Json
           birth_year?: number | null
           category_id?: string | null
           club_id?: string
@@ -6654,19 +6717,30 @@ export type Database = {
           country?: string | null
           created_at?: string
           created_by?: string | null
+          danger_level?: number | null
           favorite_attacks?: string | null
           fighting_style?: string | null
           first_name?: string | null
           gender?: string | null
+          general_profile?: Json
           ground_standing_pref?: number | null
           handedness?: string | null
           id?: string
+          kumikata_profile?: Json
+          last_analyzed_at?: string | null
           last_name?: string
+          newaza_profile?: Json
           notes?: string | null
           palmares?: string | null
           photo_url?: string | null
+          physical_profile?: Json
+          scouting_notes?: string | null
           style_mask?: number
+          tactical_plan?: Json
+          tactical_profile?: Json
+          tokui_waza?: Json
           updated_at?: string
+          video_sequences?: Json
           weight_category?: string | null
         }
         Relationships: [
