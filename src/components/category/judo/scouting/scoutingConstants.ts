@@ -56,7 +56,7 @@ export const KUMIKATA_STYLES: ChipOption[] = [
   { key: "high_collar", label: "Col haut" },
   { key: "double_sleeve", label: "Double manche" },
   { key: "cross_grip", label: "Prise croisée" },
-  { key: "russian_grip", label: "Russian grip" },
+  { key: "double_lapel", label: "Double revers" },
   { key: "belt", label: "Ceinture" },
   { key: "pistol_grip", label: "Pistol grip" },
   { key: "low_sleeve", label: "Manche basse" },
