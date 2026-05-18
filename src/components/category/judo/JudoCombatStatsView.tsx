@@ -53,7 +53,7 @@ import {
   JUDO_TECHNIQUE_FAMILIES,
   techStatKey,
 } from "@/lib/constants/judoTechniques";
-import { VideoCompanionPanel } from "@/components/shared/VideoCompanionPanel";
+import { VideoCompanionDock, VideoCompanionTrigger } from "@/components/shared/VideoCompanionPanel";
 
 // ============================================================================
 // JUDO COMBAT — IJF RULE-AWARE SCORING UI
