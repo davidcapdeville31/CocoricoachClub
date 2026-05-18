@@ -617,7 +617,7 @@ function TestsBankSidebar({ onClickInsert, categoryId }: TestsBankProps) {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 overflow-hidden" style={{ width: "100%" }}>
+      <ScrollArea className="flex-1 overflow-hidden min-h-[280px]" style={{ width: "100%" }}>
         <div className="p-2 space-y-1.5">
           {!categoryId && (
             <p className="text-center text-muted-foreground py-8 text-sm">
