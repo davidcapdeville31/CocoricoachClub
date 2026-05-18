@@ -274,32 +274,32 @@ export function JudoOpponentsTab({ categoryId }: Props) {
 
                     {/* Body */}
                     <div className="p-3 space-y-2">
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-0.5">
                         {p.weight_category && (
-                          <Badge variant="secondary" className="text-[10px]">
+                          <Badge variant="secondary" className="text-[8px] px-1.5 py-0 h-4 leading-none rounded-md">
                             {p.weight_category.replace(/^judo_/, "")}
                           </Badge>
                         )}
                         {p.age_category && (
-                          <Badge variant="outline" className="text-[10px]">{p.age_category}</Badge>
+                          <Badge variant="outline" className="text-[8px] px-1.5 py-0 h-4 leading-none rounded-md">{p.age_category}</Badge>
                         )}
                         {handed && (
-                          <Badge variant="outline" className="text-[10px]">{handed}</Badge>
+                          <Badge variant="outline" className="text-[8px] px-1.5 py-0 h-4 leading-none rounded-md">{handed}</Badge>
                         )}
                       </div>
 
                       {top3.length > 0 ? (
                         <div className="space-y-1">
-                          <div className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground flex items-center gap-1">
-                            <Sparkles className="h-2.5 w-2.5 text-amber-500" />
+                          <div className="text-[8px] uppercase font-bold tracking-wider text-muted-foreground flex items-center gap-1">
+                            <Sparkles className="h-2 w-2 text-amber-500" />
                             Top techniques
                           </div>
-                          <div className="flex flex-wrap gap-1">
+                          <div className="flex flex-wrap gap-0.5">
                             {top3.map((t: any, i: number) => (
                               <Badge
                                 key={i}
                                 className={cn(
-                                  "text-[10px] border-0 text-white",
+                                  "text-[8px] px-1.5 py-0 h-4 leading-none rounded-md border-0 text-white",
                                   i === 0 ? "bg-rose-500" : i === 1 ? "bg-orange-500" : "bg-amber-500",
                                 )}
                               >
@@ -309,7 +309,7 @@ export function JudoOpponentsTab({ categoryId }: Props) {
                           </div>
                         </div>
                       ) : (
-                        <p className="text-[10px] italic text-muted-foreground">
+                        <p className="text-[9px] italic text-muted-foreground">
                           Aucune technique enregistrée
                         </p>
                       )}
