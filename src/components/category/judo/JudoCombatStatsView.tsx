@@ -589,7 +589,7 @@ function CombatPanel({
   fmtOpp,
   opponentProfiles,
   onUpdate,
-  onUpdateStat,
+  onUpdateStat: rawUpdateStat,
   onRemove,
 }: {
   round: JudoRound;
@@ -601,6 +601,54 @@ function CombatPanel({
   onUpdateStat: (k: string, v: number) => void;
   onRemove: () => void;
 }) {
+  // ----- Chrono combat (local UI, non persisté) -----
+  const [chronoSec, setChronoSec] = useState(0);
+  const [chronoRunning, setChronoRunning] = useState(false);
+  useEffect(() => {
+    if (!chronoRunning) return;
+    const id = setInterval(() => setChronoSec((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [chronoRunning]);
+
+  // ----- Timeline (persistée dans notes via balise cachée) -----
+  const events = useMemo(() => extractTimeline(round.notes || ""), [round.notes]);
+  const writeEvents = (next: JudoTimelineEvent[]) => {
+    const visible = userVisibleNotes(round.notes || "");
+    onUpdate({ notes: writeTimeline(visible, next) });
+  };
+  const addEvent = (
+    label: string,
+    opts: { side?: "me" | "opp" | null; from?: number; to?: number; kind?: string } = {},
+  ) => {
+    const ev: JudoTimelineEvent = {
+      id:
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random()}`,
+      label,
+      side: opts.side ?? null,
+      from: opts.from ?? chronoSec,
+      to: opts.to,
+      kind: opts.kind,
+    };
+    writeEvents([...events, ev]);
+  };
+  const removeEvent = (id: string) => writeEvents(events.filter((e) => e.id !== id));
+
+  // Wrapper de onUpdateStat : log auto dans la timeline pour les actions reconnues
+  const onUpdateStat = (k: string, v: number) => {
+    const old = num(round.stats?.[k]);
+    if (v > old && ACTION_LABELS[k]) {
+      const meta = ACTION_LABELS[k];
+      addEvent(meta.label, { side: meta.side, kind: meta.kind });
+    }
+    rawUpdateStat(k, v);
+  };
+
+  // Refs pour mémoriser le début d'osaekomi (ne-waza)
+  const osaeMeStartRef = useRef<number | null>(null);
+  const osaeOppStartRef = useRef<number | null>(null);
+
   const result = useMemo(() => computeResult(round.stats, round.result), [round.stats, round.result]);
 
   // Autosave du résultat calculé dans `result` (et compat victoryMode*)
