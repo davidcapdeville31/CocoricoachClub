@@ -1455,11 +1455,15 @@ function OsaekomiTimer({
   color,
   seconds,
   onChange,
+  onStart,
+  onStop,
 }: {
   label: string;
   color: "emerald" | "red";
   seconds: number;
   onChange: (v: number) => void;
+  onStart?: () => void;
+  onStop?: () => void;
 }) {
   const [running, setRunning] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
