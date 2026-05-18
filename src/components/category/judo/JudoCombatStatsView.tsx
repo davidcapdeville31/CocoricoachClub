@@ -836,7 +836,7 @@ function CombatPanel({
               <RotateCcw className="h-4 w-4" /> Reset
             </Button>
             <VideoCompanionPanel
-              storageKey={`judo-${selectedPlayer.entryKey}`}
+              storageKey={`judo-round-${round.round_number}-${round.opponent_name || "anon"}`}
               chronoRunning={chronoRunning}
               onStartChrono={() => setChronoRunning(true)}
               onPauseChrono={() => setChronoRunning(false)}
