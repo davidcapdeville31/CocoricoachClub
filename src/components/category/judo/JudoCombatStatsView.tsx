@@ -1301,8 +1301,8 @@ function CombatPanel({
       <Card className="p-3 space-y-2">
         <Label className="text-[10px] uppercase text-muted-foreground">Notes libres</Label>
         <Input
-          value={round.notes || ""}
-          onChange={(e) => onUpdate({ notes: e.target.value })}
+          value={userVisibleNotes(round.notes || "")}
+          onChange={(e) => onUpdate({ notes: writeTimeline(e.target.value, events) })}
           placeholder="Observations, plan tactique, points à travailler…"
           className="h-9 text-xs"
         />
