@@ -601,19 +601,24 @@ function CombatPanel({
   onUpdateStat: (k: string, v: number) => void;
   onRemove: () => void;
 }) {
-  // ----- Chrono combat (local UI, non persisté) -----
+  // ----- Chrono combat (local UI) — pilote aussi Durée totale & Golden Score -----
   const [chronoSec, setChronoSec] = useState(0);
   const [chronoRunning, setChronoRunning] = useState(false);
-  useEffect(() => {
-    if (!chronoRunning) return;
-    const id = setInterval(() => setChronoSec((s) => s + 1), 1000);
-    return () => clearInterval(id);
-  }, [chronoRunning]);
+
+  // Refs pour accéder à l'état courant dans l'interval sans recréer l'interval
+  const roundStatsRef = useRef(round.stats);
+  useEffect(() => { roundStatsRef.current = round.stats; }, [round.stats]);
+  const eventsRef = useRef<JudoTimelineEvent[]>([]);
+  const notesRef = useRef<string>(round.notes || "");
+  useEffect(() => { notesRef.current = round.notes || ""; }, [round.notes]);
 
   // ----- Timeline (persistée dans notes via balise cachée) -----
   const events = useMemo(() => extractTimeline(round.notes || ""), [round.notes]);
+  useEffect(() => { eventsRef.current = events; }, [events]);
+
   const writeEvents = (next: JudoTimelineEvent[]) => {
-    const visible = userVisibleNotes(round.notes || "");
+    const visible = userVisibleNotes(notesRef.current || "");
+    eventsRef.current = next;
     onUpdate({ notes: writeTimeline(visible, next) });
   };
   const addEvent = (
@@ -631,16 +636,75 @@ function CombatPanel({
       to: opts.to,
       kind: opts.kind,
     };
-    writeEvents([...events, ev]);
+    writeEvents([...eventsRef.current, ev]);
   };
-  const removeEvent = (id: string) => writeEvents(events.filter((e) => e.id !== id));
+  const removeEvent = (id: string) =>
+    writeEvents(eventsRef.current.filter((e) => e.id !== id));
+
+  // Chrono tick : avance chronoSec + Durée totale + Golden Score (auto à 4:00)
+  useEffect(() => {
+    if (!chronoRunning) return;
+    const id = setInterval(() => {
+      setChronoSec((s) => {
+        const next = s + 1;
+        const stats = roundStatsRef.current || {};
+        // Durée totale = chrono
+        rawUpdateStat(K.combatDuration, next);
+        // Passage automatique en Golden Score à 4:00
+        const isGS = num(stats[K.goldenScore]) > 0;
+        if (next === 240 && !isGS) {
+          rawUpdateStat(K.goldenScore, 1);
+          const visible = userVisibleNotes(notesRef.current || "");
+          const ev: JudoTimelineEvent = {
+            id:
+              typeof crypto !== "undefined" && "randomUUID" in crypto
+                ? crypto.randomUUID()
+                : `${Date.now()}-${Math.random()}`,
+            label: "Passage en Golden Score",
+            side: null,
+            from: next,
+            kind: "golden_score_start",
+          };
+          const nextEvents = [...eventsRef.current, ev];
+          eventsRef.current = nextEvents;
+          onUpdate({ notes: writeTimeline(visible, nextEvents) });
+        }
+        // Durée du Golden Score = temps écoulé au-delà de 4:00
+        if (next > 240 || isGS) {
+          rawUpdateStat(K.goldenScoreDuration, num(stats[K.goldenScoreDuration]) + 1);
+        }
+        return next;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chronoRunning]);
 
   // Wrapper de onUpdateStat : log auto dans la timeline pour les actions reconnues
   const onUpdateStat = (k: string, v: number) => {
     const old = num(round.stats?.[k]);
-    if (v > old && ACTION_LABELS[k]) {
-      const meta = ACTION_LABELS[k];
-      addEvent(meta.label, { side: meta.side, kind: meta.kind });
+    if (v > old) {
+      if (ACTION_LABELS[k]) {
+        const meta = ACTION_LABELS[k];
+        addEvent(meta.label, { side: meta.side, kind: meta.kind });
+      } else if (k === K.defAttacksReceived) {
+        addEvent("Attaque subie", { side: "opp", kind: "def_received" });
+      } else if (k === K.defAttacksNeutralized) {
+        addEvent("Attaque neutralisée", { side: "me", kind: "def_neutralized" });
+      } else {
+        const m = k.match(/^tech__(.+)__(att|suc)$/);
+        if (m) {
+          const techKey = m[1];
+          const kind = m[2];
+          const tech = JUDO_TECHNIQUES.find((t) => t.key === techKey);
+          const label = tech?.label ?? techKey;
+          if (kind === "att") {
+            addEvent(`Attaque: ${label}`, { side: "me", kind: "attack" });
+          } else {
+            addEvent(`Attaque réussie: ${label}`, { side: "me", kind: "attack_success" });
+          }
+        }
+      }
     }
     rawUpdateStat(k, v);
   };
@@ -761,7 +825,12 @@ function CombatPanel({
               size="sm"
               variant="ghost"
               className="h-9 gap-1"
-              onClick={() => { setChronoRunning(false); setChronoSec(0); }}
+              onClick={() => {
+                setChronoRunning(false);
+                setChronoSec(0);
+                rawUpdateStat(K.combatDuration, 0);
+                rawUpdateStat(K.goldenScoreDuration, 0);
+              }}
             >
               <RotateCcw className="h-4 w-4" /> Reset
             </Button>
