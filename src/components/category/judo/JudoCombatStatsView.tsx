@@ -605,6 +605,7 @@ function CombatPanel({
   // ----- Chrono combat (local UI) — pilote aussi Durée totale & Golden Score -----
   const [chronoSec, setChronoSec] = useState(0);
   const [chronoRunning, setChronoRunning] = useState(false);
+  const [videoOpen, setVideoOpen] = useState(false);
 
   // Refs pour accéder à l'état courant dans l'interval sans recréer l'interval
   const roundStatsRef = useRef(round.stats);
