@@ -45,6 +45,8 @@ export default function Auth() {
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get("redirect");
   const isRecoveryMode = searchParams.get("mode") === "recovery";
+  const initialTab = searchParams.get("tab") === "signup" ? "signup" : "login";
+  const prefillEmail = searchParams.get("email") || "";
   const [isLoading, setIsLoading] = useState(false);
 
   // Redirect authenticated users away from auth page
@@ -60,10 +62,10 @@ export default function Auth() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   
-  const [loginEmail, setLoginEmail] = useState("");
+  const [loginEmail, setLoginEmail] = useState(prefillEmail);
   const [loginPassword, setLoginPassword] = useState("");
   
-  const [signupEmail, setSignupEmail] = useState("");
+  const [signupEmail, setSignupEmail] = useState(prefillEmail);
   const [signupPassword, setSignupPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [signupPhone, setSignupPhone] = useState("");
@@ -265,7 +267,7 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-2">
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue={initialTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Connexion</TabsTrigger>
               <TabsTrigger value="signup">Inscription</TabsTrigger>
