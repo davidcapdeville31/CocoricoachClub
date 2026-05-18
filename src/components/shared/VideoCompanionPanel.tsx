@@ -10,14 +10,34 @@ import {
   ExternalLink,
 } from "lucide-react";
 
-type VideoKind = "youtube" | "vimeo" | "direct" | "unknown";
+type VideoKind =
+  | "youtube"
+  | "vimeo"
+  | "veo"
+  | "dailymotion"
+  | "twitch"
+  | "facebook"
+  | "streamable"
+  | "wistia"
+  | "hudl"
+  | "direct"
+  | "iframe"
+  | "unknown";
 
 function detectKind(url: string): VideoKind {
   if (!url) return "unknown";
   if (/youtube\.com|youtu\.be/i.test(url)) return "youtube";
   if (/vimeo\.com/i.test(url)) return "vimeo";
-  if (/\.(mp4|webm|mov|m4v|ogg)(\?|$)/i.test(url) || url.includes("supabase.co/storage"))
+  if (/veo\.co/i.test(url)) return "veo";
+  if (/dailymotion\.com|dai\.ly/i.test(url)) return "dailymotion";
+  if (/twitch\.tv/i.test(url)) return "twitch";
+  if (/facebook\.com\/.+\/videos|fb\.watch/i.test(url)) return "facebook";
+  if (/streamable\.com/i.test(url)) return "streamable";
+  if (/wistia\.com|wi\.st/i.test(url)) return "wistia";
+  if (/hudl\.com/i.test(url)) return "hudl";
+  if (/\.(mp4|webm|mov|m4v|ogg|m3u8)(\?|$)/i.test(url) || url.includes("supabase.co/storage"))
     return "direct";
+  if (/^https?:\/\//i.test(url)) return "iframe";
   return "unknown";
 }
 
@@ -33,22 +53,64 @@ function getVimeoId(url: string): string | null {
   return m ? m[1] : null;
 }
 
+function getVeoEmbed(url: string): string | null {
+  // VEO match URLs look like https://app.veo.co/matches/<id>/ optionally with ?highlight=<hid>
+  const m = url.match(/veo\.co\/matches\/([^/?#]+)/i);
+  if (!m) return null;
+  const matchId = m[1];
+  const highlight = url.match(/[?&]highlight=([^&]+)/i)?.[1];
+  // VEO supports embed via /matches/<id>/?embed=true ; highlight propagates if present
+  const base = `https://app.veo.co/matches/${matchId}/?embed=true`;
+  return highlight ? `${base}&highlight=${highlight}` : base;
+}
+
+function getDailymotionEmbed(url: string): string | null {
+  const m = url.match(/(?:dailymotion\.com\/(?:video|embed\/video)\/|dai\.ly\/)([A-Za-z0-9]+)/i);
+  return m ? `https://www.dailymotion.com/embed/video/${m[1]}` : null;
+}
+
+function getTwitchEmbed(url: string): string | null {
+  const parent = typeof window !== "undefined" ? window.location.hostname : "lovable.app";
+  const video = url.match(/twitch\.tv\/videos\/(\d+)/i);
+  if (video) return `https://player.twitch.tv/?video=${video[1]}&parent=${parent}&autoplay=false`;
+  const channel = url.match(/twitch\.tv\/([A-Za-z0-9_]+)/i);
+  if (channel) return `https://player.twitch.tv/?channel=${channel[1]}&parent=${parent}&autoplay=false`;
+  return null;
+}
+
+function getFacebookEmbed(url: string): string {
+  return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`;
+}
+
+function getStreamableEmbed(url: string): string | null {
+  const m = url.match(/streamable\.com\/([A-Za-z0-9]+)/i);
+  return m ? `https://streamable.com/e/${m[1]}` : null;
+}
+
+function getWistiaEmbed(url: string): string | null {
+  const m = url.match(/wistia\.com\/medias\/([A-Za-z0-9]+)/i);
+  return m ? `https://fast.wistia.net/embed/iframe/${m[1]}` : null;
+}
+
 function buildEmbedSrc(url: string): { kind: VideoKind; src: string | null } {
   const kind = detectKind(url);
   if (kind === "youtube") {
     const id = getYouTubeId(url);
-    if (!id) return { kind, src: null };
-    return {
-      kind,
-      src: `https://www.youtube.com/embed/${id}?enablejsapi=1&playsinline=1&rel=0`,
-    };
+    return { kind, src: id ? `https://www.youtube.com/embed/${id}?enablejsapi=1&playsinline=1&rel=0` : null };
   }
   if (kind === "vimeo") {
     const id = getVimeoId(url);
-    if (!id) return { kind, src: null };
-    return { kind, src: `https://player.vimeo.com/video/${id}?playsinline=1` };
+    return { kind, src: id ? `https://player.vimeo.com/video/${id}?playsinline=1` : null };
   }
+  if (kind === "veo") return { kind, src: getVeoEmbed(url) ?? url };
+  if (kind === "dailymotion") return { kind, src: getDailymotionEmbed(url) };
+  if (kind === "twitch") return { kind, src: getTwitchEmbed(url) };
+  if (kind === "facebook") return { kind, src: getFacebookEmbed(url) };
+  if (kind === "streamable") return { kind, src: getStreamableEmbed(url) };
+  if (kind === "wistia") return { kind, src: getWistiaEmbed(url) };
+  if (kind === "hudl") return { kind, src: url };
   if (kind === "direct") return { kind, src: url };
+  if (kind === "iframe") return { kind, src: url };
   return { kind: "unknown", src: null };
 }
 
@@ -235,7 +297,7 @@ export function VideoCompanionDock({
         {!src ? (
           <div className="text-center text-muted-foreground text-sm p-6">
             {url
-              ? "Lien non reconnu. Utilisez YouTube, Vimeo ou un fichier vidéo direct (.mp4, .webm…)."
+              ? "Lien invalide. Collez une URL https:// (YouTube, Vimeo, VEO, Dailymotion, Twitch, Facebook, Streamable, Wistia, Hudl, MP4/WebM…)."
               : "Collez un lien vidéo ci-dessus pour commencer."}
           </div>
         ) : kind === "direct" ? (
