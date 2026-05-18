@@ -20,6 +20,7 @@ type VideoKind =
   | "streamable"
   | "wistia"
   | "hudl"
+  | "ffr"
   | "direct"
   | "iframe"
   | "unknown";
@@ -35,6 +36,7 @@ function detectKind(url: string): VideoKind {
   if (/streamable\.com/i.test(url)) return "streamable";
   if (/wistia\.com|wi\.st/i.test(url)) return "wistia";
   if (/hudl\.com/i.test(url)) return "hudl";
+  if (/fromsmash\.com/i.test(url)) return "ffr";
   if (/\.(mp4|webm|mov|m4v|ogg|m3u8)(\?|$)/i.test(url) || url.includes("supabase.co/storage"))
     return "direct";
   if (/^https?:\/\//i.test(url)) return "iframe";
@@ -92,6 +94,13 @@ function getWistiaEmbed(url: string): string | null {
   return m ? `https://fast.wistia.net/embed/iframe/${m[1]}` : null;
 }
 
+function getFfrFromSmashEmbed(url: string): string | null {
+  // fromsmash URLs: https://fromsmash.com/XXXXX or https://ffr.fromsmash.com/XXXXX
+  const m = url.match(/(?:ffr\.)?fromsmash\.com\/([A-Za-z0-9_-]+)/i);
+  if (!m) return null;
+  return `https://player.fromsmash.com/${m[1]}`;
+}
+
 function buildEmbedSrc(url: string): { kind: VideoKind; src: string | null } {
   const kind = detectKind(url);
   if (kind === "youtube") {
@@ -108,6 +117,7 @@ function buildEmbedSrc(url: string): { kind: VideoKind; src: string | null } {
   if (kind === "facebook") return { kind, src: getFacebookEmbed(url) };
   if (kind === "streamable") return { kind, src: getStreamableEmbed(url) };
   if (kind === "wistia") return { kind, src: getWistiaEmbed(url) };
+  if (kind === "ffr") return { kind, src: getFfrFromSmashEmbed(url) ?? url };
   if (kind === "hudl") return { kind, src: url };
   if (kind === "direct") return { kind, src: url };
   if (kind === "iframe") return { kind, src: url };
@@ -297,7 +307,7 @@ export function VideoCompanionDock({
         {!src ? (
           <div className="text-center text-muted-foreground text-sm p-6">
             {url
-              ? "Lien invalide. Collez une URL https:// (YouTube, Vimeo, VEO, Dailymotion, Twitch, Facebook, Streamable, Wistia, Hudl, MP4/WebM…)."
+              ? "Lien invalide. Collez une URL https:// (YouTube, Vimeo, VEO, Dailymotion, Twitch, Facebook, Streamable, Wistia, Hudl, ffr.fromsmash, MP4/WebM…)."
               : "Collez un lien vidéo ci-dessus pour commencer."}
           </div>
         ) : kind === "direct" ? (
