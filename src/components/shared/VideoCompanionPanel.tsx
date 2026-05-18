@@ -117,6 +117,7 @@ function buildEmbedSrc(url: string): { kind: VideoKind; src: string | null } {
   if (kind === "facebook") return { kind, src: getFacebookEmbed(url) };
   if (kind === "streamable") return { kind, src: getStreamableEmbed(url) };
   if (kind === "wistia") return { kind, src: getWistiaEmbed(url) };
+  if (kind === "ffr") return { kind, src: getFfrFromSmashEmbed(url) ?? url };
   if (kind === "hudl") return { kind, src: url };
   if (kind === "direct") return { kind, src: url };
   if (kind === "iframe") return { kind, src: url };
