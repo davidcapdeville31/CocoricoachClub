@@ -835,6 +835,13 @@ function CombatPanel({
             >
               <RotateCcw className="h-4 w-4" /> Reset
             </Button>
+            <VideoCompanionPanel
+              storageKey={`judo-${selectedPlayer.entryKey}`}
+              chronoRunning={chronoRunning}
+              onStartChrono={() => setChronoRunning(true)}
+              onPauseChrono={() => setChronoRunning(false)}
+              title="Vidéo du combat"
+            />
           </div>
         </div>
         {events.length > 0 && (
