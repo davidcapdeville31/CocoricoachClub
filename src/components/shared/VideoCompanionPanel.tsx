@@ -36,6 +36,7 @@ function detectKind(url: string): VideoKind {
   if (/streamable\.com/i.test(url)) return "streamable";
   if (/wistia\.com|wi\.st/i.test(url)) return "wistia";
   if (/hudl\.com/i.test(url)) return "hudl";
+  if (/fromsmash\.com/i.test(url)) return "ffr";
   if (/\.(mp4|webm|mov|m4v|ogg|m3u8)(\?|$)/i.test(url) || url.includes("supabase.co/storage"))
     return "direct";
   if (/^https?:\/\//i.test(url)) return "iframe";
