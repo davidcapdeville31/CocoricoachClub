@@ -98,7 +98,7 @@ export function AddPlayerDialog({
     queryKey: ["category-player-count", categoryId],
     queryFn: async () => {
       const { count, error } = await supabase
-        .from("players")
+        .from("players_safe")
         .select("id", { count: "exact", head: true })
         .eq("category_id", categoryId);
       if (error) throw error;
@@ -162,6 +162,7 @@ export function AddPlayerDialog({
 
   const addPlayer = useMutation({
     mutationFn: async (data: {
+      id?: string;
       name: string;
       email?: string;
       phone?: string;
@@ -177,9 +178,11 @@ export function AddPlayerDialog({
       fis_objective?: string;
       fis_objective_date?: string;
     }) => {
+      const playerId = data.id ?? crypto.randomUUID();
       const { error } = await supabase
         .from("players")
         .insert({
+          id: playerId,
           name: data.name,
           category_id: categoryId,
           email: data.email || null,
@@ -198,6 +201,8 @@ export function AddPlayerDialog({
           fis_objective_date: data.fis_objective_date || null,
         } as any);
       if (error) throw error;
+
+      return { id: playerId };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["players", categoryId] });
@@ -270,6 +275,7 @@ export function AddPlayerDialog({
     const specialtyList = isAthletics ? disciplinePairs.map((p) => p.specialty || "") : undefined;
 
     addPlayer.mutate({
+      id: crypto.randomUUID(),
       name: result.data.name,
       email: playerEmail.trim() || undefined,
       phone: playerPhone.trim() || undefined,

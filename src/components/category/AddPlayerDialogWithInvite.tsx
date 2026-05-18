@@ -121,7 +121,7 @@ export function AddPlayerDialogWithInvite({
     queryKey: ["category-player-count", categoryId],
     queryFn: async () => {
       const { count, error } = await supabase
-        .from("players")
+        .from("players_safe")
         .select("id", { count: "exact", head: true })
         .eq("category_id", categoryId);
       if (error) throw error;
@@ -244,6 +244,7 @@ export function AddPlayerDialogWithInvite({
   const addPlayer = useMutation({
     mutationFn: async (data: { 
       name: string; 
+      id?: string;
       first_name?: string;
       email?: string; 
       phone?: string; 
@@ -259,9 +260,11 @@ export function AddPlayerDialogWithInvite({
       fis_objective?: string;
       fis_objective_date?: string;
     }) => {
-      const { data: player, error } = await supabase
+      const playerId = data.id ?? crypto.randomUUID();
+      const { error } = await supabase
         .from("players")
         .insert({ 
+          id: playerId,
           name: data.name, 
           first_name: data.first_name || null,
           category_id: categoryId,
@@ -278,11 +281,10 @@ export function AddPlayerDialogWithInvite({
           fis_code: data.fis_code || null,
           fis_objective: data.fis_objective || null,
           fis_objective_date: data.fis_objective_date || null,
-        } as any)
-        .select()
-        .single();
+        } as any);
       if (error) throw error;
-      return player;
+
+      return { id: playerId };
     },
   });
 
@@ -356,6 +358,7 @@ export function AddPlayerDialogWithInvite({
 
       // 1. Create the player
       const player = await addPlayer.mutateAsync({
+        id: crypto.randomUUID(),
         name: result.data.name,
         first_name: firstName.trim() || undefined,
         email: playerEmail.trim() || undefined,
