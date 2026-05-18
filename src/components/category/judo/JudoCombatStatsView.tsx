@@ -738,6 +738,74 @@ function CombatPanel({
 
   return (
     <div className="space-y-4">
+      {/* ============== CHRONO + TIMELINE ============== */}
+      <Card className="p-3 space-y-3 border-l-4 border-l-primary shadow-sm">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
+            <Timer className="h-5 w-5 text-primary" />
+            <div className="text-3xl font-bold font-mono tabular-nums">{fmtMMSS(chronoSec)}</div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant={chronoRunning ? "default" : "outline"}
+              className={cn("h-9 gap-1", chronoRunning && "bg-emerald-600 hover:bg-emerald-700 text-white")}
+              onClick={() => setChronoRunning((r) => !r)}
+            >
+              {chronoRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              {chronoRunning ? "Pause" : "Démarrer"}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-9 gap-1"
+              onClick={() => { setChronoRunning(false); setChronoSec(0); }}
+            >
+              <RotateCcw className="h-4 w-4" /> Reset
+            </Button>
+          </div>
+        </div>
+        {events.length > 0 && (
+          <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
+            <p className="text-[10px] uppercase font-bold text-muted-foreground">Timeline ({events.length})</p>
+            {events.map((ev) => {
+              const sideColor =
+                ev.side === "me"
+                  ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                  : ev.side === "opp"
+                  ? "bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 border-red-500/30"
+                  : "bg-muted text-foreground border-border";
+              const timeLabel =
+                ev.to != null ? `${fmtMMSS(ev.from)} → ${fmtMMSS(ev.to)}` : fmtMMSS(ev.from);
+              const sideLabel = ev.side === "me" ? "Athlète" : ev.side === "opp" ? "Adversaire" : "";
+              return (
+                <div
+                  key={ev.id}
+                  className={cn("flex items-center justify-between gap-2 rounded-md border px-2 py-1 text-xs", sideColor)}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="font-mono tabular-nums text-[11px] opacity-80 shrink-0">{timeLabel}</span>
+                    <span className="font-semibold truncate">{ev.label}</span>
+                    {sideLabel && <span className="text-[10px] opacity-70 shrink-0">· {sideLabel}</span>}
+                  </div>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 shrink-0"
+                    onClick={() => removeEvent(ev.id)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
+
       {/* ============== HEADER COMBAT ============== */}
       <Card className="p-3 space-y-3 border-l-4 border-l-destructive shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
