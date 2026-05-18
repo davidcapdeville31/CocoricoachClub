@@ -229,6 +229,38 @@ const handler = async (req: Request): Promise<Response> => {
     // Sanitize: OneSignal email_from_name must be ASCII-safe, no emoji
     const safeFromName = cleanSubject(fromName).slice(0, 64) || APP_NAME;
 
+    // 🔔 ALWAYS create in-app bell notifications (red dot in header) for all athletes
+    // regardless of which channels (push/email/sms) are checked.
+    const bellRows = enrichedAthletes
+      .filter((a) => a.user_id)
+      .map((a) => ({
+        user_id: a.user_id!,
+        category_id: category_id ?? null,
+        type: eventType,
+        title: subject,
+        message: message,
+        metadata: {
+          source: "notify-athletes",
+          eventType,
+          eventDetails: eventDetails ?? null,
+          clubName: clubName ?? null,
+          categoryName: categoryName ?? null,
+        },
+        read: false,
+      }));
+
+    if (bellRows.length > 0) {
+      const { error: bellError } = await supabaseService
+        .from("notifications")
+        .insert(bellRows);
+      if (bellError) {
+        console.error("[notify-athletes] Failed to insert bell notifications:", bellError);
+        results.errors.push(`Bell: ${bellError.message}`);
+      } else {
+        console.log(`[notify-athletes] Created ${bellRows.length} bell notification(s)`);
+      }
+    }
+
     for (const athlete of enrichedAthletes) {
       const emailAllowed = !athlete.user_id || allowedEmailSet.has(athlete.user_id);
       const pushAllowed = !athlete.user_id || allowedPushSet.has(athlete.user_id);
