@@ -297,7 +297,7 @@ export function VideoCompanionDock({
         {!src ? (
           <div className="text-center text-muted-foreground text-sm p-6">
             {url
-              ? "Lien non reconnu. Utilisez YouTube, Vimeo ou un fichier vidéo direct (.mp4, .webm…)."
+              ? "Lien invalide. Collez une URL https:// (YouTube, Vimeo, VEO, Dailymotion, Twitch, Facebook, Streamable, Wistia, Hudl, MP4/WebM…)."
               : "Collez un lien vidéo ci-dessus pour commencer."}
           </div>
         ) : kind === "direct" ? (
