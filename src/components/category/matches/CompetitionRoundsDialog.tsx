@@ -1503,9 +1503,26 @@ export function CompetitionRoundsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] h-[95vh] max-h-[95vh] grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden relative">
+      <DialogContent
+        className={
+          isJudo
+            ? "!max-w-none w-screen h-screen sm:!max-w-none !max-h-none !rounded-none !p-4 sm:!p-6 grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden relative"
+            : "sm:max-w-[900px] h-[95vh] max-h-[95vh] grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden relative"
+        }
+      >
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
+            {isJudo && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onOpenChange(false)}
+                className="-ml-2 mr-1 h-8 gap-1.5 px-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                Retour
+              </Button>
+            )}
             {isAviron ? <Ship className="h-5 w-5" /> : isJudo ? <Swords className="h-5 w-5" /> : <Circle className="h-5 w-5" />}
             Gestion des {roundLabelPlural}
           </DialogTitle>
