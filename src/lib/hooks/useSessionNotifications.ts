@@ -296,6 +296,58 @@ export function useSessionNotifications() {
       // ── Step 3: Send notification ─────────────────────────────────────────
       console.log(`[SessionNotification] Step 3 — Sending push via ${mode}...`);
 
+      // ── Step 3-ter: Insert in-app notifications (bell) ───────────────────
+      try {
+        let usersQuery = supabase
+          .from("players")
+          .select("user_id")
+          .not("user_id", "is", null);
+        if (hasSpecificPlayers) {
+          usersQuery = usersQuery.in("id", participantPlayerIds!);
+        } else {
+          usersQuery = usersQuery.eq("category_id", categoryId);
+        }
+        const { data: userRows } = await usersQuery;
+        const targetUserIds = Array.from(
+          new Set((userRows ?? []).map((r) => r.user_id).filter(Boolean) as string[])
+        );
+
+        if (targetUserIds.length > 0) {
+          const subtypeMap: Record<SessionNotificationAction, string> = {
+            created: "session_created",
+            updated: "session_updated",
+            cancelled: "session_cancelled",
+          };
+          const records = targetUserIds.map((uid) => ({
+            user_id: uid,
+            category_id: categoryId,
+            title: `${emoji} ${title}`,
+            message,
+            notification_type: "athlete_session",
+            notification_subtype: subtypeMap[action],
+            priority: action === "cancelled" ? "high" : "normal",
+            metadata: {
+              session_id: sessionId,
+              session_date: sessionDate,
+              session_type: sessionType,
+              ...(sessionStartTime ? { time: sessionStartTime } : {}),
+              ...(location ? { location } : {}),
+            },
+          }));
+          const { error: bellErr } = await supabase.from("notifications").insert(records);
+          if (bellErr) {
+            console.error("[SessionNotification] ❌ Bell insert error:", bellErr.message);
+          } else {
+            console.log(`[SessionNotification] 🔔 Bell notifs created: ${records.length}`);
+          }
+        } else {
+          console.log("[SessionNotification] 🔔 No user accounts found — bell skipped");
+        }
+      } catch (bellErr) {
+        console.error("[SessionNotification] ❌ Failed to insert bell notifications:", bellErr);
+      }
+
+
       // ── Step 3-bis: Send EMAIL notifications in parallel ─────────────────
       // Fetch player emails (and user_ids) for the targeted participants OR
       // for the whole category (broadcast fallback). The notify-athletes
