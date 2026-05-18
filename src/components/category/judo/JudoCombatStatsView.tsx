@@ -1011,6 +1011,18 @@ function CombatPanel({
               if (v >= 20) clearLosingFor("me"); // ippon par osaekomi athlète
               onUpdateStat(K.osaekomiMeSec, v);
             }}
+            onStart={() => { osaeMeStartRef.current = chronoSec; }}
+            onStop={() => {
+              if (osaeMeStartRef.current != null) {
+                addEvent("Ne-waza (athlète)", {
+                  side: "me",
+                  kind: "newaza",
+                  from: osaeMeStartRef.current,
+                  to: chronoSec,
+                });
+                osaeMeStartRef.current = null;
+              }
+            }}
           />
           <OsaekomiTimer
             label="Osaekomi Adversaire"
@@ -1019,6 +1031,18 @@ function CombatPanel({
             onChange={(v) => {
               if (v >= 20) clearLosingFor("opp");
               onUpdateStat(K.osaekomiOppSec, v);
+            }}
+            onStart={() => { osaeOppStartRef.current = chronoSec; }}
+            onStop={() => {
+              if (osaeOppStartRef.current != null) {
+                addEvent("Ne-waza (adversaire)", {
+                  side: "opp",
+                  kind: "newaza",
+                  from: osaeOppStartRef.current,
+                  to: chronoSec,
+                });
+                osaeOppStartRef.current = null;
+              }
             }}
           />
         </div>
