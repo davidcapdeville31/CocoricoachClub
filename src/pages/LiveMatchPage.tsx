@@ -216,44 +216,76 @@ export default function LiveMatchPage() {
         </div>
       </div>
 
-      {/* Layout unifié — Stats déplacées dans un dialog */}
-      <div className="px-4 pb-8 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Plaquages</h2>
-            <TackleInlinePanel
-              players={tacklePlayers}
-              teamSide={clubSide}
-              period={period}
-              minute={minute}
-              second={seconds}
-              counts={Object.fromEntries(Object.entries(stats.players).map(([id, s]) => [id, { tackles: s.tackles, missedTackles: s.missedTackles }]))}
-              onRecord={(payload) => create.mutate(payload)}
-            />
+      {/* Layout unifié — split avec dock vidéo optionnel */}
+      <div className="px-4 pb-8 flex gap-4 items-start">
+        <div className="flex-1 min-w-0 space-y-4">
+          <div className={`grid grid-cols-1 ${videoOpen ? "xl:grid-cols-2" : "md:grid-cols-2"} gap-4`}>
+            <div>
+              <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Plaquages</h2>
+              <TackleInlinePanel
+                players={tacklePlayers}
+                teamSide={clubSide}
+                period={period}
+                minute={minute}
+                second={seconds}
+                counts={Object.fromEntries(Object.entries(stats.players).map(([id, s]) => [id, { tackles: s.tackles, missedTackles: s.missedTackles }]))}
+                onRecord={(payload) => create.mutate(payload)}
+              />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Passes</h2>
+              <PassInlinePanel
+                players={tacklePlayers}
+                teamSide={clubSide}
+                period={period}
+                minute={minute}
+                second={seconds}
+                counts={Object.fromEntries(Object.entries(stats.players).map(([id, s]) => [id, { passes: s.passes, missedPasses: s.missedPasses }]))}
+                onRecord={(payload) => create.mutate(payload)}
+              />
+            </div>
           </div>
           <div>
-            <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Passes</h2>
-            <PassInlinePanel
-              players={tacklePlayers}
-              teamSide={clubSide}
-              period={period}
-              minute={minute}
-              second={seconds}
-              counts={Object.fromEntries(Object.entries(stats.players).map(([id, s]) => [id, { passes: s.passes, missedPasses: s.missedPasses }]))}
-              onRecord={(payload) => create.mutate(payload)}
+            <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Actions rapides</h2>
+            <LiveQuickActions
+              onSelect={(t) => { setEditing(null); if (t === "substitution") { setSubOpen(true); } else { setOpenType(t); } }}
+              categoryId={categoryId}
+              sportType={match?.categories?.rugby_type || "rugby_xv"}
+              matchId={matchId}
             />
           </div>
         </div>
-        <div>
-          <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Actions rapides</h2>
-          <LiveQuickActions
-            onSelect={(t) => { setEditing(null); if (t === "substitution") { setSubOpen(true); } else { setOpenType(t); } }}
-            categoryId={categoryId}
-            sportType={match?.categories?.rugby_type || "rugby_xv"}
-            matchId={matchId}
+
+        {videoOpen && (
+          <aside className="hidden lg:flex shrink-0 w-[380px] xl:w-[440px] 2xl:w-[520px] sticky top-4 self-start h-[calc(100vh-7rem)]">
+            <VideoCompanionDock
+              open={videoOpen}
+              onClose={() => setVideoOpen(false)}
+              storageKey={`match-${matchId}`}
+              chronoRunning={isRunning}
+              onStartChrono={() => setIsRunning(true)}
+              onPauseChrono={() => setIsRunning(false)}
+              title="Vidéo du match"
+            />
+          </aside>
+        )}
+      </div>
+
+      {/* Mobile/tablet : dock vidéo en bas plein écran */}
+      {videoOpen && (
+        <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 h-[55vh] p-2 bg-background/95 backdrop-blur border-t border-border">
+          <VideoCompanionDock
+            open={videoOpen}
+            onClose={() => setVideoOpen(false)}
+            storageKey={`match-${matchId}`}
+            chronoRunning={isRunning}
+            onStartChrono={() => setIsRunning(true)}
+            onPauseChrono={() => setIsRunning(false)}
+            title="Vidéo du match"
           />
         </div>
-      </div>
+      )}
+
 
       {/* Stats live dialog */}
       <Dialog open={statsOpen} onOpenChange={setStatsOpen}>
