@@ -200,13 +200,7 @@ export default function LiveMatchPage() {
             <BarChart3 className="h-4 w-4" />
             Stats live
           </Button>
-          <VideoCompanionPanel
-            storageKey={`match-${matchId}`}
-            chronoRunning={isRunning}
-            onStartChrono={() => setIsRunning(true)}
-            onPauseChrono={() => setIsRunning(false)}
-            title="Vidéo du match"
-          />
+          <VideoCompanionTrigger open={videoOpen} onToggle={() => setVideoOpen((v) => !v)} />
           {wakeLockActive ? (
             <span
               className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-1 text-[11px] font-medium text-amber-600 ring-1 ring-amber-500/30"
