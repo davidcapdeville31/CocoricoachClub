@@ -803,7 +803,8 @@ function CombatPanel({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex gap-4 items-start">
+      <div className="flex-1 min-w-0 space-y-4">
       {/* ============== CHRONO + TIMELINE ============== */}
       <Card className="p-3 space-y-3 border-l-4 border-l-primary shadow-sm">
         <div className="flex items-center justify-between gap-3 flex-wrap">
