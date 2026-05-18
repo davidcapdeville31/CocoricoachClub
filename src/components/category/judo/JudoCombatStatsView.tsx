@@ -1505,7 +1505,13 @@ function OsaekomiTimer({
             size="sm"
             variant={running ? "default" : "outline"}
             className={cn("h-9 gap-1", running && "bg-emerald-600 text-white")}
-            onClick={() => setRunning((r) => !r)}
+            onClick={() => {
+              setRunning((r) => {
+                const next = !r;
+                if (next) onStart?.(); else onStop?.();
+                return next;
+              });
+            }}
           >
             {running ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
             {running ? "Stop" : "Start"}
