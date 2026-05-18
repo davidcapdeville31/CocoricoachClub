@@ -121,7 +121,7 @@ export function AddPlayerDialogWithInvite({
     queryKey: ["category-player-count", categoryId],
     queryFn: async () => {
       const { count, error } = await supabase
-        .from("players")
+        .from("players_safe")
         .select("id", { count: "exact", head: true })
         .eq("category_id", categoryId);
       if (error) throw error;
