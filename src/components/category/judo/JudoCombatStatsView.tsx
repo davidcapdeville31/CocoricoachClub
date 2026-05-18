@@ -318,6 +318,49 @@ const fmtMMSS = (sec: number) => {
   return `${m}:${s.toString().padStart(2, "0")}`;
 };
 
+// ---------- Timeline persistence (hidden JSON comment in `notes`) ----------
+export interface JudoTimelineEvent {
+  id: string;
+  label: string;
+  side?: "me" | "opp" | null;
+  from: number; // seconds from combat start
+  to?: number;  // optional end (for ranged events like osaekomi)
+  kind?: string;
+}
+const TIMELINE_RE = /<!--judo-timeline:([\s\S]*?)-->/;
+function extractTimeline(notes: string): JudoTimelineEvent[] {
+  const m = (notes || "").match(TIMELINE_RE);
+  if (!m) return [];
+  try {
+    const arr = JSON.parse(m[1]);
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+function writeTimeline(notes: string, events: JudoTimelineEvent[]): string {
+  const clean = (notes || "").replace(TIMELINE_RE, "").trimEnd();
+  const tag = `<!--judo-timeline:${JSON.stringify(events)}-->`;
+  return clean ? `${clean}\n${tag}` : tag;
+}
+function userVisibleNotes(notes: string): string {
+  return (notes || "").replace(TIMELINE_RE, "").trim();
+}
+
+// Map d'une clé stat (sur incrément) vers libellé timeline
+const ACTION_LABELS: Record<string, { label: string; side: "me" | "opp"; kind: string }> = {
+  ijf_wazari_me: { label: "Waza-ari", side: "me", kind: "wazari" },
+  ijf_wazari_opp: { label: "Waza-ari", side: "opp", kind: "wazari" },
+  ijf_ippon_me: { label: "Ippon", side: "me", kind: "ippon" },
+  ijf_ippon_opp: { label: "Ippon", side: "opp", kind: "ippon" },
+  ijf_shido_me: { label: "Shido", side: "me", kind: "shido" },
+  ijf_shido_opp: { label: "Shido", side: "opp", kind: "shido" },
+  ijf_hansoku_direct_me: { label: "Hansoku-make direct", side: "me", kind: "hansoku" },
+  ijf_hansoku_direct_opp: { label: "Hansoku-make direct", side: "opp", kind: "hansoku" },
+  ijf_submission_me: { label: "Soumission (abandon)", side: "me", kind: "submission" },
+  ijf_submission_opp: { label: "Soumission adverse", side: "opp", kind: "submission" },
+};
+
 const parseMMSS = (txt: string): number => {
   const m = txt.match(/^\s*(\d+)\s*:\s*(\d{1,2})\s*$/);
   if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
