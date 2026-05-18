@@ -22,6 +22,7 @@ import { useMatchStats } from "@/components/category/matches/live/hooks/useMatch
 import type { EventType, MatchEvent, Period } from "@/components/category/matches/live/types";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { toast } from "sonner";
+import { VideoCompanionPanel } from "@/components/shared/VideoCompanionPanel";
 
 export default function LiveMatchPage() {
   const { categoryId, matchId } = useParams<{ categoryId: string; matchId: string }>();
