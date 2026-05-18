@@ -825,7 +825,12 @@ function CombatPanel({
               size="sm"
               variant="ghost"
               className="h-9 gap-1"
-              onClick={() => { setChronoRunning(false); setChronoSec(0); }}
+              onClick={() => {
+                setChronoRunning(false);
+                setChronoSec(0);
+                rawUpdateStat(K.combatDuration, 0);
+                rawUpdateStat(K.goldenScoreDuration, 0);
+              }}
             >
               <RotateCcw className="h-4 w-4" /> Reset
             </Button>
