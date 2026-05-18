@@ -285,7 +285,10 @@ export function V2ExerciseBankSidebar({ onClickInsert, mode = "exercises", categ
       </div>
 
       {/* ---------- Exercises list ---------- */}
-      <ScrollArea className="flex-1 overflow-hidden" style={{ width: "100%" }}>
+      <ScrollArea
+        className="flex-1 overflow-hidden min-h-[280px]"
+        style={{ width: "100%" }}
+      >
         <div className="p-2 space-y-1.5">
           {isLoading && (
             <p className="text-center text-muted-foreground py-8 text-sm">
