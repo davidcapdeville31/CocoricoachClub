@@ -22,6 +22,7 @@ import { useMatchStats } from "@/components/category/matches/live/hooks/useMatch
 import type { EventType, MatchEvent, Period } from "@/components/category/matches/live/types";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { toast } from "sonner";
+import { VideoCompanionPanel } from "@/components/shared/VideoCompanionPanel";
 
 export default function LiveMatchPage() {
   const { categoryId, matchId } = useParams<{ categoryId: string; matchId: string }>();
@@ -198,6 +199,13 @@ export default function LiveMatchPage() {
             <BarChart3 className="h-4 w-4" />
             Stats live
           </Button>
+          <VideoCompanionPanel
+            storageKey={`match-${matchId}`}
+            chronoRunning={isRunning}
+            onStartChrono={() => setIsRunning(true)}
+            onPauseChrono={() => setIsRunning(false)}
+            title="Vidéo du match"
+          />
           {wakeLockActive ? (
             <span
               className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-1 text-[11px] font-medium text-amber-600 ring-1 ring-amber-500/30"

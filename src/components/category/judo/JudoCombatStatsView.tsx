@@ -53,6 +53,7 @@ import {
   JUDO_TECHNIQUE_FAMILIES,
   techStatKey,
 } from "@/lib/constants/judoTechniques";
+import { VideoCompanionPanel } from "@/components/shared/VideoCompanionPanel";
 
 // ============================================================================
 // JUDO COMBAT — IJF RULE-AWARE SCORING UI
@@ -834,6 +835,13 @@ function CombatPanel({
             >
               <RotateCcw className="h-4 w-4" /> Reset
             </Button>
+            <VideoCompanionPanel
+              storageKey={`judo-round-${round.round_number}-${round.opponent_name || "anon"}`}
+              chronoRunning={chronoRunning}
+              onStartChrono={() => setChronoRunning(true)}
+              onPauseChrono={() => setChronoRunning(false)}
+              title="Vidéo du combat"
+            />
           </div>
         </div>
         {events.length > 0 && (
