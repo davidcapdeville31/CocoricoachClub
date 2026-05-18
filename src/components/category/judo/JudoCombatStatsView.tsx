@@ -1392,6 +1392,21 @@ function CombatPanel({
       </Card>
         </TabsContent>
       </Tabs>
+      </div>
+
+      {videoOpen && (
+        <aside className="hidden lg:flex shrink-0 w-[380px] xl:w-[440px] sticky top-4 self-start h-[calc(100vh-7rem)]">
+          <VideoCompanionDock
+            open={videoOpen}
+            onClose={() => setVideoOpen(false)}
+            storageKey={`judo-round-${round.round_number}-${round.opponent_name || "anon"}`}
+            chronoRunning={chronoRunning}
+            onStartChrono={() => setChronoRunning(true)}
+            onPauseChrono={() => setChronoRunning(false)}
+            title="Vidéo du combat"
+          />
+        </aside>
+      )}
     </div>
   );
 }
