@@ -236,7 +236,7 @@ const handler = async (req: Request): Promise<Response> => {
       .map((a) => ({
         user_id: a.user_id!,
         category_id: category_id ?? null,
-        type: eventType,
+        notification_type: eventType,
         title: subject,
         message: message,
         metadata: {
@@ -246,7 +246,7 @@ const handler = async (req: Request): Promise<Response> => {
           clubName: clubName ?? null,
           categoryName: categoryName ?? null,
         },
-        read: false,
+        is_read: false,
       }));
 
     if (bellRows.length > 0) {
