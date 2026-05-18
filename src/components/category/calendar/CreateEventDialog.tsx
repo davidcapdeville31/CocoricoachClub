@@ -137,6 +137,7 @@ export function CreateEventDialog({
   const [selectAll, setSelectAll] = useState(false);
   
   const queryClient = useQueryClient();
+  const { notify } = useSessionNotifications();
 
   // Fetch players
   const { data: players } = useQuery({
