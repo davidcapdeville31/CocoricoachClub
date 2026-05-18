@@ -837,13 +837,7 @@ function CombatPanel({
             >
               <RotateCcw className="h-4 w-4" /> Reset
             </Button>
-            <VideoCompanionPanel
-              storageKey={`judo-round-${round.round_number}-${round.opponent_name || "anon"}`}
-              chronoRunning={chronoRunning}
-              onStartChrono={() => setChronoRunning(true)}
-              onPauseChrono={() => setChronoRunning(false)}
-              title="Vidéo du combat"
-            />
+            <VideoCompanionTrigger open={videoOpen} onToggle={() => setVideoOpen((v) => !v)} />
           </div>
         </div>
         {events.length > 0 && (
