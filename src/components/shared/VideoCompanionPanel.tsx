@@ -20,6 +20,7 @@ type VideoKind =
   | "streamable"
   | "wistia"
   | "hudl"
+  | "ffr"
   | "direct"
   | "iframe"
   | "unknown";
