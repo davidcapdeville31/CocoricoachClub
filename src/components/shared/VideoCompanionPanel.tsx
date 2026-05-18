@@ -94,6 +94,13 @@ function getWistiaEmbed(url: string): string | null {
   return m ? `https://fast.wistia.net/embed/iframe/${m[1]}` : null;
 }
 
+function getFfrFromSmashEmbed(url: string): string | null {
+  // fromsmash URLs: https://fromsmash.com/XXXXX or https://ffr.fromsmash.com/XXXXX
+  const m = url.match(/(?:ffr\.)?fromsmash\.com\/([A-Za-z0-9_-]+)/i);
+  if (!m) return null;
+  return `https://player.fromsmash.com/${m[1]}`;
+}
+
 function buildEmbedSrc(url: string): { kind: VideoKind; src: string | null } {
   const kind = detectKind(url);
   if (kind === "youtube") {
