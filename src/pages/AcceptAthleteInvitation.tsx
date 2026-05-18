@@ -316,6 +316,30 @@ export default function AcceptAthleteInvitation() {
             </Button>
           </form>
 
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">Ou</span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => {
+              const params = new URLSearchParams();
+              params.set("redirect", `/accept-athlete-invitation?token=${token}`);
+              params.set("tab", "login");
+              if (invitation.email) params.set("email", invitation.email);
+              navigate(`/auth?${params.toString()}`);
+            }}
+          >
+            J'ai déjà un compte — Se connecter
+          </Button>
+
           <p className="text-xs text-muted-foreground text-center mt-4">
             En créant ton compte, tu acceptes de recevoir des notifications de ton club.
           </p>
