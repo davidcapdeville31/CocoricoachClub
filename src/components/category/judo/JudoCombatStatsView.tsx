@@ -53,7 +53,7 @@ import {
   JUDO_TECHNIQUE_FAMILIES,
   techStatKey,
 } from "@/lib/constants/judoTechniques";
-import { VideoCompanionPanel } from "@/components/shared/VideoCompanionPanel";
+import { VideoCompanionDock, VideoCompanionTrigger } from "@/components/shared/VideoCompanionPanel";
 
 // ============================================================================
 // JUDO COMBAT — IJF RULE-AWARE SCORING UI
@@ -605,6 +605,7 @@ function CombatPanel({
   // ----- Chrono combat (local UI) — pilote aussi Durée totale & Golden Score -----
   const [chronoSec, setChronoSec] = useState(0);
   const [chronoRunning, setChronoRunning] = useState(false);
+  const [videoOpen, setVideoOpen] = useState(false);
 
   // Refs pour accéder à l'état courant dans l'interval sans recréer l'interval
   const roundStatsRef = useRef(round.stats);
@@ -802,7 +803,8 @@ function CombatPanel({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex gap-4 items-start">
+      <div className="flex-1 min-w-0 space-y-4">
       {/* ============== CHRONO + TIMELINE ============== */}
       <Card className="p-3 space-y-3 border-l-4 border-l-primary shadow-sm">
         <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -835,13 +837,7 @@ function CombatPanel({
             >
               <RotateCcw className="h-4 w-4" /> Reset
             </Button>
-            <VideoCompanionPanel
-              storageKey={`judo-round-${round.round_number}-${round.opponent_name || "anon"}`}
-              chronoRunning={chronoRunning}
-              onStartChrono={() => setChronoRunning(true)}
-              onPauseChrono={() => setChronoRunning(false)}
-              title="Vidéo du combat"
-            />
+            <VideoCompanionTrigger open={videoOpen} onToggle={() => setVideoOpen((v) => !v)} />
           </div>
         </div>
         {events.length > 0 && (
@@ -1396,6 +1392,21 @@ function CombatPanel({
       </Card>
         </TabsContent>
       </Tabs>
+      </div>
+
+      {videoOpen && (
+        <aside className="hidden lg:flex shrink-0 w-[380px] xl:w-[440px] sticky top-4 self-start h-[calc(100vh-7rem)]">
+          <VideoCompanionDock
+            open={videoOpen}
+            onClose={() => setVideoOpen(false)}
+            storageKey={`judo-round-${round.round_number}-${round.opponent_name || "anon"}`}
+            chronoRunning={chronoRunning}
+            onStartChrono={() => setChronoRunning(true)}
+            onPauseChrono={() => setChronoRunning(false)}
+            title="Vidéo du combat"
+          />
+        </aside>
+      )}
     </div>
   );
 }
