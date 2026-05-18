@@ -318,6 +318,49 @@ const fmtMMSS = (sec: number) => {
   return `${m}:${s.toString().padStart(2, "0")}`;
 };
 
+// ---------- Timeline persistence (hidden JSON comment in `notes`) ----------
+export interface JudoTimelineEvent {
+  id: string;
+  label: string;
+  side?: "me" | "opp" | null;
+  from: number; // seconds from combat start
+  to?: number;  // optional end (for ranged events like osaekomi)
+  kind?: string;
+}
+const TIMELINE_RE = /<!--judo-timeline:([\s\S]*?)-->/;
+function extractTimeline(notes: string): JudoTimelineEvent[] {
+  const m = (notes || "").match(TIMELINE_RE);
+  if (!m) return [];
+  try {
+    const arr = JSON.parse(m[1]);
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+function writeTimeline(notes: string, events: JudoTimelineEvent[]): string {
+  const clean = (notes || "").replace(TIMELINE_RE, "").trimEnd();
+  const tag = `<!--judo-timeline:${JSON.stringify(events)}-->`;
+  return clean ? `${clean}\n${tag}` : tag;
+}
+function userVisibleNotes(notes: string): string {
+  return (notes || "").replace(TIMELINE_RE, "").trim();
+}
+
+// Map d'une clé stat (sur incrément) vers libellé timeline
+const ACTION_LABELS: Record<string, { label: string; side: "me" | "opp"; kind: string }> = {
+  ijf_wazari_me: { label: "Waza-ari", side: "me", kind: "wazari" },
+  ijf_wazari_opp: { label: "Waza-ari", side: "opp", kind: "wazari" },
+  ijf_ippon_me: { label: "Ippon", side: "me", kind: "ippon" },
+  ijf_ippon_opp: { label: "Ippon", side: "opp", kind: "ippon" },
+  ijf_shido_me: { label: "Shido", side: "me", kind: "shido" },
+  ijf_shido_opp: { label: "Shido", side: "opp", kind: "shido" },
+  ijf_hansoku_direct_me: { label: "Hansoku-make direct", side: "me", kind: "hansoku" },
+  ijf_hansoku_direct_opp: { label: "Hansoku-make direct", side: "opp", kind: "hansoku" },
+  ijf_submission_me: { label: "Soumission (abandon)", side: "me", kind: "submission" },
+  ijf_submission_opp: { label: "Soumission adverse", side: "opp", kind: "submission" },
+};
+
 const parseMMSS = (txt: string): number => {
   const m = txt.match(/^\s*(\d+)\s*:\s*(\d{1,2})\s*$/);
   if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
@@ -546,7 +589,7 @@ function CombatPanel({
   fmtOpp,
   opponentProfiles,
   onUpdate,
-  onUpdateStat,
+  onUpdateStat: rawUpdateStat,
   onRemove,
 }: {
   round: JudoRound;
@@ -558,6 +601,54 @@ function CombatPanel({
   onUpdateStat: (k: string, v: number) => void;
   onRemove: () => void;
 }) {
+  // ----- Chrono combat (local UI, non persisté) -----
+  const [chronoSec, setChronoSec] = useState(0);
+  const [chronoRunning, setChronoRunning] = useState(false);
+  useEffect(() => {
+    if (!chronoRunning) return;
+    const id = setInterval(() => setChronoSec((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [chronoRunning]);
+
+  // ----- Timeline (persistée dans notes via balise cachée) -----
+  const events = useMemo(() => extractTimeline(round.notes || ""), [round.notes]);
+  const writeEvents = (next: JudoTimelineEvent[]) => {
+    const visible = userVisibleNotes(round.notes || "");
+    onUpdate({ notes: writeTimeline(visible, next) });
+  };
+  const addEvent = (
+    label: string,
+    opts: { side?: "me" | "opp" | null; from?: number; to?: number; kind?: string } = {},
+  ) => {
+    const ev: JudoTimelineEvent = {
+      id:
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random()}`,
+      label,
+      side: opts.side ?? null,
+      from: opts.from ?? chronoSec,
+      to: opts.to,
+      kind: opts.kind,
+    };
+    writeEvents([...events, ev]);
+  };
+  const removeEvent = (id: string) => writeEvents(events.filter((e) => e.id !== id));
+
+  // Wrapper de onUpdateStat : log auto dans la timeline pour les actions reconnues
+  const onUpdateStat = (k: string, v: number) => {
+    const old = num(round.stats?.[k]);
+    if (v > old && ACTION_LABELS[k]) {
+      const meta = ACTION_LABELS[k];
+      addEvent(meta.label, { side: meta.side, kind: meta.kind });
+    }
+    rawUpdateStat(k, v);
+  };
+
+  // Refs pour mémoriser le début d'osaekomi (ne-waza)
+  const osaeMeStartRef = useRef<number | null>(null);
+  const osaeOppStartRef = useRef<number | null>(null);
+
   const result = useMemo(() => computeResult(round.stats, round.result), [round.stats, round.result]);
 
   // Autosave du résultat calculé dans `result` (et compat victoryMode*)
@@ -647,6 +738,74 @@ function CombatPanel({
 
   return (
     <div className="space-y-4">
+      {/* ============== CHRONO + TIMELINE ============== */}
+      <Card className="p-3 space-y-3 border-l-4 border-l-primary shadow-sm">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
+            <Timer className="h-5 w-5 text-primary" />
+            <div className="text-3xl font-bold font-mono tabular-nums">{fmtMMSS(chronoSec)}</div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant={chronoRunning ? "default" : "outline"}
+              className={cn("h-9 gap-1", chronoRunning && "bg-emerald-600 hover:bg-emerald-700 text-white")}
+              onClick={() => setChronoRunning((r) => !r)}
+            >
+              {chronoRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              {chronoRunning ? "Pause" : "Démarrer"}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-9 gap-1"
+              onClick={() => { setChronoRunning(false); setChronoSec(0); }}
+            >
+              <RotateCcw className="h-4 w-4" /> Reset
+            </Button>
+          </div>
+        </div>
+        {events.length > 0 && (
+          <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
+            <p className="text-[10px] uppercase font-bold text-muted-foreground">Timeline ({events.length})</p>
+            {events.map((ev) => {
+              const sideColor =
+                ev.side === "me"
+                  ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                  : ev.side === "opp"
+                  ? "bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 border-red-500/30"
+                  : "bg-muted text-foreground border-border";
+              const timeLabel =
+                ev.to != null ? `${fmtMMSS(ev.from)} → ${fmtMMSS(ev.to)}` : fmtMMSS(ev.from);
+              const sideLabel = ev.side === "me" ? "Athlète" : ev.side === "opp" ? "Adversaire" : "";
+              return (
+                <div
+                  key={ev.id}
+                  className={cn("flex items-center justify-between gap-2 rounded-md border px-2 py-1 text-xs", sideColor)}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="font-mono tabular-nums text-[11px] opacity-80 shrink-0">{timeLabel}</span>
+                    <span className="font-semibold truncate">{ev.label}</span>
+                    {sideLabel && <span className="text-[10px] opacity-70 shrink-0">· {sideLabel}</span>}
+                  </div>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 shrink-0"
+                    onClick={() => removeEvent(ev.id)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
+
       {/* ============== HEADER COMBAT ============== */}
       <Card className="p-3 space-y-3 border-l-4 border-l-destructive shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -920,6 +1079,18 @@ function CombatPanel({
               if (v >= 20) clearLosingFor("me"); // ippon par osaekomi athlète
               onUpdateStat(K.osaekomiMeSec, v);
             }}
+            onStart={() => { osaeMeStartRef.current = chronoSec; }}
+            onStop={() => {
+              if (osaeMeStartRef.current != null) {
+                addEvent("Ne-waza (athlète)", {
+                  side: "me",
+                  kind: "newaza",
+                  from: osaeMeStartRef.current,
+                  to: chronoSec,
+                });
+                osaeMeStartRef.current = null;
+              }
+            }}
           />
           <OsaekomiTimer
             label="Osaekomi Adversaire"
@@ -928,6 +1099,18 @@ function CombatPanel({
             onChange={(v) => {
               if (v >= 20) clearLosingFor("opp");
               onUpdateStat(K.osaekomiOppSec, v);
+            }}
+            onStart={() => { osaeOppStartRef.current = chronoSec; }}
+            onStop={() => {
+              if (osaeOppStartRef.current != null) {
+                addEvent("Ne-waza (adversaire)", {
+                  side: "opp",
+                  kind: "newaza",
+                  from: osaeOppStartRef.current,
+                  to: chronoSec,
+                });
+                osaeOppStartRef.current = null;
+              }
             }}
           />
         </div>
@@ -1118,8 +1301,8 @@ function CombatPanel({
       <Card className="p-3 space-y-2">
         <Label className="text-[10px] uppercase text-muted-foreground">Notes libres</Label>
         <Input
-          value={round.notes || ""}
-          onChange={(e) => onUpdate({ notes: e.target.value })}
+          value={userVisibleNotes(round.notes || "")}
+          onChange={(e) => onUpdate({ notes: writeTimeline(e.target.value, events) })}
           placeholder="Observations, plan tactique, points à travailler…"
           className="h-9 text-xs"
         />
@@ -1412,11 +1595,15 @@ function OsaekomiTimer({
   color,
   seconds,
   onChange,
+  onStart,
+  onStop,
 }: {
   label: string;
   color: "emerald" | "red";
   seconds: number;
   onChange: (v: number) => void;
+  onStart?: () => void;
+  onStop?: () => void;
 }) {
   const [running, setRunning] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -1458,7 +1645,13 @@ function OsaekomiTimer({
             size="sm"
             variant={running ? "default" : "outline"}
             className={cn("h-9 gap-1", running && "bg-emerald-600 text-white")}
-            onClick={() => setRunning((r) => !r)}
+            onClick={() => {
+              setRunning((r) => {
+                const next = !r;
+                if (next) onStart?.(); else onStop?.();
+                return next;
+              });
+            }}
           >
             {running ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
             {running ? "Stop" : "Start"}
