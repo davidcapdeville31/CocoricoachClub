@@ -309,8 +309,12 @@ export function CreateEventDialog({
             }))
           );
         if (partError) console.error("Error saving participants:", partError);
+      }
 
-        // Auto-notify participants: push + email + cloche (in-app bell)
+      // Auto-notify: push + email + cloche (in-app bell).
+      // Si aucun joueur n'est sélectionné, on broadcast à toute la catégorie
+      // afin que les athlètes voient quand même la pastille rouge dans la cloche.
+      if (session) {
         try {
           await notify({
             action: "created",
@@ -322,7 +326,7 @@ export function CreateEventDialog({
                          selectedType === "video" ? "video_analyse" :
                          selectedType === "team_meeting" ? "reunion" : "autre",
             location: location || null,
-            participantPlayerIds: selectedPlayers,
+            participantPlayerIds: selectedPlayers.length > 0 ? selectedPlayers : undefined,
           });
           console.log(`[CreateEvent] Notifications sent (push + email + bell) for session ${session.id}`);
         } catch (notifError) {
@@ -330,6 +334,7 @@ export function CreateEventDialog({
           // Don't block event creation if notification fails
         }
       }
+
 
       return session;
     },
