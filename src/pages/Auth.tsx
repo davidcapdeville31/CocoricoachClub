@@ -45,6 +45,8 @@ export default function Auth() {
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get("redirect");
   const isRecoveryMode = searchParams.get("mode") === "recovery";
+  const initialTab = searchParams.get("tab") === "signup" ? "signup" : "login";
+  const prefillEmail = searchParams.get("email") || "";
   const [isLoading, setIsLoading] = useState(false);
 
   // Redirect authenticated users away from auth page
