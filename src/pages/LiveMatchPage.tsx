@@ -38,6 +38,7 @@ export default function LiveMatchPage() {
   const [isRunning, setIsRunning] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
+  const [videoOpen, setVideoOpen] = useState(false);
 
   const colorsKey = `match-team-colors-${matchId}`;
   const [teamColors, setTeamColors] = useState<{ home: string; away: string } | null>(() => {
