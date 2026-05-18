@@ -335,5 +335,6 @@ export function SuperAdminUsers() {
         )}
       </CardContent>
     </Card>
+    </div>
   );
 }
