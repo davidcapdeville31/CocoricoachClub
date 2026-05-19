@@ -122,7 +122,7 @@ function createDraft(params: {
     kickDistance: initial?.metadata?.kickDistance?.toString() ?? "",
     contested: !!initial?.metadata?.contested,
     motif: initial?.metadata?.motif ?? "",
-    penaltyMode: initial?.metadata?.penaltyMode ?? "kick",
+    penaltyMode: initial?.metadata?.penaltyMode ?? (initial?.event_type === "penalty_kick" ? "kick" : ""),
     tryAttemptConv: true,
     kickX: typeof initial?.metadata?.kickX === "number" ? initial.metadata.kickX : null,
     kickY: typeof initial?.metadata?.kickY === "number" ? initial.metadata.kickY : null,
