@@ -40,6 +40,7 @@ interface Props {
 }
 
 type PeriodFilter = "all" | "H1" | "H2";
+type TeamFilter = "home" | "away" | "all";
 
 function getPos(e: MatchEvent): { x: number; y: number; side: "left" | "right" | null } | null {
   const m = (e.metadata || {}) as any;
@@ -73,21 +74,26 @@ function Marker({ cx, cy, fill, stroke, shape }: { cx: number; cy: number; fill:
 export function MatchEventPositionsDialog({ open, onOpenChange, kind, events, homeName, awayName }: Props) {
   const cfg = KIND_CONFIG[kind];
   const [period, setPeriod] = useState<PeriodFilter>("all");
+  const [team, setTeam] = useState<TeamFilter>("home");
 
-  const items = useMemo(() => {
-    const filtered = events.filter(e => {
+  const periodFiltered = useMemo(() => {
+    return events.filter(e => {
       if (!cfg.eventTypes.includes(e.event_type || "")) return false;
-      if (period === "H1") return e.period === "H1" || e.period === "HT";
-      if (period === "H2") return e.period === "H2" || e.period === "ET";
+      if (period === "H1" && !(e.period === "H1" || e.period === "HT")) return false;
+      if (period === "H2" && !(e.period === "H2" || e.period === "ET")) return false;
       return true;
     });
-    return filtered.map(e => ({ e, pos: getPos(e) }));
   }, [events, cfg, period]);
+
+  const items = useMemo(() => {
+    const filtered = team === "all" ? periodFiltered : periodFiltered.filter(e => e.team_side === team);
+    return filtered.map(e => ({ e, pos: getPos(e) }));
+  }, [periodFiltered, team]);
 
   const positioned = items.filter(i => i.pos);
   const totalCount = items.length;
-  const homeCount = items.filter(i => i.e.team_side === "home").length;
-  const awayCount = items.filter(i => i.e.team_side === "away").length;
+  const homeCount = periodFiltered.filter(e => e.team_side === "home").length;
+  const awayCount = periodFiltered.filter(e => e.team_side === "away").length;
 
   // Goal line X positions in SVG coordinates (5% and 95% inside the field box)
   const FIELD_W = FIELD_RIGHT - FIELD_LEFT;
@@ -107,6 +113,13 @@ export function MatchEventPositionsDialog({ open, onOpenChange, kind, events, ho
             {totalCount} événement{totalCount > 1 ? "s" : ""}{period !== "all" ? ` (${period === "H1" ? "1ère mi-temps" : "2ème mi-temps"})` : " sur le match"} — {positioned.length} avec position enregistrée
           </DialogDescription>
         </DialogHeader>
+
+        {/* Team filter */}
+        <div className="flex flex-wrap gap-1.5">
+          <Button size="sm" variant={team === "home" ? "default" : "outline"} className="h-7 text-xs" onClick={() => setTeam("home")}>{homeName} ({homeCount})</Button>
+          <Button size="sm" variant={team === "away" ? "default" : "outline"} className="h-7 text-xs" onClick={() => setTeam("away")}>{awayName} ({awayCount})</Button>
+          <Button size="sm" variant={team === "all" ? "default" : "outline"} className="h-7 text-xs" onClick={() => setTeam("all")}>Les deux</Button>
+        </div>
 
         {/* Period filter */}
         <div className="flex gap-1.5">
