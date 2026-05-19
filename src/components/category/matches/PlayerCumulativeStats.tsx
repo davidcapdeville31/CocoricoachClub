@@ -2053,6 +2053,12 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
           const mapH = 70;
           const fieldBounds = drawPdfRugbyField(doc, 14, y, mapW, mapH);
 
+          // Trajectory arrows first (markers overlay them)
+          k.allKicks.forEach(kick => {
+            const pos = svgPctToPdfPos(kick, fieldBounds);
+            drawPdfGoalpostArrow(doc, pos.kx, pos.ky, fieldBounds);
+          });
+
           // Draw kicks using inner field bounds
           k.allKicks.forEach(kick => {
             const { kx, ky: ky2 } = svgPctToPdfPos(kick, fieldBounds);
