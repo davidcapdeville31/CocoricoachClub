@@ -480,26 +480,16 @@ export function EventDialog(props: EventDialogProps) {
           {showOutcomeWonLost && (
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Résultat</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1">
+              <div className="grid grid-cols-2 gap-2 mt-1">
                 <Button type="button" variant="outline"
                   onClick={() => setDraft((p) => ({ ...p, outcome: "won", setPieceResult: "won" }))}
-                  className={`h-11 text-xs border-2 ${draft.setPieceResult === "won" ? okOn : selOff}`}>
-                  {eventType === "lineout" ? "Touche gagnée" : "Mêlée gagnée"}
-                </Button>
-                <Button type="button" variant="outline"
-                  onClick={() => setDraft((p) => ({ ...p, outcome: "won", setPieceResult: "stolen_us" }))}
-                  className={`h-11 text-xs border-2 ${draft.setPieceResult === "stolen_us" ? okOn : selOff}`}>
-                  Volée à l'adv.
+                  className={`h-11 text-sm border-2 ${draft.setPieceResult === "won" ? okOn : selOff}`}>
+                  {eventType === "lineout" ? "Touche conservée" : "Mêlée conservée"}
                 </Button>
                 <Button type="button" variant="outline"
                   onClick={() => setDraft((p) => ({ ...p, outcome: "lost", setPieceResult: "lost" }))}
-                  className={`h-11 text-xs border-2 ${draft.setPieceResult === "lost" ? koOn : selOff}`}>
+                  className={`h-11 text-sm border-2 ${draft.setPieceResult === "lost" ? koOn : selOff}`}>
                   {eventType === "lineout" ? "Touche perdue" : "Mêlée perdue"}
-                </Button>
-                <Button type="button" variant="outline"
-                  onClick={() => setDraft((p) => ({ ...p, outcome: "lost", setPieceResult: "stolen_opp" }))}
-                  className={`h-11 text-xs border-2 ${draft.setPieceResult === "stolen_opp" ? koOn : selOff}`}>
-                  Volée par adv.
                 </Button>
               </div>
             </div>
