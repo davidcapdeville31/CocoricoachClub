@@ -387,6 +387,7 @@ export function useSessionNotifications() {
                 channels: ["email"],
                 eventType: emailEventType,
                 category_id: categoryId,
+                skipBell: true, // bell already inserted above (step 3-ter)
                 eventDetails: {
                   date: dateLabel,
                   ...(sessionStartTime ? { time: sessionStartTime.substring(0, 5) } : {}),
