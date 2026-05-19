@@ -156,6 +156,15 @@ export function MatchStatsDialog({
             <TabsContent value="timeline" className="mt-0">
               <MatchTimelineView events={events} homeName={homeName} awayName={awayName} />
             </TabsContent>
+
+            <TabsContent value="history" className="mt-0">
+              <CompetitionHistoryPanel
+                categoryId={categoryId}
+                currentMatchId={matchId}
+                competition={match?.competition}
+                sportType={undefined}
+              />
+            </TabsContent>
           </Tabs>
         </div>
       </DialogContent>
