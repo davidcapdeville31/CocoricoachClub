@@ -684,6 +684,7 @@ export function CompetitionRoundsDialog({
             ranking: round.ranking ?? null,
             gap_to_first: round.gap_to_first || null,
             is_personal_record: !!round.is_personal_record,
+            video_url: round.video_url || null,
           };
           console.log(
             "[CompetitionRoundsDialog] INSERT round",
