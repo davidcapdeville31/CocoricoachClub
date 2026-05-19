@@ -1,6 +1,14 @@
 import { useMemo } from "react";
 import type { MatchEvent } from "../types";
 
+export interface FoulsByPlay {
+  kick: number;
+  penaltouche: number;
+  scrum: number;
+  quick: number;
+  unknown: number;
+}
+
 export interface TeamStats {
   points: number;
   tries: number;
@@ -13,9 +21,12 @@ export interface TeamStats {
   passes: number; missedPasses: number;
   turnovers: number;
   fouls: number;
+  foulsByPlay: FoulsByPlay;
   yellowCards: number; redCards: number;
   knockOns: number;
 }
+
+const emptyFoulsByPlay = (): FoulsByPlay => ({ kick: 0, penaltouche: 0, scrum: 0, quick: 0, unknown: 0 });
 
 const empty = (): TeamStats => ({
   points: 0, tries: 0,
@@ -27,6 +38,7 @@ const empty = (): TeamStats => ({
   tackles: 0, missedTackles: 0,
   passes: 0, missedPasses: 0,
   turnovers: 0, fouls: 0,
+  foulsByPlay: emptyFoulsByPlay(),
   yellowCards: 0, redCards: 0, knockOns: 0,
 });
 
