@@ -1587,6 +1587,10 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
             const mapW = pageW - 28;
             const mapH = 45;
             const fb = drawPdfRugbyField(doc, 14, ky, mapW, mapH, { showLabels: false });
+            kicker.allKicks.forEach(kick => {
+              const pos = svgPctToPdfPos(kick, fb);
+              drawPdfGoalpostArrow(doc, pos.kx, pos.ky, fb);
+            });
             kicker.allKicks.forEach(kick => drawKickOnMap(doc, kick, fb));
             ky += mapH + 8;
           });
