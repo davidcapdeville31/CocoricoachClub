@@ -187,15 +187,17 @@ export default function LiveMatchPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <LiveScoreboard
-        homeName={homeName} awayName={awayName}
-        homeScore={stats.home.points} awayScore={stats.away.points}
-        period={period} onPeriodChange={setPeriod}
-        minute={minute} onMinuteChange={setMinute}
-        seconds={seconds} onSecondsChange={setSeconds}
-        homeColor={teamColors?.home} awayColor={teamColors?.away}
-        running={isRunning} onRunningChange={setIsRunning}
-      />
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border shadow-sm">
+        <LiveScoreboard
+          homeName={homeName} awayName={awayName}
+          homeScore={stats.home.points} awayScore={stats.away.points}
+          period={period} onPeriodChange={setPeriod}
+          minute={minute} onMinuteChange={setMinute}
+          seconds={seconds} onSecondsChange={setSeconds}
+          homeColor={teamColors?.home} awayColor={teamColors?.away}
+          running={isRunning} onRunningChange={setIsRunning}
+        />
+      </div>
 
       <div className="px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
         <Button variant="ghost" size="sm" onClick={() => navigate(`/categories/${categoryId}?tab=competition`)}>
