@@ -129,6 +129,7 @@ const isBowlingSport = (sport?: string) =>
 
 export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sportType, editSession }: FieldSessionDialogProps) {
   const qc = useQueryClient();
+  const { notify } = useSessionNotifications();
   const isEdit = !!editSession?.id;
 
   const [title, setTitle] = useState("Séance terrain");
