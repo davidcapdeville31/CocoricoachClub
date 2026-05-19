@@ -32,6 +32,8 @@ interface NotifyAthletesRequest {
   /** Optional explicit overrides */
   clubName?: string;
   categoryName?: string;
+  /** When true, skip inserting in-app bell notifications (caller already did it) */
+  skipBell?: boolean;
 }
 
 const APP_NAME = "CocoriCoach Club";
