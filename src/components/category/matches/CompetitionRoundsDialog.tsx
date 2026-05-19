@@ -1702,7 +1702,7 @@ export function CompetitionRoundsDialog({
 
         {selectedPlayer && !isAthletics && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 min-h-0 flex flex-col overflow-hidden">
-            <TabsList className={`grid w-full flex-shrink-0 ${isAviron ? 'grid-cols-3' : isBowling ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            <TabsList className={`grid w-full flex-shrink-0 ${isAviron ? 'grid-cols-4' : isBowling ? 'grid-cols-3' : 'grid-cols-3'}`}>
               {isAviron && (
                 <TabsTrigger value="crew" className="gap-2">
                   <Users className="h-4 w-4" />
@@ -1723,6 +1723,12 @@ export function CompetitionRoundsDialog({
                 <BarChart3 className="h-4 w-4" />
                 Résumé
               </TabsTrigger>
+              {!isBowling && (
+                <TabsTrigger value="history" className="gap-2">
+                  <History className="h-4 w-4" />
+                  Compétition
+                </TabsTrigger>
+              )}
             </TabsList>
 
             {/* Crew Tab (Aviron only) */}
