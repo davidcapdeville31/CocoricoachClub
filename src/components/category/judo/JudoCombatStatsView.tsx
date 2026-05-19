@@ -80,6 +80,7 @@ interface JudoRound {
   stats: Record<string, number>;
   phase: string;
   isLocked?: boolean;
+  video_url?: string | null;
 }
 
 interface OpponentProfile {
@@ -1404,6 +1405,8 @@ function CombatPanel({
             onStartChrono={() => setChronoRunning(true)}
             onPauseChrono={() => setChronoRunning(false)}
             title="Vidéo du combat"
+            initialUrl={round.video_url ?? null}
+            onUrlChange={(u) => onUpdate({ video_url: u })}
           />
         </aside>
       )}

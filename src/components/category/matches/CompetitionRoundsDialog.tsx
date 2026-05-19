@@ -74,6 +74,7 @@ interface Round {
   roundDate?: string;
   blockId?: string;
   ballData?: { mode: string; ballId?: string | null; frameBalls?: (string | null)[] };
+  video_url?: string | null;
 }
 
 interface PlayerRounds {
@@ -505,6 +506,7 @@ export function CompetitionRoundsDialog({
               roundDate: roundDate,
               blockId: effectiveBlockId,
               ballData: ballData,
+              video_url: (r as any).video_url ?? null,
             };
           });
           
@@ -564,6 +566,7 @@ export function CompetitionRoundsDialog({
               bowlingFrames: bowlingFrames,
               bowlingCategory: bowlingCategory,
               roundDate: roundDate,
+              video_url: (r as any).video_url ?? null,
             };
           }),
         };
@@ -681,6 +684,7 @@ export function CompetitionRoundsDialog({
             ranking: round.ranking ?? null,
             gap_to_first: round.gap_to_first || null,
             is_personal_record: !!round.is_personal_record,
+            video_url: round.video_url || null,
           };
           console.log(
             "[CompetitionRoundsDialog] INSERT round",

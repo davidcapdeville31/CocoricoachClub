@@ -158,6 +158,10 @@ interface VideoCompanionDockProps {
   onPauseChrono?: () => void;
   chronoRunning?: boolean;
   title?: string;
+  /** Initial URL from DB; overrides localStorage when provided. */
+  initialUrl?: string | null;
+  /** Called when the user loads/changes the URL, so caller can persist it (DB). */
+  onUrlChange?: (url: string) => void;
 }
 
 /**
@@ -173,6 +177,8 @@ export function VideoCompanionDock({
   onPauseChrono,
   chronoRunning,
   title = "Vidéo du match",
+  initialUrl,
+  onUrlChange,
 }: VideoCompanionDockProps) {
   const lsKey = `video-companion-${storageKey}`;
   const [url, setUrl] = useState("");
@@ -181,7 +187,13 @@ export function VideoCompanionDock({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Hydrate from DB (initialUrl) first, fallback to localStorage cache.
   useEffect(() => {
+    if (initialUrl && initialUrl.trim()) {
+      setUrl(initialUrl);
+      setDraftUrl(initialUrl);
+      return;
+    }
     try {
       const raw = localStorage.getItem(lsKey);
       if (raw) {
@@ -194,7 +206,7 @@ export function VideoCompanionDock({
     } catch {
       /* noop */
     }
-  }, [lsKey]);
+  }, [lsKey, initialUrl]);
 
   if (!open) return null;
 
@@ -234,6 +246,7 @@ export function VideoCompanionDock({
     } catch {
       /* noop */
     }
+    onUrlChange?.(v);
     setPlaying(false);
   };
 
