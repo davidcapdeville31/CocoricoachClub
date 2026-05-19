@@ -29,7 +29,7 @@ export interface EventDialogProps {
   awayPlayers: EventDialogPlayer[];
   /** Editing existing event */
   initial?: MatchEvent | null;
-  onSubmit: (payload: Partial<MatchEvent>, chain?: { type: EventType }) => void;
+  onSubmit: (payload: Partial<MatchEvent>, chain?: { type: EventType; flipSide?: boolean }) => void;
 }
 
 const SUBTYPES: Partial<Record<EventType, { value: string; label: string }[]>> = {
@@ -122,7 +122,7 @@ function createDraft(params: {
     kickDistance: initial?.metadata?.kickDistance?.toString() ?? "",
     contested: !!initial?.metadata?.contested,
     motif: initial?.metadata?.motif ?? "",
-    penaltyMode: initial?.metadata?.penaltyMode ?? "kick",
+    penaltyMode: initial?.metadata?.penaltyMode ?? (initial?.event_type === "penalty_kick" ? "kick" : ""),
     tryAttemptConv: true,
     kickX: typeof initial?.metadata?.kickX === "number" ? initial.metadata.kickX : null,
     kickY: typeof initial?.metadata?.kickY === "number" ? initial.metadata.kickY : null,
@@ -193,6 +193,7 @@ export function EventDialog(props: EventDialogProps) {
   const showKickDistance = eventType === "kick";
   const showContested = false; // remplacé par "Volée" dans les outcomes set-piece
   const showPenaltyMode = eventType === "penalty_kick";
+  const showSanctionFollowUp = ["foul", "yellow_card", "red_card"].includes(eventType);
   const showCardMotif = ["yellow_card", "red_card"].includes(eventType);
 
   const kickDistanceFromField =
@@ -225,6 +226,7 @@ export function EventDialog(props: EventDialogProps) {
     if (draft.contested) metadata.contested = true;
     if (draft.motif) metadata.motif = draft.motif;
     if (showPenaltyMode) metadata.penaltyMode = draft.penaltyMode;
+    if (showSanctionFollowUp && draft.penaltyMode) metadata.sanctionFollowUp = draft.penaltyMode;
     if (showField && draft.kickX !== null && draft.kickY !== null) {
       metadata.kickX = draft.kickX;
       metadata.kickY = draft.kickY;
@@ -246,10 +248,18 @@ export function EventDialog(props: EventDialogProps) {
     };
 
     // Try → ask conversion next
-    let chain: { type: EventType } | undefined;
+    let chain: { type: EventType; flipSide?: boolean } | undefined;
     if (eventType === "try" && draft.tryAttemptConv) chain = { type: "conversion" };
     if (eventType === "penalty_kick" && draft.penaltyMode !== "kick" && draft.penaltyMode !== "penaltouche") {
       payload.outcome = null;
+    }
+    // Sanction (faute/jaune/rouge) → la sanction est jouée par l'équipe adverse
+    if (showSanctionFollowUp && draft.penaltyMode) {
+      const mode = draft.penaltyMode;
+      if (mode === "kick") chain = { type: "penalty_kick", flipSide: true };
+      else if (mode === "penaltouche") chain = { type: "lineout", flipSide: true };
+      else if (mode === "scrum") chain = { type: "scrum", flipSide: true };
+      // "quick" (jeu à la main) → pas de chain, action collective sans saisie supplémentaire
     }
     onSubmit(payload, chain);
   };
@@ -381,6 +391,28 @@ export function EventDialog(props: EventDialogProps) {
               </div>
             </div>
           )}
+
+          {showSanctionFollowUp && (
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                Sanction jouée par l'équipe adverse
+              </Label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mt-1">
+                {[
+                  { v: "kick", l: "Au pied" },
+                  { v: "penaltouche", l: "Pénaltouche" },
+                  { v: "scrum", l: "Mêlée" },
+                  { v: "quick", l: "Jeu à la main" },
+                ].map((o) => (
+                  <Button key={o.v} type="button" variant="outline" onClick={() => setField("penaltyMode", draft.penaltyMode === o.v ? "" : o.v)} className={cls(draft.penaltyMode === o.v)}>{o.l}</Button>
+                ))}
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Optionnel — l'action suivante s'ouvrira automatiquement pour l'équipe adverse.
+              </p>
+            </div>
+          )}
+
 
           {showField && (
             <div className="space-y-2">
