@@ -246,6 +246,7 @@ export function VideoCompanionDock({
     } catch {
       /* noop */
     }
+    onUrlChange?.(v);
     setPlaying(false);
   };
 
