@@ -2252,32 +2252,99 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
                 </div>
               </div>
               <ScrollArea className="max-h-[300px]">
-                <div className="p-2 space-y-1">
-                  {allMatches.map(match => {
-                    const isSelected = selectedMatchIds.length === 0 || selectedMatchIds.includes(match.id);
-                    const primaryLabel = isIndividualCompetitionSport
-                      ? (match.competition || match.opponent || "Compétition")
-                      : `vs ${match.opponent || "Adversaire inconnu"}`;
-                    const secondaryLabel = isIndividualCompetitionSport && match.opponent && match.competition
-                      ? match.opponent
-                      : null;
-                    return (
-                      <button key={match.id} onClick={() => toggleMatch(match.id)}
-                        className={`w-full flex items-center gap-3 p-2 rounded-md text-left transition-colors hover:bg-muted ${isSelected ? 'bg-primary/5' : 'opacity-50'}`}>
-                        <Checkbox checked={isSelected} className="pointer-events-none" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{primaryLabel}</p>
-                          {secondaryLabel && (
-                            <p className="text-xs text-muted-foreground truncate">{secondaryLabel}</p>
+                <div className="p-2 space-y-3">
+                  {(() => {
+                    // Group matches by competition name (e.g. "Coupe du monde de rugby")
+                    const groups = new Map<string, typeof allMatches>();
+                    allMatches.forEach((m: any) => {
+                      const key = (m.competition || "").trim() || "__none__";
+                      if (!groups.has(key)) groups.set(key, [] as any);
+                      groups.get(key)!.push(m);
+                    });
+                    const orderedGroups = Array.from(groups.entries()).sort((a, b) => {
+                      if (a[0] === "__none__") return 1;
+                      if (b[0] === "__none__") return -1;
+                      return a[0].localeCompare(b[0]);
+                    });
+
+                    return orderedGroups.map(([compKey, groupMatches]) => {
+                      const compLabel = compKey === "__none__" ? "Hors compétition" : compKey;
+                      const groupIds = groupMatches.map((m: any) => m.id);
+                      const groupAllSelected = selectedMatchIds.length === 0
+                        ? true
+                        : groupIds.every((id: string) => selectedMatchIds.includes(id));
+                      const selectGroupOnly = () => setSelectedMatchIds(groupIds);
+                      const toggleGroup = () => {
+                        if (selectedMatchIds.length === 0) {
+                          // currently "all" → narrow to others (exclude this group)
+                          const others = allMatches.filter((m: any) => !groupIds.includes(m.id)).map((m: any) => m.id);
+                          setSelectedMatchIds(others);
+                          return;
+                        }
+                        if (groupAllSelected) {
+                          setSelectedMatchIds(selectedMatchIds.filter(id => !groupIds.includes(id)));
+                        } else {
+                          const merged = Array.from(new Set([...selectedMatchIds, ...groupIds]));
+                          setSelectedMatchIds(merged);
+                        }
+                      };
+
+                      return (
+                        <div key={compKey} className="space-y-1">
+                          {compKey !== "__none__" && (
+                            <div className="flex items-center justify-between gap-2 px-2 py-1 rounded-md bg-surface-sunken">
+                              <button
+                                type="button"
+                                onClick={toggleGroup}
+                                className="flex items-center gap-2 flex-1 min-w-0 text-left"
+                              >
+                                <Checkbox checked={groupAllSelected} className="pointer-events-none" />
+                                <Trophy className="h-3.5 w-3.5 text-brand-600 shrink-0" />
+                                <span className="text-xs font-semibold truncate">{compLabel}</span>
+                                <Badge variant="secondary" className="ml-auto text-[10px] h-5 shrink-0">
+                                  {groupMatches.length}
+                                </Badge>
+                              </button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-[10px]"
+                                onClick={selectGroupOnly}
+                                title="Voir uniquement cette compétition"
+                              >
+                                Seul
+                              </Button>
+                            </div>
                           )}
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Calendar className="h-3 w-3" />
-                            {format(new Date(match.match_date), "dd MMM yyyy", { locale: fr })}
-                          </div>
+                          {groupMatches.map((match: any) => {
+                            const isSelected = selectedMatchIds.length === 0 || selectedMatchIds.includes(match.id);
+                            const primaryLabel = isIndividualCompetitionSport
+                              ? (match.competition || match.opponent || "Compétition")
+                              : `vs ${match.opponent || "Adversaire inconnu"}`;
+                            const secondaryLabel = isIndividualCompetitionSport && match.opponent && match.competition
+                              ? match.opponent
+                              : null;
+                            return (
+                              <button key={match.id} onClick={() => toggleMatch(match.id)}
+                                className={`w-full flex items-center gap-3 p-2 rounded-md text-left transition-colors hover:bg-muted ${isSelected ? 'bg-primary/5' : 'opacity-50'} ${compKey !== "__none__" ? 'pl-6' : ''}`}>
+                                <Checkbox checked={isSelected} className="pointer-events-none" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">{primaryLabel}</p>
+                                  {secondaryLabel && (
+                                    <p className="text-xs text-muted-foreground truncate">{secondaryLabel}</p>
+                                  )}
+                                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                    <Calendar className="h-3 w-3" />
+                                    {format(new Date(match.match_date), "dd MMM yyyy", { locale: fr })}
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          })}
                         </div>
-                      </button>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </div>
               </ScrollArea>
             </PopoverContent>
