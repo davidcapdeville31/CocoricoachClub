@@ -115,7 +115,7 @@ export function MatchStatsDialog({
 
         <div className="max-h-[calc(90vh-180px)] overflow-y-auto bg-background px-5 pb-5 pt-4">
           <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="w-full">
-            <TabsList className="mb-4 grid w-full max-w-md grid-cols-3 bg-surface-sunken">
+            <TabsList className="mb-4 grid w-full max-w-2xl grid-cols-4 bg-surface-sunken">
               <TabsTrigger value="team" className="gap-1.5 text-xs">
                 <BarChart3 className="h-3.5 w-3.5" />
                 Équipe
@@ -127,6 +127,10 @@ export function MatchStatsDialog({
               <TabsTrigger value="timeline" className="gap-1.5 text-xs">
                 <Activity className="h-3.5 w-3.5" />
                 Timeline
+              </TabsTrigger>
+              <TabsTrigger value="history" className="gap-1.5 text-xs">
+                <History className="h-3.5 w-3.5" />
+                Compétition
               </TabsTrigger>
             </TabsList>
 
