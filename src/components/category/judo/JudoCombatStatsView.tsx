@@ -80,6 +80,7 @@ interface JudoRound {
   stats: Record<string, number>;
   phase: string;
   isLocked?: boolean;
+  video_url?: string | null;
 }
 
 interface OpponentProfile {
