@@ -251,7 +251,7 @@ const handler = async (req: Request): Promise<Response> => {
         is_read: false,
       }));
 
-    if (bellRows.length > 0) {
+    if (!skipBell && bellRows.length > 0) {
       const { error: bellError } = await supabaseService
         .from("notifications")
         .insert(bellRows);
