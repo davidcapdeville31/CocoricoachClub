@@ -68,6 +68,14 @@ const SUBTYPES: Partial<Record<EventType, { value: string; label: string }[]>> =
     { value: "repetition", label: "Répétition de fautes" },
     { value: "autre", label: "Autre" },
   ],
+  scrum: [
+    { value: "coup_franc", label: "Coup franc" },
+    { value: "turnover", label: "Turnover" },
+    { value: "touche", label: "Touche" },
+    { value: "essai", label: "Essai" },
+    { value: "penaltouche", label: "Pénaltouche" },
+    { value: "autre", label: "Autre" },
+  ],
   red_card: [
     { value: "brutalite", label: "Brutalité" },
     { value: "plaquage_dangereux", label: "Plaquage dangereux" },
