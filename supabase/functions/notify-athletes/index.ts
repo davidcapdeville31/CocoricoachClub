@@ -104,7 +104,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const body: NotifyAthletesRequest = await req.json();
-    const { athletes, message, channels, eventType, eventDetails, category_id } = body;
+    const { athletes, message, channels, eventType, eventDetails, category_id, skipBell } = body;
     let { clubName, categoryName } = body;
 
     if (!athletes || athletes.length === 0) throw new Error("No athletes provided");
