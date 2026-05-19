@@ -114,6 +114,13 @@ export function MatchEventPositionsDialog({ open, onOpenChange, kind, events, ho
           </DialogDescription>
         </DialogHeader>
 
+        {/* Team filter */}
+        <div className="flex flex-wrap gap-1.5">
+          <Button size="sm" variant={team === "home" ? "default" : "outline"} className="h-7 text-xs" onClick={() => setTeam("home")}>{homeName} ({homeCount})</Button>
+          <Button size="sm" variant={team === "away" ? "default" : "outline"} className="h-7 text-xs" onClick={() => setTeam("away")}>{awayName} ({awayCount})</Button>
+          <Button size="sm" variant={team === "all" ? "default" : "outline"} className="h-7 text-xs" onClick={() => setTeam("all")}>Les deux</Button>
+        </div>
+
         {/* Period filter */}
         <div className="flex gap-1.5">
           <Button size="sm" variant={period === "H1" ? "default" : "outline"} className="h-7 text-xs" onClick={() => setPeriod("H1")}>1ère mi-temps</Button>
