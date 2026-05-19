@@ -1669,6 +1669,18 @@ export function CompetitionRoundsDialog({
             )}
             {/* Anchor for double-click scroll */}
             <div id={`athletics-rounds-anchor-${matchId}`} />
+
+            {/* Historique compétition (athlétisme) */}
+            {(matchData as any)?.competition && (
+              <div className="mt-4 rounded-xl border bg-card p-3">
+                <CompetitionHistoryPanel
+                  categoryId={categoryId}
+                  currentMatchId={matchId}
+                  competition={(matchData as any)?.competition}
+                  sportType={sportType}
+                />
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-2 flex-shrink-0">
