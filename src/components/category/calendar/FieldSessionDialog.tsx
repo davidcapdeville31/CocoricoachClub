@@ -31,6 +31,7 @@ import {
   getWeightOptions,
   isThrowingBlock,
 } from "@/lib/constants/athleticsImplements";
+import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 
 const BASKET_PRECISION_THEMES = new Set(["basketball_lf", "basketball_paint", "basketball_3pts"]);
 
