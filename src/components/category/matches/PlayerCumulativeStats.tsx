@@ -720,39 +720,100 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
       const hcG = parseInt(hc.substring(2, 4), 16);
       const hcB = parseInt(hc.substring(4, 6), 16);
 
+      // Pre-compute selected matches & detect single-match team export for the rich header
+      const selectedMatches = allMatches.filter(m => activeMatchIds.includes(m.id));
+      const singleMatch = (mode === "team" && selectedMatches.length === 1) ? selectedMatches[0] : null;
+
       const drawHeader = (title: string) => {
-        doc.setFillColor(hcR, hcG, hcB);
-        doc.rect(0, 0, pageW, 28, "F");
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(16);
-        doc.text(title, 14, 12);
-        doc.setFontSize(10);
-        doc.text(`${clubName || ""} • ${categoryName || ""} • ${seasonName || ""}`, 14, 20);
-        doc.text(`${selectedCount} matchs • ${format(new Date(), "dd/MM/yyyy")}`, pageW - 14, 20, { align: "right" });
+        if (singleMatch) {
+          // ---- Rich match-style header (mirrors "Data de compétition" look) ----
+          const headerH = 42;
+          // Main band
+          doc.setFillColor(hcR, hcG, hcB);
+          doc.rect(0, 0, pageW, headerH, "F");
+          // Bottom accent strip
+          doc.setFillColor(Math.max(hcR - 30, 0), Math.max(hcG - 30, 0), Math.max(hcB - 30, 0));
+          doc.rect(0, headerH - 2, pageW, 2, "F");
+
+          const homeName = singleMatch.is_home ? (clubName || "Domicile") : singleMatch.opponent;
+          const awayName = singleMatch.is_home ? singleMatch.opponent : (clubName || "Extérieur");
+          const sh = singleMatch.score_home != null ? String(singleMatch.score_home) : "—";
+          const sa = singleMatch.score_away != null ? String(singleMatch.score_away) : "—";
+          const dateStr = format(new Date(singleMatch.match_date), "EEEE d MMMM yyyy", { locale: fr });
+          const compLine = [
+            singleMatch.competition,
+            singleMatch.competition_stage,
+            singleMatch.location ? `📍 ${singleMatch.location}` : null,
+          ].filter(Boolean).join(" • ");
+
+          // Top meta: category / season
+          doc.setTextColor(255, 255, 255);
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.text(`${[clubName, categoryName, seasonName].filter(Boolean).join(" • ")}`, 14, 7);
+          doc.text(`Export ${format(new Date(), "dd/MM/yyyy HH:mm")}`, pageW - 14, 7, { align: "right" });
+
+          // Big scoreboard: HOME  S  -  S  AWAY
+          const centerX = pageW / 2;
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(22);
+          const scoreText = `${sh}  -  ${sa}`;
+          doc.text(scoreText, centerX, 22, { align: "center" });
+
+          doc.setFontSize(13);
+          doc.setFont("helvetica", "bold");
+          const scoreW = doc.getTextWidth(scoreText);
+          doc.text(homeName, centerX - scoreW / 2 - 6, 22, { align: "right" });
+          doc.text(awayName, centerX + scoreW / 2 + 6, 22, { align: "left" });
+
+          // Date + competition line
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9);
+          doc.text(dateStr, centerX, 30, { align: "center" });
+          if (compLine) {
+            doc.setFontSize(8);
+            doc.text(compLine, centerX, 35, { align: "center" });
+          }
+
+          // Section title (left)
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(10);
+          doc.text(title, 14, headerH - 5);
+        } else {
+          doc.setFillColor(hcR, hcG, hcB);
+          doc.rect(0, 0, pageW, 28, "F");
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(16);
+          doc.text(title, 14, 12);
+          doc.setFontSize(10);
+          doc.text(`${clubName || ""} • ${categoryName || ""} • ${seasonName || ""}`, 14, 20);
+          doc.text(`${selectedCount} matchs • ${format(new Date(), "dd/MM/yyyy")}`, pageW - 14, 20, { align: "right" });
+        }
       };
       drawHeader("Stats compétition cumulées");
-      let y = 36;
+      let y = singleMatch ? 50 : 36;
 
-      // Match context info
-      const selectedMatches = allMatches.filter(m => activeMatchIds.includes(m.id));
-      doc.setTextColor(30, 41, 59);
-      doc.setFontSize(8);
-      selectedMatches.slice(0, 6).forEach((m) => {
-        const lieu = m.is_home ? "DOM" : "EXT";
-        const loc = m.location ? ` — ${m.location}` : "";
-        const comp = m.competition || "";
-        const stage = m.competition_stage ? ` (${m.competition_stage})` : "";
-        const time = m.match_time ? ` ${m.match_time}` : "";
-        const score = (m.score_home != null && m.score_away != null) ? ` ${m.score_home}-${m.score_away}` : "";
-        doc.text(
-          `${format(new Date(m.match_date), "dd/MM/yy")} • vs ${m.opponent} [${lieu}]${score}${loc}${time} ${comp}${stage}`,
-          14, y
-        );
-        y += 4;
-      });
-      if (selectedMatches.length > 6) {
-        doc.text(`... et ${selectedMatches.length - 6} autre(s)`, 14, y);
-        y += 4;
+      // Match context info (skip when single-match — already shown in rich header)
+      if (!singleMatch) {
+        doc.setTextColor(30, 41, 59);
+        doc.setFontSize(8);
+        selectedMatches.slice(0, 6).forEach((m) => {
+          const lieu = m.is_home ? "DOM" : "EXT";
+          const loc = m.location ? ` — ${m.location}` : "";
+          const comp = m.competition || "";
+          const stage = m.competition_stage ? ` (${m.competition_stage})` : "";
+          const time = m.match_time ? ` ${m.match_time}` : "";
+          const score = (m.score_home != null && m.score_away != null) ? ` ${m.score_home}-${m.score_away}` : "";
+          doc.text(
+            `${format(new Date(m.match_date), "dd/MM/yy")} • vs ${m.opponent} [${lieu}]${score}${loc}${time} ${comp}${stage}`,
+            14, y
+          );
+          y += 4;
+        });
+        if (selectedMatches.length > 6) {
+          doc.text(`... et ${selectedMatches.length - 6} autre(s)`, 14, y);
+          y += 4;
+        }
       }
       y += 4;
 
