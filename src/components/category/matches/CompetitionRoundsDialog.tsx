@@ -23,7 +23,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Trash2, Trophy, Target, BarChart3, Swords, Circle, Ship, Users, Droplet, CheckCircle, Lock } from "lucide-react";
+import { Plus, Trash2, Trophy, Target, BarChart3, Swords, Circle, Ship, Users, Droplet, CheckCircle, Lock, History } from "lucide-react";
+import { CompetitionHistoryPanel } from "./CompetitionHistoryPanel";
 import { getStatsForSport, getStatCategories, getAggregatedStatsForSport, getAthletismeStatsForDiscipline, ATHLETISME_PHASES, ATHLETISME_GENERAL_STATS, type StatField } from "@/lib/constants/sportStats";
 import { groupStatsByTheme } from "@/lib/statSubGroups";
 import { useStatPreferences } from "@/hooks/use-stat-preferences";
@@ -1668,6 +1669,18 @@ export function CompetitionRoundsDialog({
             )}
             {/* Anchor for double-click scroll */}
             <div id={`athletics-rounds-anchor-${matchId}`} />
+
+            {/* Historique compétition (athlétisme) */}
+            {(matchData as any)?.competition && (
+              <div className="mt-4 rounded-xl border bg-card p-3">
+                <CompetitionHistoryPanel
+                  categoryId={categoryId}
+                  currentMatchId={matchId}
+                  competition={(matchData as any)?.competition}
+                  sportType={sportType}
+                />
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-2 flex-shrink-0">
@@ -1701,7 +1714,7 @@ export function CompetitionRoundsDialog({
 
         {selectedPlayer && !isAthletics && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 min-h-0 flex flex-col overflow-hidden">
-            <TabsList className={`grid w-full flex-shrink-0 ${isAviron ? 'grid-cols-3' : isBowling ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            <TabsList className={`grid w-full flex-shrink-0 ${isAviron ? 'grid-cols-4' : isBowling ? 'grid-cols-3' : 'grid-cols-3'}`}>
               {isAviron && (
                 <TabsTrigger value="crew" className="gap-2">
                   <Users className="h-4 w-4" />
@@ -1722,6 +1735,12 @@ export function CompetitionRoundsDialog({
                 <BarChart3 className="h-4 w-4" />
                 Résumé
               </TabsTrigger>
+              {!isBowling && (
+                <TabsTrigger value="history" className="gap-2">
+                  <History className="h-4 w-4" />
+                  Compétition
+                </TabsTrigger>
+              )}
             </TabsList>
 
             {/* Crew Tab (Aviron only) */}
@@ -2720,6 +2739,17 @@ export function CompetitionRoundsDialog({
                 </div>
               </div>
             </TabsContent>
+
+            {!isBowling && (
+              <TabsContent value="history" className="flex-1 min-h-0 mt-0 overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col px-1 py-2">
+                <CompetitionHistoryPanel
+                  categoryId={categoryId}
+                  currentMatchId={matchId}
+                  competition={(matchData as any)?.competition}
+                  sportType={sportType}
+                />
+              </TabsContent>
+            )}
           </Tabs>
         )}
 

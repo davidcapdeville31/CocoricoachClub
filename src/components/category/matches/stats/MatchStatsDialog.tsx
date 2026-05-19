@@ -5,11 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Users, BarChart3, Activity, Play, ClipboardEdit } from "lucide-react";
+import { Users, BarChart3, Activity, Play, ClipboardEdit, History } from "lucide-react";
 import { useMatchEvents } from "../live/hooks/useMatchEvents";
 import { useMatchStats } from "../live/hooks/useMatchStats";
 import { MatchStatsHeader } from "./MatchStatsHeader";
 import { MatchTeamStatsView } from "./MatchTeamStatsView";
+import { CompetitionHistoryPanel } from "../CompetitionHistoryPanel";
 import { MatchPlayerStatsView } from "./MatchPlayerStatsView";
 import { MatchTimelineView } from "./MatchTimelineView";
 
@@ -31,7 +32,7 @@ export function MatchStatsDialog({
   onOpenManual,
 }: Props) {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"team" | "players" | "timeline">("team");
+  const [tab, setTab] = useState<"team" | "players" | "timeline" | "history">("team");
 
   const { data: match } = useQuery({
     queryKey: ["match-stats-meta", matchId],
@@ -114,7 +115,7 @@ export function MatchStatsDialog({
 
         <div className="max-h-[calc(90vh-180px)] overflow-y-auto bg-background px-5 pb-5 pt-4">
           <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="w-full">
-            <TabsList className="mb-4 grid w-full max-w-md grid-cols-3 bg-surface-sunken">
+            <TabsList className="mb-4 grid w-full max-w-2xl grid-cols-4 bg-surface-sunken">
               <TabsTrigger value="team" className="gap-1.5 text-xs">
                 <BarChart3 className="h-3.5 w-3.5" />
                 Équipe
@@ -126,6 +127,10 @@ export function MatchStatsDialog({
               <TabsTrigger value="timeline" className="gap-1.5 text-xs">
                 <Activity className="h-3.5 w-3.5" />
                 Timeline
+              </TabsTrigger>
+              <TabsTrigger value="history" className="gap-1.5 text-xs">
+                <History className="h-3.5 w-3.5" />
+                Compétition
               </TabsTrigger>
             </TabsList>
 
@@ -150,6 +155,15 @@ export function MatchStatsDialog({
 
             <TabsContent value="timeline" className="mt-0">
               <MatchTimelineView events={events} homeName={homeName} awayName={awayName} />
+            </TabsContent>
+
+            <TabsContent value="history" className="mt-0">
+              <CompetitionHistoryPanel
+                categoryId={categoryId}
+                currentMatchId={matchId}
+                competition={match?.competition}
+                sportType={undefined}
+              />
             </TabsContent>
           </Tabs>
         </div>
