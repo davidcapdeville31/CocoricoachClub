@@ -266,6 +266,12 @@ export default function LiveMatchPage() {
               onStartChrono={() => setIsRunning(true)}
               onPauseChrono={() => setIsRunning(false)}
               title="Vidéo du match"
+              initialUrl={match?.video_url ?? null}
+              onUrlChange={async (u) => {
+                try {
+                  await supabase.from("matches").update({ video_url: u || null } as any).eq("id", matchId!);
+                } catch { /* noop */ }
+              }}
             />
           </aside>
         )}
@@ -282,6 +288,12 @@ export default function LiveMatchPage() {
             onStartChrono={() => setIsRunning(true)}
             onPauseChrono={() => setIsRunning(false)}
             title="Vidéo du match"
+            initialUrl={match?.video_url ?? null}
+            onUrlChange={async (u) => {
+              try {
+                await supabase.from("matches").update({ video_url: u || null } as any).eq("id", matchId!);
+              } catch { /* noop */ }
+            }}
           />
         </div>
       )}
