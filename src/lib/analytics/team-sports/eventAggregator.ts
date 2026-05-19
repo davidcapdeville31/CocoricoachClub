@@ -10,9 +10,14 @@ function applyEvent(s: TeamStats, e: MatchEvent) {
     case "conversion":
       s.conversionsAttempted += 1;
       if (e.outcome === "success") s.conversionsMade += 1; break;
-    case "penalty_kick":
-      s.penaltiesAttempted += 1;
-      if (e.outcome === "success") s.penaltiesMade += 1; break;
+    case "penalty_kick": {
+      const mode = m.penaltyMode;
+      if (!mode || mode === "kick") {
+        s.penaltiesAttempted += 1;
+        if (e.outcome === "success") s.penaltiesMade += 1;
+      }
+      break;
+    }
     case "drop":
       s.dropsAttempted += 1;
       if (e.outcome === "success") s.drops += 1; break;
