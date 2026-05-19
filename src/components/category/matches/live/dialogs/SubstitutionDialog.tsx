@@ -249,8 +249,12 @@ export function SubstitutionDialog({
         <DialogFooter className="mt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
           <Button
-            onClick={() => swap.mutate()}
-            disabled={!out || !incoming || swap.isPending}
+            onClick={() => {
+              if (!out) { toast.error("Sélectionne le joueur qui sort (Titulaires)"); return; }
+              if (!incoming) { toast.error("Sélectionne le remplaçant qui entre (Banc)"); return; }
+              if (swap.isPending) return;
+              swap.mutate();
+            }}
             className="bg-primary"
           >
             <ArrowLeftRight className="h-4 w-4 mr-1" />
