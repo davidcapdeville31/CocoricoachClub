@@ -21,7 +21,7 @@ import {
 import type { TeamStats, PlayerAggStats } from "@/lib/analytics/team-sports/types";
 import type { MatchEvent } from "@/components/category/matches/live/types";
 import { preparePdfWithSettings, drawPdfHeader, type PdfCustomSettings } from "@/lib/pdfExport";
-import { drawPdfRugbyField, drawPdfFieldLegend, svgPctToPdfPos } from "@/lib/pdfRugbyField";
+import { drawPdfRugbyField, drawPdfFieldLegend, svgPctToPdfPos, drawPdfGoalpostArrow } from "@/lib/pdfRugbyField";
 import {
   getExcelBranding,
   addBrandedHeader,
@@ -207,6 +207,11 @@ function drawKickingMapsSection(
   }
   const fb = drawPdfRugbyField(pdf, margin, y, pageW - margin * 2, pitchH, { showLabels: true });
 
+  // Trajectory arrows (drawn first so markers sit on top)
+  for (const k of kicks) {
+    const { kx, ky } = svgPctToPdfPos(k, fb);
+    drawPdfGoalpostArrow(pdf, kx, ky, fb);
+  }
   // Markers
   for (const k of kicks) {
     const { kx, ky } = svgPctToPdfPos(k, fb);
