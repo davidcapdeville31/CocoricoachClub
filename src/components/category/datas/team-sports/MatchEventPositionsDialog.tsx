@@ -74,16 +74,18 @@ function Marker({ cx, cy, fill, stroke, shape }: { cx: number; cy: number; fill:
 export function MatchEventPositionsDialog({ open, onOpenChange, kind, events, homeName, awayName }: Props) {
   const cfg = KIND_CONFIG[kind];
   const [period, setPeriod] = useState<PeriodFilter>("all");
+  const [team, setTeam] = useState<TeamFilter>("home");
 
   const items = useMemo(() => {
     const filtered = events.filter(e => {
       if (!cfg.eventTypes.includes(e.event_type || "")) return false;
-      if (period === "H1") return e.period === "H1" || e.period === "HT";
-      if (period === "H2") return e.period === "H2" || e.period === "ET";
+      if (period === "H1" && !(e.period === "H1" || e.period === "HT")) return false;
+      if (period === "H2" && !(e.period === "H2" || e.period === "ET")) return false;
+      if (team !== "all" && e.team_side !== team) return false;
       return true;
     });
     return filtered.map(e => ({ e, pos: getPos(e) }));
-  }, [events, cfg, period]);
+  }, [events, cfg, period, team]);
 
   const positioned = items.filter(i => i.pos);
   const totalCount = items.length;
