@@ -506,6 +506,7 @@ export function CompetitionRoundsDialog({
               roundDate: roundDate,
               blockId: effectiveBlockId,
               ballData: ballData,
+              video_url: (r as any).video_url ?? null,
             };
           });
           
