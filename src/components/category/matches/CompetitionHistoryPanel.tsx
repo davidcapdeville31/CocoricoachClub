@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Trophy, Video, ChevronDown, ChevronUp, BarChart3 } from "lucide-react";
+import { Calendar, MapPin, Trophy, Video, ChevronDown, ChevronUp, BarChart3, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { VideoCompanionDock } from "@/components/shared/VideoCompanionPanel";
@@ -158,15 +158,27 @@ function RelatedMatchCard({ match, sportType }: RelatedMatchCardProps) {
       <CardContent className="pt-0 space-y-2">
         <div className="flex flex-wrap gap-2">
           {match.video_url ? (
-            <Button
-              size="sm"
-              variant={showVideo ? "default" : "outline"}
-              className="h-7 gap-1.5 text-xs"
-              onClick={() => setShowVideo((v) => !v)}
-            >
-              <Video className="h-3.5 w-3.5" />
-              {showVideo ? "Masquer la vidéo" : "Voir la vidéo"}
-            </Button>
+            <>
+              <Button
+                size="sm"
+                variant={showVideo ? "default" : "outline"}
+                className="h-7 gap-1.5 text-xs"
+                onClick={() => setShowVideo((v) => !v)}
+              >
+                <Video className="h-3.5 w-3.5" />
+                {showVideo ? "Masquer la vidéo" : "Voir la vidéo"}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 gap-1.5 text-xs"
+                onClick={() => window.open(match.video_url!, "_blank", "noopener,noreferrer")}
+                title="Ouvrir la vidéo dans un nouvel onglet (recommandé pour VEO/Hudl)"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                Ouvrir
+              </Button>
+            </>
           ) : (
             <Badge variant="outline" className="text-[10px] gap-1">
               <Video className="h-3 w-3" />
