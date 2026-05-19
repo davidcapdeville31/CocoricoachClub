@@ -74,6 +74,7 @@ interface Round {
   roundDate?: string;
   blockId?: string;
   ballData?: { mode: string; ballId?: string | null; frameBalls?: (string | null)[] };
+  video_url?: string | null;
 }
 
 interface PlayerRounds {
