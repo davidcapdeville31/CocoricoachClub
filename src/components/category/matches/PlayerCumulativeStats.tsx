@@ -1282,6 +1282,11 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
           const mapW = pageW - 28;
           const mapH = 55;
           const fb = drawPdfRugbyField(doc, 14, y, mapW, mapH);
+          // Trajectory arrows first (markers will overlay them)
+          allKicks.forEach(kick => {
+            const pos = svgPctToPdfPos(kick, fb);
+            drawPdfGoalpostArrow(doc, pos.kx, pos.ky, fb);
+          });
           allKicks.forEach(kick => {
             const pos = svgPctToPdfPos(kick, fb);
             const kx = pos.kx; const ky = pos.ky;
