@@ -138,7 +138,7 @@ export default function LiveMatchPage() {
     }
   }, [chainNext, openType]);
 
-  const handleSubmit = async (payload: Partial<MatchEvent>, chain?: { type: EventType }) => {
+  const handleSubmit = async (payload: Partial<MatchEvent>, chain?: { type: EventType; flipSide?: boolean }) => {
     try {
       if (editing) {
         await update.mutateAsync({ id: editing.id, patch: payload });
@@ -149,7 +149,9 @@ export default function LiveMatchPage() {
       }
       setOpenType(null); setEditing(null);
       if (chain) {
-        setChainSide((payload.team_side as "home" | "away") ?? null);
+        const side = (payload.team_side as "home" | "away") ?? null;
+        const nextSide = chain.flipSide && side ? (side === "home" ? "away" : "home") : side;
+        setChainSide(nextSide);
         setChainNext(chain.type);
       } else {
         setChainSide(null);
