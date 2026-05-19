@@ -193,6 +193,7 @@ export function EventDialog(props: EventDialogProps) {
   const showKickDistance = eventType === "kick";
   const showContested = false; // remplacé par "Volée" dans les outcomes set-piece
   const showPenaltyMode = eventType === "penalty_kick";
+  const showSanctionFollowUp = ["foul", "yellow_card", "red_card"].includes(eventType);
   const showCardMotif = ["yellow_card", "red_card"].includes(eventType);
 
   const kickDistanceFromField =
