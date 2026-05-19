@@ -1405,6 +1405,8 @@ function CombatPanel({
             onStartChrono={() => setChronoRunning(true)}
             onPauseChrono={() => setChronoRunning(false)}
             title="Vidéo du combat"
+            initialUrl={round.video_url ?? null}
+            onUrlChange={(u) => onUpdate({ video_url: u })}
           />
         </aside>
       )}
