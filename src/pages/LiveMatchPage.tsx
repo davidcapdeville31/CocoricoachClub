@@ -83,25 +83,49 @@ export default function LiveMatchPage() {
   const awayName = match?.is_home ? (match?.opponent ?? "Extérieur") : (match?.categories?.name ?? "Domicile");
   const clubSide: "home" | "away" = match?.is_home === false ? "away" : "home";
 
+  // Convertit "1".."15" → 1..15, "SUB1".."SUB8" → 16..23, sinon 99 (fin de liste)
+  const positionOrder = (pos: any): number => {
+    if (pos == null) return 99;
+    const s = String(pos).trim();
+    if (/^\d+$/.test(s)) return parseInt(s, 10);
+    const sub = s.match(/^SUB(\d+)$/i);
+    if (sub) return 15 + parseInt(sub[1], 10);
+    return 99;
+  };
+  const positionLabel = (pos: any): string => {
+    if (pos == null) return "";
+    const s = String(pos).trim();
+    if (/^\d+$/.test(s)) return s;
+    const sub = s.match(/^SUB(\d+)$/i);
+    if (sub) return String(15 + parseInt(sub[1], 10));
+    return s;
+  };
+
   const homePlayers = useMemo(
     () => (lineup ?? [])
       .slice()
-      .sort((a: any, b: any) => (a.position ?? 99) - (b.position ?? 99))
-      .map((l: any) => ({
-        id: l.player_id,
-        label: `${l.position ? `#${l.position} ` : ""}${[l.players?.first_name, l.players?.name].filter(Boolean).join(" ")}`,
-      })),
+      .sort((a: any, b: any) => positionOrder(a.position) - positionOrder(b.position))
+      .map((l: any) => {
+        const num = positionLabel(l.position);
+        return {
+          id: l.player_id,
+          label: `${num ? `#${num} ` : ""}${[l.players?.first_name, l.players?.name].filter(Boolean).join(" ")}`,
+        };
+      }),
     [lineup]
   );
   // Pour les plaquages : prénom + numéro uniquement (boutons compacts)
   const tacklePlayers = useMemo(
     () => (lineup ?? [])
       .slice()
-      .sort((a: any, b: any) => (a.position ?? 99) - (b.position ?? 99))
-      .map((l: any) => ({
-        id: l.player_id,
-        label: `${l.players?.first_name ?? ""}${l.position ? ` #${l.position}` : ""}`.trim(),
-      })),
+      .sort((a: any, b: any) => positionOrder(a.position) - positionOrder(b.position))
+      .map((l: any) => {
+        const num = positionLabel(l.position);
+        return {
+          id: l.player_id,
+          label: `${l.players?.first_name ?? ""}${num ? ` #${num}` : ""}`.trim(),
+        };
+      }),
     [lineup]
   );
   const playerNames = useMemo(() => {
