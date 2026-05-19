@@ -40,6 +40,7 @@ interface Props {
 }
 
 type PeriodFilter = "all" | "H1" | "H2";
+type TeamFilter = "home" | "away" | "all";
 
 function getPos(e: MatchEvent): { x: number; y: number; side: "left" | "right" | null } | null {
   const m = (e.metadata || {}) as any;
