@@ -39,6 +39,13 @@ function StatsBlock({ home, away }: { home: TeamStats; away: TeamStats }) {
       <Row label="En-avants" h={home.knockOns} a={away.knockOns} />
       <div className="border-t my-2" />
       <Row label="Fautes" h={home.fouls} a={away.fouls} />
+      <Row label="↳ Au pied" h={home.foulsByPlay.kick} a={away.foulsByPlay.kick} />
+      <Row label="↳ Pénaltouche" h={home.foulsByPlay.penaltouche} a={away.foulsByPlay.penaltouche} />
+      <Row label="↳ Mêlée" h={home.foulsByPlay.scrum} a={away.foulsByPlay.scrum} />
+      <Row label="↳ À la main" h={home.foulsByPlay.quick} a={away.foulsByPlay.quick} />
+      {(home.foulsByPlay.unknown > 0 || away.foulsByPlay.unknown > 0) && (
+        <Row label="↳ Non précisé" h={home.foulsByPlay.unknown} a={away.foulsByPlay.unknown} />
+      )}
       <Row label="Cartons jaunes" h={home.yellowCards} a={away.yellowCards} />
       <Row label="Cartons rouges" h={home.redCards} a={away.redCards} />
     </div>

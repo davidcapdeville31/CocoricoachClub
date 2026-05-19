@@ -29,8 +29,13 @@ function applyEvent(s: TeamStats, e: MatchEvent) {
       s.turnovers += 1; s.ballsWon += 1; break;
     case "knock_on":
       s.knockOns += 1; s.ballsLost += 1; break;
-    case "foul":
-      s.fouls += 1; break;
+    case "foul": {
+      s.fouls += 1;
+      const fu = m.sanctionFollowUp;
+      if (fu === "kick" || fu === "penaltouche" || fu === "scrum" || fu === "quick") s.foulsByPlay[fu] += 1;
+      else s.foulsByPlay.unknown += 1;
+      break;
+    }
     case "yellow_card":
       s.yellowCards += 1; break;
     case "red_card":
