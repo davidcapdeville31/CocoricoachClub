@@ -392,6 +392,28 @@ export function EventDialog(props: EventDialogProps) {
             </div>
           )}
 
+          {showSanctionFollowUp && (
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                Sanction jouée par l'équipe adverse
+              </Label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mt-1">
+                {[
+                  { v: "kick", l: "Au pied" },
+                  { v: "penaltouche", l: "Pénaltouche" },
+                  { v: "scrum", l: "Mêlée" },
+                  { v: "quick", l: "Jeu à la main" },
+                ].map((o) => (
+                  <Button key={o.v} type="button" variant="outline" onClick={() => setField("penaltyMode", draft.penaltyMode === o.v ? "" : o.v)} className={cls(draft.penaltyMode === o.v)}>{o.l}</Button>
+                ))}
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Optionnel — l'action suivante s'ouvrira automatiquement pour l'équipe adverse.
+              </p>
+            </div>
+          )}
+
+
           {showField && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
