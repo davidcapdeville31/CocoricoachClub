@@ -76,21 +76,24 @@ export function MatchEventPositionsDialog({ open, onOpenChange, kind, events, ho
   const [period, setPeriod] = useState<PeriodFilter>("all");
   const [team, setTeam] = useState<TeamFilter>("home");
 
-  const items = useMemo(() => {
-    const filtered = events.filter(e => {
+  const periodFiltered = useMemo(() => {
+    return events.filter(e => {
       if (!cfg.eventTypes.includes(e.event_type || "")) return false;
       if (period === "H1" && !(e.period === "H1" || e.period === "HT")) return false;
       if (period === "H2" && !(e.period === "H2" || e.period === "ET")) return false;
-      if (team !== "all" && e.team_side !== team) return false;
       return true;
     });
+  }, [events, cfg, period]);
+
+  const items = useMemo(() => {
+    const filtered = team === "all" ? periodFiltered : periodFiltered.filter(e => e.team_side === team);
     return filtered.map(e => ({ e, pos: getPos(e) }));
-  }, [events, cfg, period, team]);
+  }, [periodFiltered, team]);
 
   const positioned = items.filter(i => i.pos);
   const totalCount = items.length;
-  const homeCount = items.filter(i => i.e.team_side === "home").length;
-  const awayCount = items.filter(i => i.e.team_side === "away").length;
+  const homeCount = periodFiltered.filter(e => e.team_side === "home").length;
+  const awayCount = periodFiltered.filter(e => e.team_side === "away").length;
 
   // Goal line X positions in SVG coordinates (5% and 95% inside the field box)
   const FIELD_W = FIELD_RIGHT - FIELD_LEFT;
