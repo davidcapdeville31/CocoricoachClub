@@ -429,11 +429,27 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
 
       return sessionId;
     },
-    onSuccess: () => {
+    onSuccess: (sessionId) => {
       qc.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       toast.success(isEdit ? "Séance terrain mise à jour ✅" : "Séance terrain créée ✅");
+
+      // 🔔 Auto-notify athletes (bell + push + email) on creation
+      if (!isEdit && sessionId) {
+        const mainType = blocks[0]?.theme || "terrain";
+        notify({
+          action: "created",
+          sessionId,
+          categoryId,
+          sessionDate: format(date, "yyyy-MM-dd"),
+          sessionStartTime: startTime || null,
+          sessionType: mainType,
+          location: location || null,
+          participantPlayerIds: selectedPlayers.length > 0 ? selectedPlayers : undefined,
+        }).catch((e) => console.warn("[FieldSession] notify failed:", e));
+      }
+
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message || "Erreur lors de l'enregistrement"),
