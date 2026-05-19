@@ -2727,6 +2727,17 @@ export function CompetitionRoundsDialog({
                 </div>
               </div>
             </TabsContent>
+
+            {!isBowling && (
+              <TabsContent value="history" className="flex-1 min-h-0 mt-0 overflow-y-auto data-[state=active]:flex data-[state=active]:flex-col px-1 py-2">
+                <CompetitionHistoryPanel
+                  categoryId={categoryId}
+                  currentMatchId={matchId}
+                  competition={(matchData as any)?.competition}
+                  sportType={sportType}
+                />
+              </TabsContent>
+            )}
           </Tabs>
         )}
 
