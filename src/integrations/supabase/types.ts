@@ -2395,6 +2395,7 @@ export type Database = {
           round_number: number
           temperature_celsius: number | null
           updated_at: string
+          video_url: string | null
           wind_conditions: string | null
           wind_direction: string | null
         }
@@ -2417,6 +2418,7 @@ export type Database = {
           round_number?: number
           temperature_celsius?: number | null
           updated_at?: string
+          video_url?: string | null
           wind_conditions?: string | null
           wind_direction?: string | null
         }
@@ -2439,6 +2441,7 @@ export type Database = {
           round_number?: number
           temperature_celsius?: number | null
           updated_at?: string
+          video_url?: string | null
           wind_conditions?: string | null
           wind_direction?: string | null
         }
@@ -5569,6 +5572,7 @@ export type Database = {
           team_match_stats: Json
           tournament_level: string | null
           updated_at: string
+          video_url: string | null
         }
         Insert: {
           age_category?: string | null
@@ -5603,6 +5607,7 @@ export type Database = {
           team_match_stats?: Json
           tournament_level?: string | null
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
           age_category?: string | null
@@ -5637,6 +5642,7 @@ export type Database = {
           team_match_stats?: Json
           tournament_level?: string | null
           updated_at?: string
+          video_url?: string | null
         }
         Relationships: [
           {
