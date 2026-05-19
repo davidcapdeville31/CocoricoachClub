@@ -18,6 +18,7 @@ interface Props {
 
 export function PassInlinePanel({ players, teamSide, period, minute, second, onRecord, counts }: Props) {
   const [flash, setFlash] = useState<{ id: string; kind: "success" | "fail" } | null>(null);
+  const [genFlash, setGenFlash] = useState<"success" | "fail" | null>(null);
 
   const record = (playerId: string, kind: "success" | "fail") => {
     setFlash({ id: playerId, kind });
@@ -27,6 +28,21 @@ export function PassInlinePanel({ players, teamSide, period, minute, second, onR
       event_type: "pass",
       outcome: kind,
       player_id: playerId,
+      minute,
+      second,
+      period,
+      points: 0,
+    });
+  };
+
+  const recordGeneral = (kind: "success" | "fail") => {
+    setGenFlash(kind);
+    window.setTimeout(() => setGenFlash((g) => (g === kind ? null : g)), 250);
+    onRecord({
+      team_side: teamSide,
+      event_type: "pass",
+      outcome: kind,
+      player_id: null,
       minute,
       second,
       period,
@@ -47,8 +63,30 @@ export function PassInlinePanel({ players, teamSide, period, minute, second, onR
         </span>
       </div>
 
+      {/* Boutons généraux (sans joueur) — utiles si le numéro n'est pas identifié */}
+      <div className="grid grid-cols-2 gap-2 mb-2">
+        <button
+          onClick={() => recordGeneral("success")}
+          className={cn(
+            "h-11 rounded-xl bg-green-600 hover:bg-green-500 active:bg-green-700 text-white font-bold text-xs uppercase tracking-wider shadow flex items-center justify-center gap-2 transition-all",
+            genFlash === "success" && "ring-2 ring-green-300 scale-[0.98]"
+          )}
+        >
+          <CheckCircle2 className="h-4 w-4" /> Général · Réussie
+        </button>
+        <button
+          onClick={() => recordGeneral("fail")}
+          className={cn(
+            "h-11 rounded-xl bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold text-xs uppercase tracking-wider shadow flex items-center justify-center gap-2 transition-all",
+            genFlash === "fail" && "ring-2 ring-red-300 scale-[0.98]"
+          )}
+        >
+          <XCircle className="h-4 w-4" /> Général · Ratée
+        </button>
+      </div>
+
       {players.length === 0 ? (
-        <p className="text-center text-xs text-muted-foreground py-4">Aucun joueur dans la feuille de match.</p>
+        <p className="text-center text-xs text-muted-foreground py-4">Aucun joueur dans la feuille de match. Utilise les boutons « Général » pour compter au niveau équipe.</p>
       ) : (
         <div className="grid grid-cols-4 gap-2">
           {/* Réussies — colonne 1 */}
