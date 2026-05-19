@@ -354,3 +354,61 @@ export function svgPctToPdfPos(
     ky: fb.fy + fieldFracY * fb.fh,
   };
 }
+
+/**
+ * Draw a thin arrow from a kick marker pointing toward the nearest goalposts.
+ * Helps visualize the trajectory of each kick on the cartography.
+ */
+export function drawPdfGoalpostArrow(
+  doc: jsPDF,
+  kx: number,
+  ky: number,
+  fb: { fx: number; fy: number; fw: number; fh: number },
+  options?: { color?: [number, number, number]; opacity?: number }
+) {
+  const leftGoalX = fb.fx + 0.05 * fb.fw;
+  const rightGoalX = fb.fx + 0.95 * fb.fw;
+  const goalY = fb.fy + 0.5 * fb.fh;
+  // Nearest goal = the one the kick is aimed at (kicks happen near the goal you attack)
+  const targetX = Math.abs(kx - leftGoalX) < Math.abs(kx - rightGoalX) ? leftGoalX : rightGoalX;
+  const dx = targetX - kx;
+  const dy = goalY - ky;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  if (dist < 4) return;
+  // Unit vector
+  const ux = dx / dist;
+  const uy = dy / dist;
+  // Start slightly off the marker, stop ~2.5mm short of posts so arrowhead is visible
+  const startGap = 2.8;
+  const endGap = 2.5;
+  const sx = kx + ux * startGap;
+  const sy = ky + uy * startGap;
+  const ex = targetX - ux * endGap;
+  const ey = goalY - uy * endGap;
+  const color = options?.color || [255, 255, 255];
+  doc.setDrawColor(color[0], color[1], color[2]);
+  doc.setLineWidth(0.25);
+  // Dashed shaft
+  const segLen = 1.6, gapLen = 1.2;
+  const totalLen = Math.sqrt((ex - sx) ** 2 + (ey - sy) ** 2);
+  const steps = Math.floor(totalLen / (segLen + gapLen));
+  for (let i = 0; i < steps; i++) {
+    const t1 = (i * (segLen + gapLen)) / totalLen;
+    const t2 = (i * (segLen + gapLen) + segLen) / totalLen;
+    doc.line(sx + (ex - sx) * t1, sy + (ey - sy) * t1, sx + (ex - sx) * t2, sy + (ey - sy) * t2);
+  }
+  // Arrowhead (small filled triangle at tip)
+  const ahLen = 1.8;
+  const ahW = 1.1;
+  // Perpendicular vector
+  const px = -uy;
+  const py = ux;
+  const baseX = ex - ux * ahLen;
+  const baseY = ey - uy * ahLen;
+  const p1x = baseX + px * ahW;
+  const p1y = baseY + py * ahW;
+  const p2x = baseX - px * ahW;
+  const p2y = baseY - py * ahW;
+  doc.setFillColor(color[0], color[1], color[2]);
+  (doc as any).triangle(ex, ey, p1x, p1y, p2x, p2y, "F");
+}
