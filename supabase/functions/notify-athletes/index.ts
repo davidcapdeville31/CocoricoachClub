@@ -32,6 +32,8 @@ interface NotifyAthletesRequest {
   /** Optional explicit overrides */
   clubName?: string;
   categoryName?: string;
+  /** When true, skip inserting in-app bell notifications (caller already did it) */
+  skipBell?: boolean;
 }
 
 const APP_NAME = "CocoriCoach Club";
@@ -102,7 +104,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const body: NotifyAthletesRequest = await req.json();
-    const { athletes, message, channels, eventType, eventDetails, category_id } = body;
+    const { athletes, message, channels, eventType, eventDetails, category_id, skipBell } = body;
     let { clubName, categoryName } = body;
 
     if (!athletes || athletes.length === 0) throw new Error("No athletes provided");
@@ -249,7 +251,7 @@ const handler = async (req: Request): Promise<Response> => {
         is_read: false,
       }));
 
-    if (bellRows.length > 0) {
+    if (!skipBell && bellRows.length > 0) {
       const { error: bellError } = await supabaseService
         .from("notifications")
         .insert(bellRows);
