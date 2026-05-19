@@ -5,11 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Users, BarChart3, Activity, Play, ClipboardEdit } from "lucide-react";
+import { Users, BarChart3, Activity, Play, ClipboardEdit, History } from "lucide-react";
 import { useMatchEvents } from "../live/hooks/useMatchEvents";
 import { useMatchStats } from "../live/hooks/useMatchStats";
 import { MatchStatsHeader } from "./MatchStatsHeader";
 import { MatchTeamStatsView } from "./MatchTeamStatsView";
+import { CompetitionHistoryPanel } from "../CompetitionHistoryPanel";
 import { MatchPlayerStatsView } from "./MatchPlayerStatsView";
 import { MatchTimelineView } from "./MatchTimelineView";
 
