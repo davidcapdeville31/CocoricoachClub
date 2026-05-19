@@ -772,12 +772,12 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
                 {canExport && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => { setExportScope("single"); setIsExportOpen(true); }}>
+                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setExportScope("single"); setTimeout(() => setIsExportOpen(true), 0); }}>
                       <Download className="h-4 w-4 mr-2" />
                       Exporter ce match (PDF / Excel)
                     </DropdownMenuItem>
                     {hasSubMatches && (
-                      <DropdownMenuItem onClick={() => { setExportScope("competition"); setIsExportOpen(true); }}>
+                      <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setExportScope("competition"); setTimeout(() => setIsExportOpen(true), 0); }}>
                         <FileSpreadsheet className="h-4 w-4 mr-2" />
                         Exporter toute la compétition ({(subMatches?.length || 0) + 1})
                       </DropdownMenuItem>
