@@ -32,7 +32,7 @@ export function MatchStatsDialog({
   onOpenManual,
 }: Props) {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"team" | "players" | "timeline">("team");
+  const [tab, setTab] = useState<"team" | "players" | "timeline" | "history">("team");
 
   const { data: match } = useQuery({
     queryKey: ["match-stats-meta", matchId],
