@@ -59,6 +59,7 @@ const SUBTYPES: Partial<Record<EventType, { value: string; label: string }[]>> =
     { value: "hors_jeu", label: "Hors-jeu" },
     { value: "plaquage_haut", label: "Plaquage haut" },
     { value: "anti_jeu", label: "Anti-jeu" },
+    { value: "coup_franc", label: "Coup franc" },
     { value: "autre", label: "Autre" },
   ],
   yellow_card: [
