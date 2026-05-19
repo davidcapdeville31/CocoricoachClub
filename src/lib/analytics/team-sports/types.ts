@@ -2,6 +2,14 @@ import type { MatchEvent, Period } from "@/components/category/matches/live/type
 
 export type AnalyticsPeriod = "all" | "H1" | "H2";
 
+export interface FoulsByPlay {
+  kick: number;
+  penaltouche: number;
+  scrum: number;
+  quick: number;
+  unknown: number;
+}
+
 export interface TeamStats {
   points: number;
   tries: number;
@@ -15,6 +23,7 @@ export interface TeamStats {
   meters: number; lineBreaks: number; offloads: number; passes: number; passesMissed: number; carries: number; kicks: number; kicksMissed: number;
   // Discipline
   fouls: number; yellowCards: number; redCards: number; knockOns: number;
+  foulsByPlay: FoulsByPlay;
   // Set piece
   lineoutsWon: number; lineoutsLost: number;
   scrumsWon: number; scrumsLost: number;
@@ -25,6 +34,8 @@ export interface PlayerAggStats extends TeamStats {
   playTimeMinutes: number;
 }
 
+export const emptyFoulsByPlay = (): FoulsByPlay => ({ kick: 0, penaltouche: 0, scrum: 0, quick: 0, unknown: 0 });
+
 export const emptyTeamStats = (): TeamStats => ({
   points: 0, tries: 0,
   conversionsMade: 0, conversionsAttempted: 0,
@@ -34,6 +45,7 @@ export const emptyTeamStats = (): TeamStats => ({
   turnovers: 0, ballsWon: 0, ballsLost: 0,
   meters: 0, lineBreaks: 0, offloads: 0, passes: 0, passesMissed: 0, carries: 0, kicks: 0, kicksMissed: 0,
   fouls: 0, yellowCards: 0, redCards: 0, knockOns: 0,
+  foulsByPlay: emptyFoulsByPlay(),
   lineoutsWon: 0, lineoutsLost: 0,
   scrumsWon: 0, scrumsLost: 0,
 });
