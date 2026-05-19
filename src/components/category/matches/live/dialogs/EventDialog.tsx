@@ -29,7 +29,7 @@ export interface EventDialogProps {
   awayPlayers: EventDialogPlayer[];
   /** Editing existing event */
   initial?: MatchEvent | null;
-  onSubmit: (payload: Partial<MatchEvent>, chain?: { type: EventType }) => void;
+  onSubmit: (payload: Partial<MatchEvent>, chain?: { type: EventType; flipSide?: boolean }) => void;
 }
 
 const SUBTYPES: Partial<Record<EventType, { value: string; label: string }[]>> = {
