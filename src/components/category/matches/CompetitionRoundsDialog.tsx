@@ -566,6 +566,7 @@ export function CompetitionRoundsDialog({
               bowlingFrames: bowlingFrames,
               bowlingCategory: bowlingCategory,
               roundDate: roundDate,
+              video_url: (r as any).video_url ?? null,
             };
           }),
         };
