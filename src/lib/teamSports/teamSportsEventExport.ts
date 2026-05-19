@@ -207,6 +207,11 @@ function drawKickingMapsSection(
   }
   const fb = drawPdfRugbyField(pdf, margin, y, pageW - margin * 2, pitchH, { showLabels: true });
 
+  // Trajectory arrows (drawn first so markers sit on top)
+  for (const k of kicks) {
+    const { kx, ky } = svgPctToPdfPos(k, fb);
+    drawPdfGoalpostArrow(pdf, kx, ky, fb);
+  }
   // Markers
   for (const k of kicks) {
     const { kx, ky } = svgPctToPdfPos(k, fb);
