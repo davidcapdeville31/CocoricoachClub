@@ -178,10 +178,13 @@ export function GeneralTab({ match, categoryId }: Props) {
 
           <StatBlock title="Discipline" accent="rose">
             <StatBar label="Pénalités concédées" h={home.fouls} a={away.fouls} reverse />
-            <StatBar label="↳ Les points" h={home.foulsByPlay.kick} a={away.foulsByPlay.kick} reverse />
+            <StatBar label="↳ Les points" h={home.foulsByPlay.kick + home.foulsByPlay.points} a={away.foulsByPlay.kick + away.foulsByPlay.points} reverse />
             <StatBar label="↳ Pénaltouche" h={home.foulsByPlay.penaltouche} a={away.foulsByPlay.penaltouche} reverse />
             <StatBar label="↳ Jouées en mêlée" h={home.foulsByPlay.scrum} a={away.foulsByPlay.scrum} reverse />
             <StatBar label="↳ Jouées à la main" h={home.foulsByPlay.quick} a={away.foulsByPlay.quick} reverse />
+            {(home.foulsByPlay.unknown > 0 || away.foulsByPlay.unknown > 0) && (
+              <StatBar label="↳ Autre / non précisé" h={home.foulsByPlay.unknown} a={away.foulsByPlay.unknown} reverse />
+            )}
             <StatBar label="Cartons jaunes" h={home.yellowCards} a={away.yellowCards} reverse />
             <StatBar label="Cartons rouges" h={home.redCards} a={away.redCards} reverse />
           </StatBlock>
