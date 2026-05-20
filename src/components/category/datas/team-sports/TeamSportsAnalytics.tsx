@@ -51,6 +51,43 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
     );
   };
 
+  const handleAggregateExport = async (fmt: "pdf" | "excel") => {
+    if (selectedMatches.length === 0) return;
+    setExportingAggregate(fmt);
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const ids = selectedMatches.map((m) => m.id);
+      const { data, error } = await supabase
+        .from("match_events" as any)
+        .select("*")
+        .in("match_id", ids);
+      if (error) throw error;
+      const allEvents = (data ?? []) as any[];
+      const matchesPayload = selectedMatches.map((m) => ({
+        match: {
+          id: m.id,
+          match_date: m.match_date,
+          opponent: m.opponent,
+          is_home: m.is_home ?? null,
+          location: (m as any).location ?? null,
+          competition: (m as any).competition ?? null,
+          age_category: (m as any).age_category ?? null,
+          score_home: m.score_home ?? null,
+          score_away: m.score_away ?? null,
+        },
+        events: allEvents.filter((e) => e.match_id === m.id),
+      }));
+      if (fmt === "pdf") await exportAggregatedTeamSportPdf({ categoryId, matches: matchesPayload, ourTeamName });
+      else await exportAggregatedTeamSportExcel({ categoryId, matches: matchesPayload, ourTeamName });
+      toast.success("Export généré");
+    } catch (e: any) {
+      console.error(e);
+      toast.error(`Erreur lors de l'export : ${e?.message || "inconnue"}`);
+    } finally {
+      setExportingAggregate(null);
+    }
+  };
+
   if (isLoading) return <p className="text-sm text-muted-foreground py-8 text-center">Chargement…</p>;
 
   if (playable.length === 0) {
