@@ -13,6 +13,7 @@ import { useCategoryTeamName } from "@/hooks/analytics/useTeamSportsAnalytics";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { GeneralTab } from "./tabs/GeneralTab";
+import { GeneralAggregateTab } from "./tabs/GeneralAggregateTab";
 import { PlayerStatsTab } from "./tabs/PlayerStatsTab";
 import { CompareTab } from "./tabs/CompareTab";
 
