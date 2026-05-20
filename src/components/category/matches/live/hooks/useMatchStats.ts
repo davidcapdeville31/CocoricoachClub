@@ -3,6 +3,7 @@ import type { MatchEvent } from "../types";
 
 export interface FoulsByPlay {
   kick: number;
+  points: number;
   penaltouche: number;
   scrum: number;
   quick: number;
