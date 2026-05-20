@@ -14,6 +14,8 @@ declare global {
 
 let isInitialized = false;
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 /** Safe check: does this browser support the Notification API? */
 const hasNotificationAPI = () =>
   typeof window !== "undefined" && "Notification" in window;
@@ -85,13 +87,57 @@ export async function requestOneSignalPermission(): Promise<boolean> {
 export function getOneSignalPermission(): NotificationPermission {
   // Try OneSignal SDK first (more reliable across domains)
   try {
-    if (window.OneSignal?.Notifications?.permission) {
-      return "granted";
-    }
+    const sdkPermission = window.OneSignal?.Notifications?.permission;
+    if (sdkPermission === true || sdkPermission === "granted") return "granted";
+    if (sdkPermission === false || sdkPermission === "denied") return "denied";
+    if (sdkPermission === "default") return "default";
   } catch { /* ignore */ }
   
   if (!hasNotificationAPI()) return "default";
   return window.Notification.permission;
+}
+
+async function ensurePushSubscription(): Promise<boolean> {
+  if (typeof window === "undefined" || !window.OneSignal) return false;
+
+  try {
+    const pushSubscription = window.OneSignal.User?.PushSubscription;
+
+    if (pushSubscription?.optIn) {
+      await pushSubscription.optIn();
+    }
+
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const optedIn = pushSubscription?.optedIn === true;
+      const token = typeof pushSubscription?.token === "string" && pushSubscription.token.length > 0;
+      const subscriptionId = typeof pushSubscription?.id === "string" && pushSubscription.id.length > 0;
+
+      if (optedIn || token || subscriptionId) {
+        console.log("[OneSignal] Push subscription ready", {
+          optedIn,
+          hasToken: token,
+          hasId: subscriptionId,
+        });
+        return true;
+      }
+
+      await sleep(500);
+    }
+  } catch (err) {
+    console.warn("[OneSignal] Unable to confirm push subscription:", err);
+  }
+
+  return false;
+}
+
+export async function waitForOneSignalServerSubscription(userId: string, attempts = 5, delayMs = 1500): Promise<boolean> {
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const subscribed = await checkOneSignalSubscriptionStatus(userId);
+    if (subscribed) return true;
+    if (attempt < attempts - 1) await sleep(delayMs);
+  }
+
+  return false;
 }
 
 /**
@@ -118,7 +164,7 @@ export async function oneSignalLogin(
   userId: string,
   email: string,
   userTags: Record<string, string>
-): Promise<void> {
+): Promise<boolean> {
   // ── Always sync server-side first (most reliable — works on any domain) ──
   try {
     const res = await supabase.functions.invoke("sync-onesignal-tags", {
@@ -135,7 +181,9 @@ export async function oneSignalLogin(
 
   // ── SDK-side: link external_id and set tags in the browser ───────────────
   // This only works on the production domain (cocoricoachclub.com)
-  if (typeof window === "undefined" || !window.OneSignal) return;
+  if (typeof window === "undefined" || !window.OneSignal) {
+    return waitForOneSignalServerSubscription(userId, 2, 1000);
+  }
 
   const tags: Record<string, string> = {
     user_id: userId,
@@ -147,7 +195,7 @@ export async function oneSignalLogin(
     const OneSignal = window.OneSignal;
 
     // ── SDK v16+ API (preferred) ─────────────────────────────────────────────
-    if (typeof OneSignal.login === "function") {
+      if (typeof OneSignal.login === "function") {
       await OneSignal.login(userId);
       console.log("[OneSignal] login() — external_id set:", userId);
 
@@ -165,6 +213,8 @@ export async function oneSignalLogin(
           OneSignal.User.addTag(key, value);
         }
       }
+
+      await ensurePushSubscription();
     } else {
       // ── Legacy SDK v1 API (fallback) ──────────────────────────────────────
       OneSignal.push(function () {
@@ -175,6 +225,8 @@ export async function oneSignalLogin(
   } catch (err) {
     console.warn("[OneSignal] SDK login error (expected on non-production domains):", err);
   }
+
+  return waitForOneSignalServerSubscription(userId);
 }
 
 /**

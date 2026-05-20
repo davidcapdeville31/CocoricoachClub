@@ -9,8 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Bell, BellOff, Lock, Mail, Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
-import { requestOneSignalPermission, getOneSignalPermission } from "@/lib/onesignal";
-import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { requestOneSignalPermission, getOneSignalPermission, initOneSignal, buildUserTags, oneSignalLogin, checkOneSignalSubscriptionStatus } from "@/lib/onesignal";
 import { useQuery } from "@tanstack/react-query";
 import { PersonalNotificationPreferences } from "@/components/notifications/PersonalNotificationPreferences";
 import { PWAInstallGuide } from "@/components/PWAInstallGuide";
@@ -21,7 +20,8 @@ interface AthleteSpaceSettingsProps {
 
 export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
   const { user } = useAuth();
-  const { isSupported, subscribe } = usePushNotifications();
+  const [isSupported, setIsSupported] = useState(false);
+  const [serverSubscribed, setServerSubscribed] = useState<boolean | null>(null);
   const [permission, setPermission] = useState<NotificationPermission>(getOneSignalPermission());
   const [isActivating, setIsActivating] = useState(false);
 
@@ -35,6 +35,7 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
   // Refresh permission on mount and when tab becomes visible
   useEffect(() => {
     const refresh = () => setPermission(getOneSignalPermission());
+    setIsSupported(typeof window !== "undefined" && "Notification" in window && "serviceWorker" in navigator);
     refresh();
     document.addEventListener("visibilitychange", refresh);
     return () => document.removeEventListener("visibilitychange", refresh);
@@ -94,14 +95,25 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
   // 3. Current user's email (fallback)
   const displayEmail = athleteProfile?.email || playerData?.email || user?.email || "—";
 
+  useEffect(() => {
+    const targetUserId = playerData?.user_id || user?.id;
+    if (!targetUserId) return;
+    checkOneSignalSubscriptionStatus(targetUserId).then(setServerSubscribed).catch(() => setServerSubscribed(false));
+  }, [playerData?.user_id, user?.id]);
+
   const handleActivateNotifications = async () => {
     setIsActivating(true);
     try {
+      await initOneSignal();
       const granted = await requestOneSignalPermission();
       if (granted) {
-        await subscribe();
-        setPermission("granted");
-        toast.success("Notifications activées !");
+        if (!user) throw new Error("Utilisateur introuvable");
+        const tags = await buildUserTags(user.id);
+        const subscribed = await oneSignalLogin(user.id, user.email || "", tags);
+        setPermission(getOneSignalPermission());
+        setServerSubscribed(subscribed);
+        if (subscribed) toast.success("Notifications push activées !");
+        else toast.warning("Autorisation accordée, mais l'appareil n'est pas encore abonné au push.");
       } else {
         setPermission(getOneSignalPermission());
         toast.error("Notifications refusées par le navigateur");
@@ -139,7 +151,7 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
   };
 
   // Determine push status: use OneSignal SDK permission + subscription
-  const pushIsGranted = permission === "granted";
+  const pushIsGranted = serverSubscribed === true;
   const pushIsDenied = permission === "denied";
   const pushIsDefault = !pushIsGranted && !pushIsDenied;
 
@@ -192,7 +204,9 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
                 <div>
                   <p className="text-sm font-medium">Notifications non activées</p>
                   <p className="text-xs text-muted-foreground">
-                    Active les notifications pour ne rien manquer !
+                    {permission === "granted"
+                      ? "Autorisation accordée, mais aucun appareil push n'est encore relié."
+                      : "Active les notifications pour ne rien manquer !"}
                   </p>
                 </div>
               </div>
