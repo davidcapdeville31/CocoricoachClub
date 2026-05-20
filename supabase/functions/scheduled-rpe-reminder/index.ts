@@ -69,7 +69,6 @@ serve(async (req) => {
       );
     }
 
-    let totalEmailsSent = 0;
     let totalPushSent = 0;
     const results: any[] = [];
 
@@ -184,62 +183,12 @@ serve(async (req) => {
         console.error("[rpe] In-app notification error:", e);
       }
 
-      // Filter recipients by per-user notification preferences
+      // Filter recipients by per-user notification preferences (push only — pas d'email pour ce rappel)
       const allUserIds = players.filter((p) => p.user_id).map((p) => p.user_id!);
-      const { pushUserIds: allowedPushUserIds, emailUserIds: allowedEmailUserIds } =
+      const { pushUserIds: allowedPushUserIds } =
         await filterByPreferences(supabase, allUserIds, "rpe_reminder");
-      const allowedEmailSet = new Set(allowedEmailUserIds);
       const allowedPushSet = new Set(allowedPushUserIds);
 
-      // ── EMAIL via OneSignal ──────────────────────────────────────────────
-      const emailRecipients = players
-        .filter((p) => p.email && p.user_id && allowedEmailSet.has(p.user_id))
-        .map((p) => p.email!);
-
-      if (emailRecipients.length > 0) {
-        try {
-          const response = await fetch("https://api.onesignal.com/notifications", {
-            method: "POST",
-            headers: baseHeaders,
-            body: JSON.stringify({
-              app_id: oneSignalAppId,
-              include_email_tokens: emailRecipients,
-              email_subject: `📊 RPE - Comment as-tu ressenti la séance ?`,
-              email_body: `
-                <html>
-                  <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f5;">
-                    <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                      <div style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 24px; text-align: center;">
-                        <h1 style="color: white; margin: 0; font-size: 20px;">🏉 CocoriCoach</h1>
-                      </div>
-                      <div style="padding: 24px;">
-                        <h2 style="margin: 0 0 12px;">Séance terminée ! 🏋️</h2>
-                        <p>La séance de <strong>${trainingTypeLabel}</strong> est terminée.</p>
-                        <p><strong>Catégorie:</strong> ${category.name}</p>
-                        <p>N'oublie pas de renseigner ton RPE (perception de l'effort)${tonnageHint} pour aider ton staff à optimiser ta charge d'entraînement.</p>
-                        <p style="color: #6b7280;">Échelle RPE : 1 (très facile) à 10 (effort maximal)</p>
-                        <div style="text-align: center; margin: 24px 0;">
-                          <a href="${rpeDeepLink}" style="display: inline-block; background: linear-gradient(135deg, #059669, #10b981); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; font-size: 16px;">📊 Renseigner mon RPE</a>
-                        </div>
-                        <p>Bravo pour l'entraînement ! 💪</p>
-                      </div>
-                    </div>
-                  </body>
-                </html>
-              `,
-            }),
-          });
-
-          if (response.ok) {
-            totalEmailsSent += emailRecipients.length;
-          } else {
-            const err = await response.json();
-            console.error(`[rpe] Email error for session ${session.id}:`, err);
-          }
-        } catch (error) {
-          console.error("[rpe] Email send error:", error);
-        }
-      }
 
       // ── PUSH via OneSignal (external_id targeting) ─────────────────────
       const pushUserIds = players
@@ -292,19 +241,17 @@ serve(async (req) => {
         training_type: trainingTypeLabel,
         totalPlayers: playerIds.length,
         alreadySubmitted: submittedPlayerIds.size,
-        emailsSent: emailRecipients.length,
         pushTargeted: pushUserIds.length,
         type: "rpe_reminder",
       });
     }
 
-    console.log(`[rpe] Total: ${totalEmailsSent} emails, ${totalPushSent} push sent`);
+    console.log(`[rpe] Total: ${totalPushSent} push sent`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: `${totalEmailsSent} email(s) + ${totalPushSent} push sent`,
-        emailsSent: totalEmailsSent,
+        message: `${totalPushSent} push sent`,
         pushSent: totalPushSent,
         results,
       }),
