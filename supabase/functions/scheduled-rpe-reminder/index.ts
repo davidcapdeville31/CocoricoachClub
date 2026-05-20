@@ -216,9 +216,10 @@ serve(async (req) => {
                         <h2 style="margin: 0 0 12px;">Séance terminée ! 🏋️</h2>
                         <p>La séance de <strong>${trainingTypeLabel}</strong> est terminée.</p>
                         <p><strong>Catégorie:</strong> ${category.name}</p>
-                        <p>N'oublie pas de renseigner ton RPE (perception de l'effort) pour aider ton staff à optimiser ta charge d'entraînement.</p>
+                        <p>N'oublie pas de renseigner ton RPE (perception de l'effort)${tonnageHint} pour aider ton staff à optimiser ta charge d'entraînement.</p>
                         <p style="color: #6b7280;">Échelle RPE : 1 (très facile) à 10 (effort maximal)</p>
                         <div style="text-align: center; margin: 24px 0;">
+                          <a href="${rpeDeepLink}" style="display: inline-block; background: linear-gradient(135deg, #059669, #10b981); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; font-size: 16px;">📊 Renseigner mon RPE</a>
                           <a href="${rpeDeepLink}" style="display: inline-block; background: linear-gradient(135deg, #059669, #10b981); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; font-size: 16px;">📊 Renseigner mon RPE</a>
                         </div>
                         <p>Bravo pour l'entraînement ! 💪</p>
