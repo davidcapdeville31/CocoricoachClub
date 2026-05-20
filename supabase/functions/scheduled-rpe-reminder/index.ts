@@ -70,7 +70,6 @@ serve(async (req) => {
     }
 
     let totalPushSent = 0;
-    let totalPushSent = 0;
     const results: any[] = [];
 
     for (const session of sessions) {
