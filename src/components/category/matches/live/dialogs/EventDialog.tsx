@@ -189,8 +189,8 @@ export function EventDialog(props: EventDialogProps) {
     (eventType === "penalty_kick" && (draft.penaltyMode === "kick" || draft.penaltyMode === "points"));
   const isPenaltouche = eventType === "penalty_kick" && draft.penaltyMode === "penaltouche";
   const isSetPiece = eventType === "lineout" || eventType === "scrum";
-  // Terrain visible : tirs au but, set-pieces, OU pénaltouche réussie (pour placer le point de chute)
-  const showField = isKickAttempt || isSetPiece || (isPenaltouche && draft.outcome === "success");
+  // Terrain visible : tirs au but, set-pieces, pénaltouche réussie, OU en-avant (pour positionner la mêlée qui suit)
+  const showField = isKickAttempt || isSetPiece || (isPenaltouche && draft.outcome === "success") || eventType === "knock_on";
   const showOutcomeSuccessFail =
     eventType === "conversion" ||
     eventType === "drop" ||
