@@ -187,7 +187,13 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
         )}
 
         <TabsContent value="general">
-          {currentMatch && <GeneralTab match={currentMatch} categoryId={categoryId} />}
+          {selectedMatches.length === 1 ? (
+            <GeneralTab match={selectedMatches[0]} categoryId={categoryId} />
+          ) : selectedMatches.length > 1 ? (
+            <GeneralAggregateTab matches={selectedMatches} categoryId={categoryId} />
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-8">Sélectionnez au moins un match.</p>
+          )}
         </TabsContent>
         <TabsContent value="players">
           {selectedMatches.length > 0 && (
