@@ -27,7 +27,7 @@ export interface TeamStats {
   knockOns: number;
 }
 
-const emptyFoulsByPlay = (): FoulsByPlay => ({ kick: 0, penaltouche: 0, scrum: 0, quick: 0, unknown: 0 });
+const emptyFoulsByPlay = (): FoulsByPlay => ({ kick: 0, points: 0, penaltouche: 0, scrum: 0, quick: 0, unknown: 0 });
 
 const empty = (): TeamStats => ({
   points: 0, tries: 0,
