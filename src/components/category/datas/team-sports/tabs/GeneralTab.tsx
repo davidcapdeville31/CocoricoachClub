@@ -215,7 +215,7 @@ export function GeneralTab({ match, categoryId }: Props) {
   );
 }
 
-function KpiTile({
+export function KpiTile({
   label, h, a, suffix = "", reverse = false, homeName, awayName, onShowPositions, ratioColored = false,
 }: {
   label: string;
