@@ -242,19 +242,17 @@ serve(async (req) => {
         training_type: trainingTypeLabel,
         totalPlayers: playerIds.length,
         alreadySubmitted: submittedPlayerIds.size,
-        emailsSent: emailRecipients.length,
         pushTargeted: pushUserIds.length,
         type: "rpe_reminder",
       });
     }
 
-    console.log(`[rpe] Total: ${totalEmailsSent} emails, ${totalPushSent} push sent`);
+    console.log(`[rpe] Total: ${totalPushSent} push sent`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: `${totalEmailsSent} email(s) + ${totalPushSent} push sent`,
-        emailsSent: totalEmailsSent,
+        message: `${totalPushSent} push sent`,
         pushSent: totalPushSent,
         results,
       }),
