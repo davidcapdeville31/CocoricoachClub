@@ -24,16 +24,11 @@ interface Props {
 export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
   const { data: matches = [], isLoading } = useCategoryMatches(categoryId);
   const [activeTab, setActiveTab] = useState("general");
-  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
   const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | null>(null);
   const { data: ourTeamName = "Notre équipe" } = useCategoryTeamName(categoryId);
 
   const playable = useMemo(() => matches.filter(m => m.event_type !== "individual"), [matches]);
-  const currentMatch = useMemo(
-    () => playable.find(m => m.id === selectedMatchId) || playable[0],
-    [playable, selectedMatchId]
-  );
 
   // Initialise la sélection multi-matchs quand la liste arrive
   useEffect(() => {
