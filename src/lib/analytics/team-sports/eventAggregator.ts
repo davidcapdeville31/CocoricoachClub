@@ -32,7 +32,7 @@ function applyEvent(s: TeamStats, e: MatchEvent) {
     case "foul": {
       s.fouls += 1;
       const fu = m.sanctionFollowUp;
-      if (fu === "kick" || fu === "penaltouche" || fu === "scrum" || fu === "quick") s.foulsByPlay[fu] += 1;
+      if (fu === "kick" || fu === "points" || fu === "penaltouche" || fu === "scrum" || fu === "quick") s.foulsByPlay[fu] += 1;
       else s.foulsByPlay.unknown += 1;
       break;
     }
