@@ -391,8 +391,25 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
   const isFinalized = match.is_finalized === true;
   const isTrainingMatch = match.event_type === "training";
 
-  // Result highlight removed per user request — keep neutral card background
-  const resultClass = "";
+  // Win/loss/draw highlight (only for finalized team matches with scores)
+  let resultClass = "";
+  if (
+    !isIndividual &&
+    isFinalized &&
+    !isTrainingMatch &&
+    match.score_home !== null &&
+    match.score_away !== null
+  ) {
+    const ourScore = match.is_home ? match.score_home : match.score_away;
+    const theirScore = match.is_home ? match.score_away : match.score_home;
+    if (ourScore > theirScore) {
+      resultClass = "border-emerald-500/60 bg-emerald-500/10 hover:bg-emerald-500/15";
+    } else if (ourScore < theirScore) {
+      resultClass = "border-red-500/60 bg-red-500/10 hover:bg-red-500/15";
+    } else {
+      resultClass = "border-amber-500/60 bg-amber-500/10 hover:bg-amber-500/15";
+    }
+  }
 
   return (
     <>
