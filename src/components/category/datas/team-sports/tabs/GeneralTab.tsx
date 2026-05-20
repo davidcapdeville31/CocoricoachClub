@@ -323,10 +323,18 @@ function StatBar({
   onShowPositions?: () => void;
 }) {
   const isRatio = kind === "ratio";
+
+  // Per-team percentages (so 6/6 = 100%, 4/5 = 80% — pas de fusion entre équipes)
+  const hPct = isRatio
+    ? ((hTotal ?? 0) > 0 ? (h / (hTotal as number)) * 100 : null)
+    : null;
+  const aPct = isRatio
+    ? ((aTotal ?? 0) > 0 ? (a / (aTotal as number)) * 100 : null)
+    : null;
+
+  // Central indicator (non-ratio kinds → part du total de l'équipe à domicile sur le combiné)
   const centerPct = isRatio
-    ? (((hTotal || 0) + (aTotal || 0)) > 0
-        ? ((h + a) / ((hTotal || 0) + (aTotal || 0))) * 100
-        : null)
+    ? null
     : (h + a > 0 ? (h / (h + a)) * 100 : null);
 
   const homeBetter = reverse ? h < a : h > a;
@@ -339,7 +347,16 @@ function StatBar({
   const hHasData = isRatio ? (hTotal ?? 0) > 0 : (h !== 0 || a !== 0);
   const aHasData = isRatio ? (aTotal ?? 0) > 0 : (h !== 0 || a !== 0);
 
-  // Tonalité analytique du % (uniquement quand kind === "ratio" — c'est un % de réussite)
+  // Tonalité par équipe (kind=ratio) — couleur du % selon la qualité
+  function toneOf(pct: number | null): "success" | "warning" | "danger" | "neutral" {
+    if (pct === null) return "neutral";
+    if (pct >= 75) return "success";
+    if (pct >= 60) return "neutral";
+    if (pct >= 40) return "warning";
+    return "danger";
+  }
+  const hTone = toneOf(hPct);
+  const aTone = toneOf(aPct);
   const pctTone: "success" | "warning" | "danger" | "neutral" =
     !isRatio || centerPct === null
       ? "neutral"
