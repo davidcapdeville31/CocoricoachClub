@@ -310,7 +310,7 @@ function TeamSide({ name, score, winner, align }: { name: string; score: number;
   );
 }
 
-function StatBar({
+export function StatBar({
   label, h, a, hTotal, aTotal, kind = "count", reverse = false, suffix = "", onShowPositions, homeName, awayName,
 }: {
   label: string;
