@@ -490,7 +490,7 @@ const BLOCK_ACCENTS: Record<string, { dot: string; text: string; bar: string; bg
   rose:    { dot: "bg-rose-500",    text: "text-rose-500",    bar: "bg-rose-500",    bg: "from-rose-500/[0.07]",    hover: "hover:from-rose-500/[0.12]" },
 };
 
-function StatBlock({
+export function StatBlock({
   title,
   accent,
   children,
