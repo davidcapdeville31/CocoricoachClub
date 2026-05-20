@@ -4,6 +4,7 @@ export type AnalyticsPeriod = "all" | "H1" | "H2";
 
 export interface FoulsByPlay {
   kick: number;
+  points: number;
   penaltouche: number;
   scrum: number;
   quick: number;
