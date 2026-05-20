@@ -192,7 +192,7 @@ export default function LiveMatchPage() {
     }
   }, [chainNext, openType]);
 
-  const handleSubmit = async (payload: Partial<MatchEvent>, chain?: { type: EventType; flipSide?: boolean }) => {
+  const handleSubmit = async (payload: Partial<MatchEvent>, chain?: { type: EventType; flipSide?: boolean; autoPayload?: Partial<MatchEvent> }) => {
     try {
       if (editing) {
         await update.mutateAsync({ id: editing.id, patch: payload });
@@ -203,10 +203,19 @@ export default function LiveMatchPage() {
       }
       setOpenType(null); setEditing(null);
       if (chain) {
-        const side = (payload.team_side as "home" | "away") ?? null;
-        const nextSide = chain.flipSide && side ? (side === "home" ? "away" : "home") : side;
-        setChainSide(nextSide);
-        setChainNext(chain.type);
+        // Si autoPayload : on crée directement l'événement chaîné sans ouvrir de dialog
+        if (chain.autoPayload) {
+          try {
+            await create.mutateAsync(chain.autoPayload);
+            toast.success("Mêlée enregistrée automatiquement");
+          } catch {/* toast handled */}
+          setChainSide(null);
+        } else {
+          const side = (payload.team_side as "home" | "away") ?? null;
+          const nextSide = chain.flipSide && side ? (side === "home" ? "away" : "home") : side;
+          setChainSide(nextSide);
+          setChainNext(chain.type);
+        }
       } else {
         setChainSide(null);
       }
