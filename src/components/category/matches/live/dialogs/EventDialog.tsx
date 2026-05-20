@@ -269,10 +269,9 @@ export function EventDialog(props: EventDialogProps) {
     // Sanction (faute/jaune/rouge) → la sanction est jouée par l'équipe adverse
     if (showSanctionFollowUp && draft.penaltyMode) {
       const mode = draft.penaltyMode;
-      if (mode === "kick") chain = { type: "penalty_kick", flipSide: true };
+      if (mode === "kick" || mode === "points") chain = { type: "penalty_kick", flipSide: true };
       else if (mode === "penaltouche") chain = { type: "lineout", flipSide: true };
       else if (mode === "scrum") chain = { type: "scrum", flipSide: true };
-      // "points" → tir au but joué directement dans cette saisie, pas de chain
       // "quick" (jeu à la main) → pas de chain, action collective sans saisie supplémentaire
     }
     onSubmit(payload, chain);
