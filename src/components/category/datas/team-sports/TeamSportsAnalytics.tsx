@@ -180,6 +180,32 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
                 </Button>
               </div>
             )}
+            {activeTab === "general" && selectedMatches.length > 1 && (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={exportingAggregate !== null}
+                  className="gap-1.5 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10"
+                  onClick={() => handleAggregateExport("excel")}
+                  title="Exporter le cumul Excel des matchs sélectionnés"
+                >
+                  {exportingAggregate === "excel" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                  Excel (cumul)
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={exportingAggregate !== null}
+                  className="gap-1.5 border-rose-500/40 text-rose-700 dark:text-rose-300 hover:bg-rose-500/10"
+                  onClick={() => handleAggregateExport("pdf")}
+                  title="Exporter le cumul PDF des matchs sélectionnés"
+                >
+                  {exportingAggregate === "pdf" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  PDF (cumul)
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
