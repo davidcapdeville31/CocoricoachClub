@@ -416,10 +416,9 @@ export function EventDialog(props: EventDialogProps) {
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">
                 Sanction jouée par l'équipe adverse
               </Label>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 mt-1">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mt-1">
                 {[
-                  { v: "kick", l: "Au pied" },
-                  { v: "points", l: "Les points" },
+                  { v: "kick", l: "Les points" },
                   { v: "penaltouche", l: "Pénaltouche" },
                   { v: "scrum", l: "Mêlée" },
                   { v: "quick", l: "Jeu à la main" },
