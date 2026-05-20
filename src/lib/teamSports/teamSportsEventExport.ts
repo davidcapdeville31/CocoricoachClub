@@ -18,7 +18,7 @@ import {
   tackleRatio,
   kickRatio,
 } from "@/lib/analytics/team-sports/eventAggregator";
-import type { TeamStats, PlayerAggStats } from "@/lib/analytics/team-sports/types";
+import { emptyTeamStats, type TeamStats, type PlayerAggStats } from "@/lib/analytics/team-sports/types";
 import type { MatchEvent } from "@/components/category/matches/live/types";
 import { preparePdfWithSettings, drawPdfHeader, type PdfCustomSettings } from "@/lib/pdfExport";
 import { drawPdfRugbyField, drawPdfFieldLegend, svgPctToPdfPos, drawPdfGoalpostArrow } from "@/lib/pdfRugbyField";
@@ -1000,4 +1000,251 @@ export async function exportTeamSportEventExcel(opts: BaseExportOpts): Promise<v
         : "tous-les-joueurs";
   const dateOut = format(new Date(match.match_date), "yyyy-MM-dd");
   await downloadWorkbook(wb, `rapport-match-${slug(match.opponent || "match")}-${dateOut}-${suffix}.xlsx`);
+}
+
+// =================================================================
+// AGGREGATED EXPORT (multi-match cumul)
+// =================================================================
+
+export interface AggregateMatchInput {
+  match: ExportMatchInfo;
+  events: MatchEvent[];
+}
+
+export interface AggregateExportOpts {
+  categoryId: string;
+  matches: AggregateMatchInput[];
+  ourTeamName: string;
+}
+
+function addStats(a: TeamStats, b: TeamStats) {
+  a.points += b.points;
+  a.tries += b.tries;
+  a.conversionsMade += b.conversionsMade;
+  a.conversionsAttempted += b.conversionsAttempted;
+  a.penaltiesMade += b.penaltiesMade;
+  a.penaltiesAttempted += b.penaltiesAttempted;
+  a.drops += b.drops;
+  a.dropsAttempted += b.dropsAttempted;
+  a.tackles += b.tackles;
+  a.missedTackles += b.missedTackles;
+  a.turnovers += b.turnovers;
+  a.ballsWon += b.ballsWon;
+  a.ballsLost += b.ballsLost;
+  a.meters += b.meters;
+  a.lineBreaks += b.lineBreaks;
+  a.offloads += b.offloads;
+  a.passes += b.passes;
+  a.passesMissed += b.passesMissed;
+  a.carries += b.carries;
+  a.kicks += b.kicks;
+  a.kicksMissed += b.kicksMissed;
+  a.fouls += b.fouls;
+  a.yellowCards += b.yellowCards;
+  a.redCards += b.redCards;
+  a.knockOns += b.knockOns;
+  a.foulsByPlay.kick += b.foulsByPlay.kick;
+  a.foulsByPlay.points += b.foulsByPlay.points;
+  a.foulsByPlay.penaltouche += b.foulsByPlay.penaltouche;
+  a.foulsByPlay.scrum += b.foulsByPlay.scrum;
+  a.foulsByPlay.quick += b.foulsByPlay.quick;
+  a.foulsByPlay.unknown += b.foulsByPlay.unknown;
+  a.lineoutsWon += b.lineoutsWon;
+  a.lineoutsLost += b.lineoutsLost;
+  a.scrumsWon += b.scrumsWon;
+  a.scrumsLost += b.scrumsLost;
+}
+
+function aggregateSides(matches: AggregateMatchInput[]) {
+  const us = emptyTeamStats();
+  const them = emptyTeamStats();
+  let wins = 0, draws = 0, losses = 0;
+  for (const { match, events } of matches) {
+    const analytics = computeMatchAnalytics(events, "all");
+    const myStats = match.is_home ? analytics.home : analytics.away;
+    const oppStats = match.is_home ? analytics.away : analytics.home;
+    addStats(us, myStats);
+    addStats(them, oppStats);
+    if (myStats.points > oppStats.points) wins += 1;
+    else if (myStats.points === oppStats.points) draws += 1;
+    else losses += 1;
+  }
+  return { us, them, wins, draws, losses };
+}
+
+function drawAggregateBanner(
+  pdf: jsPDF,
+  ourName: string,
+  oppName: string,
+  us: TeamStats,
+  them: TeamStats,
+  wins: number,
+  draws: number,
+  losses: number,
+  nbMatches: number,
+  y: number,
+  accentColor: [number, number, number],
+): number {
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const margin = 15;
+  const w = pageWidth - margin * 2;
+  const h = 32;
+
+  pdf.setFillColor(248, 250, 252);
+  pdf.setDrawColor(226, 232, 240);
+  pdf.roundedRect(margin, y, w, h, 3, 3, "FD");
+
+  pdf.setTextColor(100, 116, 139);
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(8);
+  pdf.text((ourName || "Notre équipe").toUpperCase(), margin + 6, y + 8);
+  const oppLabel = (oppName || "Adversaires").toUpperCase();
+  pdf.text(oppLabel, pageWidth - margin - 6 - pdf.getTextWidth(oppLabel), y + 8);
+
+  pdf.setTextColor(...accentColor);
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(24);
+  pdf.text(String(us.points), margin + 6, y + 22);
+  const awayText = String(them.points);
+  pdf.text(awayText, pageWidth - margin - 6 - pdf.getTextWidth(awayText), y + 22);
+
+  pdf.setTextColor(100, 116, 139);
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(9);
+  const center = pageWidth / 2;
+  pdf.text(`CUMUL · ${nbMatches} MATCHS`, center, y + 12, { align: "center" });
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(10);
+  pdf.setTextColor(30, 41, 59);
+  pdf.text(`${wins}V  ${draws}N  ${losses}D`, center, y + 20, { align: "center" });
+  const diff = us.points - them.points;
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(9);
+  pdf.setTextColor(diff > 0 ? 16 : diff < 0 ? 239 : 100, diff > 0 ? 185 : diff < 0 ? 68 : 116, diff > 0 ? 129 : diff < 0 ? 68 : 139);
+  pdf.text(`Différentiel : ${diff > 0 ? "+" : ""}${diff}`, center, y + 27, { align: "center" });
+
+  return y + h + 5;
+}
+
+export async function exportAggregatedTeamSportPdf(opts: AggregateExportOpts): Promise<void> {
+  const { categoryId, matches, ourTeamName } = opts;
+  if (matches.length === 0) return;
+  const prep = await loadLogo(categoryId);
+  const settings = prep.settings as PdfCustomSettings | null;
+  const logoBase64 = (prep as any).logoBase64 ?? null;
+  const clubName = settings?.club_name_override || prep.clubName || ourTeamName;
+  const categoryName = prep.categoryName || "";
+  const seasonName = prep.seasonName || "";
+
+  const { us, them, wins, draws, losses } = aggregateSides(matches);
+  const oppName = matches.length === 1 ? matches[0].match.opponent : "Adversaires";
+
+  const headerColor: [number, number, number] = settings?.header_color
+    ? (settings.header_color.replace("#", "").match(/.{2}/g) || [])
+        .slice(0, 3)
+        .map((h) => parseInt(h, 16)) as [number, number, number]
+    : [34, 67, 120];
+
+  const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const subtitle = `${clubName} • ${categoryName} • ${seasonName} — Cumul ${matches.length} matchs`;
+  const drawHeader = () =>
+    drawPdfHeader(
+      pdf,
+      "Rapport cumulé multi-matchs",
+      subtitle,
+      format(new Date(), "dd/MM/yyyy HH:mm", { locale: fr }),
+      settings,
+      logoBase64,
+    );
+
+  let y = drawHeader();
+  y = drawAggregateBanner(pdf, ourTeamName, oppName, us, them, wins, draws, losses, matches.length, y, headerColor);
+
+  // Match list
+  y = ensureSpace(pdf, y, 20, drawHeader);
+  y = drawSectionTitle(pdf, "Matchs inclus", headerColor, y);
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(9);
+  pdf.setTextColor(71, 85, 105);
+  matches.forEach((m) => {
+    y = ensureSpace(pdf, y, 6, drawHeader);
+    const dateStr = format(new Date(m.match.match_date), "d MMM yyyy", { locale: fr });
+    const score = m.match.score_home != null && m.match.score_away != null ? ` — ${m.match.score_home}-${m.match.score_away}` : "";
+    pdf.text(`• ${dateStr} · ${m.match.is_home ? "vs" : "@"} ${m.match.opponent}${score}`, 18, y);
+    y += 5;
+  });
+  y += 3;
+
+  // Us stats
+  y = ensureSpace(pdf, y, 30, drawHeader);
+  y = drawSectionTitle(pdf, `${ourTeamName} — Cumul`, headerColor, y);
+  y = renderTeamPdfSection(pdf, us, y, drawHeader);
+
+  // Opp stats on a new page
+  pdf.addPage();
+  let y2 = drawHeader();
+  y2 = drawSectionTitle(pdf, `${oppName} — Cumul`, headerColor, y2);
+  renderTeamPdfSection(pdf, them, y2, drawHeader);
+
+  const dateOut = format(new Date(), "yyyy-MM-dd");
+  pdf.save(`rapport-cumul-${matches.length}matchs-${dateOut}.pdf`);
+}
+
+export async function exportAggregatedTeamSportExcel(opts: AggregateExportOpts): Promise<void> {
+  const { categoryId, matches, ourTeamName } = opts;
+  if (matches.length === 0) return;
+  const branding = await getExcelBranding(categoryId);
+  const wb = new ExcelJS.Workbook();
+  wb.creator = "CocoriCoach Club";
+  wb.created = new Date();
+
+  const { us, them, wins, draws, losses } = aggregateSides(matches);
+  const oppName = matches.length === 1 ? matches[0].match.opponent : "Adversaires";
+  const diff = us.points - them.points;
+
+  // Summary sheet
+  const sum = wb.addWorksheet("Synthèse");
+  sum.columns = [{ width: 32 }, { width: 26 }, { width: 18 }];
+  let r = addBrandedHeader(sum, `Rapport cumulé — ${matches.length} matchs`, branding, [
+    ["Notre équipe", ourTeamName],
+    ["Points marqués (cumul)", String(us.points)],
+    ["Points encaissés (cumul)", String(them.points)],
+    ["Différentiel", `${diff > 0 ? "+" : ""}${diff}`],
+    ["Bilan", `${wins}V · ${draws}N · ${losses}D`],
+  ]);
+  // List of matches
+  sum.getCell(r, 1).value = "Matchs inclus";
+  sum.getCell(r, 1).font = { bold: true, size: 11, color: { argb: "FF334155" } };
+  r++;
+  matches.forEach((m) => {
+    const dateStr = format(new Date(m.match.match_date), "d MMM yyyy", { locale: fr });
+    sum.getCell(r, 1).value = `${dateStr} · ${m.match.is_home ? "vs" : "@"} ${m.match.opponent}`;
+    sum.getCell(r, 2).value =
+      m.match.score_home != null && m.match.score_away != null
+        ? `${m.match.score_home} - ${m.match.score_away}`
+        : "—";
+    r++;
+  });
+  addFooter(sum, r + 1, 3, branding.footerText);
+
+  // Our team stats sheet
+  const us1 = wb.addWorksheet(`${ourTeamName.slice(0, 28).replace(/[\\/*?:[\]]/g, " ")} (cumul)`);
+  us1.columns = [{ width: 32 }, { width: 18 }, { width: 14 }];
+  let ru = addBrandedHeader(us1, `${ourTeamName} — Cumul ${matches.length} matchs`, branding);
+  for (const g of buildGroups(us)) {
+    ru = writeStatGroupToSheet(us1, ru, g.title, g.accentHex, g.rows);
+  }
+  addFooter(us1, ru, 3, branding.footerText);
+
+  // Opponents stats sheet
+  const them1 = wb.addWorksheet(`${oppName.slice(0, 28).replace(/[\\/*?:[\]]/g, " ")} (cumul)`);
+  them1.columns = [{ width: 32 }, { width: 18 }, { width: 14 }];
+  let rt = addBrandedHeader(them1, `${oppName} — Cumul ${matches.length} matchs`, branding);
+  for (const g of buildGroups(them)) {
+    rt = writeStatGroupToSheet(them1, rt, g.title, g.accentHex, g.rows);
+  }
+  addFooter(them1, rt, 3, branding.footerText);
+
+  const dateOut = format(new Date(), "yyyy-MM-dd");
+  await downloadWorkbook(wb, `rapport-cumul-${matches.length}matchs-${dateOut}.xlsx`);
 }

@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { useCategoryMatches } from "@/hooks/analytics/useTeamSportsAnalytics";
+import { useCategoryMatches, useMultiMatchEvents } from "@/hooks/analytics/useTeamSportsAnalytics";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Users, GitCompare, ChevronDown, Check, FileSpreadsheet, Download } from "lucide-react";
+import { BarChart3, Users, GitCompare, ChevronDown, Check, FileSpreadsheet, Download, Loader2 } from "lucide-react";
 import { MatchEventExportChooser } from "@/components/category/matches/MatchEventExportChooser";
 import { useCategoryTeamName } from "@/hooks/analytics/useTeamSportsAnalytics";
 import { format } from "date-fns";
@@ -15,6 +15,8 @@ import { GeneralTab } from "./tabs/GeneralTab";
 import { GeneralAggregateTab } from "./tabs/GeneralAggregateTab";
 import { PlayerStatsTab } from "./tabs/PlayerStatsTab";
 import { CompareTab } from "./tabs/CompareTab";
+import { exportAggregatedTeamSportPdf, exportAggregatedTeamSportExcel } from "@/lib/teamSports/teamSportsEventExport";
+import { toast } from "sonner";
 
 interface Props {
   categoryId: string;
@@ -26,6 +28,7 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
   const [activeTab, setActiveTab] = useState("general");
   const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
   const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | null>(null);
+  const [exportingAggregate, setExportingAggregate] = useState<"pdf" | "excel" | null>(null);
   const { data: ourTeamName = "Notre équipe" } = useCategoryTeamName(categoryId);
 
   const playable = useMemo(() => matches.filter(m => m.event_type !== "individual"), [matches]);
@@ -46,6 +49,43 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
     setSelectedMatchIds(prev =>
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
+  };
+
+  const handleAggregateExport = async (fmt: "pdf" | "excel") => {
+    if (selectedMatches.length === 0) return;
+    setExportingAggregate(fmt);
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const ids = selectedMatches.map((m) => m.id);
+      const { data, error } = await supabase
+        .from("match_events" as any)
+        .select("*")
+        .in("match_id", ids);
+      if (error) throw error;
+      const allEvents = (data ?? []) as any[];
+      const matchesPayload = selectedMatches.map((m) => ({
+        match: {
+          id: m.id,
+          match_date: m.match_date,
+          opponent: m.opponent,
+          is_home: m.is_home ?? null,
+          location: (m as any).location ?? null,
+          competition: (m as any).competition ?? null,
+          age_category: (m as any).age_category ?? null,
+          score_home: m.score_home ?? null,
+          score_away: m.score_away ?? null,
+        },
+        events: allEvents.filter((e) => e.match_id === m.id),
+      }));
+      if (fmt === "pdf") await exportAggregatedTeamSportPdf({ categoryId, matches: matchesPayload, ourTeamName });
+      else await exportAggregatedTeamSportExcel({ categoryId, matches: matchesPayload, ourTeamName });
+      toast.success("Export généré");
+    } catch (e: any) {
+      console.error(e);
+      toast.error(`Erreur lors de l'export : ${e?.message || "inconnue"}`);
+    } finally {
+      setExportingAggregate(null);
+    }
   };
 
   if (isLoading) return <p className="text-sm text-muted-foreground py-8 text-center">Chargement…</p>;
@@ -174,6 +214,32 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
                 >
                   <Download className="h-4 w-4" />
                   Exporter en PDF
+                </Button>
+              </div>
+            )}
+            {activeTab === "general" && selectedMatches.length > 1 && (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={exportingAggregate !== null}
+                  className="gap-1.5 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10"
+                  onClick={() => handleAggregateExport("excel")}
+                  title="Exporter le cumul Excel des matchs sélectionnés"
+                >
+                  {exportingAggregate === "excel" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                  Excel (cumul)
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={exportingAggregate !== null}
+                  className="gap-1.5 border-rose-500/40 text-rose-700 dark:text-rose-300 hover:bg-rose-500/10"
+                  onClick={() => handleAggregateExport("pdf")}
+                  title="Exporter le cumul PDF des matchs sélectionnés"
+                >
+                  {exportingAggregate === "pdf" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  PDF (cumul)
                 </Button>
               </div>
             )}
