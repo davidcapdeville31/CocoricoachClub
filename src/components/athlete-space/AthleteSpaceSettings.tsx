@@ -41,12 +41,6 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
     return () => document.removeEventListener("visibilitychange", refresh);
   }, []);
 
-  useEffect(() => {
-    const targetUserId = playerData?.user_id || user?.id;
-    if (!targetUserId) return;
-    checkOneSignalSubscriptionStatus(targetUserId).then(setServerSubscribed).catch(() => setServerSubscribed(false));
-  }, [playerData?.user_id, user?.id]);
-
   // Fetch the athlete's email from player profile
   const { data: playerData } = useQuery({
     queryKey: ["player-settings-email", playerId],
@@ -100,6 +94,12 @@ export function AthleteSpaceSettings({ playerId }: AthleteSpaceSettingsProps) {
   // 2. Player's email (from players table)
   // 3. Current user's email (fallback)
   const displayEmail = athleteProfile?.email || playerData?.email || user?.email || "—";
+
+  useEffect(() => {
+    const targetUserId = playerData?.user_id || user?.id;
+    if (!targetUserId) return;
+    checkOneSignalSubscriptionStatus(targetUserId).then(setServerSubscribed).catch(() => setServerSubscribed(false));
+  }, [playerData?.user_id, user?.id]);
 
   const handleActivateNotifications = async () => {
     setIsActivating(true);
