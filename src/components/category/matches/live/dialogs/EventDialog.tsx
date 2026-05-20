@@ -515,7 +515,7 @@ export function EventDialog(props: EventDialogProps) {
             </div>
           )}
 
-          {(showOutcomeSuccessFail && (eventType !== "penalty_kick" || draft.penaltyMode === "kick")) && (
+          {(showOutcomeSuccessFail && (eventType !== "penalty_kick" || draft.penaltyMode === "kick" || draft.penaltyMode === "points")) && (
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Résultat</Label>
               <div className="grid grid-cols-2 gap-2 mt-1">
