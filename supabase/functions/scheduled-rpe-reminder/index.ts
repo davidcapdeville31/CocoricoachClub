@@ -220,7 +220,6 @@ serve(async (req) => {
                         <p style="color: #6b7280;">Échelle RPE : 1 (très facile) à 10 (effort maximal)</p>
                         <div style="text-align: center; margin: 24px 0;">
                           <a href="${rpeDeepLink}" style="display: inline-block; background: linear-gradient(135deg, #059669, #10b981); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; font-size: 16px;">📊 Renseigner mon RPE</a>
-                          <a href="${rpeDeepLink}" style="display: inline-block; background: linear-gradient(135deg, #059669, #10b981); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; font-size: 16px;">📊 Renseigner mon RPE</a>
                         </div>
                         <p>Bravo pour l'entraînement ! 💪</p>
                       </div>
