@@ -155,14 +155,15 @@ export function GeneralTab({ match, categoryId }: Props) {
           </div>
 
           <StatBlock title="Attaque" accent="emerald">
-            <StatBar label="Transformations" h={home.conversionsMade} a={away.conversionsMade} hTotal={home.conversionsAttempted} aTotal={away.conversionsAttempted} kind="ratio" onShowPositions={() => setPosKind("conversion")} />
-            <StatBar label="Pénalités (tirs)" h={home.penaltiesMade} a={away.penaltiesMade} hTotal={home.penaltiesAttempted} aTotal={away.penaltiesAttempted} kind="ratio" onShowPositions={() => setPosKind("penalty_kick")} />
-            <StatBar label="Drops" h={home.drops} a={away.drops} onShowPositions={() => setPosKind("drop")} />
-            <StatBar label="Mètres gagnés" h={home.meters} a={away.meters} suffix="m" />
+            <StatBar homeName={homeName} awayName={awayName} label="Transformations" h={home.conversionsMade} a={away.conversionsMade} hTotal={home.conversionsAttempted} aTotal={away.conversionsAttempted} kind="ratio" onShowPositions={() => setPosKind("conversion")} />
+            <StatBar homeName={homeName} awayName={awayName} label="Pénalités (tirs)" h={home.penaltiesMade} a={away.penaltiesMade} hTotal={home.penaltiesAttempted} aTotal={away.penaltiesAttempted} kind="ratio" onShowPositions={() => setPosKind("penalty_kick")} />
+            <StatBar homeName={homeName} awayName={awayName} label="Drops" h={home.drops} a={away.drops} onShowPositions={() => setPosKind("drop")} />
+            <StatBar homeName={homeName} awayName={awayName} label="Mètres gagnés" h={home.meters} a={away.meters} suffix="m" />
           </StatBlock>
 
           <StatBlock title="Défense" accent="sky">
             <StatBar
+              homeName={homeName} awayName={awayName}
               label="Plaquages"
               h={home.tackles} a={away.tackles}
               hTotal={home.tackles + home.missedTackles}
@@ -172,21 +173,21 @@ export function GeneralTab({ match, categoryId }: Props) {
           </StatBlock>
 
           <StatBlock title="Conquête" accent="amber">
-            <StatBar label="Touches gagnées" h={home.lineoutsWon} a={away.lineoutsWon} hTotal={home.lineoutsWon + home.lineoutsLost} aTotal={away.lineoutsWon + away.lineoutsLost} kind="ratio" onShowPositions={() => setPosKind("lineout")} />
-            <StatBar label="Mêlées gagnées" h={home.scrumsWon} a={away.scrumsWon} hTotal={home.scrumsWon + home.scrumsLost} aTotal={away.scrumsWon + away.scrumsLost} kind="ratio" onShowPositions={() => setPosKind("scrum")} />
+            <StatBar homeName={homeName} awayName={awayName} label="Touches gagnées" h={home.lineoutsWon} a={away.lineoutsWon} hTotal={home.lineoutsWon + home.lineoutsLost} aTotal={away.lineoutsWon + away.lineoutsLost} kind="ratio" onShowPositions={() => setPosKind("lineout")} />
+            <StatBar homeName={homeName} awayName={awayName} label="Mêlées gagnées" h={home.scrumsWon} a={away.scrumsWon} hTotal={home.scrumsWon + home.scrumsLost} aTotal={away.scrumsWon + away.scrumsLost} kind="ratio" onShowPositions={() => setPosKind("scrum")} />
           </StatBlock>
 
           <StatBlock title="Discipline" accent="rose">
-            <StatBar label="Pénalités concédées" h={home.fouls} a={away.fouls} reverse />
-            <StatBar label="↳ Les points" h={home.foulsByPlay.kick + home.foulsByPlay.points} a={away.foulsByPlay.kick + away.foulsByPlay.points} reverse />
-            <StatBar label="↳ Pénaltouche" h={home.foulsByPlay.penaltouche} a={away.foulsByPlay.penaltouche} reverse />
-            <StatBar label="↳ Jouées en mêlée" h={home.foulsByPlay.scrum} a={away.foulsByPlay.scrum} reverse />
-            <StatBar label="↳ Jouées à la main" h={home.foulsByPlay.quick} a={away.foulsByPlay.quick} reverse />
+            <StatBar homeName={homeName} awayName={awayName} label="Pénalités concédées" h={home.fouls} a={away.fouls} reverse />
+            <StatBar homeName={homeName} awayName={awayName} label="↳ Les points" h={home.foulsByPlay.kick + home.foulsByPlay.points} a={away.foulsByPlay.kick + away.foulsByPlay.points} reverse />
+            <StatBar homeName={homeName} awayName={awayName} label="↳ Pénaltouche" h={home.foulsByPlay.penaltouche} a={away.foulsByPlay.penaltouche} reverse />
+            <StatBar homeName={homeName} awayName={awayName} label="↳ Jouées en mêlée" h={home.foulsByPlay.scrum} a={away.foulsByPlay.scrum} reverse />
+            <StatBar homeName={homeName} awayName={awayName} label="↳ Jouées à la main" h={home.foulsByPlay.quick} a={away.foulsByPlay.quick} reverse />
             {(home.foulsByPlay.unknown > 0 || away.foulsByPlay.unknown > 0) && (
-              <StatBar label="↳ Autre / non précisé" h={home.foulsByPlay.unknown} a={away.foulsByPlay.unknown} reverse />
+              <StatBar homeName={homeName} awayName={awayName} label="↳ Autre / non précisé" h={home.foulsByPlay.unknown} a={away.foulsByPlay.unknown} reverse />
             )}
-            <StatBar label="Cartons jaunes" h={home.yellowCards} a={away.yellowCards} reverse />
-            <StatBar label="Cartons rouges" h={home.redCards} a={away.redCards} reverse />
+            <StatBar homeName={homeName} awayName={awayName} label="Cartons jaunes" h={home.yellowCards} a={away.yellowCards} reverse />
+            <StatBar homeName={homeName} awayName={awayName} label="Cartons rouges" h={home.redCards} a={away.redCards} reverse />
           </StatBlock>
         </CardContent>
       </Card>
