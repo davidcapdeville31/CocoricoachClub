@@ -56,6 +56,7 @@ export function NotificationOnboarding() {
     if (!user) return;
 
     let cancelled = false;
+    let timeoutId: number | undefined;
 
     (async () => {
       const perm = getOneSignalPermission();
@@ -86,12 +87,12 @@ export function NotificationOnboarding() {
       const done = localStorage.getItem(`${STORAGE_KEY}_${user.id}`);
       if (done) return;
 
-      const t = setTimeout(() => setShow(true), 800);
-      return () => clearTimeout(t);
+      timeoutId = window.setTimeout(() => setShow(true), 800);
     })();
 
     return () => {
       cancelled = true;
+      if (timeoutId) window.clearTimeout(timeoutId);
     };
   }, [user]);
 
