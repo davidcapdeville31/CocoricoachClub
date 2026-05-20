@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useMultiMatchEvents, useCategoryTeamName, type MatchRow } from "@/hooks/analytics/useTeamSportsAnalytics";
-import { computeMatchAnalytics, kickRatio, tackleRatio } from "@/lib/analytics/team-sports/eventAggregator";
+import { computeMatchAnalytics, tackleRatio } from "@/lib/analytics/team-sports/eventAggregator";
 import { generateInsights } from "@/lib/analytics/team-sports/insights";
 import { emptyTeamStats, type TeamStats } from "@/lib/analytics/team-sports/types";
 import { Card, CardContent } from "@/components/ui/card";
