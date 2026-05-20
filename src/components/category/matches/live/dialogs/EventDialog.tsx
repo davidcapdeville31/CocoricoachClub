@@ -183,10 +183,13 @@ export function EventDialog(props: EventDialogProps) {
   const isOpponentSide = !canSelectPlayer && !hidePlayerSelection && oppositePlayers.length > 0;
 
   const showOutcomeWonLost = ["lineout", "scrum"].includes(eventType);
+  const isSanctionShot =
+    ["foul", "yellow_card", "red_card"].includes(eventType) && draft.penaltyMode === "points";
   const isKickAttempt =
     eventType === "conversion" ||
     eventType === "drop" ||
-    (eventType === "penalty_kick" && draft.penaltyMode === "kick");
+    (eventType === "penalty_kick" && (draft.penaltyMode === "kick" || draft.penaltyMode === "points")) ||
+    isSanctionShot;
   const isPenaltouche = eventType === "penalty_kick" && draft.penaltyMode === "penaltouche";
   const isSetPiece = eventType === "lineout" || eventType === "scrum";
   // Terrain visible : tirs au but, set-pieces, OU pénaltouche réussie (pour placer le point de chute)
@@ -197,7 +200,8 @@ export function EventDialog(props: EventDialogProps) {
     eventType === "tackle" ||
     eventType === "pass" ||
     eventType === "kick" ||
-    (eventType === "penalty_kick" && (draft.penaltyMode === "kick" || draft.penaltyMode === "penaltouche"));
+    (eventType === "penalty_kick" && (draft.penaltyMode === "kick" || draft.penaltyMode === "points" || draft.penaltyMode === "penaltouche")) ||
+    isSanctionShot;
   const showZone = ["kick", "occupation"].includes(eventType); // touche utilise désormais le terrain
   const showKickDistance = eventType === "kick";
   const showContested = false; // remplacé par "Volée" dans les outcomes set-piece
