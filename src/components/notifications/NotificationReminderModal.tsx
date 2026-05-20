@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Bell } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { initOneSignal, oneSignalLogin, buildUserTags, requestOneSignalPermission } from "@/lib/onesignal";
+import { initOneSignal, oneSignalLogin, buildUserTags, requestOneSignalPermission, getOneSignalPermission, checkOneSignalSubscriptionStatus } from "@/lib/onesignal";
 
 const ONBOARDING_KEY = "notification_onboarding_done";
 const PERMISSION_GRANTED_KEY = "notification_permission_granted";
@@ -19,16 +19,17 @@ export function NotificationReminderModal() {
     if (!user) return;
     if (!("Notification" in window)) return;
 
-    const perm = window.Notification.permission;
-    const permGrantedFlag = localStorage.getItem(`${PERMISSION_GRANTED_KEY}_${user.id}`) === "true";
+    let timeoutId: number | undefined;
+    let cancelled = false;
 
-    // If already granted (browser OR our flag) → silently re-sync tags
-    if (perm === "granted" || permGrantedFlag) {
-      // Record it in our flag too
-      if (perm === "granted") {
+    (async () => {
+      const perm = getOneSignalPermission();
+      const hasServerSubscription = await checkOneSignalSubscriptionStatus(user.id).catch(() => false);
+
+      if (cancelled) return;
+
+      if (perm === "granted" || hasServerSubscription) {
         try { localStorage.setItem(`${PERMISSION_GRANTED_KEY}_${user.id}`, "true"); } catch {}
-      }
-      (async () => {
         try {
           await initOneSignal();
           const tags = await buildUserTags(user.id);
@@ -37,28 +38,29 @@ export function NotificationReminderModal() {
         } catch (err) {
           console.error("[NotificationReminderModal] Re-sync error:", err);
         }
-      })();
-      return;
-    }
+        return;
+      }
 
-    // If denied by the browser — nothing we can do programmatically
-    if (perm === "denied") return;
+      localStorage.removeItem(`${PERMISSION_GRANTED_KEY}_${user.id}`);
 
-    // If onboarding fullscreen popup hasn't been shown yet, let it handle it
-    const onboardingDone = localStorage.getItem(`${ONBOARDING_KEY}_${user.id}`);
-    if (!onboardingDone) return;
+      if (perm === "denied") return;
 
-    // Never show a reminder immediately after the first onboarding.
-    // Wait until we have a recorded display time and at least 24h elapsed.
-    const lastShown = localStorage.getItem(`${LAST_SHOWN_KEY}_${user.id}`);
-    if (!lastShown) return;
+      const onboardingDone = localStorage.getItem(`${ONBOARDING_KEY}_${user.id}`);
+      if (!onboardingDone) return;
 
-    const lastShownTime = parseInt(lastShown, 10);
-    if (Number.isNaN(lastShownTime) || Date.now() - lastShownTime < ONE_DAY_MS) return;
+      const lastShown = localStorage.getItem(`${LAST_SHOWN_KEY}_${user.id}`);
+      if (!lastShown) return;
 
-    // Show after a short delay
-    const t = setTimeout(() => setOpen(true), 2000);
-    return () => clearTimeout(t);
+      const lastShownTime = parseInt(lastShown, 10);
+      if (Number.isNaN(lastShownTime) || Date.now() - lastShownTime < ONE_DAY_MS) return;
+
+      timeoutId = window.setTimeout(() => setOpen(true), 2000);
+    })();
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
   }, [user]);
 
   const markShownToday = () => {
@@ -71,8 +73,6 @@ export function NotificationReminderModal() {
     if (!user || isHandling) return;
     setIsHandling(true);
 
-    // Sticky acknowledgement: if the user already accepted once, do not ask again.
-    localStorage.setItem(`${PERMISSION_GRANTED_KEY}_${user.id}`, "true");
     localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, "done");
 
     try {
