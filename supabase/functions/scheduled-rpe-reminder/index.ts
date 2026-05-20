@@ -212,8 +212,9 @@ serve(async (req) => {
                 fr: `"${trainingTypeLabel}" (${category.name}) est terminée. Donne ton RPE${tonnageHint} en 10 secondes !`,
                 en: `"${trainingTypeLabel}" (${category.name}) is done. Log your RPE${tonnageHint} in 10s!`,
               },
-              url: rpeDeepLink,
+              web_url: rpeDeepLink,
               ttl: 7200,
+              web_push_topic: `rpe-reminder-${session.id}`,
               data: {
                 type: "rpe_reminder",
                 session_id: session.id,

@@ -201,7 +201,6 @@ serve(async (req: Request) => {
         };
 
         if (url) {
-          pushBody.url = url;
           pushBody.web_url = url;
         }
 
