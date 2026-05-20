@@ -244,6 +244,15 @@ export function EventDialog(props: EventDialogProps) {
     }
     if (isSetPiece && draft.setPieceResult) metadata.setPieceResult = draft.setPieceResult;
 
+    // Points selon le type d'événement et le résultat
+    let points = 0;
+    const outcome = (draft.outcome || null) as Outcome;
+    if (eventType === "try") points = 5;
+    else if ((eventType as string) === "penalty_try") points = 7;
+    else if (eventType === "conversion" && outcome === "success") points = 2;
+    else if (eventType === "drop" && outcome === "success") points = 3;
+    else if (eventType === "penalty_kick" && outcome === "success" && (draft.penaltyMode === "kick" || draft.penaltyMode === "points")) points = 3;
+
     const payload: Partial<MatchEvent> = {
       team_side: draft.side,
       minute: draft.minute,
@@ -251,8 +260,9 @@ export function EventDialog(props: EventDialogProps) {
       period: draft.period,
       event_type: eventType,
       event_subtype: draft.subtype || null,
-      outcome: (draft.outcome || null) as Outcome,
+      outcome,
       player_id: draft.playerId || null,
+      points,
       metadata,
     };
 
