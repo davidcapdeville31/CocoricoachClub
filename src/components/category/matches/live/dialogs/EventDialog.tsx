@@ -186,7 +186,7 @@ export function EventDialog(props: EventDialogProps) {
   const isKickAttempt =
     eventType === "conversion" ||
     eventType === "drop" ||
-    (eventType === "penalty_kick" && draft.penaltyMode === "kick");
+    (eventType === "penalty_kick" && (draft.penaltyMode === "kick" || draft.penaltyMode === "points"));
   const isPenaltouche = eventType === "penalty_kick" && draft.penaltyMode === "penaltouche";
   const isSetPiece = eventType === "lineout" || eventType === "scrum";
   // Terrain visible : tirs au but, set-pieces, OU pénaltouche réussie (pour placer le point de chute)
@@ -197,7 +197,7 @@ export function EventDialog(props: EventDialogProps) {
     eventType === "tackle" ||
     eventType === "pass" ||
     eventType === "kick" ||
-    (eventType === "penalty_kick" && (draft.penaltyMode === "kick" || draft.penaltyMode === "penaltouche"));
+    (eventType === "penalty_kick" && (draft.penaltyMode === "kick" || draft.penaltyMode === "points" || draft.penaltyMode === "penaltouche"));
   const showZone = ["kick", "occupation"].includes(eventType); // touche utilise désormais le terrain
   const showKickDistance = eventType === "kick";
   const showContested = false; // remplacé par "Volée" dans les outcomes set-piece
@@ -259,13 +259,13 @@ export function EventDialog(props: EventDialogProps) {
     // Try → ask conversion next
     let chain: { type: EventType; flipSide?: boolean } | undefined;
     if (eventType === "try" && draft.tryAttemptConv) chain = { type: "conversion" };
-    if (eventType === "penalty_kick" && draft.penaltyMode !== "kick" && draft.penaltyMode !== "penaltouche") {
+    if (eventType === "penalty_kick" && draft.penaltyMode !== "kick" && draft.penaltyMode !== "points" && draft.penaltyMode !== "penaltouche") {
       payload.outcome = null;
     }
     // Sanction (faute/jaune/rouge) → la sanction est jouée par l'équipe adverse
     if (showSanctionFollowUp && draft.penaltyMode) {
       const mode = draft.penaltyMode;
-      if (mode === "kick") chain = { type: "penalty_kick", flipSide: true };
+      if (mode === "kick" || mode === "points") chain = { type: "penalty_kick", flipSide: true };
       else if (mode === "penaltouche") chain = { type: "lineout", flipSide: true };
       else if (mode === "scrum") chain = { type: "scrum", flipSide: true };
       // "quick" (jeu à la main) → pas de chain, action collective sans saisie supplémentaire
@@ -388,9 +388,10 @@ export function EventDialog(props: EventDialogProps) {
           {showPenaltyMode && (
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Pénalité jouée</Label>
-              <div className="grid grid-cols-4 gap-1.5 mt-1">
+              <div className="grid grid-cols-5 gap-1.5 mt-1">
                 {[
                   { v: "kick", l: "Au pied" },
+                  { v: "points", l: "Les points" },
                   { v: "penaltouche", l: "Pénaltouche" },
                   { v: "scrum", l: "Mêlée" },
                   { v: "quick", l: "Rapide" },
@@ -406,9 +407,10 @@ export function EventDialog(props: EventDialogProps) {
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">
                 Sanction jouée par l'équipe adverse
               </Label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mt-1">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 mt-1">
                 {[
                   { v: "kick", l: "Au pied" },
+                  { v: "points", l: "Les points" },
                   { v: "penaltouche", l: "Pénaltouche" },
                   { v: "scrum", l: "Mêlée" },
                   { v: "quick", l: "Jeu à la main" },
@@ -417,7 +419,7 @@ export function EventDialog(props: EventDialogProps) {
                 ))}
               </div>
               <p className="text-[11px] text-muted-foreground mt-1">
-                Optionnel — l'action suivante s'ouvrira automatiquement pour l'équipe adverse.
+                Optionnel — l'action suivante s'ouvrira automatiquement pour l'équipe adverse (sauf « Les points » : tir au but saisi directement ici).
               </p>
             </div>
           )}
@@ -508,7 +510,7 @@ export function EventDialog(props: EventDialogProps) {
             </div>
           )}
 
-          {(showOutcomeSuccessFail && (eventType !== "penalty_kick" || draft.penaltyMode === "kick")) && (
+          {(showOutcomeSuccessFail && (eventType !== "penalty_kick" || draft.penaltyMode === "kick" || draft.penaltyMode === "points")) && (
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Résultat</Label>
               <div className="grid grid-cols-2 gap-2 mt-1">

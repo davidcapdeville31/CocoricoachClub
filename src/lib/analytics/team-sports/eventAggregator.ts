@@ -12,7 +12,7 @@ function applyEvent(s: TeamStats, e: MatchEvent) {
       if (e.outcome === "success") s.conversionsMade += 1; break;
     case "penalty_kick": {
       const mode = m.penaltyMode;
-      if (!mode || mode === "kick") {
+      if (!mode || mode === "kick" || mode === "points") {
         s.penaltiesAttempted += 1;
         if (e.outcome === "success") s.penaltiesMade += 1;
       }
@@ -32,7 +32,7 @@ function applyEvent(s: TeamStats, e: MatchEvent) {
     case "foul": {
       s.fouls += 1;
       const fu = m.sanctionFollowUp;
-      if (fu === "kick" || fu === "penaltouche" || fu === "scrum" || fu === "quick") s.foulsByPlay[fu] += 1;
+      if (fu === "kick" || fu === "points" || fu === "penaltouche" || fu === "scrum" || fu === "quick") s.foulsByPlay[fu] += 1;
       else s.foulsByPlay.unknown += 1;
       break;
     }

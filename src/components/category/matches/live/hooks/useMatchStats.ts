@@ -3,6 +3,7 @@ import type { MatchEvent } from "../types";
 
 export interface FoulsByPlay {
   kick: number;
+  points: number;
   penaltouche: number;
   scrum: number;
   quick: number;
@@ -26,7 +27,7 @@ export interface TeamStats {
   knockOns: number;
 }
 
-const emptyFoulsByPlay = (): FoulsByPlay => ({ kick: 0, penaltouche: 0, scrum: 0, quick: 0, unknown: 0 });
+const emptyFoulsByPlay = (): FoulsByPlay => ({ kick: 0, points: 0, penaltouche: 0, scrum: 0, quick: 0, unknown: 0 });
 
 const empty = (): TeamStats => ({
   points: 0, tries: 0,
@@ -51,8 +52,8 @@ function add(s: TeamStats, e: MatchEvent) {
       if (e.outcome === "success") s.conversionsMade += 1; break;
     case "penalty_kick": {
       const mode = (e as any).metadata?.penaltyMode;
-      // Only count as a shot at goal if explicitly a kick (not pénaltouche / jeu à la main / mêlée…)
-      if (!mode || mode === "kick") {
+      // Tir au but ("Au pied" ou "Les points") = tentative de pénalité
+      if (!mode || mode === "kick" || mode === "points") {
         s.penaltiesAttempted += 1;
         if (e.outcome === "success") s.penaltiesMade += 1;
       }
@@ -79,7 +80,7 @@ function add(s: TeamStats, e: MatchEvent) {
     case "foul": {
       s.fouls += 1;
       const fu = (e as any).metadata?.sanctionFollowUp;
-      if (fu === "kick" || fu === "penaltouche" || fu === "scrum" || fu === "quick") s.foulsByPlay[fu] += 1;
+      if (fu === "kick" || fu === "points" || fu === "penaltouche" || fu === "scrum" || fu === "quick") s.foulsByPlay[fu] += 1;
       else s.foulsByPlay.unknown += 1;
       break;
     }
