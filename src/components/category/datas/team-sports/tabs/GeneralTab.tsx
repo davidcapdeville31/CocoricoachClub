@@ -519,7 +519,7 @@ export function StatBlock({
   );
 }
 
-function InsightCard({ insight }: { insight: Insight }) {
+export function InsightCard({ insight }: { insight: Insight }) {
   const TONE: Record<Insight["tone"], { bg: string; border: string; ring: string; icon: JSX.Element; text: string; iconBg: string }> = {
     positive: {
       bg: "bg-gradient-to-br from-emerald-500/10 to-emerald-500/5",
