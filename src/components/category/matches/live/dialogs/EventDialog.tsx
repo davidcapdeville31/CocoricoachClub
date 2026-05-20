@@ -29,7 +29,7 @@ export interface EventDialogProps {
   awayPlayers: EventDialogPlayer[];
   /** Editing existing event */
   initial?: MatchEvent | null;
-  onSubmit: (payload: Partial<MatchEvent>, chain?: { type: EventType; flipSide?: boolean }) => void;
+  onSubmit: (payload: Partial<MatchEvent>, chain?: { type: EventType; flipSide?: boolean; autoPayload?: Partial<MatchEvent> }) => void;
 }
 
 const SUBTYPES: Partial<Record<EventType, { value: string; label: string }[]>> = {
@@ -189,8 +189,8 @@ export function EventDialog(props: EventDialogProps) {
     (eventType === "penalty_kick" && (draft.penaltyMode === "kick" || draft.penaltyMode === "points"));
   const isPenaltouche = eventType === "penalty_kick" && draft.penaltyMode === "penaltouche";
   const isSetPiece = eventType === "lineout" || eventType === "scrum";
-  // Terrain visible : tirs au but, set-pieces, OU pénaltouche réussie (pour placer le point de chute)
-  const showField = isKickAttempt || isSetPiece || (isPenaltouche && draft.outcome === "success");
+  // Terrain visible : tirs au but, set-pieces, pénaltouche réussie, OU en-avant (pour positionner la mêlée qui suit)
+  const showField = isKickAttempt || isSetPiece || (isPenaltouche && draft.outcome === "success") || eventType === "knock_on";
   const showOutcomeSuccessFail =
     eventType === "conversion" ||
     eventType === "drop" ||
@@ -267,10 +267,34 @@ export function EventDialog(props: EventDialogProps) {
     };
 
     // Try → ask conversion next
-    let chain: { type: EventType; flipSide?: boolean } | undefined;
+    let chain: { type: EventType; flipSide?: boolean; autoPayload?: Partial<MatchEvent> } | undefined;
     if (eventType === "try" && draft.tryAttemptConv) chain = { type: "conversion" };
     if (eventType === "penalty_kick" && draft.penaltyMode !== "kick" && draft.penaltyMode !== "points" && draft.penaltyMode !== "penaltouche") {
       payload.outcome = null;
+    }
+    // En-avant → mêlée automatique pour l'équipe adverse à la même position
+    if (eventType === "knock_on") {
+      const otherSide: TeamSide = draft.side === "home" ? "away" : "home";
+      chain = {
+        type: "scrum",
+        flipSide: true,
+        autoPayload: {
+          team_side: otherSide,
+          minute: draft.minute,
+          second: draft.second,
+          period: draft.period,
+          event_type: "scrum",
+          outcome: "won",
+          player_id: null,
+          points: 0,
+          metadata: {
+            ...(draft.kickX !== null && draft.kickY !== null
+              ? { kickX: draft.kickX, kickY: draft.kickY, kickingSide: draft.kickingSide }
+              : {}),
+            origin: "knock_on",
+          },
+        },
+      };
     }
     // Sanction (faute/jaune/rouge) → la sanction est jouée par l'équipe adverse
     if (showSanctionFollowUp && draft.penaltyMode) {
