@@ -33,17 +33,20 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
   const { user } = useAuth();
 
   const { data: notifications } = useQuery({
-    queryKey: ["notifications"],
+    queryKey: ["notifications", user?.id],
     queryFn: async () => {
+      if (!user?.id) return [];
       const { data, error } = await supabase
         .from("notifications")
         .select("*")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(20);
-      
+
       if (error) throw error;
       return data as Notification[];
     },
+    enabled: !!user?.id,
     refetchInterval: 30000,
   });
 
@@ -67,9 +70,11 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
 
   const markAllAsRead = useMutation({
     mutationFn: async () => {
+      if (!user?.id) return;
       const { error } = await supabase
         .from("notifications")
         .update({ is_read: true })
+        .eq("user_id", user.id)
         .eq("is_read", false);
       if (error) throw error;
     },
