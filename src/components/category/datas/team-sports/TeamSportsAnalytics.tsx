@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { useCategoryMatches } from "@/hooks/analytics/useTeamSportsAnalytics";
+import { useCategoryMatches, useMultiMatchEvents } from "@/hooks/analytics/useTeamSportsAnalytics";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Users, GitCompare, ChevronDown, Check, FileSpreadsheet, Download } from "lucide-react";
+import { BarChart3, Users, GitCompare, ChevronDown, Check, FileSpreadsheet, Download, Loader2 } from "lucide-react";
 import { MatchEventExportChooser } from "@/components/category/matches/MatchEventExportChooser";
 import { useCategoryTeamName } from "@/hooks/analytics/useTeamSportsAnalytics";
 import { format } from "date-fns";
@@ -15,6 +15,8 @@ import { GeneralTab } from "./tabs/GeneralTab";
 import { GeneralAggregateTab } from "./tabs/GeneralAggregateTab";
 import { PlayerStatsTab } from "./tabs/PlayerStatsTab";
 import { CompareTab } from "./tabs/CompareTab";
+import { exportAggregatedTeamSportPdf, exportAggregatedTeamSportExcel } from "@/lib/teamSports/teamSportsEventExport";
+import { toast } from "sonner";
 
 interface Props {
   categoryId: string;
