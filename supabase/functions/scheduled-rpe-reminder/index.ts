@@ -69,7 +69,7 @@ serve(async (req) => {
       );
     }
 
-    let totalEmailsSent = 0;
+    let totalPushSent = 0;
     let totalPushSent = 0;
     const results: any[] = [];
 
