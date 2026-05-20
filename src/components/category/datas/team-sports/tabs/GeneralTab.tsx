@@ -215,7 +215,7 @@ export function GeneralTab({ match, categoryId }: Props) {
   );
 }
 
-function KpiTile({
+export function KpiTile({
   label, h, a, suffix = "", reverse = false, homeName, awayName, onShowPositions, ratioColored = false,
 }: {
   label: string;
@@ -310,7 +310,7 @@ function TeamSide({ name, score, winner, align }: { name: string; score: number;
   );
 }
 
-function StatBar({
+export function StatBar({
   label, h, a, hTotal, aTotal, kind = "count", reverse = false, suffix = "", onShowPositions, homeName, awayName,
 }: {
   label: string;
@@ -490,7 +490,7 @@ const BLOCK_ACCENTS: Record<string, { dot: string; text: string; bar: string; bg
   rose:    { dot: "bg-rose-500",    text: "text-rose-500",    bar: "bg-rose-500",    bg: "from-rose-500/[0.07]",    hover: "hover:from-rose-500/[0.12]" },
 };
 
-function StatBlock({
+export function StatBlock({
   title,
   accent,
   children,
@@ -519,7 +519,7 @@ function StatBlock({
   );
 }
 
-function InsightCard({ insight }: { insight: Insight }) {
+export function InsightCard({ insight }: { insight: Insight }) {
   const TONE: Record<Insight["tone"], { bg: string; border: string; ring: string; icon: JSX.Element; text: string; iconBg: string }> = {
     positive: {
       bg: "bg-gradient-to-br from-emerald-500/10 to-emerald-500/5",

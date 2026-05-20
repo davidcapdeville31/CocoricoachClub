@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useCategoryMatches } from "@/hooks/analytics/useTeamSportsAnalytics";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ import { useCategoryTeamName } from "@/hooks/analytics/useTeamSportsAnalytics";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { GeneralTab } from "./tabs/GeneralTab";
+import { GeneralAggregateTab } from "./tabs/GeneralAggregateTab";
 import { PlayerStatsTab } from "./tabs/PlayerStatsTab";
 import { CompareTab } from "./tabs/CompareTab";
 
@@ -24,16 +24,11 @@ interface Props {
 export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
   const { data: matches = [], isLoading } = useCategoryMatches(categoryId);
   const [activeTab, setActiveTab] = useState("general");
-  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
   const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | null>(null);
   const { data: ourTeamName = "Notre équipe" } = useCategoryTeamName(categoryId);
 
   const playable = useMemo(() => matches.filter(m => m.event_type !== "individual"), [matches]);
-  const currentMatch = useMemo(
-    () => playable.find(m => m.id === selectedMatchId) || playable[0],
-    [playable, selectedMatchId]
-  );
 
   // Initialise la sélection multi-matchs quand la liste arrive
   useEffect(() => {
@@ -84,50 +79,8 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
           </ColoredSubTabsList>
         </div>
 
-        {activeTab === "general" && (
+        {(activeTab === "general" || activeTab === "players") && (
           <div className="flex flex-col sm:flex-row justify-center items-center gap-2">
-            <Select value={currentMatch?.id || ""} onValueChange={setSelectedMatchId}>
-              <SelectTrigger className="w-full max-w-md rounded-2xl">
-                <SelectValue placeholder="Sélectionnez un match" />
-              </SelectTrigger>
-              <SelectContent>
-                {playable.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>
-                    {format(new Date(m.match_date), "d MMM yyyy", { locale: fr })} · {m.is_home ? "vs" : "@"} {m.opponent}
-                    {m.score_home != null && m.score_away != null ? ` (${m.score_home}-${m.score_away})` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {currentMatch && (
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10"
-                  onClick={() => { setExportFormat("excel"); }}
-                  title="Export Excel (équipe ou joueurs)"
-                >
-                  <FileSpreadsheet className="h-4 w-4" />
-                  Excel
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 border-rose-500/40 text-rose-700 dark:text-rose-300 hover:bg-rose-500/10"
-                  onClick={() => { setExportFormat("pdf"); }}
-                  title="Exporter en PDF (joueur ou équipe)"
-                >
-                  <Download className="h-4 w-4" />
-                  Exporter en PDF
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === "players" && (
-          <div className="flex justify-center">
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full max-w-md rounded-2xl justify-between">
@@ -136,11 +89,13 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
                       ? "Sélectionnez un ou plusieurs matchs"
                       : selectedMatches.length === 1
                       ? `${format(new Date(selectedMatches[0].match_date), "d MMM yyyy", { locale: fr })} · ${selectedMatches[0].is_home ? "vs" : "@"} ${selectedMatches[0].opponent}`
-                      : `${selectedMatches.length} matchs sélectionnés (moyenne)`}
+                      : `${selectedMatches.length} matchs sélectionnés (cumul)`}
                   </span>
                   <div className="flex items-center gap-2 shrink-0">
                     {selectedMatches.length > 1 && (
-                      <Badge variant="secondary" className="text-[10px]">moy.</Badge>
+                      <Badge variant="secondary" className="text-[10px]">
+                        {activeTab === "general" ? "cumul" : "moy."}
+                      </Badge>
                     )}
                     <ChevronDown className="h-4 w-4 opacity-60" />
                   </div>
@@ -198,11 +153,41 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
                 </div>
               </PopoverContent>
             </Popover>
+            {activeTab === "general" && selectedMatches.length === 1 && (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10"
+                  onClick={() => { setExportFormat("excel"); }}
+                  title="Export Excel (équipe ou joueurs)"
+                >
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Excel
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 border-rose-500/40 text-rose-700 dark:text-rose-300 hover:bg-rose-500/10"
+                  onClick={() => { setExportFormat("pdf"); }}
+                  title="Exporter en PDF (joueur ou équipe)"
+                >
+                  <Download className="h-4 w-4" />
+                  Exporter en PDF
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
         <TabsContent value="general">
-          {currentMatch && <GeneralTab match={currentMatch} categoryId={categoryId} />}
+          {selectedMatches.length === 1 ? (
+            <GeneralTab match={selectedMatches[0]} categoryId={categoryId} />
+          ) : selectedMatches.length > 1 ? (
+            <GeneralAggregateTab matches={selectedMatches} categoryId={categoryId} />
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-8">Sélectionnez au moins un match.</p>
+          )}
         </TabsContent>
         <TabsContent value="players">
           {selectedMatches.length > 0 && (
@@ -213,7 +198,7 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
           <CompareTab categoryId={categoryId} matches={playable} />
         </TabsContent>
       </Tabs>
-      {currentMatch && exportFormat && (
+      {selectedMatches.length === 1 && exportFormat && (
         <MatchEventExportChooser
           open={!!exportFormat}
           onOpenChange={(o) => !o && setExportFormat(null)}
@@ -221,15 +206,15 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
           categoryId={categoryId}
           ourTeamName={ourTeamName}
           match={{
-            id: currentMatch.id,
-            match_date: currentMatch.match_date,
-            opponent: currentMatch.opponent,
-            is_home: currentMatch.is_home ?? null,
-            location: (currentMatch as any).location ?? null,
-            competition: (currentMatch as any).competition ?? null,
-            age_category: (currentMatch as any).age_category ?? null,
-            score_home: currentMatch.score_home ?? null,
-            score_away: currentMatch.score_away ?? null,
+            id: selectedMatches[0].id,
+            match_date: selectedMatches[0].match_date,
+            opponent: selectedMatches[0].opponent,
+            is_home: selectedMatches[0].is_home ?? null,
+            location: (selectedMatches[0] as any).location ?? null,
+            competition: (selectedMatches[0] as any).competition ?? null,
+            age_category: (selectedMatches[0] as any).age_category ?? null,
+            score_home: selectedMatches[0].score_home ?? null,
+            score_away: selectedMatches[0].score_away ?? null,
           }}
         />
       )}
