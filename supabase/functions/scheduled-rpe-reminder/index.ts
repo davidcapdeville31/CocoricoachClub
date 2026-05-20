@@ -128,10 +128,61 @@ serve(async (req) => {
 
       const category = session.categories as any;
       const trainingTypeLabel = getTrainingTypeLabel(session.training_type);
+      const isStrength = session.training_type === "gym" || session.training_type === "physical";
 
       // Deep link URL for quick access
       const appBaseUrl = "https://cocoricoachclub.com";
       const rpeDeepLink = `${appBaseUrl}/athlete-space?tab=rpe`;
+
+      const tonnageHint = isStrength
+        ? " (et le tonnage si ton coach ne l'a pas encore renseigné)"
+        : "";
+
+      // ── IN-APP NOTIFICATIONS (cloche rouge) ─────────────────────────────
+      try {
+        // Dédup: ne pas réinsérer si déjà créée pour cette session
+        const { data: existingNotifs } = await supabase
+          .from("notifications")
+          .select("user_id")
+          .eq("notification_type", "rpe_reminder")
+          .filter("metadata->>session_id", "eq", session.id);
+
+        const alreadyNotified = new Set(
+          (existingNotifs ?? []).map((n: any) => n.user_id),
+        );
+
+        const inAppRows = players
+          .filter((p) => p.user_id && !alreadyNotified.has(p.user_id))
+          .map((p) => ({
+            user_id: p.user_id!,
+            category_id: session.category_id,
+            notification_type: "rpe_reminder",
+            notification_subtype: session.training_type,
+            title: "RPE à renseigner 💪",
+            message: `Ta séance "${trainingTypeLabel}" (${category.name}) est terminée. Pense à renseigner ton RPE${tonnageHint}.`,
+            is_read: false,
+            priority: "normal",
+            metadata: {
+              session_id: session.id,
+              category_id: session.category_id,
+              training_type: session.training_type,
+              url: rpeDeepLink,
+            },
+          }));
+
+        if (inAppRows.length > 0) {
+          const { error: insertErr } = await supabase
+            .from("notifications")
+            .insert(inAppRows);
+          if (insertErr) {
+            console.error(`[rpe] In-app insert error for session ${session.id}:`, insertErr);
+          } else {
+            console.log(`[rpe] In-app notifications created: ${inAppRows.length} for session ${session.id}`);
+          }
+        }
+      } catch (e) {
+        console.error("[rpe] In-app notification error:", e);
+      }
 
       // Filter recipients by per-user notification preferences
       const allUserIds = players.filter((p) => p.user_id).map((p) => p.user_id!);
