@@ -355,7 +355,7 @@ const handler = async (req: Request): Promise<Response> => {
         }
       }
 
-      if (channels.includes("push") && athlete.email && pushAllowed) {
+      if (channels.includes("push") && athlete.user_id && pushAllowed) {
         try {
           let pushMessage = message;
           if (eventDetails?.date) pushMessage += `\n${eventDetails.date}`;
@@ -370,11 +370,14 @@ const handler = async (req: Request): Promise<Response> => {
             },
             body: JSON.stringify({
               app_id: ONESIGNAL_APP_ID,
-              include_aliases: { external_id: [athlete.email] },
+              // external_id = user.id (UUID), set by oneSignalLogin() in the browser SDK.
+              // Using email here would target a non-existent alias → no push delivered.
+              include_aliases: { external_id: [athlete.user_id] },
               target_channel: "push",
               headings: { en: subject, fr: subject },
               contents: { en: pushMessage, fr: pushMessage },
               name: `Push to ${athlete.name}`,
+              url: APP_URL,
             }),
           });
 
@@ -382,11 +385,11 @@ const handler = async (req: Request): Promise<Response> => {
             results.pushSent++;
           } else {
             const errorData = await pushResponse.json();
-            results.errors.push(`Push ${athlete.email}: ${JSON.stringify(errorData)}`);
+            results.errors.push(`Push ${athlete.user_id}: ${JSON.stringify(errorData)}`);
           }
         } catch (e: unknown) {
           const errorMessage = e instanceof Error ? e.message : String(e);
-          results.errors.push(`Push ${athlete.email}: ${errorMessage}`);
+          results.errors.push(`Push ${athlete.user_id}: ${errorMessage}`);
         }
       }
     }
