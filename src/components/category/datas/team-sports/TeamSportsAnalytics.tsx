@@ -28,6 +28,7 @@ export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
   const [activeTab, setActiveTab] = useState("general");
   const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
   const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | null>(null);
+  const [exportingAggregate, setExportingAggregate] = useState<"pdf" | "excel" | null>(null);
   const { data: ourTeamName = "Notre équipe" } = useCategoryTeamName(categoryId);
 
   const playable = useMemo(() => matches.filter(m => m.event_type !== "individual"), [matches]);
