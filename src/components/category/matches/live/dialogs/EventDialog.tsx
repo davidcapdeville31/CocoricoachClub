@@ -263,7 +263,7 @@ export function EventDialog(props: EventDialogProps) {
     // Try → ask conversion next
     let chain: { type: EventType; flipSide?: boolean } | undefined;
     if (eventType === "try" && draft.tryAttemptConv) chain = { type: "conversion" };
-    if (eventType === "penalty_kick" && draft.penaltyMode !== "kick" && draft.penaltyMode !== "penaltouche") {
+    if (eventType === "penalty_kick" && draft.penaltyMode !== "kick" && draft.penaltyMode !== "points" && draft.penaltyMode !== "penaltouche") {
       payload.outcome = null;
     }
     // Sanction (faute/jaune/rouge) → la sanction est jouée par l'équipe adverse
@@ -272,6 +272,7 @@ export function EventDialog(props: EventDialogProps) {
       if (mode === "kick") chain = { type: "penalty_kick", flipSide: true };
       else if (mode === "penaltouche") chain = { type: "lineout", flipSide: true };
       else if (mode === "scrum") chain = { type: "scrum", flipSide: true };
+      // "points" → tir au but joué directement dans cette saisie, pas de chain
       // "quick" (jeu à la main) → pas de chain, action collective sans saisie supplémentaire
     }
     onSubmit(payload, chain);
