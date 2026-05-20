@@ -398,10 +398,9 @@ export function EventDialog(props: EventDialogProps) {
           {showPenaltyMode && (
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Pénalité jouée</Label>
-              <div className="grid grid-cols-5 gap-1.5 mt-1">
+              <div className="grid grid-cols-4 gap-1.5 mt-1">
                 {[
-                  { v: "kick", l: "Au pied" },
-                  { v: "points", l: "Les points" },
+                  { v: "kick", l: "Les points" },
                   { v: "penaltouche", l: "Pénaltouche" },
                   { v: "scrum", l: "Mêlée" },
                   { v: "quick", l: "Rapide" },
