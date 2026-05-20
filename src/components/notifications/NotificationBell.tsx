@@ -70,9 +70,11 @@ export function NotificationBell({ variant = "hero" }: { variant?: "hero" | "def
 
   const markAllAsRead = useMutation({
     mutationFn: async () => {
+      if (!user?.id) return;
       const { error } = await supabase
         .from("notifications")
         .update({ is_read: true })
+        .eq("user_id", user.id)
         .eq("is_read", false);
       if (error) throw error;
     },
