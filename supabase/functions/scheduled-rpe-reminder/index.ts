@@ -128,10 +128,61 @@ serve(async (req) => {
 
       const category = session.categories as any;
       const trainingTypeLabel = getTrainingTypeLabel(session.training_type);
+      const isStrength = session.training_type === "gym" || session.training_type === "physical";
 
       // Deep link URL for quick access
       const appBaseUrl = "https://cocoricoachclub.com";
       const rpeDeepLink = `${appBaseUrl}/athlete-space?tab=rpe`;
+
+      const tonnageHint = isStrength
+        ? " (et le tonnage si ton coach ne l'a pas encore renseigné)"
+        : "";
+
+      // ── IN-APP NOTIFICATIONS (cloche rouge) ─────────────────────────────
+      try {
+        // Dédup: ne pas réinsérer si déjà créée pour cette session
+        const { data: existingNotifs } = await supabase
+          .from("notifications")
+          .select("user_id")
+          .eq("notification_type", "rpe_reminder")
+          .filter("metadata->>session_id", "eq", session.id);
+
+        const alreadyNotified = new Set(
+          (existingNotifs ?? []).map((n: any) => n.user_id),
+        );
+
+        const inAppRows = players
+          .filter((p) => p.user_id && !alreadyNotified.has(p.user_id))
+          .map((p) => ({
+            user_id: p.user_id!,
+            category_id: session.category_id,
+            notification_type: "rpe_reminder",
+            notification_subtype: session.training_type,
+            title: "RPE à renseigner 💪",
+            message: `Ta séance "${trainingTypeLabel}" (${category.name}) est terminée. Pense à renseigner ton RPE${tonnageHint}.`,
+            is_read: false,
+            priority: "normal",
+            metadata: {
+              session_id: session.id,
+              category_id: session.category_id,
+              training_type: session.training_type,
+              url: rpeDeepLink,
+            },
+          }));
+
+        if (inAppRows.length > 0) {
+          const { error: insertErr } = await supabase
+            .from("notifications")
+            .insert(inAppRows);
+          if (insertErr) {
+            console.error(`[rpe] In-app insert error for session ${session.id}:`, insertErr);
+          } else {
+            console.log(`[rpe] In-app notifications created: ${inAppRows.length} for session ${session.id}`);
+          }
+        }
+      } catch (e) {
+        console.error("[rpe] In-app notification error:", e);
+      }
 
       // Filter recipients by per-user notification preferences
       const allUserIds = players.filter((p) => p.user_id).map((p) => p.user_id!);
@@ -165,7 +216,7 @@ serve(async (req) => {
                         <h2 style="margin: 0 0 12px;">Séance terminée ! 🏋️</h2>
                         <p>La séance de <strong>${trainingTypeLabel}</strong> est terminée.</p>
                         <p><strong>Catégorie:</strong> ${category.name}</p>
-                        <p>N'oublie pas de renseigner ton RPE (perception de l'effort) pour aider ton staff à optimiser ta charge d'entraînement.</p>
+                        <p>N'oublie pas de renseigner ton RPE (perception de l'effort)${tonnageHint} pour aider ton staff à optimiser ta charge d'entraînement.</p>
                         <p style="color: #6b7280;">Échelle RPE : 1 (très facile) à 10 (effort maximal)</p>
                         <div style="text-align: center; margin: 24px 0;">
                           <a href="${rpeDeepLink}" style="display: inline-block; background: linear-gradient(135deg, #059669, #10b981); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; font-size: 16px;">📊 Renseigner mon RPE</a>
@@ -206,11 +257,11 @@ serve(async (req) => {
               target_channel: "push",
               headings: {
                 fr: "Comment s'est passée la séance ? 💪",
-                en: "Comment s'est passée la séance ? 💪",
+                en: "How did your session go? 💪",
               },
               contents: {
-                fr: `"${trainingTypeLabel}" (${category.name}) est terminée. Donne ton RPE en 10 secondes !`,
-                en: `"${trainingTypeLabel}" (${category.name}) est terminée. Donne ton RPE en 10 secondes !`,
+                fr: `"${trainingTypeLabel}" (${category.name}) est terminée. Donne ton RPE${tonnageHint} en 10 secondes !`,
+                en: `"${trainingTypeLabel}" (${category.name}) is done. Log your RPE${tonnageHint} in 10s!`,
               },
               url: rpeDeepLink,
               ttl: 7200,
