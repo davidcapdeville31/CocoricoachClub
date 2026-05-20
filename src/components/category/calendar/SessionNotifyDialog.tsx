@@ -253,7 +253,8 @@ export function SessionNotifyDialog({
       const parts = [];
       if (data.emailsSent > 0) parts.push(`${data.emailsSent} email(s)`);
       if (data.pushSent > 0) parts.push(`${data.pushSent} push`);
-      
+      if (data.bellSent > 0) parts.push(`${data.bellSent} cloche`);
+
       toast.success(`Notifications envoyées : ${parts.join(", ") || "aucune"}`);
       onOpenChange(false);
       setMessage("");
