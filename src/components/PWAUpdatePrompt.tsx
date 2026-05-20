@@ -114,40 +114,47 @@ const PWAUpdatePrompt = () => {
   const handleUpdate = async () => {
     setIsUpdating(true);
 
+    // Équivalent d'un hard refresh desktop : on vide TOUS les caches,
+    // on désinscrit les service workers, puis on recharge avec un cache-bust.
     const hardReload = () => {
-      const url = new URL(window.location.href);
-      url.searchParams.set("_swr", Date.now().toString());
-      window.location.replace(url.toString());
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set("_hr", Date.now().toString());
+        window.location.replace(url.toString());
+      } catch {
+        window.location.reload();
+      }
     };
 
     try {
+      // 1) Purge des caches HTTP/CacheStorage (équivalent vidage cache navigateur)
       if ("caches" in window) {
         const keys = await caches.keys();
-        await Promise.all(keys.map((k) => caches.delete(k)));
+        await Promise.all(keys.map((k) => caches.delete(k).catch(() => false)));
       }
 
-      if ("serviceWorker" in navigator && !swDisabled) {
+      // 2) Désinscription complète des service workers pour repartir propre
+      if ("serviceWorker" in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
-
         await Promise.all(
           registrations.map(async (registration) => {
-            try { await registration.update(); } catch {}
-            if (registration.waiting) {
-              try { registration.waiting.postMessage({ type: "SKIP_WAITING" }); } catch {}
-            }
+            try {
+              if (registration.waiting) {
+                registration.waiting.postMessage({ type: "SKIP_WAITING" });
+              }
+            } catch {}
+            try { await registration.unregister(); } catch {}
           }),
         );
-
-        const stillWaiting = registrations.some((r) => r.waiting);
-        if (!stillWaiting) {
-          await Promise.all(registrations.map((r) => r.unregister().catch(() => {})));
-        }
       }
+
+      // 3) Purge sessionStorage (on garde localStorage pour ne pas déconnecter l'utilisateur)
+      try { sessionStorage.clear(); } catch {}
     } catch (err) {
-      console.warn("[PWA] handleUpdate error", err);
+      console.warn("[PWA] hard refresh error", err);
     }
 
-    setTimeout(hardReload, 300);
+    setTimeout(hardReload, 250);
     setTimeout(() => setIsUpdating(false), 1500);
   };
 
