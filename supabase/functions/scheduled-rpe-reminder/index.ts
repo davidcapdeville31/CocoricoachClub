@@ -257,11 +257,11 @@ serve(async (req) => {
               target_channel: "push",
               headings: {
                 fr: "Comment s'est passée la séance ? 💪",
-                en: "Comment s'est passée la séance ? 💪",
+                en: "How did your session go? 💪",
               },
               contents: {
-                fr: `"${trainingTypeLabel}" (${category.name}) est terminée. Donne ton RPE en 10 secondes !`,
-                en: `"${trainingTypeLabel}" (${category.name}) est terminée. Donne ton RPE en 10 secondes !`,
+                fr: `"${trainingTypeLabel}" (${category.name}) est terminée. Donne ton RPE${tonnageHint} en 10 secondes !`,
+                en: `"${trainingTypeLabel}" (${category.name}) is done. Log your RPE${tonnageHint} in 10s!`,
               },
               url: rpeDeepLink,
               ttl: 7200,
