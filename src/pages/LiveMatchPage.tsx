@@ -27,15 +27,45 @@ import { VideoCompanionDock, VideoCompanionTrigger } from "@/components/shared/V
 export default function LiveMatchPage() {
   const { categoryId, matchId } = useParams<{ categoryId: string; matchId: string }>();
   const navigate = useNavigate();
-  const [period, setPeriod] = useState<Period>("H1");
-  const [minute, setMinute] = useState(0);
-  const [seconds, setSeconds] = useState(0);
+  // Persistance du chrono dans localStorage (clé par match) pour éviter toute remise à 0
+  // lors d'un remount, d'une navigation interne ou d'un rechargement de page.
+  const chronoKey = matchId ? `match-chrono-${matchId}` : null;
+  const loadChrono = () => {
+    if (typeof window === "undefined" || !chronoKey) return null;
+    try {
+      const raw = localStorage.getItem(chronoKey);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as { period: Period; minute: number; seconds: number; isRunning: boolean; startedAt: number | null };
+      // Si le chrono tournait, recalculer le temps écoulé depuis la dernière sauvegarde
+      if (parsed.isRunning && parsed.startedAt) {
+        const elapsed = Math.floor((Date.now() - parsed.startedAt) / 1000);
+        const totalSec = parsed.minute * 60 + parsed.seconds + elapsed;
+        return { period: parsed.period, minute: Math.floor(totalSec / 60), seconds: totalSec % 60, isRunning: true };
+      }
+      return { period: parsed.period, minute: parsed.minute, seconds: parsed.seconds, isRunning: parsed.isRunning };
+    } catch { return null; }
+  };
+  const initialChrono = loadChrono();
+  const [period, setPeriod] = useState<Period>(initialChrono?.period ?? "H1");
+  const [minute, setMinute] = useState(initialChrono?.minute ?? 0);
+  const [seconds, setSeconds] = useState(initialChrono?.seconds ?? 0);
   const [openType, setOpenType] = useState<EventType | null>(null);
   const [editing, setEditing] = useState<MatchEvent | null>(null);
   const [chainNext, setChainNext] = useState<EventType | null>(null);
   const [tacklePanelOpen, setTacklePanelOpen] = useState(false);
   const [subOpen, setSubOpen] = useState(false);
-  const [isRunning, setIsRunning] = useState(false);
+  const [isRunning, setIsRunning] = useState(initialChrono?.isRunning ?? false);
+
+  // Sauvegarde à chaque changement
+  useEffect(() => {
+    if (!chronoKey) return;
+    try {
+      localStorage.setItem(chronoKey, JSON.stringify({
+        period, minute, seconds, isRunning,
+        startedAt: isRunning ? Date.now() : null,
+      }));
+    } catch { /* noop */ }
+  }, [chronoKey, period, minute, seconds, isRunning]);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
   const [videoOpen, setVideoOpen] = useState(false);
