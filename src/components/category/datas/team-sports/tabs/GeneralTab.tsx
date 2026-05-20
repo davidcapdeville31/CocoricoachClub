@@ -397,31 +397,51 @@ function StatBar({
         )}
       </div>
 
-      {/* Valeurs : home — % central proéminent — away */}
+      {/* Valeurs */}
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-        <span className={cn(
-          "text-base font-extrabold tabular-nums leading-none text-left",
-          !equal && homeBetter ? "text-primary" : hHasData ? "text-foreground/70" : "text-foreground/30",
-        )}>{hLabel}</span>
-
-        {/* % central : grand, lumineux, codé couleur quand kind=ratio */}
-        {hasPct ? (
+        {/* HOME : valeur + % par équipe (si ratio) */}
+        <div className="flex items-center gap-1.5 min-w-0 justify-start">
           <span className={cn(
-            "inline-flex items-center justify-center min-w-[44px] px-1.5 py-0.5 rounded-md tabular-nums font-extrabold leading-none ring-1 transition-transform",
-            isRatio ? "text-base" : "text-xs",
+            "text-base font-extrabold tabular-nums leading-none",
+            !equal && homeBetter ? "text-primary" : hHasData ? "text-foreground/70" : "text-foreground/30",
+          )}>{hLabel}</span>
+          {isRatio && hPct !== null && (
+            <span className={cn(
+              "inline-flex items-center justify-center px-1.5 py-0.5 rounded-md tabular-nums font-extrabold leading-none ring-1 text-xs",
+              PCT_TONE[hTone].text, PCT_TONE[hTone].bg, PCT_TONE[hTone].ring,
+              hTone !== "neutral" && PCT_TONE[hTone].glow,
+            )}>{Math.round(hPct)}%</span>
+          )}
+        </div>
+
+        {/* Centre : % combiné seulement pour kind=count (part de possession), sinon "vs" */}
+        {isRatio ? (
+          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50">vs</span>
+        ) : hasPct ? (
+          <span className={cn(
+            "inline-flex items-center justify-center min-w-[44px] px-1.5 py-0.5 rounded-md tabular-nums font-extrabold leading-none ring-1 text-xs",
             pt.text, pt.bg, pt.ring,
-            isRatio && pctTone !== "neutral" && pt.glow,
           )}>
-            {Math.round(centerPct)}%
+            {Math.round(centerPct as number)}%
           </span>
         ) : (
           <span className="text-xs text-muted-foreground/60 text-center font-bold">—</span>
         )}
 
-        <span className={cn(
-          "text-base font-extrabold tabular-nums leading-none text-right",
-          !equal && awayBetter ? "text-primary" : aHasData ? "text-foreground/70" : "text-foreground/30",
-        )}>{aLabel}</span>
+        {/* AWAY : % par équipe + valeur */}
+        <div className="flex items-center gap-1.5 min-w-0 justify-end">
+          {isRatio && aPct !== null && (
+            <span className={cn(
+              "inline-flex items-center justify-center px-1.5 py-0.5 rounded-md tabular-nums font-extrabold leading-none ring-1 text-xs",
+              PCT_TONE[aTone].text, PCT_TONE[aTone].bg, PCT_TONE[aTone].ring,
+              aTone !== "neutral" && PCT_TONE[aTone].glow,
+            )}>{Math.round(aPct)}%</span>
+          )}
+          <span className={cn(
+            "text-base font-extrabold tabular-nums leading-none",
+            !equal && awayBetter ? "text-primary" : aHasData ? "text-foreground/70" : "text-foreground/30",
+          )}>{aLabel}</span>
+        </div>
       </div>
     </>
   );
