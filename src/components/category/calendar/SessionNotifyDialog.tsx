@@ -156,59 +156,94 @@ export function SessionNotifyDialog({
         throw new Error("Veuillez sélectionner au moins un canal de notification");
       }
 
-      const results: { emailsSent: number; pushSent: number } = { emailsSent: 0, pushSent: 0 };
+      const results = { emailsSent: 0, pushSent: 0, bellSent: 0 };
       const eventDetails = {
         date: format(new Date(session.session_date), "EEEE d MMMM yyyy", { locale: fr }),
         time: session.session_start_time ? session.session_start_time.substring(0, 5) : undefined,
       };
+
+      const title = selectedType?.label || "Notification";
 
       // Collect user_ids of players with an app account
       const targetUserIds = athletes
         .map((a: any) => a.user_id)
         .filter(Boolean) as string[];
 
-      // Build channels array based on checkboxes
-      const channels: ("push" | "email")[] = [];
-      if (sendPush) channels.push("push");
-      if (sendEmail) channels.push("email");
+      console.log(`[SessionNotification] ${athletes.length} athlete(s) | ${targetUserIds.length} with account`);
 
-      console.log(`[SessionNotification] Step 2 — ${targetUserIds.length} player(s) with app account`);
-      console.log(`[SessionNotification] Step 2 — Session: ${session.id} | Channels: ${channels.join(", ")}`);
+      // ── 1) BELL + EMAIL via notify-athletes (always creates bell, optionally sends email)
+      try {
+        const athletePayload = (athletes as any[])
+          .map((a) => ({
+            name: [a.first_name, a.name].filter(Boolean).join(" ").trim() || a.name || "Athlète",
+            email: a.email || undefined,
+            user_id: a.user_id || undefined,
+          }))
+          .filter((a) => a.email || a.user_id);
 
-      const requestBody: Record<string, unknown> = {
-        title: selectedType?.label || "Notification",
-        message: finalMessage,
-        channels,
-        event_type: "session",
-        session_id: session.id,
-        event_details: eventDetails,
-        url: `https://cocoricoachclub.com/categories/${categoryId}`,
-      };
+        if (athletePayload.length > 0) {
+          const channels: string[] = [];
+          if (sendEmail) channels.push("email");
+          // We always want bell notifications when notifying; notify-athletes inserts bell
+          // regardless of channels list (unless skipBell=true).
 
-      if (targetUserIds.length > 0) {
-        requestBody.target_user_ids = targetUserIds;
-        console.log(`[SessionNotification] Step 2 — Mode P1: external_ids → [${targetUserIds.join(", ")}]`);
-      } else {
-        requestBody.category_ids = [categoryId];
-        requestBody.roles = ["player"];
-        console.warn("[SessionNotification] Step 2 — No user_id found → fallback P2 category broadcast");
+          const { data: naData, error: naError } = await supabase.functions.invoke(
+            "notify-athletes",
+            {
+              body: {
+                athletes: athletePayload,
+                subject: title,
+                message: finalMessage,
+                channels,
+                eventType: "session",
+                category_id: categoryId,
+                eventDetails,
+              },
+            }
+          );
+          if (naError) {
+            console.error("[SessionNotification] notify-athletes error:", naError);
+          } else {
+            results.emailsSent = naData?.emailsSent ?? 0;
+            results.bellSent = naData?.bellSent ?? athletePayload.filter((a) => a.user_id).length;
+            console.log(`[SessionNotification] ✉️ ${results.emailsSent} | 🔔 ${results.bellSent}`);
+          }
+        }
+      } catch (err) {
+        console.error("[SessionNotification] notify-athletes failed:", err);
       }
 
-      const { data, error } = await supabase.functions.invoke("send-targeted-notification", {
-        body: requestBody,
-      });
+      // ── 2) PUSH via send-targeted-notification
+      if (sendPush) {
+        try {
+          const pushBody: Record<string, unknown> = {
+            title,
+            message: finalMessage,
+            channels: ["push"],
+            event_type: "session",
+            session_id: session.id,
+            event_details: eventDetails,
+            url: `https://cocoricoachclub.com/categories/${categoryId}`,
+          };
+          if (targetUserIds.length > 0) {
+            pushBody.target_user_ids = targetUserIds;
+          } else {
+            pushBody.category_ids = [categoryId];
+            pushBody.roles = ["player"];
+          }
 
-      if (error) {
-        console.error("[SessionNotification] ❌ Error:", error.message);
-        throw new Error(error.message);
-      }
-      
-      if (data) {
-        results.pushSent = data.pushSent || 0;
-        results.emailsSent = data.emailsSent || 0;
-        console.log(`[SessionNotification] ✅ Push: ${results.pushSent}, Email: ${results.emailsSent}. Mode: ${data.mode}`);
-        if (data.errors?.length > 0) {
-          console.warn(`[SessionNotification] Errors:`, data.errors);
+          const { data: pushData, error: pushError } = await supabase.functions.invoke(
+            "send-targeted-notification",
+            { body: pushBody }
+          );
+          if (pushError) {
+            console.error("[SessionNotification] push error:", pushError);
+          } else {
+            results.pushSent = pushData?.pushSent ?? 0;
+            console.log(`[SessionNotification] 📲 push: ${results.pushSent}`);
+          }
+        } catch (err) {
+          console.error("[SessionNotification] push failed:", err);
         }
       }
 
