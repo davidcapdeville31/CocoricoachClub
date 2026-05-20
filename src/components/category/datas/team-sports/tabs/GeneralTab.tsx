@@ -155,14 +155,15 @@ export function GeneralTab({ match, categoryId }: Props) {
           </div>
 
           <StatBlock title="Attaque" accent="emerald">
-            <StatBar label="Transformations" h={home.conversionsMade} a={away.conversionsMade} hTotal={home.conversionsAttempted} aTotal={away.conversionsAttempted} kind="ratio" onShowPositions={() => setPosKind("conversion")} />
-            <StatBar label="Pénalités (tirs)" h={home.penaltiesMade} a={away.penaltiesMade} hTotal={home.penaltiesAttempted} aTotal={away.penaltiesAttempted} kind="ratio" onShowPositions={() => setPosKind("penalty_kick")} />
-            <StatBar label="Drops" h={home.drops} a={away.drops} onShowPositions={() => setPosKind("drop")} />
-            <StatBar label="Mètres gagnés" h={home.meters} a={away.meters} suffix="m" />
+            <StatBar homeName={homeName} awayName={awayName} label="Transformations" h={home.conversionsMade} a={away.conversionsMade} hTotal={home.conversionsAttempted} aTotal={away.conversionsAttempted} kind="ratio" onShowPositions={() => setPosKind("conversion")} />
+            <StatBar homeName={homeName} awayName={awayName} label="Pénalités (tirs)" h={home.penaltiesMade} a={away.penaltiesMade} hTotal={home.penaltiesAttempted} aTotal={away.penaltiesAttempted} kind="ratio" onShowPositions={() => setPosKind("penalty_kick")} />
+            <StatBar homeName={homeName} awayName={awayName} label="Drops" h={home.drops} a={away.drops} onShowPositions={() => setPosKind("drop")} />
+            <StatBar homeName={homeName} awayName={awayName} label="Mètres gagnés" h={home.meters} a={away.meters} suffix="m" />
           </StatBlock>
 
           <StatBlock title="Défense" accent="sky">
             <StatBar
+              homeName={homeName} awayName={awayName}
               label="Plaquages"
               h={home.tackles} a={away.tackles}
               hTotal={home.tackles + home.missedTackles}
@@ -172,21 +173,21 @@ export function GeneralTab({ match, categoryId }: Props) {
           </StatBlock>
 
           <StatBlock title="Conquête" accent="amber">
-            <StatBar label="Touches gagnées" h={home.lineoutsWon} a={away.lineoutsWon} hTotal={home.lineoutsWon + home.lineoutsLost} aTotal={away.lineoutsWon + away.lineoutsLost} kind="ratio" onShowPositions={() => setPosKind("lineout")} />
-            <StatBar label="Mêlées gagnées" h={home.scrumsWon} a={away.scrumsWon} hTotal={home.scrumsWon + home.scrumsLost} aTotal={away.scrumsWon + away.scrumsLost} kind="ratio" onShowPositions={() => setPosKind("scrum")} />
+            <StatBar homeName={homeName} awayName={awayName} label="Touches gagnées" h={home.lineoutsWon} a={away.lineoutsWon} hTotal={home.lineoutsWon + home.lineoutsLost} aTotal={away.lineoutsWon + away.lineoutsLost} kind="ratio" onShowPositions={() => setPosKind("lineout")} />
+            <StatBar homeName={homeName} awayName={awayName} label="Mêlées gagnées" h={home.scrumsWon} a={away.scrumsWon} hTotal={home.scrumsWon + home.scrumsLost} aTotal={away.scrumsWon + away.scrumsLost} kind="ratio" onShowPositions={() => setPosKind("scrum")} />
           </StatBlock>
 
           <StatBlock title="Discipline" accent="rose">
-            <StatBar label="Pénalités concédées" h={home.fouls} a={away.fouls} reverse />
-            <StatBar label="↳ Les points" h={home.foulsByPlay.kick + home.foulsByPlay.points} a={away.foulsByPlay.kick + away.foulsByPlay.points} reverse />
-            <StatBar label="↳ Pénaltouche" h={home.foulsByPlay.penaltouche} a={away.foulsByPlay.penaltouche} reverse />
-            <StatBar label="↳ Jouées en mêlée" h={home.foulsByPlay.scrum} a={away.foulsByPlay.scrum} reverse />
-            <StatBar label="↳ Jouées à la main" h={home.foulsByPlay.quick} a={away.foulsByPlay.quick} reverse />
+            <StatBar homeName={homeName} awayName={awayName} label="Pénalités concédées" h={home.fouls} a={away.fouls} reverse />
+            <StatBar homeName={homeName} awayName={awayName} label="↳ Les points" h={home.foulsByPlay.kick + home.foulsByPlay.points} a={away.foulsByPlay.kick + away.foulsByPlay.points} reverse />
+            <StatBar homeName={homeName} awayName={awayName} label="↳ Pénaltouche" h={home.foulsByPlay.penaltouche} a={away.foulsByPlay.penaltouche} reverse />
+            <StatBar homeName={homeName} awayName={awayName} label="↳ Jouées en mêlée" h={home.foulsByPlay.scrum} a={away.foulsByPlay.scrum} reverse />
+            <StatBar homeName={homeName} awayName={awayName} label="↳ Jouées à la main" h={home.foulsByPlay.quick} a={away.foulsByPlay.quick} reverse />
             {(home.foulsByPlay.unknown > 0 || away.foulsByPlay.unknown > 0) && (
-              <StatBar label="↳ Autre / non précisé" h={home.foulsByPlay.unknown} a={away.foulsByPlay.unknown} reverse />
+              <StatBar homeName={homeName} awayName={awayName} label="↳ Autre / non précisé" h={home.foulsByPlay.unknown} a={away.foulsByPlay.unknown} reverse />
             )}
-            <StatBar label="Cartons jaunes" h={home.yellowCards} a={away.yellowCards} reverse />
-            <StatBar label="Cartons rouges" h={home.redCards} a={away.redCards} reverse />
+            <StatBar homeName={homeName} awayName={awayName} label="Cartons jaunes" h={home.yellowCards} a={away.yellowCards} reverse />
+            <StatBar homeName={homeName} awayName={awayName} label="Cartons rouges" h={home.redCards} a={away.redCards} reverse />
           </StatBlock>
         </CardContent>
       </Card>
@@ -310,7 +311,7 @@ function TeamSide({ name, score, winner, align }: { name: string; score: number;
 }
 
 function StatBar({
-  label, h, a, hTotal, aTotal, kind = "count", reverse = false, suffix = "", onShowPositions,
+  label, h, a, hTotal, aTotal, kind = "count", reverse = false, suffix = "", onShowPositions, homeName, awayName,
 }: {
   label: string;
   h: number;
@@ -321,6 +322,8 @@ function StatBar({
   reverse?: boolean;
   suffix?: string;
   onShowPositions?: () => void;
+  homeName?: string;
+  awayName?: string;
 }) {
   const isRatio = kind === "ratio";
 
@@ -397,50 +400,62 @@ function StatBar({
         )}
       </div>
 
-      {/* Valeurs */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-        {/* HOME : valeur + % par équipe (si ratio) */}
-        <div className="flex items-center gap-1.5 min-w-0 justify-start">
-          <span className={cn(
-            "text-base font-extrabold tabular-nums leading-none",
-            !equal && homeBetter ? "text-primary" : hHasData ? "text-foreground/70" : "text-foreground/30",
-          )}>{hLabel}</span>
-          {isRatio && hPct !== null && (
+      {/* Valeurs avec noms d'équipes (similaire aux Chiffres clés) */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
+        {/* HOME : nom + valeur + % par équipe */}
+        <div className="flex flex-col items-start min-w-0">
+          {homeName && (
+            <span className="text-[9px] uppercase text-muted-foreground/70 truncate max-w-full font-medium mb-0.5">{homeName}</span>
+          )}
+          <div className="flex items-center gap-1.5">
             <span className={cn(
-              "inline-flex items-center justify-center px-1.5 py-0.5 rounded-md tabular-nums font-extrabold leading-none ring-1 text-xs",
-              PCT_TONE[hTone].text, PCT_TONE[hTone].bg, PCT_TONE[hTone].ring,
-              hTone !== "neutral" && PCT_TONE[hTone].glow,
-            )}>{Math.round(hPct)}%</span>
+              "text-base font-extrabold tabular-nums leading-none",
+              !equal && homeBetter ? "text-primary" : hHasData ? "text-foreground/70" : "text-foreground/30",
+            )}>{hLabel}</span>
+            {isRatio && hPct !== null && (
+              <span className={cn(
+                "inline-flex items-center justify-center px-1.5 py-0.5 rounded-md tabular-nums font-extrabold leading-none ring-1 text-[11px]",
+                PCT_TONE[hTone].text, PCT_TONE[hTone].bg, PCT_TONE[hTone].ring,
+                hTone !== "neutral" && PCT_TONE[hTone].glow,
+              )}>{Math.round(hPct)}%</span>
+            )}
+          </div>
+        </div>
+
+        {/* Centre : % combiné uniquement pour kind=count, sinon "vs" */}
+        <div className="pb-0.5">
+          {isRatio ? (
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50">vs</span>
+          ) : hasPct ? (
+            <span className={cn(
+              "inline-flex items-center justify-center min-w-[44px] px-1.5 py-0.5 rounded-md tabular-nums font-extrabold leading-none ring-1 text-xs",
+              pt.text, pt.bg, pt.ring,
+            )}>
+              {Math.round(centerPct as number)}%
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground/60 text-center font-bold">—</span>
           )}
         </div>
 
-        {/* Centre : % combiné seulement pour kind=count (part de possession), sinon "vs" */}
-        {isRatio ? (
-          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50">vs</span>
-        ) : hasPct ? (
-          <span className={cn(
-            "inline-flex items-center justify-center min-w-[44px] px-1.5 py-0.5 rounded-md tabular-nums font-extrabold leading-none ring-1 text-xs",
-            pt.text, pt.bg, pt.ring,
-          )}>
-            {Math.round(centerPct as number)}%
-          </span>
-        ) : (
-          <span className="text-xs text-muted-foreground/60 text-center font-bold">—</span>
-        )}
-
-        {/* AWAY : % par équipe + valeur */}
-        <div className="flex items-center gap-1.5 min-w-0 justify-end">
-          {isRatio && aPct !== null && (
-            <span className={cn(
-              "inline-flex items-center justify-center px-1.5 py-0.5 rounded-md tabular-nums font-extrabold leading-none ring-1 text-xs",
-              PCT_TONE[aTone].text, PCT_TONE[aTone].bg, PCT_TONE[aTone].ring,
-              aTone !== "neutral" && PCT_TONE[aTone].glow,
-            )}>{Math.round(aPct)}%</span>
+        {/* AWAY : nom + % par équipe + valeur */}
+        <div className="flex flex-col items-end min-w-0">
+          {awayName && (
+            <span className="text-[9px] uppercase text-muted-foreground/70 truncate max-w-full font-medium mb-0.5">{awayName}</span>
           )}
-          <span className={cn(
-            "text-base font-extrabold tabular-nums leading-none",
-            !equal && awayBetter ? "text-primary" : aHasData ? "text-foreground/70" : "text-foreground/30",
-          )}>{aLabel}</span>
+          <div className="flex items-center gap-1.5">
+            {isRatio && aPct !== null && (
+              <span className={cn(
+                "inline-flex items-center justify-center px-1.5 py-0.5 rounded-md tabular-nums font-extrabold leading-none ring-1 text-[11px]",
+                PCT_TONE[aTone].text, PCT_TONE[aTone].bg, PCT_TONE[aTone].ring,
+                aTone !== "neutral" && PCT_TONE[aTone].glow,
+              )}>{Math.round(aPct)}%</span>
+            )}
+            <span className={cn(
+              "text-base font-extrabold tabular-nums leading-none",
+              !equal && awayBetter ? "text-primary" : aHasData ? "text-foreground/70" : "text-foreground/30",
+            )}>{aLabel}</span>
+          </div>
         </div>
       </div>
     </>
