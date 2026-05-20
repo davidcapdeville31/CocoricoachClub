@@ -35,7 +35,7 @@ export interface PlayerAggStats extends TeamStats {
   playTimeMinutes: number;
 }
 
-export const emptyFoulsByPlay = (): FoulsByPlay => ({ kick: 0, penaltouche: 0, scrum: 0, quick: 0, unknown: 0 });
+export const emptyFoulsByPlay = (): FoulsByPlay => ({ kick: 0, points: 0, penaltouche: 0, scrum: 0, quick: 0, unknown: 0 });
 
 export const emptyTeamStats = (): TeamStats => ({
   points: 0, tries: 0,
