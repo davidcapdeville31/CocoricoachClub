@@ -51,8 +51,8 @@ function add(s: TeamStats, e: MatchEvent) {
       if (e.outcome === "success") s.conversionsMade += 1; break;
     case "penalty_kick": {
       const mode = (e as any).metadata?.penaltyMode;
-      // Only count as a shot at goal if explicitly a kick (not pénaltouche / jeu à la main / mêlée…)
-      if (!mode || mode === "kick") {
+      // Tir au but ("Au pied" ou "Les points") = tentative de pénalité
+      if (!mode || mode === "kick" || mode === "points") {
         s.penaltiesAttempted += 1;
         if (e.outcome === "success") s.penaltiesMade += 1;
       }
