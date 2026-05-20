@@ -6,6 +6,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Bell, BellOff, CheckCircle2, AlertCircle, Loader2, HelpCircle, ChevronDown, Smartphone, Globe } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { initOneSignal, oneSignalLogin, buildUserTags, requestOneSignalPermission, getOneSignalPermission, checkOneSignalSubscriptionStatus } from "@/lib/onesignal";
+import { toast } from "sonner";
 
 const ONBOARDING_KEY = "notification_onboarding_done";
 const PERMISSION_GRANTED_KEY = "notification_permission_granted";
@@ -40,10 +41,16 @@ export function PushNotificationSettings() {
       const granted = await requestOneSignalPermission();
       if (granted) {
         const tags = await buildUserTags(user.id);
-        await oneSignalLogin(user.id, user.email || "", tags);
+        const subscribed = await oneSignalLogin(user.id, user.email || "", tags);
         localStorage.setItem(`${ONBOARDING_KEY}_${user.id}`, "done");
-        setPermission("granted");
-        setServerSubscribed(true);
+        setPermission(getOneSignalPermission());
+        setServerSubscribed(subscribed);
+
+        if (subscribed) {
+          toast.success("Notifications push activées !");
+        } else {
+          toast.warning("Autorisation accordée, mais l'appareil n'est pas encore abonné au push. Rouvre l'app installée puis réessaie.");
+        }
       } else {
         setPermission(getOneSignalPermission());
       }
@@ -55,8 +62,8 @@ export function PushNotificationSettings() {
   };
 
   // Consider active if either browser says granted OR server confirms push subscription
-  const isGranted = permission === "granted" || serverSubscribed === true;
-  const isDenied = permission === "denied" && serverSubscribed !== true;
+  const isGranted = serverSubscribed === true;
+  const isDenied = permission === "denied";
   const isChecking = serverSubscribed === null;
 
   return (
@@ -102,9 +109,11 @@ export function PushNotificationSettings() {
             </p>
             <p className="text-xs text-muted-foreground">
               {isGranted
-                ? "Vous recevrez les convocations, entraînements et rappels importants"
+                ? "Votre appareil est bien abonné aux notifications push"
                 : isDenied
                 ? "Modifiez les paramètres de votre navigateur pour autoriser ce site"
+                : permission === "granted"
+                ? "Autorisation accordée, mais aucun appareil push n'est encore relié"
                 : "Activez pour ne manquer aucune information importante"}
             </p>
           </div>
