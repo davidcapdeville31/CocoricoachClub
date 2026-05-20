@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Bell } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { initOneSignal, oneSignalLogin, buildUserTags, requestOneSignalPermission, getOneSignalPermission } from "@/lib/onesignal";
+import { initOneSignal, oneSignalLogin, buildUserTags, requestOneSignalPermission, getOneSignalPermission, checkOneSignalSubscriptionStatus } from "@/lib/onesignal";
 
 const STORAGE_KEY = "notification_onboarding_done";
 /** Sticky flag: once the user clicks "Accepter", never re-show the onboarding automatically. */
@@ -39,12 +39,8 @@ function markReminderShown(userId: string) {
  */
 export function resetOnboardingIfNeeded(userId: string) {
   try {
-    // Do not auto-reset the onboarding anymore.
-    // It was causing the full-screen notification page to reappear on every app reopen
-    // for users who had already dismissed it once and were supposed to see only the timed reminder.
-    if (wasPermissionGranted(userId)) return;
-    if (localStorage.getItem(`${STORAGE_KEY}_${userId}`) === "done") return;
-    if (localStorage.getItem(`${LAST_SHOWN_KEY}_${userId}`)) return;
+    if (getOneSignalPermission() === "granted") return;
+    localStorage.removeItem(`${PERMISSION_GRANTED_KEY}_${userId}`);
   } catch {
     // Silently ignore
   }
@@ -59,26 +55,16 @@ export function NotificationOnboarding() {
   useEffect(() => {
     if (!user) return;
 
-    // If we've already confirmed permission was granted, never show again
-    if (wasPermissionGranted(user.id)) {
-      // Silently sync in background
-      (async () => {
-        try {
-          await initOneSignal();
-          const tags = await buildUserTags(user.id);
-          await oneSignalLogin(user.id, user.email || "", tags);
-        } catch {}
-      })();
-      localStorage.setItem(`${STORAGE_KEY}_${user.id}`, "done");
-      return;
-    }
+    let cancelled = false;
 
-    const perm = getOneSignalPermission();
+    (async () => {
+      const perm = getOneSignalPermission();
+      const hasServerSubscription = await checkOneSignalSubscriptionStatus(user.id).catch(() => false);
 
-    // If browser reports "granted" → record it, sync, and never show again
-    if (perm === "granted") {
-      markPermissionGranted(user.id);
-      (async () => {
+      if (cancelled) return;
+
+      if (perm === "granted" || hasServerSubscription) {
+        markPermissionGranted(user.id);
         try {
           await initOneSignal();
           const tags = await buildUserTags(user.id);
@@ -87,21 +73,26 @@ export function NotificationOnboarding() {
         } catch (err) {
           console.error("[NotificationOnboarding] Auto-sync error:", err);
         }
-      })();
-      localStorage.setItem(`${STORAGE_KEY}_${user.id}`, "done");
-      return;
-    }
+        localStorage.setItem(`${STORAGE_KEY}_${user.id}`, "done");
+        return;
+      }
 
-    // If "denied" → browser blocked, don't show popup
-    if (perm === "denied") return;
+      if (wasPermissionGranted(user.id)) {
+        localStorage.removeItem(`${PERMISSION_GRANTED_KEY}_${user.id}`);
+      }
 
-    // "default" → check if onboarding was previously completed
-    const done = localStorage.getItem(`${STORAGE_KEY}_${user.id}`);
-    if (done) return;
+      if (perm === "denied") return;
 
-    // Show the popup
-    const t = setTimeout(() => setShow(true), 800);
-    return () => clearTimeout(t);
+      const done = localStorage.getItem(`${STORAGE_KEY}_${user.id}`);
+      if (done) return;
+
+      const t = setTimeout(() => setShow(true), 800);
+      return () => clearTimeout(t);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   const markDone = () => {
@@ -115,8 +106,6 @@ export function NotificationOnboarding() {
     if (!user || isHandling) return;
     setIsHandling(true);
 
-    // Sticky acknowledgement: if the user already accepted once, do not ask again.
-    markPermissionGranted(user.id);
     localStorage.setItem(`${STORAGE_KEY}_${user.id}`, "done");
 
     // Safety net: never let the button stay stuck on "Activation en cours..."
