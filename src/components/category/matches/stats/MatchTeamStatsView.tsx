@@ -118,11 +118,14 @@ function Section({
   );
 }
 
-export function MatchTeamStatsView({ home, away, homeName, awayName, clubSide }: Props) {
+export function MatchTeamStatsView({ home, away, homeName, awayName, clubSide, events }: Props) {
   const club = clubSide === "home" ? home : away;
   const opp = clubSide === "home" ? away : home;
   const clubName = clubSide === "home" ? homeName : awayName;
   const oppName = clubSide === "home" ? awayName : homeName;
+  const possession = useMemo(() => (events ? computePossession(events, "all") : null), [events]);
+  const clubPossPct = possession ? (clubSide === "home" ? possession.homePct : possession.awayPct) : null;
+  const oppPossPct = possession ? (clubSide === "home" ? possession.awayPct : possession.homePct) : null;
 
   const kpis = useMemo(
     () => [
