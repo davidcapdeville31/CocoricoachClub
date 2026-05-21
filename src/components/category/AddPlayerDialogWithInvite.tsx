@@ -533,7 +533,14 @@ export function AddPlayerDialogWithInvite({
       }
     } catch (error: any) {
       console.error("Error:", error);
-      toast.error(error.message || "Erreur lors de l'ajout de l'athlète");
+      const msg = String(error?.message || "");
+      const isPermission =
+        /row-level security|permission denied|violates row-level/i.test(msg);
+      toast.error(
+        isPermission
+          ? "Vous n'avez pas les droits pour ajouter un athlète dans cette catégorie. Demandez à un coach ou administrateur."
+          : (msg || "Erreur lors de l'ajout de l'athlète"),
+      );
       setIsInviting(false);
     }
   };
