@@ -1237,6 +1237,9 @@ export async function exportAggregatedTeamSportExcel(opts: AggregateExportOpts):
     ["Points encaissés (cumul)", String(them.points)],
     ["Différentiel", `${diff > 0 ? "+" : ""}${diff}`],
     ["Bilan", `${wins}V · ${draws}N · ${losses}D`],
+    ...(usPossPct != null && themPossPct != null
+      ? [["Possession estimée", `${usPossPct}% / ${themPossPct}%`] as [string, string]]
+      : []),
   ]);
   // List of matches
   sum.getCell(r, 1).value = "Matchs inclus";
