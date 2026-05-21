@@ -1074,6 +1074,8 @@ function aggregateSides(matches: AggregateMatchInput[]) {
   const us = emptyTeamStats();
   const them = emptyTeamStats();
   let wins = 0, draws = 0, losses = 0;
+  let usPossTouches = 0;
+  let themPossTouches = 0;
   for (const { match, events } of matches) {
     const analytics = computeMatchAnalytics(events, "all");
     const myStats = match.is_home ? analytics.home : analytics.away;
@@ -1083,8 +1085,14 @@ function aggregateSides(matches: AggregateMatchInput[]) {
     if (myStats.points > oppStats.points) wins += 1;
     else if (myStats.points === oppStats.points) draws += 1;
     else losses += 1;
+    const poss = computePossession(events, "all");
+    usPossTouches += match.is_home ? poss.home : poss.away;
+    themPossTouches += match.is_home ? poss.away : poss.home;
   }
-  return { us, them, wins, draws, losses };
+  const totalPoss = usPossTouches + themPossTouches;
+  const usPossPct = totalPoss > 0 ? Math.round((usPossTouches / totalPoss) * 100) : null;
+  const themPossPct = totalPoss > 0 ? Math.round((themPossTouches / totalPoss) * 100) : null;
+  return { us, them, wins, draws, losses, usPossPct, themPossPct };
 }
 
 function drawAggregateBanner(
