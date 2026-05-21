@@ -19,6 +19,7 @@ import {
   kickRatio,
 } from "@/lib/analytics/team-sports/eventAggregator";
 import { emptyTeamStats, type TeamStats, type PlayerAggStats } from "@/lib/analytics/team-sports/types";
+import { computePossession } from "@/lib/analytics/team-sports/possession";
 import type { MatchEvent } from "@/components/category/matches/live/types";
 import { preparePdfWithSettings, drawPdfHeader, type PdfCustomSettings } from "@/lib/pdfExport";
 import { drawPdfRugbyField, drawPdfFieldLegend, svgPctToPdfPos, drawPdfGoalpostArrow } from "@/lib/pdfRugbyField";
