@@ -29,20 +29,20 @@ export const InviteEmail = ({
 }: InviteEmailProps) => (
   <Html lang="fr" dir="ltr">
     <Head />
-    <Preview>Tu as été invité à rejoindre {siteName}</Preview>
+    <Preview>Ton accès à {siteName} est prêt</Preview>
     <Body style={main}>
       <Container style={container}>
         <Img src="https://mbloebaovvvgfwxsdzgo.supabase.co/storage/v1/object/public/email-assets/cocoricoach-logo.png" alt="CocoriCoach Club" width="160" style={logo} />
-        <Heading style={h1}>Tu as été invité !</Heading>
+        <Heading style={h1}>Ton compte est prêt</Heading>
         <Text style={text}>
-          Tu viens d'être invité à rejoindre{' '}
+          Un compte a été créé pour toi sur{' '}
           <Link href={siteUrl} style={link}>
             <strong>{siteName}</strong>
           </Link>
-          . Clique sur le bouton ci-dessous pour accepter l'invitation et créer ton compte.
+          . Clique ci-dessous pour l'activer et définir ton mot de passe.
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Accepter l'invitation
+          Activer mon compte
         </Button>
         <PwaInstructions />
         <Text style={footer}>
