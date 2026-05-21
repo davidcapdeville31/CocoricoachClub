@@ -32,6 +32,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { AddInjuryDialog } from "./AddInjuryDialog";
+import { InjuryStatsPanel } from "./InjuryStatsPanel";
 import { InjuryLibraryDialog } from "@/components/category/programs/InjuryLibraryDialog";
 import { toast } from "sonner";
 import { INJURY_STATUS, INJURY_STATUS_LABELS } from "@/lib/constants/injury";
@@ -179,6 +180,9 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Statistiques détaillées */}
+      <InjuryStatsPanel categoryId={categoryId} />
 
       {/* Injuries Table */}
       <Card className="bg-gradient-card shadow-md">
