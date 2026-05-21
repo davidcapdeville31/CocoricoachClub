@@ -1159,7 +1159,7 @@ export async function exportAggregatedTeamSportPdf(opts: AggregateExportOpts): P
   const categoryName = prep.categoryName || "";
   const seasonName = prep.seasonName || "";
 
-  const { us, them, wins, draws, losses } = aggregateSides(matches);
+  const { us, them, wins, draws, losses, usPossPct, themPossPct } = aggregateSides(matches);
   const oppName = matches.length === 1 ? matches[0].match.opponent : "Adversaires";
 
   const headerColor: [number, number, number] = settings?.header_color
