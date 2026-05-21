@@ -517,11 +517,13 @@ function renderTeamPdfSection(
   stats: TeamStats,
   yStart: number,
   drawHeader: () => number,
+  possessionPct?: number | null,
+  oppPossessionPct?: number | null,
 ): number {
   const pageWidth = pdf.internal.pageSize.getWidth();
   const margin = 15;
   const colW = (pageWidth - margin * 2 - 6) / 2;
-  const groups = buildGroups(stats);
+  const groups = buildGroups(stats, possessionPct, oppPossessionPct);
 
   let y = yStart;
   let col: 0 | 1 = 0;
