@@ -902,6 +902,9 @@ export async function exportTeamSportEventExcel(opts: BaseExportOpts): Promise<v
 
   const analytics = computeMatchAnalytics(events, "all");
   const us = match.is_home ? analytics.home : analytics.away;
+  const possession = computePossession(events, "all");
+  const usPoss = possession.total > 0 ? (match.is_home ? possession.homePct : possession.awayPct) : null;
+  const themPoss = possession.total > 0 ? (match.is_home ? possession.awayPct : possession.homePct) : null;
   const matchLabel = `${match.is_home ? "vs" : "@"} ${match.opponent}`;
   const dateStr = format(new Date(match.match_date), "d MMMM yyyy", { locale: fr });
 
