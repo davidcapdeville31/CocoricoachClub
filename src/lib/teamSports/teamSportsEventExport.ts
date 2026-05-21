@@ -1224,7 +1224,7 @@ export async function exportAggregatedTeamSportExcel(opts: AggregateExportOpts):
   wb.creator = "CocoriCoach Club";
   wb.created = new Date();
 
-  const { us, them, wins, draws, losses } = aggregateSides(matches);
+  const { us, them, wins, draws, losses, usPossPct, themPossPct } = aggregateSides(matches);
   const oppName = matches.length === 1 ? matches[0].match.opponent : "Adversaires";
   const diff = us.points - them.points;
 
