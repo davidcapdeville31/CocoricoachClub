@@ -563,6 +563,9 @@ export async function exportTeamSportEventPdf(opts: BaseExportOpts): Promise<voi
 
   const analytics = computeMatchAnalytics(events, "all");
   const us = match.is_home ? analytics.home : analytics.away;
+  const possession = computePossession(events, "all");
+  const usPoss = possession.total > 0 ? (match.is_home ? possession.homePct : possession.awayPct) : null;
+  const themPoss = possession.total > 0 ? (match.is_home ? possession.awayPct : possession.homePct) : null;
 
   const headerColor: [number, number, number] = settings?.header_color
     ? (settings.header_color.replace("#", "").match(/.{2}/g) || [])
