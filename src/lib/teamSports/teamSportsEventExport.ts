@@ -1201,13 +1201,13 @@ export async function exportAggregatedTeamSportPdf(opts: AggregateExportOpts): P
   // Us stats
   y = ensureSpace(pdf, y, 30, drawHeader);
   y = drawSectionTitle(pdf, `${ourTeamName} — Cumul`, headerColor, y);
-  y = renderTeamPdfSection(pdf, us, y, drawHeader);
+  y = renderTeamPdfSection(pdf, us, y, drawHeader, usPossPct, themPossPct);
 
   // Opp stats on a new page
   pdf.addPage();
   let y2 = drawHeader();
   y2 = drawSectionTitle(pdf, `${oppName} — Cumul`, headerColor, y2);
-  renderTeamPdfSection(pdf, them, y2, drawHeader);
+  renderTeamPdfSection(pdf, them, y2, drawHeader, themPossPct, usPossPct);
 
   const dateOut = format(new Date(), "yyyy-MM-dd");
   pdf.save(`rapport-cumul-${matches.length}matchs-${dateOut}.pdf`);
