@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 import type { TeamStats } from "../live/hooks/useMatchStats";
+import type { MatchEvent } from "../live/types";
+import { computePossession } from "@/lib/analytics/team-sports/possession";
 import { StatKpiCard } from "./StatKpiCard";
 import {
   Trophy,
@@ -12,6 +14,7 @@ import {
   AlertTriangle,
   Square,
   ChevronsRight,
+  PieChart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +24,7 @@ interface Props {
   homeName: string;
   awayName: string;
   clubSide: "home" | "away";
+  events?: MatchEvent[];
 }
 
 const pct = (a: number, b: number) => {
