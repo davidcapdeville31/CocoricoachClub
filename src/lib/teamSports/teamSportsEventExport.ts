@@ -1257,7 +1257,7 @@ export async function exportAggregatedTeamSportExcel(opts: AggregateExportOpts):
   const us1 = wb.addWorksheet(`${ourTeamName.slice(0, 28).replace(/[\\/*?:[\]]/g, " ")} (cumul)`);
   us1.columns = [{ width: 32 }, { width: 18 }, { width: 14 }];
   let ru = addBrandedHeader(us1, `${ourTeamName} — Cumul ${matches.length} matchs`, branding);
-  for (const g of buildGroups(us)) {
+  for (const g of buildGroups(us, usPossPct, themPossPct)) {
     ru = writeStatGroupToSheet(us1, ru, g.title, g.accentHex, g.rows);
   }
   addFooter(us1, ru, 3, branding.footerText);
@@ -1266,7 +1266,7 @@ export async function exportAggregatedTeamSportExcel(opts: AggregateExportOpts):
   const them1 = wb.addWorksheet(`${oppName.slice(0, 28).replace(/[\\/*?:[\]]/g, " ")} (cumul)`);
   them1.columns = [{ width: 32 }, { width: 18 }, { width: 14 }];
   let rt = addBrandedHeader(them1, `${oppName} — Cumul ${matches.length} matchs`, branding);
-  for (const g of buildGroups(them)) {
+  for (const g of buildGroups(them, themPossPct, usPossPct)) {
     rt = writeStatGroupToSheet(them1, rt, g.title, g.accentHex, g.rows);
   }
   addFooter(them1, rt, 3, branding.footerText);
