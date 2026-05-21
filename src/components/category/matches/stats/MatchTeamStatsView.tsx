@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 import type { TeamStats } from "../live/hooks/useMatchStats";
+import type { MatchEvent } from "../live/types";
+import { computePossession } from "@/lib/analytics/team-sports/possession";
 import { StatKpiCard } from "./StatKpiCard";
 import {
   Trophy,
@@ -12,6 +14,7 @@ import {
   AlertTriangle,
   Square,
   ChevronsRight,
+  PieChart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +24,7 @@ interface Props {
   homeName: string;
   awayName: string;
   clubSide: "home" | "away";
+  events?: MatchEvent[];
 }
 
 const pct = (a: number, b: number) => {
@@ -114,52 +118,63 @@ function Section({
   );
 }
 
-export function MatchTeamStatsView({ home, away, homeName, awayName, clubSide }: Props) {
+export function MatchTeamStatsView({ home, away, homeName, awayName, clubSide, events }: Props) {
   const club = clubSide === "home" ? home : away;
   const opp = clubSide === "home" ? away : home;
   const clubName = clubSide === "home" ? homeName : awayName;
   const oppName = clubSide === "home" ? awayName : homeName;
+  const possession = useMemo(() => (events ? computePossession(events, "all") : null), [events]);
+  const clubPossPct = possession ? (clubSide === "home" ? possession.homePct : possession.awayPct) : null;
+  const oppPossPct = possession ? (clubSide === "home" ? possession.awayPct : possession.homePct) : null;
 
   const kpis = useMemo(
-    () => [
-      { label: "Points", value: club.points, hint: `vs ${opp.points}`, icon: Trophy, accent: "brand" as const },
-      {
-        label: "Essais",
-        value: club.tries,
-        hint: `vs ${opp.tries}`,
-        icon: Target,
-        accent: "success" as const,
-      },
-      {
-        label: "% Tirs au but",
-        value: `${pctMade(club.penaltiesMade + club.conversionsMade, club.penaltiesAttempted + club.conversionsAttempted)}%`,
-        hint: `${club.penaltiesMade + club.conversionsMade}/${club.penaltiesAttempted + club.conversionsAttempted} réussis`,
-        icon: Crosshair,
-        accent: "brand" as const,
-      },
-      {
-        label: "% Plaquages",
-        value: `${pct(club.tackles, club.missedTackles)}%`,
-        hint: `${club.tackles} réussis · ${club.missedTackles} manqués`,
-        icon: Shield,
-        accent: "success" as const,
-      },
-      {
-        label: "Turnovers",
-        value: club.turnovers,
-        hint: `vs ${opp.turnovers}`,
-        icon: Swords,
-        accent: "warning" as const,
-      },
-      {
-        label: "En-avants",
-        value: club.knockOns,
-        hint: `vs ${opp.knockOns}`,
-        icon: Hand,
-        accent: "danger" as const,
-      },
-    ],
-    [club, opp],
+    () => {
+      const base: any[] = [
+        { label: "Points", value: club.points, hint: `vs ${opp.points}`, icon: Trophy, accent: "brand" as const },
+        { label: "Essais", value: club.tries, hint: `vs ${opp.tries}`, icon: Target, accent: "success" as const },
+      ];
+      if (clubPossPct != null && oppPossPct != null) {
+        base.push({
+          label: "Possession",
+          value: `${clubPossPct}%`,
+          hint: `vs ${oppPossPct}%`,
+          icon: PieChart,
+          accent: "brand" as const,
+        });
+      }
+      base.push(
+        {
+          label: "% Tirs au but",
+          value: `${pctMade(club.penaltiesMade + club.conversionsMade, club.penaltiesAttempted + club.conversionsAttempted)}%`,
+          hint: `${club.penaltiesMade + club.conversionsMade}/${club.penaltiesAttempted + club.conversionsAttempted} réussis`,
+          icon: Crosshair,
+          accent: "brand" as const,
+        },
+        {
+          label: "% Plaquages",
+          value: `${pct(club.tackles, club.missedTackles)}%`,
+          hint: `${club.tackles} réussis · ${club.missedTackles} manqués`,
+          icon: Shield,
+          accent: "success" as const,
+        },
+        {
+          label: "Turnovers",
+          value: club.turnovers,
+          hint: `vs ${opp.turnovers}`,
+          icon: Swords,
+          accent: "warning" as const,
+        },
+        {
+          label: "En-avants",
+          value: club.knockOns,
+          hint: `vs ${opp.knockOns}`,
+          icon: Hand,
+          accent: "danger" as const,
+        },
+      );
+      return base;
+    },
+    [club, opp, clubPossPct, oppPossPct],
   );
 
   return (
@@ -180,6 +195,18 @@ export function MatchTeamStatsView({ home, away, homeName, awayName, clubSide }:
           </div>
           <div className="text-sm font-semibold text-foreground">{awayName}</div>
         </div>
+        {possession && possession.total > 0 && (
+          <div className="mb-3">
+            <CompareBar
+              label="Possession estimée"
+              hValue={possession.homePct}
+              aValue={possession.awayPct}
+              hDisplay={`${possession.homePct}%`}
+              aDisplay={`${possession.awayPct}%`}
+              highlight={possession.homePct > possession.awayPct ? "home" : possession.awayPct > possession.homePct ? "away" : null}
+            />
+          </div>
+        )}
         <div className="grid gap-3 md:grid-cols-2">
           <div className="space-y-3">
             <CompareBar label="Points" hValue={home.points} aValue={away.points} highlight={home.points > away.points ? "home" : away.points > home.points ? "away" : null} />

@@ -1,6 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { TeamStats } from "./hooks/useMatchStats";
+import type { MatchEvent } from "./types";
+import { computePossession } from "@/lib/analytics/team-sports/possession";
+import type { AnalyticsPeriod } from "@/lib/analytics/team-sports/types";
 
 const pct = (won: number, lost: number) => {
   const total = won + lost;
@@ -18,9 +21,39 @@ function Row({ label, h, a, suffix }: { label: string; h: any; a: any; suffix?: 
   );
 }
 
-function StatsBlock({ home, away }: { home: TeamStats; away: TeamStats }) {
+function PossessionBar({ events, period }: { events: MatchEvent[]; period: AnalyticsPeriod }) {
+  const poss = computePossession(events, period);
+  if (poss.total === 0) {
+    return (
+      <div className="mb-3 rounded-lg border border-dashed bg-muted/30 p-3 text-center text-[11px] text-muted-foreground">
+        Possession : en attente d'événements…
+      </div>
+    );
+  }
+  return (
+    <div className="mb-3 rounded-lg border bg-surface p-3">
+      <div className="mb-1 flex items-center justify-between text-xs">
+        <span className="font-mono font-bold text-brand-500 tabular-nums">{poss.homePct}%</span>
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Possession estimée
+        </span>
+        <span className="font-mono font-bold text-accent tabular-nums">{poss.awayPct}%</span>
+      </div>
+      <div className="flex h-2 overflow-hidden rounded-full bg-muted">
+        <div className="h-full bg-brand-500 transition-all" style={{ width: `${poss.homePct}%` }} />
+        <div className="h-full bg-accent transition-all" style={{ width: `${poss.awayPct}%` }} />
+      </div>
+      <div className="mt-1 text-center text-[10px] text-muted-foreground">
+        Calculée à partir de {poss.total} actions ballon
+      </div>
+    </div>
+  );
+}
+
+function StatsBlock({ home, away, events, period }: { home: TeamStats; away: TeamStats; events: MatchEvent[]; period: AnalyticsPeriod }) {
   return (
     <div className="space-y-1">
+      <PossessionBar events={events} period={period} />
       <Row label="Essais" h={home.tries} a={away.tries} />
       <Row label="Transfo (R/T)" h={`${home.conversionsMade}/${home.conversionsAttempted}`} a={`${away.conversionsMade}/${away.conversionsAttempted}`} />
       <Row label="% transfo réussies" h={pctMade(home.conversionsMade, home.conversionsAttempted)} a={pctMade(away.conversionsMade, away.conversionsAttempted)} suffix="%" />
@@ -56,9 +89,10 @@ interface Props {
   home: TeamStats; away: TeamStats;
   homeH1: TeamStats; awayH1: TeamStats;
   homeH2: TeamStats; awayH2: TeamStats;
+  events: MatchEvent[];
 }
 
-export function LiveStatsPanel({ home, away, homeH1, awayH1, homeH2, awayH2 }: Props) {
+export function LiveStatsPanel({ home, away, homeH1, awayH1, homeH2, awayH2, events }: Props) {
   return (
     <Card className="p-4">
       <h3 className="text-sm font-bold uppercase tracking-wider mb-2 text-center">Statistiques live</h3>
@@ -68,9 +102,9 @@ export function LiveStatsPanel({ home, away, homeH1, awayH1, homeH2, awayH2 }: P
           <TabsTrigger value="h1">1ère MT</TabsTrigger>
           <TabsTrigger value="h2">2ème MT</TabsTrigger>
         </TabsList>
-        <TabsContent value="total"><StatsBlock home={home} away={away} /></TabsContent>
-        <TabsContent value="h1"><StatsBlock home={homeH1} away={awayH1} /></TabsContent>
-        <TabsContent value="h2"><StatsBlock home={homeH2} away={awayH2} /></TabsContent>
+        <TabsContent value="total"><StatsBlock home={home} away={away} events={events} period="all" /></TabsContent>
+        <TabsContent value="h1"><StatsBlock home={homeH1} away={awayH1} events={events} period="H1" /></TabsContent>
+        <TabsContent value="h2"><StatsBlock home={homeH2} away={awayH2} events={events} period="H2" /></TabsContent>
       </Tabs>
     </Card>
   );

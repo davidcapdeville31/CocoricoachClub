@@ -19,6 +19,7 @@ import {
   kickRatio,
 } from "@/lib/analytics/team-sports/eventAggregator";
 import { emptyTeamStats, type TeamStats, type PlayerAggStats } from "@/lib/analytics/team-sports/types";
+import { computePossession } from "@/lib/analytics/team-sports/possession";
 import type { MatchEvent } from "@/components/category/matches/live/types";
 import { preparePdfWithSettings, drawPdfHeader, type PdfCustomSettings } from "@/lib/pdfExport";
 import { drawPdfRugbyField, drawPdfFieldLegend, svgPctToPdfPos, drawPdfGoalpostArrow } from "@/lib/pdfRugbyField";
@@ -264,7 +265,7 @@ interface StatGroup {
   rows: StatRow[];
 }
 
-function buildGroups(s: TeamStats): StatGroup[] {
+function buildGroups(s: TeamStats, possessionPct?: number | null, oppPossessionPct?: number | null): StatGroup[] {
   const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
   return [
     {
@@ -314,6 +315,15 @@ function buildGroups(s: TeamStats): StatGroup[] {
       color: [251, 191, 36],
       accentHex: "FBBF24",
       rows: [
+        ...(possessionPct != null
+          ? [{
+              label: oppPossessionPct != null
+                ? `Possession estimée (vs ${oppPossessionPct}%)`
+                : "Possession estimée",
+              value: `${possessionPct}%`,
+              pct: possessionPct,
+            } as StatRow]
+          : []),
         {
           label: "Touches gagnées",
           value: `${s.lineoutsWon}/${s.lineoutsWon + s.lineoutsLost}`,
@@ -507,11 +517,13 @@ function renderTeamPdfSection(
   stats: TeamStats,
   yStart: number,
   drawHeader: () => number,
+  possessionPct?: number | null,
+  oppPossessionPct?: number | null,
 ): number {
   const pageWidth = pdf.internal.pageSize.getWidth();
   const margin = 15;
   const colW = (pageWidth - margin * 2 - 6) / 2;
-  const groups = buildGroups(stats);
+  const groups = buildGroups(stats, possessionPct, oppPossessionPct);
 
   let y = yStart;
   let col: 0 | 1 = 0;
@@ -551,6 +563,9 @@ export async function exportTeamSportEventPdf(opts: BaseExportOpts): Promise<voi
 
   const analytics = computeMatchAnalytics(events, "all");
   const us = match.is_home ? analytics.home : analytics.away;
+  const possession = computePossession(events, "all");
+  const usPoss = possession.total > 0 ? (match.is_home ? possession.homePct : possession.awayPct) : null;
+  const themPoss = possession.total > 0 ? (match.is_home ? possession.awayPct : possession.homePct) : null;
 
   const headerColor: [number, number, number] = settings?.header_color
     ? (settings.header_color.replace("#", "").match(/.{2}/g) || [])
@@ -590,7 +605,7 @@ export async function exportTeamSportEventPdf(opts: BaseExportOpts): Promise<voi
     // Section title
     y = ensureSpace(pdf, y, 30, drawHeader);
     y = drawSectionTitle(pdf, "Statistiques de l'équipe", headerColor, y);
-    renderTeamPdfSection(pdf, us, y, drawHeader);
+    renderTeamPdfSection(pdf, us, y, drawHeader, usPoss, themPoss);
 
     // Players summary table
     const playerStats = Object.entries(analytics.players)
@@ -887,6 +902,9 @@ export async function exportTeamSportEventExcel(opts: BaseExportOpts): Promise<v
 
   const analytics = computeMatchAnalytics(events, "all");
   const us = match.is_home ? analytics.home : analytics.away;
+  const possession = computePossession(events, "all");
+  const usPoss = possession.total > 0 ? (match.is_home ? possession.homePct : possession.awayPct) : null;
+  const themPoss = possession.total > 0 ? (match.is_home ? possession.awayPct : possession.homePct) : null;
   const matchLabel = `${match.is_home ? "vs" : "@"} ${match.opponent}`;
   const dateStr = format(new Date(match.match_date), "d MMMM yyyy", { locale: fr });
 
@@ -909,7 +927,7 @@ export async function exportTeamSportEventExcel(opts: BaseExportOpts): Promise<v
   if (mode === "team") {
     const sheet = wb.addWorksheet("Équipe");
     let row = writeMatchInfoSheet(sheet, `Rapport équipe — ${matchLabel}`);
-    for (const g of buildGroups(us)) {
+    for (const g of buildGroups(us, usPoss, themPoss)) {
       row = writeStatGroupToSheet(sheet, row, g.title, g.accentHex, g.rows);
     }
     // Players summary sheet
@@ -1059,6 +1077,8 @@ function aggregateSides(matches: AggregateMatchInput[]) {
   const us = emptyTeamStats();
   const them = emptyTeamStats();
   let wins = 0, draws = 0, losses = 0;
+  let usPossTouches = 0;
+  let themPossTouches = 0;
   for (const { match, events } of matches) {
     const analytics = computeMatchAnalytics(events, "all");
     const myStats = match.is_home ? analytics.home : analytics.away;
@@ -1068,8 +1088,14 @@ function aggregateSides(matches: AggregateMatchInput[]) {
     if (myStats.points > oppStats.points) wins += 1;
     else if (myStats.points === oppStats.points) draws += 1;
     else losses += 1;
+    const poss = computePossession(events, "all");
+    usPossTouches += match.is_home ? poss.home : poss.away;
+    themPossTouches += match.is_home ? poss.away : poss.home;
   }
-  return { us, them, wins, draws, losses };
+  const totalPoss = usPossTouches + themPossTouches;
+  const usPossPct = totalPoss > 0 ? Math.round((usPossTouches / totalPoss) * 100) : null;
+  const themPossPct = totalPoss > 0 ? Math.round((themPossTouches / totalPoss) * 100) : null;
+  return { us, them, wins, draws, losses, usPossPct, themPossPct };
 }
 
 function drawAggregateBanner(
@@ -1136,7 +1162,7 @@ export async function exportAggregatedTeamSportPdf(opts: AggregateExportOpts): P
   const categoryName = prep.categoryName || "";
   const seasonName = prep.seasonName || "";
 
-  const { us, them, wins, draws, losses } = aggregateSides(matches);
+  const { us, them, wins, draws, losses, usPossPct, themPossPct } = aggregateSides(matches);
   const oppName = matches.length === 1 ? matches[0].match.opponent : "Adversaires";
 
   const headerColor: [number, number, number] = settings?.header_color
@@ -1178,13 +1204,13 @@ export async function exportAggregatedTeamSportPdf(opts: AggregateExportOpts): P
   // Us stats
   y = ensureSpace(pdf, y, 30, drawHeader);
   y = drawSectionTitle(pdf, `${ourTeamName} — Cumul`, headerColor, y);
-  y = renderTeamPdfSection(pdf, us, y, drawHeader);
+  y = renderTeamPdfSection(pdf, us, y, drawHeader, usPossPct, themPossPct);
 
   // Opp stats on a new page
   pdf.addPage();
   let y2 = drawHeader();
   y2 = drawSectionTitle(pdf, `${oppName} — Cumul`, headerColor, y2);
-  renderTeamPdfSection(pdf, them, y2, drawHeader);
+  renderTeamPdfSection(pdf, them, y2, drawHeader, themPossPct, usPossPct);
 
   const dateOut = format(new Date(), "yyyy-MM-dd");
   pdf.save(`rapport-cumul-${matches.length}matchs-${dateOut}.pdf`);
@@ -1198,7 +1224,7 @@ export async function exportAggregatedTeamSportExcel(opts: AggregateExportOpts):
   wb.creator = "CocoriCoach Club";
   wb.created = new Date();
 
-  const { us, them, wins, draws, losses } = aggregateSides(matches);
+  const { us, them, wins, draws, losses, usPossPct, themPossPct } = aggregateSides(matches);
   const oppName = matches.length === 1 ? matches[0].match.opponent : "Adversaires";
   const diff = us.points - them.points;
 
@@ -1211,6 +1237,9 @@ export async function exportAggregatedTeamSportExcel(opts: AggregateExportOpts):
     ["Points encaissés (cumul)", String(them.points)],
     ["Différentiel", `${diff > 0 ? "+" : ""}${diff}`],
     ["Bilan", `${wins}V · ${draws}N · ${losses}D`],
+    ...(usPossPct != null && themPossPct != null
+      ? [["Possession estimée", `${usPossPct}% / ${themPossPct}%`] as [string, string]]
+      : []),
   ]);
   // List of matches
   sum.getCell(r, 1).value = "Matchs inclus";
@@ -1231,7 +1260,7 @@ export async function exportAggregatedTeamSportExcel(opts: AggregateExportOpts):
   const us1 = wb.addWorksheet(`${ourTeamName.slice(0, 28).replace(/[\\/*?:[\]]/g, " ")} (cumul)`);
   us1.columns = [{ width: 32 }, { width: 18 }, { width: 14 }];
   let ru = addBrandedHeader(us1, `${ourTeamName} — Cumul ${matches.length} matchs`, branding);
-  for (const g of buildGroups(us)) {
+  for (const g of buildGroups(us, usPossPct, themPossPct)) {
     ru = writeStatGroupToSheet(us1, ru, g.title, g.accentHex, g.rows);
   }
   addFooter(us1, ru, 3, branding.footerText);
@@ -1240,7 +1269,7 @@ export async function exportAggregatedTeamSportExcel(opts: AggregateExportOpts):
   const them1 = wb.addWorksheet(`${oppName.slice(0, 28).replace(/[\\/*?:[\]]/g, " ")} (cumul)`);
   them1.columns = [{ width: 32 }, { width: 18 }, { width: 14 }];
   let rt = addBrandedHeader(them1, `${oppName} — Cumul ${matches.length} matchs`, branding);
-  for (const g of buildGroups(them)) {
+  for (const g of buildGroups(them, themPossPct, usPossPct)) {
     rt = writeStatGroupToSheet(them1, rt, g.title, g.accentHex, g.rows);
   }
   addFooter(them1, rt, 3, branding.footerText);

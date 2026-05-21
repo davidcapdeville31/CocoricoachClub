@@ -141,6 +141,7 @@ export function MatchStatsDialog({
                 homeName={homeName}
                 awayName={awayName}
                 clubSide={clubSide}
+                events={events}
               />
             </TabsContent>
 

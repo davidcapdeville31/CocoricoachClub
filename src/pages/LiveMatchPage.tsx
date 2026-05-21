@@ -375,7 +375,7 @@ export default function LiveMatchPage() {
               Statistiques live
             </DialogTitle>
           </DialogHeader>
-          <LiveStatsPanel home={stats.home} away={stats.away} homeH1={stats.homeH1} awayH1={stats.awayH1} homeH2={stats.homeH2} awayH2={stats.awayH2} />
+          <LiveStatsPanel home={stats.home} away={stats.away} homeH1={stats.homeH1} awayH1={stats.awayH1} homeH2={stats.homeH2} awayH2={stats.awayH2} events={events} />
         </DialogContent>
       </Dialog>
 
