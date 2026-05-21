@@ -18,7 +18,7 @@ const corsHeaders = {
 
 const EMAIL_SUBJECTS: Record<string, string> = {
   signup: 'Confirme ton inscription à CocoriCoach Club',
-  invite: 'Tu es invité à rejoindre CocoriCoach Club',
+  invite: 'Ton accès à CocoriCoach Club est prêt',
   magiclink: 'Ton lien de connexion CocoriCoach Club',
   recovery: 'Réinitialisation de ton mot de passe',
   email_change: 'Confirme ta nouvelle adresse email',
