@@ -315,6 +315,15 @@ function buildGroups(s: TeamStats, possessionPct?: number | null, oppPossessionP
       color: [251, 191, 36],
       accentHex: "FBBF24",
       rows: [
+        ...(possessionPct != null
+          ? [{
+              label: oppPossessionPct != null
+                ? `Possession estimée (vs ${oppPossessionPct}%)`
+                : "Possession estimée",
+              value: `${possessionPct}%`,
+              pct: possessionPct,
+            } as StatRow]
+          : []),
         {
           label: "Touches gagnées",
           value: `${s.lineoutsWon}/${s.lineoutsWon + s.lineoutsLost}`,
