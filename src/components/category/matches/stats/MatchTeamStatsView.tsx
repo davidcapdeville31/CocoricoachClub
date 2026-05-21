@@ -128,45 +128,53 @@ export function MatchTeamStatsView({ home, away, homeName, awayName, clubSide, e
   const oppPossPct = possession ? (clubSide === "home" ? possession.awayPct : possession.homePct) : null;
 
   const kpis = useMemo(
-    () => [
-      { label: "Points", value: club.points, hint: `vs ${opp.points}`, icon: Trophy, accent: "brand" as const },
-      {
-        label: "Essais",
-        value: club.tries,
-        hint: `vs ${opp.tries}`,
-        icon: Target,
-        accent: "success" as const,
-      },
-      {
-        label: "% Tirs au but",
-        value: `${pctMade(club.penaltiesMade + club.conversionsMade, club.penaltiesAttempted + club.conversionsAttempted)}%`,
-        hint: `${club.penaltiesMade + club.conversionsMade}/${club.penaltiesAttempted + club.conversionsAttempted} réussis`,
-        icon: Crosshair,
-        accent: "brand" as const,
-      },
-      {
-        label: "% Plaquages",
-        value: `${pct(club.tackles, club.missedTackles)}%`,
-        hint: `${club.tackles} réussis · ${club.missedTackles} manqués`,
-        icon: Shield,
-        accent: "success" as const,
-      },
-      {
-        label: "Turnovers",
-        value: club.turnovers,
-        hint: `vs ${opp.turnovers}`,
-        icon: Swords,
-        accent: "warning" as const,
-      },
-      {
-        label: "En-avants",
-        value: club.knockOns,
-        hint: `vs ${opp.knockOns}`,
-        icon: Hand,
-        accent: "danger" as const,
-      },
-    ],
-    [club, opp],
+    () => {
+      const base: any[] = [
+        { label: "Points", value: club.points, hint: `vs ${opp.points}`, icon: Trophy, accent: "brand" as const },
+        { label: "Essais", value: club.tries, hint: `vs ${opp.tries}`, icon: Target, accent: "success" as const },
+      ];
+      if (clubPossPct != null && oppPossPct != null) {
+        base.push({
+          label: "Possession",
+          value: `${clubPossPct}%`,
+          hint: `vs ${oppPossPct}%`,
+          icon: PieChart,
+          accent: "brand" as const,
+        });
+      }
+      base.push(
+        {
+          label: "% Tirs au but",
+          value: `${pctMade(club.penaltiesMade + club.conversionsMade, club.penaltiesAttempted + club.conversionsAttempted)}%`,
+          hint: `${club.penaltiesMade + club.conversionsMade}/${club.penaltiesAttempted + club.conversionsAttempted} réussis`,
+          icon: Crosshair,
+          accent: "brand" as const,
+        },
+        {
+          label: "% Plaquages",
+          value: `${pct(club.tackles, club.missedTackles)}%`,
+          hint: `${club.tackles} réussis · ${club.missedTackles} manqués`,
+          icon: Shield,
+          accent: "success" as const,
+        },
+        {
+          label: "Turnovers",
+          value: club.turnovers,
+          hint: `vs ${opp.turnovers}`,
+          icon: Swords,
+          accent: "warning" as const,
+        },
+        {
+          label: "En-avants",
+          value: club.knockOns,
+          hint: `vs ${opp.knockOns}`,
+          icon: Hand,
+          accent: "danger" as const,
+        },
+      );
+      return base;
+    },
+    [club, opp, clubPossPct, oppPossPct],
   );
 
   return (
