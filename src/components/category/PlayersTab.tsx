@@ -322,8 +322,14 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
         .eq("id", playerId)
         .maybeSingle();
 
-      const { error } = await supabase.from("players").delete().eq("id", playerId);
+      const { error, count } = await supabase
+        .from("players")
+        .delete({ count: "exact" })
+        .eq("id", playerId);
       if (error) throw error;
+      if (!count || count === 0) {
+        throw new Error("PERMISSION_DENIED");
+      }
 
       // Nettoyage OneSignal (best-effort, ne bloque pas la suppression)
       if (playerRow?.user_id) {
@@ -340,8 +346,12 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
       queryClient.invalidateQueries({ queryKey: ["players", categoryId] });
       toast.success("Athlète supprimé avec succès");
     },
-    onError: () => {
-      toast.error("Erreur lors de la suppression de l'athlète");
+    onError: (err: Error) => {
+      if (err?.message === "PERMISSION_DENIED") {
+        toast.error("Vous n'avez pas les droits pour supprimer un athlète. Seuls le propriétaire du club, les administrateurs et les coachs peuvent le faire.");
+      } else {
+        toast.error("Erreur lors de la suppression de l'athlète");
+      }
     },
   });
 
