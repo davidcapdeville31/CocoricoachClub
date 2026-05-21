@@ -927,7 +927,7 @@ export async function exportTeamSportEventExcel(opts: BaseExportOpts): Promise<v
   if (mode === "team") {
     const sheet = wb.addWorksheet("Équipe");
     let row = writeMatchInfoSheet(sheet, `Rapport équipe — ${matchLabel}`);
-    for (const g of buildGroups(us)) {
+    for (const g of buildGroups(us, usPoss, themPoss)) {
       row = writeStatGroupToSheet(sheet, row, g.title, g.accentHex, g.rows);
     }
     // Players summary sheet
