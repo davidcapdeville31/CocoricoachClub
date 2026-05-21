@@ -549,7 +549,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                     : "Aucun athlète à ce poste")
                 : "Aucun athlète dans cette catégorie"}
             </p>
-            {!isViewer && disciplineFilter === "all" && (
+            {!isViewer && canManageAthletes && disciplineFilter === "all" && (
               <Button onClick={() => setIsAddDialogOpen(true)} variant="outline" className="gap-2">
                 <Plus className="h-4 w-4" />
                 Ajouter le premier athlète
