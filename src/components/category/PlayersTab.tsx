@@ -240,11 +240,47 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("rugby_type")
+        .select("rugby_type, club_id")
         .eq("id", categoryId)
         .single();
       if (error) throw error;
       return data;
+    },
+  });
+
+  // Determine if the current user can add/manage athletes.
+  // Allowed: club owner, club admin/coach, category admin/coach/prepa_physique/administratif.
+  // Denied: doctor, physio, mental_coach, viewer (consult-only roles).
+  const { data: canManageAthletes = false } = useQuery({
+    queryKey: ["can-manage-athletes", categoryId, (category as any)?.club_id],
+    enabled: !!categoryId && !!(category as any)?.club_id,
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+      const clubId = (category as any).club_id as string;
+
+      const { data: ownedClub } = await supabase
+        .from("clubs")
+        .select("id")
+        .eq("id", clubId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (ownedClub) return true;
+
+      const { data: clubRoles } = await supabase
+        .from("club_members")
+        .select("role")
+        .eq("club_id", clubId)
+        .eq("user_id", user.id);
+      if (clubRoles?.some((r: any) => r.role === "admin" || r.role === "coach")) return true;
+
+      const { data: catRoles } = await supabase
+        .from("category_members")
+        .select("role")
+        .eq("category_id", categoryId)
+        .eq("user_id", user.id);
+      const allowed = ["admin", "coach", "prepa_physique", "administratif"];
+      return !!catRoles?.some((r: any) => allowed.includes(r.role));
     },
   });
 
@@ -483,7 +519,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                 </SelectContent>
               </Select>
             )}
-            {!isViewer && (
+            {!isViewer && canManageAthletes && (
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Button onClick={() => setIsLinkDialogOpen(true)} variant="outline" size="sm" className="gap-1.5 flex-1 sm:flex-none">
                   <Link2 className="h-4 w-4" />
@@ -513,7 +549,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                     : "Aucun athlète à ce poste")
                 : "Aucun athlète dans cette catégorie"}
             </p>
-            {!isViewer && disciplineFilter === "all" && (
+            {!isViewer && canManageAthletes && disciplineFilter === "all" && (
               <Button onClick={() => setIsAddDialogOpen(true)} variant="outline" className="gap-2">
                 <Plus className="h-4 w-4" />
                 Ajouter le premier athlète
