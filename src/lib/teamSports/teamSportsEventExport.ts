@@ -605,7 +605,7 @@ export async function exportTeamSportEventPdf(opts: BaseExportOpts): Promise<voi
     // Section title
     y = ensureSpace(pdf, y, 30, drawHeader);
     y = drawSectionTitle(pdf, "Statistiques de l'équipe", headerColor, y);
-    renderTeamPdfSection(pdf, us, y, drawHeader);
+    renderTeamPdfSection(pdf, us, y, drawHeader, usPoss, themPoss);
 
     // Players summary table
     const playerStats = Object.entries(analytics.players)
