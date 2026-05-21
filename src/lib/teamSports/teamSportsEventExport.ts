@@ -265,7 +265,7 @@ interface StatGroup {
   rows: StatRow[];
 }
 
-function buildGroups(s: TeamStats): StatGroup[] {
+function buildGroups(s: TeamStats, possessionPct?: number | null, oppPossessionPct?: number | null): StatGroup[] {
   const fmt = (n: number) => (Math.round(n * 10) / 10).toString();
   return [
     {
