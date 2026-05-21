@@ -195,6 +195,18 @@ export function MatchTeamStatsView({ home, away, homeName, awayName, clubSide, e
           </div>
           <div className="text-sm font-semibold text-foreground">{awayName}</div>
         </div>
+        {possession && possession.total > 0 && (
+          <div className="mb-3">
+            <CompareBar
+              label="Possession estimée"
+              hValue={possession.homePct}
+              aValue={possession.awayPct}
+              hDisplay={`${possession.homePct}%`}
+              aDisplay={`${possession.awayPct}%`}
+              highlight={possession.homePct > possession.awayPct ? "home" : possession.awayPct > possession.homePct ? "away" : null}
+            />
+          </div>
+        )}
         <div className="grid gap-3 md:grid-cols-2">
           <div className="space-y-3">
             <CompareBar label="Points" hValue={home.points} aValue={away.points} highlight={home.points > away.points ? "home" : away.points > home.points ? "away" : null} />
