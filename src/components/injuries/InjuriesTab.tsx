@@ -425,6 +425,11 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
         </CardContent>
       </Card>
 
+      {/* Historique maladies */}
+      <IllnessHistoryCard categoryId={categoryId} />
+
+
+
       <AddInjuryDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}

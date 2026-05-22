@@ -110,12 +110,12 @@ export function SanteTab({ categoryId }: SanteTabProps) {
             )}
             {!isViewer && (
               <ColoredSubTabsTrigger
-                value="stats"
+                value="risk"
                 colorKey="sante"
-                icon={<BarChart3 className="h-4 w-4" />}
-                tooltip="Statistiques détaillées des douleurs et indicateurs wellness"
+                icon={<AlertTriangle className="h-4 w-4" />}
+                tooltip="Évaluation du risque de blessure (EWMA + AWCR + Wellness)"
               >
-                Statistiques
+                Risque blessure
               </ColoredSubTabsTrigger>
             )}
             {!isViewer && (
@@ -147,6 +147,7 @@ export function SanteTab({ categoryId }: SanteTabProps) {
 
         <TabsContent value="wellness-health" className="space-y-6">
           {!isViewer && <WellnessTab categoryId={categoryId} view="tracking" />}
+          {!isViewer && <WellnessTab categoryId={categoryId} view="pain-stats" />}
           <MedicalRecordsTab categoryId={categoryId} />
         </TabsContent>
 
