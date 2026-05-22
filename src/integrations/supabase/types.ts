@@ -4841,6 +4841,54 @@ export type Database = {
           },
         ]
       }
+      illnesses: {
+        Row: {
+          actual_return_date: string | null
+          category_id: string
+          created_at: string
+          description: string | null
+          estimated_return_date: string | null
+          id: string
+          illness_date: string
+          illness_type: string
+          notes: string | null
+          player_id: string
+          severity: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          actual_return_date?: string | null
+          category_id: string
+          created_at?: string
+          description?: string | null
+          estimated_return_date?: string | null
+          id?: string
+          illness_date?: string
+          illness_type: string
+          notes?: string | null
+          player_id: string
+          severity?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          actual_return_date?: string | null
+          category_id?: string
+          created_at?: string
+          description?: string | null
+          estimated_return_date?: string | null
+          id?: string
+          illness_date?: string
+          illness_type?: string
+          notes?: string | null
+          player_id?: string
+          severity?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       injuries: {
         Row: {
           actual_return_date: string | null
