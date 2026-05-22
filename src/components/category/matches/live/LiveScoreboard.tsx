@@ -37,6 +37,9 @@ function isLight(hex?: string) {
 export function LiveScoreboard({ homeName, awayName, homeScore, awayScore, period, onPeriodChange, minute, onMinuteChange, seconds, onSecondsChange, homeColor, awayColor, running, onRunningChange }: Props) {
   const tickRef = useRef<number | null>(null);
   const startRef = useRef<{ at: number; baseSec: number } | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [draftMin, setDraftMin] = useState("0");
+  const [draftSec, setDraftSec] = useState("0");
 
   useEffect(() => {
     if (running) {
