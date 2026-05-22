@@ -44,7 +44,17 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
         .in("status", ["pending", "accepted"])
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      // Deduplicate: hide older pending invitations when the same email
+      // has already accepted one (avoids "En attente" + "Activé" duplicates).
+      const acceptedEmails = new Set(
+        (data || [])
+          .filter((inv: any) => inv.status === "accepted")
+          .map((inv: any) => (inv.email || "").toLowerCase())
+      );
+      return (data || []).filter((inv: any) => {
+        if (inv.status === "accepted") return true;
+        return !acceptedEmails.has((inv.email || "").toLowerCase());
+      });
     },
   });
 

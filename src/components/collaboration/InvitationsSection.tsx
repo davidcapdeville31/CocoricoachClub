@@ -49,7 +49,17 @@ export function InvitationsSection({ clubId, canManage }: InvitationsSectionProp
         console.error("[InvitationsSection] Error:", error);
         throw error;
       }
-      return data;
+      // Deduplicate: if an invitation for the same email has been accepted,
+      // hide older pending duplicates so a single email never appears twice.
+      const acceptedEmails = new Set(
+        (data || [])
+          .filter((inv: any) => inv.status === "accepted")
+          .map((inv: any) => (inv.email || "").toLowerCase())
+      );
+      return (data || []).filter((inv: any) => {
+        if (inv.status === "accepted") return true;
+        return !acceptedEmails.has((inv.email || "").toLowerCase());
+      });
     },
   });
 
