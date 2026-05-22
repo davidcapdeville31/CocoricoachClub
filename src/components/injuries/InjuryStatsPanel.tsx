@@ -3,6 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -10,13 +13,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BarChart3, Repeat, ShieldCheck, Clock } from "lucide-react";
+import { BarChart3, Repeat, ShieldCheck, Clock, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface InjuryStatsPanelProps {
   categoryId: string;
 }
 
-type PeriodKey = "30" | "90" | "180" | "season" | "all";
+type PeriodKey = "30" | "90" | "180" | "season" | "all" | "custom";
 
 const PERIOD_LABELS: Record<PeriodKey, string> = {
   "30": "30 derniers jours",
@@ -24,14 +30,17 @@ const PERIOD_LABELS: Record<PeriodKey, string> = {
   "180": "6 derniers mois",
   season: "Saison en cours",
   all: "Toutes les saisons",
+  custom: "Période personnalisée",
 };
 
-function getPeriodRange(period: PeriodKey): { from: Date | null; to: Date } {
+function getPeriodRange(period: PeriodKey, customFrom?: Date, customTo?: Date): { from: Date | null; to: Date } {
   const now = new Date();
   const to = new Date(now);
   if (period === "all") return { from: null, to };
+  if (period === "custom") {
+    return { from: customFrom ?? null, to: customTo ?? to };
+  }
   if (period === "season") {
-    // Saison sportive: août → juillet
     const year = now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1;
     return { from: new Date(year, 7, 1), to };
   }
@@ -72,7 +81,9 @@ const TYPE_COLORS: Record<string, string> = {
 
 export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
   const [period, setPeriod] = useState<PeriodKey>("season");
-  const { from, to } = useMemo(() => getPeriodRange(period), [period]);
+  const [customFrom, setCustomFrom] = useState<Date | undefined>(undefined);
+  const [customTo, setCustomTo] = useState<Date | undefined>(undefined);
+  const { from, to } = useMemo(() => getPeriodRange(period, customFrom, customTo), [period, customFrom, customTo]);
 
   const { data: injuries } = useQuery({
     queryKey: ["injury-stats", categoryId],
@@ -106,7 +117,6 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
       return true;
     });
 
-    // Répartition par catégorie
     const counts: Record<string, number> = {};
     for (const i of list) {
       const cat = classifyInjury(i.injury_type);
@@ -117,7 +127,6 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
       .map(([key, n]) => ({ key, n, pct: total ? (n / total) * 100 : 0 }))
       .sort((a, b) => b.n - a.n);
 
-    // Rechutes: même athlète, même injury_type, ≥ 2 occurrences sur la période
     const grouped = new Map<string, { player: string; type: string; count: number }>();
     for (const i of list) {
       const key = `${i.player_id}::${(i.injury_type || "").toLowerCase().trim()}`;
@@ -130,7 +139,6 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
       .filter((g) => g.count >= 2)
       .sort((a, b) => b.count - a.count);
 
-    // Temps moyen d'indisponibilité (jours)
     const durations: number[] = [];
     for (const i of list) {
       const start = new Date(i.injury_date);
@@ -142,8 +150,6 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
       ? Math.round(durations.reduce((s, d) => s + d, 0) / durations.length)
       : 0;
 
-    // % de disponibilité sur la période
-    // = 1 - (somme jours indispo dans fenêtre) / (jours_fenêtre * nb_athlètes)
     const windowStart = from ?? new Date(Math.min(...list.map((i: any) => new Date(i.injury_date).getTime()), to.getTime()));
     const windowDays = Math.max(1, Math.round((to.getTime() - windowStart.getTime()) / (1000 * 60 * 60 * 24)));
     let unavailableDays = 0;
@@ -161,6 +167,13 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
     return { total, distribution, relapses, avgDuration, availabilityPct };
   }, [injuries, from, to, playersCount]);
 
+  const periodLabel =
+    period === "custom"
+      ? customFrom && customTo
+        ? `du ${format(customFrom, "dd/MM/yyyy")} au ${format(customTo, "dd/MM/yyyy")}`
+        : "période personnalisée"
+      : PERIOD_LABELS[period].toLowerCase();
+
   return (
     <Card className="bg-gradient-card shadow-md">
       <CardHeader>
@@ -169,22 +182,75 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
             <BarChart3 className="h-5 w-5 text-primary" />
             Statistiques des blessures
           </CardTitle>
-          <Select value={period} onValueChange={(v) => setPeriod(v as PeriodKey)}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {(Object.keys(PERIOD_LABELS) as PeriodKey[]).map((k) => (
-                <SelectItem key={k} value={k}>
-                  {PERIOD_LABELS[k]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={period} onValueChange={(v) => setPeriod(v as PeriodKey)}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(PERIOD_LABELS) as PeriodKey[]).map((k) => (
+                  <SelectItem key={k} value={k}>
+                    {PERIOD_LABELS[k]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {period === "custom" && (
+              <>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[160px] justify-start text-left font-normal",
+                        !customFrom && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {customFrom ? format(customFrom, "dd/MM/yyyy") : "Du..."}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={customFrom}
+                      onSelect={setCustomFrom}
+                      locale={fr}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[160px] justify-start text-left font-normal",
+                        !customTo && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {customTo ? format(customTo, "dd/MM/yyyy") : "Au..."}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={customTo}
+                      onSelect={setCustomTo}
+                      locale={fr}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="bg-surface">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -196,7 +262,7 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
                 {stats.availabilityPct.toFixed(1)}%
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Sur {PERIOD_LABELS[period].toLowerCase()}
+                Sur {periodLabel}
               </p>
             </CardContent>
           </Card>
@@ -228,7 +294,6 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
           </Card>
         </div>
 
-        {/* Répartition par type */}
         <div>
           <h3 className="text-sm font-semibold mb-3">Répartition par type de blessure</h3>
           {stats.total === 0 ? (
@@ -258,7 +323,6 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
           )}
         </div>
 
-        {/* Rechutes */}
         <div>
           <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
             <Repeat className="h-4 w-4" />
