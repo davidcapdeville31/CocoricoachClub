@@ -210,46 +210,46 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
         </CardHeader>
         <CardContent>
           {injuries && injuries.length > 0 ? (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Joueur</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Gravité</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Retour estimé</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {injuries.map((injury) => (
-                    <TableRow key={injury.id}>
-                      <TableCell className="font-medium">
-                        {injury.players?.name}
-                      </TableCell>
-                      <TableCell>{injury.injury_type}</TableCell>
-                      <TableCell>
-                        {new Date(injury.injury_date).toLocaleDateString("fr-FR")}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getSeverityColor(injury.severity)}>
-                          {injury.severity}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(injury.status)}>
-                          {getStatusLabel(injury.status)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {injury.estimated_return_date
-                          ? new Date(injury.estimated_return_date).toLocaleDateString(
-                              "fr-FR"
-                            )
-                          : "-"}
-                      </TableCell>
+            <>
+              {/* Desktop table */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Joueur</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Gravité</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead>Retour estimé</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {injuries.map((injury) => (
+                      <TableRow key={injury.id}>
+                        <TableCell className="font-medium">
+                          {injury.players?.name}
+                        </TableCell>
+                        <TableCell>{injury.injury_type}</TableCell>
+                        <TableCell>
+                          {new Date(injury.injury_date).toLocaleDateString("fr-FR")}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getSeverityColor(injury.severity)}>
+                            {injury.severity}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(injury.status)}>
+                            {getStatusLabel(injury.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {injury.estimated_return_date
+                            ? new Date(injury.estimated_return_date).toLocaleDateString("fr-FR")
+                            : "-"}
+                        </TableCell>
                         <TableCell>
                           {!isViewer ? (
                             <div className="flex items-center gap-2">
@@ -305,11 +305,107 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                             <span className="text-muted-foreground">—</span>
                           )}
                         </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="md:hidden space-y-3">
+                {injuries.map((injury) => (
+                  <div
+                    key={injury.id}
+                    className="rounded-lg border bg-card p-3 space-y-2"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold truncate">{injury.players?.name}</p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {injury.injury_type}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <Badge className={getSeverityColor(injury.severity)}>
+                          {injury.severity}
+                        </Badge>
+                        <Badge className={getStatusColor(injury.status)}>
+                          {getStatusLabel(injury.status)}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                      <div>
+                        <span className="block uppercase tracking-wide">Date</span>
+                        <span className="text-foreground">
+                          {new Date(injury.injury_date).toLocaleDateString("fr-FR")}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block uppercase tracking-wide">Retour estimé</span>
+                        <span className="text-foreground">
+                          {injury.estimated_return_date
+                            ? new Date(injury.estimated_return_date).toLocaleDateString("fr-FR")
+                            : "-"}
+                        </span>
+                      </div>
+                    </div>
+                    {!isViewer && (
+                      <div className="flex items-center gap-2 pt-1">
+                        <Select
+                          value={injury.status}
+                          onValueChange={(value) => {
+                            updateInjuryStatus.mutate({ id: injury.id, status: value });
+                          }}
+                          disabled={updateInjuryStatus.isPending}
+                        >
+                          <SelectTrigger className="flex-1 h-9">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={INJURY_STATUS.ACTIVE}>{INJURY_STATUS_LABELS[INJURY_STATUS.ACTIVE]}</SelectItem>
+                            <SelectItem value={INJURY_STATUS.REHABILITATION}>{INJURY_STATUS_LABELS[INJURY_STATUS.REHABILITATION]}</SelectItem>
+                            <SelectItem value={INJURY_STATUS.HEALED}>{INJURY_STATUS_LABELS[INJURY_STATUS.HEALED]}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-9 w-9 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              title="Supprimer la blessure"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Supprimer cette blessure ?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Cette action est irréversible. La blessure « {injury.injury_type} » du{" "}
+                                {new Date(injury.injury_date).toLocaleDateString("fr-FR")} sera
+                                définitivement supprimée, ainsi que les données de réhabilitation associées.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteInjury.mutate(injury.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Supprimer
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+
           ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground">Aucune blessure enregistrée</p>
