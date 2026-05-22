@@ -178,11 +178,13 @@ export function GeneralTab({ match, categoryId }: Props) {
           </StatBlock>
 
           <StatBlock title="Discipline" accent="rose">
-            <StatBar homeName={homeName} awayName={awayName} label="Fautes commises" h={home.fouls} a={away.fouls} reverse />
-            <StatBar homeName={homeName} awayName={awayName} label="Cartons jaunes" h={home.yellowCards} a={away.yellowCards} reverse />
-            <StatBar homeName={homeName} awayName={awayName} label="Cartons rouges" h={home.redCards} a={away.redCards} reverse />
+            <div className="flex flex-col gap-1.5">
+              <StatBar homeName={homeName} awayName={awayName} label="Fautes commises" h={home.fouls} a={away.fouls} reverse />
+              <StatBar homeName={homeName} awayName={awayName} label="Cartons jaunes" h={home.yellowCards} a={away.yellowCards} reverse />
+              <StatBar homeName={homeName} awayName={awayName} label="Cartons rouges" h={home.redCards} a={away.redCards} reverse />
+            </div>
 
-            <div className="mt-3 pt-3 border-t">
+            <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 px-1">
                 Comment chaque équipe a joué les fautes adverses
               </p>
