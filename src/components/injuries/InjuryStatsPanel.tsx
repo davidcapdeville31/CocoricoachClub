@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BarChart3, Repeat, ShieldCheck, Clock, CalendarIcon } from "lucide-react";
+import { BarChart3, Repeat, ShieldCheck, Clock, CalendarIcon, Activity, Thermometer } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -97,6 +97,18 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
     },
   });
 
+  const { data: illnesses } = useQuery({
+    queryKey: ["illness-stats", categoryId],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("illnesses")
+        .select("id, player_id, illness_type, illness_date, actual_return_date, status, players(name)")
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
+
   const { data: playersCount } = useQuery({
     queryKey: ["injury-stats-players-count", categoryId],
     queryFn: async () => {
@@ -150,22 +162,53 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
       ? Math.round(durations.reduce((s, d) => s + d, 0) / durations.length)
       : 0;
 
-    const windowStart = from ?? new Date(Math.min(...list.map((i: any) => new Date(i.injury_date).getTime()), to.getTime()));
+    // Illnesses on same period
+    const illList = (illnesses || []).filter((i: any) => {
+      const d = new Date(i.illness_date);
+      if (from && d < from) return false;
+      if (d > to) return false;
+      return true;
+    });
+    const illTotal = illList.length;
+    const illDurations: number[] = [];
+    for (const i of illList) {
+      const start = new Date(i.illness_date);
+      const end = i.actual_return_date ? new Date(i.actual_return_date) : to;
+      illDurations.push(Math.max(0, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))));
+    }
+    const illAvgDuration = illDurations.length
+      ? Math.round(illDurations.reduce((s, d) => s + d, 0) / illDurations.length)
+      : 0;
+
+    const allDates = [
+      ...list.map((i: any) => new Date(i.injury_date).getTime()),
+      ...illList.map((i: any) => new Date(i.illness_date).getTime()),
+      to.getTime(),
+    ];
+    const windowStart = from ?? new Date(Math.min(...allDates));
     const windowDays = Math.max(1, Math.round((to.getTime() - windowStart.getTime()) / (1000 * 60 * 60 * 24)));
-    let unavailableDays = 0;
+    let injuryDays = 0;
     for (const i of list) {
       const s = new Date(i.injury_date);
       const e = i.actual_return_date ? new Date(i.actual_return_date) : to;
       const start = s < windowStart ? windowStart : s;
       const end = e > to ? to : e;
-      const d = Math.max(0, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
-      unavailableDays += d;
+      injuryDays += Math.max(0, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
     }
+    let illnessDays = 0;
+    for (const i of illList) {
+      const s = new Date(i.illness_date);
+      const e = i.actual_return_date ? new Date(i.actual_return_date) : to;
+      const start = s < windowStart ? windowStart : s;
+      const end = e > to ? to : e;
+      illnessDays += Math.max(0, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+    }
+    const unavailableDays = injuryDays + illnessDays;
     const denom = windowDays * Math.max(1, playersCount || 0);
     const availabilityPct = playersCount && denom > 0 ? Math.max(0, Math.min(100, 100 - (unavailableDays / denom) * 100)) : 100;
 
-    return { total, distribution, relapses, avgDuration, availabilityPct };
-  }, [injuries, from, to, playersCount]);
+    return { total, distribution, relapses, avgDuration, availabilityPct, injuryDays, illnessDays, illTotal, illAvgDuration };
+  }, [injuries, illnesses, from, to, playersCount]);
 
   const periodLabel =
     period === "custom"
