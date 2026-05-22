@@ -79,9 +79,11 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
     atRisk: number;
     injured: number;
     uncertain: number;
+    sick: number;
     atRiskPlayers: { id: string; name: string; reason: string }[];
     injuredPlayers: { id: string; name: string }[];
     uncertainPlayers: { id: string; name: string }[];
+    sickPlayers: { id: string; name: string; illness?: string }[];
   }
  
  interface PriorityAlert {
@@ -194,6 +196,23 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
          .in("status", ["active", "recovering"]);
        if (error) throw error;
        return data;
+     },
+   });
+
+   // Fetch active illnesses
+   const { data: illnesses = [] } = useQuery({
+     queryKey: ["active_illnesses", categoryId],
+     queryFn: async () => {
+       const { data, error } = await (supabase as any)
+         .from("illnesses")
+         .select("player_id, status, illness_type, estimated_return_date")
+         .eq("category_id", categoryId)
+         .in("status", ["active", "recovering"]);
+       if (error) {
+         console.warn("Illnesses query error:", error.message);
+         return [];
+       }
+       return data || [];
      },
    });
  
@@ -423,16 +442,17 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
       },
     });
  
-   // Calculate group status
+  // Calculate group status
     const calculateGroupStatus = (): GroupStatus => {
       const total = players.length;
       const injuredPlayerIds = new Set(injuries.filter(i => i.status === "active").map(i => i.player_id));
       const uncertainPlayerIds = new Set(injuries.filter(i => i.status === "recovering").map(i => i.player_id));
+      const sickPlayerIds = new Set<string>(illnesses.filter((i: any) => i.status === "active").map((i: any) => i.player_id as string));
       
       const atRiskPlayersList: { id: string; name: string; reason: string }[] = [];
       
       players.forEach(player => {
-        if (injuredPlayerIds.has(player.id) || uncertainPlayerIds.has(player.id)) return;
+        if (injuredPlayerIds.has(player.id) || uncertainPlayerIds.has(player.id) || sickPlayerIds.has(player.id)) return;
         
         const ewmaRatio = playerEwmaMap.get(player.id);
         const playerWellness = wellnessData.find(w => w.player_id === player.id);
@@ -470,12 +490,22 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
           return { id: i.player_id, name: p ? getFullName(p) : "Inconnu" };
         });
 
+      const sickPlayers = illnesses
+        .filter((i: any) => i.status === "active")
+        .map((i: any) => {
+          const p = players.find(pl => pl.id === i.player_id);
+          return { id: i.player_id, name: p ? getFullName(p) : "Inconnu", illness: i.illness_type };
+        });
+
       const injured = injuredPlayerIds.size;
       const uncertain = uncertainPlayerIds.size;
+      const sick = sickPlayerIds.size;
       const atRisk = atRiskPlayersList.length;
-      const available = total - injured - uncertain;
+      // Count unique unavailable players (avoid double-counting if injured + sick)
+      const unavailableIds = new Set<string>([...injuredPlayerIds, ...uncertainPlayerIds, ...sickPlayerIds]);
+      const available = total - unavailableIds.size;
   
-      return { total, available, atRisk, injured, uncertain, atRiskPlayers: atRiskPlayersList, injuredPlayers, uncertainPlayers };
+      return { total, available, atRisk, injured, uncertain, sick, atRiskPlayers: atRiskPlayersList, injuredPlayers, uncertainPlayers, sickPlayers };
     };
  
    // Calculate priority alerts
@@ -558,9 +588,10 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
       const toAdapt: { id: string; name: string; reason: string }[] = [];
       const injuredPlayerIds = new Set(injuries.filter(i => i.status === "active").map(i => i.player_id));
       const uncertainPlayerIds = new Set(injuries.filter(i => i.status === "recovering").map(i => i.player_id));
+      const sickPlayerIds = new Set<string>(illnesses.filter((i: any) => i.status === "active").map((i: any) => i.player_id as string));
       
        players.forEach(player => {
-         if (injuredPlayerIds.has(player.id) || uncertainPlayerIds.has(player.id)) return;
+         if (injuredPlayerIds.has(player.id) || uncertainPlayerIds.has(player.id) || sickPlayerIds.has(player.id)) return;
 
          const ewmaRatio = playerEwmaMap.get(player.id);
          const playerWellness = wellnessData.find(w => w.player_id === player.id);
@@ -819,31 +850,31 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
             </CardContent>
           </Card>
 
-          {/* Col 3: Blessés */}
+          {/* Col 3: Blessés / Incertains / Malades */}
           <Card className="border-2 border-red-500/20 bg-gradient-to-r from-red-500/5 to-transparent">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <XCircle className="h-4 w-4 text-red-500" />
-                Blessés / Incertains
-                {(groupStatus.injured + groupStatus.uncertain) > 0 && (
+                Blessés / Incertains / Malades
+                {(groupStatus.injured + groupStatus.uncertain + groupStatus.sick) > 0 && (
                   <Badge variant="secondary" className="ml-auto bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                    {groupStatus.injured + groupStatus.uncertain}
+                    {groupStatus.injured + groupStatus.uncertain + groupStatus.sick}
                   </Badge>
                 )}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {groupStatus.injuredPlayers.length === 0 && groupStatus.uncertainPlayers.length === 0 ? (
+              {groupStatus.injuredPlayers.length === 0 && groupStatus.uncertainPlayers.length === 0 && groupStatus.sickPlayers.length === 0 ? (
                 <div className="text-center py-4">
                   <CheckCircle className="h-6 w-6 text-green-500 mx-auto mb-1" />
-                  <p className="text-xs text-muted-foreground">Aucun blessé</p>
+                  <p className="text-xs text-muted-foreground">Aucun indisponible</p>
                 </div>
               ) : (
-                <ScrollArea className={(groupStatus.injuredPlayers.length + groupStatus.uncertainPlayers.length) > 4 ? "h-[180px]" : ""}>
+                <ScrollArea className={(groupStatus.injuredPlayers.length + groupStatus.uncertainPlayers.length + groupStatus.sickPlayers.length) > 4 ? "h-[180px]" : ""}>
                   <div className="space-y-1.5">
                     {groupStatus.injuredPlayers.map(p => (
                       <div
-                        key={p.id}
+                        key={`inj-${p.id}`}
                         className="flex items-center justify-between p-2 rounded-lg bg-red-50 dark:bg-red-900/10 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
                         onClick={() => navigate(`/players/${p.id}`)}
                       >
@@ -856,7 +887,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
                     ))}
                     {groupStatus.uncertainPlayers.map(p => (
                       <div
-                        key={p.id}
+                        key={`unc-${p.id}`}
                         className="flex items-center justify-between p-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/10 cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/20 transition-colors"
                         onClick={() => navigate(`/players/${p.id}`)}
                       >
@@ -867,11 +898,28 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
                         <Badge className="text-[10px] bg-yellow-500 text-white shrink-0">Réathléti.</Badge>
                       </div>
                     ))}
+                    {groupStatus.sickPlayers.map(p => (
+                      <div
+                        key={`sick-${p.id}`}
+                        className="flex items-center justify-between p-2 rounded-lg bg-orange-50 dark:bg-orange-900/10 cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-900/20 transition-colors"
+                        onClick={() => navigate(`/players/${p.id}`)}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Activity className="h-3.5 w-3.5 text-orange-500 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{p.name}</p>
+                            {p.illness && <p className="text-[10px] text-muted-foreground truncate">{p.illness}</p>}
+                          </div>
+                        </div>
+                        <Badge className="text-[10px] bg-orange-500 text-white shrink-0">Malade</Badge>
+                      </div>
+                    ))}
                   </div>
                 </ScrollArea>
               )}
             </CardContent>
           </Card>
+
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">

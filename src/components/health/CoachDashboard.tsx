@@ -83,6 +83,25 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     retry: 1,
   });
 
+  // Fetch active illnesses
+  const { data: illnesses } = useQuery({
+    queryKey: ["active_illnesses", categoryId],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("illnesses")
+        .select("*, players(name)")
+        .eq("category_id", categoryId)
+        .neq("status", "healed")
+        .order("illness_date", { ascending: false });
+      if (error) {
+        console.warn("Illnesses query error:", error.message);
+        return [];
+      }
+      return data || [];
+    },
+    retry: 1,
+  });
+
   // Fetch EWMA data (replacing AWCR) - limit to last 60 days for performance
   const { data: ewmaData } = useQuery({
     queryKey: ["ewma_summary", categoryId],
@@ -173,10 +192,16 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     retry: 1,
   });
 
-  // Calculate stats
+  // Calculate stats — combine injuries + illnesses, dedup by player
   const totalPlayers = players?.length || 0;
   const injuredPlayers = injuries?.length || 0;
-  const availablePlayers = totalPlayers - injuredPlayers;
+  const sickPlayers = illnesses?.length || 0;
+  const unavailableIds = new Set<string>([
+    ...((injuries || []).map((i: any) => i.player_id as string)),
+    ...((illnesses || []).map((i: any) => i.player_id as string)),
+  ]);
+  const unavailableCount = unavailableIds.size;
+  const availablePlayers = totalPlayers - unavailableCount;
   const availabilityRate = totalPlayers > 0 ? (availablePlayers / totalPlayers) * 100 : 0;
 
   // EWMA analysis (replacing AWCR)
@@ -255,13 +280,13 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
           <CardHeader className="pb-1 px-3 pt-3">
             <CardTitle className="text-xs flex items-center gap-1.5">
               <Activity className="h-3.5 w-3.5" />
-              Blessures actives
+              Blessures / Maladies
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 pb-3">
-            <div className="text-2xl font-bold text-red-600">{injuredPlayers}</div>
+            <div className="text-2xl font-bold text-red-600">{injuredPlayers + sickPlayers}</div>
             <p className="text-[10px] text-muted-foreground mt-1">
-              {rtpProtocols?.length || 0} en protocole RTP
+              {injuredPlayers} blessé{injuredPlayers > 1 ? "s" : ""} · {sickPlayers} malade{sickPlayers > 1 ? "s" : ""}
             </p>
           </CardContent>
         </Card>
@@ -346,31 +371,26 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
         </Card>
       </div>
 
-      {/* Active injuries detail */}
-      {injuries && injuries.length > 0 && (
+      {/* Active injuries & illnesses detail */}
+      {((injuries && injuries.length > 0) || (illnesses && illnesses.length > 0)) && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Blessures en cours</CardTitle>
+            <CardTitle className="text-lg">Blessures & Maladies en cours</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {injuries.map((injury: any) => {
+              {injuries?.map((injury: any) => {
                 const injuryDate = injury.injury_date ? new Date(injury.injury_date) : null;
                 const daysOut = injuryDate ? differenceInDays(new Date(), injuryDate) : null;
                 return (
-                  <div
-                    key={injury.id}
-                    className="p-4 border rounded-lg space-y-3"
-                  >
+                  <div key={`inj-${injury.id}`} className="p-4 border rounded-lg space-y-3">
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-semibold text-base">{injury.players?.name}</p>
                         <p className="text-sm text-destructive font-medium">{injury.injury_type}</p>
                       </div>
-                      <Badge
-                        variant={injury.status === "active" ? "destructive" : "secondary"}
-                      >
-                        {injury.status === "active" ? "Active" : "Réhab"}
+                      <Badge variant={injury.status === "active" ? "destructive" : "secondary"}>
+                        {injury.status === "active" ? "Blessé" : "Réhab"}
                       </Badge>
                     </div>
                     <div className="space-y-1 text-xs text-muted-foreground">
@@ -385,6 +405,36 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                         <div className="flex items-center gap-1">
                           <span className="font-medium text-foreground">Retour estimé:</span>
                           <span>{safeFormat(injury.estimated_return_date, "EEEE dd MMMM yyyy", { locale: fr })}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+              {illnesses?.map((illness: any) => {
+                const ilDate = illness.illness_date ? new Date(illness.illness_date) : null;
+                const daysOut = ilDate ? differenceInDays(new Date(), ilDate) : null;
+                return (
+                  <div key={`ill-${illness.id}`} className="p-4 border rounded-lg space-y-3 bg-orange-500/5 border-orange-500/30">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-semibold text-base">{illness.players?.name}</p>
+                        <p className="text-sm text-orange-600 font-medium">{illness.illness_type}</p>
+                      </div>
+                      <Badge className="bg-orange-500 text-white hover:bg-orange-500">Malade</Badge>
+                    </div>
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium text-foreground">Maladie le:</span>
+                        <span>{safeFormat(illness.illness_date, "EEEE dd MMMM yyyy", { locale: fr })}</span>
+                      </div>
+                      {daysOut !== null && (
+                        <p>Absent depuis <span className="font-medium text-foreground">{daysOut} jour{daysOut > 1 ? "s" : ""}</span></p>
+                      )}
+                      {illness.estimated_return_date && (
+                        <div className="flex items-center gap-1">
+                          <span className="font-medium text-foreground">Retour estimé:</span>
+                          <span>{safeFormat(illness.estimated_return_date, "EEEE dd MMMM yyyy", { locale: fr })}</span>
                         </div>
                       )}
                     </div>
