@@ -249,8 +249,9 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
   });
 
   // Determine if the current user can add/manage athletes.
-  // Allowed: club owner, club admin/coach, category admin/coach/prepa_physique/administratif.
-  // Denied: doctor, physio, mental_coach, viewer (consult-only roles).
+  // Allowed: club owner, club admin/coach, category admin/coach/prepa_physique/administratif/doctor.
+  // (Doctor can add athletes since they manage injuries/concussions.)
+  // Denied: physio, mental_coach, viewer (consult-only roles).
   const { data: canManageAthletes = false } = useQuery({
     queryKey: ["can-manage-athletes", categoryId, (category as any)?.club_id],
     enabled: !!categoryId && !!(category as any)?.club_id,
@@ -279,7 +280,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
         .select("role")
         .eq("category_id", categoryId)
         .eq("user_id", user.id);
-      const allowed = ["admin", "coach", "prepa_physique", "administratif"];
+      const allowed = ["admin", "coach", "prepa_physique", "administratif", "doctor"];
       return !!catRoles?.some((r: any) => allowed.includes(r.role));
     },
   });
