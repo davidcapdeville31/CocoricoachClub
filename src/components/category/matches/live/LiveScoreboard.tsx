@@ -1,7 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RotateCcw, Trophy } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Play, Pause, RotateCcw, Trophy, Pencil } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Period } from "./types";
 
@@ -35,6 +37,9 @@ function isLight(hex?: string) {
 export function LiveScoreboard({ homeName, awayName, homeScore, awayScore, period, onPeriodChange, minute, onMinuteChange, seconds, onSecondsChange, homeColor, awayColor, running, onRunningChange }: Props) {
   const tickRef = useRef<number | null>(null);
   const startRef = useRef<{ at: number; baseSec: number } | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [draftMin, setDraftMin] = useState("0");
+  const [draftSec, setDraftSec] = useState("0");
 
   useEffect(() => {
     if (running) {
@@ -73,9 +78,81 @@ export function LiveScoreboard({ homeName, awayName, homeScore, awayScore, perio
             <span className={awayScore > homeScore ? "text-green-500" : ""}>{awayScore}</span>
           </div>
           <div className="flex items-center justify-center gap-2 mt-1">
-            <div className="font-mono text-sm tabular-nums bg-muted px-2 py-0.5 rounded-md">
-              {String(minute).padStart(2, "0")}'{String(seconds).padStart(2, "0")}
-            </div>
+            <Popover
+              open={editOpen}
+              onOpenChange={(o) => {
+                setEditOpen(o);
+                if (o) {
+                  if (running) onRunningChange(false);
+                  setDraftMin(String(minute));
+                  setDraftSec(String(seconds));
+                }
+              }}
+            >
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="font-mono text-sm tabular-nums bg-muted hover:bg-muted/80 px-2 py-0.5 rounded-md inline-flex items-center gap-1 transition-colors"
+                  title="Cliquer pour saisir le temps manuellement"
+                >
+                  {String(minute).padStart(2, "0")}'{String(seconds).padStart(2, "0")}
+                  <Pencil className="h-3 w-3 opacity-60" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-3 space-y-3" align="center">
+                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Temps de jeu manuel
+                </div>
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <label className="text-[10px] uppercase text-muted-foreground">Minutes</label>
+                    <Input
+                      type="number" min={0} max={999} inputMode="numeric"
+                      value={draftMin}
+                      onChange={(e) => setDraftMin(e.target.value)}
+                      className="h-8 text-center font-mono"
+                    />
+                  </div>
+                  <span className="pb-2 font-mono">:</span>
+                  <div className="flex-1">
+                    <label className="text-[10px] uppercase text-muted-foreground">Secondes</label>
+                    <Input
+                      type="number" min={0} max={59} inputMode="numeric"
+                      value={draftSec}
+                      onChange={(e) => setDraftSec(e.target.value)}
+                      className="h-8 text-center font-mono"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {[5, 7, 10, 11, 15, 20, 30, 40].map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => { setDraftMin(String(m)); setDraftSec("0"); }}
+                      className="text-[11px] px-2 py-0.5 rounded-md bg-muted hover:bg-muted/70 font-mono"
+                    >
+                      {m}'
+                    </button>
+                  ))}
+                </div>
+                <div className="flex justify-end gap-2 pt-1">
+                  <Button size="sm" variant="ghost" onClick={() => setEditOpen(false)}>Annuler</Button>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      const m = Math.max(0, Math.min(999, parseInt(draftMin || "0", 10) || 0));
+                      const s = Math.max(0, Math.min(59, parseInt(draftSec || "0", 10) || 0));
+                      onMinuteChange(m);
+                      onSecondsChange(s);
+                      setEditOpen(false);
+                    }}
+                  >
+                    Définir
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
             <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onRunningChange(!running)}>
               {running ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             </Button>
