@@ -1,5 +1,5 @@
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Heart, Smile, Apple, Activity, Dumbbell, LayoutDashboard, Brain, BarChart3, AlertTriangle } from "lucide-react";
+import { Heart, Smile, Apple, Activity, Dumbbell, LayoutDashboard, Brain, AlertTriangle } from "lucide-react";
 import { MedicalRecordsTab } from "@/components/health/MedicalRecordsTab";
 import { CoachDashboard } from "@/components/health/CoachDashboard";
 import { InjuriesTab } from "@/components/injuries/InjuriesTab";
@@ -110,12 +110,12 @@ export function SanteTab({ categoryId }: SanteTabProps) {
             )}
             {!isViewer && (
               <ColoredSubTabsTrigger
-                value="stats"
+                value="risk"
                 colorKey="sante"
-                icon={<BarChart3 className="h-4 w-4" />}
-                tooltip="Statistiques détaillées des douleurs et indicateurs wellness"
+                icon={<AlertTriangle className="h-4 w-4" />}
+                tooltip="Évaluation du risque de blessure (EWMA + AWCR + Wellness)"
               >
-                Statistiques
+                Risque blessure
               </ColoredSubTabsTrigger>
             )}
             {!isViewer && (
@@ -147,6 +147,7 @@ export function SanteTab({ categoryId }: SanteTabProps) {
 
         <TabsContent value="wellness-health" className="space-y-6">
           {!isViewer && <WellnessTab categoryId={categoryId} view="tracking" />}
+          {!isViewer && <WellnessTab categoryId={categoryId} view="pain-stats" />}
           <MedicalRecordsTab categoryId={categoryId} />
         </TabsContent>
 
@@ -164,11 +165,6 @@ export function SanteTab({ categoryId }: SanteTabProps) {
           </TabsContent>
         )}
 
-        {!isViewer && (
-          <TabsContent value="stats">
-            <WellnessTab categoryId={categoryId} view="pain-stats" />
-          </TabsContent>
-        )}
 
         {!isViewer && (
           <TabsContent value="risk">
