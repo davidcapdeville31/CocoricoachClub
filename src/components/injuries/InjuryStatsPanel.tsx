@@ -294,7 +294,7 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="bg-surface">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Disponibilité athlètes</CardTitle>
@@ -312,13 +312,26 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
 
           <Card className="bg-surface">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Temps moyen d'indispo</CardTitle>
-              <Clock className="h-4 w-4 text-primary" />
+              <CardTitle className="text-sm font-medium">Indispo blessures</CardTitle>
+              <Activity className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">{stats.avgDuration} j</div>
+              <div className="text-2xl font-bold text-destructive">{stats.injuryDays} j</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Moyenne sur {stats.total} blessure{stats.total > 1 ? "s" : ""}
+                Cumul équipe — {stats.total} blessure{stats.total > 1 ? "s" : ""} • moy. {stats.avgDuration}j
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-surface">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Indispo maladies</CardTitle>
+              <Thermometer className="h-4 w-4 text-orange-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-500">{stats.illnessDays} j</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Cumul équipe — {stats.illTotal} maladie{stats.illTotal > 1 ? "s" : ""} • moy. {stats.illAvgDuration}j
               </p>
             </CardContent>
           </Card>
