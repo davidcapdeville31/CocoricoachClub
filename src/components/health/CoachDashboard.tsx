@@ -83,6 +83,25 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     retry: 1,
   });
 
+  // Fetch active illnesses
+  const { data: illnesses } = useQuery({
+    queryKey: ["active_illnesses", categoryId],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("illnesses")
+        .select("*, players(name)")
+        .eq("category_id", categoryId)
+        .neq("status", "healed")
+        .order("illness_date", { ascending: false });
+      if (error) {
+        console.warn("Illnesses query error:", error.message);
+        return [];
+      }
+      return data || [];
+    },
+    retry: 1,
+  });
+
   // Fetch EWMA data (replacing AWCR) - limit to last 60 days for performance
   const { data: ewmaData } = useQuery({
     queryKey: ["ewma_summary", categoryId],
@@ -173,10 +192,16 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     retry: 1,
   });
 
-  // Calculate stats
+  // Calculate stats — combine injuries + illnesses, dedup by player
   const totalPlayers = players?.length || 0;
   const injuredPlayers = injuries?.length || 0;
-  const availablePlayers = totalPlayers - injuredPlayers;
+  const sickPlayers = illnesses?.length || 0;
+  const unavailableIds = new Set<string>([
+    ...((injuries || []).map((i: any) => i.player_id as string)),
+    ...((illnesses || []).map((i: any) => i.player_id as string)),
+  ]);
+  const unavailableCount = unavailableIds.size;
+  const availablePlayers = totalPlayers - unavailableCount;
   const availabilityRate = totalPlayers > 0 ? (availablePlayers / totalPlayers) * 100 : 0;
 
   // EWMA analysis (replacing AWCR)
@@ -255,13 +280,13 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
           <CardHeader className="pb-1 px-3 pt-3">
             <CardTitle className="text-xs flex items-center gap-1.5">
               <Activity className="h-3.5 w-3.5" />
-              Blessures actives
+              Blessures / Maladies
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 pb-3">
-            <div className="text-2xl font-bold text-red-600">{injuredPlayers}</div>
+            <div className="text-2xl font-bold text-red-600">{injuredPlayers + sickPlayers}</div>
             <p className="text-[10px] text-muted-foreground mt-1">
-              {rtpProtocols?.length || 0} en protocole RTP
+              {injuredPlayers} blessé{injuredPlayers > 1 ? "s" : ""} · {sickPlayers} malade{sickPlayers > 1 ? "s" : ""}
             </p>
           </CardContent>
         </Card>
