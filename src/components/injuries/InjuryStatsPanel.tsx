@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BarChart3, Repeat, ShieldCheck, Clock, CalendarIcon, Activity, Thermometer } from "lucide-react";
+import { BarChart3, Repeat, ShieldCheck, CalendarIcon, Activity, Thermometer } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
