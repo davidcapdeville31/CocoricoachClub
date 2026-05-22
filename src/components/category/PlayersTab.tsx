@@ -280,7 +280,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
         .select("role")
         .eq("category_id", categoryId)
         .eq("user_id", user.id);
-      const allowed = ["admin", "coach", "prepa_physique", "administratif"];
+      const allowed = ["admin", "coach", "prepa_physique", "administratif", "doctor"];
       return !!catRoles?.some((r: any) => allowed.includes(r.role));
     },
   });
