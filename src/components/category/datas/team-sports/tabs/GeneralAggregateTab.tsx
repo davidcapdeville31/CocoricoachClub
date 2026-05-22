@@ -206,16 +206,23 @@ export function GeneralAggregateTab({ matches, categoryId }: Props) {
           </StatBlock>
 
           <StatBlock title="Discipline" accent="rose">
-            <StatBar homeName={homeName} awayName={awayName} label="Pénalités concédées" h={us.fouls} a={them.fouls} reverse />
-            <StatBar homeName={homeName} awayName={awayName} label="↳ Les points" h={us.foulsByPlay.kick + us.foulsByPlay.points} a={them.foulsByPlay.kick + them.foulsByPlay.points} reverse />
-            <StatBar homeName={homeName} awayName={awayName} label="↳ Pénaltouche" h={us.foulsByPlay.penaltouche} a={them.foulsByPlay.penaltouche} reverse />
-            <StatBar homeName={homeName} awayName={awayName} label="↳ Jouées en mêlée" h={us.foulsByPlay.scrum} a={them.foulsByPlay.scrum} reverse />
-            <StatBar homeName={homeName} awayName={awayName} label="↳ Jouées à la main" h={us.foulsByPlay.quick} a={them.foulsByPlay.quick} reverse />
-            {(us.foulsByPlay.unknown > 0 || them.foulsByPlay.unknown > 0) && (
-              <StatBar homeName={homeName} awayName={awayName} label="↳ Autre / non précisé" h={us.foulsByPlay.unknown} a={them.foulsByPlay.unknown} reverse />
-            )}
+            <StatBar homeName={homeName} awayName={awayName} label="Fautes commises" h={us.fouls} a={them.fouls} reverse />
             <StatBar homeName={homeName} awayName={awayName} label="Cartons jaunes" h={us.yellowCards} a={them.yellowCards} reverse />
             <StatBar homeName={homeName} awayName={awayName} label="Cartons rouges" h={us.redCards} a={them.redCards} reverse />
+
+            <div className="mt-3 pt-3 border-t">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 px-1">
+                Comment chaque équipe a joué les fautes adverses
+              </p>
+              {/* Inversion h/a : sous la colonne d'une équipe, on montre comment ELLE a joué les fautes commises par l'adversaire. */}
+              <StatBar homeName={homeName} awayName={awayName} label="↳ Tapées aux points" h={them.foulsByPlay.kick + them.foulsByPlay.points} a={us.foulsByPlay.kick + us.foulsByPlay.points} />
+              <StatBar homeName={homeName} awayName={awayName} label="↳ Pénaltouche" h={them.foulsByPlay.penaltouche} a={us.foulsByPlay.penaltouche} />
+              <StatBar homeName={homeName} awayName={awayName} label="↳ Jouées en mêlée" h={them.foulsByPlay.scrum} a={us.foulsByPlay.scrum} />
+              <StatBar homeName={homeName} awayName={awayName} label="↳ Jouées à la main" h={them.foulsByPlay.quick} a={us.foulsByPlay.quick} />
+              {(us.foulsByPlay.unknown > 0 || them.foulsByPlay.unknown > 0) && (
+                <StatBar homeName={homeName} awayName={awayName} label="↳ Autre / non précisé" h={them.foulsByPlay.unknown} a={us.foulsByPlay.unknown} />
+              )}
+            </div>
           </StatBlock>
         </CardContent>
       </Card>
