@@ -360,12 +360,19 @@ export function StatBar({
   }
   const hTone = toneOf(hPct);
   const aTone = toneOf(aPct);
+  // Tonalité du % central :
+  // - kind=count "normal" (reverse=false) : un % élevé = bonne part pour l'équipe domicile → success
+  // - kind=count "reverse" (pénalités, cartons…) : un % élevé = défavorable pour l'équipe domicile → danger
+  //   On inverse l'échelle pour rester cohérent (low = good pour le domicile)
+  const centerPctForTone = centerPct === null
+    ? null
+    : (reverse ? 100 - centerPct : centerPct);
   const pctTone: "success" | "warning" | "danger" | "neutral" =
-    !isRatio || centerPct === null
+    isRatio || centerPctForTone === null
       ? "neutral"
-      : centerPct >= 75 ? "success"
-      : centerPct >= 60 ? "neutral"
-      : centerPct >= 40 ? "warning"
+      : centerPctForTone >= 75 ? "success"
+      : centerPctForTone >= 60 ? "neutral"
+      : centerPctForTone >= 40 ? "warning"
       : "danger";
 
   const PCT_TONE: Record<typeof pctTone, { text: string; bg: string; ring: string; glow: string }> = {
