@@ -118,16 +118,6 @@ export function SanteTab({ categoryId }: SanteTabProps) {
                 Risque blessure
               </ColoredSubTabsTrigger>
             )}
-            {!isViewer && (
-              <ColoredSubTabsTrigger
-                value="risk"
-                colorKey="sante"
-                icon={<AlertTriangle className="h-4 w-4" />}
-                tooltip="Évaluation du risque de blessure (EWMA + AWCR + Wellness)"
-              >
-                Risque blessure
-              </ColoredSubTabsTrigger>
-            )}
             {!isViewer && hasConcussionProtocol && (
               <ColoredSubTabsTrigger
                 value="concussion"
