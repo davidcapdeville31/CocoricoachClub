@@ -5,7 +5,7 @@ import type { EventType } from "./types";
 import {
   Trophy, Zap, Target, Crosshair, Shield, Anchor, Footprints, Flag,
   AlertTriangle, RefreshCw, Activity, MapPin, Move, Square, Hand,
-  Repeat, ArrowRightLeft, Layers, Send, Wind,
+  Repeat, ArrowRightLeft, Layers, Send, Wind, Clock,
 } from "lucide-react";
 import { useStatPreferences } from "@/hooks/use-stat-preferences";
 
@@ -44,6 +44,7 @@ const ACTIONS: Action[] = [
   { type: "injury", label: "Blessure", group: "discipline", icon: Activity, refKeys: [] },
   { type: "kick", label: "Jeu au pied", group: "jeu", icon: Footprints, refKeys: ["kicksMade", "kicksMissed"] },
   { type: "substitution", label: "Changement", group: "changement", icon: RefreshCw, refKeys: [] },
+  { type: "playing_time" as EventType, label: "Temps de jeu", group: "changement", icon: Clock, refKeys: [] },
 ];
 
 const GROUP_STYLES: Record<Action["group"], string> = {

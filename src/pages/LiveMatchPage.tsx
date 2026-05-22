@@ -14,6 +14,7 @@ import { LiveStatsPanel } from "@/components/category/matches/live/LiveStatsPane
 import { EventDialog } from "@/components/category/matches/live/dialogs/EventDialog";
 import { TacklePanel } from "@/components/category/matches/live/dialogs/TacklePanel";
 import { SubstitutionDialog } from "@/components/category/matches/live/dialogs/SubstitutionDialog";
+import { PlayingTimeDialog } from "@/components/category/matches/live/dialogs/PlayingTimeDialog";
 import { TackleInlinePanel } from "@/components/category/matches/live/TackleInlinePanel";
 import { PassInlinePanel } from "@/components/category/matches/live/PassInlinePanel";
 import { TeamColorsDialog } from "@/components/category/matches/live/dialogs/TeamColorsDialog";
@@ -54,6 +55,7 @@ export default function LiveMatchPage() {
   const [chainNext, setChainNext] = useState<EventType | null>(null);
   const [tacklePanelOpen, setTacklePanelOpen] = useState(false);
   const [subOpen, setSubOpen] = useState(false);
+  const [playingTimeOpen, setPlayingTimeOpen] = useState(false);
   const [isRunning, setIsRunning] = useState(initialChrono?.isRunning ?? false);
 
   // Sauvegarde à chaque changement
@@ -315,7 +317,12 @@ export default function LiveMatchPage() {
           <div>
             <h2 className="text-sm font-bold uppercase tracking-wider mb-2 text-muted-foreground">Actions rapides</h2>
             <LiveQuickActions
-              onSelect={(t) => { setEditing(null); if (t === "substitution") { setSubOpen(true); } else { setOpenType(t); } }}
+              onSelect={(t) => {
+                setEditing(null);
+                if (t === "substitution") { setSubOpen(true); }
+                else if ((t as string) === "playing_time") { setPlayingTimeOpen(true); }
+                else { setOpenType(t); }
+              }}
               categoryId={categoryId}
               sportType={match?.categories?.rugby_type || "rugby_xv"}
               matchId={matchId}
@@ -443,6 +450,13 @@ export default function LiveMatchPage() {
         defaultMinute={minute}
         defaultSecond={seconds}
         onCreateEvent={(payload) => create.mutateAsync(payload)}
+      />
+
+      <PlayingTimeDialog
+        open={playingTimeOpen}
+        onOpenChange={setPlayingTimeOpen}
+        matchId={matchId!}
+        lineup={(lineup ?? []) as any}
       />
 
       <TeamColorsDialog
