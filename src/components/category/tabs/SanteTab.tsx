@@ -93,9 +93,9 @@ export function SanteTab({ categoryId }: SanteTabProps) {
                 value="injuries"
                 colorKey="sante"
                 icon={<Activity className="h-4 w-4" />}
-                tooltip="Suivi des blessures, historique et bibliothèque"
+                tooltip="Suivi des blessures, maladies, historique et bibliothèque"
               >
-                Blessures
+                Blessures / Maladies
               </ColoredSubTabsTrigger>
             )}
             {!isViewer && (
