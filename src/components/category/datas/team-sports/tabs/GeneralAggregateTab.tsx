@@ -206,11 +206,13 @@ export function GeneralAggregateTab({ matches, categoryId }: Props) {
           </StatBlock>
 
           <StatBlock title="Discipline" accent="rose">
-            <StatBar homeName={homeName} awayName={awayName} label="Fautes commises" h={us.fouls} a={them.fouls} reverse />
-            <StatBar homeName={homeName} awayName={awayName} label="Cartons jaunes" h={us.yellowCards} a={them.yellowCards} reverse />
-            <StatBar homeName={homeName} awayName={awayName} label="Cartons rouges" h={us.redCards} a={them.redCards} reverse />
+            <div className="flex flex-col gap-1.5">
+              <StatBar homeName={homeName} awayName={awayName} label="Fautes commises" h={us.fouls} a={them.fouls} reverse />
+              <StatBar homeName={homeName} awayName={awayName} label="Cartons jaunes" h={us.yellowCards} a={them.yellowCards} reverse />
+              <StatBar homeName={homeName} awayName={awayName} label="Cartons rouges" h={us.redCards} a={them.redCards} reverse />
+            </div>
 
-            <div className="mt-3 pt-3 border-t">
+            <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 px-1">
                 Comment chaque équipe a joué les fautes adverses
               </p>
