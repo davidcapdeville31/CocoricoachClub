@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { AddInjuryDialog } from "./AddInjuryDialog";
 import { InjuryStatsPanel } from "./InjuryStatsPanel";
+import { IllnessHistoryCard } from "./IllnessHistoryCard";
 import { InjuryLibraryDialog } from "@/components/category/programs/InjuryLibraryDialog";
 import { toast } from "sonner";
 import { INJURY_STATUS, INJURY_STATUS_LABELS } from "@/lib/constants/injury";
