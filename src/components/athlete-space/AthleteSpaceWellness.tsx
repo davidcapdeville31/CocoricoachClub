@@ -107,6 +107,23 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
   const today = new Date().toISOString().split("T")[0];
   const [expanded, setExpanded] = useState(false);
 
+  const { data: schedule } = useQuery({
+    queryKey: ["wellness_schedule", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("wellness_schedules")
+        .select("days_of_week")
+        .eq("category_id", categoryId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const scheduledDays: number[] = schedule?.days_of_week ?? [0, 1, 2, 3, 4, 5, 6];
+  const todayDow = new Date().getDay();
+  const isScheduledToday = scheduledDays.includes(todayDow);
+
   const { data: existingWellness, isLoading } = useQuery({
     queryKey: ["athlete-space-wellness", playerId, today],
     queryFn: async () => {
@@ -191,6 +208,38 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
   });
 
   if (isLoading) return null;
+
+  // Wellness not scheduled today — skip rendering the form, but keep history visible
+  if (!existingWellness && !isScheduledToday) {
+    const dayNames = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+    const nextDay = (() => {
+      for (let i = 1; i <= 7; i++) {
+        const d = (todayDow + i) % 7;
+        if (scheduledDays.includes(d)) return dayNames[d];
+      }
+      return null;
+    })();
+    return (
+      <>
+        <Card className="bg-gradient-card shadow-md">
+          <CardContent className="py-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${NAV_COLORS.sante.base}15` }}>
+                <Heart className="h-5 w-5" style={{ color: NAV_COLORS.sante.base }} />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-sm">Pas de wellness à remplir aujourd'hui</p>
+                <p className="text-xs text-muted-foreground">
+                  {nextDay ? `Prochain wellness : ${nextDay}` : "Aucun jour planifié par le staff."}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        {!hideHistory && <AthleteSpaceWellnessHistory playerId={playerId} categoryId={categoryId} />}
+      </>
+    );
+  }
 
   // Already filled
   if (existingWellness) {

@@ -14,6 +14,7 @@ import { Plus, AlertTriangle, Calendar, X } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { AddWellnessDialog } from "./AddWellnessDialog";
+import { WellnessScheduleConfig } from "./wellness/WellnessScheduleConfig";
 import { InjuryRiskAssessment } from "./InjuryRiskAssessment";
 import { MenstrualCycleSection } from "./MenstrualCycleSection";
 import { WellnessPainStats } from "./WellnessPainStats";
@@ -133,7 +134,8 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
           </div>
         )}
 
-        <TabsContent value="tracking">
+        <TabsContent value="tracking" className="space-y-4">
+          {!isViewer && <WellnessScheduleConfig categoryId={categoryId} />}
           <Card>
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
