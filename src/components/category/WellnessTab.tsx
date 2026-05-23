@@ -134,7 +134,8 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
           </div>
         )}
 
-        <TabsContent value="tracking">
+        <TabsContent value="tracking" className="space-y-4">
+          {!isViewer && <WellnessScheduleConfig categoryId={categoryId} />}
           <Card>
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
