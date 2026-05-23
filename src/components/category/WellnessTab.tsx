@@ -14,6 +14,7 @@ import { Plus, AlertTriangle, Calendar, X } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { AddWellnessDialog } from "./AddWellnessDialog";
+import { WellnessScheduleConfig } from "./wellness/WellnessScheduleConfig";
 import { InjuryRiskAssessment } from "./InjuryRiskAssessment";
 import { MenstrualCycleSection } from "./MenstrualCycleSection";
 import { WellnessPainStats } from "./WellnessPainStats";
