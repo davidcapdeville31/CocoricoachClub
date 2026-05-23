@@ -107,6 +107,23 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
   const today = new Date().toISOString().split("T")[0];
   const [expanded, setExpanded] = useState(false);
 
+  const { data: schedule } = useQuery({
+    queryKey: ["wellness_schedule", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("wellness_schedules")
+        .select("days_of_week")
+        .eq("category_id", categoryId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const scheduledDays: number[] = schedule?.days_of_week ?? [0, 1, 2, 3, 4, 5, 6];
+  const todayDow = new Date().getDay();
+  const isScheduledToday = scheduledDays.includes(todayDow);
+
   const { data: existingWellness, isLoading } = useQuery({
     queryKey: ["athlete-space-wellness", playerId, today],
     queryFn: async () => {
