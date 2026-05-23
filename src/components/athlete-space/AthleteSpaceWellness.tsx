@@ -209,6 +209,38 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
 
   if (isLoading) return null;
 
+  // Wellness not scheduled today — skip rendering the form, but keep history visible
+  if (!existingWellness && !isScheduledToday) {
+    const dayNames = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+    const nextDay = (() => {
+      for (let i = 1; i <= 7; i++) {
+        const d = (todayDow + i) % 7;
+        if (scheduledDays.includes(d)) return dayNames[d];
+      }
+      return null;
+    })();
+    return (
+      <>
+        <Card className="bg-gradient-card shadow-md">
+          <CardContent className="py-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${NAV_COLORS.sante.base}15` }}>
+                <Heart className="h-5 w-5" style={{ color: NAV_COLORS.sante.base }} />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-sm">Pas de wellness à remplir aujourd'hui</p>
+                <p className="text-xs text-muted-foreground">
+                  {nextDay ? `Prochain wellness : ${nextDay}` : "Aucun jour planifié par le staff."}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        {!hideHistory && <AthleteSpaceWellnessHistory playerId={playerId} categoryId={categoryId} />}
+      </>
+    );
+  }
+
   // Already filled
   if (existingWellness) {
     const score = Math.round(
