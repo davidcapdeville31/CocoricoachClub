@@ -13905,6 +13905,35 @@ export type Database = {
           },
         ]
       }
+      wellness_schedules: {
+        Row: {
+          category_id: string
+          created_at: string
+          days_of_week: number[]
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          days_of_week?: number[]
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          days_of_week?: number[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wellness_schedules_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: true
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wellness_tracking: {
         Row: {
           category_id: string
