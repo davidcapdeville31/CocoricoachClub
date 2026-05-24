@@ -284,7 +284,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
                       {player.first_name ? `${player.first_name} ${player.name}` : player.name}
                     </SelectItem>
                   ))}
-                  {availablePlayers?.length === 1 && (
+                  {availablePlayers?.length === 0 && (
                     <div className="px-2 py-4 text-sm text-muted-foreground text-center">
                       Tous les athlètes ont déjà rempli leur wellness
                     </div>
