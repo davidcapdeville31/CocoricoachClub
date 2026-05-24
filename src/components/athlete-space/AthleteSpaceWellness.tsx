@@ -300,7 +300,10 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                         <button
                           key={range.label}
                           type="button"
-                          onClick={() => setValues(prev => ({ ...prev, [q.key]: range.value }))}
+                          onClick={() => {
+                            setValues(prev => ({ ...prev, [q.key]: range.value }));
+                            setTouched(prev => new Set(prev).add(q.key));
+                          }}
                           className={cn(
                             "h-9 sm:h-10 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150",
                             "border active:scale-95",
