@@ -225,6 +225,28 @@ export function WellnessQuestionsEditor({ categoryId }: Props) {
                     </div>
                   </div>
 
+                  <div className="mt-1.5 p-2.5 rounded-lg bg-muted/50 border border-border/50">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Indication du barème</p>
+                    <div className="flex items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-sm">1</span>
+                        <span className="text-muted-foreground">:</span>
+                        <span className="font-medium">{q.scale[1].label}</span>
+                      </div>
+                      <span className="text-muted-foreground text-lg">→</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-sm">5</span>
+                        <span className="text-muted-foreground">:</span>
+                        <span className="font-medium">{q.scale[4].label}</span>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-1 italic">
+                      {q.inverted
+                        ? "Le score 1 représente l'état le plus favorable, 5 le moins favorable."
+                        : "Le score 1 représente l'état le moins favorable, 5 le plus favorable."}
+                    </p>
+                  </div>
+
                   <div className="space-y-2">
                     {q.scale.map((level, lIdx) => (
                       <div key={lIdx} className="flex items-center gap-2">
