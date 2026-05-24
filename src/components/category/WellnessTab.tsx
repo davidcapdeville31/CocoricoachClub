@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { AddWellnessDialog } from "./AddWellnessDialog";
 import { WellnessScheduleConfig } from "./wellness/WellnessScheduleConfig";
+import { WellnessQuestionsEditor } from "./wellness/WellnessQuestionsEditor";
 import { InjuryRiskAssessment } from "./InjuryRiskAssessment";
 import { MenstrualCycleSection } from "./MenstrualCycleSection";
 import { WellnessPainStats } from "./WellnessPainStats";
