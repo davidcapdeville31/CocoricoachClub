@@ -319,8 +319,8 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             }
 
             const scaleHint = q.inverted
-              ? `1 = ${q.scale[1].label} · 5 = ${q.scale[4].label}`
-              : `1 = ${q.scale[1].label} · 5 = ${q.scale[4].label}`;
+              ? `1 = ${q.scale[0].label} · 5 = ${q.scale[4].label}`
+              : `1 = ${q.scale[0].label} · 5 = ${q.scale[4].label}`;
 
             return (
               <div key={q.key}>
