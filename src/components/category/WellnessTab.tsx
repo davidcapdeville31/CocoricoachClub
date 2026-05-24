@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { AddWellnessDialog } from "./AddWellnessDialog";
 import { WellnessScheduleConfig } from "./wellness/WellnessScheduleConfig";
+import { WellnessQuestionsEditor } from "./wellness/WellnessQuestionsEditor";
 import { InjuryRiskAssessment } from "./InjuryRiskAssessment";
 import { MenstrualCycleSection } from "./MenstrualCycleSection";
 import { WellnessPainStats } from "./WellnessPainStats";
@@ -136,6 +137,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
 
         <TabsContent value="tracking" className="space-y-4">
           {!isViewer && <WellnessScheduleConfig categoryId={categoryId} />}
+          {!isViewer && <WellnessQuestionsEditor categoryId={categoryId} />}
           <Card>
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

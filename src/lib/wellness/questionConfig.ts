@@ -1,0 +1,139 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+export type WellnessScaleLevel = {
+  value: number;
+  label: string;
+  color: string; // hsl(var(--token)) or hsl(...) string
+};
+
+export type WellnessQuestion = {
+  key: string; // standard key or "custom_xxx"
+  label: string;
+  emoji: string;
+  enabled: boolean;
+  inverted: boolean; // true = lower is better
+  is_custom: boolean;
+  scale: WellnessScaleLevel[]; // length 5
+  is_sleep_duration?: boolean; // special handling (heures)
+};
+
+const C_OPT = "hsl(var(--status-optimal))";
+const C_GOOD = "hsl(var(--status-optimal) / 0.7)";
+const C_MID = "hsl(var(--status-attention))";
+const C_BAD = "hsl(var(--status-critical) / 0.7)";
+const C_WORST = "hsl(var(--status-critical))";
+
+const invertedScale = (labels: string[]): WellnessScaleLevel[] => [
+  { value: 1, label: labels[0], color: C_OPT },
+  { value: 2, label: labels[1], color: C_GOOD },
+  { value: 3, label: labels[2], color: C_MID },
+  { value: 4, label: labels[3], color: C_BAD },
+  { value: 5, label: labels[4], color: C_WORST },
+];
+
+const positiveScale = (labels: string[]): WellnessScaleLevel[] => [
+  { value: 1, label: labels[0], color: C_WORST },
+  { value: 2, label: labels[1], color: C_BAD },
+  { value: 3, label: labels[2], color: C_MID },
+  { value: 4, label: labels[3], color: C_GOOD },
+  { value: 5, label: labels[4], color: C_OPT },
+];
+
+export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
+  {
+    key: "sleep_quality",
+    label: "Qualité du sommeil",
+    emoji: "😴",
+    enabled: true,
+    inverted: false,
+    is_custom: false,
+    scale: positiveScale(["Très mal dormi", "Mal dormi", "Moyen", "Bien dormi", "Très bien dormi"]),
+  },
+  {
+    key: "sleep_duration",
+    label: "Heures de sommeil",
+    emoji: "🛏️",
+    enabled: true,
+    inverted: false,
+    is_custom: false,
+    is_sleep_duration: true,
+    scale: positiveScale(["<6h", "6-7h", "7-8h", "8-9h", ">9h"]),
+  },
+  {
+    key: "general_fatigue",
+    label: "Fatigue générale",
+    emoji: "🔋",
+    enabled: true,
+    inverted: true,
+    is_custom: false,
+    scale: invertedScale(["Très en forme", "En forme", "Fatigué", "Très fatigué", "Épuisé"]),
+  },
+  {
+    key: "soreness_upper_body",
+    label: "Douleurs haut du corps",
+    emoji: "💪",
+    enabled: true,
+    inverted: true,
+    is_custom: false,
+    scale: invertedScale(["Aucune douleur", "Légère gêne", "Modérée", "Forte", "Intense"]),
+  },
+  {
+    key: "soreness_lower_body",
+    label: "Douleurs bas du corps",
+    emoji: "🦵",
+    enabled: true,
+    inverted: true,
+    is_custom: false,
+    scale: invertedScale(["Aucune douleur", "Légère gêne", "Modérée", "Forte", "Intense"]),
+  },
+  {
+    key: "stress_level",
+    label: "Stress",
+    emoji: "🧠",
+    enabled: true,
+    inverted: true,
+    is_custom: false,
+    scale: invertedScale(["Très détendu", "Détendu", "Un peu stressé", "Stressé", "Très stressé"]),
+  },
+];
+
+export const STANDARD_KEYS = new Set(
+  DEFAULT_WELLNESS_QUESTIONS.map((q) => q.key),
+);
+
+/** Merge saved config with defaults: keep order from saved, add missing standards at end as disabled? No → keep them enabled to preserve previous behavior unless explicitly disabled. */
+export function mergeWithDefaults(saved: WellnessQuestion[] | null | undefined): WellnessQuestion[] {
+  if (!saved || saved.length === 0) return DEFAULT_WELLNESS_QUESTIONS;
+  const result: WellnessQuestion[] = [];
+  const savedKeys = new Set(saved.map((q) => q.key));
+  for (const q of saved) {
+    // ensure shape integrity
+    result.push({
+      ...q,
+      scale: Array.isArray(q.scale) && q.scale.length === 5 ? q.scale : DEFAULT_WELLNESS_QUESTIONS.find(d => d.key === q.key)?.scale ?? positiveScale(["1","2","3","4","5"]),
+    });
+  }
+  // Append any default standards that were not in saved (e.g., added later)
+  for (const d of DEFAULT_WELLNESS_QUESTIONS) {
+    if (!savedKeys.has(d.key)) result.push(d);
+  }
+  return result;
+}
+
+export function useWellnessQuestions(categoryId: string | undefined) {
+  return useQuery({
+    queryKey: ["wellness_question_config", categoryId],
+    enabled: !!categoryId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("wellness_question_configs")
+        .select("questions")
+        .eq("category_id", categoryId!)
+        .maybeSingle();
+      if (error) throw error;
+      const raw = (data?.questions as unknown as WellnessQuestion[]) || null;
+      return mergeWithDefaults(raw);
+    },
+  });
+}

@@ -84,7 +84,7 @@ export function WellnessScheduleConfig({ categoryId }: Props) {
           <div>
             <CardTitle className="flex items-center gap-2 text-base">
               <CalendarClock className="h-4 w-4 text-primary" />
-              Fréquence du Wellness
+              Fréquence du Wellness — Jours
             </CardTitle>
             <CardDescription>
               Choisissez les jours où les athlètes doivent remplir leur wellness. Ce planning est partagé avec leur espace athlète.

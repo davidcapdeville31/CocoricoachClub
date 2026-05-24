@@ -13905,6 +13905,38 @@ export type Database = {
           },
         ]
       }
+      wellness_question_configs: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          questions: Json
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          questions?: Json
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          questions?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wellness_question_configs_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: true
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wellness_schedules: {
         Row: {
           category_id: string
@@ -13938,6 +13970,7 @@ export type Database = {
         Row: {
           category_id: string
           created_at: string
+          custom_answers: Json
           general_fatigue: number
           has_specific_pain: boolean
           id: string
@@ -13955,6 +13988,7 @@ export type Database = {
         Insert: {
           category_id: string
           created_at?: string
+          custom_answers?: Json
           general_fatigue: number
           has_specific_pain?: boolean
           id?: string
@@ -13972,6 +14006,7 @@ export type Database = {
         Update: {
           category_id?: string
           created_at?: string
+          custom_answers?: Json
           general_fatigue?: number
           has_specific_pain?: boolean
           id?: string
