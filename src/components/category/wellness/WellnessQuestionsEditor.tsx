@@ -231,7 +231,7 @@ export function WellnessQuestionsEditor({ categoryId }: Props) {
                       <div className="flex items-center gap-1.5">
                         <span className="font-bold text-sm">1</span>
                         <span className="text-muted-foreground">:</span>
-                        <span className="font-medium">{q.scale[1].label}</span>
+                        <span className="font-medium">{q.scale[0].label}</span>
                       </div>
                       <span className="text-muted-foreground text-lg">→</span>
                       <div className="flex items-center gap-1.5">
