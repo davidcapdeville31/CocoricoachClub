@@ -81,9 +81,10 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
   useEffect(() => {
     const initial: Record<string, number> = {};
     for (const q of activeQuestions) {
-      initial[q.key] = 1;
+      initial[q.key] = q.is_sleep_duration ? 7.5 : 1;
     }
     setValues(initial);
+    setTouched(new Set());
   }, [activeQuestions]);
 
   const [hasSpecificPain, setHasSpecificPain] = useState(false);
