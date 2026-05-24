@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { AthleteSpaceWellnessHistory } from "./AthleteSpaceWellnessHistory";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { PAIN_ZONES } from "@/lib/constants/pain-locations";
 import { sleepHoursToScore } from "@/lib/sleepConversion";
 import { getWellnessButtonClasses, getSleepHoursButtonClasses } from "@/lib/wellnessColors";
+import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
 
 interface Props {
   playerId: string;
@@ -34,78 +35,13 @@ const SLEEP_RANGES: { label: string; value: number }[] = [
   { label: ">10h", value: 11 },
 ];
 
-const WELLNESS_FIELDS = [
-  {
-    key: "sleep_quality",
-    label: "Qualité du sommeil",
-    emoji: "😴",
-    options: [
-      { value: 1, label: "Très mal dormi" },
-      { value: 2, label: "Mal dormi" },
-      { value: 3, label: "Moyennement dormi" },
-      { value: 4, label: "Bien dormi" },
-      { value: 5, label: "Très bien dormi" },
-    ],
-  },
-  { key: "sleep_duration", label: "Heures de sommeil", emoji: "🛏️", isNumber: true },
-  {
-    key: "general_fatigue",
-    label: "Fatigue générale",
-    emoji: "🔋",
-    inverted: true,
-    options: [
-      { value: 1, label: "Très en forme" },
-      { value: 2, label: "En forme" },
-      { value: 3, label: "Fatigué" },
-      { value: 4, label: "Très fatigué" },
-      { value: 5, label: "Épuisé" },
-    ],
-  },
-  {
-    key: "soreness_upper_body",
-    label: "Douleurs haut du corps",
-    emoji: "💪",
-    inverted: true,
-    options: [
-      { value: 1, label: "Aucune douleur" },
-      { value: 2, label: "Légère gêne" },
-      { value: 3, label: "Douleur modérée" },
-      { value: 4, label: "Douleur forte" },
-      { value: 5, label: "Douleur intense" },
-    ],
-  },
-  {
-    key: "soreness_lower_body",
-    label: "Douleurs bas du corps",
-    emoji: "🦵",
-    inverted: true,
-    options: [
-      { value: 1, label: "Aucune douleur" },
-      { value: 2, label: "Légère gêne" },
-      { value: 3, label: "Douleur modérée" },
-      { value: 4, label: "Douleur forte" },
-      { value: 5, label: "Douleur intense" },
-    ],
-  },
-  {
-    key: "stress_level",
-    label: "Stress",
-    emoji: "🧠",
-    inverted: true,
-    options: [
-      { value: 1, label: "Très détendu" },
-      { value: 2, label: "Détendu" },
-      { value: 3, label: "Un peu stressé" },
-      { value: 4, label: "Stressé" },
-      { value: 5, label: "Très stressé" },
-    ],
-  },
-] as const;
-
 export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Props) {
   const queryClient = useQueryClient();
   const today = new Date().toISOString().split("T")[0];
   const [expanded, setExpanded] = useState(false);
+
+  const { data: wellnessQuestions } = useWellnessQuestions(categoryId);
+  const activeQuestions = useMemo(() => wellnessQuestions?.filter(q => q.enabled) ?? [], [wellnessQuestions]);
 
   const { data: schedule } = useQuery({
     queryKey: ["wellness_schedule", categoryId],
@@ -138,14 +74,19 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     },
   });
 
-  const [values, setValues] = useState({
-    sleep_quality: 0,
-    sleep_duration: 0,
-    general_fatigue: 0,
-    soreness_upper_body: 0,
-    soreness_lower_body: 0,
-    stress_level: 0,
-  });
+  // Dynamic values state keyed by question key
+  const [values, setValues] = useState<Record<string, number>>({});
+
+  // Initialize values when questions change
+  useEffect(() => {
+    const initial: Record<string, number> = {};
+    for (const q of activeQuestions) {
+      initial[q.key] = q.is_sleep_duration ? 7.5 : 1;
+    }
+    setValues(initial);
+    setTouched(new Set());
+  }, [activeQuestions]);
+
   const [hasSpecificPain, setHasSpecificPain] = useState(false);
   const [painZone, setPainZone] = useState("");
   const [painLocation, setPainLocation] = useState("");
@@ -154,29 +95,57 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
   const [hrvMs, setHrvMs] = useState("");
   const [restingHr, setRestingHr] = useState("");
 
-  const allFieldsFilled = values.sleep_quality > 0 && values.sleep_duration > 0 &&
-    values.general_fatigue > 0 && values.soreness_upper_body > 0 &&
-    values.soreness_lower_body > 0 && values.stress_level > 0;
+  const [touched, setTouched] = useState<Set<string>>(new Set());
+
+  const allFieldsFilled = useMemo(() => {
+    return activeQuestions.every(q => touched.has(q.key));
+  }, [activeQuestions, touched]);
 
   const selectedZoneLocations = PAIN_ZONES.find(z => z.zone === painZone)?.locations || [];
 
+  const score = useMemo(() => {
+    if (!existingWellness || activeQuestions.length === 1) return 1;
+    let total = 1;
+    let count = 1;
+    for (const q of activeQuestions) {
+      if (q.is_sleep_duration) continue;
+      const raw = (existingWellness as any)[q.key] || 1;
+      const normalized = q.inverted ? (6 - raw) : raw;
+      total += normalized;
+      count++;
+    }
+    return count > 1 ? Math.round((total / count) * 20) : 1;
+  }, [existingWellness, activeQuestions]);
+
   const submitWellness = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("wellness_tracking").insert({
+      const insertData: any = {
         player_id: playerId,
         category_id: categoryId,
         tracking_date: today,
-        sleep_quality: values.sleep_quality,
-        sleep_duration: sleepHoursToScore(values.sleep_duration),
-        general_fatigue: values.general_fatigue,
-        soreness_upper_body: values.soreness_upper_body,
-        soreness_lower_body: values.soreness_lower_body,
-        stress_level: values.stress_level,
         has_specific_pain: hasSpecificPain,
         pain_zone: hasSpecificPain ? painZone : null,
         pain_location: hasSpecificPain ? painLocation : null,
         notes: notes || null,
-      });
+      };
+
+      const customAnswers: Record<string, number> = {};
+
+      for (const q of activeQuestions) {
+        if (q.is_custom) {
+          customAnswers[q.key] = values[q.key];
+        } else if (q.is_sleep_duration) {
+          insertData[q.key] = sleepHoursToScore(values[q.key]);
+        } else {
+          insertData[q.key] = values[q.key];
+        }
+      }
+
+      if (Object.keys(customAnswers).length > 1) {
+        insertData.custom_answers = customAnswers;
+      }
+
+      const { error } = await supabase.from("wellness_tracking").insert(insertData);
       if (error) throw error;
 
       // Insert HRV morning data if provided
@@ -243,14 +212,6 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
 
   // Already filled
   if (existingWellness) {
-    const score = Math.round(
-      ((existingWellness.sleep_quality || 3) +
-        (6 - (existingWellness.general_fatigue || 3)) +
-        (6 - (existingWellness.soreness_lower_body || 3)) +
-        (6 - (existingWellness.soreness_upper_body || 3)) +
-        (6 - (existingWellness.stress_level || 3))) / 5 * 20
-    );
-
     return (
       <>
       <Card className="bg-gradient-card shadow-md">
@@ -266,13 +227,16 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             <CheckCircle2 className="h-5 w-5 text-status-optimal" />
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-4">
-            {WELLNESS_FIELDS.map(f => {
-              const raw = (existingWellness as any)[f.key];
-              const display = f.key === "sleep_duration" ? `${(9.5 - Number(raw)).toFixed(1)}h` : raw;
+            {activeQuestions.map(q => {
+              const raw = (existingWellness as any)[q.key] ?? (existingWellness.custom_answers as any)?.[q.key];
+              let display: string | number = raw ?? "-";
+              if (q.is_sleep_duration && raw) {
+                display = `${(9.5 - Number(raw)).toFixed(1)}h`;
+              }
               return (
-                <div key={f.key} className="text-center p-2 rounded-lg" style={{ backgroundColor: `${NAV_COLORS.sante.base}08` }}>
+                <div key={q.key} className="text-center p-2 rounded-lg" style={{ backgroundColor: `${NAV_COLORS.sante.base}08` }}>
                   <p className="text-lg font-bold" style={{ color: NAV_COLORS.sante.base }}>{display}</p>
-                  <p className="text-[9px] text-muted-foreground leading-tight">{f.label}</p>
+                  <p className="text-[9px] text-muted-foreground leading-tight">{q.label}</p>
                 </div>
               );
             })}
@@ -314,16 +278,17 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
 
       {expanded && (
         <CardContent className="space-y-1.5 pt-0 pb-3 px-2 sm:px-4">
-          {WELLNESS_FIELDS.map(field => {
-            const currentValue = (values as any)[field.key];
+          {activeQuestions.map(q => {
+            const currentValue = values[q.key] ?? 1;
 
-            if ('isNumber' in field && field.isNumber) {
+            // Sleep duration special case
+            if (q.is_sleep_duration) {
               return (
-                <div key={field.key}>
+                <div key={q.key}>
                   <Label className="text-[11px] flex items-center gap-1 mb-1">
-                    <span className="text-xs">{field.emoji}</span>
-                    {field.label}
-                    {currentValue > 0 && (
+                    <span className="text-xs">{q.emoji}</span>
+                    {q.label}
+                    {currentValue > 1 && (
                       <Badge variant="secondary" className="ml-auto text-[10px] font-bold px-1 py-0 leading-tight">
                         {SLEEP_RANGES.find(r => r.value === currentValue)?.label ?? `${currentValue}h`}
                       </Badge>
@@ -336,7 +301,10 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                         <button
                           key={range.label}
                           type="button"
-                          onClick={() => setValues(prev => ({ ...prev, [field.key]: range.value }))}
+                          onClick={() => {
+                            setValues(prev => ({ ...prev, [q.key]: range.value }));
+                            setTouched(prev => new Set(prev).add(q.key));
+                          }}
                           className={cn(
                             "h-9 sm:h-10 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-150",
                             "border active:scale-95",
@@ -352,38 +320,38 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
               );
             }
 
-            const fieldOptions = 'options' in field ? field.options : [];
-
-            const isInverted = 'inverted' in field && field.inverted;
-            const scaleHint = isInverted
-              ? "1 = très bon · 5 = très mauvais"
-              : "1 = très mauvais · 5 = très bon";
+            const scaleHint = q.inverted
+              ? `1 = ${q.scale[0].label} · 5 = ${q.scale[4].label}`
+              : `1 = ${q.scale[0].label} · 5 = ${q.scale[4].label}`;
 
             return (
-              <div key={field.key}>
+              <div key={q.key}>
                 <Label className="text-[11px] flex items-center gap-1 mb-0.5">
-                  <span className="text-xs">{field.emoji}</span>
-                  <span className="flex-1 truncate">{field.label}</span>
-                  {currentValue > 0 && (
+                  <span className="text-xs">{q.emoji}</span>
+                  <span className="flex-1 truncate">{q.label}</span>
+                  {currentValue >= 1 && (
                     <span className="text-[10px] text-muted-foreground truncate max-w-[60%] text-right">
-                      {fieldOptions.find(o => o.value === currentValue)?.label}
+                      {q.scale.find(o => o.value === currentValue)?.label}
                     </span>
                   )}
                 </Label>
                 <p className="text-[9px] text-muted-foreground mb-1 italic">{scaleHint}</p>
                 <div className="grid grid-cols-5 gap-0.5">
-                  {fieldOptions.map(opt => {
+                  {q.scale.map(opt => {
                     const isSelected = currentValue === opt.value;
                     return (
                       <button
                         key={opt.value}
                         type="button"
                         title={opt.label}
-                        onClick={() => setValues(prev => ({ ...prev, [field.key]: opt.value }))}
+                        onClick={() => {
+                          setValues(prev => ({ ...prev, [q.key]: opt.value }));
+                          setTouched(prev => new Set(prev).add(q.key));
+                        }}
                         className={cn(
                           "h-7 sm:h-8 rounded text-xs sm:text-sm font-bold transition-all duration-150",
                           "border active:scale-95",
-                          getWellnessButtonClasses(opt.value, isInverted, isSelected),
+                          getWellnessButtonClasses(opt.value, q.inverted, isSelected),
                         )}
                       >
                         {opt.value}

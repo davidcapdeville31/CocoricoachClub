@@ -18,12 +18,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { HrvInputSection, emptyHrvData, type HrvData } from "./hrv/HrvInputSection";
 import { getWellnessButtonClasses, getSleepScoreButtonClasses } from "@/lib/wellnessColors";
+import { sleepHoursToScore } from "@/lib/sleepConversion";
 import { cn } from "@/lib/utils";
+import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
 
 interface AddWellnessDialogProps {
   open: boolean;
@@ -31,28 +32,39 @@ interface AddWellnessDialogProps {
   categoryId: string;
 }
 
-const scoreLabels = {
-  sleep_quality: ["", "Excellent", "Bon", "Moyen", "Mauvais", "Très mauvais"],
-  sleep_duration: ["", ">8h", "7-8h", "6-7h", "5-6h", "<5h"],
-  general_fatigue: ["", "Très en forme", "En forme", "Normal", "Fatigué", "Épuisé"],
-  stress_level: ["", "Très détendu", "Détendu", "Normal", "Stressé", "Très stressé"],
-  soreness: ["", "Aucune gêne", "Légère gêne", "Gêne modérée", "Douleur", "Douleur limitante"],
-};
+// Plages horaires de sommeil
+const SLEEP_RANGES: { label: string; value: number }[] = [
+  { label: "<6h", value: 5 },
+  { label: "6-7h", value: 6.5 },
+  { label: "7-8h", value: 7.5 },
+  { label: "8-9h", value: 8.5 },
+  { label: "9-10h", value: 9.5 },
+  { label: ">10h", value: 11 },
+];
 
 export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnessDialogProps) {
   const queryClient = useQueryClient();
   const [playerId, setPlayerId] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [sleepQuality, setSleepQuality] = useState(3);
-  const [sleepDuration, setSleepDuration] = useState(3);
-  const [generalFatigue, setGeneralFatigue] = useState(3);
-  const [stressLevel, setStressLevel] = useState(3);
-  const [sorenessUpper, setSorenessUpper] = useState(1);
-  const [sorenessLower, setSorenessLower] = useState(1);
+  const [notes, setNotes] = useState("");
   const [hasSpecificPain, setHasSpecificPain] = useState(false);
   const [painLocation, setPainLocation] = useState("");
-  const [notes, setNotes] = useState("");
   const [hrvData, setHrvData] = useState<HrvData>(emptyHrvData);
+
+  const { data: wellnessQuestions } = useWellnessQuestions(categoryId);
+  const activeQuestions = wellnessQuestions?.filter(q => q.enabled) ?? [];
+
+  // Dynamic state for all wellness values
+  const [values, setValues] = useState<Record<string, number>>({});
+
+  // Reset values when dialog opens or questions change
+  useEffect(() => {
+    const initial: Record<string, number> = {};
+    for (const q of activeQuestions) {
+      initial[q.key] = q.is_sleep_duration ? 7.5 : 3;
+    }
+    setValues(initial);
+  }, [activeQuestions, open]);
 
   const { data: players } = useQuery({
     queryKey: ["players", categoryId],
@@ -86,39 +98,50 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
   const filledPlayerIds = new Set(existingWellness?.map(w => w.player_id) || []);
   const availablePlayers = players?.filter(p => !filledPlayerIds.has(p.id));
 
-  // Reset form values when player changes (except playerId and date)
-  useEffect(() => {
-    if (playerId) {
-      setSleepQuality(3);
-      setSleepDuration(3);
-      setGeneralFatigue(3);
-      setStressLevel(3);
-      setSorenessUpper(1);
-      setSorenessLower(1);
-      setHasSpecificPain(false);
-      setPainLocation("");
-      setNotes("");
-      setHrvData(emptyHrvData);
+  const resetForm = () => {
+    setPlayerId("");
+    setDate(new Date().toISOString().split("T")[0]);
+    setNotes("");
+    setHasSpecificPain(false);
+    setPainLocation("");
+    setHrvData(emptyHrvData);
+    const initial: Record<string, number> = {};
+    for (const q of activeQuestions) {
+      initial[q.key] = q.is_sleep_duration ? 7.5 : 3;
     }
-  }, [playerId]);
+    setValues(initial);
+  };
 
   const addWellness = useMutation({
     mutationFn: async () => {
       const playerName = players?.find(p => p.id === playerId)?.name || "Athlète";
-      const { error } = await supabase.from("wellness_tracking").insert({
+
+      const insertData: any = {
         player_id: playerId,
         category_id: categoryId,
         tracking_date: date,
-        sleep_quality: sleepQuality,
-        sleep_duration: sleepDuration,
-        general_fatigue: generalFatigue,
-        stress_level: stressLevel,
-        soreness_upper_body: sorenessUpper,
-        soreness_lower_body: sorenessLower,
         has_specific_pain: hasSpecificPain,
         pain_location: hasSpecificPain ? painLocation : null,
         notes: notes.trim() || null,
-      });
+      };
+
+      const customAnswers: Record<string, number> = {};
+
+      for (const q of activeQuestions) {
+        if (q.is_custom) {
+          customAnswers[q.key] = values[q.key];
+        } else if (q.is_sleep_duration) {
+          insertData[q.key] = sleepHoursToScore(values[q.key]);
+        } else {
+          insertData[q.key] = values[q.key];
+        }
+      }
+
+      if (Object.keys(customAnswers).length > 1) {
+        insertData.custom_answers = customAnswers;
+      }
+
+      const { error } = await supabase.from("wellness_tracking").insert(insertData);
       if (error) throw error;
 
       // Save HRV data if any provided
@@ -162,21 +185,6 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
     },
   });
 
-  const resetForm = () => {
-    setPlayerId("");
-    setDate(new Date().toISOString().split("T")[0]);
-    setSleepQuality(3);
-    setSleepDuration(3);
-    setGeneralFatigue(3);
-    setStressLevel(3);
-    setSorenessUpper(1);
-    setSorenessLower(1);
-    setHasSpecificPain(false);
-    setPainLocation("");
-    setNotes("");
-    setHrvData(emptyHrvData);
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!playerId) {
@@ -188,39 +196,71 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
 
   const ScoreButton = ({
     label,
+    emoji,
     value,
     onChange,
-    labels,
+    options,
     inverted = true,
-    customColorFn,
+    isSleep = false,
   }: {
     label: string;
+    emoji: string;
     value: number;
     onChange: (v: number) => void;
-    labels: string[];
+    options: { value: number; label: string }[];
     inverted?: boolean;
-    customColorFn?: (score: number, selected: boolean) => string;
+    isSleep?: boolean;
   }) => (
     <div className="space-y-3">
-      <Label>{label}</Label>
-      <div className="flex gap-2 flex-wrap">
-        {[1, 2, 3, 4, 5].map((score) => (
-          <button
-            key={score}
-            type="button"
-            onClick={() => onChange(score)}
-            className={cn(
-              "flex-1 min-w-0 rounded-md border text-xs font-medium py-2 px-1 transition-all",
-              "active:scale-95 whitespace-normal h-auto",
-              customColorFn
-                ? customColorFn(score, value === score)
-                : getWellnessButtonClasses(score, inverted, value === score),
-            )}
-          >
-            <span className="text-center line-clamp-2 block">{labels[score]}</span>
-          </button>
-        ))}
-      </div>
+      <Label className="flex items-center gap-1.5">
+        <span className="text-base">{emoji}</span>
+        {label}
+      </Label>
+      {isSleep ? (
+        <div className="flex gap-2 flex-wrap">
+          {SLEEP_RANGES.map((range) => {
+            const isSelected = value === range.value;
+            return (
+              <button
+                key={range.label}
+                type="button"
+                onClick={() => onChange(range.value)}
+                className={cn(
+                  "flex-1 min-w-0 rounded-md border text-xs font-medium py-2 px-1 transition-all",
+                  "active:scale-95 whitespace-normal h-auto",
+                  getSleepScoreButtonClasses(range.value, isSelected),
+                )}
+              >
+                <span className="text-center line-clamp-2 block">{range.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <>
+          <p className="text-xs text-muted-foreground italic">
+            {inverted
+              ? `1 = ${options[0]?.label ?? ""} · 5 = ${options[4]?.label ?? ""}`
+              : `1 = ${options[0]?.label ?? ""} · 5 = ${options[4]?.label ?? ""}`}
+          </p>
+          <div className="flex gap-2 flex-wrap">
+            {options.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => onChange(opt.value)}
+                className={cn(
+                  "flex-1 min-w-0 rounded-md border text-xs font-medium py-2 px-1 transition-all",
+                  "active:scale-95 whitespace-normal h-auto",
+                  getWellnessButtonClasses(opt.value, inverted, value === opt.value),
+                )}
+              >
+                <span className="text-center line-clamp-2 block">{opt.label}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 
@@ -264,56 +304,33 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
 
           <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
             <h4 className="font-medium">Wellness</h4>
-            
-            <ScoreButton
-              label="Qualité du sommeil"
-              value={sleepQuality}
-              onChange={setSleepQuality}
-              labels={scoreLabels.sleep_quality}
-            />
 
-            <ScoreButton
-              label="Durée du sommeil"
-              value={sleepDuration}
-              onChange={setSleepDuration}
-              labels={scoreLabels.sleep_duration}
-              customColorFn={getSleepScoreButtonClasses}
-            />
-
-            <ScoreButton
-              label="Fatigue générale"
-              value={generalFatigue}
-              onChange={setGeneralFatigue}
-              labels={scoreLabels.general_fatigue}
-            />
-
-            <ScoreButton
-              label="Stress / Charge mentale"
-              value={stressLevel}
-              onChange={setStressLevel}
-              labels={scoreLabels.stress_level}
-            />
-          </div>
-
-          <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
-            <h4 className="font-medium">Soreness (Douleurs musculaires)</h4>
-            <p className="text-xs text-muted-foreground">
-              1 = aucune gêne • 5 = douleur limitante
-            </p>
-
-            <ScoreButton
-              label="Haut du corps"
-              value={sorenessUpper}
-              onChange={setSorenessUpper}
-              labels={scoreLabels.soreness}
-            />
-
-            <ScoreButton
-              label="Bas du corps"
-              value={sorenessLower}
-              onChange={setSorenessLower}
-              labels={scoreLabels.soreness}
-            />
+            {activeQuestions.map(q => {
+              if (q.is_sleep_duration) {
+                return (
+                  <ScoreButton
+                    key={q.key}
+                    label={q.label}
+                    emoji={q.emoji}
+                    value={values[q.key] ?? 7.5}
+                    onChange={(v) => setValues(prev => ({ ...prev, [q.key]: v }))}
+                    options={SLEEP_RANGES.map(r => ({ value: r.value, label: r.label }))}
+                    isSleep
+                  />
+                );
+              }
+              return (
+                <ScoreButton
+                  key={q.key}
+                  label={q.label}
+                  emoji={q.emoji}
+                  value={values[q.key] ?? 3}
+                  onChange={(v) => setValues(prev => ({ ...prev, [q.key]: v }))}
+                  options={q.scale.map(s => ({ value: s.value, label: s.label }))}
+                  inverted={q.inverted}
+                />
+              );
+            })}
           </div>
 
           <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
