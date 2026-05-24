@@ -94,13 +94,11 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
   const [hrvMs, setHrvMs] = useState("");
   const [restingHr, setRestingHr] = useState("");
 
+  const [touched, setTouched] = useState<Set<string>>(new Set());
+
   const allFieldsFilled = useMemo(() => {
-    if (activeQuestions.length === 1) return true;
-    return activeQuestions.every(q => {
-      if (q.is_sleep_duration) return values[q.key] > 0;
-      return values[q.key] >= 1;
-    });
-  }, [activeQuestions, values]);
+    return activeQuestions.every(q => touched.has(q.key));
+  }, [activeQuestions, touched]);
 
   const selectedZoneLocations = PAIN_ZONES.find(z => z.zone === painZone)?.locations || [];
 
