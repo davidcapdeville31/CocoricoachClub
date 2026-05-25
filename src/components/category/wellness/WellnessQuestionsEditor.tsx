@@ -183,6 +183,28 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
               )}
             >
               <div className="flex items-center gap-2 p-3">
+                <div className="flex flex-col gap-0.5">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-5 w-5"
+                    onClick={() => moveQuestion(idx, -1)}
+                    disabled={idx === 0}
+                    title="Monter"
+                  >
+                    <ArrowUp className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-5 w-5"
+                    onClick={() => moveQuestion(idx, 1)}
+                    disabled={idx === questions.length - 1}
+                    title="Descendre"
+                  >
+                    <ArrowDown className="h-3 w-3" />
+                  </Button>
+                </div>
                 <Input
                   className="w-14 text-center text-lg"
                   value={q.emoji}
