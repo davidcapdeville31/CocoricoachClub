@@ -35,7 +35,7 @@ function cloneScale(s: WellnessScaleLevel[]): WellnessScaleLevel[] {
   return s.map((l) => ({ ...l }));
 }
 
-export function WellnessQuestionsEditor({ categoryId }: Props) {
+export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
   const queryClient = useQueryClient();
   const [questions, setQuestions] = useState<WellnessQuestion[]>(DEFAULT_WELLNESS_QUESTIONS);
   const [dirty, setDirty] = useState(false);
