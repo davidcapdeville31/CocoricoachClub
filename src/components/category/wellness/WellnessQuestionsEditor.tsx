@@ -116,6 +116,17 @@ export function WellnessQuestionsEditor({ categoryId, hideHeader }: Props) {
     setDirty(true);
   };
 
+  const moveQuestion = (idx: number, dir: -1 | 1) => {
+    setQuestions((prev) => {
+      const next = [...prev];
+      const target = idx + dir;
+      if (target < 0 || target >= next.length) return prev;
+      [next[idx], next[target]] = [next[target], next[idx]];
+      return next;
+    });
+    setDirty(true);
+  };
+
   const save = useMutation({
     mutationFn: async () => {
       const { error } = await supabase
