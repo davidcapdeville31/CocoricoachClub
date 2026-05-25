@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, AlertTriangle, Calendar, X } from "lucide-react";
+import { Plus, AlertTriangle, Calendar, X, Settings2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { AddWellnessDialog } from "./AddWellnessDialog";
@@ -39,6 +40,7 @@ const getScoreBadgeClass = (score: number) => {
 
 export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
   const [filterFrom, setFilterFrom] = useState<Date | undefined>(new Date());
   const [filterTo, setFilterTo] = useState<Date | undefined>(new Date());
   const [filterPlayerId, setFilterPlayerId] = useState<string>("all");
@@ -136,8 +138,14 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
         )}
 
         <TabsContent value="tracking" className="space-y-4">
-          {!isViewer && <WellnessScheduleConfig categoryId={categoryId} />}
-          {!isViewer && <WellnessQuestionsEditor categoryId={categoryId} />}
+          {!isViewer && (
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setIsCustomizeOpen(true)}>
+                <Settings2 className="h-4 w-4 mr-2" />
+                Personnaliser Wellness
+              </Button>
+            </div>
+          )}
           <Card>
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -369,6 +377,21 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
       onOpenChange={setIsDialogOpen}
       categoryId={categoryId}
     />
+
+    <Dialog open={isCustomizeOpen} onOpenChange={setIsCustomizeOpen}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Personnaliser le Wellness</DialogTitle>
+          <DialogDescription>
+            Gérez la fréquence et les questions du wellness pour cette catégorie. Les modifications sont appliquées uniquement à cette catégorie.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <WellnessScheduleConfig categoryId={categoryId} />
+          <WellnessQuestionsEditor categoryId={categoryId} />
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
   );
 }
