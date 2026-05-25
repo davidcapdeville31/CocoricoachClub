@@ -139,7 +139,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
 
         <TabsContent value="tracking" className="space-y-4">
           {!isViewer && (
-            <div className="flex justify-end">
+            <div className="flex justify-center">
               <Button variant="outline" onClick={() => setIsCustomizeOpen(true)}>
                 <Settings2 className="h-4 w-4 mr-2" />
                 Personnaliser Wellness
