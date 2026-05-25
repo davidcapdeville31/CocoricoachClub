@@ -377,6 +377,21 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
       onOpenChange={setIsDialogOpen}
       categoryId={categoryId}
     />
+
+    <Dialog open={isCustomizeOpen} onOpenChange={setIsCustomizeOpen}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Personnaliser le Wellness</DialogTitle>
+          <DialogDescription>
+            Gérez la fréquence et les questions du wellness pour cette catégorie. Les modifications sont appliquées uniquement à cette catégorie.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <WellnessScheduleConfig categoryId={categoryId} />
+          <WellnessQuestionsEditor categoryId={categoryId} />
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
   );
 }
