@@ -18,6 +18,7 @@ import {
 
 interface Props {
   categoryId: string;
+  hideHeader?: boolean;
 }
 
 const PRESET_COLORS = [
