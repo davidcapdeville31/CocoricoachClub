@@ -51,24 +51,23 @@ export default function AcceptAmbassadorInvitation() {
 
   const checkInvitation = async () => {
     try {
-      const { data, error } = await supabase
-        .from("ambassador_invitations")
-        .select("email, name, status")
-        .eq("token", token)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("get_ambassador_invitation_by_token", {
+        invitation_token: token!,
+      });
 
-      if (error || !data) {
+      const row = Array.isArray(data) ? data[0] : data;
+      if (error || !row) {
         setStatus("invalid");
         return;
       }
 
-      if (data.status === "accepted") {
+      if (row.status === "accepted") {
         setStatus("already_used");
         return;
       }
 
-      setInvitation({ email: data.email, name: data.name });
-      setFormData(prev => ({ ...prev, email: data.email, fullName: data.name || "" }));
+      setInvitation({ email: row.email, name: row.name });
+      setFormData(prev => ({ ...prev, email: row.email, fullName: row.name || "" }));
       setStatus("valid");
     } catch (err) {
       console.error("Error checking invitation:", err);

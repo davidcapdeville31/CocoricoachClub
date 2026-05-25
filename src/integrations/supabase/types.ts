@@ -14479,6 +14479,14 @@ export type Database = {
         Returns: number
       }
       expire_trial_clients: { Args: never; Returns: undefined }
+      get_ambassador_invitation_by_token: {
+        Args: { invitation_token: string }
+        Returns: {
+          email: string
+          name: string
+          status: string
+        }[]
+      }
       get_current_user_consents: {
         Args: { _user_id?: string }
         Returns: {
