@@ -138,8 +138,14 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
         )}
 
         <TabsContent value="tracking" className="space-y-4">
-          {!isViewer && <WellnessScheduleConfig categoryId={categoryId} />}
-          {!isViewer && <WellnessQuestionsEditor categoryId={categoryId} />}
+          {!isViewer && (
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setIsCustomizeOpen(true)}>
+                <Settings2 className="h-4 w-4 mr-2" />
+                Personnaliser Wellness
+              </Button>
+            </div>
+          )}
           <Card>
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
