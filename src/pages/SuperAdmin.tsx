@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/sonner";
-import { Shield, ArrowLeft, LayoutDashboard, Users, Building2, CreditCard, Video, Bell, Settings, FileText, Lock, Clock, Dumbbell, Archive, ClipboardList, CircleDot } from "lucide-react";
+import { Shield, ArrowLeft, LayoutDashboard, Users, Building2, CreditCard, Video, Bell, Settings, FileText, Lock, Clock, Dumbbell, Archive, ClipboardList, CircleDot, Mail } from "lucide-react";
 
 // Import tab components
 import { SuperAdminDashboard } from "@/components/super-admin/SuperAdminDashboard";
@@ -26,6 +26,7 @@ import { SuperAdminExerciseLibrary } from "@/components/super-admin/SuperAdminEx
 import { SuperAdminArchives } from "@/components/super-admin/SuperAdminArchives";
 import { SuperAdminTestBank } from "@/components/super-admin/SuperAdminTestBank";
 import { SuperAdminArsenalBank } from "@/components/super-admin/SuperAdminArsenalBank";
+import { EmailMonitoring } from "@/components/super-admin/EmailMonitoring";
  
  export default function SuperAdmin() {
    const { user, loading: authLoading } = useAuth();
@@ -156,6 +157,10 @@ import { SuperAdminArsenalBank } from "@/components/super-admin/SuperAdminArsena
                     <Shield className="h-4 w-4" />
                     Sécurité &amp; Audit
                   </TabsTrigger>
+                  <TabsTrigger value="emails" className="flex items-center gap-2">
+                    <Mail className="h-4 w-4" />
+                    Emails
+                  </TabsTrigger>
                   <TabsTrigger value="archives" className="flex items-center gap-2">
                     <Archive className="h-4 w-4" />
                     Archives
@@ -222,11 +227,15 @@ import { SuperAdminArsenalBank } from "@/components/super-admin/SuperAdminArsena
                   <SecurityCenter />
                 </TabsContent>
 
-                <TabsContent value="archives">
-                  <SuperAdminArchives />
-                </TabsContent>
-           </Tabs>
-       </div>
-     </div>
-   );
- }
+                 <TabsContent value="emails">
+                   <EmailMonitoring />
+                 </TabsContent>
+
+                 <TabsContent value="archives">
+                   <SuperAdminArchives />
+                 </TabsContent>
+            </Tabs>
+        </div>
+      </div>
+    );
+  }
