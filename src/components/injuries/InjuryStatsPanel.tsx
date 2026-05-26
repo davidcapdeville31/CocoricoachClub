@@ -13,10 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BarChart3, Repeat, ShieldCheck, CalendarIcon, Activity, Thermometer } from "lucide-react";
+import { BarChart3, Repeat, ShieldCheck, CalendarIcon, Activity, Thermometer, Download, FileSpreadsheet } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import ExcelJS from "exceljs";
+import jsPDF from "jspdf";
+import { toast } from "sonner";
+import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, addFooter, downloadWorkbook } from "@/lib/excelExport";
+import { preparePdfWithSettings } from "@/lib/pdfExport";
 
 interface InjuryStatsPanelProps {
   categoryId: string;
