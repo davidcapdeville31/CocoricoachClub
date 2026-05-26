@@ -563,11 +563,11 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     </Badge>
                                   )}
                                   {isCompleted && <CheckCircle2 className="h-4 w-4 text-status-optimal" />}
-                                  {(exercises.length > 0 || ((session as any).notes || "").replace(/<!--[\s\S]*?-->/g, "").trim()) && (isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />)}
+                                  {(exercises.length > 0 || ((session as any).notes || "").replace(/<!--[\s\S]*?-->/g, "").trim() || isBowling || isBasket) && (isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />)}
                                 </div>
                               </div>
                             </button>
-                            {isExpanded && (exercises.length > 0 || (session as any).notes) && (
+                            {(isExpanded && (exercises.length > 0 || (session as any).notes || isBowling || isBasket)) && (
                               <div className="px-3 pb-3 border-t border-border/50 pt-2 space-y-2">
                                 {(() => {
                                   const rawNotes = ((session as any).notes || "").replace(/<!--[\s\S]*?-->/g, "").trim();
@@ -585,6 +585,34 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   <div className="overflow-x-auto -mx-3 px-3">
                                     <GroupedExerciseList exercises={exercises} maxHeight="500px" />
                                   </div>
+                                )}
+                                {isBowling && (
+                                  <Button
+                                    size="sm"
+                                    className="w-full gap-1.5"
+                                    style={{ backgroundColor: TRAINING_COLOR }}
+                                    onClick={() => {
+                                      setSelectedDate(parseISO(session.session_date));
+                                      setIsBowlingTrainingOpen(true);
+                                    }}
+                                  >
+                                    <Plus className="h-3.5 w-3.5" />
+                                    Remplir les données (parties / précision)
+                                  </Button>
+                                )}
+                                {isBasket && (
+                                  <Button
+                                    size="sm"
+                                    className="w-full gap-1.5"
+                                    style={{ backgroundColor: TRAINING_COLOR }}
+                                    onClick={() => {
+                                      setSelectedDate(parseISO(session.session_date));
+                                      setIsBasketTrainingOpen(true);
+                                    }}
+                                  >
+                                    <Plus className="h-3.5 w-3.5" />
+                                    Remplir les données
+                                  </Button>
                                 )}
                               </div>
                             )}
