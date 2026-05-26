@@ -333,37 +333,37 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                         {format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: fr })}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={getScoreBadgeClass(entry.sleep_quality)}>
+                        <Badge variant="outline" style={styleFor(entry.sleep_quality)}>
                           {entry.sleep_quality}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={getScoreBadgeClass(entry.sleep_duration)}>
+                        <Badge variant="outline" style={styleFor(entry.sleep_duration)}>
                           {sleepScoreLabel(entry.sleep_duration)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={getScoreBadgeClass(entry.general_fatigue)}>
+                        <Badge variant="outline" style={styleFor(entry.general_fatigue)}>
                           {entry.general_fatigue}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={getScoreBadgeClass(entry.stress_level)}>
+                        <Badge variant="outline" style={styleFor(entry.stress_level)}>
                           {entry.stress_level}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={getScoreBadgeClass(entry.soreness_upper_body)}>
+                        <Badge variant="outline" style={styleFor(entry.soreness_upper_body)}>
                           {entry.soreness_upper_body}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={getScoreBadgeClass(entry.soreness_lower_body)}>
+                        <Badge variant="outline" style={styleFor(entry.soreness_lower_body)}>
                           {entry.soreness_lower_body}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={getScoreBadgeClass(parseFloat(calculateWellnessScore(entry)))}>
+                        <Badge variant="outline" style={styleFor(parseFloat(calculateWellnessScore(entry)))}>
                           {calculateWellnessScore(entry)}
                         </Badge>
                       </TableCell>
