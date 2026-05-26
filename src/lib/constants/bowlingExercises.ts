@@ -11,7 +11,7 @@
 
 export type BowlingParent = "bowling_technique" | "bowling_tactique" | "bowling_parties";
 
-export type BowlingFieldType = "number" | "select" | "multiselect" | "text" | "ball" | "oil";
+export type BowlingFieldType = "number" | "select" | "multiselect" | "text" | "oil";
 
 export interface BowlingExerciseField {
   key: string;
@@ -36,6 +36,20 @@ export interface BowlingExercise {
   successCriterion: string;
   fields: BowlingExerciseField[];
 }
+
+// ─── Champs communs réutilisables ─────────────────────────────────────────────
+const ballField: BowlingExerciseField = {
+  key: "ball_count",
+  label: "Choix du matériel (boules)",
+  type: "select",
+  options: [
+    { value: "1", label: "1 boule" },
+    { value: "2", label: "2 boules" },
+    { value: "3+", label: "3 boules ou +" },
+    { value: "arsenal", label: "Tout l'arsenal" },
+  ],
+  help: "L'athlète choisira la(les) boule(s) précise(s) depuis son arsenal au moment de la séance",
+};
 
 // ─── Champs communs réutilisables ─────────────────────────────────────────────
 const ballField: BowlingExerciseField = {
