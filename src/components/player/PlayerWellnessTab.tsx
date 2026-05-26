@@ -17,6 +17,7 @@ import {
   getWellnessRiskLevel,
   type WellnessEntry 
 } from "@/lib/wellnessCalculations";
+import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
 
 interface PlayerWellnessTabProps {
   playerId: string;
