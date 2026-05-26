@@ -184,9 +184,25 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
   const themeGroups = useMemo(() => {
     const filterOut = (o: { value: string; label: string }) =>
       !EXCLUDED_THEME_VALUES.has(o.value) && !EXCLUDED_THEME_LABELS.has(o.label);
-    const grouped = getTrainingTypesGrouped(sportType);
     const seen = new Set<string>();
     const groups: { label: string; options: { value: string; label: string }[] }[] = [];
+
+    if (isBowling) {
+      // Bowling: ONLY bowling-specific themes (no generic themes)
+      const bowlingTypes = BOWLING_PARENT_VALUES
+        .map((v) => ({ value: v, label: BOWLING_PARENT_LABELS[v] }))
+        .filter(filterOut)
+        .filter((o) => (seen.has(o.value) ? false : (seen.add(o.value), true)));
+      if (bowlingTypes.length) groups.push({ label: "Bowling", options: bowlingTypes });
+      const customs = customThemes
+        .map((t) => ({ value: t, label: t }))
+        .filter(filterOut)
+        .filter((o) => (seen.has(o.value) ? false : (seen.add(o.value), true)));
+      if (customs.length) groups.push({ label: "Personnalisées", options: customs });
+      return groups;
+    }
+
+    const grouped = getTrainingTypesGrouped(sportType);
     // Sport-specific groups (skip "common" -> we replace with our curated generics)
     grouped
       .filter((g) => g.category.key !== "common")
@@ -207,9 +223,9 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
       .map((t) => ({ value: t, label: t }))
       .filter(filterOut)
       .filter((o) => (seen.has(o.value) ? false : (seen.add(o.value), true)));
-    if (customs.length) groups.push({ label: "Personnalisées", options: customs });
+    if (customs.length) groups.push({ label: "Personnalisées", options: customs));
     return groups;
-  }, [sportType, customThemes]);
+  }, [sportType, customThemes, isBowling]);
 
   const addCustomTheme = () => {
     const v = newCustomTheme.trim();
