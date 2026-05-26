@@ -41,6 +41,16 @@ const getScoreBadgeClass = (score: number) => {
   return "bg-status-critical/15 text-status-critical border-status-critical/30";
 };
 
+/** Build an inline style from a customizable pain scale color (hsl(...) string). */
+const getScaleStyle = (color: string | undefined): React.CSSProperties => {
+  if (!color) return {};
+  return {
+    backgroundColor: `color-mix(in hsl, ${color} 18%, transparent)`,
+    color,
+    borderColor: `color-mix(in hsl, ${color} 45%, transparent)`,
+  };
+};
+
 export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
