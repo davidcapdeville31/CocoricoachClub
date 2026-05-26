@@ -46,12 +46,13 @@ interface FieldSessionDialogProps {
 
 interface BlockDraft {
   id: string;
-  theme: string;          // training_type value (e.g. "bowling_spare", "Collectif")
+  theme: string;          // training_type value (e.g. "bowling_technique", "Collectif")
   themeLabel: string;     // display label
   duration_minutes: number;
   intensity: number;      // Planned RPE 1-10 (chosen by staff for this block)
   notes: string;
   bowling_exercise_type?: string;
+  bowling_dtn_variables?: Record<string, unknown>;
   target_intensity?: string; // faible / moderee / elevee / tres_elevee
   volume?: string;           // court / moyen / long
   contact_charge?: string;   // aucun / faible / modere / eleve
@@ -117,12 +118,15 @@ const saveCustomThemes = (categoryId: string, themes: string[]) => {
   }
 };
 
-const BOWLING_PRECISION_EXERCISES = [
-  { value: "quille_7", label: "Quille 7" },
-  { value: "quille_10", label: "Quille 10" },
-  { value: "spares", label: "Spares (général)" },
-  { value: "poche", label: "Poche" },
-];
+import {
+  BOWLING_PARENT_VALUES,
+  BOWLING_PARENT_LABELS,
+  normalizeBowlingType,
+  encodeBowlingDtnMeta,
+  decodeBowlingDtnMeta,
+  type BowlingParent,
+} from "@/lib/constants/bowlingExercises";
+import { BowlingExerciseVariables } from "@/components/bowling/BowlingExerciseVariables";
 
 const isBowlingSport = (sport?: string) =>
   !!sport && sport.toLowerCase().startsWith("bowling");
@@ -156,10 +160,11 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
       !EXCLUDED_THEME_VALUES.has(o.value) && !EXCLUDED_THEME_LABELS.has(o.label);
 
     if (isBowling) {
-      const sportTypes = getTrainingTypesForSport(sportType);
-      const bowlingTypes = sportTypes
-        .filter((t) => t.value.startsWith("bowling_"))
-        .map((t) => ({ value: t.value, label: t.label }));
+      // Only the 3 DTN parent categories (technique / tactique / parties) — legacy values hidden
+      const bowlingTypes = BOWLING_PARENT_VALUES.map((v) => ({
+        value: v,
+        label: BOWLING_PARENT_LABELS[v],
+      }));
       const generics = GENERIC_THEMES.map((t) => ({ value: t, label: t }));
       const customs = customThemes.map((t) => ({ value: t, label: t }));
       const all = [...bowlingTypes, ...generics, ...customs].filter(filterOut);
@@ -646,25 +651,19 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                       )}
                     </div>
                     )}
-                    {b.theme === "bowling_spare" && (
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">
-                          Exercice précision (les athlètes saisiront boules lancées / réussies)
-                        </Label>
-                        <Select
-                          value={b.bowling_exercise_type || ""}
-                          onValueChange={(v) => updateBlock(b.id, { bowling_exercise_type: v })}
-                        >
-                          <SelectTrigger className="h-9">
-                            <SelectValue placeholder="Sélectionner l'exercice..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {BOWLING_PRECISION_EXERCISES.map((ex) => (
-                              <SelectItem key={ex.value} value={ex.value}>{ex.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    {(BOWLING_PARENT_VALUES as readonly string[]).includes(b.theme) && (
+                      <BowlingExerciseVariables
+                        parent={b.theme as BowlingParent}
+                        exerciseId={b.bowling_exercise_type || null}
+                        variables={b.bowling_dtn_variables || {}}
+                        categoryId={categoryId}
+                        onExerciseChange={(id) =>
+                          updateBlock(b.id, { bowling_exercise_type: id || undefined })
+                        }
+                        onVariablesChange={(v) =>
+                          updateBlock(b.id, { bowling_dtn_variables: v })
+                        }
+                      />
                     )}
                     {/* Saisie inline des feuilles de score / précision (en mode édition uniquement) */}
                     {isEdit && (b.theme === "bowling_game" || b.theme === "bowling_spare") && (
