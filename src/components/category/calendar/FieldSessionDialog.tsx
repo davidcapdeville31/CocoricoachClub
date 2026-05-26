@@ -650,25 +650,19 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                       )}
                     </div>
                     )}
-                    {b.theme === "bowling_spare" && (
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">
-                          Exercice précision (les athlètes saisiront boules lancées / réussies)
-                        </Label>
-                        <Select
-                          value={b.bowling_exercise_type || ""}
-                          onValueChange={(v) => updateBlock(b.id, { bowling_exercise_type: v })}
-                        >
-                          <SelectTrigger className="h-9">
-                            <SelectValue placeholder="Sélectionner l'exercice..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {BOWLING_PRECISION_EXERCISES.map((ex) => (
-                              <SelectItem key={ex.value} value={ex.value}>{ex.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    {(BOWLING_PARENT_VALUES as readonly string[]).includes(b.theme) && (
+                      <BowlingExerciseVariables
+                        parent={b.theme as BowlingParent}
+                        exerciseId={b.bowling_exercise_type || null}
+                        variables={b.bowling_dtn_variables || {}}
+                        categoryId={categoryId}
+                        onExerciseChange={(id) =>
+                          updateBlock(b.id, { bowling_exercise_type: id || undefined })
+                        }
+                        onVariablesChange={(v) =>
+                          updateBlock(b.id, { bowling_dtn_variables: v })
+                        }
+                      />
                     )}
                     {/* Saisie inline des feuilles de score / précision (en mode édition uniquement) */}
                     {isEdit && (b.theme === "bowling_game" || b.theme === "bowling_spare") && (
