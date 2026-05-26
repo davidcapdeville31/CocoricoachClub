@@ -110,19 +110,17 @@ export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) 
 
       if (latestWellness) {
         // Calculate WEIGHTED wellness score
-        wellnessScore = calculateWeightedWellnessScore(latestWellness as WellnessEntry);
+        wellnessScore = calculateWeightedWellnessScore(latestWellness as WellnessEntry, questionsConfig);
         
         hasSpecificPain = latestWellness.has_specific_pain;
         painLocation = latestWellness.pain_location;
         
-        // Get risk level using weighted score
         wellnessRisk = getWellnessRiskLevel(wellnessScore, hasSpecificPain) === "critical" 
           ? "high" 
           : getWellnessRiskLevel(wellnessScore, hasSpecificPain) as "low" | "medium" | "high";
 
-        // Detect trend if we have multiple entries
         if (playerWellnessEntries.length >= 2) {
-          const trendResult = detectWellnessTrend(playerWellnessEntries as WellnessEntry[]);
+          const trendResult = detectWellnessTrend(playerWellnessEntries as WellnessEntry[], questionsConfig);
           trend = trendResult.trend;
         }
 
