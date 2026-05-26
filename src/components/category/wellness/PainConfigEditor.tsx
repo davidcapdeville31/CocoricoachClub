@@ -218,6 +218,23 @@ export function PainConfigEditor({ categoryId }: Props) {
             Ajouter une nature
           </Button>
         </div>
+
+        {/* Live preview */}
+        <div className="pt-4 border-t">
+          <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+            <Eye className="h-3.5 w-3.5" /> Aperçu interactif (vue athlète)
+          </Label>
+          <div className="rounded-xl border bg-muted/20 p-3">
+            <BodyPainSelector
+              value={previewValue}
+              onChange={setPreviewValue}
+              categoryId={categoryId}
+            />
+          </div>
+          <p className="text-[11px] text-muted-foreground italic mt-2">
+            Cliquez sur une zone du corps pour tester le rendu avec votre barème personnalisé. Enregistrez pour appliquer.
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
