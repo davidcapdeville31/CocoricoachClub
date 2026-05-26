@@ -253,7 +253,7 @@ function BodyDots({
               "hover:scale-125 hover:z-10",
               isSelected
                 ? "h-5 w-5 ring-2 ring-foreground shadow-lg z-20"
-                : "h-3 w-3 border-foreground/30 bg-background/60",
+                : "h-3 w-3 border-white/80 bg-white/70 shadow-sm hover:bg-white",
             )}
             style={{
               left: `${r.cx}%`,
