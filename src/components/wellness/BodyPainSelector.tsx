@@ -26,55 +26,68 @@ export type BodyRegion = {
 // Coordinates calibrated against a 200x500 stylised silhouette displayed at 50% width each side.
 const REGIONS: BodyRegion[] = [
   // ===== FRONT =====
-  { id: "head_front", label: "Tête", zone: "Tête", side: "front", cx: 50, cy: 7 },
-  { id: "neck_front", label: "Nuque / Cervicales", zone: "Haut du corps", side: "front", cx: 50, cy: 14 },
-  { id: "shoulder_l", label: "Épaule gauche", zone: "Haut du corps", side: "front", cx: 32, cy: 19 },
-  { id: "shoulder_r", label: "Épaule droite", zone: "Haut du corps", side: "front", cx: 68, cy: 19 },
-  { id: "pec_l", label: "Pectoral gauche", zone: "Haut du corps", side: "front", cx: 41, cy: 24 },
-  { id: "pec_r", label: "Pectoral droit", zone: "Haut du corps", side: "front", cx: 59, cy: 24 },
-  { id: "biceps_l", label: "Bras gauche (biceps)", zone: "Haut du corps", side: "front", cx: 26, cy: 28 },
-  { id: "biceps_r", label: "Bras droit (biceps)", zone: "Haut du corps", side: "front", cx: 74, cy: 28 },
-  { id: "abs", label: "Abdominaux", zone: "Abdomen", side: "front", cx: 50, cy: 33 },
-  { id: "elbow_l_f", label: "Coude gauche", zone: "Haut du corps", side: "front", cx: 23, cy: 36 },
-  { id: "elbow_r_f", label: "Coude droit", zone: "Haut du corps", side: "front", cx: 77, cy: 36 },
-  { id: "forearm_l", label: "Avant-bras gauche", zone: "Haut du corps", side: "front", cx: 20, cy: 42 },
-  { id: "forearm_r", label: "Avant-bras droit", zone: "Haut du corps", side: "front", cx: 80, cy: 42 },
-  { id: "wrist_l_f", label: "Poignet gauche", zone: "Haut du corps", side: "front", cx: 17, cy: 48 },
-  { id: "wrist_r_f", label: "Poignet droit", zone: "Haut du corps", side: "front", cx: 83, cy: 48 },
-  { id: "hip_l", label: "Hanche gauche", zone: "Bas du corps", side: "front", cx: 42, cy: 46 },
-  { id: "hip_r", label: "Hanche droite", zone: "Bas du corps", side: "front", cx: 58, cy: 46 },
-  { id: "adductor_l", label: "Adducteur gauche", zone: "Bas du corps", side: "front", cx: 46, cy: 52 },
-  { id: "adductor_r", label: "Adducteur droit", zone: "Bas du corps", side: "front", cx: 54, cy: 52 },
-  { id: "quad_l", label: "Cuisse gauche (quadriceps)", zone: "Bas du corps", side: "front", cx: 40, cy: 58 },
-  { id: "quad_r", label: "Cuisse droite (quadriceps)", zone: "Bas du corps", side: "front", cx: 60, cy: 58 },
-  { id: "knee_l", label: "Genou gauche", zone: "Bas du corps", side: "front", cx: 41, cy: 70 },
-  { id: "knee_r", label: "Genou droit", zone: "Bas du corps", side: "front", cx: 59, cy: 70 },
-  { id: "tibia_l", label: "Tibia gauche", zone: "Bas du corps", side: "front", cx: 41, cy: 80 },
-  { id: "tibia_r", label: "Tibia droit", zone: "Bas du corps", side: "front", cx: 59, cy: 80 },
-  { id: "ankle_l_f", label: "Cheville gauche", zone: "Bas du corps", side: "front", cx: 41, cy: 92 },
-  { id: "ankle_r_f", label: "Cheville droite", zone: "Bas du corps", side: "front", cx: 59, cy: 92 },
+  { id: "head_front", label: "Tête", zone: "Tête", side: "front", cx: 50, cy: 9 },
+  { id: "neck_front", label: "Nuque / Cervicales", zone: "Haut du corps", side: "front", cx: 50, cy: 17 },
+  { id: "shoulder_l", label: "Épaule gauche", zone: "Haut du corps", side: "front", cx: 36, cy: 21 },
+  { id: "shoulder_r", label: "Épaule droite", zone: "Haut du corps", side: "front", cx: 64, cy: 21 },
+  { id: "pec_l", label: "Pectoral gauche", zone: "Haut du corps", side: "front", cx: 43, cy: 26 },
+  { id: "pec_r", label: "Pectoral droit", zone: "Haut du corps", side: "front", cx: 57, cy: 26 },
+  { id: "biceps_l", label: "Bras gauche (biceps)", zone: "Haut du corps", side: "front", cx: 30, cy: 30 },
+  { id: "biceps_r", label: "Bras droit (biceps)", zone: "Haut du corps", side: "front", cx: 70, cy: 30 },
+  { id: "abs", label: "Abdominaux", zone: "Abdomen", side: "front", cx: 50, cy: 35 },
+  { id: "oblique_l", label: "Oblique gauche", zone: "Abdomen", side: "front", cx: 44, cy: 38 },
+  { id: "oblique_r", label: "Oblique droit", zone: "Abdomen", side: "front", cx: 56, cy: 38 },
+  { id: "elbow_l_f", label: "Coude gauche", zone: "Haut du corps", side: "front", cx: 27, cy: 38 },
+  { id: "elbow_r_f", label: "Coude droit", zone: "Haut du corps", side: "front", cx: 73, cy: 38 },
+  { id: "forearm_l", label: "Avant-bras gauche", zone: "Haut du corps", side: "front", cx: 25, cy: 44 },
+  { id: "forearm_r", label: "Avant-bras droit", zone: "Haut du corps", side: "front", cx: 75, cy: 44 },
+  { id: "wrist_l_f", label: "Poignet gauche", zone: "Haut du corps", side: "front", cx: 23, cy: 50 },
+  { id: "wrist_r_f", label: "Poignet droit", zone: "Haut du corps", side: "front", cx: 77, cy: 50 },
+  { id: "hand_l_f", label: "Main gauche", zone: "Haut du corps", side: "front", cx: 21, cy: 55 },
+  { id: "hand_r_f", label: "Main droite", zone: "Haut du corps", side: "front", cx: 79, cy: 55 },
+  { id: "hip_l", label: "Hanche gauche", zone: "Bas du corps", side: "front", cx: 43, cy: 46 },
+  { id: "hip_r", label: "Hanche droite", zone: "Bas du corps", side: "front", cx: 57, cy: 46 },
+  { id: "adductor_l", label: "Adducteur gauche", zone: "Bas du corps", side: "front", cx: 47, cy: 53 },
+  { id: "adductor_r", label: "Adducteur droit", zone: "Bas du corps", side: "front", cx: 53, cy: 53 },
+  { id: "quad_l", label: "Cuisse gauche (quadriceps)", zone: "Bas du corps", side: "front", cx: 42, cy: 60 },
+  { id: "quad_r", label: "Cuisse droite (quadriceps)", zone: "Bas du corps", side: "front", cx: 58, cy: 60 },
+  { id: "knee_l", label: "Genou gauche", zone: "Bas du corps", side: "front", cx: 43, cy: 70 },
+  { id: "knee_r", label: "Genou droit", zone: "Bas du corps", side: "front", cx: 57, cy: 70 },
+  { id: "tibia_l", label: "Tibia gauche", zone: "Bas du corps", side: "front", cx: 44, cy: 79 },
+  { id: "tibia_r", label: "Tibia droit", zone: "Bas du corps", side: "front", cx: 56, cy: 79 },
+  { id: "ankle_l_f", label: "Cheville gauche", zone: "Bas du corps", side: "front", cx: 45, cy: 87 },
+  { id: "ankle_r_f", label: "Cheville droite", zone: "Bas du corps", side: "front", cx: 55, cy: 87 },
+  { id: "foot_l_f", label: "Pied gauche", zone: "Bas du corps", side: "front", cx: 45, cy: 92 },
+  { id: "foot_r_f", label: "Pied droit", zone: "Bas du corps", side: "front", cx: 55, cy: 92 },
 
   // ===== BACK =====
-  { id: "head_back", label: "Tête (arrière)", zone: "Tête", side: "back", cx: 50, cy: 7 },
-  { id: "trapez", label: "Trapèzes / Nuque", zone: "Haut du corps", side: "back", cx: 50, cy: 15 },
-  { id: "upper_back", label: "Dos (haut)", zone: "Haut du corps", side: "back", cx: 50, cy: 24 },
-  { id: "shoulder_lb", label: "Épaule gauche", zone: "Haut du corps", side: "back", cx: 32, cy: 19 },
-  { id: "shoulder_rb", label: "Épaule droite", zone: "Haut du corps", side: "back", cx: 68, cy: 19 },
-  { id: "triceps_l", label: "Bras gauche (triceps)", zone: "Haut du corps", side: "back", cx: 26, cy: 28 },
-  { id: "triceps_r", label: "Bras droit (triceps)", zone: "Haut du corps", side: "back", cx: 74, cy: 28 },
-  { id: "lumbar", label: "Dos (bas) / Lombaires", zone: "Bas du corps", side: "back", cx: 50, cy: 38 },
-  { id: "elbow_l_b", label: "Coude gauche", zone: "Haut du corps", side: "back", cx: 23, cy: 36 },
-  { id: "elbow_r_b", label: "Coude droit", zone: "Haut du corps", side: "back", cx: 77, cy: 36 },
-  { id: "glute_l", label: "Fessier gauche", zone: "Bas du corps", side: "back", cx: 43, cy: 47 },
-  { id: "glute_r", label: "Fessier droit", zone: "Bas du corps", side: "back", cx: 57, cy: 47 },
-  { id: "hamstring_l", label: "Ischio-jambier gauche", zone: "Bas du corps", side: "back", cx: 41, cy: 58 },
-  { id: "hamstring_r", label: "Ischio-jambier droit", zone: "Bas du corps", side: "back", cx: 59, cy: 58 },
-  { id: "knee_l_b", label: "Genou gauche (creux poplité)", zone: "Bas du corps", side: "back", cx: 41, cy: 70 },
-  { id: "knee_r_b", label: "Genou droit (creux poplité)", zone: "Bas du corps", side: "back", cx: 59, cy: 70 },
-  { id: "calf_l", label: "Mollet gauche", zone: "Bas du corps", side: "back", cx: 41, cy: 80 },
-  { id: "calf_r", label: "Mollet droit", zone: "Bas du corps", side: "back", cx: 59, cy: 80 },
-  { id: "achille_l", label: "Tendon d'Achille gauche", zone: "Bas du corps", side: "back", cx: 41, cy: 90 },
-  { id: "achille_r", label: "Tendon d'Achille droit", zone: "Bas du corps", side: "back", cx: 59, cy: 90 },
+  { id: "head_back", label: "Tête (arrière)", zone: "Tête", side: "back", cx: 50, cy: 9 },
+  { id: "nuque_back", label: "Nuque", zone: "Haut du corps", side: "back", cx: 50, cy: 16 },
+  { id: "trapez", label: "Trapèzes", zone: "Haut du corps", side: "back", cx: 50, cy: 21 },
+  { id: "shoulder_lb", label: "Épaule gauche", zone: "Haut du corps", side: "back", cx: 36, cy: 22 },
+  { id: "shoulder_rb", label: "Épaule droite", zone: "Haut du corps", side: "back", cx: 64, cy: 22 },
+  { id: "upper_back", label: "Dos (haut) / Dorsaux", zone: "Haut du corps", side: "back", cx: 50, cy: 28 },
+  { id: "triceps_l", label: "Bras gauche (triceps)", zone: "Haut du corps", side: "back", cx: 30, cy: 30 },
+  { id: "triceps_r", label: "Bras droit (triceps)", zone: "Haut du corps", side: "back", cx: 70, cy: 30 },
+  { id: "elbow_l_b", label: "Coude gauche", zone: "Haut du corps", side: "back", cx: 27, cy: 38 },
+  { id: "elbow_r_b", label: "Coude droit", zone: "Haut du corps", side: "back", cx: 73, cy: 38 },
+  { id: "forearm_l_b", label: "Avant-bras gauche", zone: "Haut du corps", side: "back", cx: 25, cy: 44 },
+  { id: "forearm_r_b", label: "Avant-bras droit", zone: "Haut du corps", side: "back", cx: 75, cy: 44 },
+  { id: "hand_l_b", label: "Main gauche", zone: "Haut du corps", side: "back", cx: 21, cy: 55 },
+  { id: "hand_r_b", label: "Main droite", zone: "Haut du corps", side: "back", cx: 79, cy: 55 },
+  { id: "lumbar", label: "Dos (bas) / Lombaires", zone: "Bas du corps", side: "back", cx: 50, cy: 44 },
+  { id: "glute_l", label: "Fessier gauche", zone: "Bas du corps", side: "back", cx: 44, cy: 51 },
+  { id: "glute_r", label: "Fessier droit", zone: "Bas du corps", side: "back", cx: 56, cy: 51 },
+  { id: "hamstring_l", label: "Ischio-jambier gauche", zone: "Bas du corps", side: "back", cx: 43, cy: 60 },
+  { id: "hamstring_r", label: "Ischio-jambier droit", zone: "Bas du corps", side: "back", cx: 57, cy: 60 },
+  { id: "knee_l_b", label: "Creux poplité gauche", zone: "Bas du corps", side: "back", cx: 43, cy: 70 },
+  { id: "knee_r_b", label: "Creux poplité droit", zone: "Bas du corps", side: "back", cx: 57, cy: 70 },
+  { id: "calf_l", label: "Mollet gauche", zone: "Bas du corps", side: "back", cx: 44, cy: 78 },
+  { id: "calf_r", label: "Mollet droit", zone: "Bas du corps", side: "back", cx: 56, cy: 78 },
+  { id: "achille_l", label: "Tendon d'Achille gauche", zone: "Bas du corps", side: "back", cx: 45, cy: 87 },
+  { id: "achille_r", label: "Tendon d'Achille droit", zone: "Bas du corps", side: "back", cx: 55, cy: 87 },
+  { id: "heel_l", label: "Talon gauche", zone: "Bas du corps", side: "back", cx: 45, cy: 92 },
+  { id: "heel_r", label: "Talon droit", zone: "Bas du corps", side: "back", cx: 55, cy: 92 },
 ];
 
 export interface BodyPainValue {
@@ -197,12 +210,12 @@ export function BodyPainSelector({ value, onChange, categoryId, compact }: Props
   return (
     <div className={cn("space-y-3", compact && "space-y-2")}>
       {/* Body diagrams */}
-      <div className="grid grid-cols-2 gap-0 bg-gradient-to-b from-surface-sunken/60 to-surface-sunken/20 rounded-2xl border p-3 shadow-inner">
-        <div className="relative aspect-[3/5] mx-auto w-full max-w-[320px] overflow-hidden">
+      <div className="grid grid-cols-2 gap-0 bg-gradient-to-b from-surface-sunken/60 to-surface-sunken/20 rounded-2xl border p-2 shadow-inner">
+        <div className="relative aspect-[3/5] mx-auto w-full max-w-[320px]">
           <div className="absolute top-1 left-1 z-10 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Face
           </div>
-          <div className="absolute inset-0 scale-[1.65] origin-center">
+          <div className="absolute inset-0 scale-[1.35] origin-center">
             <BodySilhouette side="front" />
             <BodyDots
               regions={REGIONS.filter((r) => r.side === "front")}
@@ -213,11 +226,11 @@ export function BodyPainSelector({ value, onChange, categoryId, compact }: Props
             />
           </div>
         </div>
-        <div className="relative aspect-[3/5] mx-auto w-full max-w-[320px] overflow-hidden">
+        <div className="relative aspect-[3/5] mx-auto w-full max-w-[320px]">
           <div className="absolute top-1 left-1 z-10 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Dos
           </div>
-          <div className="absolute inset-0 scale-[1.65] origin-center">
+          <div className="absolute inset-0 scale-[1.35] origin-center">
             <BodySilhouette side="back" />
             <BodyDots
               regions={REGIONS.filter((r) => r.side === "back")}
