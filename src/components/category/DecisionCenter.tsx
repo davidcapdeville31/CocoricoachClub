@@ -45,6 +45,7 @@ import {
   getWellnessRiskLevel,
   type WellnessEntry 
 } from "@/lib/wellnessCalculations";
+import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
 import { calculateEWMASeries, transformToDailyLoadData } from "@/lib/trainingLoadCalculations";
 import { SessionFormDialog } from "./sessions/SessionFormDialog";
 import { EditAdminEventDialog, ADMIN_EVENT_TYPES } from "./calendar/EditAdminEventDialog";
