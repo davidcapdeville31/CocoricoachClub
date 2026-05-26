@@ -39,6 +39,7 @@ import {
   getWellnessRiskLevel,
   type WellnessEntry 
 } from "@/lib/wellnessCalculations";
+import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
 import { cn } from "@/lib/utils";
 import { useFieldMode } from "@/contexts/FieldModeContext";
 import { AddWellnessDialog } from "./AddWellnessDialog";
