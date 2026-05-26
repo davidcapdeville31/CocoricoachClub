@@ -39,6 +39,7 @@ import {
   getWellnessRiskLevel,
   type WellnessEntry 
 } from "@/lib/wellnessCalculations";
+import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
 import { cn } from "@/lib/utils";
 import { useFieldMode } from "@/contexts/FieldModeContext";
 import { AddWellnessDialog } from "./AddWellnessDialog";
@@ -65,6 +66,7 @@ interface AtRiskPlayer {
 
 export function DailySessionView({ categoryId, categoryName = "Catégorie" }: DailySessionViewProps) {
   const { fieldMode, setFieldMode } = useFieldMode();
+  const { data: wellnessQuestionsCfg } = useWellnessQuestions(categoryId);
   const queryClient = useQueryClient();
   const [showOnlyAtRisk, setShowOnlyAtRisk] = useState(false);
   const [wellnessDialogOpen, setWellnessDialogOpen] = useState(false);
@@ -265,7 +267,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
       let trend: string | null = null;
 
       if (latestWellness) {
-        wellnessScore = calculateWeightedWellnessScore(latestWellness as WellnessEntry);
+        wellnessScore = calculateWeightedWellnessScore(latestWellness as WellnessEntry, wellnessQuestionsCfg);
         const wellnessRisk = getWellnessRiskLevel(wellnessScore, latestWellness.has_specific_pain);
 
         if (latestWellness.has_specific_pain) {
@@ -283,7 +285,7 @@ export function DailySessionView({ categoryId, categoryName = "Catégorie" }: Da
 
         // Trend
         if (playerWellnessEntries.length >= 2) {
-          const trendResult = detectWellnessTrend(playerWellnessEntries as WellnessEntry[]);
+          const trendResult = detectWellnessTrend(playerWellnessEntries as WellnessEntry[], wellnessQuestionsCfg);
           trend = trendResult.trend;
           if (trendResult.trend === "rapid_decline") {
             factors.push("⚠️ Chute rapide");

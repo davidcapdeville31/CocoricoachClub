@@ -1,5 +1,12 @@
 // Weighted Wellness Score Calculation
 // Fatigue and pain indicators are weighted more heavily as they are stronger predictors of injury risk
+//
+// IMPORTANT: All internal computations use a normalised "concern" scale where
+// 1 = best / no concern  →  5 = worst / high concern.
+// Standard wellness questions can be positive (sleep) or negative (fatigue, stress, soreness);
+// we automatically invert positive ones so the final score is always comparable.
+
+import type { WellnessQuestion } from "@/lib/wellness/questionConfig";
 
 export interface WellnessEntry {
   sleep_quality: number;
@@ -10,33 +17,94 @@ export interface WellnessEntry {
   soreness_lower_body: number;
   has_specific_pain?: boolean;
   pain_location?: string | null;
+  // Optional custom questions stored as { custom_xxx: 1..5 }
+  custom_answers?: Record<string, number>;
 }
 
 // Weights for wellness components (total = 1.0)
 const WELLNESS_WEIGHTS = {
-  sleep_quality: 0.12,      // 12%
-  sleep_duration: 0.12,     // 12%
-  general_fatigue: 0.22,    // 22% - High weight: fatigue is key injury predictor
-  stress_level: 0.14,       // 14%
-  soreness_upper_body: 0.18, // 18% - Moderate weight: pain indicates risk
-  soreness_lower_body: 0.22, // 22% - High weight: lower body injuries most common in rugby
+  sleep_quality: 0.12,
+  sleep_duration: 0.12,
+  general_fatigue: 0.22,
+  stress_level: 0.14,
+  soreness_upper_body: 0.18,
+  soreness_lower_body: 0.22,
 };
 
-/**
- * Calculate weighted wellness score (1-5 scale)
- * Lower score = better wellness
- * Higher score = more concerning
- */
-export function calculateWeightedWellnessScore(entry: WellnessEntry): number {
-  const weightedSum = 
-    entry.sleep_quality * WELLNESS_WEIGHTS.sleep_quality +
-    entry.sleep_duration * WELLNESS_WEIGHTS.sleep_duration +
-    entry.general_fatigue * WELLNESS_WEIGHTS.general_fatigue +
-    entry.stress_level * WELLNESS_WEIGHTS.stress_level +
-    entry.soreness_upper_body * WELLNESS_WEIGHTS.soreness_upper_body +
-    entry.soreness_lower_body * WELLNESS_WEIGHTS.soreness_lower_body;
+// Default inversion semantics for STANDARD keys when no custom config is provided.
+// true  = stored value already means "higher = worse" (no transform needed)
+// false = stored value means "higher = better" → we invert via (6 - v)
+const STANDARD_INVERTED: Record<keyof typeof WELLNESS_WEIGHTS, boolean> = {
+  sleep_quality: false,
+  sleep_duration: false,
+  general_fatigue: true,
+  stress_level: true,
+  soreness_upper_body: true,
+  soreness_lower_body: true,
+};
 
-  return Math.round(weightedSum * 100) / 100;
+/** Convert any 1..5 answer to a 1..5 "concern" value (5 = worst). */
+function toConcern(value: number, inverted: boolean): number {
+  if (!Number.isFinite(value)) return 0;
+  const clamped = Math.max(1, Math.min(5, value));
+  return inverted ? clamped : 6 - clamped;
+}
+
+/**
+ * Build a per-key inversion map. If a customised questions config is provided,
+ * it overrides the defaults (so admins customising a scale automatically
+ * propagates to workload/health risk calculations).
+ */
+function buildInversionMap(questions?: WellnessQuestion[] | null) {
+  const map: Record<string, boolean> = { ...STANDARD_INVERTED };
+  if (questions && questions.length > 0) {
+    for (const q of questions) {
+      map[q.key] = !!q.inverted;
+    }
+  }
+  return map;
+}
+
+/**
+ * Calculate weighted wellness score (1-5 scale).
+ * Always returns "higher = more concerning", regardless of how the underlying
+ * questions are oriented in the category's customised configuration.
+ *
+ * @param entry  raw wellness entry as stored in DB
+ * @param questions optional category-specific question config (from useWellnessQuestions)
+ */
+export function calculateWeightedWellnessScore(
+  entry: WellnessEntry,
+  questions?: WellnessQuestion[] | null,
+): number {
+  const inv = buildInversionMap(questions);
+
+  // Standard, weighted components
+  const weightedSum =
+    toConcern(entry.sleep_quality, inv.sleep_quality) * WELLNESS_WEIGHTS.sleep_quality +
+    toConcern(entry.sleep_duration, inv.sleep_duration) * WELLNESS_WEIGHTS.sleep_duration +
+    toConcern(entry.general_fatigue, inv.general_fatigue) * WELLNESS_WEIGHTS.general_fatigue +
+    toConcern(entry.stress_level, inv.stress_level) * WELLNESS_WEIGHTS.stress_level +
+    toConcern(entry.soreness_upper_body, inv.soreness_upper_body) * WELLNESS_WEIGHTS.soreness_upper_body +
+    toConcern(entry.soreness_lower_body, inv.soreness_lower_body) * WELLNESS_WEIGHTS.soreness_lower_body;
+
+  // Custom enabled questions: distributed equally, capped at +0.20 total impact
+  // so they refine the score without overwhelming the standard injury predictors.
+  let customAdjustment = 0;
+  if (questions && entry.custom_answers) {
+    const customQs = questions.filter((q) => q.is_custom && q.enabled);
+    if (customQs.length > 0) {
+      const perQ = 0.2 / customQs.length;
+      for (const q of customQs) {
+        const raw = entry.custom_answers[q.key];
+        if (typeof raw === "number") {
+          customAdjustment += (toConcern(raw, !!q.inverted) - 3) * perQ * 0.5;
+        }
+      }
+    }
+  }
+
+  return Math.round((weightedSum + customAdjustment) * 100) / 100;
 }
 
 /**
@@ -51,9 +119,11 @@ export function getWellnessRiskLevel(score: number, hasSpecificPain: boolean): "
 
 /**
  * Detect wellness trend over multiple days
- * Returns: "improving" | "stable" | "declining" | "rapid_decline"
  */
-export function detectWellnessTrend(entries: WellnessEntry[]): {
+export function detectWellnessTrend(
+  entries: WellnessEntry[],
+  questions?: WellnessQuestion[] | null,
+): {
   trend: "improving" | "stable" | "declining" | "rapid_decline";
   change: number;
   daysAnalyzed: number;
@@ -62,40 +132,28 @@ export function detectWellnessTrend(entries: WellnessEntry[]): {
     return { trend: "stable", change: 0, daysAnalyzed: entries.length };
   }
 
-  // Take last 7 days max
   const recentEntries = entries.slice(0, Math.min(7, entries.length));
-  
-  // Calculate scores for each day (oldest to newest for trend analysis)
-  const scores = recentEntries.map(calculateWeightedWellnessScore).reverse();
-  
+  const scores = recentEntries.map((e) => calculateWeightedWellnessScore(e, questions)).reverse();
+
   if (scores.length < 2) {
     return { trend: "stable", change: 0, daysAnalyzed: scores.length };
   }
 
-  // Calculate average change per day
   let totalChange = 0;
   for (let i = 1; i < scores.length; i++) {
     totalChange += scores[i] - scores[i - 1];
   }
   const avgChange = totalChange / (scores.length - 1);
 
-  // Determine trend based on average daily change
   let trend: "improving" | "stable" | "declining" | "rapid_decline" = "stable";
-  
-  if (avgChange <= -0.3) {
-    trend = "improving"; // Score decreasing = wellness improving
-  } else if (avgChange >= 0.5) {
-    trend = "rapid_decline"; // Score increasing rapidly = wellness declining fast
-  } else if (avgChange >= 0.2) {
-    trend = "declining"; // Score increasing = wellness declining
-  }
+  if (avgChange <= -0.3) trend = "improving";
+  else if (avgChange >= 0.5) trend = "rapid_decline";
+  else if (avgChange >= 0.2) trend = "declining";
 
-  // Check for consistent decline over 3+ days
   const recentScores = scores.slice(-3);
-  const isConsistentlyDeclining = recentScores.every((score, i) => 
-    i === 0 || score >= recentScores[i - 1]
+  const isConsistentlyDeclining = recentScores.every(
+    (score, i) => i === 0 || score >= recentScores[i - 1],
   );
-  
   if (isConsistentlyDeclining && avgChange > 0.1) {
     trend = avgChange >= 0.3 ? "rapid_decline" : "declining";
   }
@@ -114,20 +172,18 @@ export function generateWellnessAlert(
   currentScore: number,
   hasSpecificPain: boolean,
   trend: "improving" | "stable" | "declining" | "rapid_decline",
-  awcr: number | null
+  awcr: number | null,
 ): {
   type: "info" | "warning" | "critical";
   message: string;
   recommendations: string[];
 } | null {
   const recommendations: string[] = [];
-  
-  // Critical: specific pain + high score or rapid decline
+
   if (hasSpecificPain && (currentScore >= 3.5 || trend === "rapid_decline")) {
     recommendations.push("Consultation médicale recommandée");
     recommendations.push("Repos actif ou repos complet selon douleur");
     recommendations.push("Éviter les impacts et charges lourdes");
-    
     return {
       type: "critical",
       message: "Risque blessure critique - Douleur signalée avec fatigue élevée",
@@ -135,12 +191,10 @@ export function generateWellnessAlert(
     };
   }
 
-  // Warning: rapid decline detected
   if (trend === "rapid_decline") {
     recommendations.push("Réduire l'intensité des séances");
     recommendations.push("Privilégier la récupération (sommeil, nutrition)");
     recommendations.push("Surveiller l'évolution quotidienne");
-    
     return {
       type: "warning",
       message: "Détérioration rapide du wellness détectée sur les derniers jours",
@@ -148,11 +202,9 @@ export function generateWellnessAlert(
     };
   }
 
-  // Warning: high score + declining trend
   if (currentScore >= 3.5 && trend === "declining") {
     recommendations.push("Adapter la charge d'entraînement");
     recommendations.push("Augmenter le temps de récupération");
-    
     return {
       type: "warning",
       message: "Wellness en baisse - Fatigue accumulée",
@@ -160,11 +212,9 @@ export function generateWellnessAlert(
     };
   }
 
-  // Warning: AWCR + wellness combined risk
   if (awcr !== null && (awcr > 1.4 || awcr < 0.85) && currentScore >= 3) {
     recommendations.push("Charge aiguë élevée combinée à fatigue");
     recommendations.push("Risque de blessure augmenté - Adapter le programme");
-    
     return {
       type: "warning",
       message: "Combinaison AWCR + Wellness à risque",
@@ -172,7 +222,6 @@ export function generateWellnessAlert(
     };
   }
 
-  // Info: declining trend but still acceptable
   if (trend === "declining" && currentScore >= 2.5) {
     return {
       type: "info",
@@ -186,15 +235,12 @@ export function generateWellnessAlert(
 
 /**
  * Calculate EWMA (Exponential Weighted Moving Average) for AWCR
- * More recent sessions have higher weight
  */
 export function calculateEWMA(values: number[], lambda: number = 0.1): number {
   if (values.length === 0) return 0;
-  
   let ewma = values[0];
   for (let i = 1; i < values.length; i++) {
     ewma = lambda * values[i] + (1 - lambda) * ewma;
   }
-  
   return Math.round(ewma * 100) / 100;
 }

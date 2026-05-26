@@ -45,6 +45,7 @@ import {
   getWellnessRiskLevel,
   type WellnessEntry 
 } from "@/lib/wellnessCalculations";
+import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
 import { calculateEWMASeries, transformToDailyLoadData } from "@/lib/trainingLoadCalculations";
 import { SessionFormDialog } from "./sessions/SessionFormDialog";
 import { EditAdminEventDialog, ADMIN_EVENT_TYPES } from "./calendar/EditAdminEventDialog";
@@ -110,6 +111,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
     const queryClient = useQueryClient();
     const today = format(new Date(), "yyyy-MM-dd");
    const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
+   const { data: wellnessQuestionsCfg } = useWellnessQuestions(categoryId);
   const [editSessionOpen, setEditSessionOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<any>(null);
   const [editingAdminEvent, setEditingAdminEvent] = useState<any>(null);
@@ -464,7 +466,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
         }
         
         if (playerWellness) {
-          const score = calculateWeightedWellnessScore(playerWellness as WellnessEntry);
+          const score = calculateWeightedWellnessScore(playerWellness as WellnessEntry, wellnessQuestionsCfg);
           // Align with "Adapter la charge" threshold: wellness > 3
           if (score > 3) {
             reason = reason ? `${reason} + Wellness ${score.toFixed(1)}` : `Wellness ${score.toFixed(1)}/5`;
@@ -530,7 +532,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
        // Mental fatigue (wellness > 3.5 = bad state, scale: 1=excellent, 5=very bad)
        const playerWellness = wellnessData.find(w => w.player_id === player.id);
        if (playerWellness) {
-         const score = calculateWeightedWellnessScore(playerWellness as WellnessEntry);
+         const score = calculateWeightedWellnessScore(playerWellness as WellnessEntry, wellnessQuestionsCfg);
          if (score > 3.5) {
            alerts.push({
              id: `fatigue-${player.id}`,
@@ -602,7 +604,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
          }
          
          if (playerWellness) {
-           const score = calculateWeightedWellnessScore(playerWellness as WellnessEntry);
+           const score = calculateWeightedWellnessScore(playerWellness as WellnessEntry, wellnessQuestionsCfg);
            if (score > 3) {
              reason = reason ? `${reason} + Wellness ${score.toFixed(1)}` : `Wellness ${score.toFixed(1)}/5`;
            }

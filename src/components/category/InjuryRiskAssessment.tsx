@@ -12,6 +12,7 @@ import {
   getWellnessRiskLevel,
   type WellnessEntry 
 } from "@/lib/wellnessCalculations";
+import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
 
 interface InjuryRiskAssessmentProps {
   categoryId: string;
@@ -35,6 +36,7 @@ interface PlayerRisk {
 export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) {
   const today = new Date();
   const weekAgo = subDays(today, 7);
+  const { data: questionsConfig } = useWellnessQuestions(categoryId);
 
   // Fetch players
   const { data: players } = useQuery({
@@ -108,19 +110,17 @@ export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) 
 
       if (latestWellness) {
         // Calculate WEIGHTED wellness score
-        wellnessScore = calculateWeightedWellnessScore(latestWellness as WellnessEntry);
+        wellnessScore = calculateWeightedWellnessScore(latestWellness as WellnessEntry, questionsConfig);
         
         hasSpecificPain = latestWellness.has_specific_pain;
         painLocation = latestWellness.pain_location;
         
-        // Get risk level using weighted score
         wellnessRisk = getWellnessRiskLevel(wellnessScore, hasSpecificPain) === "critical" 
           ? "high" 
           : getWellnessRiskLevel(wellnessScore, hasSpecificPain) as "low" | "medium" | "high";
 
-        // Detect trend if we have multiple entries
         if (playerWellnessEntries.length >= 2) {
-          const trendResult = detectWellnessTrend(playerWellnessEntries as WellnessEntry[]);
+          const trendResult = detectWellnessTrend(playerWellnessEntries as WellnessEntry[], questionsConfig);
           trend = trendResult.trend;
         }
 

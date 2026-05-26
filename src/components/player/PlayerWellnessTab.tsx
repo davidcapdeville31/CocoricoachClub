@@ -17,6 +17,7 @@ import {
   getWellnessRiskLevel,
   type WellnessEntry 
 } from "@/lib/wellnessCalculations";
+import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
 
 interface PlayerWellnessTabProps {
   playerId: string;
@@ -30,6 +31,7 @@ const getScoreBadge = (score: number) => {
 };
 
 export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabProps) {
+  const { data: wellnessQuestionsCfg } = useWellnessQuestions(categoryId);
   const { data: category } = useQuery({
     queryKey: ["category_gender", categoryId],
     queryFn: async () => {
@@ -79,7 +81,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
   // Prepare chart data using weighted scores
   const chartData = wellnessData?.slice(0, 14).reverse().map((entry) => ({
     date: format(new Date(entry.tracking_date), "dd/MM", { locale: fr }),
-    wellness: calculateWeightedWellnessScore(entry as WellnessEntry),
+    wellness: calculateWeightedWellnessScore(entry as WellnessEntry, wellnessQuestionsCfg),
     fatigue: entry.general_fatigue,
     stress: entry.stress_level,
     soreness: (entry.soreness_upper_body + entry.soreness_lower_body) / 2,
@@ -91,11 +93,11 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
 
   // Calculate weighted score and trend
   const currentScore = latestWellness 
-    ? calculateWeightedWellnessScore(latestWellness as WellnessEntry) 
+    ? calculateWeightedWellnessScore(latestWellness as WellnessEntry, wellnessQuestionsCfg) 
     : null;
 
   const trendResult = wellnessData && wellnessData.length >= 2 
-    ? detectWellnessTrend(wellnessData.slice(0, 7) as WellnessEntry[])
+    ? detectWellnessTrend(wellnessData.slice(0, 7) as WellnessEntry[], wellnessQuestionsCfg)
     : null;
 
   const riskLevel = latestWellness 
@@ -311,7 +313,7 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
                 </TableHeader>
                 <TableBody>
                   {wellnessData.map((entry) => {
-                    const weightedScore = calculateWeightedWellnessScore(entry as WellnessEntry);
+                    const weightedScore = calculateWeightedWellnessScore(entry as WellnessEntry, wellnessQuestionsCfg);
                     return (
                       <TableRow key={entry.id}>
                         <TableCell>
