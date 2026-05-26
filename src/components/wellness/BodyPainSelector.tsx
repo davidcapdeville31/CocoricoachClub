@@ -144,10 +144,10 @@ function BodyDots({
             aria-label={r.label}
             className={cn(
               "absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition-all",
-              "hover:scale-150 hover:z-10 ring-2 ring-white shadow-md",
+              "hover:scale-150 hover:z-10 ring-1 ring-white/80 shadow-sm",
               isSelected
-                ? "h-5 w-5 ring-foreground shadow-lg z-20"
-                : "h-3.5 w-3.5 bg-primary hover:bg-primary/80",
+                ? "h-3 w-3 ring-foreground shadow-md z-20"
+                : "h-2 w-2 bg-primary hover:bg-primary/80",
             )}
             style={{
               left: `${r.cx}%`,
@@ -211,12 +211,12 @@ export function BodyPainSelector({ value, onChange, categoryId, compact }: Props
   return (
     <div className={cn("space-y-3", compact && "space-y-2")}>
       {/* Body diagrams */}
-      <div className="grid grid-cols-2 gap-0 bg-gradient-to-b from-surface-sunken/60 to-surface-sunken/20 rounded-2xl border p-2 shadow-inner">
-        <div className="relative aspect-square mx-auto w-full max-w-[320px]">
+      <div className="grid grid-cols-2 gap-2 bg-gradient-to-b from-surface-sunken/60 to-surface-sunken/20 rounded-2xl border p-2 shadow-inner overflow-hidden">
+        <div className="relative aspect-square mx-auto w-full max-w-[320px] overflow-hidden">
           <div className="absolute top-1 left-1 z-10 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Face
           </div>
-          <div className="absolute inset-0 scale-[1.35] origin-center">
+          <div className="absolute inset-0">
             <BodySilhouette side="front" />
             <BodyDots
               regions={REGIONS.filter((r) => r.side === "front")}
@@ -227,11 +227,11 @@ export function BodyPainSelector({ value, onChange, categoryId, compact }: Props
             />
           </div>
         </div>
-        <div className="relative aspect-square mx-auto w-full max-w-[320px]">
+        <div className="relative aspect-square mx-auto w-full max-w-[320px] overflow-hidden">
           <div className="absolute top-1 left-1 z-10 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Dos
           </div>
-          <div className="absolute inset-0 scale-[1.35] origin-center">
+          <div className="absolute inset-0">
             <BodySilhouette side="back" />
             <BodyDots
               regions={REGIONS.filter((r) => r.side === "back")}
