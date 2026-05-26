@@ -39,6 +39,8 @@ project_id = "env(SUPABASE_PROJECT_ID)"
     verify_jwt = false
   [functions.athlete-bowling-training]
     verify_jwt = false
+  [functions.accept-athlete-invitation-signup]
+    verify_jwt = false
   [functions.send-transactional-email]
     verify_jwt = true
   [functions.preview-transactional-email]
