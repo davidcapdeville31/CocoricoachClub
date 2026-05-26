@@ -157,6 +157,10 @@ import { EmailMonitoring } from "@/components/super-admin/EmailMonitoring";
                     <Shield className="h-4 w-4" />
                     Sécurité &amp; Audit
                   </TabsTrigger>
+                  <TabsTrigger value="emails" className="flex items-center gap-2">
+                    <Mail className="h-4 w-4" />
+                    Emails
+                  </TabsTrigger>
                   <TabsTrigger value="archives" className="flex items-center gap-2">
                     <Archive className="h-4 w-4" />
                     Archives
