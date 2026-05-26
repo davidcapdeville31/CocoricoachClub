@@ -227,7 +227,7 @@ export function BodyPainSelector({ value, onChange, categoryId, compact }: Props
             />
           </div>
         </div>
-        <div className="relative aspect-[3/5] mx-auto w-full max-w-[320px]">
+        <div className="relative aspect-square mx-auto w-full max-w-[320px]">
           <div className="absolute top-1 left-1 z-10 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Dos
           </div>
