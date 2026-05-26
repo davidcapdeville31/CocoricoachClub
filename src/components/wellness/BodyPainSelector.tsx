@@ -199,8 +199,8 @@ export function BodyPainSelector({ value, onChange, categoryId, compact }: Props
   return (
     <div className={cn("space-y-3", compact && "space-y-2")}>
       {/* Body diagrams */}
-      <div className="grid grid-cols-2 gap-3 bg-gradient-to-b from-surface-sunken/60 to-surface-sunken/20 rounded-2xl border p-3 shadow-inner">
-        <div className="relative aspect-[1/2] mx-auto w-full max-w-[180px]">
+      <div className="grid grid-cols-2 gap-4 bg-gradient-to-b from-surface-sunken/60 to-surface-sunken/20 rounded-2xl border p-4 shadow-inner">
+        <div className="relative aspect-[1/2] mx-auto w-full max-w-[280px]">
           <div className="absolute top-1 left-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Face
           </div>
@@ -213,7 +213,7 @@ export function BodyPainSelector({ value, onChange, categoryId, compact }: Props
             intensityColor={intensityColor}
           />
         </div>
-        <div className="relative aspect-[1/2] mx-auto w-full max-w-[180px]">
+        <div className="relative aspect-[1/2] mx-auto w-full max-w-[280px]">
           <div className="absolute top-1 left-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Dos
           </div>
