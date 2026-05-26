@@ -18,6 +18,7 @@ import { PAIN_ZONES } from "@/lib/constants/pain-locations";
 import { sleepHoursToScore } from "@/lib/sleepConversion";
 import { getWellnessButtonClasses, getSleepHoursButtonClasses } from "@/lib/wellnessColors";
 import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
+import { BodyPainSelector, type BodyPainValue } from "@/components/wellness/BodyPainSelector";
 
 interface Props {
   playerId: string;
@@ -88,8 +89,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
   }, [activeQuestions]);
 
   const [hasSpecificPain, setHasSpecificPain] = useState(false);
-  const [painZone, setPainZone] = useState("");
-  const [painLocation, setPainLocation] = useState("");
+  const [painData, setPainData] = useState<Partial<BodyPainValue>>({});
   const [notes, setNotes] = useState("");
   const [showHrv, setShowHrv] = useState(false);
   const [hrvMs, setHrvMs] = useState("");
@@ -101,7 +101,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     return activeQuestions.every(q => touched.has(q.key));
   }, [activeQuestions, touched]);
 
-  const selectedZoneLocations = PAIN_ZONES.find(z => z.zone === painZone)?.locations || [];
+  // (legacy zone dropdown removed in favor of BodyPainSelector)
 
   const score = useMemo(() => {
     if (!existingWellness || activeQuestions.length === 1) return 1;
@@ -124,8 +124,10 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
         category_id: categoryId,
         tracking_date: today,
         has_specific_pain: hasSpecificPain,
-        pain_zone: hasSpecificPain ? painZone : null,
-        pain_location: hasSpecificPain ? painLocation : null,
+        pain_zone: hasSpecificPain ? painData.zone ?? null : null,
+        pain_location: hasSpecificPain ? painData.region ?? null : null,
+        pain_nature: hasSpecificPain ? painData.nature ?? null : null,
+        pain_intensity: hasSpecificPain ? painData.intensity ?? null : null,
         notes: notes || null,
       };
 
@@ -366,42 +368,19 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
           <div className="flex items-center gap-2 pt-1">
             <Checkbox checked={hasSpecificPain} onCheckedChange={(v) => {
               setHasSpecificPain(!!v);
-              if (!v) { setPainZone(""); setPainLocation(""); }
+              if (!v) { setPainData({}); }
             }} />
             <Label className="text-xs">J'ai une douleur spécifique</Label>
           </div>
 
           {hasSpecificPain && (
-            <div className="space-y-2">
-              <div>
-                <Label className="text-xs mb-1 block">Zone du corps</Label>
-                <Select value={painZone} onValueChange={(v) => { setPainZone(v); setPainLocation(""); }}>
-                  <SelectTrigger className="h-9 text-sm">
-                    <SelectValue placeholder="Sélectionner une zone" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PAIN_ZONES.map(z => (
-                      <SelectItem key={z.zone} value={z.zone}>{z.zone}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {painZone && (
-                <div>
-                  <Label className="text-xs mb-1 block">Localisation</Label>
-                  <Select value={painLocation} onValueChange={setPainLocation}>
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Sélectionner la localisation" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {selectedZoneLocations.map(loc => (
-                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+            <div className="rounded-xl border bg-surface-sunken/50 p-3">
+              <BodyPainSelector
+                value={painData}
+                onChange={setPainData}
+                categoryId={categoryId}
+                compact
+              />
             </div>
           )}
 
