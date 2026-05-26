@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import bodyAnatomyFront from "@/assets/body-anatomy-front.png";
+import bodyAnatomyBack from "@/assets/body-anatomy-back.png";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
