@@ -38,13 +38,26 @@ export function WellnessPainStats({ categoryId }: WellnessPainStatsProps) {
     );
   }
 
+  // Infer zone from location label when pain_zone is missing (legacy entries
+  // or alternative entry paths that didn't persist the zone).
+  const inferZone = (loc?: string | null): string => {
+    if (!loc) return "Non classé";
+    const s = loc.toLowerCase();
+    if (/(t[êe]te|nuque|cr[âa]ne|cervical)/.test(s)) return "Tête";
+    if (/(abdomen|abdo|oblique|ventre)/.test(s)) return "Abdomen";
+    if (/(épaule|epaule|pectoral|trap[èe]ze|dorsal|bras|biceps|triceps|coude|avant-bras|poignet|main|nuque)/.test(s)) return "Haut du corps";
+    if (/(hanche|adducteur|cuisse|quadriceps|ischio|fessier|genou|tibia|mollet|cheville|tendon|achille|talon|pied|lombaire|dos)/.test(s)) return "Bas du corps";
+    return "Non classé";
+  };
+
   // Count by zone
   const zoneCounts: Record<string, number> = {};
   const locationCounts: Record<string, number> = {};
 
   painData?.forEach(entry => {
-    const zone = (entry as any).pain_zone || "Non classé";
+    const rawZone = (entry as any).pain_zone as string | null | undefined;
     const location = entry.pain_location || "Non précisé";
+    const zone = rawZone && rawZone.trim().length > 0 ? rawZone : inferZone(entry.pain_location);
 
     zoneCounts[zone] = (zoneCounts[zone] || 0) + 1;
     locationCounts[location] = (locationCounts[location] || 0) + 1;
