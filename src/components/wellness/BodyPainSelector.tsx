@@ -93,11 +93,14 @@ interface Props {
 
 // Realistic anatomical body silhouette using high-quality medical illustrations
 function BodySilhouette({ side }: { side: "front" | "back" }) {
+  // The source PNGs have significant transparent/white padding around the figure.
+  // We scale up + use object-contain inside an overflow-hidden box so the body
+  // visually fills the frame and sits close to its sibling.
   return (
     <img
       src={side === "front" ? bodyAnatomyFront : bodyAnatomyBack}
       alt={side === "front" ? "Vue de face du corps humain" : "Vue de dos du corps humain"}
-      className="absolute inset-0 h-full w-full object-contain pointer-events-none select-none"
+      className="absolute inset-0 h-full w-full object-contain pointer-events-none select-none scale-[1.7] origin-center"
       draggable={false}
       loading="lazy"
     />
