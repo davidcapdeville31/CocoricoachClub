@@ -48,21 +48,16 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   const [filterPlayerId, setFilterPlayerId] = useState<string>("all");
   const { isViewer } = useViewerModeContext();
   const { userRole } = useMenuPermissions(undefined, categoryId);
-  // Staff roles allowed to customize wellness (button visibility).
-  // We rely on the role hook so that Prepa physique / Doctor / Admin / Coach all see it,
-  // even if ViewerModeContext momentarily flags them while membership data is loading.
+  // Only Coach, Préparateur physique and Médecin (+ owners/super_admin) can customize.
   const STAFF_ROLES = new Set([
     "owner",
     "super_admin",
-    "admin",
     "coach",
     "prepa_physique",
     "doctor",
-    "physio",
-    "mental_coach",
-    "administratif",
   ]);
-  const canCustomize = !isViewer && (!userRole || STAFF_ROLES.has(userRole));
+  const canCustomize = !!userRole && STAFF_ROLES.has(userRole);
+
 
   useRealtimeSync({
     tables: ["wellness_tracking"],
