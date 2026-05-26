@@ -66,6 +66,7 @@ interface AtRiskPlayer {
 
 export function DailySessionView({ categoryId, categoryName = "Catégorie" }: DailySessionViewProps) {
   const { fieldMode, setFieldMode } = useFieldMode();
+  const { data: wellnessQuestionsCfg } = useWellnessQuestions(categoryId);
   const queryClient = useQueryClient();
   const [showOnlyAtRisk, setShowOnlyAtRisk] = useState(false);
   const [wellnessDialogOpen, setWellnessDialogOpen] = useState(false);
