@@ -240,58 +240,36 @@ serve(async (req) => {
       }
     }
 
-    // ── EMAIL via OneSignal include_email_tokens ───────────────────────────
+    // ── EMAIL via send-transactional-email (queued, logged, retry-safe) ───
     if (channels.email && emails.length > 0) {
-      const emailHtml = `
-        <!DOCTYPE html>
-        <html><head><meta charset="utf-8"></head>
-        <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f4f4f5;margin:0;padding:20px;">
-          <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.1);">
-            <div style="background:linear-gradient(135deg,#059669 0%,#10b981 100%);padding:32px;text-align:center;">
-              <h1 style="color:#fff;margin:0;font-size:24px;">🏉 CocoriCoach Club</h1>
-            </div>
-            <div style="padding:32px;">
-              <h2 style="color:#1f2937;margin:0 0 16px 0;">${title}</h2>
-              <p style="color:#4b5563;line-height:1.6;white-space:pre-wrap;margin:0;">${message}</p>
-            </div>
-            <div style="background:#f9fafb;padding:20px;text-align:center;border-top:1px solid #e5e7eb;">
-              <p style="color:#9ca3af;font-size:12px;margin:0;">© ${new Date().getFullYear()} CocoriCoach Club</p>
-            </div>
-          </div>
-        </body></html>
-      `;
-
-      const chunkSize = 1500;
-      for (let i = 0; i < emails.length; i += chunkSize) {
-        const chunk = emails.slice(i, i + chunkSize);
+      for (const recipient of emails) {
         try {
-          const resp = await fetch("https://api.onesignal.com/notifications", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Key ${ONESIGNAL_REST_API_KEY}`,
-            },
-            body: JSON.stringify({
-              app_id: ONESIGNAL_APP_ID,
-              include_email_tokens: chunk,
-              email_subject: title,
-              email_body: emailHtml,
-              email_from_name: "CocoriCoach Club",
-              name: `Global email (${target_type})`,
-            }),
-          });
-          const json = await resp.json();
-          if (resp.ok && !json.errors) {
-            emailSent += chunk.length;
-            console.log(`Email chunk OK (${chunk.length} recipients):`, json.id);
+          const { error: emailError } = await supabase.functions.invoke(
+            "send-transactional-email",
+            {
+              body: {
+                templateName: "app-notification",
+                recipientEmail: recipient,
+                idempotencyKey: `global-notif-${target_type}-${recipient}-${Date.now()}`,
+                templateData: {
+                  title,
+                  message,
+                  ctaLabel: "Ouvrir l'application",
+                  ctaUrl: "https://cocoricoachclub.com",
+                },
+              },
+            }
+          );
+          if (emailError) {
+            console.error("Email error:", emailError);
+            errors.push(`Email (${recipient}): ${emailError.message ?? String(emailError)}`);
           } else {
-            console.error("Email error:", json);
-            errors.push(`Email: ${JSON.stringify(json.errors ?? json)}`);
+            emailSent += 1;
           }
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
           console.error("Email exception:", msg);
-          errors.push(`Email: ${msg}`);
+          errors.push(`Email (${recipient}): ${msg}`);
         }
       }
     }

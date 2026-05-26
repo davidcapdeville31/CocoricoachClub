@@ -110,49 +110,33 @@ serve(async (req) => {
       const allowedEmailSet = new Set(allowedEmailUserIds);
       const allowedPushSet = new Set(allowedPushUserIds);
 
-      // ── EMAIL via OneSignal ────────────────────────────────────────────────
-      const emailRecipients = players
+      // ── EMAIL via send-transactional-email (queued, logged, retry-safe) ───
+      const emailTargets = players
         .filter((p) => p.email && p.user_id && allowedEmailSet.has(p.user_id))
-        .map((p) => p.email!);
+        .map((p) => ({ email: p.email!, userId: p.user_id! }));
 
-      if (emailRecipients.length > 0) {
+      for (const target of emailTargets) {
         try {
-          const response = await fetch("https://api.onesignal.com/notifications", {
-            method: "POST",
-            headers: baseHeaders,
-            body: JSON.stringify({
-              app_id: oneSignalAppId,
-              include_email_tokens: emailRecipients,
-              email_subject: "🌅 Wellness du jour - Comment te sens-tu ?",
-              email_body: `
-                <html>
-                  <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f5;">
-                    <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                      <div style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 24px; text-align: center;">
-                        <h1 style="color: white; margin: 0; font-size: 20px;">🏉 CocoriCoach</h1>
-                      </div>
-                      <div style="padding: 24px;">
-                        <h2 style="margin: 0 0 12px;">Bonjour ! 🌅</h2>
-                        <p>N'oublie pas de renseigner ton <strong>Wellness du jour</strong> pour aider ton staff à suivre ta récupération.</p>
-                        <p><strong>Catégorie:</strong> ${category.name}</p>
-                        <p>Évalue ton niveau de fatigue, qualité de sommeil, stress et douleurs musculaires.</p>
-                        <div style="text-align: center; margin: 24px 0;">
-                          <a href="${wellnessDeepLink}" style="display: inline-block; background: linear-gradient(135deg, #059669, #10b981); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: bold; font-size: 16px;">❤️ Remplir mon Wellness</a>
-                        </div>
-                        <p>À bientôt sur le terrain ! 💪</p>
-                      </div>
-                    </div>
-                  </body>
-                </html>
-              `,
-            }),
-          });
-
-          if (response.ok) {
-            totalEmailsSent += emailRecipients.length;
+          const { error: emailError } = await supabase.functions.invoke(
+            "send-transactional-email",
+            {
+              body: {
+                templateName: "app-notification",
+                recipientEmail: target.email,
+                idempotencyKey: `wellness-reminder-${target.userId}-${new Date().toISOString().slice(0, 10)}`,
+                templateData: {
+                  title: "🌅 Wellness du jour",
+                  message: `Bonjour ! N'oublie pas de renseigner ton Wellness du jour (${category.name}) pour aider ton staff à suivre ta récupération.`,
+                  ctaLabel: "❤️ Remplir mon Wellness",
+                  ctaUrl: wellnessDeepLink,
+                },
+              },
+            }
+          );
+          if (emailError) {
+            console.error(`[wellness] Email error for ${target.email}:`, emailError);
           } else {
-            const err = await response.json();
-            console.error(`[wellness] Email error for ${category.name}:`, err);
+            totalEmailsSent += 1;
           }
         } catch (error) {
           console.error("[wellness] Email send error:", error);
