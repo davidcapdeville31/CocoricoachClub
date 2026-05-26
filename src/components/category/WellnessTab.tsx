@@ -17,6 +17,7 @@ import { fr } from "date-fns/locale";
 import { AddWellnessDialog } from "./AddWellnessDialog";
 import { WellnessScheduleConfig } from "./wellness/WellnessScheduleConfig";
 import { WellnessQuestionsEditor } from "./wellness/WellnessQuestionsEditor";
+import { PainConfigEditor } from "./wellness/PainConfigEditor";
 import { InjuryRiskAssessment } from "./InjuryRiskAssessment";
 import { MenstrualCycleSection } from "./MenstrualCycleSection";
 import { WellnessPainStats } from "./WellnessPainStats";
@@ -389,6 +390,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
         <div className="space-y-4">
           <WellnessScheduleConfig categoryId={categoryId} />
           <WellnessQuestionsEditor categoryId={categoryId} />
+          <PainConfigEditor categoryId={categoryId} />
         </div>
       </DialogContent>
     </Dialog>
