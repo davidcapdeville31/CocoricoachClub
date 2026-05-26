@@ -27,6 +27,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { sleepScoreLabel } from "@/lib/sleepConversion";
+import { usePainConfig, DEFAULT_PAIN_CONFIG } from "@/lib/wellness/questionConfig";
 
 interface WellnessTabProps {
   categoryId: string;
