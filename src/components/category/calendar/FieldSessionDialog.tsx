@@ -160,10 +160,11 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
       !EXCLUDED_THEME_VALUES.has(o.value) && !EXCLUDED_THEME_LABELS.has(o.label);
 
     if (isBowling) {
-      const sportTypes = getTrainingTypesForSport(sportType);
-      const bowlingTypes = sportTypes
-        .filter((t) => t.value.startsWith("bowling_"))
-        .map((t) => ({ value: t.value, label: t.label }));
+      // Only the 3 DTN parent categories (technique / tactique / parties) — legacy values hidden
+      const bowlingTypes = BOWLING_PARENT_VALUES.map((v) => ({
+        value: v,
+        label: BOWLING_PARENT_LABELS[v],
+      }));
       const generics = GENERIC_THEMES.map((t) => ({ value: t, label: t }));
       const customs = customThemes.map((t) => ({ value: t, label: t }));
       const all = [...bowlingTypes, ...generics, ...customs].filter(filterOut);
