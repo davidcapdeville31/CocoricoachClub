@@ -176,13 +176,16 @@ export const ALL_TRAINING_TYPES: TrainingTypeOption[] = [
   { value: "judo_kumikata", label: "Kumi-kata (Préhension)", hasExercises: false, forSports: ["judo"], category: "judo" },
   { value: "judo_tokui_waza", label: "Tokui-waza (Spéciale)", hasExercises: false, forSports: ["judo"], category: "judo" },
   
-  // Bowling specific (with category)
-  { value: "bowling_practice", label: "Pratique Libre", hasExercises: false, forSports: ["bowling"], category: "bowling" },
+  // Bowling specific — 3 grandes catégories DTN FFBSQ (Technique / Tactique / Parties)
   { value: "bowling_technique", label: "Travail Technique", hasExercises: false, forSports: ["bowling"], category: "bowling" },
-  { value: "bowling_spare", label: "Entraînement Précision", hasExercises: false, forSports: ["bowling"], category: "bowling" },
-  { value: "bowling_game", label: "Parties d'Entraînement", hasExercises: false, forSports: ["bowling"], category: "bowling" },
-  { value: "bowling_approche", label: "Travail d'Approche", hasExercises: false, forSports: ["bowling"], category: "bowling" },
-  { value: "bowling_release", label: "Travail de Lâcher", hasExercises: false, forSports: ["bowling"], category: "bowling" },
+  { value: "bowling_tactique", label: "Travail Tactique", hasExercises: false, forSports: ["bowling"], category: "bowling" },
+  { value: "bowling_parties", label: "Parties d'Entraînement", hasExercises: false, forSports: ["bowling"], category: "bowling" },
+  // Legacy values (kept for backward display compatibility, hidden from new selectors via filtering)
+  { value: "bowling_practice", label: "Pratique Libre (legacy)", hasExercises: false, forSports: ["bowling"], category: "bowling_legacy" },
+  { value: "bowling_spare", label: "Entraînement Précision (legacy)", hasExercises: false, forSports: ["bowling"], category: "bowling_legacy" },
+  { value: "bowling_game", label: "Parties d'Entraînement (legacy)", hasExercises: false, forSports: ["bowling"], category: "bowling_legacy" },
+  { value: "bowling_approche", label: "Travail d'Approche (legacy)", hasExercises: false, forSports: ["bowling"], category: "bowling_legacy" },
+  { value: "bowling_release", label: "Travail de Lâcher (legacy)", hasExercises: false, forSports: ["bowling"], category: "bowling_legacy" },
   
   // CrossFit / Hyrox / Musculation specific - with categories
   // WOD / CrossFit
