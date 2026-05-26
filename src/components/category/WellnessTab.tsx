@@ -60,18 +60,28 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   const { isViewer } = useViewerModeContext();
   const { userRole } = useMenuPermissions(undefined, categoryId);
 
-  // Fix Radix bug: pointer-events:none can stay stuck on body after a dialog/popover
-  // is unmounted during its close animation (e.g. when navigating back to categories).
+  // Robust fix for Radix pointer-events:none lock that can stick on body when
+  // multiple Popover/Select/Dialog overlays open & close in quick succession.
+  // We watch body's style attribute and clear the lock whenever no overlay
+  // is actually open in the DOM (so we don't break legitimate locks).
   useEffect(() => {
-    const clearLock = () => {
-      if (document.body.style.pointerEvents === "none") {
-        document.body.style.pointerEvents = "";
-      }
+    const release = () => {
+      if (document.body.style.pointerEvents !== "none") return;
+      const stillOpen = document.querySelector(
+        '[data-state="open"][role="dialog"], [data-state="open"][role="menu"], [data-state="open"][role="listbox"]'
+      );
+      if (!stillOpen) document.body.style.pointerEvents = "";
     };
-    clearLock();
-    const id = window.setTimeout(clearLock, 100);
-    return () => window.clearTimeout(id);
+    release();
+    const observer = new MutationObserver(release);
+    observer.observe(document.body, { attributes: true, attributeFilter: ["style"] });
+    const interval = window.setInterval(release, 500);
+    return () => {
+      observer.disconnect();
+      window.clearInterval(interval);
+    };
   }, []);
+
 
   // Only Coach, Préparateur physique and Médecin (+ owners/super_admin) can customize.
   const STAFF_ROLES = new Set([
