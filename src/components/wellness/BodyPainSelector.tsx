@@ -211,12 +211,12 @@ export function BodyPainSelector({ value, onChange, categoryId, compact }: Props
   return (
     <div className={cn("space-y-3", compact && "space-y-2")}>
       {/* Body diagrams */}
-      <div className="grid grid-cols-2 gap-0 bg-gradient-to-b from-surface-sunken/60 to-surface-sunken/20 rounded-2xl border p-2 shadow-inner">
-        <div className="relative aspect-square mx-auto w-full max-w-[320px]">
+      <div className="grid grid-cols-2 gap-2 bg-gradient-to-b from-surface-sunken/60 to-surface-sunken/20 rounded-2xl border p-2 shadow-inner overflow-hidden">
+        <div className="relative aspect-square mx-auto w-full max-w-[320px] overflow-hidden">
           <div className="absolute top-1 left-1 z-10 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Face
           </div>
-          <div className="absolute inset-0 scale-[1.35] origin-center">
+          <div className="absolute inset-0">
             <BodySilhouette side="front" />
             <BodyDots
               regions={REGIONS.filter((r) => r.side === "front")}
@@ -227,11 +227,11 @@ export function BodyPainSelector({ value, onChange, categoryId, compact }: Props
             />
           </div>
         </div>
-        <div className="relative aspect-square mx-auto w-full max-w-[320px]">
+        <div className="relative aspect-square mx-auto w-full max-w-[320px] overflow-hidden">
           <div className="absolute top-1 left-1 z-10 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Dos
           </div>
-          <div className="absolute inset-0 scale-[1.35] origin-center">
+          <div className="absolute inset-0">
             <BodySilhouette side="back" />
             <BodyDots
               regions={REGIONS.filter((r) => r.side === "back")}
