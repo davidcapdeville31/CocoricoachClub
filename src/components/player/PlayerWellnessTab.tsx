@@ -31,6 +31,7 @@ const getScoreBadge = (score: number) => {
 };
 
 export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabProps) {
+  const { data: wellnessQuestionsCfg } = useWellnessQuestions(categoryId);
   const { data: category } = useQuery({
     queryKey: ["category_gender", categoryId],
     queryFn: async () => {
