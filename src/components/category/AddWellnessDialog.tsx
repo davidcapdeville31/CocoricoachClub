@@ -25,6 +25,7 @@ import { getWellnessButtonClasses, getSleepScoreButtonClasses } from "@/lib/well
 import { sleepHoursToScore } from "@/lib/sleepConversion";
 import { cn } from "@/lib/utils";
 import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
+import { BodyPainSelector, type BodyPainValue } from "@/components/wellness/BodyPainSelector";
 
 interface AddWellnessDialogProps {
   open: boolean;
@@ -48,7 +49,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState("");
   const [hasSpecificPain, setHasSpecificPain] = useState(false);
-  const [painLocation, setPainLocation] = useState("");
+  const [painData, setPainData] = useState<Partial<BodyPainValue>>({});
   const [hrvData, setHrvData] = useState<HrvData>(emptyHrvData);
 
   const { data: wellnessQuestions } = useWellnessQuestions(categoryId);
@@ -103,7 +104,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
     setDate(new Date().toISOString().split("T")[0]);
     setNotes("");
     setHasSpecificPain(false);
-    setPainLocation("");
+    setPainData({});
     setHrvData(emptyHrvData);
     const initial: Record<string, number> = {};
     for (const q of activeQuestions) {
@@ -121,7 +122,10 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
         category_id: categoryId,
         tracking_date: date,
         has_specific_pain: hasSpecificPain,
-        pain_location: hasSpecificPain ? painLocation : null,
+        pain_zone: hasSpecificPain ? painData.zone ?? null : null,
+        pain_location: hasSpecificPain ? painData.region ?? null : null,
+        pain_nature: hasSpecificPain ? painData.nature ?? null : null,
+        pain_intensity: hasSpecificPain ? painData.intensity ?? null : null,
         notes: notes.trim() || null,
       };
 
@@ -339,18 +343,18 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
               <Switch
                 id="specific-pain"
                 checked={hasSpecificPain}
-                onCheckedChange={setHasSpecificPain}
+                onCheckedChange={(v) => {
+                  setHasSpecificPain(v);
+                  if (!v) setPainData({});
+                }}
               />
             </div>
             {hasSpecificPain && (
-              <div className="space-y-2">
-                <Label>Localisation de la douleur</Label>
-                <Input
-                  placeholder="Ex: genou droit, épaule gauche..."
-                  value={painLocation}
-                  onChange={(e) => setPainLocation(e.target.value)}
-                />
-              </div>
+              <BodyPainSelector
+                value={painData}
+                onChange={setPainData}
+                categoryId={categoryId}
+              />
             )}
           </div>
 
