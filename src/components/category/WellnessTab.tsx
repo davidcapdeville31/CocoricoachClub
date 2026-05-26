@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, type CSSProperties } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { subDays } from "date-fns";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
@@ -27,6 +27,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { sleepScoreLabel } from "@/lib/sleepConversion";
+import { usePainConfig, DEFAULT_PAIN_CONFIG } from "@/lib/wellness/questionConfig";
 
 interface WellnessTabProps {
   categoryId: string;
@@ -40,6 +41,16 @@ const getScoreBadgeClass = (score: number) => {
   return "bg-status-critical/15 text-status-critical border-status-critical/30";
 };
 
+/** Build an inline style from a customizable pain scale color (hsl(...) string). */
+const getScaleStyle = (color: string | undefined): CSSProperties => {
+  if (!color) return {};
+  return {
+    backgroundColor: `color-mix(in hsl, ${color} 18%, transparent)`,
+    color,
+    borderColor: `color-mix(in hsl, ${color} 45%, transparent)`,
+  };
+};
+
 export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
@@ -49,18 +60,28 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   const { isViewer } = useViewerModeContext();
   const { userRole } = useMenuPermissions(undefined, categoryId);
 
-  // Fix Radix bug: pointer-events:none can stay stuck on body after a dialog/popover
-  // is unmounted during its close animation (e.g. when navigating back to categories).
+  // Robust fix for Radix pointer-events:none lock that can stick on body when
+  // multiple Popover/Select/Dialog overlays open & close in quick succession.
+  // We watch body's style attribute and clear the lock whenever no overlay
+  // is actually open in the DOM (so we don't break legitimate locks).
   useEffect(() => {
-    const clearLock = () => {
-      if (document.body.style.pointerEvents === "none") {
-        document.body.style.pointerEvents = "";
-      }
+    const release = () => {
+      if (document.body.style.pointerEvents !== "none") return;
+      const stillOpen = document.querySelector(
+        '[data-state="open"][role="dialog"], [data-state="open"][role="menu"], [data-state="open"][role="listbox"]'
+      );
+      if (!stillOpen) document.body.style.pointerEvents = "";
     };
-    clearLock();
-    const id = window.setTimeout(clearLock, 100);
-    return () => window.clearTimeout(id);
+    release();
+    const observer = new MutationObserver(release);
+    observer.observe(document.body, { attributes: true, attributeFilter: ["style"] });
+    const interval = window.setInterval(release, 500);
+    return () => {
+      observer.disconnect();
+      window.clearInterval(interval);
+    };
   }, []);
+
 
   // Only Coach, Préparateur physique and Médecin (+ owners/super_admin) can customize.
   const STAFF_ROLES = new Set([
@@ -97,6 +118,16 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   });
 
   const isFeminine = category?.gender === "feminine";
+
+  const { data: painConfig } = usePainConfig(categoryId);
+  const scale = (painConfig ?? DEFAULT_PAIN_CONFIG).scale;
+  /** Look up the configured color for an integer score 1..5. */
+  const styleFor = (value: number | null | undefined) => {
+    if (value == null) return {} as CSSProperties;
+    const rounded = Math.max(1, Math.min(5, Math.round(value)));
+    return getScaleStyle(scale.find((s) => s.value === rounded)?.color);
+  };
+
 
   const { data: wellnessData, isLoading } = useQuery({
     queryKey: ["wellness_tracking", categoryId],
@@ -312,37 +343,37 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                         {format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: fr })}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={getScoreBadgeClass(entry.sleep_quality)}>
+                        <Badge variant="outline" style={styleFor(entry.sleep_quality)}>
                           {entry.sleep_quality}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={getScoreBadgeClass(entry.sleep_duration)}>
+                        <Badge variant="outline" style={styleFor(entry.sleep_duration)}>
                           {sleepScoreLabel(entry.sleep_duration)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={getScoreBadgeClass(entry.general_fatigue)}>
+                        <Badge variant="outline" style={styleFor(entry.general_fatigue)}>
                           {entry.general_fatigue}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={getScoreBadgeClass(entry.stress_level)}>
+                        <Badge variant="outline" style={styleFor(entry.stress_level)}>
                           {entry.stress_level}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={getScoreBadgeClass(entry.soreness_upper_body)}>
+                        <Badge variant="outline" style={styleFor(entry.soreness_upper_body)}>
                           {entry.soreness_upper_body}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={getScoreBadgeClass(entry.soreness_lower_body)}>
+                        <Badge variant="outline" style={styleFor(entry.soreness_lower_body)}>
                           {entry.soreness_lower_body}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className={getScoreBadgeClass(parseFloat(calculateWellnessScore(entry)))}>
+                        <Badge variant="outline" style={styleFor(parseFloat(calculateWellnessScore(entry)))}>
                           {calculateWellnessScore(entry)}
                         </Badge>
                       </TableCell>
