@@ -60,27 +60,10 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   const { isViewer } = useViewerModeContext();
   const { userRole } = useMenuPermissions(undefined, categoryId);
 
-  // Robust fix for Radix pointer-events:none lock that can stick on body when
-  // multiple Popover/Select/Dialog overlays open & close in quick succession.
-  // We watch body's style attribute and clear the lock whenever no overlay
-  // is actually open in the DOM (so we don't break legitimate locks).
-  useEffect(() => {
-    const release = () => {
-      if (document.body.style.pointerEvents !== "none") return;
-      const stillOpen = document.querySelector(
-        '[data-state="open"][role="dialog"], [data-state="open"][role="menu"], [data-state="open"][role="listbox"]'
-      );
-      if (!stillOpen) document.body.style.pointerEvents = "";
-    };
-    release();
-    const observer = new MutationObserver(release);
-    observer.observe(document.body, { attributes: true, attributeFilter: ["style"] });
-    const interval = window.setInterval(release, 500);
-    return () => {
-      observer.disconnect();
-      window.clearInterval(interval);
-    };
-  }, []);
+  // Global Radix pointer-events:none lock recovery is handled in App via
+  // useRadixPointerEventsGuard.
+
+
 
 
   // Only Coach, Préparateur physique and Médecin (+ owners/super_admin) can customize.
