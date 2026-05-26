@@ -227,11 +227,15 @@ import { EmailMonitoring } from "@/components/super-admin/EmailMonitoring";
                   <SecurityCenter />
                 </TabsContent>
 
-                <TabsContent value="archives">
-                  <SuperAdminArchives />
-                </TabsContent>
-           </Tabs>
-       </div>
-     </div>
-   );
- }
+                 <TabsContent value="emails">
+                   <EmailMonitoring />
+                 </TabsContent>
+
+                 <TabsContent value="archives">
+                   <SuperAdminArchives />
+                 </TabsContent>
+            </Tabs>
+        </div>
+      </div>
+    );
+  }
