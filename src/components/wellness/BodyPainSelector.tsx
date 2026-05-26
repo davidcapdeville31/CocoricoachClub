@@ -144,10 +144,10 @@ function BodyDots({
             aria-label={r.label}
             className={cn(
               "absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition-all",
-              "hover:scale-150 hover:z-10 ring-2 ring-white shadow-md",
+              "hover:scale-150 hover:z-10 ring-1 ring-white/80 shadow-sm",
               isSelected
-                ? "h-5 w-5 ring-foreground shadow-lg z-20"
-                : "h-3.5 w-3.5 bg-primary hover:bg-primary/80",
+                ? "h-3 w-3 ring-foreground shadow-md z-20"
+                : "h-2 w-2 bg-primary hover:bg-primary/80",
             )}
             style={{
               left: `${r.cx}%`,
