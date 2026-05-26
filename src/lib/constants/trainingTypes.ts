@@ -758,10 +758,15 @@ export const TRAINING_TYPE_LABELS: Record<string, string> = {
   judo_newaza: "Ne-waza (Sol)",
   judo_kata: "Kata",
   // Bowling specific
-  bowling_practice: "Pratique Libre",
   bowling_technique: "Travail Technique",
-  bowling_spare: "Bowling Spare",
+  bowling_tactique: "Travail Tactique",
+  bowling_parties: "Parties d'Entraînement",
+  // Legacy bowling labels mapped to their new parent label
+  bowling_practice: "Travail Technique",
+  bowling_spare: "Travail Technique",
   bowling_game: "Parties d'Entraînement",
+  bowling_approche: "Travail Technique",
+  bowling_release: "Travail Technique",
   // Athlétisme specific - Sprint
   athle_vitesse: "Travail de Vitesse",
   athle_departs: "Travail Départs (Blocs)",
