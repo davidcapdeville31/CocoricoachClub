@@ -42,7 +42,7 @@ const getScoreBadgeClass = (score: number) => {
 };
 
 /** Build an inline style from a customizable pain scale color (hsl(...) string). */
-const getScaleStyle = (color: string | undefined): React.CSSProperties => {
+const getScaleStyle = (color: string | undefined): CSSProperties => {
   if (!color) return {};
   return {
     backgroundColor: `color-mix(in hsl, ${color} 18%, transparent)`,
@@ -123,7 +123,7 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   const scale = (painConfig ?? DEFAULT_PAIN_CONFIG).scale;
   /** Look up the configured color for an integer score 1..5. */
   const styleFor = (value: number | null | undefined) => {
-    if (value == null) return {} as React.CSSProperties;
+    if (value == null) return {} as CSSProperties;
     const rounded = Math.max(1, Math.min(5, Math.round(value)));
     return getScaleStyle(scale.find((s) => s.value === rounded)?.color);
   };
