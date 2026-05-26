@@ -5,9 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, RotateCcw, Save, Trash2, Activity } from "lucide-react";
+import { Plus, RotateCcw, Save, Trash2, Activity, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { BodyPainSelector, type BodyPainValue } from "@/components/wellness/BodyPainSelector";
 import {
   DEFAULT_PAIN_CONFIG,
   mergePainConfig,
@@ -34,6 +35,7 @@ export function PainConfigEditor({ categoryId }: Props) {
   const queryClient = useQueryClient();
   const [config, setConfig] = useState<PainConfig>(DEFAULT_PAIN_CONFIG);
   const [dirty, setDirty] = useState(false);
+  const [previewValue, setPreviewValue] = useState<Partial<BodyPainValue>>({});
 
   const { data, isLoading } = useQuery({
     queryKey: ["wellness_pain_config_editor", categoryId],
@@ -215,6 +217,23 @@ export function PainConfigEditor({ categoryId }: Props) {
             <Plus className="h-4 w-4 mr-1.5" />
             Ajouter une nature
           </Button>
+        </div>
+
+        {/* Live preview */}
+        <div className="pt-4 border-t">
+          <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+            <Eye className="h-3.5 w-3.5" /> Aperçu interactif (vue athlète)
+          </Label>
+          <div className="rounded-xl border bg-muted/20 p-3">
+            <BodyPainSelector
+              value={previewValue}
+              onChange={setPreviewValue}
+              categoryId={categoryId}
+            />
+          </div>
+          <p className="text-[11px] text-muted-foreground italic mt-2">
+            Cliquez sur une zone du corps pour tester le rendu avec votre barème personnalisé. Enregistrez pour appliquer.
+          </p>
         </div>
       </CardContent>
     </Card>
