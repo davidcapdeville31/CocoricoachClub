@@ -51,14 +51,6 @@ const ballField: BowlingExerciseField = {
   help: "L'athlète choisira la(les) boule(s) précise(s) depuis son arsenal au moment de la séance",
 };
 
-// ─── Champs communs réutilisables ─────────────────────────────────────────────
-const ballField: BowlingExerciseField = {
-  key: "ball_choice",
-  label: "Choix de la boule",
-  type: "ball",
-  help: "Sélectionne 1, 2 ou + boules depuis l'arsenal de l'athlète",
-};
-
 const oilField: BowlingExerciseField = {
   key: "oil_pattern_id",
   label: "Huilage",
