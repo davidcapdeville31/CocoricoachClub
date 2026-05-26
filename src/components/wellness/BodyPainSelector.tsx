@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { usePainConfig, type PainConfig } from "@/lib/wellness/questionConfig";
+import { usePainConfig, DEFAULT_PAIN_CONFIG, type PainConfig } from "@/lib/wellness/questionConfig";
 
 export type BodyRegion = {
   id: string;
