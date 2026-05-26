@@ -487,6 +487,14 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
             Statistiques des blessures
           </CardTitle>
           <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleExportExcel} className="gap-1">
+              <FileSpreadsheet className="h-4 w-4" />
+              <span className="hidden sm:inline">Excel</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportPdf} className="gap-1">
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">PDF</span>
+            </Button>
             <Select value={period} onValueChange={(v) => setPeriod(v as PeriodKey)}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue />
