@@ -310,30 +310,40 @@ serve(async (req: Request) => {
         const emails = profiles?.filter((p) => p.email).map((p) => p.email!) || [];
 
         if (emails.length > 0) {
-          try {
-            const emailHtml = buildEmailHtml(title, message, event_details);
-            const res = await fetch("https://api.onesignal.com/notifications", {
-              method: "POST",
-              headers: { "Content-Type": "application/json", Authorization: `Key ${ONESIGNAL_REST_API_KEY}` },
-              body: JSON.stringify({
-                app_id: ONESIGNAL_APP_ID,
-                include_email_tokens: emails,
-                email_subject: title,
-                email_body: emailHtml,
-                email_from_name: "CocoriCoach",
-              }),
-            });
-            if (res.ok) {
-              results.emailsSent = emails.length;
-              console.log(`[send-targeted-notification] ✅ Emails sent to ${emails.length} recipient(s)`);
-            } else {
-              const err = await res.json();
-              console.error("[send-targeted-notification] ❌ Email error:", err);
-              results.errors.push(`Email: ${JSON.stringify(err)}`);
+          const ctaUrl = event_details?.url || "https://cocoricoachclub.com";
+          let extendedMessage = message;
+          if (event_details?.date) extendedMessage += `\n\n📅 ${event_details.date}`;
+          if (event_details?.location) extendedMessage += `\n📍 ${event_details.location}`;
+
+          for (const recipient of emails) {
+            try {
+              const { error: emailError } = await supabase.functions.invoke(
+                "send-transactional-email",
+                {
+                  body: {
+                    templateName: "app-notification",
+                    recipientEmail: recipient,
+                    idempotencyKey: `targeted-notif-${recipient}-${Date.now()}`,
+                    templateData: {
+                      title,
+                      message: extendedMessage,
+                      ctaLabel: "Ouvrir l'application",
+                      ctaUrl,
+                    },
+                  },
+                }
+              );
+              if (emailError) {
+                console.error("[send-targeted-notification] ❌ Email error:", emailError);
+                results.errors.push(`Email (${recipient}): ${emailError.message ?? String(emailError)}`);
+              } else {
+                results.emailsSent = (results.emailsSent || 0) + 1;
+              }
+            } catch (e: unknown) {
+              results.errors.push(`Email error (${recipient}): ${e instanceof Error ? e.message : String(e)}`);
             }
-          } catch (e: unknown) {
-            results.errors.push(`Email error: ${e instanceof Error ? e.message : String(e)}`);
           }
+          console.log(`[send-targeted-notification] ✅ Emails enqueued for ${results.emailsSent} recipient(s)`);
         }
       }
     }
