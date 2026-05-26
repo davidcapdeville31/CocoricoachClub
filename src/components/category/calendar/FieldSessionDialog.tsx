@@ -223,7 +223,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
       .map((t) => ({ value: t, label: t }))
       .filter(filterOut)
       .filter((o) => (seen.has(o.value) ? false : (seen.add(o.value), true)));
-    if (customs.length) groups.push({ label: "Personnalisées", options: customs));
+    if (customs.length) groups.push({ label: "Personnalisées", options: customs });
     return groups;
   }, [sportType, customThemes, isBowling]);
 
