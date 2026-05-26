@@ -36,6 +36,7 @@ interface PlayerRisk {
 export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) {
   const today = new Date();
   const weekAgo = subDays(today, 7);
+  const { data: questionsConfig } = useWellnessQuestions(categoryId);
 
   // Fetch players
   const { data: players } = useQuery({
