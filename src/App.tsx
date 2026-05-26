@@ -45,6 +45,7 @@ import PolitiqueCookies from "./pages/legal/PolitiqueCookies";
 import UnsubscribePage from "./pages/Unsubscribe";
 import { CookieConsentBanner } from "./components/legal/CookieConsentBanner";
 import { MaintenanceGate } from "./components/MaintenanceGate";
+import { useRadixPointerEventsGuard } from "@/hooks/useRadixPointerEventsGuard";
 
 // Auth wrapper component that allows public access
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -140,10 +141,16 @@ function PreviewCacheGuard() {
   return null;
 }
 
+function GlobalGuards() {
+  useRadixPointerEventsGuard();
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <FieldModeProvider>
+        <GlobalGuards />
         <Toaster />
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
