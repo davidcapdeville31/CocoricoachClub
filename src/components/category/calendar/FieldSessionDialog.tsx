@@ -117,12 +117,15 @@ const saveCustomThemes = (categoryId: string, themes: string[]) => {
   }
 };
 
-const BOWLING_PRECISION_EXERCISES = [
-  { value: "quille_7", label: "Quille 7" },
-  { value: "quille_10", label: "Quille 10" },
-  { value: "spares", label: "Spares (général)" },
-  { value: "poche", label: "Poche" },
-];
+import {
+  BOWLING_PARENT_VALUES,
+  BOWLING_PARENT_LABELS,
+  normalizeBowlingType,
+  encodeBowlingDtnMeta,
+  decodeBowlingDtnMeta,
+  type BowlingParent,
+} from "@/lib/constants/bowlingExercises";
+import { BowlingExerciseVariables } from "@/components/bowling/BowlingExerciseVariables";
 
 const isBowlingSport = (sport?: string) =>
   !!sport && sport.toLowerCase().startsWith("bowling");
