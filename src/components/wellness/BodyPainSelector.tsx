@@ -212,7 +212,7 @@ export function BodyPainSelector({ value, onChange, categoryId, compact }: Props
     <div className={cn("space-y-3", compact && "space-y-2")}>
       {/* Body diagrams */}
       <div className="grid grid-cols-2 gap-0 bg-gradient-to-b from-surface-sunken/60 to-surface-sunken/20 rounded-2xl border p-2 shadow-inner">
-        <div className="relative aspect-[3/5] mx-auto w-full max-w-[320px]">
+        <div className="relative aspect-square mx-auto w-full max-w-[320px]">
           <div className="absolute top-1 left-1 z-10 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Face
           </div>
@@ -227,7 +227,7 @@ export function BodyPainSelector({ value, onChange, categoryId, compact }: Props
             />
           </div>
         </div>
-        <div className="relative aspect-[3/5] mx-auto w-full max-w-[320px]">
+        <div className="relative aspect-square mx-auto w-full max-w-[320px]">
           <div className="absolute top-1 left-1 z-10 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Dos
           </div>
