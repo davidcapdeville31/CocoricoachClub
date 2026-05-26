@@ -91,138 +91,16 @@ interface Props {
   compact?: boolean;
 }
 
-// Anatomical body silhouette (stylised muscular reference, viewBox 100x100)
+// Realistic anatomical body silhouette using high-quality medical illustrations
 function BodySilhouette({ side }: { side: "front" | "back" }) {
-  const gradId = `bodyGrad-${side}`;
-  const shadeId = `bodyShade-${side}`;
-  const skin = "hsl(28 38% 72%)";
-  const skinDark = "hsl(22 35% 58%)";
-  const muscleLine = "hsl(22 40% 38% / 0.45)";
-
   return (
-    <svg
-      viewBox="0 0 100 100"
-      preserveAspectRatio="xMidYMid meet"
-      className="absolute inset-0 h-full w-full pointer-events-none"
-    >
-      <defs>
-        <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={skin} />
-          <stop offset="100%" stopColor={skinDark} />
-        </linearGradient>
-        <radialGradient id={shadeId} cx="0.5" cy="0.4" r="0.7">
-          <stop offset="60%" stopColor="transparent" />
-          <stop offset="100%" stopColor="hsl(22 40% 25% / 0.35)" />
-        </radialGradient>
-      </defs>
-
-      {/* ===== Head ===== */}
-      <ellipse cx="50" cy="6.5" rx="5" ry="6" fill={`url(#${gradId})`} stroke={skinDark} strokeWidth="0.3" />
-      {/* Neck */}
-      <path d="M46.5,11 Q50,13.5 53.5,11 L54,15 Q50,16.5 46,15 Z" fill={`url(#${gradId})`} stroke={skinDark} strokeWidth="0.3" />
-
-      {/* ===== Torso ===== */}
-      {/* Shoulders + ribcage + waist outline */}
-      <path
-        d="M34,16 Q40,15 50,15 Q60,15 66,16 L72,21 Q74,28 73,36 L70,42 Q68,46 64,48 L36,48 Q32,46 30,42 L27,36 Q26,28 28,21 Z"
-        fill={`url(#${gradId})`}
-        stroke={skinDark}
-        strokeWidth="0.4"
-      />
-
-      {/* Deltoids */}
-      <ellipse cx="30" cy="20" rx="4.5" ry="3.5" fill={skinDark} opacity="0.35" />
-      <ellipse cx="70" cy="20" rx="4.5" ry="3.5" fill={skinDark} opacity="0.35" />
-
-      {side === "front" ? (
-        <>
-          {/* Pectorals */}
-          <path d="M40,21 Q44,20 49,21 L49,29 Q44,30 39,28 Z" fill="none" stroke={muscleLine} strokeWidth="0.4" />
-          <path d="M60,21 Q56,20 51,21 L51,29 Q56,30 61,28 Z" fill="none" stroke={muscleLine} strokeWidth="0.4" />
-          {/* Sternum line */}
-          <line x1="50" y1="21" x2="50" y2="32" stroke={muscleLine} strokeWidth="0.4" />
-          {/* Abs grid */}
-          <path d="M44,32 L56,32 M44,36 L56,36 M44,40 L56,40 M50,32 L50,44" stroke={muscleLine} strokeWidth="0.4" fill="none" />
-          {/* Obliques */}
-          <path d="M40,32 Q38,38 42,44" stroke={muscleLine} strokeWidth="0.4" fill="none" />
-          <path d="M60,32 Q62,38 58,44" stroke={muscleLine} strokeWidth="0.4" fill="none" />
-        </>
-      ) : (
-        <>
-          {/* Spine */}
-          <line x1="50" y1="17" x2="50" y2="46" stroke={muscleLine} strokeWidth="0.5" />
-          {/* Trapezius */}
-          <path d="M40,16 Q50,22 60,16" stroke={muscleLine} strokeWidth="0.5" fill="none" />
-          {/* Lat lines */}
-          <path d="M32,24 Q36,34 42,40" stroke={muscleLine} strokeWidth="0.4" fill="none" />
-          <path d="M68,24 Q64,34 58,40" stroke={muscleLine} strokeWidth="0.4" fill="none" />
-          {/* Lower back dimples */}
-          <circle cx="46" cy="44" r="0.6" fill={muscleLine} />
-          <circle cx="54" cy="44" r="0.6" fill={muscleLine} />
-        </>
-      )}
-
-      {/* ===== Arms ===== */}
-      {/* Upper arm L */}
-      <path d="M27,21 Q22,24 21,32 L24,38 Q27,35 28,28 Z" fill={`url(#${gradId})`} stroke={skinDark} strokeWidth="0.3" />
-      {/* Upper arm R */}
-      <path d="M73,21 Q78,24 79,32 L76,38 Q73,35 72,28 Z" fill={`url(#${gradId})`} stroke={skinDark} strokeWidth="0.3" />
-      {/* Forearm L */}
-      <path d="M21,32 Q19,40 19,48 L23,49 Q24,40 24,38 Z" fill={`url(#${gradId})`} stroke={skinDark} strokeWidth="0.3" />
-      {/* Forearm R */}
-      <path d="M79,32 Q81,40 81,48 L77,49 Q76,40 76,38 Z" fill={`url(#${gradId})`} stroke={skinDark} strokeWidth="0.3" />
-      {/* Hands */}
-      <ellipse cx="21" cy="52" rx="2.4" ry="3" fill={`url(#${gradId})`} stroke={skinDark} strokeWidth="0.3" />
-      <ellipse cx="79" cy="52" rx="2.4" ry="3" fill={`url(#${gradId})`} stroke={skinDark} strokeWidth="0.3" />
-      {/* Biceps/triceps subtle line */}
-      <path d="M24,24 Q25,30 26,34" stroke={muscleLine} strokeWidth="0.3" fill="none" />
-      <path d="M76,24 Q75,30 74,34" stroke={muscleLine} strokeWidth="0.3" fill="none" />
-
-      {/* ===== Pelvis ===== */}
-      <path d="M34,46 Q50,52 66,46 L64,54 Q50,57 36,54 Z" fill={`url(#${gradId})`} stroke={skinDark} strokeWidth="0.3" />
-      {side === "front" && (
-        <path d="M44,50 Q50,54 56,50" stroke={muscleLine} strokeWidth="0.4" fill="none" />
-      )}
-
-      {/* ===== Legs ===== */}
-      {/* Thigh L */}
-      <path d="M36,53 Q34,62 36,72 L43,73 Q44,62 44,54 Z" fill={`url(#${gradId})`} stroke={skinDark} strokeWidth="0.3" />
-      {/* Thigh R */}
-      <path d="M64,53 Q66,62 64,72 L57,73 Q56,62 56,54 Z" fill={`url(#${gradId})`} stroke={skinDark} strokeWidth="0.3" />
-      {side === "front" ? (
-        <>
-          {/* Quad lines */}
-          <path d="M40,57 Q40,65 42,72" stroke={muscleLine} strokeWidth="0.4" fill="none" />
-          <path d="M60,57 Q60,65 58,72" stroke={muscleLine} strokeWidth="0.4" fill="none" />
-        </>
-      ) : (
-        <>
-          {/* Hamstring */}
-          <path d="M40,57 Q39,65 41,72" stroke={muscleLine} strokeWidth="0.4" fill="none" />
-          <path d="M60,57 Q61,65 59,72" stroke={muscleLine} strokeWidth="0.4" fill="none" />
-        </>
-      )}
-      {/* Knees */}
-      <ellipse cx="40" cy="73" rx="3" ry="2" fill={skinDark} opacity="0.4" />
-      <ellipse cx="60" cy="73" rx="3" ry="2" fill={skinDark} opacity="0.4" />
-      {/* Calves */}
-      <path d="M37,74 Q35,84 38,92 L43,92 Q44,84 42,74 Z" fill={`url(#${gradId})`} stroke={skinDark} strokeWidth="0.3" />
-      <path d="M63,74 Q65,84 62,92 L57,92 Q56,84 58,74 Z" fill={`url(#${gradId})`} stroke={skinDark} strokeWidth="0.3" />
-      {side === "back" && (
-        <>
-          <path d="M40,78 Q40,84 41,90" stroke={muscleLine} strokeWidth="0.4" fill="none" />
-          <path d="M60,78 Q60,84 59,90" stroke={muscleLine} strokeWidth="0.4" fill="none" />
-        </>
-      )}
-      {/* Ankles + feet */}
-      <ellipse cx="40" cy="93" rx="2" ry="1.3" fill={skinDark} opacity="0.5" />
-      <ellipse cx="60" cy="93" rx="2" ry="1.3" fill={skinDark} opacity="0.5" />
-      <ellipse cx="40.5" cy="96.5" rx="3.5" ry="2.2" fill={`url(#${gradId})`} stroke={skinDark} strokeWidth="0.3" />
-      <ellipse cx="59.5" cy="96.5" rx="3.5" ry="2.2" fill={`url(#${gradId})`} stroke={skinDark} strokeWidth="0.3" />
-
-      {/* Global shading overlay */}
-      <rect x="0" y="0" width="100" height="100" fill={`url(#${shadeId})`} />
-    </svg>
+    <img
+      src={side === "front" ? bodyAnatomyFront : bodyAnatomyBack}
+      alt={side === "front" ? "Vue de face du corps humain" : "Vue de dos du corps humain"}
+      className="absolute inset-0 h-full w-full object-contain pointer-events-none select-none"
+      draggable={false}
+      loading="lazy"
+    />
   );
 }
 
