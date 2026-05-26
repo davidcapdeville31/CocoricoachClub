@@ -13910,6 +13910,7 @@ export type Database = {
           category_id: string
           created_at: string
           id: string
+          pain_config: Json | null
           questions: Json
           updated_at: string
         }
@@ -13917,6 +13918,7 @@ export type Database = {
           category_id: string
           created_at?: string
           id?: string
+          pain_config?: Json | null
           questions?: Json
           updated_at?: string
         }
@@ -13924,6 +13926,7 @@ export type Database = {
           category_id?: string
           created_at?: string
           id?: string
+          pain_config?: Json | null
           questions?: Json
           updated_at?: string
         }
@@ -13975,7 +13978,9 @@ export type Database = {
           has_specific_pain: boolean
           id: string
           notes: string | null
+          pain_intensity: number | null
           pain_location: string | null
+          pain_nature: string | null
           pain_zone: string | null
           player_id: string
           sleep_duration: number
@@ -13993,7 +13998,9 @@ export type Database = {
           has_specific_pain?: boolean
           id?: string
           notes?: string | null
+          pain_intensity?: number | null
           pain_location?: string | null
+          pain_nature?: string | null
           pain_zone?: string | null
           player_id: string
           sleep_duration: number
@@ -14011,7 +14018,9 @@ export type Database = {
           has_specific_pain?: boolean
           id?: string
           notes?: string | null
+          pain_intensity?: number | null
           pain_location?: string | null
+          pain_nature?: string | null
           pain_zone?: string | null
           player_id?: string
           sleep_duration?: number
