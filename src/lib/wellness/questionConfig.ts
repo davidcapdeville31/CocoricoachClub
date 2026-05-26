@@ -1,6 +1,76 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+// ---------------- Pain customization ----------------
+
+export type PainScaleLevel = {
+  value: number; // 1..5
+  label: string;
+  color: string;
+};
+
+export type PainNature = {
+  key: string;
+  label: string;
+  emoji?: string;
+};
+
+export type PainConfig = {
+  scale: PainScaleLevel[]; // length 5, 1 = légère → 5 = intense
+  natures: PainNature[];
+};
+
+export const DEFAULT_PAIN_NATURES: PainNature[] = [
+  { key: "musculaire", label: "Musculaire", emoji: "💪" },
+  { key: "articulaire", label: "Articulaire", emoji: "🦴" },
+  { key: "tendineuse", label: "Tendineuse", emoji: "🧵" },
+  { key: "ligamentaire", label: "Ligamentaire", emoji: "🪢" },
+  { key: "osseuse", label: "Osseuse", emoji: "🦴" },
+  { key: "nerveuse", label: "Nerveuse", emoji: "⚡" },
+  { key: "autre", label: "Autre", emoji: "❓" },
+];
+
+export const DEFAULT_PAIN_CONFIG: PainConfig = {
+  scale: [
+    { value: 1, label: "Très légère", color: "hsl(var(--status-optimal))" },
+    { value: 2, label: "Légère", color: "hsl(var(--status-optimal) / 0.7)" },
+    { value: 3, label: "Modérée", color: "hsl(var(--status-attention))" },
+    { value: 4, label: "Forte", color: "hsl(var(--status-critical) / 0.7)" },
+    { value: 5, label: "Intense / limitante", color: "hsl(var(--status-critical))" },
+  ],
+  natures: DEFAULT_PAIN_NATURES,
+};
+
+export function mergePainConfig(saved: Partial<PainConfig> | null | undefined): PainConfig {
+  if (!saved) return DEFAULT_PAIN_CONFIG;
+  return {
+    scale:
+      Array.isArray(saved.scale) && saved.scale.length === 5
+        ? saved.scale
+        : DEFAULT_PAIN_CONFIG.scale,
+    natures:
+      Array.isArray(saved.natures) && saved.natures.length > 0
+        ? saved.natures
+        : DEFAULT_PAIN_CONFIG.natures,
+  };
+}
+
+export function usePainConfig(categoryId: string | undefined) {
+  return useQuery({
+    queryKey: ["wellness_pain_config", categoryId],
+    enabled: !!categoryId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("wellness_question_configs")
+        .select("pain_config")
+        .eq("category_id", categoryId!)
+        .maybeSingle();
+      if (error) throw error;
+      return mergePainConfig((data?.pain_config as unknown as PainConfig) ?? null);
+    },
+  });
+}
+
 export type WellnessScaleLevel = {
   value: number;
   label: string;
