@@ -351,16 +351,20 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                           setTouched(prev => new Set(prev).add(q.key));
                         }}
                         className={cn(
-                          "h-7 sm:h-8 rounded text-xs sm:text-sm font-bold transition-all duration-150",
-                          "border active:scale-95",
-                          getWellnessButtonClasses(opt.value, q.inverted, isSelected),
+                          "h-7 sm:h-8 rounded text-xs sm:text-sm font-bold transition-all duration-150 border active:scale-95",
+                          isSelected ? "ring-2 ring-foreground/60 text-white shadow-md scale-105" : "text-foreground/80 hover:scale-105",
                         )}
+                        style={{
+                          backgroundColor: isSelected ? opt.color : `color-mix(in hsl, ${opt.color} 25%, transparent)`,
+                          borderColor: opt.color,
+                        }}
                       >
                         {opt.value}
                       </button>
                     );
                   })}
                 </div>
+
               </div>
             );
           })}
