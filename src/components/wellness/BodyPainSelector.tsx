@@ -66,7 +66,8 @@ const REGIONS: BodyRegion[] = [
   { id: "trapez", label: "Trapèzes", zone: "Haut du corps", side: "back", cx: 50, cy: 21 },
   { id: "shoulder_lb", label: "Épaule gauche", zone: "Haut du corps", side: "back", cx: 36, cy: 22 },
   { id: "shoulder_rb", label: "Épaule droite", zone: "Haut du corps", side: "back", cx: 64, cy: 22 },
-  { id: "upper_back", label: "Dos (haut) / Dorsaux", zone: "Haut du corps", side: "back", cx: 50, cy: 28 },
+  { id: "dorsal_l", label: "Dorsal gauche", zone: "Haut du corps", side: "back", cx: 43, cy: 29 },
+  { id: "dorsal_r", label: "Dorsal droit", zone: "Haut du corps", side: "back", cx: 57, cy: 29 },
   { id: "triceps_l", label: "Bras gauche (triceps)", zone: "Haut du corps", side: "back", cx: 30, cy: 30 },
   { id: "triceps_r", label: "Bras droit (triceps)", zone: "Haut du corps", side: "back", cx: 70, cy: 30 },
   { id: "elbow_l_b", label: "Coude gauche", zone: "Haut du corps", side: "back", cx: 27, cy: 38 },
@@ -142,11 +143,11 @@ function BodyDots({
             title={r.label}
             aria-label={r.label}
             className={cn(
-              "absolute -translate-x-1/2 -translate-y-1/2 rounded-full border transition-all",
-              "hover:scale-125 hover:z-10",
+              "absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition-all",
+              "hover:scale-150 hover:z-10 ring-2 ring-white shadow-md",
               isSelected
-                ? "h-5 w-5 ring-2 ring-foreground shadow-lg z-20"
-                : "h-3 w-3 border-white/80 bg-white/70 shadow-sm hover:bg-white",
+                ? "h-5 w-5 ring-foreground shadow-lg z-20"
+                : "h-3.5 w-3.5 bg-primary hover:bg-primary/80",
             )}
             style={{
               left: `${r.cx}%`,
