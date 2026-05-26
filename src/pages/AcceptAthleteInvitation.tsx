@@ -128,67 +128,36 @@ export default function AcceptAthleteInvitation() {
     setSubmitting(true);
 
     try {
-      // 1. Create the user account
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email: invitation.email,
-        password,
-        options: {
-          emailRedirectTo: getAppBaseUrl(),
-          data: {
-            is_athlete: true,
-            player_id: invitation.player_id,
-            club_id: invitation.club_id,
-            category_id: invitation.category_id,
-          },
-        },
-      });
-
-      if (signUpError) throw signUpError;
-
-      if (!authData.user) {
-        throw new Error("Erreur lors de la création du compte");
-      }
-
-      // 2. Accept invitation server-side (link player, add category member, update status)
-      const { data: acceptResult, error: acceptError } = await supabase.rpc(
-        "accept_athlete_invitation_signup",
-        { _token: token!, _user_id: authData.user.id }
+      // Single server-side call: creates a confirmed user, links player,
+      // adds category membership, and marks the invitation as accepted.
+      const { data, error: fnError } = await supabase.functions.invoke(
+        "accept-athlete-invitation-signup",
+        { body: { token, password } }
       );
 
-      if (acceptError) {
-        console.error("Error accepting invitation:", acceptError);
-      } else {
-        const result = acceptResult as any;
-        if (!result?.success) {
-          console.error("Accept invitation failed:", result?.error);
-        }
+      if (fnError) throw fnError;
+      const result = data as any;
+      if (!result?.success) {
+        throw new Error(result?.error || "Erreur lors de la création du compte");
       }
 
-      toast.success("Compte créé avec succès ! Bienvenue dans l'équipe 🏆");
-
-      // 4. Auto-login and redirect to athlete portal
+      // Auto sign-in with the freshly-confirmed credentials
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: invitation.email,
         password,
       });
 
       if (signInError) {
-        // If auto-login fails, redirect to auth page
-        navigate("/auth");
-      } else {
-        // Redirect to athlete space
-        navigate("/athlete-space");
+        toast.success("Compte créé ! Connecte-toi pour accéder à ton espace.");
+        navigate(`/auth?email=${encodeURIComponent(invitation.email)}`);
+        return;
       }
+
+      toast.success("Bienvenue dans l'équipe 🏆");
+      navigate("/athlete-space");
     } catch (err: any) {
       console.error("Error creating account:", err);
-      
-      if (err.message?.includes("already registered")) {
-        toast.error("Un compte existe déjà avec cet email. Connecte-toi pour finaliser l'invitation.");
-        const redirect = `/accept-athlete-invitation?token=${token}`;
-        navigate(`/auth?redirect=${encodeURIComponent(redirect)}`);
-      } else {
-        toast.error(err.message || "Erreur lors de la création du compte");
-      }
+      toast.error(err.message || "Erreur lors de la création du compte");
     } finally {
       setSubmitting(false);
     }
