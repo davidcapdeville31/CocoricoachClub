@@ -111,6 +111,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
     const queryClient = useQueryClient();
     const today = format(new Date(), "yyyy-MM-dd");
    const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
+   const { data: wellnessQuestionsCfg } = useWellnessQuestions(categoryId);
   const [editSessionOpen, setEditSessionOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<any>(null);
   const [editingAdminEvent, setEditingAdminEvent] = useState<any>(null);
