@@ -369,24 +369,28 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             );
           })}
 
-          <div className="flex items-center gap-2 pt-1">
-            <Checkbox checked={hasSpecificPain} onCheckedChange={(v) => {
-              setHasSpecificPain(!!v);
-              if (!v) { setPainData({}); }
-            }} />
-            <Label className="text-xs">J'ai une douleur spécifique</Label>
+          <div className="rounded-xl border bg-surface-sunken/50 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Checkbox checked={hasSpecificPain} onCheckedChange={(v) => {
+                setHasSpecificPain(!!v);
+                if (!v) { setPainData({}); }
+              }} />
+              <Label className="text-xs font-semibold">J'ai une douleur spécifique aujourd'hui</Label>
+            </div>
+            <p className="text-[10px] text-muted-foreground italic mb-2">
+              Cliquez sur une zone du corps pour la signaler (cochez la case ci-dessus si applicable).
+            </p>
+            <BodyPainSelector
+              value={painData}
+              onChange={(v) => {
+                setPainData(v);
+                if (v.region && !hasSpecificPain) setHasSpecificPain(true);
+              }}
+              categoryId={categoryId}
+              compact
+            />
           </div>
 
-          {hasSpecificPain && (
-            <div className="rounded-xl border bg-surface-sunken/50 p-3">
-              <BodyPainSelector
-                value={painData}
-                onChange={setPainData}
-                categoryId={categoryId}
-                compact
-              />
-            </div>
-          )}
 
           <div>
             <Label className="text-xs">Notes (optionnel)</Label>
