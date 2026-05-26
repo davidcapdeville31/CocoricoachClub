@@ -109,6 +109,16 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
 
   const isFeminine = category?.gender === "feminine";
 
+  const { data: painConfig } = usePainConfig(categoryId);
+  const scale = (painConfig ?? DEFAULT_PAIN_CONFIG).scale;
+  /** Look up the configured color for an integer score 1..5. */
+  const styleFor = (value: number | null | undefined) => {
+    if (value == null) return {} as React.CSSProperties;
+    const rounded = Math.max(1, Math.min(5, Math.round(value)));
+    return getScaleStyle(scale.find((s) => s.value === rounded)?.color);
+  };
+
+
   const { data: wellnessData, isLoading } = useQuery({
     queryKey: ["wellness_tracking", categoryId],
     queryFn: async () => {
