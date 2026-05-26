@@ -22,6 +22,7 @@ import { InjuryRiskAssessment } from "./InjuryRiskAssessment";
 import { MenstrualCycleSection } from "./MenstrualCycleSection";
 import { WellnessPainStats } from "./WellnessPainStats";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
+import { useMenuPermissions } from "@/hooks/useMenuPermissions";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -46,6 +47,22 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   const [filterTo, setFilterTo] = useState<Date | undefined>(new Date());
   const [filterPlayerId, setFilterPlayerId] = useState<string>("all");
   const { isViewer } = useViewerModeContext();
+  const { userRole } = useMenuPermissions(undefined, categoryId);
+  // Staff roles allowed to customize wellness (button visibility).
+  // We rely on the role hook so that Prepa physique / Doctor / Admin / Coach all see it,
+  // even if ViewerModeContext momentarily flags them while membership data is loading.
+  const STAFF_ROLES = new Set([
+    "owner",
+    "super_admin",
+    "admin",
+    "coach",
+    "prepa_physique",
+    "doctor",
+    "physio",
+    "mental_coach",
+    "administratif",
+  ]);
+  const canCustomize = !isViewer && (!userRole || STAFF_ROLES.has(userRole));
 
   useRealtimeSync({
     tables: ["wellness_tracking"],
@@ -139,9 +156,13 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
         )}
 
         <TabsContent value="tracking" className="space-y-4">
-          {!isViewer && (
+          {canCustomize && (
             <div className="flex justify-center">
-              <Button variant="outline" onClick={() => setIsCustomizeOpen(true)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsCustomizeOpen(true)}
+                title="Personnaliser les questions, le barème et les natures de douleur"
+              >
                 <Settings2 className="h-4 w-4 mr-2" />
                 Personnaliser Wellness
               </Button>

@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { usePainConfig, type PainConfig } from "@/lib/wellness/questionConfig";
+import { usePainConfig, DEFAULT_PAIN_CONFIG, type PainConfig } from "@/lib/wellness/questionConfig";
 
 export type BodyRegion = {
   id: string;
@@ -155,10 +155,8 @@ function BodyDots({
 
 export function BodyPainSelector({ value, onChange, categoryId, compact }: Props) {
   const { data: painConfig } = usePainConfig(categoryId);
-  const config: PainConfig = painConfig ?? {
-    scale: [],
-    natures: [],
-  };
+  // Fallback to defaults while loading so the UI (intensity 1-5 + natures) is always interactive.
+  const config: PainConfig = painConfig ?? DEFAULT_PAIN_CONFIG;
 
   const [selectedRegionId, setSelectedRegionId] = useState<string | undefined>();
 
