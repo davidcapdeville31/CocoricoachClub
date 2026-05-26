@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { subDays } from "date-fns";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
@@ -48,6 +48,20 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   const [filterPlayerId, setFilterPlayerId] = useState<string>("all");
   const { isViewer } = useViewerModeContext();
   const { userRole } = useMenuPermissions(undefined, categoryId);
+
+  // Fix Radix bug: pointer-events:none can stay stuck on body after a dialog/popover
+  // is unmounted during its close animation (e.g. when navigating back to categories).
+  useEffect(() => {
+    const clearLock = () => {
+      if (document.body.style.pointerEvents === "none") {
+        document.body.style.pointerEvents = "";
+      }
+    };
+    clearLock();
+    const id = window.setTimeout(clearLock, 100);
+    return () => window.clearTimeout(id);
+  }, []);
+
   // Only Coach, Préparateur physique and Médecin (+ owners/super_admin) can customize.
   const STAFF_ROLES = new Set([
     "owner",
