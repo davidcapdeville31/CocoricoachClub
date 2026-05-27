@@ -146,17 +146,17 @@ function BodyDots({
             aria-label={r.label}
             className={cn(
               "absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition-all",
-              "hover:scale-150 hover:z-10 ring-2 ring-white shadow-sm",
+              "hover:scale-150 hover:z-10 ring-2 ring-white shadow-[0_0_0_1px_rgba(0,0,0,0.4)]",
               isSelected
-                ? "h-3.5 w-3.5 ring-foreground shadow-md z-20"
-                : "h-2.5 w-2.5 hover:opacity-80",
+                ? "h-4 w-4 ring-foreground shadow-md z-20"
+                : "h-3 w-3 hover:opacity-90",
             )}
             style={{
               left: `${r.cx}%`,
               top: `${r.cy}%`,
-              // Fixed dark navy independent from club branding so dots stay visible
-              // on every theme/skin (the primary token can be overridden by club branding).
-              backgroundColor: isSelected ? intensityColor : "hsl(222, 47%, 18%)",
+              // Bright red dot with white ring + dark outline so it stays visible on
+              // any silhouette tone and any club branding theme.
+              backgroundColor: isSelected ? intensityColor : "#dc2626",
             }}
           >
             {isSelected && (
