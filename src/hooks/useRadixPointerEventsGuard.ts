@@ -21,10 +21,14 @@ import { useEffect } from "react";
  */
 export function useRadixPointerEventsGuard() {
   useEffect(() => {
+    // Only true modal overlays should keep <body> pointer-events locked.
+    // Tooltips, menus, popovers and listboxes never need a body lock and
+    // are the main source of stuck pointer-events after rapid tab switches.
     const isOverlayOpen = () =>
       !!document.querySelector(
-        '[data-state="open"][role="dialog"], [data-state="open"][role="menu"], [data-state="open"][role="listbox"], [data-state="open"][role="alertdialog"], [data-state="open"][role="tooltip"]'
+        '[data-state="open"][role="dialog"][aria-modal="true"], [data-state="open"][role="alertdialog"]'
       );
+
 
     const release = () => {
       if (document.body.style.pointerEvents !== "none") return;
