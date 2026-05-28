@@ -141,15 +141,31 @@ function CategoryDetailsContent() {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = searchParams.get("tab") || "overview";
-  const handleTabChange = (value: string) => {
-    if (value === "overview") {
-      searchParams.delete("tab");
-    } else {
-      searchParams.set("tab", value);
-    }
-    setSearchParams(searchParams, { replace: true });
-  };
+  const urlTab = searchParams.get("tab") || "overview";
+  const [activeTab, setActiveTab] = React.useState(urlTab);
+  const [, startTransition] = React.useTransition();
+
+  React.useEffect(() => {
+    setActiveTab((currentTab) => (currentTab === urlTab ? currentTab : urlTab));
+  }, [urlTab]);
+
+  const handleTabChange = React.useCallback((value: string) => {
+    setActiveTab((currentTab) => (currentTab === value ? currentTab : value));
+
+    startTransition(() => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+
+        if (value === "overview") {
+          next.delete("tab");
+        } else {
+          next.set("tab", value);
+        }
+
+        return next;
+      }, { replace: true });
+    });
+  }, [setSearchParams, startTransition]);
   const { isViewer } = useViewerModeContext();
   const { isPublicAccess, token, clubName: publicClubName, categoryName: publicCategoryName } = usePublicAccess();
   const { total: unreadMessagesCount } = useUnreadMessages(categoryId || "");
