@@ -24,12 +24,19 @@ export function useRadixPointerEventsGuard() {
     const release = () => {
       // Cheap early-out: most of the time body is not locked.
       if (document.body.style.pointerEvents !== "none") return;
-      // Preserve legitimate modal locks.
+      // Preserve legitimate modal locks (Dialog/AlertDialog/Sheet/Drawer with aria-modal).
       const hasOpenModal = document.querySelector(
         '[data-state="open"][role="dialog"][aria-modal="true"], [data-state="open"][role="alertdialog"]'
       );
       if (hasOpenModal) return;
       document.body.style.removeProperty("pointer-events");
+      // Some Radix variants also leave aria-hidden on root siblings — best-effort cleanup.
+      document.querySelectorAll('[data-aria-hidden="true"]').forEach((el) => {
+        if (!el.querySelector('[data-state="open"][aria-modal="true"]')) {
+          el.removeAttribute("aria-hidden");
+          el.removeAttribute("data-aria-hidden");
+        }
+      });
     };
 
     release();
@@ -44,10 +51,17 @@ export function useRadixPointerEventsGuard() {
     html.addEventListener("pointerdown", release, true);
     html.addEventListener("keydown", release, true);
 
+    // Low-frequency safety tick (1 s) — extremely cheap thanks to the early-out
+    // above. Catches edge cases where heavy React renders (Santé/Workload doctor
+    // views with many queries) delay the MutationObserver callback.
+    const interval = window.setInterval(release, 1000);
+
     return () => {
       observer.disconnect();
       html.removeEventListener("pointerdown", release, true);
       html.removeEventListener("keydown", release, true);
+      window.clearInterval(interval);
     };
   }, []);
 }
+
