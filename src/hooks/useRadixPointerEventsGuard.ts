@@ -44,12 +44,16 @@ export function useRadixPointerEventsGuard() {
     // MutationObserver catches the moment Radix flips the style.
     const observer = new MutationObserver(release);
     observer.observe(document.body, { attributes: true, attributeFilter: ["style"] });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["style"] });
 
     // <html> is never locked by Radix — pointerdown here always reaches us
     // and serves as a final user-gesture fallback to clear a stuck lock.
     const html = document.documentElement;
     html.addEventListener("pointerdown", release, true);
     html.addEventListener("keydown", release, true);
+    html.addEventListener("click", release, true);
+    window.addEventListener("focus", release);
+    document.addEventListener("visibilitychange", release);
 
     // Low-frequency safety tick (1 s) — extremely cheap thanks to the early-out
     // above. Catches edge cases where heavy React renders (Santé/Workload doctor
@@ -60,6 +64,9 @@ export function useRadixPointerEventsGuard() {
       observer.disconnect();
       html.removeEventListener("pointerdown", release, true);
       html.removeEventListener("keydown", release, true);
+      html.removeEventListener("click", release, true);
+      window.removeEventListener("focus", release);
+      document.removeEventListener("visibilitychange", release);
       window.clearInterval(interval);
     };
   }, []);
