@@ -21,43 +21,31 @@ import { useEffect } from "react";
  */
 export function useRadixPointerEventsGuard() {
   useEffect(() => {
-    // Only true modal overlays should keep <body> pointer-events locked.
-    // Tooltips, menus, popovers and listboxes never need a body lock and
-    // are the main source of stuck pointer-events after rapid tab switches.
-    const isOverlayOpen = () =>
-      !!document.querySelector(
+    const release = () => {
+      // Cheap early-out: most of the time body is not locked.
+      if (document.body.style.pointerEvents !== "none") return;
+      // Preserve legitimate modal locks.
+      const hasOpenModal = document.querySelector(
         '[data-state="open"][role="dialog"][aria-modal="true"], [data-state="open"][role="alertdialog"]'
       );
-
-
-    const release = () => {
-      if (document.body.style.pointerEvents !== "none") return;
-      if (isOverlayOpen()) return;
-      document.body.style.pointerEvents = "";
+      if (hasOpenModal) return;
       document.body.style.removeProperty("pointer-events");
     };
 
     release();
 
+    // MutationObserver catches the moment Radix flips the style.
     const observer = new MutationObserver(release);
     observer.observe(document.body, { attributes: true, attributeFilter: ["style"] });
 
-    const interval = window.setInterval(release, 80);
-
-    // These fire on the document even when <body> has pointer-events:none.
-    document.addEventListener("animationend", release, true);
-    document.addEventListener("transitionend", release, true);
-
-    // <html> is never locked by Radix, so pointer events here always reach us.
+    // <html> is never locked by Radix — pointerdown here always reaches us
+    // and serves as a final user-gesture fallback to clear a stuck lock.
     const html = document.documentElement;
     html.addEventListener("pointerdown", release, true);
     html.addEventListener("keydown", release, true);
 
     return () => {
       observer.disconnect();
-      window.clearInterval(interval);
-      document.removeEventListener("animationend", release, true);
-      document.removeEventListener("transitionend", release, true);
       html.removeEventListener("pointerdown", release, true);
       html.removeEventListener("keydown", release, true);
     };
