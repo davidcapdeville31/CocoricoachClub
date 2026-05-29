@@ -6,10 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { BarChart3, Target, Trophy, CalendarIcon, Circle, Users, Download, FileSpreadsheet } from "lucide-react";
-import { format, isAfter, isBefore, startOfDay, endOfDay } from "date-fns";
+import { BarChart3, Target, Trophy, CalendarIcon, Circle, Users, Download, FileSpreadsheet, Activity, Clock, Wrench } from "lucide-react";
+import { format, isAfter, isBefore, startOfDay, endOfDay, startOfWeek, startOfMonth, startOfYear } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -19,6 +20,7 @@ import { SPARE_EXERCISE_TYPES } from "@/lib/constants/bowlingBallBrands";
 import { BowlingFrameAnalysis } from "./BowlingFrameAnalysis";
 import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, addFooter, downloadWorkbook } from "@/lib/excelExport";
 import { preparePdfWithSettings } from "@/lib/pdfExport";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import type { FrameData } from "@/components/athlete-portal/BowlingScoreSheet";
 
 interface BowlingTrainingStatsProps {
