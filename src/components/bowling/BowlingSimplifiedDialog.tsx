@@ -263,11 +263,12 @@ export function BowlingSimplifiedDialog({
               type="button"
               variant="outline"
               size="sm"
-              disabled
-              className="gap-2 opacity-60"
+              onClick={addGames}
+              className="gap-2"
             >
               <Plus className="h-4 w-4" />
-              Parties (à venir)
+              <Circle className="h-3.5 w-3.5 text-amber-600" />
+              Ajouter un bloc Parties
             </Button>
           </div>
         </div>
