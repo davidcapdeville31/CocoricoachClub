@@ -1,7 +1,7 @@
 // Types pour le mode simplifié de séance bowling.
 // Pour l'instant, état local uniquement — la persistance sera ajoutée plus tard.
 
-export type SimplifiedBlockType = "tactical" | "technical"; // d'autres types arriveront
+export type SimplifiedBlockType = "tactical" | "technical" | "games";
 
 export type SimplifiedTargetType =
   | "strike"
@@ -97,7 +97,32 @@ export interface SimplifiedTechnicalBlock {
   description: string;
 }
 
-export type SimplifiedBlock = SimplifiedTacticalBlock | SimplifiedTechnicalBlock;
+// ----- Bloc "Parties" (réutilise BowlingScoreSheet / BowlingStats) -----
+
+import type { FrameData, BowlingStats } from "@/components/athlete-portal/BowlingScoreSheet";
+
+export interface SimplifiedGameEntry {
+  id: string;
+  frames: FrameData[] | null;
+  stats: BowlingStats | null;
+  /** Boule utilisée pour cette partie. */
+  ball_id: string | null;
+}
+
+export interface SimplifiedGamesBlock {
+  id: string;
+  type: "games";
+  title: string;
+  /** Affiche/masque la colonne "poches" dans la feuille de partie. */
+  track_pockets: boolean;
+  oil_pattern: SimplifiedOilPattern;
+  parties: SimplifiedGameEntry[];
+}
+
+export type SimplifiedBlock =
+  | SimplifiedTacticalBlock
+  | SimplifiedTechnicalBlock
+  | SimplifiedGamesBlock;
 
 export const COMPOSED_SPARES: { value: ComposedSpareKey; label: string }[] = [
   { value: "6_10", label: "6-10" },
@@ -206,5 +231,63 @@ export function newTechnicalBlock(): SimplifiedTechnicalBlock {
     theme: "swing_axis",
     custom_theme: "",
     description: "",
+  };
+}
+
+export function newGameEntry(): SimplifiedGameEntry {
+  return { id: crypto.randomUUID(), frames: null, stats: null, ball_id: null };
+}
+
+export function newGamesBlock(): SimplifiedGamesBlock {
+  return {
+    id: crypto.randomUUID(),
+    type: "games",
+    title: "",
+    track_pockets: true,
+    oil_pattern: {
+      preset_name: null,
+      image_url: null,
+      length_feet: null,
+      buff_distance_feet: null,
+      width_boards: null,
+      total_volume_ml: null,
+      oil_ratio: null,
+      profile_type: null,
+      forward_oil: true,
+      reverse_oil: true,
+      outside_friction: null,
+    },
+    parties: [newGameEntry()],
+  };
+}
+
+/** Agrégat des stats sur toutes les parties du bloc Parties. */
+export function aggregateGamesStats(block: SimplifiedGamesBlock) {
+  const saved = block.parties.filter((p) => p.stats !== null);
+  if (saved.length === 0) return null;
+  const totalScore = saved.reduce((s, p) => s + (p.stats!.totalScore || 0), 0);
+  const strikes = saved.reduce((s, p) => s + (p.stats!.strikes || 0), 0);
+  const spares = saved.reduce((s, p) => s + (p.stats!.spares || 0), 0);
+  const splits = saved.reduce((s, p) => s + (p.stats!.splitCount || 0), 0);
+  const splitsConv = saved.reduce((s, p) => s + (p.stats!.splitConverted || 0), 0);
+  const singles = saved.reduce((s, p) => s + (p.stats!.singlePinCount || 0), 0);
+  const singlesConv = saved.reduce((s, p) => s + (p.stats!.singlePinConverted || 0), 0);
+  const pockets = saved.reduce((s, p) => s + (p.stats!.pocketCount || 0), 0);
+  const throws = saved.reduce((s, p) => s + (p.stats!.totalThrows || 0), 0);
+  const frames = saved.reduce((s, p) => s + (p.stats!.totalFrames || 0), 0);
+  return {
+    count: saved.length,
+    totalScore,
+    avgScore: Math.round((totalScore / saved.length) * 10) / 10,
+    strikes,
+    spares,
+    splits,
+    splitsConv,
+    singles,
+    singlesConv,
+    pockets,
+    pocketPct: throws > 0 ? Math.round((pockets / throws) * 100) : 0,
+    strikePct: frames > 0 ? Math.round((strikes / frames) * 100) : 0,
+    sparePct: frames > 0 ? Math.round((spares / frames) * 100) : 0,
   };
 }

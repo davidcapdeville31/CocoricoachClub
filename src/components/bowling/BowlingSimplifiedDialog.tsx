@@ -7,16 +7,18 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Plus, Target, Wrench, Save } from "lucide-react";
+import { Sparkles, Plus, Target, Wrench, Save, Circle } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { SimplifiedTacticalBlockEditor } from "./simplified/SimplifiedTacticalBlockEditor";
 import { SimplifiedTechnicalBlockEditor } from "./simplified/SimplifiedTechnicalBlockEditor";
+import { SimplifiedGamesBlockEditor } from "./simplified/SimplifiedGamesBlockEditor";
 import { LockedBlockSummary } from "./simplified/LockedBlockSummary";
 import {
   newTacticalBlock,
   newTechnicalBlock,
+  newGamesBlock,
   type SimplifiedBlock,
 } from "./simplified/types";
 
@@ -53,6 +55,11 @@ export function BowlingSimplifiedDialog({
     setBlocks((prev) => [...prev, b]);
   };
 
+  const addGames = () => {
+    const b = newGamesBlock();
+    setBlocks((prev) => [...prev, b]);
+  };
+
   const updateBlock = (id: string, next: SimplifiedBlock) =>
     setBlocks((prev) => prev.map((b) => (b.id === id ? next : b)));
 
@@ -66,12 +73,19 @@ export function BowlingSimplifiedDialog({
   };
 
   const validateBlock = (b: SimplifiedBlock): string | null => {
-    if (b.duration_min <= 0) return "La durée doit être supérieure à 0";
+    if (b.type === "tactical" || b.type === "technical") {
+      if (b.duration_min <= 0) return "La durée doit être supérieure à 0";
+    }
     if (b.type === "technical") {
       if (b.theme === "other" && !b.custom_theme?.trim())
         return "Précisez la thématique";
       if (!b.description.trim())
         return "Décrivez ce que vous avez travaillé";
+    }
+    if (b.type === "games") {
+      const saved = b.parties.filter((p) => p.stats !== null).length;
+      if (saved === 0)
+        return "Enregistrez au moins une partie avant de verrouiller le bloc";
     }
     return null;
   };
@@ -119,11 +133,14 @@ export function BowlingSimplifiedDialog({
   // Indices typés par bloc pour conserver la numérotation par catégorie
   const tacticalIndexById = new Map<string, number>();
   const technicalIndexById = new Map<string, number>();
+  const gamesIndexById = new Map<string, number>();
   let tCount = 0;
   let techCount = 0;
+  let gamesCount = 0;
   blocks.forEach((b) => {
     if (b.type === "tactical") tacticalIndexById.set(b.id, tCount++);
     if (b.type === "technical") technicalIndexById.set(b.id, techCount++);
+    if (b.type === "games") gamesIndexById.set(b.id, gamesCount++);
   });
 
   return (
@@ -180,10 +197,19 @@ export function BowlingSimplifiedDialog({
                   onChange={(next) => updateBlock(b.id, next)}
                   onRemove={() => removeBlock(b.id)}
                 />
-              ) : (
+              ) : b.type === "technical" ? (
                 <SimplifiedTechnicalBlockEditor
                   value={b}
                   index={technicalIndexById.get(b.id) ?? 0}
+                  categoryId={categoryId}
+                  playerId={athletePlayerId}
+                  onChange={(next) => updateBlock(b.id, next)}
+                  onRemove={() => removeBlock(b.id)}
+                />
+              ) : (
+                <SimplifiedGamesBlockEditor
+                  value={b}
+                  index={gamesIndexById.get(b.id) ?? 0}
                   categoryId={categoryId}
                   playerId={athletePlayerId}
                   onChange={(next) => updateBlock(b.id, next)}
@@ -237,11 +263,12 @@ export function BowlingSimplifiedDialog({
               type="button"
               variant="outline"
               size="sm"
-              disabled
-              className="gap-2 opacity-60"
+              onClick={addGames}
+              className="gap-2"
             >
               <Plus className="h-4 w-4" />
-              Parties (à venir)
+              <Circle className="h-3.5 w-3.5 text-amber-600" />
+              Ajouter un bloc Parties
             </Button>
           </div>
         </div>
