@@ -669,14 +669,10 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                     </div>
                     )}
                     {(BOWLING_PARENT_VALUES as readonly string[]).includes(b.theme) && (
-                      <BowlingExerciseVariables
+                      <BowlingBlockInlineEditor
                         parent={b.theme as BowlingParent}
-                        exerciseId={b.bowling_exercise_type || null}
-                        variables={b.bowling_dtn_variables || {}}
                         categoryId={categoryId}
-                        onExerciseChange={(id) =>
-                          updateBlock(b.id, { bowling_exercise_type: id || undefined })
-                        }
+                        variables={b.bowling_dtn_variables || {}}
                         onVariablesChange={(v) =>
                           updateBlock(b.id, { bowling_dtn_variables: v })
                         }
