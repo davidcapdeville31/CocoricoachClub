@@ -6,6 +6,7 @@ import {
   technicalThemeLabel,
   type SimplifiedBlock,
 } from "./types";
+import { getOilCategory } from "@/lib/constants/bowlingOilPatterns";
 
 interface Props {
   block: SimplifiedBlock;
