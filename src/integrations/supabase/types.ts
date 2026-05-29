@@ -9578,6 +9578,10 @@ export type Database = {
           birth_year: number | null
           bowling_axe_deg: number | null
           bowling_ball_speed: number | null
+          bowling_ball_weight_lbs: number | null
+          bowling_pap_h_inch: number | null
+          bowling_pap_v_inch: number | null
+          bowling_rpm: number | null
           bowling_tilt_deg: number | null
           category_id: string
           club_origin: string | null
@@ -9621,6 +9625,10 @@ export type Database = {
           birth_year?: number | null
           bowling_axe_deg?: number | null
           bowling_ball_speed?: number | null
+          bowling_ball_weight_lbs?: number | null
+          bowling_pap_h_inch?: number | null
+          bowling_pap_v_inch?: number | null
+          bowling_rpm?: number | null
           bowling_tilt_deg?: number | null
           category_id: string
           club_origin?: string | null
@@ -9664,6 +9672,10 @@ export type Database = {
           birth_year?: number | null
           bowling_axe_deg?: number | null
           bowling_ball_speed?: number | null
+          bowling_ball_weight_lbs?: number | null
+          bowling_pap_h_inch?: number | null
+          bowling_pap_v_inch?: number | null
+          bowling_rpm?: number | null
           bowling_tilt_deg?: number | null
           category_id?: string
           club_origin?: string | null
