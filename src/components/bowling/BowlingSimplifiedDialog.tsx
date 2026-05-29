@@ -102,8 +102,9 @@ export function BowlingSimplifiedDialog({
       .map((row: any) => row.config as SimplifiedBlock | null)
       .filter((b): b is SimplifiedBlock => !!b && !!b.type && !!b.id);
     setBlocks(restored);
-    // En édition on laisse tous les blocs déverrouillés pour que l'athlète puisse les remplir
-    setLockedIds(new Set());
+    // Les blocs déjà remplis sont verrouillés par défaut : l'athlète clique
+    // "Modifier" sur un bloc précis pour le déverrouiller.
+    setLockedIds(new Set(restored.map((b) => b.id)));
   }, [open, isEditMode, existingBlocks]);
 
 
