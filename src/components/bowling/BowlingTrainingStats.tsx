@@ -278,13 +278,17 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       buckets.set(key, cur);
     });
 
-    const chartData = Array.from(buckets.values()).sort((a, b) => a.order - b.order).map((b) => ({
-      label: b.label,
-      "Échauffement": Math.round(b.warmup * 10) / 10,
-      "Technique": Math.round(b.technical * 10) / 10,
-      "Tactique": Math.round(b.tactical * 10) / 10,
-      "Parties": Math.round(b.games * 10) / 10,
-    }));
+    const chartData = Array.from(buckets.values()).sort((a, b) => a.order - b.order).map((b) => {
+      const total = b.warmup + b.technical + b.tactical + b.games;
+      return {
+        label: b.label,
+        "Échauffement": Math.round(b.warmup * 10) / 10,
+        "Technique": Math.round(b.technical * 10) / 10,
+        "Tactique": Math.round(b.tactical * 10) / 10,
+        "Parties": Math.round(b.games * 10) / 10,
+        __total: total,
+      };
+    });
 
     return {
       sessionsCount: sessionIds.size,
