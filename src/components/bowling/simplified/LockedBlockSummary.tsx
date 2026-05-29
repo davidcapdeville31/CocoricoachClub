@@ -1,8 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Pencil, Trash2, Target, Wrench, Clock, CircleDot } from "lucide-react";
+import { CheckCircle2, Pencil, Trash2, Target, Wrench, Clock, CircleDot, Circle } from "lucide-react";
 import {
+  aggregateGamesStats,
   technicalThemeLabel,
   type SimplifiedBlock,
 } from "./types";
@@ -24,23 +25,38 @@ interface Props {
  */
 export function LockedBlockSummary({ block, index, categoryId, playerId, onEdit, onRemove }: Props) {
   const isTactical = block.type === "tactical";
-  const ballName = useBallName(playerId, categoryId, block.ball_id);
+  const isTechnical = block.type === "technical";
+  const isGames = block.type === "games";
+  const ballName = useBallName(
+    playerId,
+    categoryId,
+    (block as any).ball_id ?? null,
+  );
+
+  const iconBg = isTactical
+    ? "bg-blue-500/10"
+    : isTechnical
+    ? "bg-emerald-500/10"
+    : "bg-amber-500/10";
+  const Icon = isTactical ? Target : isTechnical ? Wrench : Circle;
+  const iconColor = isTactical
+    ? "text-blue-600"
+    : isTechnical
+    ? "text-emerald-600"
+    : "text-amber-600";
+  const typeLabel = isTactical ? "Tactique" : isTechnical ? "Technique" : "Parties";
 
   return (
     <Card className="rounded-2xl border-l-4 border-l-emerald-500 bg-surface p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <div className={`rounded-lg p-2 ${isTactical ? "bg-blue-500/10" : "bg-emerald-500/10"}`}>
-            {isTactical ? (
-              <Target className="h-4 w-4 text-blue-600" />
-            ) : (
-              <Wrench className="h-4 w-4 text-emerald-600" />
-            )}
+          <div className={`rounded-lg p-2 ${iconBg}`}>
+            <Icon className={`h-4 w-4 ${iconColor}`} />
           </div>
           <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Bloc {index + 1} · {isTactical ? "Tactique" : "Technique"}
+                Bloc {index + 1} · {typeLabel}
               </span>
               <Badge variant="secondary" className="gap-1 text-[10px]">
                 <CheckCircle2 className="h-3 w-3 text-emerald-600" />
@@ -54,10 +70,14 @@ export function LockedBlockSummary({ block, index, categoryId, playerId, onEdit,
               )}
             </div>
 
-            {isTactical ? (
+            {isTactical && (
               <TacticalSummary block={block as Extract<SimplifiedBlock, { type: "tactical" }>} />
-            ) : (
+            )}
+            {isTechnical && (
               <TechnicalSummary block={block as Extract<SimplifiedBlock, { type: "technical" }>} />
+            )}
+            {isGames && (
+              <GamesSummary block={block as Extract<SimplifiedBlock, { type: "games" }>} />
             )}
           </div>
         </div>
