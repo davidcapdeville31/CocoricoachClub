@@ -93,14 +93,14 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
     queryFn: async () => {
       const { data } = await supabase
         .from("player_bowling_arsenal")
-        .select("id, custom_name")
+        .select("id, custom_ball_name")
         .eq("player_id", playerId);
       return data || [];
     },
   });
 
   const [draft, setDraft] = useState<ThrowDraft>({});
-  const nextThrowNumber = (throws.at(-1)?.throw_number || 0) + 1;
+  const nextThrowNumber = (throws[throws.length-1]?.throw_number || 0) + 1;
   const target = block.planned_throws || 0;
   const progress = target > 0 ? Math.min(100, Math.round((throws.length / target) * 100)) : 0;
 
@@ -142,7 +142,7 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
 
   const removeLast = useMutation({
     mutationFn: async () => {
-      const last = throws.at(-1);
+      const last = throws[throws.length-1];
       if (!last) return;
       const { error } = await supabase.from("bowling_throw_results").delete().eq("id", last.id);
       if (error) throw error;
@@ -189,7 +189,7 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
             <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Choisir une boule" /></SelectTrigger>
             <SelectContent className="z-[100]">
               <SelectItem value="__none__" className="italic text-xs">Non renseigné</SelectItem>
-              {balls.map((b: any) => <SelectItem key={b.id} value={b.id} className="text-xs">{b.custom_name || "Boule"}</SelectItem>)}
+              {balls.map((b: any) => <SelectItem key={b.id} value={b.id} className="text-xs">{b.custom_ball_name || "Boule"}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>

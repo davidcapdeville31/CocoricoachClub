@@ -42,7 +42,7 @@ export function BowlingTrainingStatsPanel({ playerId, categoryId, from, to }: Pr
   const { data: balls = [] } = useQuery({
     queryKey: ["player_bowling_arsenal_names", playerId],
     queryFn: async () => {
-      const { data } = await supabase.from("player_bowling_arsenal").select("id, custom_name").eq("player_id", playerId);
+      const { data } = await supabase.from("player_bowling_arsenal").select("id, custom_ball_name").eq("player_id", playerId);
       return data || [];
     },
   });
@@ -53,7 +53,7 @@ export function BowlingTrainingStatsPanel({ playerId, categoryId, from, to }: Pr
   const k = computeKpis(throws);
   const zoneStats = statsByZone(throws, TACTICAL_ZONES).filter((z) => z.count > 0);
   const ballStats = statsByBall(throws);
-  const ballName = (id: string) => balls.find((b: any) => b.id === id)?.custom_name || "Boule";
+  const ballName = (id: string) => balls.find((b: any) => b.id === id)?.custom_ball_name || "Boule";
 
   return (
     <div className="space-y-4">
