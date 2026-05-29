@@ -546,7 +546,32 @@ function PlayerDetailsContent() {
 
           <TabsContent value="stats">
             {isBowling ? (
-              <BowlingCumulativeStats categoryId={player.category_id} playerId={playerId!} />
+              <Tabs defaultValue="competition" className="space-y-4">
+                <TabsList className="grid grid-cols-2 w-full bg-muted/40 rounded-xl p-1">
+                  <TabsTrigger
+                    value="competition"
+                    className="gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[hsl(340_82%_52%)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
+                    <Trophy className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Stats de compétition</span>
+                    <span className="sm:hidden">Compét.</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="training"
+                    className="gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[hsl(45_93%_47%)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
+                    <Target className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Stats d'entraînement</span>
+                    <span className="sm:hidden">Entr.</span>
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="competition">
+                  <BowlingCumulativeStats categoryId={player.category_id} playerId={playerId!} />
+                </TabsContent>
+                <TabsContent value="training">
+                  <BowlingTrainingStats categoryId={player.category_id} playerId={playerId!} />
+                </TabsContent>
+              </Tabs>
             ) : (
               <PlayerCumulativeStats
                 categoryId={player.category_id}
