@@ -202,9 +202,10 @@ export function CreateEventDialog({
   };
 
   const fieldSessionLabel = getFieldSessionLabel(categorySport);
-  const eventTypes = EVENT_TYPES.map(t =>
-    t.id === "field_session" ? { ...t, label: fieldSessionLabel } : t
-  );
+  const eventTypes = EVENT_TYPES
+    .filter((t) => !allowedTypeIds || allowedTypeIds.includes(t.id))
+    .map((t) => (t.id === "field_session" ? { ...t, label: fieldSessionLabel } : t));
+
 
   const resetForm = () => {
     setStep("type");
