@@ -841,6 +841,42 @@ export function BowlingAdvancedDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Runner lancer-par-lancer pour un bloc */}
+      {runnerBlockId && athletePlayerId && (() => {
+        const target = blocks.find((b) => b.id === runnerBlockId);
+        if (!target || target.kind !== "draft") return null;
+        const draft = target.draft;
+        const runnerBlock = {
+          id: target.id,
+          block_type: draft.block_type,
+          title: draft.title?.trim() || buildAutoTitle(draft),
+          planned_throws: draft.planned_throws,
+          objectives: draft.objectives || [],
+          config: draft.config || {},
+          pattern_id: draft.pattern_id ?? null,
+          coach_instruction: draft.coach_instruction || null,
+          athlete_id: athletePlayerId,
+          category_id: categoryId,
+        };
+        return (
+          <Dialog open onOpenChange={(o) => !o && setRunnerBlockId(null)}>
+            <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Saisie lancer-par-lancer · {runnerBlock.title}</DialogTitle>
+              </DialogHeader>
+              <BowlingBlockRunner
+                block={runnerBlock as any}
+                playerId={athletePlayerId}
+                categoryId={categoryId}
+                sessionDate={format(date, "yyyy-MM-dd")}
+                onClose={() => setRunnerBlockId(null)}
+              />
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
     </Dialog>
   );
+
 }
