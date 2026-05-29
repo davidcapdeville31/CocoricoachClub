@@ -174,6 +174,7 @@ export function BowlingSimplifiedDialog({
                   value={b}
                   index={tacticalIndexById.get(b.id) ?? 0}
                   categoryId={categoryId}
+                  playerId={athletePlayerId}
                   onChange={(next) => updateBlock(b.id, next)}
                   onRemove={() => removeBlock(b.id)}
                 />
@@ -181,6 +182,8 @@ export function BowlingSimplifiedDialog({
                 <SimplifiedTechnicalBlockEditor
                   value={b}
                   index={technicalIndexById.get(b.id) ?? 0}
+                  categoryId={categoryId}
+                  playerId={athletePlayerId}
                   onChange={(next) => updateBlock(b.id, next)}
                   onRemove={() => removeBlock(b.id)}
                 />
