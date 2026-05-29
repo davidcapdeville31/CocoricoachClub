@@ -32,6 +32,9 @@ import { resolveSessionExerciseRows } from "@/lib/utils/sessionExercises";
 import { BowlingTrainingEntryDialog } from "@/components/bowling/BowlingTrainingEntryDialog";
 import { BasketballTrainingEntryDialog } from "@/components/basketball/BasketballTrainingEntryDialog";
 import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
+import { CreateEventDialog } from "@/components/category/calendar/CreateEventDialog";
+import { FieldSessionDialog } from "@/components/category/calendar/FieldSessionDialog";
+
 
 interface Props {
   playerId: string;
