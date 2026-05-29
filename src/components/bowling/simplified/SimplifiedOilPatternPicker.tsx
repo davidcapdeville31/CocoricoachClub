@@ -377,6 +377,10 @@ export function SimplifiedOilPatternPicker({ value, onChange, categoryId }: Prop
           />
         </div>
       </div>
+        </>
+      )}
+
+
 
       {enlarged && value.image_url && (
         <div
