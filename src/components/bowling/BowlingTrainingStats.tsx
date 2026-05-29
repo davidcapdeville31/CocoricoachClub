@@ -270,7 +270,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
 
     const buckets = new Map<string, { label: string; order: number; warmup: number; technical: number; tactical: number; games: number; total: number }>();
     filtered.forEach((b) => {
-      const { key, label, order } = bucketKey(b.created_at);
+      const { key, label, order } = bucketKey(b.session_date);
       const d = (b.duration_min || 0) / 60; // hours
       const cur = buckets.get(key) || { label, order, warmup: 0, technical: 0, tactical: 0, games: 0, total: 0 };
       if ((cur as any)[b.block_type] !== undefined) (cur as any)[b.block_type] += d;
