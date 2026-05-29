@@ -22,6 +22,7 @@ import { MatchNotifyDialog } from "./MatchNotifyDialog";
 import { CreateEventDialog } from "./CreateEventDialog";
 import { FieldSessionDialog } from "./FieldSessionDialog";
 import { BowlingSimplifiedDialog } from "@/components/bowling/BowlingSimplifiedDialog";
+import { BowlingAdvancedDialog } from "@/components/bowling/BowlingAdvancedDialog";
 import { ScheduleTestEventDialog } from "./ScheduleTestEventDialog";
 import { DailyCalendarView } from "./DailyCalendarView";
 import { Badge } from "@/components/ui/badge";
@@ -116,6 +117,7 @@ export function ImprovedCalendarView({
   const [scheduleTestDate, setScheduleTestDate] = useState<Date | null>(null);
   const [fieldSessionDate, setFieldSessionDate] = useState<Date | null>(null);
   const [bowlingSimplifiedDate, setBowlingSimplifiedDate] = useState<Date | null>(null);
+  const [bowlingAdvancedDate, setBowlingAdvancedDate] = useState<Date | null>(null);
   const addEventDateRef = useRef<Date | null>(null);
   const [notifySession, setNotifySession] = useState<Session | null>(null);
   const [notifyMatch, setNotifyMatch] = useState<Match | null>(null);
@@ -827,6 +829,12 @@ export function ImprovedCalendarView({
           setAddEventDate(null);
           if (dateToUse) setBowlingSimplifiedDate(dateToUse);
         }}
+        onSelectBowlingAdvanced={() => {
+          const dateToUse = addEventDateRef.current || addEventDate;
+          addEventDateRef.current = null;
+          setAddEventDate(null);
+          if (dateToUse) setBowlingAdvancedDate(dateToUse);
+        }}
       />
 
       {/* Schedule Test Event Dialog */}
@@ -852,6 +860,14 @@ export function ImprovedCalendarView({
         date={bowlingSimplifiedDate || new Date()}
         categoryId={categoryId}
       />
+
+      <BowlingAdvancedDialog
+        open={!!bowlingAdvancedDate}
+        onOpenChange={(open) => !open && setBowlingAdvancedDate(null)}
+        date={bowlingAdvancedDate || new Date()}
+        categoryId={categoryId}
+      />
+
 
       {/* Feedback Dialog */}
       {feedbackSession && (

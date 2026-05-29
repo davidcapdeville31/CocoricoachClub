@@ -31,6 +31,7 @@ import { SessionEditorV2 } from "@/components/program-builder-v2/SessionEditorV2
 import { resolveSessionExerciseRows } from "@/lib/utils/sessionExercises";
 import { BowlingTrainingEntryDialog } from "@/components/bowling/BowlingTrainingEntryDialog";
 import { BowlingSimplifiedDialog } from "@/components/bowling/BowlingSimplifiedDialog";
+import { BowlingAdvancedDialog } from "@/components/bowling/BowlingAdvancedDialog";
 import { BasketballTrainingEntryDialog } from "@/components/basketball/BasketballTrainingEntryDialog";
 import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
 import { CreateEventDialog } from "@/components/category/calendar/CreateEventDialog";
@@ -61,6 +62,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [matchDialogDate, setMatchDialogDate] = useState<Date | null>(null);
   const [isBowlingSimplifiedOpen, setIsBowlingSimplifiedOpen] = useState(false);
   const [bowlingSimplifiedSessionId, setBowlingSimplifiedSessionId] = useState<string | null>(null);
+  const [isBowlingAdvancedOpen, setIsBowlingAdvancedOpen] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const isBowling = (sportType || "").toLowerCase().includes("bowling");
@@ -776,6 +778,10 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
           setIsPickerOpen(false);
           setIsBowlingSimplifiedOpen(true);
         }}
+        onSelectBowlingAdvanced={() => {
+          setIsPickerOpen(false);
+          setIsBowlingAdvancedOpen(true);
+        }}
       />
 
       <SessionEditorV2
@@ -806,6 +812,15 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         athletePlayerId={playerId}
         existingSessionId={bowlingSimplifiedSessionId || undefined}
       />
+
+      <BowlingAdvancedDialog
+        open={isBowlingAdvancedOpen}
+        onOpenChange={setIsBowlingAdvancedOpen}
+        date={selectedDate || new Date()}
+        categoryId={categoryId}
+        athletePlayerId={playerId}
+      />
+
 
       <AddMatchCalendarDialog
         open={!!matchDialogDate}
