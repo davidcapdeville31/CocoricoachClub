@@ -229,12 +229,19 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
 
   const deleteSession = useMutation({
     mutationFn: async (sessionId: string) => {
+      // Fetch session info BEFORE delete so we can notify athletes
+      const { data: sessionInfo } = await supabase
+        .from("training_sessions")
+        .select("id, category_id, session_date, session_start_time, training_type")
+        .eq("id", sessionId)
+        .maybeSingle();
+
       const { error } = await supabase
         .from("training_sessions")
         .delete()
         .eq("id", sessionId);
       if (error) throw error;
-      return sessionId;
+      return { sessionId, sessionInfo };
     },
     onMutate: async (sessionId) => {
       await queryClient.cancelQueries({ queryKey: ["sessions", categoryId] });
@@ -245,8 +252,20 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       });
       return { previousSessions };
     },
-    onSuccess: () => {
+    onSuccess: ({ sessionId, sessionInfo }) => {
       toast.success("Séance supprimée avec succès");
+
+      // 🔔 Notify athletes of cancellation
+      if (sessionInfo) {
+        notify({
+          action: "cancelled",
+          sessionId,
+          categoryId: sessionInfo.category_id,
+          sessionDate: sessionInfo.session_date,
+          sessionStartTime: sessionInfo.session_start_time,
+          sessionType: sessionInfo.training_type,
+        }).catch((e) => console.warn("[CalendarTab] cancel notify failed:", e));
+      }
     },
     onError: (error, variables, context) => {
       if (context?.previousSessions) {
