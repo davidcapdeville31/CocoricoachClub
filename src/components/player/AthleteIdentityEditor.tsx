@@ -200,7 +200,7 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("bowling_axe_deg, bowling_tilt_deg, bowling_ball_speed, bowling_ball_weight_lbs, bowling_rpm, bowling_pap_h_inch, bowling_pap_v_inch, bowling_personal_number")
+        .select("bowling_axe_deg, bowling_tilt_deg, bowling_ball_speed, bowling_ball_weight_lbs, bowling_rpm, bowling_pap_h_inch, bowling_pap_v_inch, bowling_perso_num_left, bowling_perso_num_center, bowling_perso_num_right")
         .eq("id", playerId)
         .maybeSingle();
       if (error) throw error;
@@ -212,7 +212,9 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
         bowling_rpm: number | null;
         bowling_pap_h_inch: number | null;
         bowling_pap_v_inch: number | null;
-        bowling_personal_number: number | null;
+        bowling_perso_num_left: number | null;
+        bowling_perso_num_center: number | null;
+        bowling_perso_num_right: number | null;
       } | null;
     },
     enabled: !!playerId && isBowling,
@@ -226,7 +228,9 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
       bowling_rpm?: number | null;
       bowling_pap_h_inch?: number | null;
       bowling_pap_v_inch?: number | null;
-      bowling_personal_number?: number | null;
+      bowling_perso_num_left?: number | null;
+      bowling_perso_num_center?: number | null;
+      bowling_perso_num_right?: number | null;
     }) => {
       const { error } = await supabase
         .from("players")
