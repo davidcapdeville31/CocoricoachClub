@@ -846,6 +846,13 @@ export function ImprovedCalendarView({
         sportType={sportType}
       />
 
+      <BowlingSimplifiedDialog
+        open={!!bowlingSimplifiedDate}
+        onOpenChange={(open) => !open && setBowlingSimplifiedDate(null)}
+        date={bowlingSimplifiedDate || new Date()}
+        categoryId={categoryId}
+      />
+
       {/* Feedback Dialog */}
       {feedbackSession && (
         <SessionFeedbackDialog
