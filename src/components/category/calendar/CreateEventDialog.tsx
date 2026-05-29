@@ -38,6 +38,8 @@ interface CreateEventDialogProps {
   onAddSession: () => void;
   onAddMatch: () => void;
   onSelectExternalType?: (type: "session" | "match" | "test" | "field_session") => void;
+  /** Called when the user picks the simplified bowling creation mode. */
+  onSelectBowlingSimplified?: () => void;
   /** Restrict the event type picker to a subset of EVENT_TYPES (by id). */
   allowedTypeIds?: string[];
 }
