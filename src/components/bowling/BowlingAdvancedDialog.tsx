@@ -55,6 +55,8 @@ import {
   type BowlingBlockDraft,
   type BowlingBlockType,
 } from "./blocks/types";
+import { BowlingBlockRunner } from "./athlete/BowlingBlockRunner";
+import { ListChecks } from "lucide-react";
 
 interface AdvancedBlockDraft {
   kind: "draft";
