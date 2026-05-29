@@ -32,6 +32,9 @@ import { resolveSessionExerciseRows } from "@/lib/utils/sessionExercises";
 import { BowlingTrainingEntryDialog } from "@/components/bowling/BowlingTrainingEntryDialog";
 import { BasketballTrainingEntryDialog } from "@/components/basketball/BasketballTrainingEntryDialog";
 import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
+import { CreateEventDialog } from "@/components/category/calendar/CreateEventDialog";
+import { FieldSessionDialog } from "@/components/category/calendar/FieldSessionDialog";
+
 
 interface Props {
   playerId: string;
@@ -51,10 +54,13 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isBowlingTrainingOpen, setIsBowlingTrainingOpen] = useState(false);
   const [isBasketTrainingOpen, setIsBasketTrainingOpen] = useState(false);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [fieldSessionDate, setFieldSessionDate] = useState<Date | null>(null);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const isBowling = (sportType || "").toLowerCase().includes("bowling");
   const isBasket = isBasketballPrecisionSport(sportType);
+
 
   // Realtime sync: invalidate caches when sessions/blocks/exercises change
   useEffect(() => {
@@ -346,31 +352,9 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
               Mon calendrier
             </CardTitle>
             <div className="flex flex-wrap gap-2">
-              {isBowling && (
-                <Button
-                  size="sm"
-                  onClick={() => setIsBowlingTrainingOpen(true)}
-                  className="gap-1.5"
-                  style={{ backgroundColor: TRAINING_COLOR }}
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Ajouter un entraînement
-                </Button>
-              )}
-              {isBasket && (
-                <Button
-                  size="sm"
-                  onClick={() => setIsBasketTrainingOpen(true)}
-                  className="gap-1.5"
-                  style={{ backgroundColor: TRAINING_COLOR }}
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Ajouter un entraînement
-                </Button>
-              )}
               <Button
                 size="sm"
-                onClick={() => setIsCreateOpen(true)}
+                onClick={() => setIsPickerOpen(true)}
                 className="gap-1.5"
                 style={{ backgroundColor: ATHLETE_SESSION_COLOR }}
               >
@@ -378,6 +362,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                 Ajouter une séance
               </Button>
             </div>
+
           </div>
         </CardHeader>
         <CardContent>
@@ -450,23 +435,12 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                     <div className="text-center py-6 space-y-2">
                       <p className="text-sm text-muted-foreground mb-3">Aucun événement</p>
                       <div className="flex flex-wrap justify-center gap-2">
-                        {isBowling && (
-                          <Button variant="outline" size="sm" onClick={() => setIsBowlingTrainingOpen(true)} className="gap-1.5" style={{ borderColor: TRAINING_COLOR, color: TRAINING_COLOR }}>
-                            <Plus className="h-3.5 w-3.5" />
-                            Ajouter un entraînement
-                          </Button>
-                        )}
-                        {isBasket && (
-                          <Button variant="outline" size="sm" onClick={() => setIsBasketTrainingOpen(true)} className="gap-1.5" style={{ borderColor: TRAINING_COLOR, color: TRAINING_COLOR }}>
-                            <Plus className="h-3.5 w-3.5" />
-                            Ajouter un entraînement
-                          </Button>
-                        )}
-                        <Button variant="outline" size="sm" onClick={() => setIsCreateOpen(true)} className="gap-1.5">
+                        <Button variant="outline" size="sm" onClick={() => setIsPickerOpen(true)} className="gap-1.5">
                           <Plus className="h-3.5 w-3.5" />
                           Ajouter une séance
                         </Button>
                       </div>
+
                     </div>
                   ) : (
                     <div className="space-y-2 max-h-[400px] overflow-y-auto">
@@ -742,23 +716,12 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                       })}
 
                       <div className="flex flex-wrap gap-2">
-                        {isBowling && (
-                          <Button variant="ghost" size="sm" onClick={() => setIsBowlingTrainingOpen(true)} className="flex-1 gap-1.5" style={{ color: TRAINING_COLOR }}>
-                            <Plus className="h-3.5 w-3.5" />
-                            Ajouter un entraînement
-                          </Button>
-                        )}
-                        {isBasket && (
-                          <Button variant="ghost" size="sm" onClick={() => setIsBasketTrainingOpen(true)} className="flex-1 gap-1.5" style={{ color: TRAINING_COLOR }}>
-                            <Plus className="h-3.5 w-3.5" />
-                            Ajouter un entraînement
-                          </Button>
-                        )}
-                        <Button variant="ghost" size="sm" onClick={() => setIsCreateOpen(true)} className="flex-1 gap-1.5 text-muted-foreground">
+                        <Button variant="ghost" size="sm" onClick={() => setIsPickerOpen(true)} className="flex-1 gap-1.5 text-muted-foreground">
                           <Plus className="h-3.5 w-3.5" />
                           Ajouter une séance
                         </Button>
                       </div>
+
                     </div>
                   )}
                 </div>
@@ -774,6 +737,27 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         </CardContent>
       </Card>
 
+      <CreateEventDialog
+        open={isPickerOpen}
+        onOpenChange={setIsPickerOpen}
+        date={selectedDate || new Date()}
+        categoryId={categoryId}
+        allowedTypeIds={["session", "field_session"]}
+        onAddSession={() => {
+          setIsPickerOpen(false);
+          setIsCreateOpen(true);
+        }}
+        onAddMatch={() => { /* not exposed for athletes */ }}
+        onSelectExternalType={(type) => {
+          setIsPickerOpen(false);
+          if (type === "session") {
+            setIsCreateOpen(true);
+          } else if (type === "field_session") {
+            setFieldSessionDate(selectedDate || new Date());
+          }
+        }}
+      />
+
       <SessionEditorV2
         open={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
@@ -781,6 +765,16 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         athletePlayerId={playerId}
         defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}
       />
+
+      <FieldSessionDialog
+        open={!!fieldSessionDate}
+        onOpenChange={(open) => !open && setFieldSessionDate(null)}
+        date={fieldSessionDate || new Date()}
+        categoryId={categoryId}
+        sportType={sportType}
+        athletePlayerId={playerId}
+      />
+
 
       {isBowling && (
         <BowlingTrainingEntryDialog

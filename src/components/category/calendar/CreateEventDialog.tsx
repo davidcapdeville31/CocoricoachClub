@@ -36,7 +36,10 @@ interface CreateEventDialogProps {
   onAddSession: () => void;
   onAddMatch: () => void;
   onSelectExternalType?: (type: "session" | "match" | "test" | "field_session") => void;
+  /** Restrict the event type picker to a subset of EVENT_TYPES (by id). */
+  allowedTypeIds?: string[];
 }
+
 
 const EVENT_TYPES = [
   {
@@ -126,7 +129,9 @@ export function CreateEventDialog({
   onAddSession,
   onAddMatch,
   onSelectExternalType,
+  allowedTypeIds,
 }: CreateEventDialogProps) {
+
   const [step, setStep] = useState<"type" | "details">("type");
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [title, setTitle] = useState("");
@@ -197,9 +202,10 @@ export function CreateEventDialog({
   };
 
   const fieldSessionLabel = getFieldSessionLabel(categorySport);
-  const eventTypes = EVENT_TYPES.map(t =>
-    t.id === "field_session" ? { ...t, label: fieldSessionLabel } : t
-  );
+  const eventTypes = EVENT_TYPES
+    .filter((t) => !allowedTypeIds || allowedTypeIds.includes(t.id))
+    .map((t) => (t.id === "field_session" ? { ...t, label: fieldSessionLabel } : t));
+
 
   const resetForm = () => {
     setStep("type");

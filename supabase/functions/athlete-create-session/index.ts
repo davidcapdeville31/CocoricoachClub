@@ -147,6 +147,8 @@ serve(async (req) => {
             start_time: block.start_time || null,
             end_time: block.end_time || null,
             training_type: block.training_type,
+            theme: block.theme || null,
+            duration_minutes: block.duration_minutes ?? null,
             intensity: block.intensity ?? null,
             notes: block.notes || null,
             session_type: block.session_type || null,
@@ -159,6 +161,7 @@ serve(async (req) => {
             implement_weight_g: block.implement_weight_g ?? null,
           }))
       : [];
+
 
     if (blockRecords.length > 0) {
       const { error: blocksError } = await supabase
