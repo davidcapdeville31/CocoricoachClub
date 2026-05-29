@@ -652,7 +652,8 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                             contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 11, boxShadow: "0 8px 24px -8px hsl(var(--foreground)/0.25)" }}
                             formatter={(v: any, name: any, item: any) => {
                               const total = item?.payload?.__total || 0;
-                              const pct = total > 0 ? Math.round(((v as number) / total) * 100) : 0;
+                              const raw = item?.payload?.__raw?.[name] ?? (v as number);
+                              const pct = total > 0 ? Math.round((raw / total) * 100) : 0;
                               return [`${v}h · ${pct}%`, name];
                             }}
                           />
