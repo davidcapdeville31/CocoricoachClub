@@ -1751,6 +1751,8 @@ export type Database = {
           foot_board: number | null
           foot_delta: number | null
           id: string
+          outcome_results: Json
+          parameter_results: Json
           pin_hit: number[] | null
           pocket_success: boolean | null
           release_success: boolean | null
@@ -1778,6 +1780,8 @@ export type Database = {
           foot_board?: number | null
           foot_delta?: number | null
           id?: string
+          outcome_results?: Json
+          parameter_results?: Json
           pin_hit?: number[] | null
           pocket_success?: boolean | null
           release_success?: boolean | null
@@ -1805,6 +1809,8 @@ export type Database = {
           foot_board?: number | null
           foot_delta?: number | null
           id?: string
+          outcome_results?: Json
+          parameter_results?: Json
           pin_hit?: number[] | null
           pocket_success?: boolean | null
           release_success?: boolean | null
