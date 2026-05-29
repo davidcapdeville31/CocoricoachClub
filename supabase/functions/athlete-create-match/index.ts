@@ -90,14 +90,6 @@ serve(async (req) => {
       .single();
     if (insertError) throw insertError;
 
-    // Add the athlete as a participant
-    await supabase
-      .from("match_players")
-      .insert({ match_id: inserted.id, player_id })
-      .then(({ error }) => {
-        if (error) console.warn("[athlete-create-match] match_players insert:", error.message);
-      });
-
     return respond({ success: true, match_id: inserted.id });
   } catch (e: any) {
     console.error("[athlete-create-match] error:", e);
