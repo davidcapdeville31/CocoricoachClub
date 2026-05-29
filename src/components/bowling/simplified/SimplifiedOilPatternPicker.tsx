@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Droplet, Image as ImageIcon, X } from "lucide-react";
+import { Droplet, Image as ImageIcon, X, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import {
   ALL_PATTERN_NAMES,
