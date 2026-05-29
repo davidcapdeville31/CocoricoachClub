@@ -200,7 +200,7 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("bowling_axe_deg, bowling_tilt_deg, bowling_ball_speed, bowling_ball_weight_lbs, bowling_rpm, bowling_pap_h_inch, bowling_pap_v_inch")
+        .select("bowling_axe_deg, bowling_tilt_deg, bowling_ball_speed, bowling_ball_weight_lbs, bowling_rpm, bowling_pap_h_inch, bowling_pap_v_inch, bowling_personal_number")
         .eq("id", playerId)
         .maybeSingle();
       if (error) throw error;
@@ -212,6 +212,7 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
         bowling_rpm: number | null;
         bowling_pap_h_inch: number | null;
         bowling_pap_v_inch: number | null;
+        bowling_personal_number: number | null;
       } | null;
     },
     enabled: !!playerId && isBowling,
@@ -225,6 +226,7 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
       bowling_rpm?: number | null;
       bowling_pap_h_inch?: number | null;
       bowling_pap_v_inch?: number | null;
+      bowling_personal_number?: number | null;
     }) => {
       const { error } = await supabase
         .from("players")
@@ -766,6 +768,35 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
                   }
                   if (v !== bowlingTech?.bowling_ball_speed) {
                     updateBowlingTech.mutate({ bowling_ball_speed: v });
+                  }
+                }}
+                className="bg-background"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="bowling-perso-num" className="text-xs">Numéro perso</Label>
+              <Input
+                id="bowling-perso-num"
+                type="number"
+                min={0}
+                step={1}
+                placeholder="ex. 42"
+                defaultValue={bowlingTech?.bowling_personal_number ?? ""}
+                onBlur={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") {
+                    if (bowlingTech?.bowling_personal_number != null) {
+                      updateBowlingTech.mutate({ bowling_personal_number: null });
+                    }
+                    return;
+                  }
+                  const v = parseInt(raw, 10);
+                  if (Number.isNaN(v) || v < 0) {
+                    toast.error("Numéro perso : valeur entière positive");
+                    return;
+                  }
+                  if (v !== bowlingTech?.bowling_personal_number) {
+                    updateBowlingTech.mutate({ bowling_personal_number: v });
                   }
                 }}
                 className="bg-background"
