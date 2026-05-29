@@ -698,6 +698,36 @@ export function BowlingSimplifiedDialog({
             </div>
           )}
 
+          {/* Huilage de la séance — appliqué à tous les blocs */}
+          <div className="rounded-2xl border border-border/60 bg-surface-sunken/40 p-3 space-y-2">
+            <Label className="flex items-center gap-2 text-sm font-semibold">
+              <Droplet className="h-4 w-4 text-primary" />
+              Huilage de la séance (optionnel)
+            </Label>
+            <Select value={oilPatternName} onValueChange={setOilPatternName}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Aucun huilage" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                <SelectItem value="none">Aucun huilage</SelectItem>
+                {OFFICIAL_OIL_PATTERNS.map((p) => {
+                  const cat = getOilCategory(p.oil_ratio);
+                  return (
+                    <SelectItem key={p.name} value={p.name}>
+                      {p.name}
+                      {p.oil_ratio ? ` · ${p.oil_ratio}` : ""}
+                      {cat ? ` · ${cat.label}` : ""}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-muted-foreground">
+              Le huilage choisi s'applique à toute la séance et permet de filtrer les Stats Parties.
+            </p>
+          </div>
+
+
           {blocks.length === 0 && (
             <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/60 bg-muted/20 py-10 text-center">
               <div className="rounded-full bg-muted p-4">
