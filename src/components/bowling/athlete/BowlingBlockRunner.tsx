@@ -1,5 +1,5 @@
-// Saisie lancer-par-lancer mobile-first.
-import { useState, useEffect } from "react";
+// Saisie lancer-par-lancer mobile-first, avec validation par paramètre / objectif et stats croisées.
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -13,6 +13,11 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TACTICAL_ZONES, zoneShort } from "@/lib/constants/bowlingTacticalZones";
 import { summariseDeltas } from "@/lib/bowling/throwDeltas";
+import {
+  TECHNICAL_PARAMETERS,
+  getParamLabel,
+} from "@/lib/constants/bowlingTechnicalParameters";
+import { TARGET_OUTCOMES, outcomeLabel } from "@/lib/constants/bowlingTargetOutcomes";
 
 interface BlockRow {
   id: string;
@@ -49,30 +54,85 @@ interface ThrowDraft {
   breakpoint_board?: number | null;
   speed_kmh?: number | null;
   comment?: string | null;
+  parameter_results?: Record<string, boolean>;
+  outcome_results?: Record<string, boolean>;
 }
 
-const YesNoBtn = ({ label, value, onChange }: { label: string; value: boolean | null | undefined; onChange: (v: boolean) => void }) => (
+const YesNoBtn = ({
+  label,
+  value,
+  onChange,
+  dense,
+}: {
+  label: string;
+  value: boolean | null | undefined;
+  onChange: (v: boolean) => void;
+  dense?: boolean;
+}) => (
   <div className="flex flex-col gap-1">
-    <Label className="text-[11px] text-muted-foreground">{label}</Label>
+    <Label className={cn("text-[11px] text-muted-foreground truncate", dense && "text-[10px]")}>{label}</Label>
     <div className="flex gap-1">
-      <button type="button" onClick={() => onChange(true)}
-        className={cn("flex-1 h-9 rounded-md text-xs font-semibold border transition-all flex items-center justify-center gap-1",
-          value === true ? "bg-emerald-500 text-white border-emerald-600 shadow-md" : "bg-background hover:bg-muted border-border")}>
-        <Check className="h-3.5 w-3.5" /> Oui
+      <button
+        type="button"
+        onClick={() => onChange(true)}
+        className={cn(
+          "flex-1 h-9 rounded-md text-xs font-semibold border transition-all flex items-center justify-center gap-1",
+          value === true
+            ? "bg-emerald-500 text-white border-emerald-600 shadow-md"
+            : "bg-background hover:bg-muted border-border",
+        )}
+      >
+        <Check className="h-3.5 w-3.5" />
       </button>
-      <button type="button" onClick={() => onChange(false)}
-        className={cn("flex-1 h-9 rounded-md text-xs font-semibold border transition-all flex items-center justify-center gap-1",
-          value === false ? "bg-rose-500 text-white border-rose-600 shadow-md" : "bg-background hover:bg-muted border-border")}>
-        <X className="h-3.5 w-3.5" /> Non
+      <button
+        type="button"
+        onClick={() => onChange(false)}
+        className={cn(
+          "flex-1 h-9 rounded-md text-xs font-semibold border transition-all flex items-center justify-center gap-1",
+          value === false
+            ? "bg-rose-500 text-white border-rose-600 shadow-md"
+            : "bg-background hover:bg-muted border-border",
+        )}
+      >
+        <X className="h-3.5 w-3.5" />
       </button>
     </div>
   </div>
 );
 
+// Mapping paramètre technique → champ booléen historique (pour rétro-compatibilité stats)
+function legacyParamField(paramValue: string): keyof ThrowDraft | null {
+  const group = TECHNICAL_PARAMETERS.find((p) => p.value === paramValue)?.group;
+  switch (group) {
+    case "axis":
+      return "axis_success";
+    case "speed":
+      return "speed_success";
+    case "release":
+      return "release_success" as any;
+    default:
+      return null;
+  }
+}
+
+function legacyOutcomeField(outcomeValue: string): keyof ThrowDraft | null {
+  const o = TARGET_OUTCOMES.find((x) => x.value === outcomeValue);
+  return (o?.field as keyof ThrowDraft) || null;
+}
+
 export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, onClose }: Props) {
   const qc = useQueryClient();
   const isTactical = block.block_type === "tactical";
   const isTechnical = block.block_type === "technical";
+
+  const selectedParams: string[] = useMemo(
+    () => (Array.isArray(block.config?.parameters) ? block.config.parameters : []),
+    [block.config],
+  );
+  const selectedOutcomes: string[] = useMemo(
+    () => (Array.isArray(block.objectives) ? block.objectives : []),
+    [block.objectives],
+  );
 
   const { data: throws = [] } = useQuery({
     queryKey: ["bowling_throw_results", block.id, playerId],
@@ -99,22 +159,43 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
     },
   });
 
-  const [draft, setDraft] = useState<ThrowDraft>({});
-  const nextThrowNumber = (throws[throws.length-1]?.throw_number || 0) + 1;
+  const [draft, setDraft] = useState<ThrowDraft>({ parameter_results: {}, outcome_results: {} });
+  const nextThrowNumber = (throws[throws.length - 1]?.throw_number || 0) + 1;
   const target = block.planned_throws || 0;
   const progress = target > 0 ? Math.min(100, Math.round((throws.length / target) * 100)) : 0;
 
+  const setParamResult = (param: string, v: boolean) => {
+    const next = { ...(draft.parameter_results || {}), [param]: v };
+    // miroir vers champ legacy si applicable (seul le premier param du groupe écrit le champ)
+    const legacy = legacyParamField(param);
+    setDraft({ ...draft, parameter_results: next, ...(legacy ? { [legacy]: v } : {}) });
+  };
+
+  const setOutcomeResult = (outcome: string, v: boolean) => {
+    const next = { ...(draft.outcome_results || {}), [outcome]: v };
+    const legacy = legacyOutcomeField(outcome);
+    setDraft({ ...draft, outcome_results: next, ...(legacy ? { [legacy]: v } : {}) });
+  };
+
   const saveThrow = useMutation({
     mutationFn: async () => {
+      const paramResults = draft.parameter_results || {};
+      const outcomeResults = draft.outcome_results || {};
+      const anyOutcomeOk = Object.values(outcomeResults).some((v) => v === true);
+      const allParamOk =
+        selectedParams.length > 0 && selectedParams.every((p) => paramResults[p] === true);
       const payload = {
         ...draft,
+        parameter_results: paramResults,
+        outcome_results: outcomeResults,
         throw_number: nextThrowNumber,
         exercise_index: 0,
         success_global:
-          (draft.pocket_success === true) ||
-          (draft.strike_success === true) ||
-          (draft.spare_success === true) ||
-          (isTechnical && draft.axis_success === true),
+          draft.pocket_success === true ||
+          draft.strike_success === true ||
+          draft.spare_success === true ||
+          anyOutcomeOk ||
+          (isTechnical && allParamOk),
       };
       const { data, error } = await supabase.functions.invoke("athlete-bowling-training", {
         body: {
@@ -134,7 +215,7 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
       const deltas = summariseDeltas(data?.throw?.foot_delta, data?.throw?.breakpoint_delta);
       if (deltas) toast.success(`Lancer ${nextThrowNumber} · ${deltas}`);
       else toast.success(`Lancer ${nextThrowNumber} enregistré`);
-      setDraft({ ball_arsenal_id: draft.ball_arsenal_id }); // garde la boule choisie
+      setDraft({ ball_arsenal_id: draft.ball_arsenal_id, parameter_results: {}, outcome_results: {} });
       qc.invalidateQueries({ queryKey: ["bowling_throw_results", block.id, playerId] });
     },
     onError: (e: any) => toast.error(`Erreur : ${e.message}`),
@@ -142,7 +223,7 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
 
   const removeLast = useMutation({
     mutationFn: async () => {
-      const last = throws[throws.length-1];
+      const last = throws[throws.length - 1];
       if (!last) return;
       const { error } = await supabase.from("bowling_throw_results").delete().eq("id", last.id);
       if (error) throw error;
@@ -157,8 +238,81 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
       });
       if (error) throw new Error(error.message);
     },
-    onSuccess: () => { toast.success("Bloc terminé"); onClose(); },
+    onSuccess: () => {
+      toast.success("Bloc terminé");
+      onClose();
+    },
   });
+
+  // ---- Stats croisées sur les lancers déjà saisis -----------------------
+  const crossed = useMemo(() => {
+    if (!isTechnical || selectedParams.length === 0) return null;
+    const rows = throws as any[];
+    // Par paramètre : % réussite
+    const perParam = selectedParams.map((p) => {
+      const answered = rows.filter((r) => {
+        const v = r.parameter_results?.[p];
+        return v === true || v === false;
+      });
+      const ok = answered.filter((r) => r.parameter_results?.[p] === true).length;
+      return {
+        param: p,
+        label: getParamLabel(p),
+        total: answered.length,
+        ok,
+        pct: answered.length ? Math.round((ok / answered.length) * 100) : 0,
+      };
+    });
+    // Par objectif : % réussite + % réussite quand tous les critères tech sont réussis
+    const perOutcome = selectedOutcomes.map((o) => {
+      const answered = rows.filter((r) => {
+        const v = r.outcome_results?.[o];
+        return v === true || v === false;
+      });
+      const ok = answered.filter((r) => r.outcome_results?.[o] === true).length;
+      const allCritOk = answered.filter((r) =>
+        selectedParams.every((p) => r.parameter_results?.[p] === true),
+      );
+      const okWhenAll = allCritOk.filter((r) => r.outcome_results?.[o] === true).length;
+      return {
+        outcome: o,
+        label: outcomeLabel(o),
+        total: answered.length,
+        ok,
+        pct: answered.length ? Math.round((ok / answered.length) * 100) : 0,
+        pctWhenAllCritOk: allCritOk.length ? Math.round((okWhenAll / allCritOk.length) * 100) : null,
+        sampleAllCritOk: allCritOk.length,
+      };
+    });
+    // Matrice : nb de critères réussis (0..N) → effectif + % objectifs atteints
+    const matrix = Array.from({ length: selectedParams.length + 1 }, (_, k) => {
+      const rowsK = rows.filter((r) => {
+        const ok = selectedParams.filter((p) => r.parameter_results?.[p] === true).length;
+        return ok === k && selectedParams.every((p) => {
+          const v = r.parameter_results?.[p];
+          return v === true || v === false;
+        });
+      });
+      if (rowsK.length === 0) return { k, count: 0, outcomePct: 0 };
+      const outcomeAnswered = rowsK.filter((r) =>
+        selectedOutcomes.some((o) => {
+          const v = r.outcome_results?.[o];
+          return v === true || v === false;
+        }),
+      );
+      const outcomeOk = outcomeAnswered.filter((r) =>
+        selectedOutcomes.every((o) => r.outcome_results?.[o] === true),
+      ).length;
+      return {
+        k,
+        count: rowsK.length,
+        outcomePct: outcomeAnswered.length
+          ? Math.round((outcomeOk / outcomeAnswered.length) * 100)
+          : 0,
+      };
+    });
+    return { perParam, perOutcome, matrix };
+  }, [isTechnical, selectedParams, selectedOutcomes, throws]);
 
   return (
     <div className="space-y-3">
@@ -185,11 +339,18 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
 
         <div className="space-y-1">
           <Label className="text-[11px] text-muted-foreground">Boule utilisée</Label>
-          <Select value={draft.ball_arsenal_id || "__none__"} onValueChange={(v) => setDraft({ ...draft, ball_arsenal_id: v === "__none__" ? null : v })}>
+          <Select
+            value={draft.ball_arsenal_id || "__none__"}
+            onValueChange={(v) => setDraft({ ...draft, ball_arsenal_id: v === "__none__" ? null : v })}
+          >
             <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Choisir une boule" /></SelectTrigger>
             <SelectContent className="z-[100]">
               <SelectItem value="__none__" className="italic text-xs">Non renseigné</SelectItem>
-              {balls.map((b: any) => <SelectItem key={b.id} value={b.id} className="text-xs">{b.custom_ball_name || "Boule"}</SelectItem>)}
+              {balls.map((b: any) => (
+                <SelectItem key={b.id} value={b.id} className="text-xs">
+                  {b.custom_ball_name || "Boule"}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -201,40 +362,120 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
               <Select value={draft.actual_zone || ""} onValueChange={(v) => setDraft({ ...draft, actual_zone: v })}>
                 <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Choisir une zone" /></SelectTrigger>
                 <SelectContent className="z-[100]">
-                  {TACTICAL_ZONES.map((z) => <SelectItem key={z.value} value={z.value} className="text-xs">{z.label}</SelectItem>)}
+                  {TACTICAL_ZONES.map((z) => (
+                    <SelectItem key={z.value} value={z.value} className="text-xs">{z.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <Label className="text-[11px] text-muted-foreground">Latte au pied</Label>
-                <Input type="number" value={draft.foot_board ?? ""} onChange={(e) => setDraft({ ...draft, foot_board: e.target.value === "" ? null : Number(e.target.value) })} className="h-9 text-xs" />
+                <Input
+                  type="number"
+                  value={draft.foot_board ?? ""}
+                  onChange={(e) =>
+                    setDraft({ ...draft, foot_board: e.target.value === "" ? null : Number(e.target.value) })
+                  }
+                  className="h-9 text-xs"
+                />
               </div>
               <div className="space-y-1">
                 <Label className="text-[11px] text-muted-foreground">Point de sortie (latte)</Label>
-                <Input type="number" value={draft.breakpoint_board ?? ""} onChange={(e) => setDraft({ ...draft, breakpoint_board: e.target.value === "" ? null : Number(e.target.value) })} className="h-9 text-xs" />
+                <Input
+                  type="number"
+                  value={draft.breakpoint_board ?? ""}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      breakpoint_board: e.target.value === "" ? null : Number(e.target.value),
+                    })
+                  }
+                  className="h-9 text-xs"
+                />
               </div>
             </div>
           </>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {isTechnical && <YesNoBtn label="Axe respecté" value={draft.axis_success} onChange={(v) => setDraft({ ...draft, axis_success: v })} />}
-          <YesNoBtn label="Poche" value={draft.pocket_success} onChange={(v) => setDraft({ ...draft, pocket_success: v })} />
-          <YesNoBtn label="Strike" value={draft.strike_success} onChange={(v) => setDraft({ ...draft, strike_success: v })} />
-          <YesNoBtn label="Spare" value={draft.spare_success} onChange={(v) => setDraft({ ...draft, spare_success: v })} />
-          {isTechnical && <YesNoBtn label="Point de sortie" value={draft.breakpoint_success} onChange={(v) => setDraft({ ...draft, breakpoint_success: v })} />}
-          {isTechnical && <YesNoBtn label="Vitesse cible" value={draft.speed_success} onChange={(v) => setDraft({ ...draft, speed_success: v })} />}
-        </div>
+        {/* === Validation par paramètre technique sélectionné === */}
+        {isTechnical && selectedParams.length > 0 && (
+          <div className="rounded-xl border border-border/60 bg-surface-sunken p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Critères techniques
+              </Label>
+              <Badge variant="outline" className="text-[10px]">
+                {Object.values(draft.parameter_results || {}).filter((v) => v === true).length}/
+                {selectedParams.length} OK
+              </Badge>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {selectedParams.map((p) => (
+                <YesNoBtn
+                  key={p}
+                  label={getParamLabel(p)}
+                  value={(draft.parameter_results || {})[p]}
+                  onChange={(v) => setParamResult(p, v)}
+                  dense
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* === Validation par objectif de résultat sélectionné === */}
+        {selectedOutcomes.length > 0 && (
+          <div className="rounded-xl border border-border/60 bg-surface-sunken p-3 space-y-2">
+            <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Objectifs de résultat
+            </Label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {selectedOutcomes.map((o) => (
+                <YesNoBtn
+                  key={o}
+                  label={outcomeLabel(o)}
+                  value={(draft.outcome_results || {})[o]}
+                  onChange={(v) => setOutcomeResult(o, v)}
+                  dense
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Fallback : aucun critère/objectif défini → grille générique */}
+        {isTechnical && selectedParams.length === 0 && selectedOutcomes.length === 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <YesNoBtn label="Axe respecté" value={draft.axis_success} onChange={(v) => setDraft({ ...draft, axis_success: v })} />
+            <YesNoBtn label="Poche" value={draft.pocket_success} onChange={(v) => setDraft({ ...draft, pocket_success: v })} />
+            <YesNoBtn label="Strike" value={draft.strike_success} onChange={(v) => setDraft({ ...draft, strike_success: v })} />
+            <YesNoBtn label="Spare" value={draft.spare_success} onChange={(v) => setDraft({ ...draft, spare_success: v })} />
+            <YesNoBtn label="Point de sortie" value={draft.breakpoint_success} onChange={(v) => setDraft({ ...draft, breakpoint_success: v })} />
+            <YesNoBtn label="Vitesse cible" value={draft.speed_success} onChange={(v) => setDraft({ ...draft, speed_success: v })} />
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
             <Label className="text-[11px] text-muted-foreground">Vitesse (km/h, optionnel)</Label>
-            <Input type="number" step="0.1" value={draft.speed_kmh ?? ""} onChange={(e) => setDraft({ ...draft, speed_kmh: e.target.value === "" ? null : Number(e.target.value) })} className="h-9 text-xs" />
+            <Input
+              type="number"
+              step="0.1"
+              value={draft.speed_kmh ?? ""}
+              onChange={(e) =>
+                setDraft({ ...draft, speed_kmh: e.target.value === "" ? null : Number(e.target.value) })
+              }
+              className="h-9 text-xs"
+            />
           </div>
           <div className="space-y-1">
             <Label className="text-[11px] text-muted-foreground">Commentaire</Label>
-            <Input value={draft.comment ?? ""} onChange={(e) => setDraft({ ...draft, comment: e.target.value })} className="h-9 text-xs" />
+            <Input
+              value={draft.comment ?? ""}
+              onChange={(e) => setDraft({ ...draft, comment: e.target.value })}
+              className="h-9 text-xs"
+            />
           </div>
         </div>
 
@@ -243,26 +484,132 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
         </Button>
       </Card>
 
+      {/* === Stats croisées en temps réel === */}
+      {crossed && throws.length > 0 && (
+        <Card className="p-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              Stats croisées du bloc
+            </p>
+            <Badge variant="outline" className="text-[10px]">{throws.length} lancers</Badge>
+          </div>
+
+          {/* Par critère */}
+          <div className="space-y-1">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
+              Par critère technique
+            </p>
+            {crossed.perParam.map((s) => (
+              <div key={s.param} className="flex items-center gap-2 text-xs">
+                <span className="w-32 truncate">{s.label}</span>
+                <div className="flex-1 h-4 bg-muted rounded relative overflow-hidden">
+                  <div className="absolute inset-y-0 left-0 bg-emerald-500/60" style={{ width: `${s.pct}%` }} />
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold">
+                    {s.pct}% · {s.ok}/{s.total}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Par objectif */}
+          {crossed.perOutcome.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
+                Par objectif de résultat
+              </p>
+              {crossed.perOutcome.map((s) => (
+                <div key={s.outcome} className="flex items-center gap-2 text-xs">
+                  <span className="w-32 truncate">{s.label}</span>
+                  <div className="flex-1 h-4 bg-muted rounded relative overflow-hidden">
+                    <div className="absolute inset-y-0 left-0 bg-amber-500/60" style={{ width: `${s.pct}%` }} />
+                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold">
+                      {s.pct}% · {s.ok}/{s.total}
+                    </span>
+                  </div>
+                  {s.pctWhenAllCritOk !== null && (
+                    <Badge variant="outline" className="text-[10px] whitespace-nowrap">
+                      {s.pctWhenAllCritOk}% si tout OK ({s.sampleAllCritOk})
+                    </Badge>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Matrice nb critères OK */}
+          <div className="space-y-1">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
+              Réussite des objectifs selon le nombre de critères techniques validés
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {crossed.matrix.map((m) => (
+                <div
+                  key={m.k}
+                  className={cn(
+                    "rounded-lg border p-2 text-center",
+                    m.count === 0 ? "opacity-40" : "bg-surface-sunken",
+                  )}
+                >
+                  <p className="text-[10px] text-muted-foreground">
+                    {m.k}/{selectedParams.length} critère{selectedParams.length > 1 ? "s" : ""}
+                  </p>
+                  <p className="text-base font-bold">{m.outcomePct}%</p>
+                  <p className="text-[10px] text-muted-foreground">{m.count} lancer{m.count > 1 ? "s" : ""}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+      )}
+
       {throws.length > 0 && (
         <Card className="p-3">
           <p className="text-xs font-semibold text-muted-foreground mb-2">Historique ({throws.length})</p>
           <div className="space-y-1 max-h-48 overflow-y-auto">
-            {throws.map((t: any) => (
-              <div key={t.id} className="flex items-center gap-2 text-xs">
-                <Badge variant="outline" className="text-[10px] w-8 justify-center">{t.throw_number}</Badge>
-                <div className="flex flex-wrap gap-1 flex-1">
-                  {t.actual_zone && <Badge variant="secondary" className="text-[10px]">{zoneShort(t.actual_zone)}</Badge>}
-                  {t.pocket_success && <Badge className="text-[10px] bg-emerald-500/15 text-emerald-700 border-emerald-500/30">Poche</Badge>}
-                  {t.strike_success && <Badge className="text-[10px] bg-amber-500/15 text-amber-700 border-amber-500/30">Strike</Badge>}
-                  {t.spare_success && <Badge className="text-[10px] bg-blue-500/15 text-blue-700 border-blue-500/30">Spare</Badge>}
+            {throws.map((t: any) => {
+              const paramsOk = selectedParams.filter((p) => t.parameter_results?.[p] === true).length;
+              const outcomesOk = selectedOutcomes.filter((o) => t.outcome_results?.[o] === true).length;
+              return (
+                <div key={t.id} className="flex items-center gap-2 text-xs">
+                  <Badge variant="outline" className="text-[10px] w-8 justify-center">{t.throw_number}</Badge>
+                  <div className="flex flex-wrap gap-1 flex-1">
+                    {t.actual_zone && <Badge variant="secondary" className="text-[10px]">{zoneShort(t.actual_zone)}</Badge>}
+                    {selectedParams.length > 0 && (
+                      <Badge variant="outline" className="text-[10px]">
+                        Critères {paramsOk}/{selectedParams.length}
+                      </Badge>
+                    )}
+                    {selectedOutcomes.length > 0 && (
+                      <Badge
+                        className={cn(
+                          "text-[10px]",
+                          outcomesOk === selectedOutcomes.length
+                            ? "bg-emerald-500/15 text-emerald-700 border-emerald-500/30"
+                            : "bg-muted text-muted-foreground border-border",
+                        )}
+                      >
+                        Objectifs {outcomesOk}/{selectedOutcomes.length}
+                      </Badge>
+                    )}
+                    {t.pocket_success && selectedOutcomes.length === 0 && (
+                      <Badge className="text-[10px] bg-emerald-500/15 text-emerald-700 border-emerald-500/30">Poche</Badge>
+                    )}
+                    {t.strike_success && selectedOutcomes.length === 0 && (
+                      <Badge className="text-[10px] bg-amber-500/15 text-amber-700 border-amber-500/30">Strike</Badge>
+                    )}
+                    {t.spare_success && selectedOutcomes.length === 0 && (
+                      <Badge className="text-[10px] bg-blue-500/15 text-blue-700 border-blue-500/30">Spare</Badge>
+                    )}
+                  </div>
+                  {summariseDeltas(t.foot_delta, t.breakpoint_delta) && (
+                    <span className="text-[10px] text-muted-foreground italic">
+                      {summariseDeltas(t.foot_delta, t.breakpoint_delta)}
+                    </span>
+                  )}
                 </div>
-                {summariseDeltas(t.foot_delta, t.breakpoint_delta) && (
-                  <span className="text-[10px] text-muted-foreground italic">
-                    {summariseDeltas(t.foot_delta, t.breakpoint_delta)}
-                  </span>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
       )}
