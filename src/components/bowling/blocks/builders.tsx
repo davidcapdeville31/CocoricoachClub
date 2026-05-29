@@ -21,7 +21,7 @@ interface Props {
   categoryId: string;
 }
 
-// ---- Bloc commun (titre, durée, lancers, priorité, consigne, note) ----
+// ---- Bloc commun (titre, durée, lancers) ----
 function CommonFields({ value, onChange }: Props) {
   const update = (patch: Partial<BowlingBlockDraft>) => onChange({ ...value, ...patch });
   return (
