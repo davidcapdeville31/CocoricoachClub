@@ -373,9 +373,8 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       if (selectedBallId !== "all") {
         spares = spares.filter((ex: any) => ex.ball_arsenal_id === selectedBallId);
       }
-      if (activeTrainingDates) {
-        spares = spares.filter((ex: any) => activeTrainingDates.has((ex.session_date || "").slice(0, 10)));
-      }
+      // Note: oil pattern filter intentionally NOT applied to Stats Spécifiques
+
       if (spares.length === 0) return { player, byType: {}, total: null };
       const byType: Record<string, { attempts: number; successes: number }> = {};
       let totalAttempts = 0, totalSuccesses = 0;
