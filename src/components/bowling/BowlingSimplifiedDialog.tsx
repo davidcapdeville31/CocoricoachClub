@@ -605,6 +605,7 @@ export function BowlingSimplifiedDialog({
       setBlocks([]);
       setLockedIds(new Set());
       setSelectedPlayers([]);
+      setOilPatternName("none");
     }
     onOpenChange(next);
   };
@@ -615,6 +616,7 @@ export function BowlingSimplifiedDialog({
       setBlocks([]);
       setLockedIds(new Set());
       setSelectedPlayers([]);
+      setOilPatternName("none");
     }
   }, [open, isEditMode]);
 
