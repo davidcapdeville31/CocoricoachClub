@@ -17,11 +17,19 @@ interface Props {
 }
 
 const METRIC_COLORS: Record<string, string> = {
-  sleep_quality: "hsl(220, 70%, 55%)",
-  general_fatigue: "hsl(35, 85%, 55%)",
-  soreness_upper_body: "hsl(350, 70%, 55%)",
-  soreness_lower_body: "hsl(280, 60%, 55%)",
-  stress_level: "hsl(160, 60%, 45%)",
+  sleep_quality: "#1e3a8a",       // bleu marine
+  general_fatigue: "#dc2626",     // rouge vif
+  soreness_upper_body: "#f59e0b", // orange
+  soreness_lower_body: "#7c3aed", // violet
+  stress_level: "#0891b2",        // cyan profond
+};
+
+const METRIC_DASH: Record<string, string | undefined> = {
+  sleep_quality: undefined,
+  general_fatigue: undefined,
+  soreness_upper_body: "6 3",
+  soreness_lower_body: "2 3",
+  stress_level: "8 4",
 };
 
 const METRIC_LABELS: Record<string, string> = {
@@ -115,11 +123,11 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={chartData}>
+          <ResponsiveContainer width="100%" height={240}>
+            <LineChart data={chartData} margin={{ top: 10, right: 12, left: 0, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis dataKey="date" className="text-[10px]" />
-              <YAxis domain={[0, 100]} className="text-[10px]" />
+              <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} className="text-[10px]" />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--popover))",
@@ -130,7 +138,15 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
                 formatter={(value: number) => [`${value}%`, "Récupération"]}
                 labelFormatter={(_, payload: any[]) => payload?.[0]?.payload?.fullDate || ""}
               />
-              <Line type="monotone" dataKey="recovery_score" stroke={NAV_COLORS.sante.base} strokeWidth={2} dot={{ r: 3 }} name="Récupération" />
+              <Line
+                type="monotone"
+                dataKey="recovery_score"
+                stroke={NAV_COLORS.sante.base}
+                strokeWidth={4}
+                dot={{ r: 4, fill: NAV_COLORS.sante.base, strokeWidth: 2, stroke: "#fff" }}
+                activeDot={{ r: 6 }}
+                name="Récupération"
+              />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
@@ -145,11 +161,15 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={chartData}>
+          <ResponsiveContainer width="100%" height={320}>
+            <LineChart data={chartData} margin={{ top: 10, right: 12, left: 0, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis dataKey="date" className="text-[10px]" />
-              <YAxis domain={[1, 5]} className="text-[10px]" />
+              <YAxis
+                domain={[1, 5]}
+                ticks={[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]}
+                className="text-[10px]"
+              />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--popover))",
@@ -163,15 +183,21 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
                 ]}
                 labelFormatter={(_, payload: any[]) => payload?.[0]?.payload?.fullDate || ""}
               />
-              <Legend formatter={(value) => METRIC_LABELS[value] || value} />
+              <Legend
+                formatter={(value) => METRIC_LABELS[value] || value}
+                iconType="circle"
+                wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+              />
               {Object.entries(METRIC_COLORS).map(([key, color]) => (
                 <Line
                   key={key}
                   type="monotone"
                   dataKey={key}
                   stroke={color}
-                  strokeWidth={1.5}
-                  dot={false}
+                  strokeWidth={3}
+                  strokeDasharray={METRIC_DASH[key]}
+                  dot={{ r: 3.5, fill: color, strokeWidth: 1.5, stroke: "#fff" }}
+                  activeDot={{ r: 6 }}
                   name={key}
                 />
               ))}
