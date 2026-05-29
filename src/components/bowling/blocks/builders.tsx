@@ -48,39 +48,27 @@ function CommonFields({ value, onChange }: Props) {
   );
 }
 
+// Objectifs de résultat autorisés en mode avancé : ne garder que les trois
+// objectifs prioritaires demandés par l'équipe coach.
+const ADVANCED_TARGET_OUTCOMES = ["pin_1", "pocket", "pocket_strike"];
+
 export function BowlingTechnicalBuilder(props: Props) {
   const { value, onChange } = props;
   const cfg = value.config;
   return (
     <div className="space-y-4">
       <CommonFields {...props} />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <Label className="text-xs">Type d'exercice technique</Label>
-          <Select value={cfg.exercise_type || ""} onValueChange={(v) => onChange({ ...value, config: { ...cfg, exercise_type: v } })}>
-            <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Choisir..." /></SelectTrigger>
-            <SelectContent className="z-[100]">
-              {TECHNICAL_EXERCISE_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Mode d'enchaînement</Label>
-          <Select value={cfg.sequence || ""} onValueChange={(v) => onChange({ ...value, config: { ...cfg, sequence: v } })}>
-            <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Choisir..." /></SelectTrigger>
-            <SelectContent className="z-[100]">
-              {SEQUENCE_MODES.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
       <div>
         <Label className="text-xs">Paramètres techniques (multi-sélection)</Label>
         <BowlingParametersPicker value={cfg.parameters || []} onChange={(p) => onChange({ ...value, config: { ...cfg, parameters: p } })} />
       </div>
       <div>
         <Label className="text-xs">Objectifs de résultat</Label>
-        <BowlingTargetOutcomesPicker value={value.objectives} onChange={(o) => onChange({ ...value, objectives: o })} />
+        <BowlingTargetOutcomesPicker
+          value={value.objectives}
+          onChange={(o) => onChange({ ...value, objectives: o })}
+          allowed={ADVANCED_TARGET_OUTCOMES}
+        />
       </div>
     </div>
   );
