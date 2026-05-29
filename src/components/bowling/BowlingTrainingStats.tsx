@@ -114,14 +114,18 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     queryFn: async () => {
       let q = supabase
         .from("bowling_training_blocks")
-        .select("id, athlete_id, block_type, duration_min, created_at, session_id")
+        .select("id, athlete_id, block_type, duration_min, created_at, session_id, training_sessions:session_id(session_date)")
         .eq("category_id", categoryId);
       if (playerId) q = q.eq("athlete_id", playerId);
       const { data, error } = await q;
       if (error) throw error;
-      return (data || []) as Array<{ id: string; athlete_id: string | null; block_type: string; duration_min: number | null; created_at: string; session_id: string | null }>;
+      return (data || []).map((b: any) => ({
+        ...b,
+        session_date: b.training_sessions?.session_date || b.created_at,
+      })) as Array<{ id: string; athlete_id: string | null; block_type: string; duration_min: number | null; created_at: string; session_id: string | null; session_date: string }>;
     },
   });
+
 
   // Set of athletes who have new-system bowling sessions (used to hide obsolete legacy data)
   const athletesWithNewBlocks = useMemo(() => {
