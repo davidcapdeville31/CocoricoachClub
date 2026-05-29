@@ -221,7 +221,60 @@ export function BowlingSimplifiedDialog({
         0,
       );
 
-      // 1) Création de la séance
+      // ============ MODE ÉDITION (athlète remplit une séance attribuée) ============
+      if (isEditMode && existingSessionId) {
+        // Remplace les blocs existants de CET athlète sur cette séance
+        const { error: delErr } = await supabase
+          .from("bowling_training_blocks")
+          .delete()
+          .eq("session_id", existingSessionId)
+          .eq("athlete_id", athletePlayerId!);
+        if (delErr) throw delErr;
+
+        const rows = blocks.map((b, idx) => ({
+          session_id: existingSessionId,
+          category_id: categoryId,
+          athlete_id: athletePlayerId!,
+          source: "athlete" as const,
+          block_type: b.type,
+          title: blockTitle(b),
+          duration_min: blockDuration(b),
+          planned_throws: null,
+          priority: null,
+          coach_instruction: null,
+          internal_note: null,
+          objectives: [],
+          success_criteria: {},
+          pattern_id: null,
+          config: buildConfig(b),
+          status: "completed",
+          order_index: idx,
+        }));
+
+        const { error: insErr } = await supabase
+          .from("bowling_training_blocks")
+          .insert(rows as any);
+        if (insErr) throw insErr;
+
+        // Marque la présence
+        const { error: attErr } = await supabase
+          .from("training_attendance")
+          .upsert(
+            [{
+              player_id: athletePlayerId!,
+              category_id: categoryId,
+              attendance_date: sessionDate,
+              training_session_id: existingSessionId,
+              status: "present" as const,
+            }],
+            { onConflict: "player_id,training_session_id" },
+          );
+        if (attErr) console.warn("[BowlingSimplified] attendance:", attErr.message);
+
+        return { sessionId: existingSessionId, count: 1, blocks: blocks.length, totalDuration };
+      }
+
+      // ============ MODE CRÉATION ============
       const { data: session, error: sessErr } = await supabase
         .from("training_sessions")
         .insert({
@@ -236,7 +289,6 @@ export function BowlingSimplifiedDialog({
         .single();
       if (sessErr) throw sessErr;
 
-      // 2) Participants
       const { error: partErr } = await supabase
         .from("event_participants")
         .insert(
@@ -247,7 +299,6 @@ export function BowlingSimplifiedDialog({
         );
       if (partErr) console.error("[BowlingSimplified] event_participants:", partErr);
 
-      // 3) Blocs par athlète
       const rows = targetPlayers.flatMap((pid) =>
         blocks.map((b, idx) => ({
           session_id: session.id,
@@ -265,7 +316,7 @@ export function BowlingSimplifiedDialog({
           success_criteria: {},
           pattern_id: null,
           config: buildConfig(b),
-          status: "completed",
+          status: isAthleteMode ? "completed" : "planned",
           order_index: idx,
         })),
       );
@@ -275,36 +326,41 @@ export function BowlingSimplifiedDialog({
         .insert(rows as any);
       if (blocksErr) throw blocksErr;
 
-      // Optional: attendance present for each player
-      const { error: attErr } = await supabase
-        .from("training_attendance")
-        .insert(
-          targetPlayers.map((pid) => ({
-            player_id: pid,
-            category_id: categoryId,
-            attendance_date: sessionDate,
-            training_session_id: session.id,
-            status: "present" as const,
-          })),
-        );
-      if (attErr) console.warn("[BowlingSimplified] attendance:", attErr.message);
+      if (isAthleteMode) {
+        const { error: attErr } = await supabase
+          .from("training_attendance")
+          .insert(
+            targetPlayers.map((pid) => ({
+              player_id: pid,
+              category_id: categoryId,
+              attendance_date: sessionDate,
+              training_session_id: session.id,
+              status: "present" as const,
+            })),
+          );
+        if (attErr) console.warn("[BowlingSimplified] attendance:", attErr.message);
+      }
 
       return { sessionId: session.id, count: targetPlayers.length, blocks: blocks.length, totalDuration };
     },
     onSuccess: ({ count, blocks: nb }) => {
       toast.success(
-        isAthleteMode
-          ? `Séance enregistrée (${nb} bloc${nb > 1 ? "s" : ""})`
-          : `Séance attribuée à ${count} athlète${count > 1 ? "s" : ""} (${nb} bloc${nb > 1 ? "s" : ""})`,
+        isEditMode
+          ? `Séance remplie (${nb} bloc${nb > 1 ? "s" : ""})`
+          : isAthleteMode
+            ? `Séance enregistrée (${nb} bloc${nb > 1 ? "s" : ""})`
+            : `Séance attribuée à ${count} athlète${count > 1 ? "s" : ""} (${nb} bloc${nb > 1 ? "s" : ""})`,
       );
       qc.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["bowling_training_blocks"] });
       qc.invalidateQueries({ queryKey: ["bowling_training_blocks_stats", categoryId] });
+      qc.invalidateQueries({ queryKey: ["bowling_simplified_existing_blocks", existingSessionId] });
       handleOpenChange(false);
     },
     onError: (e: any) => toast.error(e?.message || "Erreur lors de l'enregistrement"),
   });
+
 
   const handleSave = () => saveMutation.mutate();
 
