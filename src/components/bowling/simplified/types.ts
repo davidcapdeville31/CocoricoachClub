@@ -1,7 +1,7 @@
 // Types pour le mode simplifié de séance bowling.
 // Pour l'instant, état local uniquement — la persistance sera ajoutée plus tard.
 
-export type SimplifiedBlockType = "tactical"; // d'autres types arriveront
+export type SimplifiedBlockType = "tactical" | "technical"; // d'autres types arriveront
 
 export type SimplifiedTargetType =
   | "strike"
@@ -53,7 +53,38 @@ export interface SimplifiedTacticalBlock {
   items: SimplifiedTacticalItem[];
 }
 
-export type SimplifiedBlock = SimplifiedTacticalBlock; // union élargie plus tard
+export type TechnicalThemeKey =
+  | "swing_axis"
+  | "step_amplitude"
+  | "release"
+  | "feet_position"
+  | "finish_position"
+  | "timing"
+  | "other";
+
+export const TECHNICAL_THEMES: { value: TechnicalThemeKey; label: string }[] = [
+  { value: "swing_axis", label: "Axe du Swing" },
+  { value: "step_amplitude", label: "Amplitude des pas + appuis" },
+  { value: "release", label: "Lâcher" },
+  { value: "feet_position", label: "Position des appuis" },
+  { value: "finish_position", label: "Position d'arrivée" },
+  { value: "timing", label: "Timing" },
+  { value: "other", label: "Autre (à préciser)" },
+];
+
+export interface SimplifiedTechnicalBlock {
+  id: string;
+  type: "technical";
+  title: string;
+  duration_min: number;
+  theme: TechnicalThemeKey;
+  /** Si theme === "other" : libellé personnalisé */
+  custom_theme?: string;
+  /** Description libre de ce qui a été travaillé */
+  description: string;
+}
+
+export type SimplifiedBlock = SimplifiedTacticalBlock | SimplifiedTechnicalBlock;
 
 export const COMPOSED_SPARES: { value: ComposedSpareKey; label: string }[] = [
   { value: "6_10", label: "6-10" },
@@ -110,6 +141,13 @@ export function itemLabel(item: SimplifiedTacticalItem): string {
   }
 }
 
+export function technicalThemeLabel(block: SimplifiedTechnicalBlock): string {
+  if (block.theme === "other") {
+    return block.custom_theme?.trim() || "Autre thématique";
+  }
+  return TECHNICAL_THEMES.find((t) => t.value === block.theme)?.label ?? "Technique";
+}
+
 export function newItem(target_type: SimplifiedTargetType): SimplifiedTacticalItem {
   return {
     id: crypto.randomUUID(),
@@ -129,5 +167,17 @@ export function newTacticalBlock(): SimplifiedTacticalBlock {
     duration_min: 20,
     oil_pattern: { preset_name: null, image_url: null },
     items: [],
+  };
+}
+
+export function newTechnicalBlock(): SimplifiedTechnicalBlock {
+  return {
+    id: crypto.randomUUID(),
+    type: "technical",
+    title: "",
+    duration_min: 20,
+    theme: "swing_axis",
+    custom_theme: "",
+    description: "",
   };
 }

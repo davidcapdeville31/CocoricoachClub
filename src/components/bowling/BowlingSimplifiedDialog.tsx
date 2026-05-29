@@ -7,13 +7,15 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Plus, Target } from "lucide-react";
+import { Sparkles, Plus, Target, Wrench } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { SimplifiedTacticalBlockEditor } from "./simplified/SimplifiedTacticalBlockEditor";
+import { SimplifiedTechnicalBlockEditor } from "./simplified/SimplifiedTechnicalBlockEditor";
 import {
   newTacticalBlock,
+  newTechnicalBlock,
   type SimplifiedBlock,
 } from "./simplified/types";
 
@@ -27,8 +29,7 @@ interface BowlingSimplifiedDialogProps {
 
 /**
  * Mode SIMPLIFIÉ de création de séance bowling.
- * Pour l'instant : seul l'onglet "Tactique" est implémenté.
- * Les autres types de blocs (technique, parties...) arriveront ensuite.
+ * Blocs disponibles : Tactique, Technique.
  * La persistance en base sera ajoutée dans un second temps.
  */
 export function BowlingSimplifiedDialog({
@@ -42,6 +43,9 @@ export function BowlingSimplifiedDialog({
   const addTactical = () =>
     setBlocks((prev) => [...prev, newTacticalBlock()]);
 
+  const addTechnical = () =>
+    setBlocks((prev) => [...prev, newTechnicalBlock()]);
+
   const updateBlock = (id: string, next: SimplifiedBlock) =>
     setBlocks((prev) => prev.map((b) => (b.id === id ? next : b)));
 
@@ -53,7 +57,6 @@ export function BowlingSimplifiedDialog({
       toast.error("Ajoutez au moins un bloc avant d'enregistrer");
       return;
     }
-    // Sauvegarde réelle à venir.
     toast.info("Enregistrement bientôt disponible — la séance n'est pas encore persistée.");
   };
 
@@ -61,6 +64,16 @@ export function BowlingSimplifiedDialog({
     if (!next) setBlocks([]);
     onOpenChange(next);
   };
+
+  // Indices typés par bloc pour conserver la numérotation par catégorie
+  const tacticalIndexById = new Map<string, number>();
+  const technicalIndexById = new Map<string, number>();
+  let tCount = 0;
+  let techCount = 0;
+  blocks.forEach((b) => {
+    if (b.type === "tactical") tacticalIndexById.set(b.id, tCount++);
+    if (b.type === "technical") technicalIndexById.set(b.id, techCount++);
+  });
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -85,21 +98,34 @@ export function BowlingSimplifiedDialog({
                 Construisez votre séance
               </h3>
               <p className="max-w-sm text-sm text-muted-foreground">
-                Ajoutez un bloc pour commencer. Seul le bloc Tactique est disponible pour l'instant.
+                Ajoutez un bloc pour commencer.
               </p>
             </div>
           )}
 
-          {blocks.map((b, idx) => (
-            <SimplifiedTacticalBlockEditor
-              key={b.id}
-              value={b}
-              index={idx}
-              categoryId={categoryId}
-              onChange={(next) => updateBlock(b.id, next)}
-              onRemove={() => removeBlock(b.id)}
-            />
-          ))}
+          {blocks.map((b) => {
+            if (b.type === "tactical") {
+              return (
+                <SimplifiedTacticalBlockEditor
+                  key={b.id}
+                  value={b}
+                  index={tacticalIndexById.get(b.id) ?? 0}
+                  categoryId={categoryId}
+                  onChange={(next) => updateBlock(b.id, next)}
+                  onRemove={() => removeBlock(b.id)}
+                />
+              );
+            }
+            return (
+              <SimplifiedTechnicalBlockEditor
+                key={b.id}
+                value={b}
+                index={technicalIndexById.get(b.id) ?? 0}
+                onChange={(next) => updateBlock(b.id, next)}
+                onRemove={() => removeBlock(b.id)}
+              />
+            );
+          })}
 
           {/* Add block buttons */}
           <div className="flex flex-wrap gap-2 pt-1">
@@ -118,11 +144,12 @@ export function BowlingSimplifiedDialog({
               type="button"
               variant="outline"
               size="sm"
-              disabled
-              className="gap-2 opacity-60"
+              onClick={addTechnical}
+              className="gap-2"
             >
               <Plus className="h-4 w-4" />
-              Technique (à venir)
+              <Wrench className="h-3.5 w-3.5 text-emerald-600" />
+              Ajouter un bloc Technique
             </Button>
             <Button
               type="button"
