@@ -29,11 +29,12 @@ interface BowlingTrainingStatsProps {
 }
 
 export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingStatsProps) {
-  const [activeTab, setActiveTab] = useState("games");
+  const [activeTab, setActiveTab] = useState("global");
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [selectedBallId, setSelectedBallId] = useState<string>("all");
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>(playerId || "all");
+  const [globalPeriod, setGlobalPeriod] = useState<"week" | "month" | "year">("month");
 
   // Fetch training data
   const { data: trainingData, isLoading } = useQuery({
