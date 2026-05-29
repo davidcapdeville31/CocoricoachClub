@@ -553,6 +553,109 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
         </div>
       )}
 
+      {isBowling && (
+        <div className="rounded-xl border bg-background/60 p-3 space-y-3">
+          <div className="flex items-baseline justify-between gap-2">
+            <Label className="text-sm font-semibold">Caractéristiques techniques (bowling)</Label>
+            <span className="text-[11px] text-muted-foreground">
+              Axe, tilt et vitesse de boule de l'athlète.
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="bowling-axe" className="text-xs">Axe (°)</Label>
+              <Input
+                id="bowling-axe"
+                type="number"
+                min={0}
+                max={90}
+                step={1}
+                placeholder="0 – 90"
+                defaultValue={bowlingTech?.bowling_axe_deg ?? ""}
+                onBlur={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") {
+                    if (bowlingTech?.bowling_axe_deg != null) {
+                      updateBowlingTech.mutate({ bowling_axe_deg: null });
+                    }
+                    return;
+                  }
+                  const v = Number(raw);
+                  if (Number.isNaN(v) || v < 0 || v > 90) {
+                    toast.error("Axe : valeur entre 0 et 90°");
+                    return;
+                  }
+                  if (v !== bowlingTech?.bowling_axe_deg) {
+                    updateBowlingTech.mutate({ bowling_axe_deg: v });
+                  }
+                }}
+                className="bg-background"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="bowling-tilt" className="text-xs">Tilt (°)</Label>
+              <Input
+                id="bowling-tilt"
+                type="number"
+                min={-30}
+                max={30}
+                step={1}
+                placeholder="-30 – +30"
+                defaultValue={bowlingTech?.bowling_tilt_deg ?? ""}
+                onBlur={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") {
+                    if (bowlingTech?.bowling_tilt_deg != null) {
+                      updateBowlingTech.mutate({ bowling_tilt_deg: null });
+                    }
+                    return;
+                  }
+                  const v = Number(raw);
+                  if (Number.isNaN(v) || v < -30 || v > 30) {
+                    toast.error("Tilt : valeur entre -30 et +30°");
+                    return;
+                  }
+                  if (v !== bowlingTech?.bowling_tilt_deg) {
+                    updateBowlingTech.mutate({ bowling_tilt_deg: v });
+                  }
+                }}
+                className="bg-background"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="bowling-speed" className="text-xs">Vitesse de boule</Label>
+              <Input
+                id="bowling-speed"
+                type="number"
+                min={0}
+                step={0.1}
+                placeholder="ex. 28.5"
+                defaultValue={bowlingTech?.bowling_ball_speed ?? ""}
+                onBlur={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") {
+                    if (bowlingTech?.bowling_ball_speed != null) {
+                      updateBowlingTech.mutate({ bowling_ball_speed: null });
+                    }
+                    return;
+                  }
+                  const v = Number(raw);
+                  if (Number.isNaN(v) || v < 0) {
+                    toast.error("Vitesse : valeur numérique positive");
+                    return;
+                  }
+                  if (v !== bowlingTech?.bowling_ball_speed) {
+                    updateBowlingTech.mutate({ bowling_ball_speed: v });
+                  }
+                }}
+                className="bg-background"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+
       {dimensions.map((dim) => {
         const items = attributes.filter((a) => a.dimension === dim.dimension);
         const singleValue =
