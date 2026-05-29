@@ -339,6 +339,38 @@ export function BowlingSimplifiedDialog({
       matchId = newMatch.id;
     }
 
+    // Huilage (pattern) : upsert pour le match d'entraînement
+    if (matchId && oilPatternName && oilPatternName !== "none") {
+      const preset = OFFICIAL_OIL_PATTERNS.find((p) => p.name === oilPatternName);
+      const { data: existingPat } = await supabase
+        .from("bowling_oil_patterns")
+        .select("id")
+        .eq("match_id", matchId)
+        .eq("name", oilPatternName)
+        .limit(1)
+        .maybeSingle();
+      const payload: any = {
+        category_id: categoryId,
+        match_id: matchId,
+        name: oilPatternName,
+        length_feet: preset?.length_feet ?? null,
+        buff_distance_feet: preset?.buff_distance_feet ?? null,
+        width_boards: preset?.width_boards ?? null,
+        total_volume_ml: preset?.total_volume_ml ?? null,
+        oil_ratio: preset?.oil_ratio ?? null,
+        profile_type: preset?.profile_type ?? null,
+        forward_oil: preset?.forward_oil ?? null,
+        reverse_oil: preset?.reverse_oil ?? null,
+        outside_friction: preset?.outside_friction ?? null,
+      };
+      if (existingPat?.id) {
+        await supabase.from("bowling_oil_patterns").update(payload).eq("id", existingPat.id);
+      } else {
+        await supabase.from("bowling_oil_patterns").insert(payload);
+      }
+    }
+
+
     // round_number existants pour ce joueur
     const { count } = await supabase
       .from("competition_rounds")
