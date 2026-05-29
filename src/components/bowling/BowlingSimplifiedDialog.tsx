@@ -321,7 +321,8 @@ export function BowlingSimplifiedDialog({
           .map((p) => ({ entry: p, block: b })),
       );
 
-    if (gamesEntries.length === 0) return;
+    const hasOilToPersist = !!oilPatternName && oilPatternName !== "none";
+    if (gamesEntries.length === 0 && !hasOilToPersist) return;
 
     if (!matchId) {
       const { data: newMatch, error } = await supabase
