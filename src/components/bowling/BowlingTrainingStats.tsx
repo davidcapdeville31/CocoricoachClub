@@ -641,20 +641,25 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                   </CardHeader>
                   <CardContent>
                     {globalStats.chartData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={globalStats.chartData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                          <YAxis tick={{ fontSize: 11 }} label={{ value: 'h', angle: 0, position: 'insideLeft', style: { fontSize: 11 } }} />
+                      <ResponsiveContainer width="100%" height={220}>
+                        <BarChart data={globalStats.chartData} barCategoryGap="25%" barGap={2} margin={{ top: 8, right: 12, left: -10, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--border))" vertical={false} />
+                          <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={32} unit="h" />
                           <Tooltip
-                            contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
-                            formatter={(v: any) => `${v}h`}
+                            cursor={{ fill: "hsl(var(--muted)/0.4)" }}
+                            contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 11, boxShadow: "0 8px 24px -8px hsl(var(--foreground)/0.25)" }}
+                            formatter={(v: any, name: any, item: any) => {
+                              const total = item?.payload?.__total || 0;
+                              const pct = total > 0 ? Math.round(((v as number) / total) * 100) : 0;
+                              return [`${v}h · ${pct}%`, name];
+                            }}
                           />
-                          <Legend wrapperStyle={{ fontSize: 12 }} />
-                          <Bar dataKey="Échauffement" stackId="a" fill={THEME_COLORS.warmup} />
-                          <Bar dataKey="Technique" stackId="a" fill={THEME_COLORS.technical} />
-                          <Bar dataKey="Tactique" stackId="a" fill={THEME_COLORS.tactical} />
-                          <Bar dataKey="Parties" stackId="a" fill={THEME_COLORS.games} />
+                          <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} iconType="circle" iconSize={8} />
+                          <Bar dataKey="Échauffement" fill={THEME_COLORS.warmup} radius={[4, 4, 0, 0]} maxBarSize={22} />
+                          <Bar dataKey="Technique" fill={THEME_COLORS.technical} radius={[4, 4, 0, 0]} maxBarSize={22} />
+                          <Bar dataKey="Tactique" fill={THEME_COLORS.tactical} radius={[4, 4, 0, 0]} maxBarSize={22} />
+                          <Bar dataKey="Parties" fill={THEME_COLORS.games} radius={[4, 4, 0, 0]} maxBarSize={22} />
                         </BarChart>
                       </ResponsiveContainer>
                     ) : (
