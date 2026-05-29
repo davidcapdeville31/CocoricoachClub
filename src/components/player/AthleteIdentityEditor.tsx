@@ -193,6 +193,43 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
 
   const isJudo = isJudoCategory(sportType);
 
+  const isBowling = (sportType || "").toLowerCase().startsWith("bowling");
+
+  const { data: bowlingTech } = useQuery({
+    queryKey: ["player-bowling-tech", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("bowling_axe_deg, bowling_tilt_deg, bowling_ball_speed")
+        .eq("id", playerId)
+        .maybeSingle();
+      if (error) throw error;
+      return data as {
+        bowling_axe_deg: number | null;
+        bowling_tilt_deg: number | null;
+        bowling_ball_speed: number | null;
+      } | null;
+    },
+    enabled: !!playerId && isBowling,
+  });
+  const updateBowlingTech = useMutation({
+    mutationFn: async (patch: {
+      bowling_axe_deg?: number | null;
+      bowling_tilt_deg?: number | null;
+      bowling_ball_speed?: number | null;
+    }) => {
+      const { error } = await supabase
+        .from("players")
+        .update(patch as any)
+        .eq("id", playerId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["player-bowling-tech", playerId] });
+    },
+    onError: (e: any) => toast.error("Erreur : " + e.message),
+  });
+
   const { data: judoWeight } = useQuery({
     queryKey: ["player-judo-weight", playerId],
     queryFn: async () => {
@@ -515,6 +552,109 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
           </div>
         </div>
       )}
+
+      {isBowling && (
+        <div className="rounded-xl border bg-background/60 p-3 space-y-3">
+          <div className="flex items-baseline justify-between gap-2">
+            <Label className="text-sm font-semibold">Caractéristiques techniques (bowling)</Label>
+            <span className="text-[11px] text-muted-foreground">
+              Axe, tilt et vitesse de boule de l'athlète.
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="bowling-axe" className="text-xs">Axe (°)</Label>
+              <Input
+                id="bowling-axe"
+                type="number"
+                min={0}
+                max={90}
+                step={1}
+                placeholder="0 – 90"
+                defaultValue={bowlingTech?.bowling_axe_deg ?? ""}
+                onBlur={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") {
+                    if (bowlingTech?.bowling_axe_deg != null) {
+                      updateBowlingTech.mutate({ bowling_axe_deg: null });
+                    }
+                    return;
+                  }
+                  const v = Number(raw);
+                  if (Number.isNaN(v) || v < 0 || v > 90) {
+                    toast.error("Axe : valeur entre 0 et 90°");
+                    return;
+                  }
+                  if (v !== bowlingTech?.bowling_axe_deg) {
+                    updateBowlingTech.mutate({ bowling_axe_deg: v });
+                  }
+                }}
+                className="bg-background"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="bowling-tilt" className="text-xs">Tilt (°)</Label>
+              <Input
+                id="bowling-tilt"
+                type="number"
+                min={-30}
+                max={30}
+                step={1}
+                placeholder="-30 – +30"
+                defaultValue={bowlingTech?.bowling_tilt_deg ?? ""}
+                onBlur={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") {
+                    if (bowlingTech?.bowling_tilt_deg != null) {
+                      updateBowlingTech.mutate({ bowling_tilt_deg: null });
+                    }
+                    return;
+                  }
+                  const v = Number(raw);
+                  if (Number.isNaN(v) || v < -30 || v > 30) {
+                    toast.error("Tilt : valeur entre -30 et +30°");
+                    return;
+                  }
+                  if (v !== bowlingTech?.bowling_tilt_deg) {
+                    updateBowlingTech.mutate({ bowling_tilt_deg: v });
+                  }
+                }}
+                className="bg-background"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="bowling-speed" className="text-xs">Vitesse de boule</Label>
+              <Input
+                id="bowling-speed"
+                type="number"
+                min={0}
+                step={0.1}
+                placeholder="ex. 28.5"
+                defaultValue={bowlingTech?.bowling_ball_speed ?? ""}
+                onBlur={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") {
+                    if (bowlingTech?.bowling_ball_speed != null) {
+                      updateBowlingTech.mutate({ bowling_ball_speed: null });
+                    }
+                    return;
+                  }
+                  const v = Number(raw);
+                  if (Number.isNaN(v) || v < 0) {
+                    toast.error("Vitesse : valeur numérique positive");
+                    return;
+                  }
+                  if (v !== bowlingTech?.bowling_ball_speed) {
+                    updateBowlingTech.mutate({ bowling_ball_speed: v });
+                  }
+                }}
+                className="bg-background"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {dimensions.map((dim) => {
         const items = attributes.filter((a) => a.dimension === dim.dimension);
