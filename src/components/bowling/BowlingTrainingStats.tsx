@@ -388,7 +388,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       const rate = totalAttempts > 0 ? (totalSuccesses / totalAttempts) * 100 : 0;
       return { player, byType, total: { totalAttempts, totalSuccesses, rate } };
     }).filter(p => p.total !== null);
-  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId, athletesWithNewBlocks, activeTrainingDates]);
+  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId, athletesWithNewBlocks]);
 
   // Compute global stats from new-system bowling_training_blocks
   const globalStats = useMemo(() => {
