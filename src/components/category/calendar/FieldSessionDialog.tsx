@@ -325,20 +325,24 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         if (cancelled) return;
         if (blockRows && blockRows.length > 0) {
           setBlocks(
-            blockRows.map((br: any) => ({
-              id: br.id || crypto.randomUUID(),
-              theme: br.training_type || br.theme || "Collectif",
-              themeLabel: br.theme || br.training_type || "Collectif",
-              duration_minutes: br.duration_minutes ?? 30,
-              intensity: br.intensity ?? 5,
-              notes: br.notes || "",
-              bowling_exercise_type: br.bowling_exercise_type || undefined,
-              target_intensity: br.target_intensity || undefined,
-              volume: br.volume || undefined,
-              contact_charge: br.contact_charge || undefined,
-              throwing_implement: br.throwing_implement || undefined,
-              implement_weight_g: br.implement_weight_g ?? null,
-            })),
+            blockRows.map((br: any) => {
+              const decoded = decodeBowlingDtnMeta(br.notes);
+              return {
+                id: br.id || crypto.randomUUID(),
+                theme: br.training_type || br.theme || "Collectif",
+                themeLabel: br.theme || br.training_type || "Collectif",
+                duration_minutes: br.duration_minutes ?? 30,
+                intensity: br.intensity ?? 5,
+                notes: decoded.visibleNotes ?? (br.notes || ""),
+                bowling_exercise_type: br.bowling_exercise_type || undefined,
+                bowling_dtn_variables: decoded.variables && Object.keys(decoded.variables).length > 0 ? decoded.variables : undefined,
+                target_intensity: br.target_intensity || undefined,
+                volume: br.volume || undefined,
+                contact_charge: br.contact_charge || undefined,
+                throwing_implement: br.throwing_implement || undefined,
+                implement_weight_g: br.implement_weight_g ?? null,
+              };
+            }),
           );
         }
 
@@ -432,19 +436,25 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
       let sessionId: string;
       if (isAthleteMode) {
         // Athlete self-planning → bypass RLS via edge function
-        const blockPayload = blocks.map((b, idx) => ({
-          training_type: b.theme,
-          theme: b.themeLabel || b.theme,
-          duration_minutes: b.duration_minutes,
-          intensity: b.intensity && b.intensity >= 1 && b.intensity <= 10 ? b.intensity : null,
-          notes: b.notes || null,
-          bowling_exercise_type: b.theme === "bowling_spare" ? (b.bowling_exercise_type || null) : null,
-          target_intensity: b.target_intensity || null,
-          volume: b.volume || null,
-          contact_charge: b.contact_charge || null,
-          throwing_implement: isThrowingBlock(b.theme) ? (b.throwing_implement || null) : null,
-          implement_weight_g: isThrowingBlock(b.theme) ? (b.implement_weight_g ?? null) : null,
-        }));
+        const blockPayload = blocks.map((b, idx) => {
+          const isBowlingBlock = (BOWLING_PARENT_VALUES as readonly string[]).includes(b.theme);
+          const encodedNotes = isBowlingBlock && b.bowling_dtn_variables
+            ? encodeBowlingDtnMeta("inline", b.bowling_dtn_variables, b.notes || "")
+            : (b.notes || null);
+          return {
+            training_type: b.theme,
+            theme: b.themeLabel || b.theme,
+            duration_minutes: b.duration_minutes,
+            intensity: b.intensity && b.intensity >= 1 && b.intensity <= 10 ? b.intensity : null,
+            notes: encodedNotes,
+            bowling_exercise_type: b.theme === "bowling_spare" ? (b.bowling_exercise_type || null) : null,
+            target_intensity: b.target_intensity || null,
+            volume: b.volume || null,
+            contact_charge: b.contact_charge || null,
+            throwing_implement: isThrowingBlock(b.theme) ? (b.throwing_implement || null) : null,
+            implement_weight_g: isThrowingBlock(b.theme) ? (b.implement_weight_g ?? null) : null,
+          };
+        });
 
         const { data: efData, error: efErr } = await supabase.functions.invoke("athlete-create-session", {
           body: {
@@ -491,21 +501,27 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
 
       if (!isAthleteMode) {
         // Insert blocks
-        const blockRows = blocks.map((b, idx) => ({
-          training_session_id: sessionId,
-          block_order: idx,
-          training_type: b.theme,
-          theme: b.themeLabel || b.theme,
-          duration_minutes: b.duration_minutes,
-          intensity: b.intensity && b.intensity >= 1 && b.intensity <= 10 ? b.intensity : null,
-          notes: b.notes || null,
-          bowling_exercise_type: b.theme === "bowling_spare" ? (b.bowling_exercise_type || null) : null,
-          target_intensity: b.target_intensity || null,
-          volume: b.volume || null,
-          contact_charge: b.contact_charge || null,
-          throwing_implement: isThrowingBlock(b.theme) ? (b.throwing_implement || null) : null,
-          implement_weight_g: isThrowingBlock(b.theme) ? (b.implement_weight_g ?? null) : null,
-        }));
+        const blockRows = blocks.map((b, idx) => {
+          const isBowlingBlock = (BOWLING_PARENT_VALUES as readonly string[]).includes(b.theme);
+          const encodedNotes = isBowlingBlock && b.bowling_dtn_variables
+            ? encodeBowlingDtnMeta("inline", b.bowling_dtn_variables, b.notes || "")
+            : (b.notes || null);
+          return {
+            training_session_id: sessionId,
+            block_order: idx,
+            training_type: b.theme,
+            theme: b.themeLabel || b.theme,
+            duration_minutes: b.duration_minutes,
+            intensity: b.intensity && b.intensity >= 1 && b.intensity <= 10 ? b.intensity : null,
+            notes: encodedNotes,
+            bowling_exercise_type: b.theme === "bowling_spare" ? (b.bowling_exercise_type || null) : null,
+            target_intensity: b.target_intensity || null,
+            volume: b.volume || null,
+            contact_charge: b.contact_charge || null,
+            throwing_implement: isThrowingBlock(b.theme) ? (b.throwing_implement || null) : null,
+            implement_weight_g: isThrowingBlock(b.theme) ? (b.implement_weight_g ?? null) : null,
+          };
+        });
         const { error: bErr } = await supabase.from("training_session_blocks").insert(blockRows);
         if (bErr) throw bErr;
 
