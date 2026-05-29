@@ -156,7 +156,6 @@ export function SimplifiedOilPatternPicker({ value, onChange, categoryId }: Prop
           <SelectTrigger className="h-9 text-sm">
             <SelectValue placeholder="Sélectionner un pattern" />
           </SelectTrigger>
-          </SelectTrigger>
           <SelectContent className="z-[100] max-h-72">
             <SelectItem value="__none__" className="italic">
               Libre / non défini
