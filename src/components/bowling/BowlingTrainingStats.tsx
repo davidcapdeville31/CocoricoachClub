@@ -1004,14 +1004,90 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
 
           {/* Tab: Stats Spécifiques - grouped by athlete */}
           <TabsContent value="specific" className="space-y-4 mt-4">
-            {hasSpareData ? (
+            {playerPrecisionStats.length === 0 && !hasSpareData ? (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  <Target className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm">Aucune donnée spécifique enregistrée.</p>
+                  <p className="text-xs mt-1">Joue des parties d'entraînement pour voir tes % Strikes, Spares, Poches…</p>
+                </CardContent>
+              </Card>
+            ) : (
               <div className="space-y-6">
-                {playerSpareStats.map(({ player, byType, total }) => (
+                {/* Histogramme précision par athlète (issu des parties) */}
+                {playerPrecisionStats.map(({ player, metrics, totalGames }) => {
+                  const METRICS = [
+                    { key: "strikes", label: "% Strikes", color: "hsl(0 84% 60%)" },
+                    { key: "spares", label: "% Spares", color: "hsl(217 91% 60%)" },
+                    { key: "pockets", label: "% Poches", color: "hsl(160 84% 39%)" },
+                    { key: "singlePin", label: "% Quilles seules", color: "hsl(38 92% 50%)" },
+                    { key: "splits", label: "% Conv. splits", color: "hsl(330 81% 60%)" },
+                    { key: "firstBallGte8", label: "% Boules ≥8", color: "hsl(271 91% 65%)" },
+                    { key: "openFrames", label: "% Frames non fermées", color: "hsl(188 76% 45%)" },
+                  ] as const;
+                  const chartData = METRICS.map((m) => ({
+                    label: m.label,
+                    value: Math.round(((metrics as any)[m.key] || 0) * 10) / 10,
+                    fill: m.color,
+                  }));
+                  return (
+                    <Card key={`prec-${player.id}`}>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Target className="h-4 w-4 text-primary" />
+                          {player.name}
+                          <Badge variant="secondary" className="ml-auto text-xs">{totalGames} parties</Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={280}>
+                          <BarChart data={chartData} margin={{ top: 24, right: 12, left: -10, bottom: 40 }}>
+                            <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--border))" vertical={false} />
+                            <XAxis
+                              dataKey="label"
+                              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                              axisLine={false}
+                              tickLine={false}
+                              interval={0}
+                              angle={-20}
+                              textAnchor="end"
+                              height={50}
+                            />
+                            <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={32} unit="%" domain={[0, 100]} />
+                            <Tooltip
+                              cursor={{ fill: "hsl(var(--muted)/0.4)" }}
+                              contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 11 }}
+                              formatter={(v: any) => [`${v}%`, ""]}
+                            />
+                            <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                              <LabelList
+                                dataKey="value"
+                                position="top"
+                                content={(props: any) => {
+                                  const { x, y, width, value } = props;
+                                  if (value === undefined || value === null) return null;
+                                  return (
+                                    <text x={x + width / 2} y={y - 6} textAnchor="middle" fontSize={11} fontWeight={700} fill="hsl(var(--foreground))">
+                                      {value}%
+                                    </text>
+                                  );
+                                }}
+                              />
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+
+                {/* Exercices spécifiques (legacy data) */}
+                {hasSpareData && playerSpareStats.map(({ player, byType, total }) => (
                   <Card key={player.id}>
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm flex items-center gap-2">
                         <Users className="h-4 w-4 text-primary" />
-                        {player.name}
+                        {player.name} — Exercices spécifiques
                         <Badge variant="secondary" className="ml-auto text-xs">
                           {total!.rate.toFixed(1)}% global
                         </Badge>
@@ -1057,14 +1133,6 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                   </Card>
                 ))}
               </div>
-            ) : (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
-                  <Target className="h-10 w-10 mx-auto mb-3 opacity-50" />
-                  <p className="text-sm">Aucun exercice de précision enregistré.</p>
-                  <p className="text-xs mt-1">Quille 5 · Quille 7 · Quille 10 · Spares</p>
-                </CardContent>
-              </Card>
             )}
           </TabsContent>
         </Tabs>
