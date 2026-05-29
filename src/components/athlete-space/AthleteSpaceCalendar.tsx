@@ -776,6 +776,10 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
           setIsPickerOpen(false);
           setIsBowlingSimplifiedOpen(true);
         }}
+        onSelectBowlingAdvanced={() => {
+          setIsPickerOpen(false);
+          setIsBowlingAdvancedOpen(true);
+        }}
       />
 
       <SessionEditorV2
