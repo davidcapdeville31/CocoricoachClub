@@ -669,7 +669,8 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                                     const { x, y, width, value, index } = props;
                                     if (!value || value <= 0) return null;
                                     const total = globalStats.chartData[index]?.__total || 0;
-                                    const pct = total > 0 ? Math.round(((value as number) / total) * 100) : 0;
+                                    const raw = globalStats.chartData[index]?.__raw?.[k] ?? (value as number);
+                                    const pct = total > 0 ? Math.round((raw / total) * 100) : 0;
                                     return (
                                       <g>
                                         <text x={x + width / 2} y={y - 16} textAnchor="middle" fontSize={9} fontWeight={700} fill="hsl(var(--muted-foreground))">
