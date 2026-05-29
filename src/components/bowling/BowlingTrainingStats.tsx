@@ -157,6 +157,85 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     },
   });
 
+  // Unique training match IDs (from games)
+  const trainingMatchIds = useMemo(() => {
+    if (!trainingData) return [] as string[];
+    return [...new Set(trainingData.games.map((g: any) => g.matchId).filter(Boolean))] as string[];
+  }, [trainingData]);
+
+  // Fetch oil patterns assigned to those training matches
+  const { data: trainingOilData } = useQuery({
+    queryKey: ["bowling_training_oil_patterns", categoryId, trainingMatchIds, playerId || "all"],
+    queryFn: async () => {
+      if (trainingMatchIds.length === 0) return [] as Array<{ matchId: string; matchDate: string; oilRatio: string | null; oilCategory: OilCategoryType | null; patternName: string | null }>;
+      const { data: oilPatterns } = await supabase
+        .from("bowling_oil_patterns")
+        .select("id, name, match_id, oil_ratio")
+        .in("match_id", trainingMatchIds);
+
+      const patternIds = (oilPatterns || []).map((op: any) => op.id);
+      let assignments: any[] = [];
+      if (patternIds.length > 0) {
+        const { data: assignData } = await supabase
+          .from("bowling_oil_pattern_players" as any)
+          .select("oil_pattern_id, player_id")
+          .in("oil_pattern_id", patternIds);
+        assignments = (assignData as any[]) || [];
+      }
+
+      const patternsByMatch = new Map<string, any[]>();
+      (oilPatterns || []).forEach((op: any) => {
+        if (!op.match_id) return;
+        const arr = patternsByMatch.get(op.match_id) || [];
+        arr.push(op);
+        patternsByMatch.set(op.match_id, arr);
+      });
+
+      const seen = new Set<string>();
+      const out: Array<{ matchId: string; matchDate: string; oilRatio: string | null; oilCategory: OilCategoryType | null; patternName: string | null }> = [];
+      for (const g of trainingData?.games || []) {
+        if (seen.has(g.matchId)) continue;
+        seen.add(g.matchId);
+        const patternsForMatch = patternsByMatch.get(g.matchId) || [];
+        let resolved: any = null;
+        if (playerId) {
+          const assignedIds = new Set(assignments.filter((a: any) => a.player_id === playerId).map((a: any) => a.oil_pattern_id));
+          resolved = patternsForMatch.find((p: any) => assignedIds.has(p.id)) || null;
+        } else {
+          resolved = patternsForMatch[0] || null;
+        }
+        const cat = resolved ? getOilCategory(resolved.oil_ratio) : null;
+        out.push({
+          matchId: g.matchId,
+          matchDate: g.matchDate,
+          oilRatio: resolved?.oil_ratio || null,
+          oilCategory: (cat?.type as OilCategoryType) || null,
+          patternName: resolved?.name || null,
+        });
+      }
+      return out.sort((a, b) => a.matchDate.localeCompare(b.matchDate));
+    },
+    enabled: trainingMatchIds.length > 0,
+  });
+
+  const hasActiveOilFilter = filterByOilType !== null || selectedTrainingMatchIds !== null;
+
+  // Active training match IDs based on oil filter
+  const activeTrainingMatchIds = useMemo(() => {
+    if (filterByOilType && trainingOilData) {
+      return new Set(trainingOilData.filter((m) => m.oilCategory === filterByOilType).map((m) => m.matchId));
+    }
+    if (selectedTrainingMatchIds !== null) return selectedTrainingMatchIds;
+    return null; // null = no restriction
+  }, [filterByOilType, selectedTrainingMatchIds, trainingOilData]);
+
+  // Set of dates (YYYY-MM-DD) corresponding to active training matches (for spare/global filtering)
+  const activeTrainingDates = useMemo(() => {
+    if (!activeTrainingMatchIds || !trainingOilData) return null;
+    return new Set(trainingOilData.filter((m) => activeTrainingMatchIds.has(m.matchId)).map((m) => (m.matchDate || "").slice(0, 10)));
+  }, [activeTrainingMatchIds, trainingOilData]);
+
+
   const players = useMemo(() => {
     if (!trainingData) return [];
     const map = new Map<string, string>();
