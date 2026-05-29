@@ -163,12 +163,16 @@ import { BowlingBlockInlineEditor } from "@/components/bowling/blocks/BowlingBlo
 const isBowlingSport = (sport?: string) =>
   !!sport && sport.toLowerCase().startsWith("bowling");
 
-export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sportType, editSession }: FieldSessionDialogProps) {
+export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sportType, editSession, athletePlayerId }: FieldSessionDialogProps) {
   const qc = useQueryClient();
   const { notify } = useSessionNotifications();
   const isEdit = !!editSession?.id;
+  const isAthleteMode = !!athletePlayerId && !isEdit;
 
-  const [title, setTitle] = useState("Séance terrain");
+  const sportLabel = useMemo(() => getFieldSessionLabelForSport(sportType), [sportType]);
+  const newSessionTitle = useMemo(() => `Nouvelle ${sportLabel.toLowerCase()}`, [sportLabel]);
+
+  const [title, setTitle] = useState(sportLabel);
   const [startTime, setStartTime] = useState("17:00");
   const [endTime, setEndTime] = useState("18:30");
   const [location, setLocation] = useState("");
