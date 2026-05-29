@@ -193,6 +193,43 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
 
   const isJudo = isJudoCategory(sportType);
 
+  const isBowling = (sportType || "").toLowerCase().startsWith("bowling");
+
+  const { data: bowlingTech } = useQuery({
+    queryKey: ["player-bowling-tech", playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("bowling_axe_deg, bowling_tilt_deg, bowling_ball_speed")
+        .eq("id", playerId)
+        .maybeSingle();
+      if (error) throw error;
+      return data as {
+        bowling_axe_deg: number | null;
+        bowling_tilt_deg: number | null;
+        bowling_ball_speed: number | null;
+      } | null;
+    },
+    enabled: !!playerId && isBowling,
+  });
+  const updateBowlingTech = useMutation({
+    mutationFn: async (patch: {
+      bowling_axe_deg?: number | null;
+      bowling_tilt_deg?: number | null;
+      bowling_ball_speed?: number | null;
+    }) => {
+      const { error } = await supabase
+        .from("players")
+        .update(patch as any)
+        .eq("id", playerId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["player-bowling-tech", playerId] });
+    },
+    onError: (e: any) => toast.error("Erreur : " + e.message),
+  });
+
   const { data: judoWeight } = useQuery({
     queryKey: ["player-judo-weight", playerId],
     queryFn: async () => {
