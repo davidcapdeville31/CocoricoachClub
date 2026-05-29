@@ -63,6 +63,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [isBowlingSimplifiedOpen, setIsBowlingSimplifiedOpen] = useState(false);
   const [bowlingSimplifiedSessionId, setBowlingSimplifiedSessionId] = useState<string | null>(null);
   const [isBowlingAdvancedOpen, setIsBowlingAdvancedOpen] = useState(false);
+  const [bowlingAdvancedSessionId, setBowlingAdvancedSessionId] = useState<string | null>(null);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const isBowling = (sportType || "").toLowerCase().includes("bowling");
@@ -578,6 +579,9 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                       if (session.training_type === "bowling_simplified") {
                                         setBowlingSimplifiedSessionId(session.id);
                                         setIsBowlingSimplifiedOpen(true);
+                                      } else if (session.training_type === "bowling_advanced") {
+                                        setBowlingAdvancedSessionId(session.id);
+                                        setIsBowlingAdvancedOpen(true);
                                       } else {
                                         setIsBowlingTrainingOpen(true);
                                       }
@@ -815,11 +819,16 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
       <BowlingAdvancedDialog
         open={isBowlingAdvancedOpen}
-        onOpenChange={setIsBowlingAdvancedOpen}
+        onOpenChange={(o) => {
+          setIsBowlingAdvancedOpen(o);
+          if (!o) setBowlingAdvancedSessionId(null);
+        }}
         date={selectedDate || new Date()}
         categoryId={categoryId}
         athletePlayerId={playerId}
+        existingSessionId={bowlingAdvancedSessionId || undefined}
       />
+
 
 
       <AddMatchCalendarDialog
