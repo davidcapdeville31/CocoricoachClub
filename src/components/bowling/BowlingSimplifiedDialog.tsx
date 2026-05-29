@@ -65,6 +65,7 @@ export function BowlingSimplifiedDialog({
   const [blocks, setBlocks] = useState<SimplifiedBlock[]>([]);
   const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
+  const [oilPatternName, setOilPatternName] = useState<string>("none");
 
   // Fetch effectif (coach mode only, et pas en édition)
   const { data: players = [] } = useQuery({
