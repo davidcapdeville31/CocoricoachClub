@@ -153,27 +153,53 @@ export function BowlingSimplifiedDialog({
             </div>
           )}
 
-          {blocks.map((b) => {
-            if (b.type === "tactical") {
+          {blocks.map((b, posIdx) => {
+            const locked = lockedIds.has(b.id);
+            if (locked) {
               return (
-                <SimplifiedTacticalBlockEditor
+                <LockedBlockSummary
                   key={b.id}
+                  block={b}
+                  index={posIdx}
+                  onEdit={() => unlockBlock(b.id)}
+                  onRemove={() => removeBlock(b.id)}
+                />
+              );
+            }
+
+            const editor =
+              b.type === "tactical" ? (
+                <SimplifiedTacticalBlockEditor
                   value={b}
                   index={tacticalIndexById.get(b.id) ?? 0}
                   categoryId={categoryId}
                   onChange={(next) => updateBlock(b.id, next)}
                   onRemove={() => removeBlock(b.id)}
                 />
+              ) : (
+                <SimplifiedTechnicalBlockEditor
+                  value={b}
+                  index={technicalIndexById.get(b.id) ?? 0}
+                  onChange={(next) => updateBlock(b.id, next)}
+                  onRemove={() => removeBlock(b.id)}
+                />
               );
-            }
+
             return (
-              <SimplifiedTechnicalBlockEditor
-                key={b.id}
-                value={b}
-                index={technicalIndexById.get(b.id) ?? 0}
-                onChange={(next) => updateBlock(b.id, next)}
-                onRemove={() => removeBlock(b.id)}
-              />
+              <div key={b.id} className="space-y-2">
+                {editor}
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => lockBlock(b.id)}
+                    className="gap-2"
+                  >
+                    <Save className="h-3.5 w-3.5" />
+                    Enregistrer le bloc
+                  </Button>
+                </div>
+              </div>
             );
           })}
 
