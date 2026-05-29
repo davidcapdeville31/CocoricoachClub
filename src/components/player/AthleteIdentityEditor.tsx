@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Plus, X, Star, Loader2, User, Cake, Footprints, Trophy } from "lucide-react";
+import { BowlingCharacteristicsBlock } from "./BowlingCharacteristicsBlock";
 import { Checkbox } from "@/components/ui/checkbox";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { toast } from "sonner";
@@ -200,7 +201,7 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("bowling_axe_deg, bowling_tilt_deg, bowling_ball_speed, bowling_ball_weight_lbs, bowling_rpm, bowling_pap_h_inch, bowling_pap_v_inch, bowling_personal_number")
+        .select("bowling_axe_deg, bowling_tilt_deg, bowling_ball_speed, bowling_ball_weight_lbs, bowling_rpm, bowling_pap_h_inch, bowling_pap_v_inch, bowling_perso_num_left, bowling_perso_num_center, bowling_perso_num_right")
         .eq("id", playerId)
         .maybeSingle();
       if (error) throw error;
@@ -212,7 +213,9 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
         bowling_rpm: number | null;
         bowling_pap_h_inch: number | null;
         bowling_pap_v_inch: number | null;
-        bowling_personal_number: number | null;
+        bowling_perso_num_left: number | null;
+        bowling_perso_num_center: number | null;
+        bowling_perso_num_right: number | null;
       } | null;
     },
     enabled: !!playerId && isBowling,
@@ -226,7 +229,9 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
       bowling_rpm?: number | null;
       bowling_pap_h_inch?: number | null;
       bowling_pap_v_inch?: number | null;
-      bowling_personal_number?: number | null;
+      bowling_perso_num_left?: number | null;
+      bowling_perso_num_center?: number | null;
+      bowling_perso_num_right?: number | null;
     }) => {
       const { error } = await supabase
         .from("players")
@@ -564,246 +569,11 @@ export function AthleteIdentityEditor({ playerId, sportType }: Props) {
       )}
 
       {isBowling && (
-        <div className="rounded-xl border bg-background/60 p-3 space-y-3">
-          <div className="flex items-baseline justify-between gap-2">
-            <Label className="text-sm font-semibold">Caractéristiques de l'athlète</Label>
-            <span className="text-[11px] text-muted-foreground">
-              Poids de boule, axe, tilt, RPM, PAP et vitesse de boule.
-            </span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="bowling-weight" className="text-xs">Poids de la boule (lbs)</Label>
-              <Select
-                value={bowlingTech?.bowling_ball_weight_lbs ? String(bowlingTech.bowling_ball_weight_lbs) : ""}
-                onValueChange={(v) => {
-                  if (!v) {
-                    updateBowlingTech.mutate({ bowling_ball_weight_lbs: null });
-                  } else {
-                    updateBowlingTech.mutate({ bowling_ball_weight_lbs: Number(v) });
-                  }
-                }}
-              >
-                <SelectTrigger id="bowling-weight" className="bg-background">
-                  <SelectValue placeholder="Sélectionner" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[12, 13, 14, 15, 16].map((w) => (
-                    <SelectItem key={w} value={String(w)}>{w} lbs</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="bowling-axe" className="text-xs">Axe (°)</Label>
-              <Input
-                id="bowling-axe"
-                type="number"
-                min={0}
-                max={90}
-                step={1}
-                placeholder="0 – 90"
-                defaultValue={bowlingTech?.bowling_axe_deg ?? ""}
-                onBlur={(e) => {
-                  const raw = e.target.value;
-                  if (raw === "") {
-                    if (bowlingTech?.bowling_axe_deg != null) {
-                      updateBowlingTech.mutate({ bowling_axe_deg: null });
-                    }
-                    return;
-                  }
-                  const v = Number(raw);
-                  if (Number.isNaN(v) || v < 0 || v > 90) {
-                    toast.error("Axe : valeur entre 0 et 90°");
-                    return;
-                  }
-                  if (v !== bowlingTech?.bowling_axe_deg) {
-                    updateBowlingTech.mutate({ bowling_axe_deg: v });
-                  }
-                }}
-                className="bg-background"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="bowling-tilt" className="text-xs">Tilt (°)</Label>
-              <Input
-                id="bowling-tilt"
-                type="number"
-                min={-30}
-                max={30}
-                step={1}
-                placeholder="-30 – +30"
-                defaultValue={bowlingTech?.bowling_tilt_deg ?? ""}
-                onBlur={(e) => {
-                  const raw = e.target.value;
-                  if (raw === "") {
-                    if (bowlingTech?.bowling_tilt_deg != null) {
-                      updateBowlingTech.mutate({ bowling_tilt_deg: null });
-                    }
-                    return;
-                  }
-                  const v = Number(raw);
-                  if (Number.isNaN(v) || v < -30 || v > 30) {
-                    toast.error("Tilt : valeur entre -30 et +30°");
-                    return;
-                  }
-                  if (v !== bowlingTech?.bowling_tilt_deg) {
-                    updateBowlingTech.mutate({ bowling_tilt_deg: v });
-                  }
-                }}
-                className="bg-background"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="bowling-rpm" className="text-xs">RPM</Label>
-              <Input
-                id="bowling-rpm"
-                type="number"
-                min={0}
-                max={1000}
-                step={1}
-                placeholder="ex. 350"
-                defaultValue={bowlingTech?.bowling_rpm ?? ""}
-                onBlur={(e) => {
-                  const raw = e.target.value;
-                  if (raw === "") {
-                    if (bowlingTech?.bowling_rpm != null) {
-                      updateBowlingTech.mutate({ bowling_rpm: null });
-                    }
-                    return;
-                  }
-                  const v = Number(raw);
-                  if (Number.isNaN(v) || v < 0 || v > 1000) {
-                    toast.error("RPM : valeur entre 0 et 1000");
-                    return;
-                  }
-                  if (v !== bowlingTech?.bowling_rpm) {
-                    updateBowlingTech.mutate({ bowling_rpm: v });
-                  }
-                }}
-                className="bg-background"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="bowling-pap-h" className="text-xs">PAP Horizontal (pouce)</Label>
-              <Input
-                id="bowling-pap-h"
-                type="number"
-                step={0.01}
-                min={-10}
-                max={10}
-                placeholder="ex. 4.75"
-                defaultValue={bowlingTech?.bowling_pap_h_inch ?? ""}
-                onBlur={(e) => {
-                  const raw = e.target.value;
-                  if (raw === "") {
-                    if (bowlingTech?.bowling_pap_h_inch != null) {
-                      updateBowlingTech.mutate({ bowling_pap_h_inch: null });
-                    }
-                    return;
-                  }
-                  const v = Number(raw);
-                  if (Number.isNaN(v) || v < -10 || v > 10) {
-                    toast.error("PAP H : valeur entre -10 et 10 pouces");
-                    return;
-                  }
-                  if (v !== bowlingTech?.bowling_pap_h_inch) {
-                    updateBowlingTech.mutate({ bowling_pap_h_inch: v });
-                  }
-                }}
-                className="bg-background"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="bowling-pap-v" className="text-xs">PAP Vertical (pouce)</Label>
-              <Input
-                id="bowling-pap-v"
-                type="number"
-                step={0.01}
-                min={-10}
-                max={10}
-                placeholder="ex. 0.50"
-                defaultValue={bowlingTech?.bowling_pap_v_inch ?? ""}
-                onBlur={(e) => {
-                  const raw = e.target.value;
-                  if (raw === "") {
-                    if (bowlingTech?.bowling_pap_v_inch != null) {
-                      updateBowlingTech.mutate({ bowling_pap_v_inch: null });
-                    }
-                    return;
-                  }
-                  const v = Number(raw);
-                  if (Number.isNaN(v) || v < -10 || v > 10) {
-                    toast.error("PAP V : valeur entre -10 et 10 pouces");
-                    return;
-                  }
-                  if (v !== bowlingTech?.bowling_pap_v_inch) {
-                    updateBowlingTech.mutate({ bowling_pap_v_inch: v });
-                  }
-                }}
-                className="bg-background"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="bowling-speed" className="text-xs">Vitesse de boule (km/h)</Label>
-              <Input
-                id="bowling-speed"
-                type="number"
-                min={0}
-                step={0.1}
-                placeholder="ex. 28.5"
-                defaultValue={bowlingTech?.bowling_ball_speed ?? ""}
-                onBlur={(e) => {
-                  const raw = e.target.value;
-                  if (raw === "") {
-                    if (bowlingTech?.bowling_ball_speed != null) {
-                      updateBowlingTech.mutate({ bowling_ball_speed: null });
-                    }
-                    return;
-                  }
-                  const v = Number(raw);
-                  if (Number.isNaN(v) || v < 0) {
-                    toast.error("Vitesse : valeur numérique positive");
-                    return;
-                  }
-                  if (v !== bowlingTech?.bowling_ball_speed) {
-                    updateBowlingTech.mutate({ bowling_ball_speed: v });
-                  }
-                }}
-                className="bg-background"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="bowling-perso-num" className="text-xs">Numéro perso</Label>
-              <Input
-                id="bowling-perso-num"
-                type="number"
-                min={0}
-                step={1}
-                placeholder="ex. 42"
-                defaultValue={bowlingTech?.bowling_personal_number ?? ""}
-                onBlur={(e) => {
-                  const raw = e.target.value;
-                  if (raw === "") {
-                    if (bowlingTech?.bowling_personal_number != null) {
-                      updateBowlingTech.mutate({ bowling_personal_number: null });
-                    }
-                    return;
-                  }
-                  const v = parseInt(raw, 10);
-                  if (Number.isNaN(v) || v < 0) {
-                    toast.error("Numéro perso : valeur entière positive");
-                    return;
-                  }
-                  if (v !== bowlingTech?.bowling_personal_number) {
-                    updateBowlingTech.mutate({ bowling_personal_number: v });
-                  }
-                }}
-                className="bg-background"
-              />
-            </div>
-          </div>
-        </div>
+        <BowlingCharacteristicsBlock
+          tech={bowlingTech ?? null}
+          onSave={(patch) => updateBowlingTech.mutateAsync(patch)}
+          saving={updateBowlingTech.isPending}
+        />
       )}
 
 
