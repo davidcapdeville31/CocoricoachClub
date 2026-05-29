@@ -129,7 +129,9 @@ export function CreateEventDialog({
   onAddSession,
   onAddMatch,
   onSelectExternalType,
+  allowedTypeIds,
 }: CreateEventDialogProps) {
+
   const [step, setStep] = useState<"type" | "details">("type");
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [title, setTitle] = useState("");
