@@ -64,6 +64,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { isViewer } = useViewerModeContext();
+  const { notify } = useSessionNotifications();
   const calendarContentRef = useRef<HTMLDivElement>(null);
   const isFieldSession = (session?: { training_type?: string | null } | null) =>
     session?.training_type === "terrain";
