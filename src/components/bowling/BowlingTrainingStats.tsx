@@ -669,9 +669,14 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                                     const total = globalStats.chartData[index]?.__total || 0;
                                     const pct = total > 0 ? Math.round(((value as number) / total) * 100) : 0;
                                     return (
-                                      <text x={x + width / 2} y={y - 4} textAnchor="middle" fontSize={9} fontWeight={600} fill={color}>
-                                        {value}h·{pct}%
-                                      </text>
+                                      <g>
+                                        <text x={x + width / 2} y={y - 16} textAnchor="middle" fontSize={9} fontWeight={700} fill="hsl(var(--muted-foreground))">
+                                          {pct}%
+                                        </text>
+                                        <text x={x + width / 2} y={y - 4} textAnchor="middle" fontSize={10} fontWeight={700} fill={color}>
+                                          {value}h
+                                        </text>
+                                      </g>
                                     );
                                   }}
                                 />
