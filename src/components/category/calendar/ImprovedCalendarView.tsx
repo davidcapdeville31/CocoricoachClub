@@ -820,6 +820,12 @@ export function ImprovedCalendarView({
           setPendingExternalType(type);
           setAddEventDate(null);
         }}
+        onSelectBowlingSimplified={() => {
+          const dateToUse = addEventDateRef.current || addEventDate;
+          addEventDateRef.current = null;
+          setAddEventDate(null);
+          if (dateToUse) setBowlingSimplifiedDate(dateToUse);
+        }}
       />
 
       {/* Schedule Test Event Dialog */}
