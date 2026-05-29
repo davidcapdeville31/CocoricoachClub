@@ -625,6 +625,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                       Volume d'entraînement (heures) par thématique
                     </CardTitle>
                     <ToggleGroup type="single" value={globalPeriod} onValueChange={(v) => v && setGlobalPeriod(v as any)} size="sm">
+                      <ToggleGroupItem value="day" className="text-xs h-7 px-2">Jour</ToggleGroupItem>
                       <ToggleGroupItem value="week" className="text-xs h-7 px-2">Semaine</ToggleGroupItem>
                       <ToggleGroupItem value="month" className="text-xs h-7 px-2">Mois</ToggleGroupItem>
                       <ToggleGroupItem value="year" className="text-xs h-7 px-2">Année</ToggleGroupItem>
