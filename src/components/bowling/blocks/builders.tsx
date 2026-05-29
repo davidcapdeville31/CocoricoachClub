@@ -47,21 +47,14 @@ function CommonFields({ value, onChange }: Props) {
         <Input type="number" min={1} value={value.planned_throws} onChange={(e) => update({ planned_throws: parseInt(e.target.value || "0", 10) })} className="h-9 text-sm" />
       </div>
       <div className="space-y-1">
-        <Label className="text-xs">Priorité</Label>
-        <Select value={value.priority} onValueChange={(v) => update({ priority: v as any })}>
-          <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-          <SelectContent className="z-[100]">
-            {PRIORITY_OPTIONS.map((p) => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="sm:col-span-2 space-y-1">
-        <Label className="text-xs">Consigne coach (visible athlète)</Label>
-        <Textarea rows={2} value={value.coach_instruction} onChange={(e) => update({ coach_instruction: e.target.value })} className="text-sm" />
-      </div>
-      <div className="sm:col-span-2 space-y-1">
-        <Label className="text-xs">Note interne (coach uniquement)</Label>
-        <Textarea rows={2} value={value.internal_note} onChange={(e) => update({ internal_note: e.target.value })} className="text-sm" />
+        <Label className="text-xs">Nombre de lancers</Label>
+        <div className="flex flex-wrap gap-1 mb-1">
+          {THROW_PRESETS.map((p) => (
+            <button key={p} type="button" onClick={() => update({ planned_throws: p })}
+              className={`px-2 py-0.5 rounded-md text-[11px] border ${value.planned_throws === p ? "bg-primary text-primary-foreground border-primary" : "border-border bg-background hover:bg-muted"}`}>{p}</button>
+          ))}
+        </div>
+        <Input type="number" min={1} value={value.planned_throws} onChange={(e) => update({ planned_throws: parseInt(e.target.value || "0", 10) })} className="h-9 text-sm" />
       </div>
     </div>
   );
