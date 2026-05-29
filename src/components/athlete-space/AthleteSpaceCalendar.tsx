@@ -60,6 +60,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [fieldSessionDate, setFieldSessionDate] = useState<Date | null>(null);
   const [matchDialogDate, setMatchDialogDate] = useState<Date | null>(null);
   const [isBowlingSimplifiedOpen, setIsBowlingSimplifiedOpen] = useState(false);
+  const [bowlingSimplifiedSessionId, setBowlingSimplifiedSessionId] = useState<string | null>(null);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const isBowling = (sportType || "").toLowerCase().includes("bowling");
@@ -571,11 +572,17 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     style={{ backgroundColor: TRAINING_COLOR }}
                                     onClick={() => {
                                       setSelectedDate(parseISO(session.session_date));
-                                      setIsBowlingTrainingOpen(true);
+                                      // Séance simplifiée attribuée par le coach → ouvre le mode simplifié pré-rempli
+                                      if (session.training_type === "bowling_simplified") {
+                                        setBowlingSimplifiedSessionId(session.id);
+                                        setIsBowlingSimplifiedOpen(true);
+                                      } else {
+                                        setIsBowlingTrainingOpen(true);
+                                      }
                                     }}
                                   >
                                     <Plus className="h-3.5 w-3.5" />
-                                    Remplir les données (parties / précision)
+                                    Remplir les données
                                   </Button>
                                 )}
                                 {isBasket && (
@@ -790,10 +797,14 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
       <BowlingSimplifiedDialog
         open={isBowlingSimplifiedOpen}
-        onOpenChange={setIsBowlingSimplifiedOpen}
+        onOpenChange={(o) => {
+          setIsBowlingSimplifiedOpen(o);
+          if (!o) setBowlingSimplifiedSessionId(null);
+        }}
         date={selectedDate || new Date()}
         categoryId={categoryId}
         athletePlayerId={playerId}
+        existingSessionId={bowlingSimplifiedSessionId || undefined}
       />
 
       <AddMatchCalendarDialog

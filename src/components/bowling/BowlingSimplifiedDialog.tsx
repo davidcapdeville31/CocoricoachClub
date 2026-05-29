@@ -36,6 +36,8 @@ interface BowlingSimplifiedDialogProps {
   categoryId: string;
   /** Si défini → mode athlète : pas de sélecteur, la séance est forcément pour ce joueur. */
   athletePlayerId?: string;
+  /** Si défini → on édite/remplit une séance existante (créée par le coach). */
+  existingSessionId?: string;
 }
 
 /**
@@ -43,6 +45,8 @@ interface BowlingSimplifiedDialogProps {
  * Blocs disponibles : Tactique, Technique, Parties.
  * Côté coach : choix des athlètes destinataires.
  * Côté athlète : auto-attribué à soi-même.
+ * Si `existingSessionId` est passé, on précharge les blocs déjà attribués au joueur
+ * et l'enregistrement remplace les blocs existants pour ce joueur sur cette séance.
  */
 export function BowlingSimplifiedDialog({
   open,
@@ -50,18 +54,20 @@ export function BowlingSimplifiedDialog({
   date,
   categoryId,
   athletePlayerId,
+  existingSessionId,
 }: BowlingSimplifiedDialogProps) {
   const isAthleteMode = !!athletePlayerId;
+  const isEditMode = !!existingSessionId;
   const qc = useQueryClient();
 
   const [blocks, setBlocks] = useState<SimplifiedBlock[]>([]);
   const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
 
-  // Fetch effectif (coach mode only)
+  // Fetch effectif (coach mode only, et pas en édition)
   const { data: players = [] } = useQuery({
     queryKey: ["bowling_simplified_players", categoryId],
-    enabled: open && !isAthleteMode,
+    enabled: open && !isAthleteMode && !isEditMode,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
@@ -72,6 +78,34 @@ export function BowlingSimplifiedDialog({
       return (data || []) as Array<{ id: string; name: string; first_name: string | null }>;
     },
   });
+
+  // Fetch des blocs existants si on édite une séance attribuée par le coach
+  const { data: existingBlocks } = useQuery({
+    queryKey: ["bowling_simplified_existing_blocks", existingSessionId, athletePlayerId],
+    enabled: open && !!existingSessionId && !!athletePlayerId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bowling_training_blocks")
+        .select("id, config, order_index, block_type")
+        .eq("session_id", existingSessionId!)
+        .eq("athlete_id", athletePlayerId!)
+        .order("order_index");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Hydrate les blocs depuis la session existante
+  useEffect(() => {
+    if (!open || !isEditMode || !existingBlocks) return;
+    const restored: SimplifiedBlock[] = existingBlocks
+      .map((row: any) => row.config as SimplifiedBlock | null)
+      .filter((b): b is SimplifiedBlock => !!b && !!b.type && !!b.id);
+    setBlocks(restored);
+    // En édition on laisse tous les blocs déverrouillés pour que l'athlète puisse les remplir
+    setLockedIds(new Set());
+  }, [open, isEditMode, existingBlocks]);
+
 
   const allSelected = players.length > 0 && selectedPlayers.length === players.length;
 
@@ -187,7 +221,60 @@ export function BowlingSimplifiedDialog({
         0,
       );
 
-      // 1) Création de la séance
+      // ============ MODE ÉDITION (athlète remplit une séance attribuée) ============
+      if (isEditMode && existingSessionId) {
+        // Remplace les blocs existants de CET athlète sur cette séance
+        const { error: delErr } = await supabase
+          .from("bowling_training_blocks")
+          .delete()
+          .eq("session_id", existingSessionId)
+          .eq("athlete_id", athletePlayerId!);
+        if (delErr) throw delErr;
+
+        const rows = blocks.map((b, idx) => ({
+          session_id: existingSessionId,
+          category_id: categoryId,
+          athlete_id: athletePlayerId!,
+          source: "athlete" as const,
+          block_type: b.type,
+          title: blockTitle(b),
+          duration_min: blockDuration(b),
+          planned_throws: null,
+          priority: null,
+          coach_instruction: null,
+          internal_note: null,
+          objectives: [],
+          success_criteria: {},
+          pattern_id: null,
+          config: buildConfig(b),
+          status: "completed",
+          order_index: idx,
+        }));
+
+        const { error: insErr } = await supabase
+          .from("bowling_training_blocks")
+          .insert(rows as any);
+        if (insErr) throw insErr;
+
+        // Marque la présence
+        const { error: attErr } = await supabase
+          .from("training_attendance")
+          .upsert(
+            [{
+              player_id: athletePlayerId!,
+              category_id: categoryId,
+              attendance_date: sessionDate,
+              training_session_id: existingSessionId,
+              status: "present" as const,
+            }],
+            { onConflict: "player_id,training_session_id" },
+          );
+        if (attErr) console.warn("[BowlingSimplified] attendance:", attErr.message);
+
+        return { sessionId: existingSessionId, count: 1, blocks: blocks.length, totalDuration };
+      }
+
+      // ============ MODE CRÉATION ============
       const { data: session, error: sessErr } = await supabase
         .from("training_sessions")
         .insert({
@@ -202,7 +289,6 @@ export function BowlingSimplifiedDialog({
         .single();
       if (sessErr) throw sessErr;
 
-      // 2) Participants
       const { error: partErr } = await supabase
         .from("event_participants")
         .insert(
@@ -213,7 +299,6 @@ export function BowlingSimplifiedDialog({
         );
       if (partErr) console.error("[BowlingSimplified] event_participants:", partErr);
 
-      // 3) Blocs par athlète
       const rows = targetPlayers.flatMap((pid) =>
         blocks.map((b, idx) => ({
           session_id: session.id,
@@ -231,7 +316,7 @@ export function BowlingSimplifiedDialog({
           success_criteria: {},
           pattern_id: null,
           config: buildConfig(b),
-          status: "completed",
+          status: isAthleteMode ? "completed" : "planned",
           order_index: idx,
         })),
       );
@@ -241,36 +326,41 @@ export function BowlingSimplifiedDialog({
         .insert(rows as any);
       if (blocksErr) throw blocksErr;
 
-      // Optional: attendance present for each player
-      const { error: attErr } = await supabase
-        .from("training_attendance")
-        .insert(
-          targetPlayers.map((pid) => ({
-            player_id: pid,
-            category_id: categoryId,
-            attendance_date: sessionDate,
-            training_session_id: session.id,
-            status: "present" as const,
-          })),
-        );
-      if (attErr) console.warn("[BowlingSimplified] attendance:", attErr.message);
+      if (isAthleteMode) {
+        const { error: attErr } = await supabase
+          .from("training_attendance")
+          .insert(
+            targetPlayers.map((pid) => ({
+              player_id: pid,
+              category_id: categoryId,
+              attendance_date: sessionDate,
+              training_session_id: session.id,
+              status: "present" as const,
+            })),
+          );
+        if (attErr) console.warn("[BowlingSimplified] attendance:", attErr.message);
+      }
 
       return { sessionId: session.id, count: targetPlayers.length, blocks: blocks.length, totalDuration };
     },
     onSuccess: ({ count, blocks: nb }) => {
       toast.success(
-        isAthleteMode
-          ? `Séance enregistrée (${nb} bloc${nb > 1 ? "s" : ""})`
-          : `Séance attribuée à ${count} athlète${count > 1 ? "s" : ""} (${nb} bloc${nb > 1 ? "s" : ""})`,
+        isEditMode
+          ? `Séance remplie (${nb} bloc${nb > 1 ? "s" : ""})`
+          : isAthleteMode
+            ? `Séance enregistrée (${nb} bloc${nb > 1 ? "s" : ""})`
+            : `Séance attribuée à ${count} athlète${count > 1 ? "s" : ""} (${nb} bloc${nb > 1 ? "s" : ""})`,
       );
       qc.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["bowling_training_blocks"] });
       qc.invalidateQueries({ queryKey: ["bowling_training_blocks_stats", categoryId] });
+      qc.invalidateQueries({ queryKey: ["bowling_simplified_existing_blocks", existingSessionId] });
       handleOpenChange(false);
     },
     onError: (e: any) => toast.error(e?.message || "Erreur lors de l'enregistrement"),
   });
+
 
   const handleSave = () => saveMutation.mutate();
 
@@ -283,14 +373,14 @@ export function BowlingSimplifiedDialog({
     onOpenChange(next);
   };
 
-  // Réinitialise quand on ouvre
+  // Réinitialise quand on ouvre (sauf en édition : on attend la requête)
   useEffect(() => {
-    if (open) {
+    if (open && !isEditMode) {
       setBlocks([]);
       setLockedIds(new Set());
       setSelectedPlayers([]);
     }
-  }, [open]);
+  }, [open, isEditMode]);
 
   // Indices typés par bloc pour conserver la numérotation par catégorie
   const tacticalIndexById = new Map<string, number>();
@@ -317,7 +407,7 @@ export function BowlingSimplifiedDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Sparkles className="h-5 w-5 text-primary" />
-            Nouvelle séance bowling — Mode simplifié
+            {isEditMode ? "Remplir la séance bowling" : "Nouvelle séance bowling — Mode simplifié"}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
             {format(date, "EEEE d MMMM yyyy", { locale: fr })}
