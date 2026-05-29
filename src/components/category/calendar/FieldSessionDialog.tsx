@@ -311,7 +311,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         // Title is stored as first line of notes; rest of notes is the general note
         const rawNotes: string = editSession.notes || "";
         const lines = rawNotes.split("\n");
-        setTitle(lines[0] || "Séance terrain");
+        setTitle(lines[0] || sportLabel);
         setNotes(lines.slice(1).join("\n"));
         setStartTime(editSession.session_start_time?.slice(0, 5) || "17:00");
         setEndTime(editSession.session_end_time?.slice(0, 5) || "18:30");
