@@ -101,6 +101,13 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
               strikePercentage: statData.strikePercentage || 0,
               sparePercentage: statData.sparePercentage || 0,
               openFrames: statData.openFrames || 0,
+              splitCount: statData.splitCount || 0,
+              splitConverted: statData.splitConverted || 0,
+              pocketCount: statData.pocketCount || 0,
+              pocketPercentage: statData.pocketPercentage || 0,
+              singlePinCount: statData.singlePinCount || 0,
+              singlePinConverted: statData.singlePinConverted || 0,
+              trackPockets: statData.trackPockets,
               frames: bowlingFrames,
               ballIds,
             });
