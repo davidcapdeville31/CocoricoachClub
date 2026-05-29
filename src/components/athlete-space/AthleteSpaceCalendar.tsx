@@ -763,6 +763,10 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
             setMatchDialogDate(selectedDate || new Date());
           }
         }}
+        onSelectBowlingSimplified={() => {
+          setIsPickerOpen(false);
+          setIsBowlingSimplifiedOpen(true);
+        }}
       />
 
       <SessionEditorV2
