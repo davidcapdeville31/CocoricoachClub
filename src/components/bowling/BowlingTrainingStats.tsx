@@ -20,7 +20,7 @@ import { SPARE_EXERCISE_TYPES } from "@/lib/constants/bowlingBallBrands";
 import { BowlingFrameAnalysis } from "./BowlingFrameAnalysis";
 import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, addFooter, downloadWorkbook } from "@/lib/excelExport";
 import { preparePdfWithSettings } from "@/lib/pdfExport";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from "recharts";
 import type { FrameData } from "@/components/athlete-portal/BowlingScoreSheet";
 
 interface BowlingTrainingStatsProps {
@@ -656,10 +656,28 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                             }}
                           />
                           <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} iconType="circle" iconSize={8} />
-                          <Bar dataKey="Échauffement" fill={THEME_COLORS.warmup} radius={[4, 4, 0, 0]} maxBarSize={22} />
-                          <Bar dataKey="Technique" fill={THEME_COLORS.technical} radius={[4, 4, 0, 0]} maxBarSize={22} />
-                          <Bar dataKey="Tactique" fill={THEME_COLORS.tactical} radius={[4, 4, 0, 0]} maxBarSize={22} />
-                          <Bar dataKey="Parties" fill={THEME_COLORS.games} radius={[4, 4, 0, 0]} maxBarSize={22} />
+                          {(["Échauffement", "Technique", "Tactique", "Parties"] as const).map((k) => {
+                            const color = k === "Échauffement" ? THEME_COLORS.warmup : k === "Technique" ? THEME_COLORS.technical : k === "Tactique" ? THEME_COLORS.tactical : THEME_COLORS.games;
+                            return (
+                              <Bar key={k} dataKey={k} fill={color} radius={[4, 4, 0, 0]} maxBarSize={22}>
+                                <LabelList
+                                  dataKey={k}
+                                  position="top"
+                                  content={(props: any) => {
+                                    const { x, y, width, value, index } = props;
+                                    if (!value || value <= 0) return null;
+                                    const total = globalStats.chartData[index]?.__total || 0;
+                                    const pct = total > 0 ? Math.round(((value as number) / total) * 100) : 0;
+                                    return (
+                                      <text x={x + width / 2} y={y - 4} textAnchor="middle" fontSize={9} fontWeight={600} fill={color}>
+                                        {value}h·{pct}%
+                                      </text>
+                                    );
+                                  }}
+                                />
+                              </Bar>
+                            );
+                          })}
                         </BarChart>
                       </ResponsiveContainer>
                     ) : (
