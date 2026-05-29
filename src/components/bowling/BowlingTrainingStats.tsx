@@ -286,6 +286,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
         "Technique": Math.round(b.technical * 10) / 10,
         "Tactique": Math.round(b.tactical * 10) / 10,
         "Parties": Math.round(b.games * 10) / 10,
+        __raw: { "Échauffement": b.warmup, "Technique": b.technical, "Tactique": b.tactical, "Parties": b.games },
         __total: total,
       };
     });
@@ -651,7 +652,8 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                             contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 11, boxShadow: "0 8px 24px -8px hsl(var(--foreground)/0.25)" }}
                             formatter={(v: any, name: any, item: any) => {
                               const total = item?.payload?.__total || 0;
-                              const pct = total > 0 ? Math.round(((v as number) / total) * 100) : 0;
+                              const raw = item?.payload?.__raw?.[name] ?? (v as number);
+                              const pct = total > 0 ? Math.round((raw / total) * 100) : 0;
                               return [`${v}h · ${pct}%`, name];
                             }}
                           />
@@ -667,7 +669,8 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                                     const { x, y, width, value, index } = props;
                                     if (!value || value <= 0) return null;
                                     const total = globalStats.chartData[index]?.__total || 0;
-                                    const pct = total > 0 ? Math.round(((value as number) / total) * 100) : 0;
+                                    const raw = globalStats.chartData[index]?.__raw?.[k] ?? (value as number);
+                                    const pct = total > 0 ? Math.round((raw / total) * 100) : 0;
                                     return (
                                       <g>
                                         <text x={x + width / 2} y={y - 16} textAnchor="middle" fontSize={9} fontWeight={700} fill="hsl(var(--muted-foreground))">
