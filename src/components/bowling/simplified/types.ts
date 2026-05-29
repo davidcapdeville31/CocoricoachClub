@@ -1,7 +1,7 @@
 // Types pour le mode simplifié de séance bowling.
 // Pour l'instant, état local uniquement — la persistance sera ajoutée plus tard.
 
-export type SimplifiedBlockType = "tactical" | "technical"; // d'autres types arriveront
+export type SimplifiedBlockType = "tactical" | "technical" | "games";
 
 export type SimplifiedTargetType =
   | "strike"
