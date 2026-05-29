@@ -105,6 +105,13 @@ export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playe
         </div>
       )}
 
+      <SimplifiedBallPicker
+        playerId={playerId}
+        categoryId={categoryId}
+        value={value.ball_id}
+        onChange={(id) => set("ball_id", id)}
+      />
+
       <div className="space-y-1">
         <Label className="text-xs">Description du travail effectué</Label>
         <Textarea
