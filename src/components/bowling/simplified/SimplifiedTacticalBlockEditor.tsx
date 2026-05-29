@@ -108,6 +108,14 @@ export function SimplifiedTacticalBlockEditor({
         )}
       </div>
 
+      {/* Boule */}
+      <SimplifiedBallPicker
+        playerId={playerId}
+        categoryId={categoryId}
+        value={value.ball_id}
+        onChange={(id) => update({ ball_id: id })}
+      />
+
       {/* Huilage */}
       <SimplifiedOilPatternPicker
         value={value.oil_pattern}
