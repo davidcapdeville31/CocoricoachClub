@@ -446,50 +446,80 @@ export function BowlingAdvancedDialog({
           .eq("session_id", existingSessionId)
           .eq("athlete_id", athletePlayerId!);
         const rows = blocks.map((b, idx) => buildRow(b, idx, existingSessionId, athletePlayerId!));
-        const { error } = await supabase.from("bowling_training_blocks").insert(rows);
+        const { error } = await supabase
+          .from("bowling_training_blocks")
+          .insert(rows as any);
         if (error) throw error;
         await persistGamesAndOil(athletePlayerId!, sessionDate, existingSessionId);
+        try {
+          await supabase
+            .from("training_attendance")
+            .upsert(
+              [
+                {
+                  player_id: athletePlayerId!,
+                  category_id: categoryId,
+                  attendance_date: sessionDate,
+                  training_session_id: existingSessionId,
+                  status: "present" as const,
+                },
+              ],
+              { onConflict: "player_id,training_session_id" },
+            );
+        } catch {}
         return;
       }
 
-      // Création : 1 session par athlète
-      for (const playerId of targets) {
-        const { data: session, error: sErr } = await supabase
-          .from("training_sessions")
-          .insert({
-            category_id: categoryId,
-            session_date: sessionDate,
-            duration_min: totalDuration || null,
-            session_type: "bowling",
-            title: "Séance bowling",
-          })
-          .select("id")
-          .single();
-        if (sErr) throw sErr;
-        const sessionId = session.id;
+      // Création : une seule session partagée pour tous les athlètes ciblés
+      const { data: session, error: sessErr } = await supabase
+        .from("training_sessions")
+        .insert({
+          category_id: categoryId,
+          session_date: sessionDate,
+          training_type: "bowling_advanced",
+          notes: "Séance bowling — Mode avancé",
+          intensity: null,
+          planned_intensity: null,
+        })
+        .select("id")
+        .single();
+      if (sessErr) throw sessErr;
+      const sessionId = session.id;
 
-        const rows = blocks.map((b, idx) => buildRow(b, idx, sessionId, playerId));
-        const { error: insErr } = await supabase
-          .from("bowling_training_blocks")
-          .insert(rows);
-        if (insErr) throw insErr;
+      try {
+        await supabase.from("event_participants").insert(
+          targets.map((pid) => ({
+            training_session_id: sessionId,
+            player_id: pid,
+          })),
+        );
+      } catch (e) {
+        console.warn("[BowlingAdvanced] event_participants:", e);
+      }
 
+      const rows = targets.flatMap((pid) =>
+        blocks.map((b, idx) => buildRow(b, idx, sessionId, pid)),
+      );
+      const { error: blocksErr } = await supabase
+        .from("bowling_training_blocks")
+        .insert(rows as any);
+      if (blocksErr) throw blocksErr;
+
+      if (isAthleteMode) {
+        for (const pid of targets) {
+          await persistGamesAndOil(pid, sessionDate, sessionId);
+        }
         try {
-          await supabase.from("session_attendance").insert({
-            session_id: sessionId,
-            player_id: playerId,
-            status: "present",
-          });
+          await supabase.from("training_attendance").insert(
+            targets.map((pid) => ({
+              player_id: pid,
+              category_id: categoryId,
+              attendance_date: sessionDate,
+              training_session_id: sessionId,
+              status: "present" as const,
+            })),
+          );
         } catch {}
-        try {
-          await supabase.from("event_participants").insert({
-            event_type: "training",
-            event_id: sessionId,
-            player_id: playerId,
-          });
-        } catch {}
-
-        await persistGamesAndOil(playerId, sessionDate, sessionId);
       }
     },
     onSuccess: () => {
