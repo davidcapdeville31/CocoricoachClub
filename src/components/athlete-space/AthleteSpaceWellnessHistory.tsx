@@ -45,6 +45,8 @@ const METRIC_LABELS: Record<string, string> = {
 };
 
 export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
+  const [period, setPeriod] = useState<WellnessPeriod>("day");
+
   const { data: wellnessHistory = [], isLoading } = useQuery({
     queryKey: ["athlete-space-wellness-history", playerId],
     queryFn: async () => {
@@ -53,7 +55,7 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
         .select("tracking_date, sleep_quality, sleep_duration, general_fatigue, soreness_upper_body, soreness_lower_body, stress_level")
         .eq("player_id", playerId)
         .order("tracking_date", { ascending: true })
-        .limit(30);
+        .limit(365);
       if (error) throw error;
       return data || [];
     },
