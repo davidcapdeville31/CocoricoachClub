@@ -21,7 +21,7 @@ import { SPARE_EXERCISE_TYPES } from "@/lib/constants/bowlingBallBrands";
 import { BowlingFrameAnalysis } from "./BowlingFrameAnalysis";
 import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, addFooter, downloadWorkbook } from "@/lib/excelExport";
 import { preparePdfWithSettings } from "@/lib/pdfExport";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from "recharts";
+import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from "recharts";
 import { getOilCategory, type OilCategoryType } from "@/lib/constants/bowlingOilPatterns";
 import type { FrameData } from "@/components/athlete-portal/BowlingScoreSheet";
 
@@ -101,6 +101,13 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
               strikePercentage: statData.strikePercentage || 0,
               sparePercentage: statData.sparePercentage || 0,
               openFrames: statData.openFrames || 0,
+              splitCount: statData.splitCount || 0,
+              splitConverted: statData.splitConverted || 0,
+              pocketCount: statData.pocketCount || 0,
+              pocketPercentage: statData.pocketPercentage || 0,
+              singlePinCount: statData.singlePinCount || 0,
+              singlePinConverted: statData.singlePinConverted || 0,
+              trackPockets: statData.trackPockets,
               frames: bowlingFrames,
               ballIds,
             });
@@ -291,6 +298,69 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       return { player, stats: { total, avgScore, avgStrike, avgSpare, high }, games };
     }).filter(p => p.stats !== null);
   }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId, activeTrainingMatchIds]);
+
+  // Compute per-player precision metrics from training games (% Strikes, % Spares, % Poches, etc.)
+  const playerPrecisionStats = useMemo(() => {
+    return playerGameStats.map(({ player, games }) => {
+      if (!games || games.length === 0) return { player, metrics: null as any };
+      const totalGames = games.length;
+      const pocketGames = games.filter((g: any) => g.trackPockets !== false);
+      const avgStrike = games.reduce((s: number, g: any) => s + (g.strikePercentage || 0), 0) / totalGames;
+      const avgSpare = games.reduce((s: number, g: any) => s + (g.sparePercentage || 0), 0) / totalGames;
+      const avgPocket = pocketGames.length > 0
+        ? pocketGames.reduce((s: number, g: any) => s + (g.pocketPercentage || 0), 0) / pocketGames.length
+        : 0;
+      const totalSinglePin = games.reduce((s: number, g: any) => s + (g.singlePinCount || 0), 0);
+      const totalSinglePinConverted = games.reduce((s: number, g: any) => s + (g.singlePinConverted || 0), 0);
+      const singlePinRate = totalSinglePin > 0 ? (totalSinglePinConverted / totalSinglePin) * 100 : 0;
+      const totalSplits = games.reduce((s: number, g: any) => s + (g.splitCount || 0), 0);
+      const totalSplitsConverted = games.reduce((s: number, g: any) => s + (g.splitConverted || 0), 0);
+      const splitConvRate = totalSplits > 0 ? (totalSplitsConverted / totalSplits) * 100 : 0;
+      const totalOpenFrames = games.reduce((s: number, g: any) => s + (g.openFrames || 0), 0);
+      const openFrameRate = totalGames > 0 ? (totalOpenFrames / (totalGames * 10)) * 100 : 0;
+
+      // First ball ≥ 8 from frames
+      let totalFBGte8 = 0, totalFBGte8Opp = 0;
+      games.forEach((g: any) => {
+        if (!g.frames) return;
+        g.frames.forEach((frame: any, fi: number) => {
+          const isTenth = fi === 9;
+          frame.throws.forEach((t: any, ti: number) => {
+            if (t.value === "") return;
+            const isFirst = ti === 0 || (isTenth && (
+              (ti === 1 && frame.throws[0]?.value === "X") ||
+              (ti === 2 && (frame.throws[1]?.value === "X" || frame.throws[1]?.value === "/"))
+            ));
+            if (!isFirst) return;
+            const isLast = isTenth && ti === 2 && (
+              (frame.throws[0]?.value === "X" && frame.throws[1]?.value === "X") ||
+              (frame.throws[0]?.value !== "X" && frame.throws[1]?.value === "/")
+            );
+            if (isLast) return;
+            totalFBGte8Opp++;
+            if (t.pins >= 8) totalFBGte8++;
+          });
+        });
+      });
+      const firstBallGte8 = totalFBGte8Opp > 0 ? (totalFBGte8 / totalFBGte8Opp) * 100 : 0;
+
+      return {
+        player,
+        totalGames,
+        metrics: {
+          strikes: avgStrike,
+          spares: avgSpare,
+          pockets: avgPocket,
+          singlePin: singlePinRate,
+          splits: splitConvRate,
+          firstBallGte8: firstBallGte8,
+          openFrames: openFrameRate,
+        },
+      };
+    }).filter((p) => p.metrics !== null);
+  }, [playerGameStats]);
+
+
 
   // Compute per-player spare stats (legacy bowling_spare_training data).
   // Only displayed for athletes who also have new-system bowling_training_blocks,
@@ -934,14 +1004,93 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
 
           {/* Tab: Stats Spécifiques - grouped by athlete */}
           <TabsContent value="specific" className="space-y-4 mt-4">
-            {hasSpareData ? (
+            {playerPrecisionStats.length === 0 && !hasSpareData ? (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  <Target className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm">Aucune donnée spécifique enregistrée.</p>
+                  <p className="text-xs mt-1">Joue des parties d'entraînement pour voir tes % Strikes, Spares, Poches…</p>
+                </CardContent>
+              </Card>
+            ) : (
               <div className="space-y-6">
-                {playerSpareStats.map(({ player, byType, total }) => (
+                {/* Histogramme précision par athlète (issu des parties) */}
+                {playerPrecisionStats.map(({ player, metrics, totalGames }) => {
+                  const METRICS = [
+                    { key: "strikes", label: "% Strikes", color: "hsl(0 84% 60%)" },
+                    { key: "spares", label: "% Spares", color: "hsl(217 91% 60%)" },
+                    { key: "pockets", label: "% Poches", color: "hsl(160 84% 39%)" },
+                    { key: "singlePin", label: "% Quilles seules", color: "hsl(38 92% 50%)" },
+                    { key: "splits", label: "% Conv. splits", color: "hsl(330 81% 60%)" },
+                    { key: "firstBallGte8", label: "% Boules ≥8", color: "hsl(271 91% 65%)" },
+                    { key: "openFrames", label: "% Frames non fermées", color: "hsl(188 76% 45%)" },
+                  ] as const;
+                  const chartData = METRICS.map((m) => ({
+                    label: m.label,
+                    value: Math.round(((metrics as any)[m.key] || 0) * 10) / 10,
+                    fill: m.color,
+                  }));
+                  return (
+                    <Card key={`prec-${player.id}`}>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Target className="h-4 w-4 text-primary" />
+                          {player.name}
+                          <Badge variant="secondary" className="ml-auto text-xs">{totalGames} parties</Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={280}>
+                          <BarChart data={chartData} margin={{ top: 24, right: 12, left: -10, bottom: 40 }}>
+                            <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--border))" vertical={false} />
+                            <XAxis
+                              dataKey="label"
+                              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                              axisLine={false}
+                              tickLine={false}
+                              interval={0}
+                              angle={-20}
+                              textAnchor="end"
+                              height={50}
+                            />
+                            <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={32} unit="%" domain={[0, 100]} />
+                            <Tooltip
+                              cursor={{ fill: "hsl(var(--muted)/0.4)" }}
+                              contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 11 }}
+                              formatter={(v: any) => [`${v}%`, ""]}
+                            />
+                            <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                              {chartData.map((entry, i) => (
+                                <Cell key={`cell-${i}`} fill={entry.fill} />
+                              ))}
+                              <LabelList
+                                dataKey="value"
+                                position="top"
+                                content={(props: any) => {
+                                  const { x, y, width, value } = props;
+                                  if (value === undefined || value === null) return null;
+                                  return (
+                                    <text x={x + width / 2} y={y - 6} textAnchor="middle" fontSize={11} fontWeight={700} fill="hsl(var(--foreground))">
+                                      {value}%
+                                    </text>
+                                  );
+                                }}
+                              />
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+
+                {/* Exercices spécifiques (legacy data) */}
+                {hasSpareData && playerSpareStats.map(({ player, byType, total }) => (
                   <Card key={player.id}>
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm flex items-center gap-2">
                         <Users className="h-4 w-4 text-primary" />
-                        {player.name}
+                        {player.name} — Exercices spécifiques
                         <Badge variant="secondary" className="ml-auto text-xs">
                           {total!.rate.toFixed(1)}% global
                         </Badge>
@@ -987,14 +1136,6 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                   </Card>
                 ))}
               </div>
-            ) : (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
-                  <Target className="h-10 w-10 mx-auto mb-3 opacity-50" />
-                  <p className="text-sm">Aucun exercice de précision enregistré.</p>
-                  <p className="text-xs mt-1">Quille 5 · Quille 7 · Quille 10 · Spares</p>
-                </CardContent>
-              </Card>
             )}
           </TabsContent>
         </Tabs>
