@@ -7,16 +7,18 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Plus, Target, Wrench, Save } from "lucide-react";
+import { Sparkles, Plus, Target, Wrench, Save, Circle } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { SimplifiedTacticalBlockEditor } from "./simplified/SimplifiedTacticalBlockEditor";
 import { SimplifiedTechnicalBlockEditor } from "./simplified/SimplifiedTechnicalBlockEditor";
+import { SimplifiedGamesBlockEditor } from "./simplified/SimplifiedGamesBlockEditor";
 import { LockedBlockSummary } from "./simplified/LockedBlockSummary";
 import {
   newTacticalBlock,
   newTechnicalBlock,
+  newGamesBlock,
   type SimplifiedBlock,
 } from "./simplified/types";
 
