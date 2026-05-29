@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Wrench, Trash2, Clock } from "lucide-react";
+import { SimplifiedBallPicker } from "./SimplifiedBallPicker";
 import {
   TECHNICAL_THEMES,
   technicalThemeLabel,
@@ -20,11 +21,13 @@ import {
 interface Props {
   value: SimplifiedTechnicalBlock;
   index: number;
+  categoryId: string;
+  playerId?: string;
   onChange: (next: SimplifiedTechnicalBlock) => void;
   onRemove: () => void;
 }
 
-export function SimplifiedTechnicalBlockEditor({ value, index, onChange, onRemove }: Props) {
+export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playerId, onChange, onRemove }: Props) {
   const set = <K extends keyof SimplifiedTechnicalBlock>(k: K, v: SimplifiedTechnicalBlock[K]) =>
     onChange({ ...value, [k]: v });
 
