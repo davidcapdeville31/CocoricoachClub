@@ -266,18 +266,70 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64">
+            <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis domain={[1, 5]} />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="wellness" name="Score Global" stroke="hsl(var(--primary))" strokeWidth={2} />
-                  <Line type="monotone" dataKey="fatigue" name="Fatigue" stroke="hsl(var(--destructive))" strokeWidth={1} />
-                  <Line type="monotone" dataKey="soreness" name="Douleurs" stroke="#f97316" strokeWidth={1} />
-                  <Line type="monotone" dataKey="stress" name="Stress" stroke="hsl(var(--secondary))" strokeWidth={1} />
+                <LineChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 10 }}>
+                  <defs>
+                    <linearGradient id="zoneOptimal" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.12} />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0.04} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                  <YAxis
+                    domain={[1, 5]}
+                    ticks={[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]}
+                    tick={{ fontSize: 12 }}
+                    label={{ value: '1 = Optimal · 5 = Mauvais', angle: -90, position: 'insideLeft', style: { fontSize: 11, fill: 'hsl(var(--muted-foreground))' } }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--background))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: 8,
+                      fontSize: 13,
+                    }}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: 12, fontSize: 13 }} iconType="circle" />
+                  <Line
+                    type="monotone"
+                    dataKey="wellness"
+                    name="Score Global"
+                    stroke="#1e3a8a"
+                    strokeWidth={4}
+                    dot={{ r: 5, fill: "#1e3a8a", strokeWidth: 2, stroke: "#fff" }}
+                    activeDot={{ r: 7 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="fatigue"
+                    name="Fatigue"
+                    stroke="#dc2626"
+                    strokeWidth={3}
+                    dot={{ r: 4, fill: "#dc2626", strokeWidth: 2, stroke: "#fff" }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="soreness"
+                    name="Douleurs"
+                    stroke="#f59e0b"
+                    strokeWidth={3}
+                    strokeDasharray="6 3"
+                    dot={{ r: 4, fill: "#f59e0b", strokeWidth: 2, stroke: "#fff" }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="stress"
+                    name="Stress"
+                    stroke="#7c3aed"
+                    strokeWidth={3}
+                    strokeDasharray="2 3"
+                    dot={{ r: 4, fill: "#7c3aed", strokeWidth: 2, stroke: "#fff" }}
+                    activeDot={{ r: 6 }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
