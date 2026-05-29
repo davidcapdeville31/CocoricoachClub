@@ -97,6 +97,7 @@ export function AddMatchCalendarDialog({
   categoryId,
   sportType = "XV",
   defaultDate,
+  athletePlayerId,
 }: AddMatchCalendarDialogProps) {
   const competitions = getCompetitionsBySport(sportType);
   const isIndividual = isIndividualSport(sportType);
