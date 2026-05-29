@@ -407,7 +407,7 @@ export function BowlingSimplifiedDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Sparkles className="h-5 w-5 text-primary" />
-            Nouvelle séance bowling — Mode simplifié
+            {isEditMode ? "Remplir la séance bowling" : "Nouvelle séance bowling — Mode simplifié"}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
             {format(date, "EEEE d MMMM yyyy", { locale: fr })}
