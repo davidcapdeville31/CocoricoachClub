@@ -9576,6 +9576,9 @@ export type Database = {
           avatar_url: string | null
           birth_date: string | null
           birth_year: number | null
+          bowling_axe_deg: number | null
+          bowling_ball_speed: number | null
+          bowling_tilt_deg: number | null
           category_id: string
           club_origin: string | null
           created_at: string
@@ -9616,6 +9619,9 @@ export type Database = {
           avatar_url?: string | null
           birth_date?: string | null
           birth_year?: number | null
+          bowling_axe_deg?: number | null
+          bowling_ball_speed?: number | null
+          bowling_tilt_deg?: number | null
           category_id: string
           club_origin?: string | null
           created_at?: string
@@ -9656,6 +9662,9 @@ export type Database = {
           avatar_url?: string | null
           birth_date?: string | null
           birth_year?: number | null
+          bowling_axe_deg?: number | null
+          bowling_ball_speed?: number | null
+          bowling_tilt_deg?: number | null
           category_id?: string
           club_origin?: string | null
           created_at?: string
