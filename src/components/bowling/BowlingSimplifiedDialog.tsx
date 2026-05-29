@@ -197,10 +197,19 @@ export function BowlingSimplifiedDialog({
                   onChange={(next) => updateBlock(b.id, next)}
                   onRemove={() => removeBlock(b.id)}
                 />
-              ) : (
+              ) : b.type === "technical" ? (
                 <SimplifiedTechnicalBlockEditor
                   value={b}
                   index={technicalIndexById.get(b.id) ?? 0}
+                  categoryId={categoryId}
+                  playerId={athletePlayerId}
+                  onChange={(next) => updateBlock(b.id, next)}
+                  onRemove={() => removeBlock(b.id)}
+                />
+              ) : (
+                <SimplifiedGamesBlockEditor
+                  value={b}
+                  index={gamesIndexById.get(b.id) ?? 0}
                   categoryId={categoryId}
                   playerId={athletePlayerId}
                   onChange={(next) => updateBlock(b.id, next)}
