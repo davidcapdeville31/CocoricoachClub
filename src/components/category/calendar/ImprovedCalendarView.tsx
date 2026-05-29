@@ -828,6 +828,12 @@ export function ImprovedCalendarView({
           setAddEventDate(null);
           if (dateToUse) setBowlingSimplifiedDate(dateToUse);
         }}
+        onSelectBowlingAdvanced={() => {
+          const dateToUse = addEventDateRef.current || addEventDate;
+          addEventDateRef.current = null;
+          setAddEventDate(null);
+          if (dateToUse) setBowlingAdvancedDate(dateToUse);
+        }}
       />
 
       {/* Schedule Test Event Dialog */}
@@ -853,6 +859,14 @@ export function ImprovedCalendarView({
         date={bowlingSimplifiedDate || new Date()}
         categoryId={categoryId}
       />
+
+      <BowlingAdvancedDialog
+        open={!!bowlingAdvancedDate}
+        onOpenChange={(open) => !open && setBowlingAdvancedDate(null)}
+        date={bowlingAdvancedDate || new Date()}
+        categoryId={categoryId}
+      />
+
 
       {/* Feedback Dialog */}
       {feedbackSession && (
