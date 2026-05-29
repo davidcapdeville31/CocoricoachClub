@@ -108,6 +108,28 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     },
   });
 
+  // Fetch new system training blocks (used for "Stats Globales" and to filter obsolete spare data)
+  const { data: trainingBlocks = [] } = useQuery({
+    queryKey: ["bowling_training_blocks_stats", categoryId, playerId || "all"],
+    queryFn: async () => {
+      let q = supabase
+        .from("bowling_training_blocks")
+        .select("id, athlete_id, block_type, duration_min, created_at, session_id")
+        .eq("category_id", categoryId);
+      if (playerId) q = q.eq("athlete_id", playerId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data || []) as Array<{ id: string; athlete_id: string | null; block_type: string; duration_min: number | null; created_at: string; session_id: string | null }>;
+    },
+  });
+
+  // Set of athletes who have new-system bowling sessions (used to hide obsolete legacy data)
+  const athletesWithNewBlocks = useMemo(() => {
+    const s = new Set<string>();
+    trainingBlocks.forEach((b) => { if (b.athlete_id) s.add(b.athlete_id); });
+    return s;
+  }, [trainingBlocks]);
+
   // Fetch all arsenals for all players
   const { data: allArsenals } = useQuery({
     queryKey: ["all_arsenals_stats", categoryId],
