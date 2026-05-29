@@ -797,10 +797,14 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
       <BowlingSimplifiedDialog
         open={isBowlingSimplifiedOpen}
-        onOpenChange={setIsBowlingSimplifiedOpen}
+        onOpenChange={(o) => {
+          setIsBowlingSimplifiedOpen(o);
+          if (!o) setBowlingSimplifiedSessionId(null);
+        }}
         date={selectedDate || new Date()}
         categoryId={categoryId}
         athletePlayerId={playerId}
+        existingSessionId={bowlingSimplifiedSessionId || undefined}
       />
 
       <AddMatchCalendarDialog
