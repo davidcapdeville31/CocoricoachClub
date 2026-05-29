@@ -172,20 +172,26 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
   const sportLabel = useMemo(() => getFieldSessionLabelForSport(sportType), [sportType]);
   const newSessionTitle = useMemo(() => `Nouvelle ${sportLabel.toLowerCase()}`, [sportLabel]);
 
+  const isBowling = isBowlingSport(sportType);
+  const isRugby = isRugbyType(sportType || "");
+
   const [title, setTitle] = useState(sportLabel);
-  const [startTime, setStartTime] = useState("17:00");
-  const [endTime, setEndTime] = useState("18:30");
+  const [startTime, setStartTime] = useState(isBowling ? "" : "17:00");
+  const [endTime, setEndTime] = useState(isBowling ? "" : "18:30");
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(true);
-  const [blocks, setBlocks] = useState<BlockDraft[]>([
-    { id: crypto.randomUUID(), theme: "Échauffement", themeLabel: "Échauffement", duration_minutes: 15, intensity: 4, notes: "", target_intensity: "faible", volume: "court", contact_charge: "aucun" },
-    { id: crypto.randomUUID(), theme: "Collectif", themeLabel: "Collectif", duration_minutes: 45, intensity: 7, notes: "", target_intensity: "elevee", volume: "moyen", contact_charge: "modere" },
-  ]);
-
-  const isBowling = isBowlingSport(sportType);
-  const isRugby = isRugbyType(sportType || "");
+  const [blocks, setBlocks] = useState<BlockDraft[]>(
+    isBowling
+      ? [
+          { id: crypto.randomUUID(), theme: "bowling_technique", themeLabel: "Entraînement", duration_minutes: 60, intensity: 6, notes: "" },
+        ]
+      : [
+          { id: crypto.randomUUID(), theme: "Échauffement", themeLabel: "Échauffement", duration_minutes: 15, intensity: 4, notes: "", target_intensity: "faible", volume: "court", contact_charge: "aucun" },
+          { id: crypto.randomUUID(), theme: "Collectif", themeLabel: "Collectif", duration_minutes: 45, intensity: 7, notes: "", target_intensity: "elevee", volume: "moyen", contact_charge: "modere" },
+        ],
+  );
 
   const [customThemes, setCustomThemes] = useState<string[]>(() => loadCustomThemes(categoryId));
   const [newCustomTheme, setNewCustomTheme] = useState("");
@@ -582,21 +588,25 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
             <Input id="fs-title" value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1"><Clock className="h-3 w-3" /> Début</Label>
-              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+          {!isBowling && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1"><Clock className="h-3 w-3" /> Début</Label>
+                <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1"><Clock className="h-3 w-3" /> Fin</Label>
+                <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1"><Clock className="h-3 w-3" /> Fin</Label>
-              <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-            </div>
-          </div>
+          )}
 
-          <div className="space-y-2">
-            <Label className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Lieu</Label>
-            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Stade, terrain, salle..." />
-          </div>
+          {!isBowling && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Lieu</Label>
+              <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Stade, terrain, salle..." />
+            </div>
+          )}
 
           {/* Blocs */}
           <div className="space-y-3">
@@ -764,6 +774,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                         onVariablesChange={(v) =>
                           updateBlock(b.id, { bowling_dtn_variables: v })
                         }
+                        hideSuccessCriteria
                       />
                     )}
                     {/* Saisie inline des feuilles de score / précision (en mode édition uniquement) */}
@@ -852,12 +863,14 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                         </div>
                       </div>
                     )}
-                    <Textarea
-                      rows={2}
-                      placeholder="Détail / consignes (optionnel)"
-                      value={b.notes}
-                      onChange={(e) => updateBlock(b.id, { notes: e.target.value })}
-                    />
+                    {!isBowling && (
+                      <Textarea
+                        rows={2}
+                        placeholder="Détail / consignes (optionnel)"
+                        value={b.notes}
+                        onChange={(e) => updateBlock(b.id, { notes: e.target.value })}
+                      />
+                    )}
                   </CardContent>
                 </Card>
                 );
@@ -868,39 +881,43 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
             </Button>
           </div>
 
-          {/* Participants */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-1"><Users className="h-3 w-3" /> Participants ({selectedPlayers.length})</Label>
-              <div className="flex items-center gap-2 cursor-pointer" onClick={toggleAll}>
-                <Checkbox checked={players ? selectedPlayers.length === players.length : false} className="pointer-events-none" />
-                <span className="text-xs">Tous</span>
+          {/* Participants — masqués en mode athlète (séance privée au créateur) */}
+          {!isAthleteMode && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-1"><Users className="h-3 w-3" /> Participants ({selectedPlayers.length})</Label>
+                <div className="flex items-center gap-2 cursor-pointer" onClick={toggleAll}>
+                  <Checkbox checked={players ? selectedPlayers.length === players.length : false} className="pointer-events-none" />
+                  <span className="text-xs">Tous</span>
+                </div>
+              </div>
+              <div className="max-h-[200px] overflow-y-auto rounded-lg border border-border/70 bg-muted/20 p-2 grid grid-cols-2 gap-1">
+                {players?.map((p) => {
+                  const sel = selectedPlayers.includes(p.id);
+                  return (
+                    <div
+                      key={p.id}
+                      onClick={() => togglePlayer(p.id)}
+                      className={cn(
+                        "flex items-center gap-2 p-2 rounded-md cursor-pointer text-sm",
+                        sel ? "bg-primary/10 border border-primary" : "border border-transparent hover:bg-muted",
+                      )}
+                    >
+                      <Checkbox checked={sel} className="pointer-events-none" />
+                      <span className="truncate">{p.first_name ? `${p.first_name} ${p.name}` : p.name}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            <div className="max-h-[200px] overflow-y-auto rounded-lg border border-border/70 bg-muted/20 p-2 grid grid-cols-2 gap-1">
-              {players?.map((p) => {
-                const sel = selectedPlayers.includes(p.id);
-                return (
-                  <div
-                    key={p.id}
-                    onClick={() => togglePlayer(p.id)}
-                    className={cn(
-                      "flex items-center gap-2 p-2 rounded-md cursor-pointer text-sm",
-                      sel ? "bg-primary/10 border border-primary" : "border border-transparent hover:bg-muted",
-                    )}
-                  >
-                    <Checkbox checked={sel} className="pointer-events-none" />
-                    <span className="truncate">{p.first_name ? `${p.first_name} ${p.name}` : p.name}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          )}
 
-          <div className="space-y-2">
-            <Label>Notes générales (optionnel)</Label>
-            <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
-          </div>
+          {!isBowling && (
+            <div className="space-y-2">
+              <Label>Notes générales (optionnel)</Label>
+              <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+            </div>
+          )}
 
           <div className="flex items-start gap-2 rounded-lg bg-muted/40 p-3 text-xs text-muted-foreground">
             <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
