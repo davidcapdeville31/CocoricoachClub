@@ -248,6 +248,10 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     // Time buckets
     const bucketKey = (iso: string) => {
       const d = new Date(iso);
+      if (globalPeriod === "day") {
+        const day = startOfDay(d);
+        return { key: format(day, "yyyy-MM-dd"), label: format(day, "dd MMM", { locale: fr }), order: day.getTime() };
+      }
       if (globalPeriod === "week") {
         const w = startOfWeek(d, { weekStartsOn: 1, locale: fr });
         return { key: format(w, "yyyy-'S'II", { locale: fr }), label: format(w, "'S'II", { locale: fr }), order: w.getTime() };
