@@ -162,6 +162,8 @@ export function BowlingSimplifiedDialog({
                   key={b.id}
                   block={b}
                   index={posIdx}
+                  categoryId={categoryId}
+                  playerId={athletePlayerId}
                   onEdit={() => unlockBlock(b.id)}
                   onRemove={() => removeBlock(b.id)}
                 />
