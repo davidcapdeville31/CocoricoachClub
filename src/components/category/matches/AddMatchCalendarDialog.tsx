@@ -34,6 +34,9 @@ interface AddMatchCalendarDialogProps {
   categoryId: string;
   sportType?: string;
   defaultDate?: Date;
+  /** When set, the dialog runs in athlete self-planning mode and uses the
+   *  `athlete-create-match` edge function instead of a direct insert. */
+  athletePlayerId?: string;
 }
 
 const CUSTOM_COMPETITION_VALUE = "__custom__";
