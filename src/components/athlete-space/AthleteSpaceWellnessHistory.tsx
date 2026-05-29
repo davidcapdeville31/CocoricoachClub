@@ -123,11 +123,11 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={180}>
-            <LineChart data={chartData}>
+          <ResponsiveContainer width="100%" height={240}>
+            <LineChart data={chartData} margin={{ top: 10, right: 12, left: 0, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis dataKey="date" className="text-[10px]" />
-              <YAxis domain={[0, 100]} className="text-[10px]" />
+              <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} className="text-[10px]" />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--popover))",
@@ -138,7 +138,15 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
                 formatter={(value: number) => [`${value}%`, "Récupération"]}
                 labelFormatter={(_, payload: any[]) => payload?.[0]?.payload?.fullDate || ""}
               />
-              <Line type="monotone" dataKey="recovery_score" stroke={NAV_COLORS.sante.base} strokeWidth={2} dot={{ r: 3 }} name="Récupération" />
+              <Line
+                type="monotone"
+                dataKey="recovery_score"
+                stroke={NAV_COLORS.sante.base}
+                strokeWidth={4}
+                dot={{ r: 4, fill: NAV_COLORS.sante.base, strokeWidth: 2, stroke: "#fff" }}
+                activeDot={{ r: 6 }}
+                name="Récupération"
+              />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
@@ -153,11 +161,15 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={chartData}>
+          <ResponsiveContainer width="100%" height={320}>
+            <LineChart data={chartData} margin={{ top: 10, right: 12, left: 0, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis dataKey="date" className="text-[10px]" />
-              <YAxis domain={[1, 5]} className="text-[10px]" />
+              <YAxis
+                domain={[1, 5]}
+                ticks={[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]}
+                className="text-[10px]"
+              />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--popover))",
@@ -171,15 +183,21 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
                 ]}
                 labelFormatter={(_, payload: any[]) => payload?.[0]?.payload?.fullDate || ""}
               />
-              <Legend formatter={(value) => METRIC_LABELS[value] || value} />
+              <Legend
+                formatter={(value) => METRIC_LABELS[value] || value}
+                iconType="circle"
+                wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+              />
               {Object.entries(METRIC_COLORS).map(([key, color]) => (
                 <Line
                   key={key}
                   type="monotone"
                   dataKey={key}
                   stroke={color}
-                  strokeWidth={1.5}
-                  dot={false}
+                  strokeWidth={3}
+                  strokeDasharray={METRIC_DASH[key]}
+                  dot={{ r: 3.5, fill: color, strokeWidth: 1.5, stroke: "#fff" }}
+                  activeDot={{ r: 6 }}
                   name={key}
                 />
               ))}
