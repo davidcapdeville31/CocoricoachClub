@@ -202,6 +202,7 @@ export function newTechnicalBlock(): SimplifiedTechnicalBlock {
     type: "technical",
     title: "",
     duration_min: 20,
+    ball_id: null,
     theme: "swing_axis",
     custom_theme: "",
     description: "",
