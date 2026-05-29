@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Trash2, Target } from "lucide-react";
 import { SimplifiedOilPatternPicker } from "./SimplifiedOilPatternPicker";
+import { SimplifiedBallPicker } from "./SimplifiedBallPicker";
 import {
   COMPOSED_SPARES,
   SINGLE_PINS,
