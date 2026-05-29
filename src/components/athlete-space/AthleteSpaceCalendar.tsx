@@ -435,23 +435,12 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                     <div className="text-center py-6 space-y-2">
                       <p className="text-sm text-muted-foreground mb-3">Aucun événement</p>
                       <div className="flex flex-wrap justify-center gap-2">
-                        {isBowling && (
-                          <Button variant="outline" size="sm" onClick={() => setIsBowlingTrainingOpen(true)} className="gap-1.5" style={{ borderColor: TRAINING_COLOR, color: TRAINING_COLOR }}>
-                            <Plus className="h-3.5 w-3.5" />
-                            Ajouter un entraînement
-                          </Button>
-                        )}
-                        {isBasket && (
-                          <Button variant="outline" size="sm" onClick={() => setIsBasketTrainingOpen(true)} className="gap-1.5" style={{ borderColor: TRAINING_COLOR, color: TRAINING_COLOR }}>
-                            <Plus className="h-3.5 w-3.5" />
-                            Ajouter un entraînement
-                          </Button>
-                        )}
-                        <Button variant="outline" size="sm" onClick={() => setIsCreateOpen(true)} className="gap-1.5">
+                        <Button variant="outline" size="sm" onClick={() => setIsPickerOpen(true)} className="gap-1.5">
                           <Plus className="h-3.5 w-3.5" />
                           Ajouter une séance
                         </Button>
                       </div>
+
                     </div>
                   ) : (
                     <div className="space-y-2 max-h-[400px] overflow-y-auto">
