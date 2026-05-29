@@ -116,6 +116,7 @@ export function ImprovedCalendarView({
   const [scheduleTestDate, setScheduleTestDate] = useState<Date | null>(null);
   const [fieldSessionDate, setFieldSessionDate] = useState<Date | null>(null);
   const [bowlingSimplifiedDate, setBowlingSimplifiedDate] = useState<Date | null>(null);
+  const [bowlingAdvancedDate, setBowlingAdvancedDate] = useState<Date | null>(null);
   const addEventDateRef = useRef<Date | null>(null);
   const [notifySession, setNotifySession] = useState<Session | null>(null);
   const [notifyMatch, setNotifyMatch] = useState<Match | null>(null);
