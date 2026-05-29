@@ -38,6 +38,17 @@ export function SimplifiedOilPatternPicker({ value, onChange, categoryId }: Prop
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
   const [enlarged, setEnlarged] = useState(false);
+  const hasData =
+    !!value.preset_name ||
+    !!value.image_url ||
+    value.length_feet != null ||
+    value.buff_distance_feet != null ||
+    value.width_boards != null ||
+    value.total_volume_ml != null ||
+    !!value.oil_ratio ||
+    !!value.profile_type ||
+    !!value.outside_friction;
+  const [collapsed, setCollapsed] = useState(hasData);
 
   const patch = (p: Partial<SimplifiedOilPattern>) => onChange({ ...value, ...p });
 
