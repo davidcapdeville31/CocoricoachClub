@@ -38,6 +38,7 @@ export function BowlingSimplifiedDialog({
   onOpenChange,
   date,
   categoryId,
+  athletePlayerId,
 }: BowlingSimplifiedDialogProps) {
   const [blocks, setBlocks] = useState<SimplifiedBlock[]>([]);
   const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
