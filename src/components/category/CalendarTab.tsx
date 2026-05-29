@@ -162,9 +162,28 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       
       return { previousSessions };
     },
-    onSuccess: () => {
+    onSuccess: async ({ sessionId, newDate }) => {
       toast.success("Séance décalée avec succès");
       setIsDailyDialogOpen(false);
+
+      // 🔔 Notify athletes of schedule change
+      try {
+        const { data: info } = await supabase
+          .from("training_sessions")
+          .select("session_start_time, training_type, category_id")
+          .eq("id", sessionId)
+          .maybeSingle();
+        notify({
+          action: "updated",
+          sessionId,
+          categoryId: info?.category_id || categoryId,
+          sessionDate: format(newDate, "yyyy-MM-dd"),
+          sessionStartTime: info?.session_start_time || null,
+          sessionType: info?.training_type,
+        }).catch((e) => console.warn("[CalendarTab] reschedule notify failed:", e));
+      } catch (e) {
+        console.warn("[CalendarTab] reschedule notify lookup failed:", e);
+      }
     },
     onError: (error, variables, context) => {
       // Rollback on error
