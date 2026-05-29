@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { BarChart3, Target, Trophy, CalendarIcon, Circle, Users, Download, FileSpreadsheet, Activity, Clock, Wrench } from "lucide-react";
+import { BarChart3, Target, Trophy, CalendarIcon, Circle, Users, Download, FileSpreadsheet, Activity, Clock, Wrench, Filter } from "lucide-react";
 import { format, isAfter, isBefore, startOfDay, endOfDay, startOfWeek, startOfMonth, startOfYear } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -21,7 +22,14 @@ import { BowlingFrameAnalysis } from "./BowlingFrameAnalysis";
 import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, addFooter, downloadWorkbook } from "@/lib/excelExport";
 import { preparePdfWithSettings } from "@/lib/pdfExport";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from "recharts";
+import { getOilCategory, type OilCategoryType } from "@/lib/constants/bowlingOilPatterns";
 import type { FrameData } from "@/components/athlete-portal/BowlingScoreSheet";
+
+const OIL_CATEGORY_BADGES: Record<OilCategoryType, { label: string; className: string }> = {
+  sport: { label: "🔴 Sportif", className: "bg-red-500/15 text-red-600 border-red-500 dark:bg-red-500/20 dark:text-red-400" },
+  challenge: { label: "🔵 Challenge", className: "bg-blue-100 text-blue-900 border-blue-400 dark:bg-blue-500/25 dark:text-blue-200" },
+  recreation: { label: "🟢 Récréatif", className: "bg-green-100 text-green-800 border-green-400 dark:bg-green-500/25 dark:text-green-200" },
+};
 
 interface BowlingTrainingStatsProps {
   categoryId: string;
