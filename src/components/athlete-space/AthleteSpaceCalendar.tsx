@@ -352,31 +352,9 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
               Mon calendrier
             </CardTitle>
             <div className="flex flex-wrap gap-2">
-              {isBowling && (
-                <Button
-                  size="sm"
-                  onClick={() => setIsBowlingTrainingOpen(true)}
-                  className="gap-1.5"
-                  style={{ backgroundColor: TRAINING_COLOR }}
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Ajouter un entraînement
-                </Button>
-              )}
-              {isBasket && (
-                <Button
-                  size="sm"
-                  onClick={() => setIsBasketTrainingOpen(true)}
-                  className="gap-1.5"
-                  style={{ backgroundColor: TRAINING_COLOR }}
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Ajouter un entraînement
-                </Button>
-              )}
               <Button
                 size="sm"
-                onClick={() => setIsCreateOpen(true)}
+                onClick={() => setIsPickerOpen(true)}
                 className="gap-1.5"
                 style={{ backgroundColor: ATHLETE_SESSION_COLOR }}
               >
@@ -384,6 +362,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                 Ajouter une séance
               </Button>
             </div>
+
           </div>
         </CardHeader>
         <CardContent>
