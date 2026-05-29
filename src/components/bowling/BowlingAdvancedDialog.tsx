@@ -688,6 +688,18 @@ export function BowlingAdvancedDialog({
                     <p className="text-sm font-semibold truncate">{title}</p>
                     <p className="text-xs text-muted-foreground">{subtitle}</p>
                   </div>
+                  {isEditMode &&
+                    isAthleteMode &&
+                    b.kind === "draft" &&
+                    (b.draft.block_type === "technical" || b.draft.block_type === "tactical") && (
+                      <Button
+                        size="sm"
+                        onClick={() => setRunnerBlockId(b.id)}
+                        className="gap-1"
+                      >
+                        <ListChecks className="h-3.5 w-3.5" /> Saisir les lancers
+                      </Button>
+                    )}
                   <Button size="sm" variant="outline" onClick={() => unlockBlock(b.id)} className="gap-1">
                     <Pencil className="h-3.5 w-3.5" /> Modifier
                   </Button>
@@ -702,6 +714,7 @@ export function BowlingAdvancedDialog({
                 </Card>
               );
             }
+
 
             const editor =
               b.kind === "draft" ? (
