@@ -560,9 +560,13 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       </div>
 
       {/* Sub-menu tabs */}
-      {(hasGameData || hasSpareData) ? (
+      {(hasGameData || hasSpareData || hasGlobalData) ? (
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-2">
+          <TabsList className="w-full grid grid-cols-3">
+            <TabsTrigger value="global" className="gap-1.5">
+              <Activity className="h-4 w-4" />
+              Stats globales
+            </TabsTrigger>
             <TabsTrigger value="games" className="gap-1.5">
               <Trophy className="h-4 w-4" />
               Stats Parties
@@ -572,6 +576,92 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
               Stats Spécifiques
             </TabsTrigger>
           </TabsList>
+
+          {/* Tab: Stats Globales - new system aggregation */}
+          <TabsContent value="global" className="space-y-4 mt-4">
+            {hasGlobalData ? (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                  <Card>
+                    <CardContent className="p-3 text-center">
+                      <p className="text-2xl font-bold text-primary">{globalStats.sessionsCount}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Entraînements</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-3 text-center">
+                      <p className="text-2xl font-bold text-primary">{globalStats.totalHours.toFixed(1)}h</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Volume total</p>
+                    </CardContent>
+                  </Card>
+                  <Card style={{ borderColor: THEME_COLORS.technical }}>
+                    <CardContent className="p-3 text-center">
+                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.technical }}>{globalStats.hoursByTheme.technical.toFixed(1)}h</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center"><Wrench className="h-3 w-3" />Technique</p>
+                    </CardContent>
+                  </Card>
+                  <Card style={{ borderColor: THEME_COLORS.tactical }}>
+                    <CardContent className="p-3 text-center">
+                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.tactical }}>{globalStats.hoursByTheme.tactical.toFixed(1)}h</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center"><Target className="h-3 w-3" />Tactique</p>
+                    </CardContent>
+                  </Card>
+                  <Card style={{ borderColor: THEME_COLORS.games }}>
+                    <CardContent className="p-3 text-center">
+                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.games }}>{globalStats.hoursByTheme.games.toFixed(1)}h</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center"><Circle className="h-3 w-3" />Parties</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Card>
+                  <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-primary" />
+                      Volume d'entraînement (heures) par thématique
+                    </CardTitle>
+                    <ToggleGroup type="single" value={globalPeriod} onValueChange={(v) => v && setGlobalPeriod(v as any)} size="sm">
+                      <ToggleGroupItem value="week" className="text-xs h-7 px-2">Semaine</ToggleGroupItem>
+                      <ToggleGroupItem value="month" className="text-xs h-7 px-2">Mois</ToggleGroupItem>
+                      <ToggleGroupItem value="year" className="text-xs h-7 px-2">Année</ToggleGroupItem>
+                    </ToggleGroup>
+                  </CardHeader>
+                  <CardContent>
+                    {globalStats.chartData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={globalStats.chartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+                          <YAxis tick={{ fontSize: 11 }} label={{ value: 'h', angle: 0, position: 'insideLeft', style: { fontSize: 11 } }} />
+                          <Tooltip
+                            contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
+                            formatter={(v: any) => `${v}h`}
+                          />
+                          <Legend wrapperStyle={{ fontSize: 12 }} />
+                          <Bar dataKey="Échauffement" stackId="a" fill={THEME_COLORS.warmup} />
+                          <Bar dataKey="Technique" stackId="a" fill={THEME_COLORS.technical} />
+                          <Bar dataKey="Tactique" stackId="a" fill={THEME_COLORS.tactical} />
+                          <Bar dataKey="Parties" stackId="a" fill={THEME_COLORS.games} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-8">Aucune donnée sur cette période.</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  <Activity className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm">Aucun entraînement bowling enregistré.</p>
+                  <p className="text-xs mt-1">Les statistiques globales apparaîtront dès que des séances seront planifiées et complétées.</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+
 
           {/* Tab: Stats Parties - grouped by athlete */}
           <TabsContent value="games" className="space-y-4 mt-4">
