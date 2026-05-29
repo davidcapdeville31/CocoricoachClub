@@ -884,31 +884,36 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
           {/* Participants */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-1"><Users className="h-3 w-3" /> Participants ({selectedPlayers.length})</Label>
-              <div className="flex items-center gap-2 cursor-pointer" onClick={toggleAll}>
-                <Checkbox checked={players ? selectedPlayers.length === players.length : false} className="pointer-events-none" />
-                <span className="text-xs">Tous</span>
+          {/* Participants — masqués en mode athlète (séance privée au créateur) */}
+          {!isAthleteMode && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-1"><Users className="h-3 w-3" /> Participants ({selectedPlayers.length})</Label>
+                <div className="flex items-center gap-2 cursor-pointer" onClick={toggleAll}>
+                  <Checkbox checked={players ? selectedPlayers.length === players.length : false} className="pointer-events-none" />
+                  <span className="text-xs">Tous</span>
+                </div>
+              </div>
+              <div className="max-h-[200px] overflow-y-auto rounded-lg border border-border/70 bg-muted/20 p-2 grid grid-cols-2 gap-1">
+                {players?.map((p) => {
+                  const sel = selectedPlayers.includes(p.id);
+                  return (
+                    <div
+                      key={p.id}
+                      onClick={() => togglePlayer(p.id)}
+                      className={cn(
+                        "flex items-center gap-2 p-2 rounded-md cursor-pointer text-sm",
+                        sel ? "bg-primary/10 border border-primary" : "border border-transparent hover:bg-muted",
+                      )}
+                    >
+                      <Checkbox checked={sel} className="pointer-events-none" />
+                      <span className="truncate">{p.first_name ? `${p.first_name} ${p.name}` : p.name}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            <div className="max-h-[200px] overflow-y-auto rounded-lg border border-border/70 bg-muted/20 p-2 grid grid-cols-2 gap-1">
-              {players?.map((p) => {
-                const sel = selectedPlayers.includes(p.id);
-                return (
-                  <div
-                    key={p.id}
-                    onClick={() => togglePlayer(p.id)}
-                    className={cn(
-                      "flex items-center gap-2 p-2 rounded-md cursor-pointer text-sm",
-                      sel ? "bg-primary/10 border border-primary" : "border border-transparent hover:bg-muted",
-                    )}
-                  >
-                    <Checkbox checked={sel} className="pointer-events-none" />
-                    <span className="truncate">{p.first_name ? `${p.first_name} ${p.name}` : p.name}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          )}
 
           <div className="space-y-2">
             <Label>Notes générales (optionnel)</Label>
