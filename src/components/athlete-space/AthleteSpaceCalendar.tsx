@@ -579,6 +579,9 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                       if (session.training_type === "bowling_simplified") {
                                         setBowlingSimplifiedSessionId(session.id);
                                         setIsBowlingSimplifiedOpen(true);
+                                      } else if (session.training_type === "bowling_advanced") {
+                                        setBowlingAdvancedSessionId(session.id);
+                                        setIsBowlingAdvancedOpen(true);
                                       } else {
                                         setIsBowlingTrainingOpen(true);
                                       }
