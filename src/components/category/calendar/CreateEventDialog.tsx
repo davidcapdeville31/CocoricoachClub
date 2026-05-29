@@ -136,6 +136,7 @@ export function CreateEventDialog({
   onAddMatch,
   onSelectExternalType,
   onSelectBowlingSimplified,
+  onSelectBowlingAdvanced,
   allowedTypeIds,
 }: CreateEventDialogProps) {
 
