@@ -231,8 +231,19 @@ export function CreateEventDialog({
     onOpenChange(open);
   };
 
+  const isBowlingSport = (() => {
+    const s = (categorySport || "").toLowerCase();
+    return s === "bowling" || s.startsWith("bowling_");
+  })();
+
   const handleTypeSelect = (typeId: string) => {
     const eventType = EVENT_TYPES.find(t => t.id === typeId);
+
+    // Bowling: insert a mode picker (Simplifié / Avancé) before opening the editor
+    if (typeId === "field_session" && isBowlingSport) {
+      setStep("bowling_mode");
+      return;
+    }
 
     if (eventType?.useExistingDialog && onSelectExternalType) {
       const action: "session" | "match" | "test" | "field_session" =
