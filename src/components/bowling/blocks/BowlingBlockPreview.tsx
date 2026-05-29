@@ -56,7 +56,6 @@ export function BowlingBlockPreview({ block }: Props) {
       <div className="text-[11px] text-muted-foreground flex flex-wrap gap-3">
         <span>⏱ {block.duration_min} min</span>
         <span>🎳 {block.planned_throws} lancers</span>
-        <span>⚡ Priorité {block.priority === "high" ? "élevée" : block.priority === "low" ? "faible" : "moyenne"}</span>
       </div>
     </div>
   );

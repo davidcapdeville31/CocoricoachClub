@@ -1,13 +1,11 @@
 // Builders étape 2 : un par type de bloc. Champs structurés.
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   TECHNICAL_EXERCISE_TYPES,
   SEQUENCE_MODES,
   THROW_PRESETS,
-  PRIORITY_OPTIONS,
 } from "@/lib/constants/bowlingTechnicalParameters";
 import { TACTICAL_EXERCISE_TYPES, PATTERN_DIFFICULTY, GAME_OBJECTIVES } from "@/lib/constants/bowlingTacticalZones";
 import { BowlingParametersPicker } from "../selectors/BowlingParametersPicker";
@@ -23,7 +21,7 @@ interface Props {
   categoryId: string;
 }
 
-// ---- Bloc commun (titre, durée, lancers, priorité, consigne, note) ----
+// ---- Bloc commun (titre, durée, lancers) ----
 function CommonFields({ value, onChange }: Props) {
   const update = (patch: Partial<BowlingBlockDraft>) => onChange({ ...value, ...patch });
   return (
@@ -45,23 +43,6 @@ function CommonFields({ value, onChange }: Props) {
           ))}
         </div>
         <Input type="number" min={1} value={value.planned_throws} onChange={(e) => update({ planned_throws: parseInt(e.target.value || "0", 10) })} className="h-9 text-sm" />
-      </div>
-      <div className="space-y-1">
-        <Label className="text-xs">Priorité</Label>
-        <Select value={value.priority} onValueChange={(v) => update({ priority: v as any })}>
-          <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-          <SelectContent className="z-[100]">
-            {PRIORITY_OPTIONS.map((p) => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="sm:col-span-2 space-y-1">
-        <Label className="text-xs">Consigne coach (visible athlète)</Label>
-        <Textarea rows={2} value={value.coach_instruction} onChange={(e) => update({ coach_instruction: e.target.value })} className="text-sm" />
-      </div>
-      <div className="sm:col-span-2 space-y-1">
-        <Label className="text-xs">Note interne (coach uniquement)</Label>
-        <Textarea rows={2} value={value.internal_note} onChange={(e) => update({ internal_note: e.target.value })} className="text-sm" />
       </div>
     </div>
   );
