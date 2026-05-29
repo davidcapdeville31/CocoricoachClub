@@ -430,7 +430,39 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
       };
 
       let sessionId: string;
-      if (isEdit) {
+      if (isAthleteMode) {
+        // Athlete self-planning → bypass RLS via edge function
+        const blockPayload = blocks.map((b, idx) => ({
+          training_type: b.theme,
+          theme: b.themeLabel || b.theme,
+          duration_minutes: b.duration_minutes,
+          intensity: b.intensity && b.intensity >= 1 && b.intensity <= 10 ? b.intensity : null,
+          notes: b.notes || null,
+          bowling_exercise_type: b.theme === "bowling_spare" ? (b.bowling_exercise_type || null) : null,
+          target_intensity: b.target_intensity || null,
+          volume: b.volume || null,
+          contact_charge: b.contact_charge || null,
+          throwing_implement: isThrowingBlock(b.theme) ? (b.throwing_implement || null) : null,
+          implement_weight_g: isThrowingBlock(b.theme) ? (b.implement_weight_g ?? null) : null,
+        }));
+
+        const { data: efData, error: efErr } = await supabase.functions.invoke("athlete-create-session", {
+          body: {
+            category_id: categoryId,
+            player_id: athletePlayerId,
+            session_date: format(date, "yyyy-MM-dd"),
+            training_type: "terrain",
+            session_start_time: startTime || null,
+            session_end_time: endTime || null,
+            intensity: plannedIntensity ?? 1,
+            notes: `${title}${notes ? `\n${notes}` : ""}`,
+            session_blocks: blockPayload,
+          },
+        });
+        if (efErr) throw new Error(efErr.message);
+        if (!efData?.success) throw new Error(efData?.error || "Erreur");
+        sessionId = efData.session_id as string;
+      } else if (isEdit) {
         const { error: uErr } = await supabase
           .from("training_sessions")
           .update(sessionPayload)
@@ -457,34 +489,37 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         sessionId = session.id;
       }
 
-      // Insert blocks
-      const blockRows = blocks.map((b, idx) => ({
-        training_session_id: sessionId,
-        block_order: idx,
-        training_type: b.theme,
-        theme: b.themeLabel || b.theme,
-        duration_minutes: b.duration_minutes,
-        intensity: b.intensity && b.intensity >= 1 && b.intensity <= 10 ? b.intensity : null,
-        notes: b.notes || null,
-        bowling_exercise_type: b.theme === "bowling_spare" ? (b.bowling_exercise_type || null) : null,
-        target_intensity: b.target_intensity || null,
-        volume: b.volume || null,
-        contact_charge: b.contact_charge || null,
-        throwing_implement: isThrowingBlock(b.theme) ? (b.throwing_implement || null) : null,
-        implement_weight_g: isThrowingBlock(b.theme) ? (b.implement_weight_g ?? null) : null,
-      }));
-      const { error: bErr } = await supabase.from("training_session_blocks").insert(blockRows);
-      if (bErr) throw bErr;
+      if (!isAthleteMode) {
+        // Insert blocks
+        const blockRows = blocks.map((b, idx) => ({
+          training_session_id: sessionId,
+          block_order: idx,
+          training_type: b.theme,
+          theme: b.themeLabel || b.theme,
+          duration_minutes: b.duration_minutes,
+          intensity: b.intensity && b.intensity >= 1 && b.intensity <= 10 ? b.intensity : null,
+          notes: b.notes || null,
+          bowling_exercise_type: b.theme === "bowling_spare" ? (b.bowling_exercise_type || null) : null,
+          target_intensity: b.target_intensity || null,
+          volume: b.volume || null,
+          contact_charge: b.contact_charge || null,
+          throwing_implement: isThrowingBlock(b.theme) ? (b.throwing_implement || null) : null,
+          implement_weight_g: isThrowingBlock(b.theme) ? (b.implement_weight_g ?? null) : null,
+        }));
+        const { error: bErr } = await supabase.from("training_session_blocks").insert(blockRows);
+        if (bErr) throw bErr;
 
-      // Participants
-      if (selectedPlayers.length > 0) {
-        const { error: pErr } = await supabase.from("event_participants").insert(
-          selectedPlayers.map((pid) => ({ training_session_id: sessionId, player_id: pid })),
-        );
-        if (pErr) console.error(pErr);
+        // Participants
+        if (selectedPlayers.length > 0) {
+          const { error: pErr } = await supabase.from("event_participants").insert(
+            selectedPlayers.map((pid) => ({ training_session_id: sessionId, player_id: pid })),
+          );
+          if (pErr) console.error(pErr);
+        }
       }
 
       return sessionId;
+
     },
     onSuccess: (sessionId) => {
       qc.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
