@@ -716,23 +716,12 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                       })}
 
                       <div className="flex flex-wrap gap-2">
-                        {isBowling && (
-                          <Button variant="ghost" size="sm" onClick={() => setIsBowlingTrainingOpen(true)} className="flex-1 gap-1.5" style={{ color: TRAINING_COLOR }}>
-                            <Plus className="h-3.5 w-3.5" />
-                            Ajouter un entraînement
-                          </Button>
-                        )}
-                        {isBasket && (
-                          <Button variant="ghost" size="sm" onClick={() => setIsBasketTrainingOpen(true)} className="flex-1 gap-1.5" style={{ color: TRAINING_COLOR }}>
-                            <Plus className="h-3.5 w-3.5" />
-                            Ajouter un entraînement
-                          </Button>
-                        )}
-                        <Button variant="ghost" size="sm" onClick={() => setIsCreateOpen(true)} className="flex-1 gap-1.5 text-muted-foreground">
+                        <Button variant="ghost" size="sm" onClick={() => setIsPickerOpen(true)} className="flex-1 gap-1.5 text-muted-foreground">
                           <Plus className="h-3.5 w-3.5" />
                           Ajouter une séance
                         </Button>
                       </div>
+
                     </div>
                   )}
                 </div>
