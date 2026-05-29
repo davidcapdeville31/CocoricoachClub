@@ -81,14 +81,53 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
     return <div className="text-muted-foreground">Chargement...</div>;
   }
 
-  // Prepare chart data using weighted scores
-  const chartData = wellnessData?.slice(0, 14).reverse().map((entry) => ({
-    date: format(new Date(entry.tracking_date), "dd/MM", { locale: fr }),
+  // Prepare chart data using weighted scores, with period aggregation
+  const buildPoint = (entry: any) => ({
     wellness: calculateWeightedWellnessScore(entry as WellnessEntry, wellnessQuestionsCfg),
     fatigue: entry.general_fatigue,
     stress: entry.stress_level,
     soreness: (entry.soreness_upper_body + entry.soreness_lower_body) / 2,
-  })) || [];
+  });
+
+  const sortedAsc = (wellnessData || []).slice().reverse(); // ascending by date
+  const recentLimit = chartPeriod === "day" ? 14 : chartPeriod === "week" ? 84 : 365;
+  const slice = sortedAsc.slice(-recentLimit);
+
+  let chartData: Array<{ date: string; wellness: number; fatigue: number; stress: number; soreness: number }> = [];
+  if (chartPeriod === "day") {
+    chartData = slice.map((entry) => ({
+      date: format(new Date(entry.tracking_date), "dd/MM", { locale: fr }),
+      ...buildPoint(entry),
+    }));
+  } else {
+    const buckets = new Map<string, any[]>();
+    for (const e of slice) {
+      const d = new Date(e.tracking_date);
+      const bucket = chartPeriod === "week" ? startOfWeek(d, { weekStartsOn: 1 }) : startOfMonth(d);
+      const key = bucket.toISOString();
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key)!.push(e);
+    }
+    const round1 = (n: number) => Math.round(n * 10) / 10;
+    const avg = (arr: number[]) => (arr.length ? round1(arr.reduce((s, v) => s + v, 0) / arr.length) : 0);
+    chartData = Array.from(buckets.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([key, group]) => {
+        const d = new Date(key);
+        const points = group.map(buildPoint);
+        return {
+          date:
+            chartPeriod === "week"
+              ? `S${format(d, "I", { locale: fr })}`
+              : format(d, "MMM yy", { locale: fr }),
+          wellness: avg(points.map((p) => p.wellness).filter((v) => !isNaN(v))),
+          fatigue: avg(points.map((p) => p.fatigue).filter((v) => v != null)),
+          stress: avg(points.map((p) => p.stress).filter((v) => v != null)),
+          soreness: avg(points.map((p) => p.soreness).filter((v) => !isNaN(v))),
+        };
+      });
+  }
+
 
   // Get latest data for risk assessment
   const latestWellness = wellnessData?.[0];
