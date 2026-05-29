@@ -127,6 +127,7 @@ import {
   type BowlingParent,
 } from "@/lib/constants/bowlingExercises";
 import { BowlingExerciseVariables } from "@/components/bowling/BowlingExerciseVariables";
+import { BowlingBlockInlineEditor } from "@/components/bowling/blocks/BowlingBlockInlineEditor";
 
 const isBowlingSport = (sport?: string) =>
   !!sport && sport.toLowerCase().startsWith("bowling");
