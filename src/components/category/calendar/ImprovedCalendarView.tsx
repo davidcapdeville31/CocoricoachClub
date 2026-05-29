@@ -22,6 +22,7 @@ import { MatchNotifyDialog } from "./MatchNotifyDialog";
 import { CreateEventDialog } from "./CreateEventDialog";
 import { FieldSessionDialog } from "./FieldSessionDialog";
 import { BowlingSimplifiedDialog } from "@/components/bowling/BowlingSimplifiedDialog";
+import { BowlingAdvancedDialog } from "@/components/bowling/BowlingAdvancedDialog";
 import { ScheduleTestEventDialog } from "./ScheduleTestEventDialog";
 import { DailyCalendarView } from "./DailyCalendarView";
 import { Badge } from "@/components/ui/badge";
