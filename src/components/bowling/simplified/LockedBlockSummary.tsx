@@ -163,3 +163,38 @@ function TechnicalSummary({ block }: { block: Extract<SimplifiedBlock, { type: "
     </div>
   );
 }
+
+function GamesSummary({ block }: { block: Extract<SimplifiedBlock, { type: "games" }> }) {
+  const agg = aggregateGamesStats(block);
+  return (
+    <div className="space-y-1">
+      {block.title && <p className="text-sm font-medium">{block.title}</p>}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        <span>
+          {block.parties.length} partie{block.parties.length > 1 ? "s" : ""}
+        </span>
+        {agg && (
+          <>
+            <span className="font-medium text-foreground">
+              Total {agg.totalScore} · Moy. {agg.avgScore}
+            </span>
+            <span>Strike {agg.strikePct}%</span>
+            <span>Spare {agg.sparePct}%</span>
+            {block.track_pockets && <span>Poche {agg.pocketPct}%</span>}
+          </>
+        )}
+        {block.oil_pattern.preset_name && (
+          <span>Huilage : {block.oil_pattern.preset_name}</span>
+        )}
+        {(() => {
+          const cat = getOilCategory(block.oil_pattern.oil_ratio);
+          return cat ? (
+            <Badge variant="outline" className={`text-[10px] ${cat.color}`}>
+              {cat.label}
+            </Badge>
+          ) : null;
+        })()}
+      </div>
+    </div>
+  );
+}
