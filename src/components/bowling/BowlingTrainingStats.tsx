@@ -286,6 +286,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
         "Technique": Math.round(b.technical * 10) / 10,
         "Tactique": Math.round(b.tactical * 10) / 10,
         "Parties": Math.round(b.games * 10) / 10,
+        __raw: { "Échauffement": b.warmup, "Technique": b.technical, "Tactique": b.tactical, "Parties": b.games },
         __total: total,
       };
     });
