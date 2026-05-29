@@ -863,12 +863,14 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                         </div>
                       </div>
                     )}
-                    <Textarea
-                      rows={2}
-                      placeholder="Détail / consignes (optionnel)"
-                      value={b.notes}
-                      onChange={(e) => updateBlock(b.id, { notes: e.target.value })}
-                    />
+                    {!isBowling && (
+                      <Textarea
+                        rows={2}
+                        placeholder="Détail / consignes (optionnel)"
+                        value={b.notes}
+                        onChange={(e) => updateBlock(b.id, { notes: e.target.value })}
+                      />
+                    )}
                   </CardContent>
                 </Card>
                 );
