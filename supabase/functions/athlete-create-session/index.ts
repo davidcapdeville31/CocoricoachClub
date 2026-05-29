@@ -214,6 +214,17 @@ serve(async (req) => {
       }
     }
 
+    // Séance auto-créée par l'athlète → privée à lui seul.
+    // On insère le créateur comme unique participant pour que le filtrage
+    // côté calendrier athlète (event_participants) la masque aux autres joueurs.
+    try {
+      await supabase
+        .from("event_participants")
+        .insert({ training_session_id: session.id, player_id });
+    } catch (partErr) {
+      console.warn("[athlete-create-session] participant insert warn:", partErr);
+    }
+
     // ── Notifier le staff de la catégorie (in-app + push best-effort) ──
     try {
       const { data: playerInfo } = await supabase
