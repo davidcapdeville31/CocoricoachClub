@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Plus, Target, Wrench, Save, Circle, Users, Loader2 } from "lucide-react";
+import { Sparkles, Plus, Target, Wrench, Save, Circle, Users, Loader2, Droplet } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -20,6 +20,8 @@ import { SimplifiedTacticalBlockEditor } from "./simplified/SimplifiedTacticalBl
 import { SimplifiedTechnicalBlockEditor } from "./simplified/SimplifiedTechnicalBlockEditor";
 import { SimplifiedGamesBlockEditor } from "./simplified/SimplifiedGamesBlockEditor";
 import { LockedBlockSummary } from "./simplified/LockedBlockSummary";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { OFFICIAL_OIL_PATTERNS, getOilCategory } from "@/lib/constants/bowlingOilPatterns";
 import {
   newTacticalBlock,
   newTechnicalBlock,
@@ -63,6 +65,7 @@ export function BowlingSimplifiedDialog({
   const [blocks, setBlocks] = useState<SimplifiedBlock[]>([]);
   const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
+  const [oilPatternName, setOilPatternName] = useState<string>("none");
 
   // Fetch effectif (coach mode only, et pas en édition)
   const { data: players = [] } = useQuery({
@@ -106,6 +109,36 @@ export function BowlingSimplifiedDialog({
     // "Modifier" sur un bloc précis pour le déverrouiller.
     setLockedIds(new Set(restored.map((b) => b.id)));
   }, [open, isEditMode, existingBlocks]);
+
+  // Préchargement du huilage existant pour le match d'entraînement de la journée
+  const { data: existingOilPatternName } = useQuery({
+    queryKey: ["bowling_simplified_existing_oil", categoryId, format(date, "yyyy-MM-dd")],
+    enabled: open,
+    queryFn: async () => {
+      const sessionDate = format(date, "yyyy-MM-dd");
+      const { data: match } = await supabase
+        .from("matches")
+        .select("id")
+        .eq("category_id", categoryId)
+        .eq("event_type", "training")
+        .eq("match_date", sessionDate)
+        .limit(1)
+        .maybeSingle();
+      if (!match?.id) return null;
+      const { data: pat } = await supabase
+        .from("bowling_oil_patterns")
+        .select("name")
+        .eq("match_id", match.id)
+        .limit(1)
+        .maybeSingle();
+      return pat?.name || null;
+    },
+  });
+
+  useEffect(() => {
+    if (existingOilPatternName) setOilPatternName(existingOilPatternName);
+  }, [existingOilPatternName]);
+
 
 
   const allSelected = players.length > 0 && selectedPlayers.length === players.length;
@@ -288,7 +321,8 @@ export function BowlingSimplifiedDialog({
           .map((p) => ({ entry: p, block: b })),
       );
 
-    if (gamesEntries.length === 0) return;
+    const hasOilToPersist = !!oilPatternName && oilPatternName !== "none";
+    if (gamesEntries.length === 0 && !hasOilToPersist) return;
 
     if (!matchId) {
       const { data: newMatch, error } = await supabase
@@ -305,6 +339,38 @@ export function BowlingSimplifiedDialog({
       if (error) throw error;
       matchId = newMatch.id;
     }
+
+    // Huilage (pattern) : upsert pour le match d'entraînement
+    if (matchId && oilPatternName && oilPatternName !== "none") {
+      const preset = OFFICIAL_OIL_PATTERNS.find((p) => p.name === oilPatternName);
+      const { data: existingPat } = await supabase
+        .from("bowling_oil_patterns")
+        .select("id")
+        .eq("match_id", matchId)
+        .eq("name", oilPatternName)
+        .limit(1)
+        .maybeSingle();
+      const payload: any = {
+        category_id: categoryId,
+        match_id: matchId,
+        name: oilPatternName,
+        length_feet: preset?.length_feet ?? null,
+        buff_distance_feet: preset?.buff_distance_feet ?? null,
+        width_boards: preset?.width_boards ?? null,
+        total_volume_ml: preset?.total_volume_ml ?? null,
+        oil_ratio: preset?.oil_ratio ?? null,
+        profile_type: preset?.profile_type ?? null,
+        forward_oil: preset?.forward_oil ?? null,
+        reverse_oil: preset?.reverse_oil ?? null,
+        outside_friction: preset?.outside_friction ?? null,
+      };
+      if (existingPat?.id) {
+        await supabase.from("bowling_oil_patterns").update(payload).eq("id", existingPat.id);
+      } else {
+        await supabase.from("bowling_oil_patterns").insert(payload);
+      }
+    }
+
 
     // round_number existants pour ce joueur
     const { count } = await supabase
@@ -526,6 +592,8 @@ export function BowlingSimplifiedDialog({
       qc.invalidateQueries({ queryKey: ["bowling_training_blocks"] });
       qc.invalidateQueries({ queryKey: ["bowling_training_blocks_stats", categoryId] });
       qc.invalidateQueries({ queryKey: ["bowling_simplified_existing_blocks", existingSessionId] });
+      qc.invalidateQueries({ queryKey: ["bowling_simplified_existing_oil", categoryId] });
+      qc.invalidateQueries({ queryKey: ["bowling_training_oil_patterns", categoryId] });
       handleOpenChange(false);
     },
     onError: (e: any) => toast.error(e?.message || "Erreur lors de l'enregistrement"),
@@ -539,6 +607,7 @@ export function BowlingSimplifiedDialog({
       setBlocks([]);
       setLockedIds(new Set());
       setSelectedPlayers([]);
+      setOilPatternName("none");
     }
     onOpenChange(next);
   };
@@ -549,6 +618,7 @@ export function BowlingSimplifiedDialog({
       setBlocks([]);
       setLockedIds(new Set());
       setSelectedPlayers([]);
+      setOilPatternName("none");
     }
   }, [open, isEditMode]);
 
@@ -629,6 +699,36 @@ export function BowlingSimplifiedDialog({
               </ScrollArea>
             </div>
           )}
+
+          {/* Huilage de la séance — appliqué à tous les blocs */}
+          <div className="rounded-2xl border border-border/60 bg-surface-sunken/40 p-3 space-y-2">
+            <Label className="flex items-center gap-2 text-sm font-semibold">
+              <Droplet className="h-4 w-4 text-primary" />
+              Huilage de la séance (optionnel)
+            </Label>
+            <Select value={oilPatternName} onValueChange={setOilPatternName}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Aucun huilage" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                <SelectItem value="none">Aucun huilage</SelectItem>
+                {OFFICIAL_OIL_PATTERNS.map((p) => {
+                  const cat = getOilCategory(p.oil_ratio);
+                  return (
+                    <SelectItem key={p.name} value={p.name}>
+                      {p.name}
+                      {p.oil_ratio ? ` · ${p.oil_ratio}` : ""}
+                      {cat ? ` · ${cat.label}` : ""}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-muted-foreground">
+              Le huilage choisi s'applique à toute la séance et permet de filtrer les Stats Parties.
+            </p>
+          </div>
+
 
           {blocks.length === 0 && (
             <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/60 bg-muted/20 py-10 text-center">
