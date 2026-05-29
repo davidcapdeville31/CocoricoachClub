@@ -819,11 +819,16 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
       <BowlingAdvancedDialog
         open={isBowlingAdvancedOpen}
-        onOpenChange={setIsBowlingAdvancedOpen}
+        onOpenChange={(o) => {
+          setIsBowlingAdvancedOpen(o);
+          if (!o) setBowlingAdvancedSessionId(null);
+        }}
         date={selectedDate || new Date()}
         categoryId={categoryId}
         athletePlayerId={playerId}
+        existingSessionId={bowlingAdvancedSessionId || undefined}
       />
+
 
 
       <AddMatchCalendarDialog
