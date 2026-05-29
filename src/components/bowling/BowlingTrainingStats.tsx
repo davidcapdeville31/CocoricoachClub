@@ -207,7 +207,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
         let resolved: any = null;
         if (playerId) {
           const assignedIds = new Set(assignments.filter((a: any) => a.player_id === playerId).map((a: any) => a.oil_pattern_id));
-          resolved = patternsForMatch.find((p: any) => assignedIds.has(p.id)) || null;
+          resolved = patternsForMatch.find((p: any) => assignedIds.has(p.id)) || patternsForMatch[0] || null;
         } else {
           resolved = patternsForMatch[0] || null;
         }
@@ -373,9 +373,8 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       if (selectedBallId !== "all") {
         spares = spares.filter((ex: any) => ex.ball_arsenal_id === selectedBallId);
       }
-      if (activeTrainingDates) {
-        spares = spares.filter((ex: any) => activeTrainingDates.has((ex.session_date || "").slice(0, 10)));
-      }
+      // Note: oil pattern filter intentionally NOT applied to Stats Spécifiques
+
       if (spares.length === 0) return { player, byType: {}, total: null };
       const byType: Record<string, { attempts: number; successes: number }> = {};
       let totalAttempts = 0, totalSuccesses = 0;
@@ -389,7 +388,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       const rate = totalAttempts > 0 ? (totalSuccesses / totalAttempts) * 100 : 0;
       return { player, byType, total: { totalAttempts, totalSuccesses, rate } };
     }).filter(p => p.total !== null);
-  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId, athletesWithNewBlocks, activeTrainingDates]);
+  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId, athletesWithNewBlocks]);
 
   // Compute global stats from new-system bowling_training_blocks
   const globalStats = useMemo(() => {
@@ -398,7 +397,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       if (selectedPlayerId !== "all" && !playerId && b.athlete_id !== selectedPlayerId) return false;
       if (playerId && b.athlete_id !== playerId) return false;
       if (!dateFilter(b.session_date)) return false;
-      if (activeTrainingDates && !activeTrainingDates.has((b.session_date || "").slice(0, 10))) return false;
+      // Note: oil pattern filter intentionally NOT applied to Stats Globales
       return true;
     });
 
@@ -469,7 +468,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       chartData,
       blockCount: filtered.length,
     };
-  }, [trainingBlocks, selectedPlayerId, playerId, dateFrom, dateTo, globalPeriod, activeTrainingDates]);
+  }, [trainingBlocks, selectedPlayerId, playerId, dateFrom, dateTo, globalPeriod]);
 
   // Get unique balls used by all players for ball filter
   const availableBalls = useMemo(() => {
@@ -738,80 +737,8 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
         )}
       </div>
 
-      {/* Oil pattern filter for training sessions */}
-      {trainingOilData && trainingOilData.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              Filtrer par type de huilage
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex flex-wrap gap-2">
-              {(["sport", "challenge", "recreation"] as OilCategoryType[]).map((type) => {
-                const badge = OIL_CATEGORY_BADGES[type];
-                const count = trainingOilData.filter((m) => m.oilCategory === type).length;
-                return (
-                  <Button
-                    key={type}
-                    variant={filterByOilType === type ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => { setSelectedTrainingMatchIds(null); setFilterByOilType((p) => (p === type ? null : type)); }}
-                    className="gap-1.5"
-                    disabled={count === 0}
-                  >
-                    {badge.label}
-                    <Badge variant="secondary" className="text-xs ml-1">{count}</Badge>
-                  </Button>
-                );
-              })}
-              {hasActiveOilFilter && (
-                <Button variant="ghost" size="sm" onClick={() => { setFilterByOilType(null); setSelectedTrainingMatchIds(null); }} className="text-muted-foreground">
-                  Tout afficher
-                </Button>
-              )}
-            </div>
+      {/* Oil pattern filter moved inside Stats Parties tab */}
 
-            <div className="border-t pt-3">
-              <p className="text-xs text-muted-foreground mb-2">Ou sélectionner les entraînements individuellement :</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-48 overflow-y-auto">
-                {trainingOilData.map((m) => {
-                  const cat = m.oilCategory ? OIL_CATEGORY_BADGES[m.oilCategory] : null;
-                  const isChecked = filterByOilType
-                    ? m.oilCategory === filterByOilType
-                    : selectedTrainingMatchIds === null || selectedTrainingMatchIds.has(m.matchId);
-                  return (
-                    <label key={m.matchId} className="flex items-center gap-2 p-1.5 rounded hover:bg-muted/50 cursor-pointer text-sm">
-                      <Checkbox
-                        checked={isChecked}
-                        onCheckedChange={() => {
-                          setFilterByOilType(null);
-                          setSelectedTrainingMatchIds((prev) => {
-                            const base = prev !== null ? new Set(prev) : new Set(trainingMatchIds);
-                            if (base.has(m.matchId)) base.delete(m.matchId); else base.add(m.matchId);
-                            return base;
-                          });
-                        }}
-                        disabled={filterByOilType !== null}
-                      />
-                      <span className="truncate flex-1">
-                        {m.matchDate ? format(new Date(m.matchDate), "dd MMM yyyy", { locale: fr }) : "—"}
-                        {m.patternName ? ` · ${m.patternName}` : ""}
-                      </span>
-                      {m.oilRatio ? (
-                        <Badge variant="outline" className={`text-[10px] shrink-0 ${cat?.className || ""}`}>{m.oilRatio}</Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-[10px] text-muted-foreground shrink-0">Pas de huilage</Badge>
-                      )}
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
 
 
@@ -952,6 +879,81 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
 
           {/* Tab: Stats Parties - grouped by athlete */}
           <TabsContent value="games" className="space-y-4 mt-4">
+            {/* Oil pattern filter (only for Stats Parties) */}
+            {trainingOilData && trainingOilData.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    Filtrer par type de huilage
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {(["sport", "challenge", "recreation"] as OilCategoryType[]).map((type) => {
+                      const badge = OIL_CATEGORY_BADGES[type];
+                      const count = trainingOilData.filter((m) => m.oilCategory === type).length;
+                      return (
+                        <Button
+                          key={type}
+                          variant={filterByOilType === type ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => { setSelectedTrainingMatchIds(null); setFilterByOilType((p) => (p === type ? null : type)); }}
+                          className="gap-1.5"
+                          disabled={count === 0}
+                        >
+                          {badge.label}
+                          <Badge variant="secondary" className="text-xs ml-1">{count}</Badge>
+                        </Button>
+                      );
+                    })}
+                    {hasActiveOilFilter && (
+                      <Button variant="ghost" size="sm" onClick={() => { setFilterByOilType(null); setSelectedTrainingMatchIds(null); }} className="text-muted-foreground">
+                        Tout afficher
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="border-t pt-3">
+                    <p className="text-xs text-muted-foreground mb-2">Ou sélectionner les entraînements individuellement :</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-48 overflow-y-auto">
+                      {trainingOilData.map((m) => {
+                        const cat = m.oilCategory ? OIL_CATEGORY_BADGES[m.oilCategory] : null;
+                        const isChecked = filterByOilType
+                          ? m.oilCategory === filterByOilType
+                          : selectedTrainingMatchIds === null || selectedTrainingMatchIds.has(m.matchId);
+                        return (
+                          <label key={m.matchId} className="flex items-center gap-2 p-1.5 rounded hover:bg-muted/50 cursor-pointer text-sm">
+                            <Checkbox
+                              checked={isChecked}
+                              onCheckedChange={() => {
+                                setFilterByOilType(null);
+                                setSelectedTrainingMatchIds((prev) => {
+                                  const base = prev !== null ? new Set(prev) : new Set(trainingMatchIds);
+                                  if (base.has(m.matchId)) base.delete(m.matchId); else base.add(m.matchId);
+                                  return base;
+                                });
+                              }}
+                              disabled={filterByOilType !== null}
+                            />
+                            <span className="truncate flex-1">
+                              {m.matchDate ? format(new Date(m.matchDate), "dd MMM yyyy", { locale: fr }) : "—"}
+                              {m.patternName ? ` · ${m.patternName}` : ""}
+                            </span>
+                            {m.oilRatio ? (
+                              <Badge variant="outline" className={`text-[10px] shrink-0 ${cat?.className || ""}`}>{m.oilRatio}</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-[10px] text-muted-foreground shrink-0">Pas de huilage</Badge>
+                            )}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {hasGameData ? (
               <div className="space-y-6">
                 {playerGameStats.map(({ player, stats, games }) => (
