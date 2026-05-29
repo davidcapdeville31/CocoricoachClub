@@ -58,6 +58,8 @@ export interface SimplifiedTacticalBlock {
   type: "tactical";
   title: string;
   duration_min: number;
+  /** Boule utilisée pour ce bloc (id arsenal). */
+  ball_id: string | null;
   oil_pattern: SimplifiedOilPattern;
   items: SimplifiedTacticalItem[];
 }
