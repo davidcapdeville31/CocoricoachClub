@@ -373,14 +373,14 @@ export function BowlingSimplifiedDialog({
     onOpenChange(next);
   };
 
-  // Réinitialise quand on ouvre
+  // Réinitialise quand on ouvre (sauf en édition : on attend la requête)
   useEffect(() => {
-    if (open) {
+    if (open && !isEditMode) {
       setBlocks([]);
       setLockedIds(new Set());
       setSelectedPlayers([]);
     }
-  }, [open]);
+  }, [open, isEditMode]);
 
   // Indices typés par bloc pour conserver la numérotation par catégorie
   const tacticalIndexById = new Map<string, number>();
