@@ -774,6 +774,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
                         onVariablesChange={(v) =>
                           updateBlock(b.id, { bowling_dtn_variables: v })
                         }
+                        hideSuccessCriteria
                       />
                     )}
                     {/* Saisie inline des feuilles de score / précision (en mode édition uniquement) */}
