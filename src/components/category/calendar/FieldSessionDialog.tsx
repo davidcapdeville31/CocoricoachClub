@@ -912,10 +912,12 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label>Notes générales (optionnel)</Label>
-            <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
-          </div>
+          {!isBowling && (
+            <div className="space-y-2">
+              <Label>Notes générales (optionnel)</Label>
+              <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+            </div>
+          )}
 
           <div className="flex items-start gap-2 rounded-lg bg-muted/40 p-3 text-xs text-muted-foreground">
             <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
