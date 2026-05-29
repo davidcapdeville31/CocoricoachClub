@@ -232,7 +232,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       if (!b.athlete_id) return false;
       if (selectedPlayerId !== "all" && !playerId && b.athlete_id !== selectedPlayerId) return false;
       if (playerId && b.athlete_id !== playerId) return false;
-      if (!dateFilter(b.created_at)) return false;
+      if (!dateFilter(b.session_date)) return false;
       return true;
     });
 
