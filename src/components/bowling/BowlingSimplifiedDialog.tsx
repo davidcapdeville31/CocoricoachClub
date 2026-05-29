@@ -1,8 +1,21 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Plus, Target } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { toast } from "sonner";
+import { SimplifiedTacticalBlockEditor } from "./simplified/SimplifiedTacticalBlockEditor";
+import {
+  newTacticalBlock,
+  type SimplifiedBlock,
+} from "./simplified/types";
 
 interface BowlingSimplifiedDialogProps {
   open: boolean;
@@ -14,16 +27,44 @@ interface BowlingSimplifiedDialogProps {
 
 /**
  * Mode SIMPLIFIÉ de création de séance bowling.
- * Pour l'instant vide — le contenu sera défini ultérieurement.
+ * Pour l'instant : seul l'onglet "Tactique" est implémenté.
+ * Les autres types de blocs (technique, parties...) arriveront ensuite.
+ * La persistance en base sera ajoutée dans un second temps.
  */
 export function BowlingSimplifiedDialog({
   open,
   onOpenChange,
   date,
+  categoryId,
 }: BowlingSimplifiedDialogProps) {
+  const [blocks, setBlocks] = useState<SimplifiedBlock[]>([]);
+
+  const addTactical = () =>
+    setBlocks((prev) => [...prev, newTacticalBlock()]);
+
+  const updateBlock = (id: string, next: SimplifiedBlock) =>
+    setBlocks((prev) => prev.map((b) => (b.id === id ? next : b)));
+
+  const removeBlock = (id: string) =>
+    setBlocks((prev) => prev.filter((b) => b.id !== id));
+
+  const handleSave = () => {
+    if (blocks.length === 0) {
+      toast.error("Ajoutez au moins un bloc avant d'enregistrer");
+      return;
+    }
+    // Sauvegarde réelle à venir.
+    toast.info("Enregistrement bientôt disponible — la séance n'est pas encore persistée.");
+  };
+
+  const handleOpenChange = (next: boolean) => {
+    if (!next) setBlocks([]);
+    onOpenChange(next);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg border-border/70 bg-background/95 shadow-2xl backdrop-blur-md">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-2xl border-border/70 bg-background/95 shadow-2xl backdrop-blur-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Sparkles className="h-5 w-5 text-primary" />
@@ -34,22 +75,74 @@ export function BowlingSimplifiedDialog({
           </p>
         </DialogHeader>
 
-        <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
-          <div className="rounded-full bg-muted p-4">
-            <Sparkles className="h-8 w-8 text-muted-foreground" />
+        <div className="space-y-4 py-2">
+          {blocks.length === 0 && (
+            <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/60 bg-muted/20 py-10 text-center">
+              <div className="rounded-full bg-muted p-4">
+                <Sparkles className="h-7 w-7 text-muted-foreground" />
+              </div>
+              <h3 className="text-base font-semibold text-foreground">
+                Construisez votre séance
+              </h3>
+              <p className="max-w-sm text-sm text-muted-foreground">
+                Ajoutez un bloc pour commencer. Seul le bloc Tactique est disponible pour l'instant.
+              </p>
+            </div>
+          )}
+
+          {blocks.map((b, idx) => (
+            <SimplifiedTacticalBlockEditor
+              key={b.id}
+              value={b}
+              index={idx}
+              categoryId={categoryId}
+              onChange={(next) => updateBlock(b.id, next)}
+              onRemove={() => removeBlock(b.id)}
+            />
+          ))}
+
+          {/* Add block buttons */}
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addTactical}
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              <Target className="h-3.5 w-3.5 text-blue-500" />
+              Ajouter un bloc Tactique
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled
+              className="gap-2 opacity-60"
+            >
+              <Plus className="h-4 w-4" />
+              Technique (à venir)
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled
+              className="gap-2 opacity-60"
+            >
+              <Plus className="h-4 w-4" />
+              Parties (à venir)
+            </Button>
           </div>
-          <h3 className="text-base font-semibold text-foreground">
-            Bientôt disponible
-          </h3>
-          <p className="max-w-sm text-sm text-muted-foreground">
-            Le mode simplifié sera bientôt configuré. En attendant, utilisez le
-            mode avancé pour créer une séance bowling complète.
-          </p>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Fermer
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>
+            Annuler
+          </Button>
+          <Button onClick={handleSave} disabled={blocks.length === 0}>
+            Enregistrer la séance
           </Button>
         </DialogFooter>
       </DialogContent>
