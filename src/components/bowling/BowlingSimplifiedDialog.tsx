@@ -110,6 +110,36 @@ export function BowlingSimplifiedDialog({
     setLockedIds(new Set(restored.map((b) => b.id)));
   }, [open, isEditMode, existingBlocks]);
 
+  // Préchargement du huilage existant pour le match d'entraînement de la journée
+  const { data: existingOilPatternName } = useQuery({
+    queryKey: ["bowling_simplified_existing_oil", categoryId, format(date, "yyyy-MM-dd")],
+    enabled: open,
+    queryFn: async () => {
+      const sessionDate = format(date, "yyyy-MM-dd");
+      const { data: match } = await supabase
+        .from("matches")
+        .select("id")
+        .eq("category_id", categoryId)
+        .eq("event_type", "training")
+        .eq("match_date", sessionDate)
+        .limit(1)
+        .maybeSingle();
+      if (!match?.id) return null;
+      const { data: pat } = await supabase
+        .from("bowling_oil_patterns")
+        .select("name")
+        .eq("match_id", match.id)
+        .limit(1)
+        .maybeSingle();
+      return pat?.name || null;
+    },
+  });
+
+  useEffect(() => {
+    if (existingOilPatternName) setOilPatternName(existingOilPatternName);
+  }, [existingOilPatternName]);
+
+
 
   const allSelected = players.length > 0 && selectedPlayers.length === players.length;
 
