@@ -34,7 +34,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [selectedBallId, setSelectedBallId] = useState<string>("all");
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>(playerId || "all");
-  const [globalPeriod, setGlobalPeriod] = useState<"week" | "month" | "year">("month");
+  const [globalPeriod, setGlobalPeriod] = useState<"day" | "week" | "month" | "year">("month");
 
   // Fetch training data
   const { data: trainingData, isLoading } = useQuery({
