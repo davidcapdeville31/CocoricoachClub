@@ -115,6 +115,7 @@ export function BowlingAdvancedDialog({
   const [blocks, setBlocks] = useState<AdvancedBlock[]>([]);
   const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
+  const [runnerBlockId, setRunnerBlockId] = useState<string | null>(null);
   const [oilPatternName, setOilPatternName] = useState<string>("none");
 
   // Effectif
