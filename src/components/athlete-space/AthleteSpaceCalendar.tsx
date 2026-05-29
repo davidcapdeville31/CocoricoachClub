@@ -744,18 +744,23 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         onOpenChange={setIsPickerOpen}
         date={selectedDate || new Date()}
         categoryId={categoryId}
-        allowedTypeIds={["session", "field_session"]}
+        allowedTypeIds={["session", "field_session", "match"]}
         onAddSession={() => {
           setIsPickerOpen(false);
           setIsCreateOpen(true);
         }}
-        onAddMatch={() => { /* not exposed for athletes */ }}
+        onAddMatch={() => {
+          setIsPickerOpen(false);
+          setMatchDialogDate(selectedDate || new Date());
+        }}
         onSelectExternalType={(type) => {
           setIsPickerOpen(false);
           if (type === "session") {
             setIsCreateOpen(true);
           } else if (type === "field_session") {
             setFieldSessionDate(selectedDate || new Date());
+          } else if (type === "match") {
+            setMatchDialogDate(selectedDate || new Date());
           }
         }}
       />
