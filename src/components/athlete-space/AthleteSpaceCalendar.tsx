@@ -782,6 +782,16 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         athletePlayerId={playerId}
       />
 
+      <AddMatchCalendarDialog
+        open={!!matchDialogDate}
+        onOpenChange={(open) => !open && setMatchDialogDate(null)}
+        categoryId={categoryId}
+        sportType={sportType}
+        defaultDate={matchDialogDate || undefined}
+        athletePlayerId={playerId}
+      />
+
+
 
       {isBowling && (
         <BowlingTrainingEntryDialog
