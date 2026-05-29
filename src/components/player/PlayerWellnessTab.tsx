@@ -33,6 +33,7 @@ const getScoreBadge = (score: number) => {
 };
 
 export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabProps) {
+  const [chartPeriod, setChartPeriod] = useState<"day" | "week" | "month">("day");
   const { data: wellnessQuestionsCfg } = useWellnessQuestions(categoryId);
   const { data: category } = useQuery({
     queryKey: ["category_gender", categoryId],
