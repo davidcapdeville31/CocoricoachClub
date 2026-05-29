@@ -198,6 +198,167 @@ export function BowlingSimplifiedDialog({
     return { ...b };
   };
 
+  // Mappe un item tactique simplifié vers un exercise_type stats spécifiques.
+  const mapTacticalExerciseType = (item: any): string => {
+    if (item.target_type === "pocket") return "spare_poche";
+    if (item.target_type === "single_pin") {
+      if (item.single_pin === "7") return "spare_pin_7";
+      if (item.single_pin === "10") return "spare_pin_10";
+      return "spare_general";
+    }
+    // strike + composed_spare → catégorie spares générale (visualisée dans Stats Spécifiques)
+    return "spare_general";
+  };
+
+  /**
+   * Pousse les statistiques détaillées (parties + tactique) dans leurs tables
+   * dédiées pour qu'elles apparaissent dans :
+   * - Stats Globales (volumes via blocs)
+   * - Stats Parties (competition_rounds / training match)
+   * - Stats Spécifiques (bowling_spare_training)
+   */
+  const persistDetailedStats = async (
+    playerId: string,
+    sessionDate: string,
+    sessionId: string,
+  ) => {
+    // 1) Nettoie les stats précédentes liées à cette séance pour ce joueur
+    await supabase
+      .from("bowling_spare_training")
+      .delete()
+      .eq("player_id", playerId)
+      .eq("training_session_id", sessionId);
+
+    // Match d'entraînement de la journée (catégorie + date)
+    const { data: existingMatch } = await supabase
+      .from("matches")
+      .select("id")
+      .eq("category_id", categoryId)
+      .eq("event_type", "training")
+      .eq("match_date", sessionDate)
+      .limit(1)
+      .maybeSingle();
+
+    let matchId: string | null = existingMatch?.id ?? null;
+
+    if (matchId) {
+      // Récupère les rounds existants de ce joueur pour les supprimer (stats cascade)
+      const { data: oldRounds } = await supabase
+        .from("competition_rounds")
+        .select("id")
+        .eq("match_id", matchId)
+        .eq("player_id", playerId);
+      const oldIds = (oldRounds || []).map((r: any) => r.id);
+      if (oldIds.length) {
+        await supabase.from("competition_round_stats").delete().in("round_id", oldIds);
+        await supabase.from("competition_rounds").delete().in("id", oldIds);
+      }
+    }
+
+    // 2) Tactique → bowling_spare_training
+    const spareRows: any[] = [];
+    for (const b of blocks) {
+      if (b.type !== "tactical") continue;
+      for (const item of b.items) {
+        if (!item.attempts || item.attempts <= 0) continue;
+        spareRows.push({
+          player_id: playerId,
+          category_id: categoryId,
+          exercise_type: mapTacticalExerciseType(item),
+          attempts: item.attempts,
+          successes: Math.min(item.success || 0, item.attempts),
+          session_date: sessionDate,
+          training_session_id: sessionId,
+          ball_arsenal_id: b.ball_id || null,
+        });
+      }
+    }
+    if (spareRows.length) {
+      const { error } = await supabase.from("bowling_spare_training").insert(spareRows);
+      if (error) console.warn("[BowlingSimplified] spare insert:", error.message);
+    }
+
+    // 3) Parties → matches(training) + competition_rounds + competition_round_stats
+    const gamesEntries = blocks
+      .filter((b): b is Extract<SimplifiedBlock, { type: "games" }> => b.type === "games")
+      .flatMap((b) =>
+        b.parties
+          .filter((p) => p.stats !== null)
+          .map((p) => ({ entry: p, block: b })),
+      );
+
+    if (gamesEntries.length === 0) return;
+
+    if (!matchId) {
+      const { data: newMatch, error } = await supabase
+        .from("matches")
+        .insert({
+          category_id: categoryId,
+          opponent: `Entraînement ${sessionDate}`,
+          match_date: sessionDate,
+          event_type: "training",
+          is_home: true,
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      matchId = newMatch.id;
+    }
+
+    // round_number existants pour ce joueur
+    const { count } = await supabase
+      .from("competition_rounds")
+      .select("id", { count: "exact", head: true })
+      .eq("match_id", matchId!)
+      .eq("player_id", playerId);
+    let nextRound = (count || 0) + 1;
+
+    for (const { entry, block } of gamesEntries) {
+      const s = entry.stats!;
+      const ballData = entry.ball_id ? { simpleBallId: entry.ball_id } : null;
+      const { data: round, error: rErr } = await supabase
+        .from("competition_rounds")
+        .insert({
+          match_id: matchId!,
+          player_id: playerId,
+          round_number: nextRound++,
+          result: String(s.totalScore ?? 0),
+          notes: ballData ? JSON.stringify(ballData) : null,
+        })
+        .select("id")
+        .single();
+      if (rErr) {
+        console.warn("[BowlingSimplified] round insert:", rErr.message);
+        continue;
+      }
+      const statData = {
+        frames: entry.frames,
+        totalScore: s.totalScore,
+        strikes: s.strikes,
+        spares: s.spares,
+        splitCount: s.splitCount,
+        splitConverted: s.splitConverted,
+        singlePinCount: s.singlePinCount,
+        singlePinConverted: s.singlePinConverted,
+        pocketCount: s.pocketCount,
+        openFrames: s.openFrames,
+        strikePercentage: s.strikePercentage,
+        sparePercentage: s.sparePercentage,
+        splitPercentage: s.splitPercentage,
+        singlePinConversionRate: s.singlePinConversionRate,
+        pocketPercentage: s.pocketPercentage,
+        totalThrows: s.totalThrows,
+        totalFrames: s.totalFrames,
+        trackPockets: block.track_pockets,
+        ballData,
+      };
+      const { error: sErr } = await supabase
+        .from("competition_round_stats")
+        .insert([{ round_id: round.id, stat_data: statData as any }]);
+      if (sErr) console.warn("[BowlingSimplified] round stats:", sErr.message);
+    }
+  };
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       const targetPlayers = isAthleteMode
@@ -255,6 +416,9 @@ export function BowlingSimplifiedDialog({
           .from("bowling_training_blocks")
           .insert(rows as any);
         if (insErr) throw insErr;
+
+        // Persiste les stats détaillées (parties + tactique)
+        await persistDetailedStats(athletePlayerId!, sessionDate, existingSessionId);
 
         // Marque la présence
         const { error: attErr } = await supabase
@@ -326,7 +490,12 @@ export function BowlingSimplifiedDialog({
         .insert(rows as any);
       if (blocksErr) throw blocksErr;
 
+      // Mode athlète : on persiste tout de suite les stats détaillées du joueur.
+      // Mode coach : on ne persiste pas (les parties seront jouées par l'athlète).
       if (isAthleteMode) {
+        for (const pid of targetPlayers) {
+          await persistDetailedStats(pid, sessionDate, session.id);
+        }
         const { error: attErr } = await supabase
           .from("training_attendance")
           .insert(
