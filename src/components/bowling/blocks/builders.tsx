@@ -1,13 +1,11 @@
 // Builders étape 2 : un par type de bloc. Champs structurés.
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   TECHNICAL_EXERCISE_TYPES,
   SEQUENCE_MODES,
   THROW_PRESETS,
-  PRIORITY_OPTIONS,
 } from "@/lib/constants/bowlingTechnicalParameters";
 import { TACTICAL_EXERCISE_TYPES, PATTERN_DIFFICULTY, GAME_OBJECTIVES } from "@/lib/constants/bowlingTacticalZones";
 import { BowlingParametersPicker } from "../selectors/BowlingParametersPicker";
