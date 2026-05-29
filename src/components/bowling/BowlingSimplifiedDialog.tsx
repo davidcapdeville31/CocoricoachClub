@@ -7,12 +7,13 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Plus, Target, Wrench } from "lucide-react";
+import { Sparkles, Plus, Target, Wrench, Save } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { SimplifiedTacticalBlockEditor } from "./simplified/SimplifiedTacticalBlockEditor";
 import { SimplifiedTechnicalBlockEditor } from "./simplified/SimplifiedTechnicalBlockEditor";
+import { LockedBlockSummary } from "./simplified/LockedBlockSummary";
 import {
   newTacticalBlock,
   newTechnicalBlock,
@@ -39,29 +40,78 @@ export function BowlingSimplifiedDialog({
   categoryId,
 }: BowlingSimplifiedDialogProps) {
   const [blocks, setBlocks] = useState<SimplifiedBlock[]>([]);
+  const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
 
-  const addTactical = () =>
-    setBlocks((prev) => [...prev, newTacticalBlock()]);
+  const addTactical = () => {
+    const b = newTacticalBlock();
+    setBlocks((prev) => [...prev, b]);
+  };
 
-  const addTechnical = () =>
-    setBlocks((prev) => [...prev, newTechnicalBlock()]);
+  const addTechnical = () => {
+    const b = newTechnicalBlock();
+    setBlocks((prev) => [...prev, b]);
+  };
 
   const updateBlock = (id: string, next: SimplifiedBlock) =>
     setBlocks((prev) => prev.map((b) => (b.id === id ? next : b)));
 
-  const removeBlock = (id: string) =>
+  const removeBlock = (id: string) => {
     setBlocks((prev) => prev.filter((b) => b.id !== id));
+    setLockedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  };
+
+  const validateBlock = (b: SimplifiedBlock): string | null => {
+    if (b.duration_min <= 0) return "La durée doit être supérieure à 0";
+    if (b.type === "technical") {
+      if (b.theme === "other" && !b.custom_theme?.trim())
+        return "Précisez la thématique";
+      if (!b.description.trim())
+        return "Décrivez ce que vous avez travaillé";
+    }
+    return null;
+  };
+
+  const lockBlock = (id: string) => {
+    const b = blocks.find((x) => x.id === id);
+    if (!b) return;
+    const err = validateBlock(b);
+    if (err) {
+      toast.error(err);
+      return;
+    }
+    setLockedIds((prev) => new Set(prev).add(id));
+    toast.success("Bloc enregistré");
+  };
+
+  const unlockBlock = (id: string) =>
+    setLockedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
 
   const handleSave = () => {
     if (blocks.length === 0) {
       toast.error("Ajoutez au moins un bloc avant d'enregistrer");
       return;
     }
+    const unlocked = blocks.filter((b) => !lockedIds.has(b.id));
+    if (unlocked.length > 0) {
+      toast.error("Enregistrez d'abord chaque bloc avant de valider la séance");
+      return;
+    }
     toast.info("Enregistrement bientôt disponible — la séance n'est pas encore persistée.");
   };
 
   const handleOpenChange = (next: boolean) => {
-    if (!next) setBlocks([]);
+    if (!next) {
+      setBlocks([]);
+      setLockedIds(new Set());
+    }
     onOpenChange(next);
   };
 
@@ -103,27 +153,53 @@ export function BowlingSimplifiedDialog({
             </div>
           )}
 
-          {blocks.map((b) => {
-            if (b.type === "tactical") {
+          {blocks.map((b, posIdx) => {
+            const locked = lockedIds.has(b.id);
+            if (locked) {
               return (
-                <SimplifiedTacticalBlockEditor
+                <LockedBlockSummary
                   key={b.id}
+                  block={b}
+                  index={posIdx}
+                  onEdit={() => unlockBlock(b.id)}
+                  onRemove={() => removeBlock(b.id)}
+                />
+              );
+            }
+
+            const editor =
+              b.type === "tactical" ? (
+                <SimplifiedTacticalBlockEditor
                   value={b}
                   index={tacticalIndexById.get(b.id) ?? 0}
                   categoryId={categoryId}
                   onChange={(next) => updateBlock(b.id, next)}
                   onRemove={() => removeBlock(b.id)}
                 />
+              ) : (
+                <SimplifiedTechnicalBlockEditor
+                  value={b}
+                  index={technicalIndexById.get(b.id) ?? 0}
+                  onChange={(next) => updateBlock(b.id, next)}
+                  onRemove={() => removeBlock(b.id)}
+                />
               );
-            }
+
             return (
-              <SimplifiedTechnicalBlockEditor
-                key={b.id}
-                value={b}
-                index={technicalIndexById.get(b.id) ?? 0}
-                onChange={(next) => updateBlock(b.id, next)}
-                onRemove={() => removeBlock(b.id)}
-              />
+              <div key={b.id} className="space-y-2">
+                {editor}
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => lockBlock(b.id)}
+                    className="gap-2"
+                  >
+                    <Save className="h-3.5 w-3.5" />
+                    Enregistrer le bloc
+                  </Button>
+                </div>
+              </div>
             );
           })}
 
