@@ -592,6 +592,8 @@ export function BowlingSimplifiedDialog({
       qc.invalidateQueries({ queryKey: ["bowling_training_blocks"] });
       qc.invalidateQueries({ queryKey: ["bowling_training_blocks_stats", categoryId] });
       qc.invalidateQueries({ queryKey: ["bowling_simplified_existing_blocks", existingSessionId] });
+      qc.invalidateQueries({ queryKey: ["bowling_simplified_existing_oil", categoryId] });
+      qc.invalidateQueries({ queryKey: ["bowling_training_oil_patterns", categoryId] });
       handleOpenChange(false);
     },
     onError: (e: any) => toast.error(e?.message || "Erreur lors de l'enregistrement"),
