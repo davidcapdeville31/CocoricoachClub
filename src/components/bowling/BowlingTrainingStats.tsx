@@ -1060,6 +1060,9 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                               formatter={(v: any) => [`${v}%`, ""]}
                             />
                             <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                              {chartData.map((entry, i) => (
+                                <Cell key={`cell-${i}`} fill={entry.fill} />
+                              ))}
                               <LabelList
                                 dataKey="value"
                                 position="top"
