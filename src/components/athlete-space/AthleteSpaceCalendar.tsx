@@ -62,6 +62,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [matchDialogDate, setMatchDialogDate] = useState<Date | null>(null);
   const [isBowlingSimplifiedOpen, setIsBowlingSimplifiedOpen] = useState(false);
   const [bowlingSimplifiedSessionId, setBowlingSimplifiedSessionId] = useState<string | null>(null);
+  const [isBowlingAdvancedOpen, setIsBowlingAdvancedOpen] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const isBowling = (sportType || "").toLowerCase().includes("bowling");
