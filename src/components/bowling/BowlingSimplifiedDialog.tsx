@@ -133,11 +133,14 @@ export function BowlingSimplifiedDialog({
   // Indices typés par bloc pour conserver la numérotation par catégorie
   const tacticalIndexById = new Map<string, number>();
   const technicalIndexById = new Map<string, number>();
+  const gamesIndexById = new Map<string, number>();
   let tCount = 0;
   let techCount = 0;
+  let gamesCount = 0;
   blocks.forEach((b) => {
     if (b.type === "tactical") tacticalIndexById.set(b.id, tCount++);
     if (b.type === "technical") technicalIndexById.set(b.id, techCount++);
+    if (b.type === "games") gamesIndexById.set(b.id, gamesCount++);
   });
 
   return (
