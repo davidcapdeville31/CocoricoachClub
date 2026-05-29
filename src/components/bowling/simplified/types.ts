@@ -97,7 +97,32 @@ export interface SimplifiedTechnicalBlock {
   description: string;
 }
 
-export type SimplifiedBlock = SimplifiedTacticalBlock | SimplifiedTechnicalBlock;
+// ----- Bloc "Parties" (réutilise BowlingScoreSheet / BowlingStats) -----
+
+import type { FrameData, BowlingStats } from "@/components/athlete-portal/BowlingScoreSheet";
+
+export interface SimplifiedGameEntry {
+  id: string;
+  frames: FrameData[] | null;
+  stats: BowlingStats | null;
+  /** Boule utilisée pour cette partie. */
+  ball_id: string | null;
+}
+
+export interface SimplifiedGamesBlock {
+  id: string;
+  type: "games";
+  title: string;
+  /** Affiche/masque la colonne "poches" dans la feuille de partie. */
+  track_pockets: boolean;
+  oil_pattern: SimplifiedOilPattern;
+  parties: SimplifiedGameEntry[];
+}
+
+export type SimplifiedBlock =
+  | SimplifiedTacticalBlock
+  | SimplifiedTechnicalBlock
+  | SimplifiedGamesBlock;
 
 export const COMPOSED_SPARES: { value: ComposedSpareKey; label: string }[] = [
   { value: "6_10", label: "6-10" },
