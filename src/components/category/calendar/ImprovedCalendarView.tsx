@@ -114,6 +114,7 @@ export function ImprovedCalendarView({
   const [pendingExternalType, setPendingExternalType] = useState<"session" | "match" | "test" | "field_session" | null>(null);
   const [scheduleTestDate, setScheduleTestDate] = useState<Date | null>(null);
   const [fieldSessionDate, setFieldSessionDate] = useState<Date | null>(null);
+  const [bowlingSimplifiedDate, setBowlingSimplifiedDate] = useState<Date | null>(null);
   const addEventDateRef = useRef<Date | null>(null);
   const [notifySession, setNotifySession] = useState<Session | null>(null);
   const [notifyMatch, setNotifyMatch] = useState<Match | null>(null);
