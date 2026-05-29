@@ -29,6 +29,7 @@ interface Props {
   onChange: (next: SimplifiedTacticalBlock) => void;
   onRemove: () => void;
   categoryId: string;
+  playerId?: string;
   index: number;
 }
 
@@ -37,6 +38,7 @@ export function SimplifiedTacticalBlockEditor({
   onChange,
   onRemove,
   categoryId,
+  playerId,
   index,
 }: Props) {
   const update = (patch: Partial<SimplifiedTacticalBlock>) =>
