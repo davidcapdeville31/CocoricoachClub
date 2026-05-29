@@ -302,10 +302,22 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
       {chartData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Évolution Wellness (Score Pondéré)
-            </CardTitle>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Évolution Wellness (Score Pondéré)
+              </CardTitle>
+              <ToggleGroup
+                type="single"
+                size="sm"
+                value={chartPeriod}
+                onValueChange={(v) => v && setChartPeriod(v as "day" | "week" | "month")}
+              >
+                <ToggleGroupItem value="day" className="px-3">Jour</ToggleGroupItem>
+                <ToggleGroupItem value="week" className="px-3">Semaine</ToggleGroupItem>
+                <ToggleGroupItem value="month" className="px-3">Mois</ToggleGroupItem>
+              </ToggleGroup>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="h-96">
