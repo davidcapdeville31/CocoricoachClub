@@ -53,15 +53,13 @@ export function BowlingBlockInlineEditor({ parent, categoryId, variables, onVari
 
   return (
     <div className="space-y-3">
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-        Configuration du bloc bowling
-      </p>
-
       {renderBuilder()}
 
       {!hideSuccessCriteria && (
-        <Card className="p-3 space-y-2 bg-muted/30">
-          <p className="text-xs font-semibold text-muted-foreground">Critères de réussite</p>
+        <Card className="rounded-2xl p-3 space-y-2 bg-surface-sunken border-border/60">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Critères de réussite
+          </p>
           <CriteriaForm
             value={draft.success_criteria}
             onChange={(c) => update({ ...draft, success_criteria: c })}
