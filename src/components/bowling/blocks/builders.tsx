@@ -46,16 +46,6 @@ function CommonFields({ value, onChange }: Props) {
         </div>
         <Input type="number" min={1} value={value.planned_throws} onChange={(e) => update({ planned_throws: parseInt(e.target.value || "0", 10) })} className="h-9 text-sm" />
       </div>
-      <div className="space-y-1">
-        <Label className="text-xs">Nombre de lancers</Label>
-        <div className="flex flex-wrap gap-1 mb-1">
-          {THROW_PRESETS.map((p) => (
-            <button key={p} type="button" onClick={() => update({ planned_throws: p })}
-              className={`px-2 py-0.5 rounded-md text-[11px] border ${value.planned_throws === p ? "bg-primary text-primary-foreground border-primary" : "border-border bg-background hover:bg-muted"}`}>{p}</button>
-          ))}
-        </div>
-        <Input type="number" min={1} value={value.planned_throws} onChange={(e) => update({ planned_throws: parseInt(e.target.value || "0", 10) })} className="h-9 text-sm" />
-      </div>
     </div>
   );
 }
