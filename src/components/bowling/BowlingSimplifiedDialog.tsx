@@ -354,7 +354,7 @@ export function BowlingSimplifiedDialog({
       };
       const { error: sErr } = await supabase
         .from("competition_round_stats")
-        .insert({ round_id: round.id, stat_data: statData });
+        .insert([{ round_id: round.id, stat_data: statData }]);
       if (sErr) console.warn("[BowlingSimplified] round stats:", sErr.message);
     }
   };
