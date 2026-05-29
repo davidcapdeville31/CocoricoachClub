@@ -178,6 +178,7 @@ export function newTacticalBlock(): SimplifiedTacticalBlock {
     type: "tactical",
     title: "",
     duration_min: 20,
+    ball_id: null,
     oil_pattern: {
       preset_name: null,
       image_url: null,
