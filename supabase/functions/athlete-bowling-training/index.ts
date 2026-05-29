@@ -179,6 +179,72 @@ serve(async (req) => {
       return respond({ success: true });
     }
 
+    // ---- ACTION: save_throw — saisie lancer-par-lancer ----
+    if (action === "save_throw") {
+      const { block_id, throw_payload } = body;
+      if (!block_id || !throw_payload) {
+        return respond({ success: false, error: "Données lancer manquantes" }, 400);
+      }
+      const { data: block } = await supabase
+        .from("bowling_training_blocks")
+        .select("id, category_id, athlete_id")
+        .eq("id", block_id)
+        .maybeSingle();
+      if (!block) return respond({ success: false, error: "Bloc introuvable" }, 404);
+      if (block.category_id !== category_id) {
+        return respond({ success: false, error: "Bloc hors catégorie" }, 403);
+      }
+      const payload = { ...throw_payload, block_id, athlete_id: player_id };
+      const { data, error } = await supabase
+        .from("bowling_throw_results")
+        .insert(payload)
+        .select("id, foot_delta, breakpoint_delta")
+        .single();
+      if (error) throw error;
+      return respond({ success: true, throw: data });
+    }
+
+    // ---- ACTION: save_training_game ----
+    if (action === "save_training_game") {
+      const { block_id, game_number, score, stats, frames, pattern_id, ball_arsenal_id } = body;
+      if (!block_id || !game_number) {
+        return respond({ success: false, error: "Données partie manquantes" }, 400);
+      }
+      const { data: block } = await supabase
+        .from("bowling_training_blocks")
+        .select("id, category_id")
+        .eq("id", block_id)
+        .maybeSingle();
+      if (!block || block.category_id !== category_id) {
+        return respond({ success: false, error: "Bloc invalide" }, 403);
+      }
+      const { error } = await supabase.from("bowling_training_games").insert({
+        block_id,
+        athlete_id: player_id,
+        game_number,
+        score: score ?? null,
+        stats: stats ?? {},
+        frames: frames ?? null,
+        pattern_id: pattern_id ?? null,
+        ball_arsenal_id: ball_arsenal_id ?? null,
+      });
+      if (error) throw error;
+      return respond({ success: true });
+    }
+
+    // ---- ACTION: complete_block ----
+    if (action === "complete_block") {
+      const { block_id, debrief } = body;
+      if (!block_id) return respond({ success: false, error: "Bloc requis" }, 400);
+      const { error } = await supabase
+        .from("bowling_training_blocks")
+        .update({ status: "completed", debrief: debrief ?? null, updated_at: new Date().toISOString() })
+        .eq("id", block_id)
+        .eq("category_id", category_id);
+      if (error) throw error;
+      return respond({ success: true });
+    }
+
     return respond({ success: false, error: "Action inconnue" }, 400);
   } catch (error: unknown) {
     const err = error as { message?: string; details?: string; hint?: string; code?: string };
