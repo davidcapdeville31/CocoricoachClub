@@ -481,7 +481,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
             </Select>
           )}
         </div>
-        {(hasGameData || hasSpareData) && (
+        {(hasGameData || hasSpareData || hasGlobalData) && (
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleExportExcel} className="gap-1">
               <FileSpreadsheet className="h-4 w-4" />
