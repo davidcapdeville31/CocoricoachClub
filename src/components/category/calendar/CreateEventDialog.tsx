@@ -20,7 +20,9 @@ import {
   Clock,
   MapPin,
   ChevronLeft,
-  CheckCircle2
+  CheckCircle2,
+  Sparkles,
+  Settings2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -36,6 +38,8 @@ interface CreateEventDialogProps {
   onAddSession: () => void;
   onAddMatch: () => void;
   onSelectExternalType?: (type: "session" | "match" | "test" | "field_session") => void;
+  /** Called when the user picks the simplified bowling creation mode. */
+  onSelectBowlingSimplified?: () => void;
   /** Restrict the event type picker to a subset of EVENT_TYPES (by id). */
   allowedTypeIds?: string[];
 }
@@ -129,10 +133,11 @@ export function CreateEventDialog({
   onAddSession,
   onAddMatch,
   onSelectExternalType,
+  onSelectBowlingSimplified,
   allowedTypeIds,
 }: CreateEventDialogProps) {
 
-  const [step, setStep] = useState<"type" | "details">("type");
+  const [step, setStep] = useState<"type" | "bowling_mode" | "details">("type");
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [startTime, setStartTime] = useState("09:00");
@@ -226,8 +231,19 @@ export function CreateEventDialog({
     onOpenChange(open);
   };
 
+  const isBowlingSport = (() => {
+    const s = (categorySport || "").toLowerCase();
+    return s === "bowling" || s.startsWith("bowling_");
+  })();
+
   const handleTypeSelect = (typeId: string) => {
     const eventType = EVENT_TYPES.find(t => t.id === typeId);
+
+    // Bowling: insert a mode picker (Simplifié / Avancé) before opening the editor
+    if (typeId === "field_session" && isBowlingSport) {
+      setStep("bowling_mode");
+      return;
+    }
 
     if (eventType?.useExistingDialog && onSelectExternalType) {
       const action: "session" | "match" | "test" | "field_session" =
@@ -371,13 +387,17 @@ export function CreateEventDialog({
       <DialogContent className="max-w-lg max-h-[85vh] flex flex-col overflow-hidden border-border/70 bg-background/95 p-0 shadow-2xl backdrop-blur-md">
         <DialogHeader className="shrink-0 border-b border-border/60 px-6 pt-6 pb-4">
           <DialogTitle className="flex items-center gap-2 text-xl">
-            {step === "details" && (
+            {(step === "details" || step === "bowling_mode") && (
               <Button variant="ghost" size="icon" className="h-8 w-8 mr-1" onClick={() => setStep("type")}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
             )}
             <Calendar className="h-5 w-5 text-primary" />
-            {step === "type" ? "Ajouter un événement" : selectedEventType?.label}
+            {step === "type"
+              ? "Ajouter un événement"
+              : step === "bowling_mode"
+                ? "Nouvelle séance bowling"
+                : selectedEventType?.label}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
             {format(date, "EEEE d MMMM yyyy", { locale: fr })}
@@ -417,6 +437,59 @@ export function CreateEventDialog({
                   </Card>
                 );
               })}
+            </div>
+          ) : step === "bowling_mode" ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Choisis le mode de création de la séance bowling.
+              </p>
+              <Card
+                className="cursor-pointer border border-border/70 border-l-4 border-l-cyan-500 bg-card/95 transition-all duration-200 hover:scale-[1.01] hover:bg-accent/50 hover:shadow-md hover:border-cyan-400 dark:bg-card dark:hover:bg-muted/70"
+                onClick={() => {
+                  resetForm();
+                  onSelectBowlingSimplified?.();
+                }}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-md p-2 shrink-0 bg-cyan-100 dark:bg-cyan-500/15">
+                      <Sparkles className="h-5 w-5 text-cyan-700 dark:text-cyan-300" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground">
+                        Mode simplifié
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground dark:text-foreground/80">
+                        Création rapide d'une séance bowling (à venir).
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card
+                className="cursor-pointer border border-border/70 border-l-4 border-l-violet-500 bg-card/95 transition-all duration-200 hover:scale-[1.01] hover:bg-accent/50 hover:shadow-md hover:border-violet-400 dark:bg-card dark:hover:bg-muted/70"
+                onClick={() => {
+                  resetForm();
+                  onSelectExternalType?.("field_session");
+                }}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-md p-2 shrink-0 bg-violet-100 dark:bg-violet-500/15">
+                      <Settings2 className="h-5 w-5 text-violet-700 dark:text-violet-300" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground">
+                        Mode avancé
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground dark:text-foreground/80">
+                        Blocs thématiques, configuration DTN, lancers, objectifs détaillés...
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           ) : (
             <div className="space-y-4">

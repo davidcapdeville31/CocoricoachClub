@@ -21,6 +21,7 @@ import { SessionNotifyDialog } from "./SessionNotifyDialog";
 import { MatchNotifyDialog } from "./MatchNotifyDialog";
 import { CreateEventDialog } from "./CreateEventDialog";
 import { FieldSessionDialog } from "./FieldSessionDialog";
+import { BowlingSimplifiedDialog } from "@/components/bowling/BowlingSimplifiedDialog";
 import { ScheduleTestEventDialog } from "./ScheduleTestEventDialog";
 import { DailyCalendarView } from "./DailyCalendarView";
 import { Badge } from "@/components/ui/badge";
@@ -114,6 +115,7 @@ export function ImprovedCalendarView({
   const [pendingExternalType, setPendingExternalType] = useState<"session" | "match" | "test" | "field_session" | null>(null);
   const [scheduleTestDate, setScheduleTestDate] = useState<Date | null>(null);
   const [fieldSessionDate, setFieldSessionDate] = useState<Date | null>(null);
+  const [bowlingSimplifiedDate, setBowlingSimplifiedDate] = useState<Date | null>(null);
   const addEventDateRef = useRef<Date | null>(null);
   const [notifySession, setNotifySession] = useState<Session | null>(null);
   const [notifyMatch, setNotifyMatch] = useState<Match | null>(null);
@@ -819,6 +821,12 @@ export function ImprovedCalendarView({
           setPendingExternalType(type);
           setAddEventDate(null);
         }}
+        onSelectBowlingSimplified={() => {
+          const dateToUse = addEventDateRef.current || addEventDate;
+          addEventDateRef.current = null;
+          setAddEventDate(null);
+          if (dateToUse) setBowlingSimplifiedDate(dateToUse);
+        }}
       />
 
       {/* Schedule Test Event Dialog */}
@@ -836,6 +844,13 @@ export function ImprovedCalendarView({
         date={fieldSessionDate || new Date()}
         categoryId={categoryId}
         sportType={sportType}
+      />
+
+      <BowlingSimplifiedDialog
+        open={!!bowlingSimplifiedDate}
+        onOpenChange={(open) => !open && setBowlingSimplifiedDate(null)}
+        date={bowlingSimplifiedDate || new Date()}
+        categoryId={categoryId}
       />
 
       {/* Feedback Dialog */}

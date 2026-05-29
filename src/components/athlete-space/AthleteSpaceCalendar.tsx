@@ -30,6 +30,7 @@ import { GroupedExerciseList } from "@/components/category/GroupedExerciseList";
 import { SessionEditorV2 } from "@/components/program-builder-v2/SessionEditorV2";
 import { resolveSessionExerciseRows } from "@/lib/utils/sessionExercises";
 import { BowlingTrainingEntryDialog } from "@/components/bowling/BowlingTrainingEntryDialog";
+import { BowlingSimplifiedDialog } from "@/components/bowling/BowlingSimplifiedDialog";
 import { BasketballTrainingEntryDialog } from "@/components/basketball/BasketballTrainingEntryDialog";
 import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
 import { CreateEventDialog } from "@/components/category/calendar/CreateEventDialog";
@@ -58,6 +59,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [fieldSessionDate, setFieldSessionDate] = useState<Date | null>(null);
   const [matchDialogDate, setMatchDialogDate] = useState<Date | null>(null);
+  const [isBowlingSimplifiedOpen, setIsBowlingSimplifiedOpen] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const isBowling = (sportType || "").toLowerCase().includes("bowling");
@@ -763,6 +765,10 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
             setMatchDialogDate(selectedDate || new Date());
           }
         }}
+        onSelectBowlingSimplified={() => {
+          setIsPickerOpen(false);
+          setIsBowlingSimplifiedOpen(true);
+        }}
       />
 
       <SessionEditorV2
@@ -779,6 +785,14 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         date={fieldSessionDate || new Date()}
         categoryId={categoryId}
         sportType={sportType}
+        athletePlayerId={playerId}
+      />
+
+      <BowlingSimplifiedDialog
+        open={isBowlingSimplifiedOpen}
+        onOpenChange={setIsBowlingSimplifiedOpen}
+        date={selectedDate || new Date()}
+        categoryId={categoryId}
         athletePlayerId={playerId}
       />
 
