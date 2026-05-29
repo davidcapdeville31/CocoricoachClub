@@ -737,6 +737,27 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         </CardContent>
       </Card>
 
+      <CreateEventDialog
+        open={isPickerOpen}
+        onOpenChange={setIsPickerOpen}
+        date={selectedDate || new Date()}
+        categoryId={categoryId}
+        allowedTypeIds={["session", "field_session"]}
+        onAddSession={() => {
+          setIsPickerOpen(false);
+          setIsCreateOpen(true);
+        }}
+        onAddMatch={() => { /* not exposed for athletes */ }}
+        onSelectExternalType={(type) => {
+          setIsPickerOpen(false);
+          if (type === "session") {
+            setIsCreateOpen(true);
+          } else if (type === "field_session") {
+            setFieldSessionDate(selectedDate || new Date());
+          }
+        }}
+      />
+
       <SessionEditorV2
         open={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
@@ -744,6 +765,16 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         athletePlayerId={playerId}
         defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}
       />
+
+      <FieldSessionDialog
+        open={!!fieldSessionDate}
+        onOpenChange={(open) => !open && setFieldSessionDate(null)}
+        date={fieldSessionDate || new Date()}
+        categoryId={categoryId}
+        sportType={sportType}
+        athletePlayerId={playerId}
+      />
+
 
       {isBowling && (
         <BowlingTrainingEntryDialog
