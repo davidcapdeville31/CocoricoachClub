@@ -21,6 +21,7 @@ import { SessionNotifyDialog } from "./SessionNotifyDialog";
 import { MatchNotifyDialog } from "./MatchNotifyDialog";
 import { CreateEventDialog } from "./CreateEventDialog";
 import { FieldSessionDialog } from "./FieldSessionDialog";
+import { BowlingSimplifiedDialog } from "@/components/bowling/BowlingSimplifiedDialog";
 import { ScheduleTestEventDialog } from "./ScheduleTestEventDialog";
 import { DailyCalendarView } from "./DailyCalendarView";
 import { Badge } from "@/components/ui/badge";
