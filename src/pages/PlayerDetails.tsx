@@ -4,9 +4,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, ArrowRightLeft, Edit2, Check, X, User, Activity, FlaskConical, Swords, CalendarDays, Heart, Utensils, GraduationCap, Bandage, CircleDot, Mountain, FileText, BarChart3 } from "lucide-react";
+import { ArrowLeft, ArrowRightLeft, Edit2, Check, X, User, Activity, FlaskConical, Swords, CalendarDays, Heart, Utensils, GraduationCap, Bandage, CircleDot, Mountain, FileText, BarChart3, Trophy, Target } from "lucide-react";
 import { ColoredNavTabsList } from "@/components/ui/colored-nav-tabs";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
@@ -37,6 +37,7 @@ import { AthleteIdentityEditor } from "@/components/player/AthleteIdentityEditor
 import { PlayerReferenceCard } from "@/components/player/PlayerReferenceCard";
 import { PlayerBowlingArsenal } from "@/components/bowling/PlayerBowlingArsenal";
 import { BowlingCumulativeStats } from "@/components/bowling/BowlingCumulativeStats";
+import { BowlingTrainingStats } from "@/components/bowling/BowlingTrainingStats";
 import { PlayerSurfEquipment } from "@/components/surf/PlayerSurfEquipment";
 import { PlayerSkiEquipment } from "@/components/ski/PlayerSkiEquipment";
 import { PlayerPadelEquipment } from "@/components/padel/PlayerPadelEquipment";
@@ -545,7 +546,32 @@ function PlayerDetailsContent() {
 
           <TabsContent value="stats">
             {isBowling ? (
-              <BowlingCumulativeStats categoryId={player.category_id} playerId={playerId!} />
+              <Tabs defaultValue="competition" className="space-y-4">
+                <TabsList className="grid grid-cols-2 w-full bg-muted/40 rounded-xl p-1">
+                  <TabsTrigger
+                    value="competition"
+                    className="gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[hsl(340_82%_52%)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
+                    <Trophy className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Stats de compétition</span>
+                    <span className="sm:hidden">Compét.</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="training"
+                    className="gap-1.5 rounded-lg transition-colors data-[state=active]:bg-[hsl(45_93%_47%)] data-[state=active]:text-white data-[state=active]:shadow-md"
+                  >
+                    <Target className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Stats d'entraînement</span>
+                    <span className="sm:hidden">Entr.</span>
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="competition">
+                  <BowlingCumulativeStats categoryId={player.category_id} playerId={playerId!} />
+                </TabsContent>
+                <TabsContent value="training">
+                  <BowlingTrainingStats categoryId={player.category_id} playerId={playerId!} />
+                </TabsContent>
+              </Tabs>
             ) : (
               <PlayerCumulativeStats
                 categoryId={player.category_id}
