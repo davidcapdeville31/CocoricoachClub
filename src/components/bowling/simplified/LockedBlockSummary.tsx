@@ -46,6 +46,12 @@ export function LockedBlockSummary({ block, index, categoryId, playerId, onEdit,
                 <CheckCircle2 className="h-3 w-3 text-emerald-600" />
                 Enregistré
               </Badge>
+              {ballName && (
+                <Badge variant="outline" className="gap-1 text-[10px]">
+                  <CircleDot className="h-3 w-3" />
+                  {ballName}
+                </Badge>
+              )}
             </div>
 
             {isTactical ? (
