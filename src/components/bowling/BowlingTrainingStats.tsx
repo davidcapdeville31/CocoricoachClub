@@ -34,7 +34,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [selectedBallId, setSelectedBallId] = useState<string>("all");
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>(playerId || "all");
-  const [globalPeriod, setGlobalPeriod] = useState<"week" | "month" | "year">("month");
+  const [globalPeriod, setGlobalPeriod] = useState<"day" | "week" | "month" | "year">("month");
 
   // Fetch training data
   const { data: trainingData, isLoading } = useQuery({
@@ -248,6 +248,10 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     // Time buckets
     const bucketKey = (iso: string) => {
       const d = new Date(iso);
+      if (globalPeriod === "day") {
+        const day = startOfDay(d);
+        return { key: format(day, "yyyy-MM-dd"), label: format(day, "dd MMM", { locale: fr }), order: day.getTime() };
+      }
       if (globalPeriod === "week") {
         const w = startOfWeek(d, { weekStartsOn: 1, locale: fr });
         return { key: format(w, "yyyy-'S'II", { locale: fr }), label: format(w, "'S'II", { locale: fr }), order: w.getTime() };
@@ -621,6 +625,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                       Volume d'entraînement (heures) par thématique
                     </CardTitle>
                     <ToggleGroup type="single" value={globalPeriod} onValueChange={(v) => v && setGlobalPeriod(v as any)} size="sm">
+                      <ToggleGroupItem value="day" className="text-xs h-7 px-2">Jour</ToggleGroupItem>
                       <ToggleGroupItem value="week" className="text-xs h-7 px-2">Semaine</ToggleGroupItem>
                       <ToggleGroupItem value="month" className="text-xs h-7 px-2">Mois</ToggleGroupItem>
                       <ToggleGroupItem value="year" className="text-xs h-7 px-2">Année</ToggleGroupItem>
