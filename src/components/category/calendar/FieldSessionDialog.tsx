@@ -527,8 +527,9 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
       qc.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       toast.success(isEdit ? "Séance terrain mise à jour ✅" : "Séance terrain créée ✅");
 
-      // 🔔 Auto-notify athletes (bell + push + email) on create OR edit
-      if (sessionId) {
+      // 🔔 Auto-notify athletes (bell + push + email) on create OR edit (coach mode only).
+      // In athlete mode the edge function already notifies the staff itself.
+      if (sessionId && !isAthleteMode) {
         const mainType = blocks[0]?.theme || "terrain";
         notify({
           action: isEdit ? "updated" : "created",
@@ -541,6 +542,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
           participantPlayerIds: selectedPlayers.length > 0 ? selectedPlayers : undefined,
         }).catch((e) => console.warn("[FieldSession] notify failed:", e));
       }
+
 
       onOpenChange(false);
     },
