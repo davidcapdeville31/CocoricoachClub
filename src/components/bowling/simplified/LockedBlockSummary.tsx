@@ -1,16 +1,19 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Pencil, Trash2, Target, Wrench, Clock } from "lucide-react";
+import { CheckCircle2, Pencil, Trash2, Target, Wrench, Clock, CircleDot } from "lucide-react";
 import {
   technicalThemeLabel,
   type SimplifiedBlock,
 } from "./types";
 import { getOilCategory } from "@/lib/constants/bowlingOilPatterns";
+import { useBallName } from "./SimplifiedBallPicker";
 
 interface Props {
   block: SimplifiedBlock;
   index: number;
+  categoryId: string;
+  playerId?: string;
   onEdit: () => void;
   onRemove: () => void;
 }
@@ -19,8 +22,9 @@ interface Props {
  * Vue compacte d'un bloc verrouillé (enregistré).
  * Le bouton "Modifier" rebascule le bloc en édition.
  */
-export function LockedBlockSummary({ block, index, onEdit, onRemove }: Props) {
+export function LockedBlockSummary({ block, index, categoryId, playerId, onEdit, onRemove }: Props) {
   const isTactical = block.type === "tactical";
+  const ballName = useBallName(playerId, categoryId, block.ball_id);
 
   return (
     <Card className="rounded-2xl border-l-4 border-l-emerald-500 bg-surface p-4 shadow-sm">
@@ -42,6 +46,12 @@ export function LockedBlockSummary({ block, index, onEdit, onRemove }: Props) {
                 <CheckCircle2 className="h-3 w-3 text-emerald-600" />
                 Enregistré
               </Badge>
+              {ballName && (
+                <Badge variant="outline" className="gap-1 text-[10px]">
+                  <CircleDot className="h-3 w-3" />
+                  {ballName}
+                </Badge>
+              )}
             </div>
 
             {isTactical ? (

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Trash2, Target } from "lucide-react";
 import { SimplifiedOilPatternPicker } from "./SimplifiedOilPatternPicker";
+import { SimplifiedBallPicker } from "./SimplifiedBallPicker";
 import {
   COMPOSED_SPARES,
   SINGLE_PINS,
@@ -28,6 +29,7 @@ interface Props {
   onChange: (next: SimplifiedTacticalBlock) => void;
   onRemove: () => void;
   categoryId: string;
+  playerId?: string;
   index: number;
 }
 
@@ -36,6 +38,7 @@ export function SimplifiedTacticalBlockEditor({
   onChange,
   onRemove,
   categoryId,
+  playerId,
   index,
 }: Props) {
   const update = (patch: Partial<SimplifiedTacticalBlock>) =>
@@ -104,6 +107,14 @@ export function SimplifiedTacticalBlockEditor({
           </div>
         )}
       </div>
+
+      {/* Boule */}
+      <SimplifiedBallPicker
+        playerId={playerId}
+        categoryId={categoryId}
+        value={value.ball_id}
+        onChange={(id) => update({ ball_id: id })}
+      />
 
       {/* Huilage */}
       <SimplifiedOilPatternPicker

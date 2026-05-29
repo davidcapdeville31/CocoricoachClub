@@ -38,6 +38,7 @@ export function BowlingSimplifiedDialog({
   onOpenChange,
   date,
   categoryId,
+  athletePlayerId,
 }: BowlingSimplifiedDialogProps) {
   const [blocks, setBlocks] = useState<SimplifiedBlock[]>([]);
   const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
@@ -161,6 +162,8 @@ export function BowlingSimplifiedDialog({
                   key={b.id}
                   block={b}
                   index={posIdx}
+                  categoryId={categoryId}
+                  playerId={athletePlayerId}
                   onEdit={() => unlockBlock(b.id)}
                   onRemove={() => removeBlock(b.id)}
                 />
@@ -173,6 +176,7 @@ export function BowlingSimplifiedDialog({
                   value={b}
                   index={tacticalIndexById.get(b.id) ?? 0}
                   categoryId={categoryId}
+                  playerId={athletePlayerId}
                   onChange={(next) => updateBlock(b.id, next)}
                   onRemove={() => removeBlock(b.id)}
                 />
@@ -180,6 +184,8 @@ export function BowlingSimplifiedDialog({
                 <SimplifiedTechnicalBlockEditor
                   value={b}
                   index={technicalIndexById.get(b.id) ?? 0}
+                  categoryId={categoryId}
+                  playerId={athletePlayerId}
                   onChange={(next) => updateBlock(b.id, next)}
                   onRemove={() => removeBlock(b.id)}
                 />

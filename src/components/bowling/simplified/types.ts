@@ -58,6 +58,8 @@ export interface SimplifiedTacticalBlock {
   type: "tactical";
   title: string;
   duration_min: number;
+  /** Boule utilisée pour ce bloc (id arsenal). */
+  ball_id: string | null;
   oil_pattern: SimplifiedOilPattern;
   items: SimplifiedTacticalItem[];
 }
@@ -86,6 +88,8 @@ export interface SimplifiedTechnicalBlock {
   type: "technical";
   title: string;
   duration_min: number;
+  /** Boule utilisée pour ce bloc (id arsenal). */
+  ball_id: string | null;
   theme: TechnicalThemeKey;
   /** Si theme === "other" : libellé personnalisé */
   custom_theme?: string;
@@ -174,6 +178,7 @@ export function newTacticalBlock(): SimplifiedTacticalBlock {
     type: "tactical",
     title: "",
     duration_min: 20,
+    ball_id: null,
     oil_pattern: {
       preset_name: null,
       image_url: null,
@@ -197,6 +202,7 @@ export function newTechnicalBlock(): SimplifiedTechnicalBlock {
     type: "technical",
     title: "",
     duration_min: 20,
+    ball_id: null,
     theme: "swing_axis",
     custom_theme: "",
     description: "",
