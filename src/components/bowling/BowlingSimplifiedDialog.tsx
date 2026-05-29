@@ -64,10 +64,10 @@ export function BowlingSimplifiedDialog({
   const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
 
-  // Fetch effectif (coach mode only)
+  // Fetch effectif (coach mode only, et pas en édition)
   const { data: players = [] } = useQuery({
     queryKey: ["bowling_simplified_players", categoryId],
-    enabled: open && !isAthleteMode,
+    enabled: open && !isAthleteMode && !isEditMode,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
@@ -78,6 +78,34 @@ export function BowlingSimplifiedDialog({
       return (data || []) as Array<{ id: string; name: string; first_name: string | null }>;
     },
   });
+
+  // Fetch des blocs existants si on édite une séance attribuée par le coach
+  const { data: existingBlocks } = useQuery({
+    queryKey: ["bowling_simplified_existing_blocks", existingSessionId, athletePlayerId],
+    enabled: open && !!existingSessionId && !!athletePlayerId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bowling_training_blocks")
+        .select("id, config, order_index, block_type")
+        .eq("session_id", existingSessionId!)
+        .eq("athlete_id", athletePlayerId!)
+        .order("order_index");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Hydrate les blocs depuis la session existante
+  useEffect(() => {
+    if (!open || !isEditMode || !existingBlocks) return;
+    const restored: SimplifiedBlock[] = existingBlocks
+      .map((row: any) => row.config as SimplifiedBlock | null)
+      .filter((b): b is SimplifiedBlock => !!b && !!b.type && !!b.id);
+    setBlocks(restored);
+    // En édition on laisse tous les blocs déverrouillés pour que l'athlète puisse les remplir
+    setLockedIds(new Set());
+  }, [open, isEditMode, existingBlocks]);
+
 
   const allSelected = players.length > 0 && selectedPlayers.length === players.length;
 
