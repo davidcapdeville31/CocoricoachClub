@@ -325,20 +325,24 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         if (cancelled) return;
         if (blockRows && blockRows.length > 0) {
           setBlocks(
-            blockRows.map((br: any) => ({
-              id: br.id || crypto.randomUUID(),
-              theme: br.training_type || br.theme || "Collectif",
-              themeLabel: br.theme || br.training_type || "Collectif",
-              duration_minutes: br.duration_minutes ?? 30,
-              intensity: br.intensity ?? 5,
-              notes: br.notes || "",
-              bowling_exercise_type: br.bowling_exercise_type || undefined,
-              target_intensity: br.target_intensity || undefined,
-              volume: br.volume || undefined,
-              contact_charge: br.contact_charge || undefined,
-              throwing_implement: br.throwing_implement || undefined,
-              implement_weight_g: br.implement_weight_g ?? null,
-            })),
+            blockRows.map((br: any) => {
+              const decoded = decodeBowlingDtnMeta(br.notes);
+              return {
+                id: br.id || crypto.randomUUID(),
+                theme: br.training_type || br.theme || "Collectif",
+                themeLabel: br.theme || br.training_type || "Collectif",
+                duration_minutes: br.duration_minutes ?? 30,
+                intensity: br.intensity ?? 5,
+                notes: decoded.visibleNotes ?? (br.notes || ""),
+                bowling_exercise_type: br.bowling_exercise_type || undefined,
+                bowling_dtn_variables: decoded.variables && Object.keys(decoded.variables).length > 0 ? decoded.variables : undefined,
+                target_intensity: br.target_intensity || undefined,
+                volume: br.volume || undefined,
+                contact_charge: br.contact_charge || undefined,
+                throwing_implement: br.throwing_implement || undefined,
+                implement_weight_g: br.implement_weight_g ?? null,
+              };
+            }),
           );
         }
 
