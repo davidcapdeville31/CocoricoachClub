@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { AlertTriangle, TrendingUp, TrendingDown, Minus, Activity, Info } from "lucide-react";
-import { format } from "date-fns";
+import { format, startOfWeek, startOfMonth } from "date-fns";
 import { fr } from "date-fns/locale";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { sleepScoreLabel } from "@/lib/sleepConversion";
@@ -31,6 +33,7 @@ const getScoreBadge = (score: number) => {
 };
 
 export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabProps) {
+  const [chartPeriod, setChartPeriod] = useState<"day" | "week" | "month">("day");
   const { data: wellnessQuestionsCfg } = useWellnessQuestions(categoryId);
   const { data: category } = useQuery({
     queryKey: ["category_gender", categoryId],
@@ -78,14 +81,53 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
     return <div className="text-muted-foreground">Chargement...</div>;
   }
 
-  // Prepare chart data using weighted scores
-  const chartData = wellnessData?.slice(0, 14).reverse().map((entry) => ({
-    date: format(new Date(entry.tracking_date), "dd/MM", { locale: fr }),
+  // Prepare chart data using weighted scores, with period aggregation
+  const buildPoint = (entry: any) => ({
     wellness: calculateWeightedWellnessScore(entry as WellnessEntry, wellnessQuestionsCfg),
     fatigue: entry.general_fatigue,
     stress: entry.stress_level,
     soreness: (entry.soreness_upper_body + entry.soreness_lower_body) / 2,
-  })) || [];
+  });
+
+  const sortedAsc = (wellnessData || []).slice().reverse(); // ascending by date
+  const recentLimit = chartPeriod === "day" ? 14 : chartPeriod === "week" ? 84 : 365;
+  const slice = sortedAsc.slice(-recentLimit);
+
+  let chartData: Array<{ date: string; wellness: number; fatigue: number; stress: number; soreness: number }> = [];
+  if (chartPeriod === "day") {
+    chartData = slice.map((entry) => ({
+      date: format(new Date(entry.tracking_date), "dd/MM", { locale: fr }),
+      ...buildPoint(entry),
+    }));
+  } else {
+    const buckets = new Map<string, any[]>();
+    for (const e of slice) {
+      const d = new Date(e.tracking_date);
+      const bucket = chartPeriod === "week" ? startOfWeek(d, { weekStartsOn: 1 }) : startOfMonth(d);
+      const key = bucket.toISOString();
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key)!.push(e);
+    }
+    const round1 = (n: number) => Math.round(n * 10) / 10;
+    const avg = (arr: number[]) => (arr.length ? round1(arr.reduce((s, v) => s + v, 0) / arr.length) : 0);
+    chartData = Array.from(buckets.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([key, group]) => {
+        const d = new Date(key);
+        const points = group.map(buildPoint);
+        return {
+          date:
+            chartPeriod === "week"
+              ? `S${format(d, "I", { locale: fr })}`
+              : format(d, "MMM yy", { locale: fr }),
+          wellness: avg(points.map((p) => p.wellness).filter((v) => !isNaN(v))),
+          fatigue: avg(points.map((p) => p.fatigue).filter((v) => v != null)),
+          stress: avg(points.map((p) => p.stress).filter((v) => v != null)),
+          soreness: avg(points.map((p) => p.soreness).filter((v) => !isNaN(v))),
+        };
+      });
+  }
+
 
   // Get latest data for risk assessment
   const latestWellness = wellnessData?.[0];
@@ -260,10 +302,22 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
       {chartData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Évolution Wellness (Score Pondéré)
-            </CardTitle>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Évolution Wellness (Score Pondéré)
+              </CardTitle>
+              <ToggleGroup
+                type="single"
+                size="sm"
+                value={chartPeriod}
+                onValueChange={(v) => v && setChartPeriod(v as "day" | "week" | "month")}
+              >
+                <ToggleGroupItem value="day" className="px-3">Jour</ToggleGroupItem>
+                <ToggleGroupItem value="week" className="px-3">Semaine</ToggleGroupItem>
+                <ToggleGroupItem value="month" className="px-3">Mois</ToggleGroupItem>
+              </ToggleGroup>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="h-96">

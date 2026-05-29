@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
@@ -10,6 +12,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { sleepScoreToHours } from "@/lib/sleepConversion";
+import { aggregateWellnessByPeriod, type WellnessPeriod } from "@/lib/wellness/aggregatePeriod";
 
 interface Props {
   playerId: string;
@@ -42,6 +45,8 @@ const METRIC_LABELS: Record<string, string> = {
 };
 
 export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
+  const [period, setPeriod] = useState<WellnessPeriod>("day");
+
   const { data: wellnessHistory = [], isLoading } = useQuery({
     queryKey: ["athlete-space-wellness-history", playerId],
     queryFn: async () => {
@@ -50,7 +55,7 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
         .select("tracking_date, sleep_quality, sleep_duration, general_fatigue, soreness_upper_body, soreness_lower_body, stress_level")
         .eq("player_id", playerId)
         .order("tracking_date", { ascending: true })
-        .limit(30);
+        .limit(365);
       if (error) throw error;
       return data || [];
     },
@@ -58,7 +63,9 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
 
   if (isLoading || wellnessHistory.length < 2) return null;
 
-  const chartData = wellnessHistory.map((w: any) => {
+  const recentHistory = wellnessHistory.slice(-30);
+
+  const chartData = recentHistory.map((w: any) => {
     const recoveryScore = Math.round(
       ((w.sleep_quality || 3) +
         (6 - (w.general_fatigue || 3)) +
@@ -79,6 +86,15 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
       recovery_score: recoveryScore,
     };
   });
+
+  // Aggregated data for metrics chart (per period)
+  const metricsHistory =
+    period === "day"
+      ? wellnessHistory.slice(-30)
+      : period === "week"
+      ? wellnessHistory.slice(-84) // ~12 weeks
+      : wellnessHistory.slice(-365);
+  const metricsData = aggregateWellnessByPeriod(metricsHistory as any, period);
 
   // Latest recovery score
   const latestRecovery = chartData[chartData.length - 1]?.recovery_score || 0;
@@ -155,14 +171,28 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
       {/* Wellness metrics evolution */}
       <Card className="bg-gradient-card shadow-md">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            Détail des métriques
-          </CardTitle>
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              Détail des métriques
+            </CardTitle>
+            <ToggleGroup
+              type="single"
+              size="sm"
+              value={period}
+              onValueChange={(v) => v && setPeriod(v as WellnessPeriod)}
+              className="h-7"
+            >
+              <ToggleGroupItem value="day" className="h-7 px-2 text-[11px]">Jour</ToggleGroupItem>
+              <ToggleGroupItem value="week" className="h-7 px-2 text-[11px]">Semaine</ToggleGroupItem>
+              <ToggleGroupItem value="month" className="h-7 px-2 text-[11px]">Mois</ToggleGroupItem>
+            </ToggleGroup>
+          </div>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={320}>
-            <LineChart data={chartData} margin={{ top: 10, right: 12, left: 0, bottom: 4 }}>
+            <LineChart data={metricsData} margin={{ top: 10, right: 12, left: 0, bottom: 4 }}>
+
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis dataKey="date" className="text-[10px]" />
               <YAxis
