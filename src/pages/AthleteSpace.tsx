@@ -590,7 +590,7 @@ export default function AthleteSpace() {
                  }}
                >
                  <Trophy className="h-3.5 w-3.5" />
-                 Datas
+                  Stats
                  {recordNotifCount > 0 && (
                    <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
                  )}
