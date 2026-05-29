@@ -172,20 +172,26 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
   const sportLabel = useMemo(() => getFieldSessionLabelForSport(sportType), [sportType]);
   const newSessionTitle = useMemo(() => `Nouvelle ${sportLabel.toLowerCase()}`, [sportLabel]);
 
+  const isBowling = isBowlingSport(sportType);
+  const isRugby = isRugbyType(sportType || "");
+
   const [title, setTitle] = useState(sportLabel);
-  const [startTime, setStartTime] = useState("17:00");
-  const [endTime, setEndTime] = useState("18:30");
+  const [startTime, setStartTime] = useState(isBowling ? "" : "17:00");
+  const [endTime, setEndTime] = useState(isBowling ? "" : "18:30");
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(true);
-  const [blocks, setBlocks] = useState<BlockDraft[]>([
-    { id: crypto.randomUUID(), theme: "Échauffement", themeLabel: "Échauffement", duration_minutes: 15, intensity: 4, notes: "", target_intensity: "faible", volume: "court", contact_charge: "aucun" },
-    { id: crypto.randomUUID(), theme: "Collectif", themeLabel: "Collectif", duration_minutes: 45, intensity: 7, notes: "", target_intensity: "elevee", volume: "moyen", contact_charge: "modere" },
-  ]);
-
-  const isBowling = isBowlingSport(sportType);
-  const isRugby = isRugbyType(sportType || "");
+  const [blocks, setBlocks] = useState<BlockDraft[]>(
+    isBowling
+      ? [
+          { id: crypto.randomUUID(), theme: "bowling_technique", themeLabel: "Entraînement", duration_minutes: 60, intensity: 6, notes: "" },
+        ]
+      : [
+          { id: crypto.randomUUID(), theme: "Échauffement", themeLabel: "Échauffement", duration_minutes: 15, intensity: 4, notes: "", target_intensity: "faible", volume: "court", contact_charge: "aucun" },
+          { id: crypto.randomUUID(), theme: "Collectif", themeLabel: "Collectif", duration_minutes: 45, intensity: 7, notes: "", target_intensity: "elevee", volume: "moyen", contact_charge: "modere" },
+        ],
+  );
 
   const [customThemes, setCustomThemes] = useState<string[]>(() => loadCustomThemes(categoryId));
   const [newCustomTheme, setNewCustomTheme] = useState("");
