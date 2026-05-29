@@ -42,6 +42,15 @@ export interface SimplifiedTacticalItem {
 export interface SimplifiedOilPattern {
   preset_name: string | null;
   image_url: string | null;
+  length_feet: number | null;
+  buff_distance_feet: number | null;
+  width_boards: number | null;
+  total_volume_ml: number | null;
+  oil_ratio: string | null;
+  profile_type: "flat" | "crown" | "reverse_block" | null;
+  forward_oil: boolean;
+  reverse_oil: boolean;
+  outside_friction: "low" | "medium" | "high" | null;
 }
 
 export interface SimplifiedTacticalBlock {
