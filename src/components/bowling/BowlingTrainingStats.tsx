@@ -207,7 +207,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
         let resolved: any = null;
         if (playerId) {
           const assignedIds = new Set(assignments.filter((a: any) => a.player_id === playerId).map((a: any) => a.oil_pattern_id));
-          resolved = patternsForMatch.find((p: any) => assignedIds.has(p.id)) || null;
+          resolved = patternsForMatch.find((p: any) => assignedIds.has(p.id)) || patternsForMatch[0] || null;
         } else {
           resolved = patternsForMatch[0] || null;
         }
