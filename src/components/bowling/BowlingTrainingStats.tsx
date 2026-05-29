@@ -399,7 +399,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       chartData,
       blockCount: filtered.length,
     };
-  }, [trainingBlocks, selectedPlayerId, playerId, dateFrom, dateTo, globalPeriod]);
+  }, [trainingBlocks, selectedPlayerId, playerId, dateFrom, dateTo, globalPeriod, activeTrainingDates]);
 
   // Get unique balls used by all players for ball filter
   const availableBalls = useMemo(() => {
