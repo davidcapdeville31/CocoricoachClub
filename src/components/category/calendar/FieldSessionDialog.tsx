@@ -881,9 +881,6 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
             </Button>
           </div>
 
-          {/* Participants */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
           {/* Participants — masqués en mode athlète (séance privée au créateur) */}
           {!isAthleteMode && (
             <div className="space-y-2">
