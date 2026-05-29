@@ -34,6 +34,9 @@ interface AddMatchCalendarDialogProps {
   categoryId: string;
   sportType?: string;
   defaultDate?: Date;
+  /** When set, the dialog runs in athlete self-planning mode and uses the
+   *  `athlete-create-match` edge function instead of a direct insert. */
+  athletePlayerId?: string;
 }
 
 const CUSTOM_COMPETITION_VALUE = "__custom__";
@@ -94,6 +97,7 @@ export function AddMatchCalendarDialog({
   categoryId,
   sportType = "XV",
   defaultDate,
+  athletePlayerId,
 }: AddMatchCalendarDialogProps) {
   const competitions = getCompetitionsBySport(sportType);
   const isIndividual = isIndividualSport(sportType);
@@ -139,7 +143,7 @@ export function AddMatchCalendarDialog({
 
   const addMatch = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("matches").insert({
+      const payload = {
         category_id: categoryId,
         opponent: isIndividual ? (opponent || (hasTournamentBracket ? "Tournoi" : "Compétition")) : opponent,
         competition: finalCompetition || null,
@@ -150,11 +154,9 @@ export function AddMatchCalendarDialog({
         location: location || null,
         is_home: isHome,
         notes: notes || null,
-        // Aviron specific fields
         event_type: isAviron ? eventType : (isIndividual ? "individual" : "team"),
         age_category: ageCategory || null,
         distance_meters: distanceMeters || null,
-        // Tennis/Padel/3x3 specific
         match_format: isPadel
           ? "double"
           : isTennis
@@ -164,7 +166,18 @@ export function AddMatchCalendarDialog({
           : null,
         tournament_level: tournamentLevel || null,
         selection_type: selectionType || "club",
-      } as any);
+      } as any;
+
+      if (athletePlayerId) {
+        const { data, error } = await supabase.functions.invoke("athlete-create-match", {
+          body: { category_id: categoryId, player_id: athletePlayerId, match: payload },
+        });
+        if (error) throw new Error(error.message);
+        if (!data?.success) throw new Error(data?.error || "Erreur");
+        return;
+      }
+
+      const { error } = await supabase.from("matches").insert(payload);
       if (error) throw error;
     },
     onSuccess: () => {
