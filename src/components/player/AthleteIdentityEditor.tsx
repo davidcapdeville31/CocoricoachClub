@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Plus, X, Star, Loader2, User, Cake, Footprints, Trophy } from "lucide-react";
+import { BowlingCharacteristicsBlock } from "./BowlingCharacteristicsBlock";
 import { Checkbox } from "@/components/ui/checkbox";
 import { isRugbyType } from "@/lib/constants/sportTypes";
 import { toast } from "sonner";
