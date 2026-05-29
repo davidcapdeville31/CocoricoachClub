@@ -136,7 +136,11 @@ export function BowlingTacticalBuilder(props: Props) {
 
       <div>
         <Label className="text-xs">Objectifs de résultat</Label>
-        <BowlingTargetOutcomesPicker value={value.objectives} onChange={(o) => onChange({ ...value, objectives: o })} />
+        <BowlingTargetOutcomesPicker
+          value={value.objectives}
+          onChange={(o) => onChange({ ...value, objectives: o })}
+          allowed={ADVANCED_TARGET_OUTCOMES}
+        />
       </div>
     </div>
   );
