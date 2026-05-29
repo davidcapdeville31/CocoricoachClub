@@ -2,6 +2,9 @@ import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -11,7 +14,14 @@ import {
 } from "@/components/ui/select";
 import { Droplet, Image as ImageIcon, X } from "lucide-react";
 import { toast } from "sonner";
-import { ALL_PATTERN_NAMES } from "@/lib/constants/bowlingOilPatterns";
+import {
+  ALL_PATTERN_NAMES,
+  getPatternPreset,
+  PROFILE_TYPES,
+  FRICTION_LEVELS,
+  OIL_RATIOS,
+  getOilCategory,
+} from "@/lib/constants/bowlingOilPatterns";
 import type { SimplifiedOilPattern } from "./types";
 
 interface Props {
@@ -21,13 +31,40 @@ interface Props {
 }
 
 /**
- * Sélecteur d'huilage simplifié pour le mode simplifié bowling.
- * Permet de choisir un preset et d'uploader/afficher l'image du huilage.
+ * Picker huilage du mode simplifié — aligné sur l'éditeur Compétitions.
+ * Champs complets + auto-catégorisation Sportif/Challenge/Récréation via le ratio latéral.
  */
 export function SimplifiedOilPatternPicker({ value, onChange, categoryId }: Props) {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
   const [enlarged, setEnlarged] = useState(false);
+
+  const patch = (p: Partial<SimplifiedOilPattern>) => onChange({ ...value, ...p });
+
+  const handlePresetSelect = (name: string) => {
+    if (name === "__none__") {
+      patch({ preset_name: null });
+      return;
+    }
+    const preset = getPatternPreset(name);
+    if (preset) {
+      patch({
+        preset_name: name,
+        length_feet: preset.length_feet ?? value.length_feet,
+        buff_distance_feet: preset.buff_distance_feet ?? value.buff_distance_feet,
+        width_boards: preset.width_boards ?? value.width_boards,
+        total_volume_ml: preset.total_volume_ml ?? value.total_volume_ml,
+        oil_ratio: preset.oil_ratio ?? value.oil_ratio,
+        profile_type: preset.profile_type ?? value.profile_type,
+        forward_oil: preset.forward_oil ?? value.forward_oil,
+        reverse_oil: preset.reverse_oil ?? value.reverse_oil,
+        outside_friction: preset.outside_friction ?? value.outside_friction,
+      });
+      toast.info(`Données officielles chargées pour ${name}`);
+    } else {
+      patch({ preset_name: name });
+    }
+  };
 
   const handleUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -43,7 +80,7 @@ export function SimplifiedOilPatternPicker({ value, onChange, categoryId }: Prop
         .upload(path, file);
       if (error) throw error;
       const { data } = supabase.storage.from("exercise-images").getPublicUrl(path);
-      onChange({ ...value, image_url: data.publicUrl });
+      patch({ image_url: data.publicUrl });
       toast.success("Image téléchargée");
     } catch (e: any) {
       toast.error(e?.message || "Erreur lors du téléchargement");
@@ -52,20 +89,34 @@ export function SimplifiedOilPatternPicker({ value, onChange, categoryId }: Prop
     }
   };
 
+  const numOrNull = (s: string): number | null => {
+    if (s.trim() === "") return null;
+    const n = Number(s.replace(",", "."));
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const category = getOilCategory(value.oil_ratio);
+
   return (
     <div className="space-y-3 rounded-2xl border border-border/60 bg-surface-sunken p-3">
-      <div className="flex items-center gap-2">
-        <Droplet className="h-4 w-4 text-blue-500" />
-        <span className="text-sm font-semibold">Huilage de la piste</span>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Droplet className="h-4 w-4 text-blue-500" />
+          <span className="text-sm font-semibold">Huilage de la piste</span>
+        </div>
+        {category && (
+          <Badge variant="outline" className={category.color}>
+            {category.label}
+          </Badge>
+        )}
       </div>
 
+      {/* Pattern preset */}
       <div className="space-y-1">
         <Label className="text-xs">Pattern (optionnel)</Label>
         <Select
           value={value.preset_name || "__none__"}
-          onValueChange={(v) =>
-            onChange({ ...value, preset_name: v === "__none__" ? null : v })
-          }
+          onValueChange={handlePresetSelect}
         >
           <SelectTrigger className="h-9 text-sm">
             <SelectValue placeholder="Sélectionner un pattern" />
@@ -74,7 +125,21 @@ export function SimplifiedOilPatternPicker({ value, onChange, categoryId }: Prop
             <SelectItem value="__none__" className="italic">
               Libre / non défini
             </SelectItem>
-            {ALL_PATTERN_NAMES.map((name) => (
+            <div className="px-2 py-1 text-[10px] font-semibold uppercase text-muted-foreground">
+              PBA officiels
+            </div>
+            {ALL_PATTERN_NAMES.filter((n) => n.startsWith("PBA")).map((name) => (
+              <SelectItem key={name} value={name}>
+                {name}
+                {getPatternPreset(name) && (
+                  <span className="ml-2 text-xs text-emerald-600">✓</span>
+                )}
+              </SelectItem>
+            ))}
+            <div className="border-t mt-1 pt-1 px-2 py-1 text-[10px] font-semibold uppercase text-muted-foreground">
+              Autres
+            </div>
+            {ALL_PATTERN_NAMES.filter((n) => !n.startsWith("PBA")).map((name) => (
               <SelectItem key={name} value={name}>
                 {name}
               </SelectItem>
@@ -83,6 +148,7 @@ export function SimplifiedOilPatternPicker({ value, onChange, categoryId }: Prop
         </Select>
       </div>
 
+      {/* Image */}
       <div className="space-y-1">
         <Label className="text-xs">Image du huilage</Label>
         {value.image_url ? (
@@ -98,7 +164,7 @@ export function SimplifiedOilPatternPicker({ value, onChange, categoryId }: Prop
               variant="destructive"
               size="icon"
               className="absolute right-1 top-1 h-6 w-6"
-              onClick={() => onChange({ ...value, image_url: null })}
+              onClick={() => patch({ image_url: null })}
             >
               <X className="h-3.5 w-3.5" />
             </Button>
@@ -128,6 +194,152 @@ export function SimplifiedOilPatternPicker({ value, onChange, categoryId }: Prop
             </Button>
           </div>
         )}
+      </div>
+
+      {/* Dimensions */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className="space-y-1">
+          <Label className="text-xs">Longueur (feet)</Label>
+          <Input
+            type="number"
+            step="0.1"
+            placeholder="ex. 42"
+            value={value.length_feet ?? ""}
+            onChange={(e) => patch({ length_feet: numOrNull(e.target.value) })}
+            className="h-8 text-sm bg-background"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Distance de buff (feet)</Label>
+          <Input
+            type="number"
+            step="0.1"
+            placeholder="ex. 3"
+            value={value.buff_distance_feet ?? ""}
+            onChange={(e) =>
+              patch({ buff_distance_feet: numOrNull(e.target.value) })
+            }
+            className="h-8 text-sm bg-background"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Largeur (boards)</Label>
+          <Input
+            type="number"
+            step="1"
+            placeholder="ex. 39"
+            value={value.width_boards ?? ""}
+            onChange={(e) => patch({ width_boards: numOrNull(e.target.value) })}
+            className="h-8 text-sm bg-background"
+          />
+        </div>
+      </div>
+
+      {/* Volume / Ratio / Profile */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className="space-y-1">
+          <Label className="text-xs">Volume total (mL)</Label>
+          <Input
+            type="number"
+            step="0.1"
+            placeholder="ex. 25"
+            value={value.total_volume_ml ?? ""}
+            onChange={(e) =>
+              patch({ total_volume_ml: numOrNull(e.target.value) })
+            }
+            className="h-8 text-sm bg-background"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Ratio latéral d'huile</Label>
+          <Select
+            value={value.oil_ratio || "__none__"}
+            onValueChange={(v) =>
+              patch({ oil_ratio: v === "__none__" ? null : v })
+            }
+          >
+            <SelectTrigger className="h-8 text-sm bg-background">
+              <SelectValue placeholder="Sélectionner" />
+            </SelectTrigger>
+            <SelectContent className="z-[100]">
+              <SelectItem value="__none__" className="italic">Non défini</SelectItem>
+              {OIL_RATIOS.map((r) => (
+                <SelectItem key={r} value={r}>{r}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Type de profil</Label>
+          <Select
+            value={value.profile_type || "__none__"}
+            onValueChange={(v) =>
+              patch({
+                profile_type:
+                  v === "__none__" ? null : (v as SimplifiedOilPattern["profile_type"]),
+              })
+            }
+          >
+            <SelectTrigger className="h-8 text-sm bg-background">
+              <SelectValue placeholder="Sélectionner" />
+            </SelectTrigger>
+            <SelectContent className="z-[100]">
+              <SelectItem value="__none__" className="italic">Non défini</SelectItem>
+              {PROFILE_TYPES.map((p) => (
+                <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {category && (
+        <div className={`rounded-lg border p-2 text-xs ${category.color}`}>
+          <div className="font-semibold">{category.description}</div>
+          <div className="opacity-80">{category.detail}</div>
+        </div>
+      )}
+
+      {/* Friction + Forward/Reverse */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className="space-y-1">
+          <Label className="text-xs">Friction extérieure</Label>
+          <Select
+            value={value.outside_friction || "__none__"}
+            onValueChange={(v) =>
+              patch({
+                outside_friction:
+                  v === "__none__"
+                    ? null
+                    : (v as SimplifiedOilPattern["outside_friction"]),
+              })
+            }
+          >
+            <SelectTrigger className="h-8 text-sm bg-background">
+              <SelectValue placeholder="Sélectionner" />
+            </SelectTrigger>
+            <SelectContent className="z-[100]">
+              <SelectItem value="__none__" className="italic">Non défini</SelectItem>
+              {FRICTION_LEVELS.map((f) => (
+                <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center justify-between rounded-lg border bg-background px-2 py-1.5">
+          <Label className="text-xs cursor-pointer">Forward</Label>
+          <Switch
+            checked={value.forward_oil}
+            onCheckedChange={(b) => patch({ forward_oil: b })}
+          />
+        </div>
+        <div className="flex items-center justify-between rounded-lg border bg-background px-2 py-1.5">
+          <Label className="text-xs cursor-pointer">Reverse</Label>
+          <Switch
+            checked={value.reverse_oil}
+            onCheckedChange={(b) => patch({ reverse_oil: b })}
+          />
+        </div>
       </div>
 
       {enlarged && value.image_url && (
