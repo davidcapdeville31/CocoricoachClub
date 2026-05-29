@@ -36,6 +36,8 @@ interface BowlingSimplifiedDialogProps {
   categoryId: string;
   /** Si défini → mode athlète : pas de sélecteur, la séance est forcément pour ce joueur. */
   athletePlayerId?: string;
+  /** Si défini → on édite/remplit une séance existante (créée par le coach). */
+  existingSessionId?: string;
 }
 
 /**
@@ -43,6 +45,8 @@ interface BowlingSimplifiedDialogProps {
  * Blocs disponibles : Tactique, Technique, Parties.
  * Côté coach : choix des athlètes destinataires.
  * Côté athlète : auto-attribué à soi-même.
+ * Si `existingSessionId` est passé, on précharge les blocs déjà attribués au joueur
+ * et l'enregistrement remplace les blocs existants pour ce joueur sur cette séance.
  */
 export function BowlingSimplifiedDialog({
   open,
@@ -50,8 +54,10 @@ export function BowlingSimplifiedDialog({
   date,
   categoryId,
   athletePlayerId,
+  existingSessionId,
 }: BowlingSimplifiedDialogProps) {
   const isAthleteMode = !!athletePlayerId;
+  const isEditMode = !!existingSessionId;
   const qc = useQueryClient();
 
   const [blocks, setBlocks] = useState<SimplifiedBlock[]>([]);
