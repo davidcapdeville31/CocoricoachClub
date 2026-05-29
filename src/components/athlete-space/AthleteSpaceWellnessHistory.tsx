@@ -63,7 +63,9 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
 
   if (isLoading || wellnessHistory.length < 2) return null;
 
-  const chartData = wellnessHistory.map((w: any) => {
+  const recentHistory = wellnessHistory.slice(-30);
+
+  const chartData = recentHistory.map((w: any) => {
     const recoveryScore = Math.round(
       ((w.sleep_quality || 3) +
         (6 - (w.general_fatigue || 3)) +
@@ -84,6 +86,15 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
       recovery_score: recoveryScore,
     };
   });
+
+  // Aggregated data for metrics chart (per period)
+  const metricsHistory =
+    period === "day"
+      ? wellnessHistory.slice(-30)
+      : period === "week"
+      ? wellnessHistory.slice(-84) // ~12 weeks
+      : wellnessHistory.slice(-365);
+  const metricsData = aggregateWellnessByPeriod(metricsHistory as any, period);
 
   // Latest recovery score
   const latestRecovery = chartData[chartData.length - 1]?.recovery_score || 0;
