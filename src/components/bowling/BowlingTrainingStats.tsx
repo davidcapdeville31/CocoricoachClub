@@ -279,6 +279,9 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       if (selectedBallId !== "all") {
         games = games.filter((g: any) => g.ballIds?.includes(selectedBallId));
       }
+      if (activeTrainingMatchIds) {
+        games = games.filter((g: any) => activeTrainingMatchIds.has(g.matchId));
+      }
       if (games.length === 0) return { player, stats: null, games: [] };
       const total = games.length;
       const avgScore = games.reduce((s: number, g: any) => s + g.score, 0) / total;
@@ -287,7 +290,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       const high = Math.max(...games.map((g: any) => g.score));
       return { player, stats: { total, avgScore, avgStrike, avgSpare, high }, games };
     }).filter(p => p.stats !== null);
-  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId]);
+  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId, activeTrainingMatchIds]);
 
   // Compute per-player spare stats (legacy bowling_spare_training data).
   // Only displayed for athletes who also have new-system bowling_training_blocks,
