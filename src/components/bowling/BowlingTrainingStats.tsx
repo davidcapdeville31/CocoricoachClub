@@ -641,8 +641,8 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                   </CardHeader>
                   <CardContent>
                     {globalStats.chartData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={220}>
-                        <BarChart data={globalStats.chartData} barCategoryGap="25%" barGap={2} margin={{ top: 8, right: 12, left: -10, bottom: 0 }}>
+                      <ResponsiveContainer width="100%" height={380}>
+                        <BarChart data={globalStats.chartData} barCategoryGap="25%" barGap={2} margin={{ top: 28, right: 12, left: -10, bottom: 0 }}>
                           <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--border))" vertical={false} />
                           <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
                           <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={32} unit="h" />
