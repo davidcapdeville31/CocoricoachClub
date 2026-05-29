@@ -474,7 +474,11 @@ export function CreateEventDialog({
                 className="cursor-pointer border border-border/70 border-l-4 border-l-violet-500 bg-card/95 transition-all duration-200 hover:scale-[1.01] hover:bg-accent/50 hover:shadow-md hover:border-violet-400 dark:bg-card dark:hover:bg-muted/70"
                 onClick={() => {
                   resetForm();
-                  onSelectExternalType?.("field_session");
+                  if (onSelectBowlingAdvanced) {
+                    onSelectBowlingAdvanced();
+                  } else {
+                    onSelectExternalType?.("field_session");
+                  }
                 }}
               >
                 <CardContent className="p-4">
