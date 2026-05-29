@@ -518,7 +518,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         <DialogHeader className="shrink-0 border-b border-border/60 px-6 pt-6 pb-4">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Layers className="h-5 w-5 text-primary" />
-            {isEdit ? "Modifier la séance terrain" : "Nouvelle séance terrain"}
+            {isEdit ? `Modifier la ${sportLabel.toLowerCase()}` : `Nouvelle ${sportLabel.toLowerCase()}`}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">{format(date, "EEEE d MMMM yyyy", { locale: fr })}</p>
         </DialogHeader>
