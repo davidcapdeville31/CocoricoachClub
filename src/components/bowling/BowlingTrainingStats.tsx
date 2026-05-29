@@ -299,6 +299,69 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     }).filter(p => p.stats !== null);
   }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId, activeTrainingMatchIds]);
 
+  // Compute per-player precision metrics from training games (% Strikes, % Spares, % Poches, etc.)
+  const playerPrecisionStats = useMemo(() => {
+    return playerGameStats.map(({ player, games }) => {
+      if (!games || games.length === 0) return { player, metrics: null as any };
+      const totalGames = games.length;
+      const pocketGames = games.filter((g: any) => g.trackPockets !== false);
+      const avgStrike = games.reduce((s: number, g: any) => s + (g.strikePercentage || 0), 0) / totalGames;
+      const avgSpare = games.reduce((s: number, g: any) => s + (g.sparePercentage || 0), 0) / totalGames;
+      const avgPocket = pocketGames.length > 0
+        ? pocketGames.reduce((s: number, g: any) => s + (g.pocketPercentage || 0), 0) / pocketGames.length
+        : 0;
+      const totalSinglePin = games.reduce((s: number, g: any) => s + (g.singlePinCount || 0), 0);
+      const totalSinglePinConverted = games.reduce((s: number, g: any) => s + (g.singlePinConverted || 0), 0);
+      const singlePinRate = totalSinglePin > 0 ? (totalSinglePinConverted / totalSinglePin) * 100 : 0;
+      const totalSplits = games.reduce((s: number, g: any) => s + (g.splitCount || 0), 0);
+      const totalSplitsConverted = games.reduce((s: number, g: any) => s + (g.splitConverted || 0), 0);
+      const splitConvRate = totalSplits > 0 ? (totalSplitsConverted / totalSplits) * 100 : 0;
+      const totalOpenFrames = games.reduce((s: number, g: any) => s + (g.openFrames || 0), 0);
+      const openFrameRate = totalGames > 0 ? (totalOpenFrames / (totalGames * 10)) * 100 : 0;
+
+      // First ball ≥ 8 from frames
+      let totalFBGte8 = 0, totalFBGte8Opp = 0;
+      games.forEach((g: any) => {
+        if (!g.frames) return;
+        g.frames.forEach((frame: any, fi: number) => {
+          const isTenth = fi === 9;
+          frame.throws.forEach((t: any, ti: number) => {
+            if (t.value === "") return;
+            const isFirst = ti === 0 || (isTenth && (
+              (ti === 1 && frame.throws[0]?.value === "X") ||
+              (ti === 2 && (frame.throws[1]?.value === "X" || frame.throws[1]?.value === "/"))
+            ));
+            if (!isFirst) return;
+            const isLast = isTenth && ti === 2 && (
+              (frame.throws[0]?.value === "X" && frame.throws[1]?.value === "X") ||
+              (frame.throws[0]?.value !== "X" && frame.throws[1]?.value === "/")
+            );
+            if (isLast) return;
+            totalFBGte8Opp++;
+            if (t.pins >= 8) totalFBGte8++;
+          });
+        });
+      });
+      const firstBallGte8 = totalFBGte8Opp > 0 ? (totalFBGte8 / totalFBGte8Opp) * 100 : 0;
+
+      return {
+        player,
+        totalGames,
+        metrics: {
+          strikes: avgStrike,
+          spares: avgSpare,
+          pockets: avgPocket,
+          singlePin: singlePinRate,
+          splits: splitConvRate,
+          firstBallGte8: firstBallGte8,
+          openFrames: openFrameRate,
+        },
+      };
+    }).filter((p) => p.metrics !== null);
+  }, [playerGameStats]);
+
+
+
   // Compute per-player spare stats (legacy bowling_spare_training data).
   // Only displayed for athletes who also have new-system bowling_training_blocks,
   // otherwise the data is considered obsolete and hidden.
