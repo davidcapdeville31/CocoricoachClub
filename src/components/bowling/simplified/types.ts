@@ -88,6 +88,8 @@ export interface SimplifiedTechnicalBlock {
   type: "technical";
   title: string;
   duration_min: number;
+  /** Boule utilisée pour ce bloc (id arsenal). */
+  ball_id: string | null;
   theme: TechnicalThemeKey;
   /** Si theme === "other" : libellé personnalisé */
   custom_theme?: string;
