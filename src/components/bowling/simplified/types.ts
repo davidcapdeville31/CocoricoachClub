@@ -233,3 +233,61 @@ export function newTechnicalBlock(): SimplifiedTechnicalBlock {
     description: "",
   };
 }
+
+export function newGameEntry(): SimplifiedGameEntry {
+  return { id: crypto.randomUUID(), frames: null, stats: null, ball_id: null };
+}
+
+export function newGamesBlock(): SimplifiedGamesBlock {
+  return {
+    id: crypto.randomUUID(),
+    type: "games",
+    title: "",
+    track_pockets: true,
+    oil_pattern: {
+      preset_name: null,
+      image_url: null,
+      length_feet: null,
+      buff_distance_feet: null,
+      width_boards: null,
+      total_volume_ml: null,
+      oil_ratio: null,
+      profile_type: null,
+      forward_oil: true,
+      reverse_oil: true,
+      outside_friction: null,
+    },
+    parties: [newGameEntry()],
+  };
+}
+
+/** Agrégat des stats sur toutes les parties du bloc Parties. */
+export function aggregateGamesStats(block: SimplifiedGamesBlock) {
+  const saved = block.parties.filter((p) => p.stats !== null);
+  if (saved.length === 0) return null;
+  const totalScore = saved.reduce((s, p) => s + (p.stats!.totalScore || 0), 0);
+  const strikes = saved.reduce((s, p) => s + (p.stats!.strikes || 0), 0);
+  const spares = saved.reduce((s, p) => s + (p.stats!.spares || 0), 0);
+  const splits = saved.reduce((s, p) => s + (p.stats!.splitCount || 0), 0);
+  const splitsConv = saved.reduce((s, p) => s + (p.stats!.splitConverted || 0), 0);
+  const singles = saved.reduce((s, p) => s + (p.stats!.singlePinCount || 0), 0);
+  const singlesConv = saved.reduce((s, p) => s + (p.stats!.singlePinConverted || 0), 0);
+  const pockets = saved.reduce((s, p) => s + (p.stats!.pocketCount || 0), 0);
+  const throws = saved.reduce((s, p) => s + (p.stats!.totalThrows || 0), 0);
+  const frames = saved.reduce((s, p) => s + (p.stats!.totalFrames || 0), 0);
+  return {
+    count: saved.length,
+    totalScore,
+    avgScore: Math.round((totalScore / saved.length) * 10) / 10,
+    strikes,
+    spares,
+    splits,
+    splitsConv,
+    singles,
+    singlesConv,
+    pockets,
+    pocketPct: throws > 0 ? Math.round((pockets / throws) * 100) : 0,
+    strikePct: frames > 0 ? Math.round((strikes / frames) * 100) : 0,
+    sparePct: frames > 0 ? Math.round((spares / frames) * 100) : 0,
+  };
+}
