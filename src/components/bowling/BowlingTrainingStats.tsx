@@ -114,14 +114,18 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     queryFn: async () => {
       let q = supabase
         .from("bowling_training_blocks")
-        .select("id, athlete_id, block_type, duration_min, created_at, session_id")
+        .select("id, athlete_id, block_type, duration_min, created_at, session_id, training_sessions:session_id(session_date)")
         .eq("category_id", categoryId);
       if (playerId) q = q.eq("athlete_id", playerId);
       const { data, error } = await q;
       if (error) throw error;
-      return (data || []) as Array<{ id: string; athlete_id: string | null; block_type: string; duration_min: number | null; created_at: string; session_id: string | null }>;
+      return (data || []).map((b: any) => ({
+        ...b,
+        session_date: b.training_sessions?.session_date || b.created_at,
+      })) as Array<{ id: string; athlete_id: string | null; block_type: string; duration_min: number | null; created_at: string; session_id: string | null; session_date: string }>;
     },
   });
+
 
   // Set of athletes who have new-system bowling sessions (used to hide obsolete legacy data)
   const athletesWithNewBlocks = useMemo(() => {
@@ -228,13 +232,13 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       if (!b.athlete_id) return false;
       if (selectedPlayerId !== "all" && !playerId && b.athlete_id !== selectedPlayerId) return false;
       if (playerId && b.athlete_id !== playerId) return false;
-      if (!dateFilter(b.created_at)) return false;
+      if (!dateFilter(b.session_date)) return false;
       return true;
     });
 
     const sessionIds = new Set<string>();
     filtered.forEach((b) => {
-      sessionIds.add(b.session_id || `${b.athlete_id}-${b.created_at.slice(0, 10)}`);
+      sessionIds.add(b.session_id || `${b.athlete_id}-${b.session_date.slice(0, 10)}`);
     });
 
     const minutesByTheme: Record<string, number> = { warmup: 0, technical: 0, tactical: 0, games: 0 };
@@ -266,7 +270,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
 
     const buckets = new Map<string, { label: string; order: number; warmup: number; technical: number; tactical: number; games: number; total: number }>();
     filtered.forEach((b) => {
-      const { key, label, order } = bucketKey(b.created_at);
+      const { key, label, order } = bucketKey(b.session_date);
       const d = (b.duration_min || 0) / 60; // hours
       const cur = buckets.get(key) || { label, order, warmup: 0, technical: 0, tactical: 0, games: 0, total: 0 };
       if ((cur as any)[b.block_type] !== undefined) (cur as any)[b.block_type] += d;
