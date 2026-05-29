@@ -17,11 +17,19 @@ interface Props {
 }
 
 const METRIC_COLORS: Record<string, string> = {
-  sleep_quality: "hsl(220, 70%, 55%)",
-  general_fatigue: "hsl(35, 85%, 55%)",
-  soreness_upper_body: "hsl(350, 70%, 55%)",
-  soreness_lower_body: "hsl(280, 60%, 55%)",
-  stress_level: "hsl(160, 60%, 45%)",
+  sleep_quality: "#1e3a8a",       // bleu marine
+  general_fatigue: "#dc2626",     // rouge vif
+  soreness_upper_body: "#f59e0b", // orange
+  soreness_lower_body: "#7c3aed", // violet
+  stress_level: "#0891b2",        // cyan profond
+};
+
+const METRIC_DASH: Record<string, string | undefined> = {
+  sleep_quality: undefined,
+  general_fatigue: undefined,
+  soreness_upper_body: "6 3",
+  soreness_lower_body: "2 3",
+  stress_level: "8 4",
 };
 
 const METRIC_LABELS: Record<string, string> = {
