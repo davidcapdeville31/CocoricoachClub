@@ -196,10 +196,13 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     }).filter(p => p.stats !== null);
   }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId]);
 
-  // Compute per-player spare stats
+  // Compute per-player spare stats (legacy bowling_spare_training data).
+  // Only displayed for athletes who also have new-system bowling_training_blocks,
+  // otherwise the data is considered obsolete and hidden.
   const playerSpareStats = useMemo(() => {
     if (!trainingData) return [];
     return filteredPlayers.map(player => {
+      if (!athletesWithNewBlocks.has(player.id)) return { player, byType: {}, total: null };
       let spares = trainingData.spareExercises.filter((ex: any) => ex.player_id === player.id && dateFilter(ex.session_date));
       if (selectedBallId !== "all") {
         spares = spares.filter((ex: any) => ex.ball_arsenal_id === selectedBallId);
@@ -217,7 +220,77 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       const rate = totalAttempts > 0 ? (totalSuccesses / totalAttempts) * 100 : 0;
       return { player, byType, total: { totalAttempts, totalSuccesses, rate } };
     }).filter(p => p.total !== null);
-  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId]);
+  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId, athletesWithNewBlocks]);
+
+  // Compute global stats from new-system bowling_training_blocks
+  const globalStats = useMemo(() => {
+    const filtered = trainingBlocks.filter((b) => {
+      if (!b.athlete_id) return false;
+      if (selectedPlayerId !== "all" && !playerId && b.athlete_id !== selectedPlayerId) return false;
+      if (playerId && b.athlete_id !== playerId) return false;
+      if (!dateFilter(b.created_at)) return false;
+      return true;
+    });
+
+    const sessionIds = new Set<string>();
+    filtered.forEach((b) => {
+      sessionIds.add(b.session_id || `${b.athlete_id}-${b.created_at.slice(0, 10)}`);
+    });
+
+    const minutesByTheme: Record<string, number> = { warmup: 0, technical: 0, tactical: 0, games: 0 };
+    let totalMinutes = 0;
+    filtered.forEach((b) => {
+      const d = b.duration_min || 0;
+      if (minutesByTheme[b.block_type] !== undefined) minutesByTheme[b.block_type] += d;
+      totalMinutes += d;
+    });
+
+    // Time buckets
+    const bucketKey = (iso: string) => {
+      const d = new Date(iso);
+      if (globalPeriod === "week") {
+        const w = startOfWeek(d, { weekStartsOn: 1, locale: fr });
+        return { key: format(w, "yyyy-'S'II", { locale: fr }), label: format(w, "'S'II", { locale: fr }), order: w.getTime() };
+      }
+      if (globalPeriod === "year") {
+        const y = startOfYear(d);
+        return { key: format(y, "yyyy"), label: format(y, "yyyy"), order: y.getTime() };
+      }
+      const m = startOfMonth(d);
+      return { key: format(m, "yyyy-MM"), label: format(m, "MMM yy", { locale: fr }), order: m.getTime() };
+    };
+
+    const buckets = new Map<string, { label: string; order: number; warmup: number; technical: number; tactical: number; games: number; total: number }>();
+    filtered.forEach((b) => {
+      const { key, label, order } = bucketKey(b.created_at);
+      const d = (b.duration_min || 0) / 60; // hours
+      const cur = buckets.get(key) || { label, order, warmup: 0, technical: 0, tactical: 0, games: 0, total: 0 };
+      if ((cur as any)[b.block_type] !== undefined) (cur as any)[b.block_type] += d;
+      cur.total += d;
+      buckets.set(key, cur);
+    });
+
+    const chartData = Array.from(buckets.values()).sort((a, b) => a.order - b.order).map((b) => ({
+      label: b.label,
+      "Échauffement": Math.round(b.warmup * 10) / 10,
+      "Technique": Math.round(b.technical * 10) / 10,
+      "Tactique": Math.round(b.tactical * 10) / 10,
+      "Parties": Math.round(b.games * 10) / 10,
+    }));
+
+    return {
+      sessionsCount: sessionIds.size,
+      totalHours: totalMinutes / 60,
+      hoursByTheme: {
+        warmup: minutesByTheme.warmup / 60,
+        technical: minutesByTheme.technical / 60,
+        tactical: minutesByTheme.tactical / 60,
+        games: minutesByTheme.games / 60,
+      },
+      chartData,
+      blockCount: filtered.length,
+    };
+  }, [trainingBlocks, selectedPlayerId, playerId, dateFrom, dateTo, globalPeriod]);
 
   // Get unique balls used by all players for ball filter
   const availableBalls = useMemo(() => {
