@@ -34,6 +34,7 @@ import { BasketballTrainingEntryDialog } from "@/components/basketball/Basketbal
 import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
 import { CreateEventDialog } from "@/components/category/calendar/CreateEventDialog";
 import { FieldSessionDialog } from "@/components/category/calendar/FieldSessionDialog";
+import { AddMatchCalendarDialog } from "@/components/category/matches/AddMatchCalendarDialog";
 
 
 interface Props {
