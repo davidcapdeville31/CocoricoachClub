@@ -174,7 +174,19 @@ export function newTacticalBlock(): SimplifiedTacticalBlock {
     type: "tactical",
     title: "",
     duration_min: 20,
-    oil_pattern: { preset_name: null, image_url: null },
+    oil_pattern: {
+      preset_name: null,
+      image_url: null,
+      length_feet: null,
+      buff_distance_feet: null,
+      width_boards: null,
+      total_volume_ml: null,
+      oil_ratio: null,
+      profile_type: null,
+      forward_oil: true,
+      reverse_oil: true,
+      outside_friction: null,
+    },
     items: [],
   };
 }
