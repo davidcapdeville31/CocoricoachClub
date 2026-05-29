@@ -6,10 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { BarChart3, Target, Trophy, CalendarIcon, Circle, Users, Download, FileSpreadsheet } from "lucide-react";
-import { format, isAfter, isBefore, startOfDay, endOfDay } from "date-fns";
+import { BarChart3, Target, Trophy, CalendarIcon, Circle, Users, Download, FileSpreadsheet, Activity, Clock, Wrench } from "lucide-react";
+import { format, isAfter, isBefore, startOfDay, endOfDay, startOfWeek, startOfMonth, startOfYear } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -19,6 +20,7 @@ import { SPARE_EXERCISE_TYPES } from "@/lib/constants/bowlingBallBrands";
 import { BowlingFrameAnalysis } from "./BowlingFrameAnalysis";
 import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, addFooter, downloadWorkbook } from "@/lib/excelExport";
 import { preparePdfWithSettings } from "@/lib/pdfExport";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import type { FrameData } from "@/components/athlete-portal/BowlingScoreSheet";
 
 interface BowlingTrainingStatsProps {
@@ -27,11 +29,12 @@ interface BowlingTrainingStatsProps {
 }
 
 export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingStatsProps) {
-  const [activeTab, setActiveTab] = useState("games");
+  const [activeTab, setActiveTab] = useState("global");
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [selectedBallId, setSelectedBallId] = useState<string>("all");
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>(playerId || "all");
+  const [globalPeriod, setGlobalPeriod] = useState<"week" | "month" | "year">("month");
 
   // Fetch training data
   const { data: trainingData, isLoading } = useQuery({
@@ -105,6 +108,28 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     },
   });
 
+  // Fetch new system training blocks (used for "Stats Globales" and to filter obsolete spare data)
+  const { data: trainingBlocks = [] } = useQuery({
+    queryKey: ["bowling_training_blocks_stats", categoryId, playerId || "all"],
+    queryFn: async () => {
+      let q = supabase
+        .from("bowling_training_blocks")
+        .select("id, athlete_id, block_type, duration_min, created_at, session_id")
+        .eq("category_id", categoryId);
+      if (playerId) q = q.eq("athlete_id", playerId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data || []) as Array<{ id: string; athlete_id: string | null; block_type: string; duration_min: number | null; created_at: string; session_id: string | null }>;
+    },
+  });
+
+  // Set of athletes who have new-system bowling sessions (used to hide obsolete legacy data)
+  const athletesWithNewBlocks = useMemo(() => {
+    const s = new Set<string>();
+    trainingBlocks.forEach((b) => { if (b.athlete_id) s.add(b.athlete_id); });
+    return s;
+  }, [trainingBlocks]);
+
   // Fetch all arsenals for all players
   const { data: allArsenals } = useQuery({
     queryKey: ["all_arsenals_stats", categoryId],
@@ -171,10 +196,13 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     }).filter(p => p.stats !== null);
   }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId]);
 
-  // Compute per-player spare stats
+  // Compute per-player spare stats (legacy bowling_spare_training data).
+  // Only displayed for athletes who also have new-system bowling_training_blocks,
+  // otherwise the data is considered obsolete and hidden.
   const playerSpareStats = useMemo(() => {
     if (!trainingData) return [];
     return filteredPlayers.map(player => {
+      if (!athletesWithNewBlocks.has(player.id)) return { player, byType: {}, total: null };
       let spares = trainingData.spareExercises.filter((ex: any) => ex.player_id === player.id && dateFilter(ex.session_date));
       if (selectedBallId !== "all") {
         spares = spares.filter((ex: any) => ex.ball_arsenal_id === selectedBallId);
@@ -192,7 +220,77 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       const rate = totalAttempts > 0 ? (totalSuccesses / totalAttempts) * 100 : 0;
       return { player, byType, total: { totalAttempts, totalSuccesses, rate } };
     }).filter(p => p.total !== null);
-  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId]);
+  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId, athletesWithNewBlocks]);
+
+  // Compute global stats from new-system bowling_training_blocks
+  const globalStats = useMemo(() => {
+    const filtered = trainingBlocks.filter((b) => {
+      if (!b.athlete_id) return false;
+      if (selectedPlayerId !== "all" && !playerId && b.athlete_id !== selectedPlayerId) return false;
+      if (playerId && b.athlete_id !== playerId) return false;
+      if (!dateFilter(b.created_at)) return false;
+      return true;
+    });
+
+    const sessionIds = new Set<string>();
+    filtered.forEach((b) => {
+      sessionIds.add(b.session_id || `${b.athlete_id}-${b.created_at.slice(0, 10)}`);
+    });
+
+    const minutesByTheme: Record<string, number> = { warmup: 0, technical: 0, tactical: 0, games: 0 };
+    let totalMinutes = 0;
+    filtered.forEach((b) => {
+      const d = b.duration_min || 0;
+      if (minutesByTheme[b.block_type] !== undefined) minutesByTheme[b.block_type] += d;
+      totalMinutes += d;
+    });
+
+    // Time buckets
+    const bucketKey = (iso: string) => {
+      const d = new Date(iso);
+      if (globalPeriod === "week") {
+        const w = startOfWeek(d, { weekStartsOn: 1, locale: fr });
+        return { key: format(w, "yyyy-'S'II", { locale: fr }), label: format(w, "'S'II", { locale: fr }), order: w.getTime() };
+      }
+      if (globalPeriod === "year") {
+        const y = startOfYear(d);
+        return { key: format(y, "yyyy"), label: format(y, "yyyy"), order: y.getTime() };
+      }
+      const m = startOfMonth(d);
+      return { key: format(m, "yyyy-MM"), label: format(m, "MMM yy", { locale: fr }), order: m.getTime() };
+    };
+
+    const buckets = new Map<string, { label: string; order: number; warmup: number; technical: number; tactical: number; games: number; total: number }>();
+    filtered.forEach((b) => {
+      const { key, label, order } = bucketKey(b.created_at);
+      const d = (b.duration_min || 0) / 60; // hours
+      const cur = buckets.get(key) || { label, order, warmup: 0, technical: 0, tactical: 0, games: 0, total: 0 };
+      if ((cur as any)[b.block_type] !== undefined) (cur as any)[b.block_type] += d;
+      cur.total += d;
+      buckets.set(key, cur);
+    });
+
+    const chartData = Array.from(buckets.values()).sort((a, b) => a.order - b.order).map((b) => ({
+      label: b.label,
+      "Échauffement": Math.round(b.warmup * 10) / 10,
+      "Technique": Math.round(b.technical * 10) / 10,
+      "Tactique": Math.round(b.tactical * 10) / 10,
+      "Parties": Math.round(b.games * 10) / 10,
+    }));
+
+    return {
+      sessionsCount: sessionIds.size,
+      totalHours: totalMinutes / 60,
+      hoursByTheme: {
+        warmup: minutesByTheme.warmup / 60,
+        technical: minutesByTheme.technical / 60,
+        tactical: minutesByTheme.tactical / 60,
+        games: minutesByTheme.games / 60,
+      },
+      chartData,
+      blockCount: filtered.length,
+    };
+  }, [trainingBlocks, selectedPlayerId, playerId, dateFrom, dateTo, globalPeriod]);
 
   // Get unique balls used by all players for ball filter
   const availableBalls = useMemo(() => {
@@ -356,6 +454,8 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
 
   const hasGameData = playerGameStats.length > 0;
   const hasSpareData = playerSpareStats.length > 0;
+  const hasGlobalData = globalStats.blockCount > 0;
+  const THEME_COLORS = { warmup: "hsl(43 96% 56%)", technical: "hsl(160 84% 39%)", tactical: "hsl(217 91% 60%)", games: "hsl(38 92% 50%)" };
 
   return (
     <div className="space-y-4">
@@ -381,7 +481,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
             </Select>
           )}
         </div>
-        {(hasGameData || hasSpareData) && (
+        {(hasGameData || hasSpareData || hasGlobalData) && (
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleExportExcel} className="gap-1">
               <FileSpreadsheet className="h-4 w-4" />
@@ -460,9 +560,13 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       </div>
 
       {/* Sub-menu tabs */}
-      {(hasGameData || hasSpareData) ? (
+      {(hasGameData || hasSpareData || hasGlobalData) ? (
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-2">
+          <TabsList className="w-full grid grid-cols-3">
+            <TabsTrigger value="global" className="gap-1.5">
+              <Activity className="h-4 w-4" />
+              Stats globales
+            </TabsTrigger>
             <TabsTrigger value="games" className="gap-1.5">
               <Trophy className="h-4 w-4" />
               Stats Parties
@@ -472,6 +576,92 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
               Stats Spécifiques
             </TabsTrigger>
           </TabsList>
+
+          {/* Tab: Stats Globales - new system aggregation */}
+          <TabsContent value="global" className="space-y-4 mt-4">
+            {hasGlobalData ? (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                  <Card>
+                    <CardContent className="p-3 text-center">
+                      <p className="text-2xl font-bold text-primary">{globalStats.sessionsCount}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Entraînements</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-3 text-center">
+                      <p className="text-2xl font-bold text-primary">{globalStats.totalHours.toFixed(1)}h</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Volume total</p>
+                    </CardContent>
+                  </Card>
+                  <Card style={{ borderColor: THEME_COLORS.technical }}>
+                    <CardContent className="p-3 text-center">
+                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.technical }}>{globalStats.hoursByTheme.technical.toFixed(1)}h</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center"><Wrench className="h-3 w-3" />Technique</p>
+                    </CardContent>
+                  </Card>
+                  <Card style={{ borderColor: THEME_COLORS.tactical }}>
+                    <CardContent className="p-3 text-center">
+                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.tactical }}>{globalStats.hoursByTheme.tactical.toFixed(1)}h</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center"><Target className="h-3 w-3" />Tactique</p>
+                    </CardContent>
+                  </Card>
+                  <Card style={{ borderColor: THEME_COLORS.games }}>
+                    <CardContent className="p-3 text-center">
+                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.games }}>{globalStats.hoursByTheme.games.toFixed(1)}h</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center"><Circle className="h-3 w-3" />Parties</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Card>
+                  <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-primary" />
+                      Volume d'entraînement (heures) par thématique
+                    </CardTitle>
+                    <ToggleGroup type="single" value={globalPeriod} onValueChange={(v) => v && setGlobalPeriod(v as any)} size="sm">
+                      <ToggleGroupItem value="week" className="text-xs h-7 px-2">Semaine</ToggleGroupItem>
+                      <ToggleGroupItem value="month" className="text-xs h-7 px-2">Mois</ToggleGroupItem>
+                      <ToggleGroupItem value="year" className="text-xs h-7 px-2">Année</ToggleGroupItem>
+                    </ToggleGroup>
+                  </CardHeader>
+                  <CardContent>
+                    {globalStats.chartData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={globalStats.chartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+                          <YAxis tick={{ fontSize: 11 }} label={{ value: 'h', angle: 0, position: 'insideLeft', style: { fontSize: 11 } }} />
+                          <Tooltip
+                            contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
+                            formatter={(v: any) => `${v}h`}
+                          />
+                          <Legend wrapperStyle={{ fontSize: 12 }} />
+                          <Bar dataKey="Échauffement" stackId="a" fill={THEME_COLORS.warmup} />
+                          <Bar dataKey="Technique" stackId="a" fill={THEME_COLORS.technical} />
+                          <Bar dataKey="Tactique" stackId="a" fill={THEME_COLORS.tactical} />
+                          <Bar dataKey="Parties" stackId="a" fill={THEME_COLORS.games} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-8">Aucune donnée sur cette période.</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  <Activity className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm">Aucun entraînement bowling enregistré.</p>
+                  <p className="text-xs mt-1">Les statistiques globales apparaîtront dès que des séances seront planifiées et complétées.</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+
 
           {/* Tab: Stats Parties - grouped by athlete */}
           <TabsContent value="games" className="space-y-4 mt-4">
