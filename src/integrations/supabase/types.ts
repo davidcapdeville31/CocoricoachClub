@@ -9581,6 +9581,7 @@ export type Database = {
           bowling_ball_weight_lbs: number | null
           bowling_pap_h_inch: number | null
           bowling_pap_v_inch: number | null
+          bowling_personal_number: number | null
           bowling_rpm: number | null
           bowling_tilt_deg: number | null
           category_id: string
@@ -9628,6 +9629,7 @@ export type Database = {
           bowling_ball_weight_lbs?: number | null
           bowling_pap_h_inch?: number | null
           bowling_pap_v_inch?: number | null
+          bowling_personal_number?: number | null
           bowling_rpm?: number | null
           bowling_tilt_deg?: number | null
           category_id: string
@@ -9675,6 +9677,7 @@ export type Database = {
           bowling_ball_weight_lbs?: number | null
           bowling_pap_h_inch?: number | null
           bowling_pap_v_inch?: number | null
+          bowling_personal_number?: number | null
           bowling_rpm?: number | null
           bowling_tilt_deg?: number | null
           category_id?: string
