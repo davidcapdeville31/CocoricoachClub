@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Droplet, Image as ImageIcon, X } from "lucide-react";
+import { Droplet, Image as ImageIcon, X, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import {
   ALL_PATTERN_NAMES,
@@ -38,6 +38,17 @@ export function SimplifiedOilPatternPicker({ value, onChange, categoryId }: Prop
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
   const [enlarged, setEnlarged] = useState(false);
+  const hasData =
+    !!value.preset_name ||
+    !!value.image_url ||
+    value.length_feet != null ||
+    value.buff_distance_feet != null ||
+    value.width_boards != null ||
+    value.total_volume_ml != null ||
+    !!value.oil_ratio ||
+    !!value.profile_type ||
+    !!value.outside_friction;
+  const [collapsed, setCollapsed] = useState(hasData);
 
   const patch = (p: Partial<SimplifiedOilPattern>) => onChange({ ...value, ...p });
 
@@ -100,17 +111,41 @@ export function SimplifiedOilPatternPicker({ value, onChange, categoryId }: Prop
   return (
     <div className="space-y-3 rounded-2xl border border-border/60 bg-surface-sunken p-3">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setCollapsed((c) => !c)}
+          className="flex flex-1 items-center gap-2 text-left"
+        >
           <Droplet className="h-4 w-4 text-blue-500" />
           <span className="text-sm font-semibold">Huilage de la piste</span>
+          {collapsed && (value.preset_name || value.length_feet != null) && (
+            <span className="truncate text-xs text-muted-foreground">
+              · {value.preset_name || "Libre"}
+              {value.length_feet != null ? ` · ${value.length_feet}ft` : ""}
+              {value.total_volume_ml != null ? ` · ${value.total_volume_ml}mL` : ""}
+            </span>
+          )}
+        </button>
+        <div className="flex items-center gap-2">
+          {category && (
+            <Badge variant="outline" className={category.color}>
+              {category.label}
+            </Badge>
+          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => setCollapsed((c) => !c)}
+          >
+            {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+          </Button>
         </div>
-        {category && (
-          <Badge variant="outline" className={category.color}>
-            {category.label}
-          </Badge>
-        )}
       </div>
 
+      {!collapsed && (
+        <>
       {/* Pattern preset */}
       <div className="space-y-1">
         <Label className="text-xs">Pattern (optionnel)</Label>
@@ -341,6 +376,10 @@ export function SimplifiedOilPatternPicker({ value, onChange, categoryId }: Prop
           />
         </div>
       </div>
+        </>
+      )}
+
+
 
       {enlarged && value.image_url && (
         <div
