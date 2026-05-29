@@ -588,21 +588,25 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
             <Input id="fs-title" value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1"><Clock className="h-3 w-3" /> Début</Label>
-              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+          {!isBowling && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1"><Clock className="h-3 w-3" /> Début</Label>
+                <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1"><Clock className="h-3 w-3" /> Fin</Label>
+                <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1"><Clock className="h-3 w-3" /> Fin</Label>
-              <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-            </div>
-          </div>
+          )}
 
-          <div className="space-y-2">
-            <Label className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Lieu</Label>
-            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Stade, terrain, salle..." />
-          </div>
+          {!isBowling && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Lieu</Label>
+              <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Stade, terrain, salle..." />
+            </div>
+          )}
 
           {/* Blocs */}
           <div className="space-y-3">
