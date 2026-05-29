@@ -55,6 +55,11 @@ export function BowlingSimplifiedDialog({
     setBlocks((prev) => [...prev, b]);
   };
 
+  const addGames = () => {
+    const b = newGamesBlock();
+    setBlocks((prev) => [...prev, b]);
+  };
+
   const updateBlock = (id: string, next: SimplifiedBlock) =>
     setBlocks((prev) => prev.map((b) => (b.id === id ? next : b)));
 
@@ -68,12 +73,19 @@ export function BowlingSimplifiedDialog({
   };
 
   const validateBlock = (b: SimplifiedBlock): string | null => {
-    if (b.duration_min <= 0) return "La durée doit être supérieure à 0";
+    if (b.type === "tactical" || b.type === "technical") {
+      if (b.duration_min <= 0) return "La durée doit être supérieure à 0";
+    }
     if (b.type === "technical") {
       if (b.theme === "other" && !b.custom_theme?.trim())
         return "Précisez la thématique";
       if (!b.description.trim())
         return "Décrivez ce que vous avez travaillé";
+    }
+    if (b.type === "games") {
+      const saved = b.parties.filter((p) => p.stats !== null).length;
+      if (saved === 0)
+        return "Enregistrez au moins une partie avant de verrouiller le bloc";
     }
     return null;
   };
