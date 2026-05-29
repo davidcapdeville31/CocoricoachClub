@@ -1,79 +1,167 @@
 
-# Bowling — Création de séance & 9 exercices DTN
+# Refonte du module Entraînement Bowling
 
-## Objectif
+Refonte ciblée, **bowling uniquement**, sans toucher aux autres sports ni casser le calendrier, l'arsenal, la feuille de score compétition ou l'espace athlète.
 
-Aligner la création de séance terrain bowling sur la méthodologie FFBSQ : 3 grandes catégories (Technique, Tactique, Parties), 9 exercices avec leurs variables, et alimentation automatique des stats d'entraînement de l'athlète.
+## 1. Architecture séance bowling
 
-## 1. Refonte des catégories bowling (3 au lieu de 6)
+4 types de blocs (au lieu des 3 actuels) : **Échauffement · Technique · Tactique · Parties**.
 
-Aujourd'hui le menu propose 6 types bowling mélangés. On garde 3 types parents et on regroupe :
+Chaque bloc partage un socle commun :
+- titre, durée, nb lancers (libre, presets 10/20/30/40/50 + saisie manuelle, **plus aucun plafond 20**)
+- consigne coach, note interne, priorité (faible/moyen/élevé)
+- objectif principal + critères de réussite structurés
+- zone bilan après réalisation
 
-- **bowling_technique** — Travail Technique
-  - Sous-thèmes : Travail d'Approche · Travail de Lâcher · Travail des Spares · Vitesse / Axes / Rotations / Profondeur de pose · Poche du Strike (régularité 1 boule)
-- **bowling_tactique** — Travail Tactique
-  - Sous-thèmes : Poches/Strikes entre les flèches · Poches/Strikes zone flèche · Poches/Strikes placement déterminé · Lignes de jeu · Points à réaliser · Le Strike (modification lignes de jeu)
-- **bowling_parties** — Parties d'Entraînement
-  - Sous-thèmes : Doublés/Triplés · Situation de jeu (4/6/8 parties) · Parties boule polyester
+Le champ « notes » n'est plus jamais requis pour décrire l'exercice : tout passe par des champs structurés. Un **résumé auto** (titre généré) est affiché en preview.
 
-Renommage / consolidation côté `trainingTypes.ts`, `AddSessionTemplateDialog`, `SessionTemplateCard`, `SessionDetailsDialog`, `AthleteCreateSession`. Migration douce : les anciens `bowling_spare`, `bowling_practice`, `bowling_approche`, `bowling_release` sont mappés vers le bon parent pour l'affichage (rétro-compatibilité).
+## 2. Travail Technique — constructeur dédié
 
-## 2. Catalogue des 9 exercices DTN
+Interface distincte du tactique. Sélecteurs structurés :
+- **Type** : axe rotation, vitesse, rotation, profondeur de pose, régularité, ligne technique, spare technique, routine, combiné perso
+- **Paramètres techniques** (multi) : vitesse −/normale/+, axe naturel/0°/0-30°/30-60°, rotation −/normale/+, profondeur −/normale/+, approche normale/ralentie/dynamique, relâchement normal/souple/accéléré, swing libre/contrôlé, routine complète/simplifiée
+- **Objectifs résultat** (multi) : quille 1 ou quille précise 1-10, poche, poche+strike, spare, point de sortie, zone flèche, vitesse cible, ligne, doublé/triplé/quadruplé
+- **Mode d'enchaînement** : consécutif, alterné, par série, libre, progressif, décroissant, difficulté croissante/décroissante
+- **Critères réussite** : % axe / poche / strike / poche+strike / point de sortie / quille touchée, tolérance vitesse km/h, réussites consécutives attendues, score min
 
-Nouveau fichier `src/lib/constants/bowlingExercises.ts` listant les 9 exercices du PDF avec leur catégorie parent, leurs variables et l'objectif/critère de réussite :
+## 3. Travail Tactique — constructeur dédié
 
-| # | Exercice | Parent | Variables principales |
-|---|----------|--------|----|
-| 1 | Poches & Strikes | Tactique | nb lancers, boule(s), huilage, paramètre perf |
-| 2 | Poches & Strikes entre les flèches | Tactique | nb lancers/zone, boule(s), huilage, paramètre perf |
-| 3 | Poches & Strikes "zone flèche" (F1→F6) | Tactique | nb lancers/flèche, boule(s), huilage, paramètre perf |
-| 4 | Placement déterminé (5/15/25/35e latte) | Tactique | nb lancers/placement, boule(s), huilage, paramètre perf |
-| 5 | Doublés / Triplés | Parties | nb lancers, boule(s), huilage, paramètre perf |
-| 6 | Points à réaliser (5/3/1) | Tactique | objectif points, boule(s), huilage, zones, paramètre perf |
-| 7 | Vitesse / Axes / Rotations / Profondeur | Technique | nb lancers série, consécutifs ou alternés, paramètre choisi |
-| 8 | Lignes de jeu | Tactique | lignes (parallèle/angulaire), nb lancers/ligne, huilage |
-| 9 | Les Spares | Technique | quille/spare ciblé, nb répétitions, % perso de réussite |
+Interface visuelle distincte :
+- **Type** : poche/strike entre flèches, zone flèche, placement déterminé pied, ligne de jeu, adaptation pattern, recherche poche, recherche strike, déplacement pied, déplacement point de sortie, changement de boule, transition piste, situation jeu, personnalisé
+- **Pattern / huilage** : choix existant, libre, longueur, ratio, volume, difficulté perçue, commentaire
+- **Zones de jeu** : sélecteur visuel (rigole→F1, F1, F1-F2, F2, F2-F3, F3, F3-F4, F4, F5, F6, perso + plages de lattes)
+- **Flèches/lattes** : flèche cible, entre 2 flèches, plage de lattes, latte cible, tolérance ±1/±2/±3, point de sortie cible + tolérance
+- Possibilité de définir N lancers par zone (ex : 10 par zone sur 5 zones)
 
-Chaque exercice expose son schéma de variables (`fields: [{key, label, type, options?, required?}]`) pour générer dynamiquement le formulaire. Les "Parties" peuvent désactiver le champ huilage (comme demandé).
+## 4. Parties d'entraînement
 
-## 3. UI — Création de séance terrain (cas bowling)
+- Coach configure : nb parties, pattern (ou libre), objectif (score moyen, % poche, % strike, % spare, % quilles seules, % spares composés, % ≥8, splits max, régularité, stratégie, routine compét), consigne
+- Athlète : **réutilise la feuille de score existante** (composant compétition) en mode entraînement, frame par frame
+- Liaison session ↔ pattern ↔ boule ↔ objectifs
+- Les parties alimentent les stats d'**entraînement** (séparées des stats compétition, filtre commun possible)
 
-Quand le sport de la catégorie est bowling, le `FieldSessionDialog` / `BowlingBlockManager` :
+## 5. Saisie athlète lancer par lancer
 
-1. Le sélecteur de bloc liste uniquement **Technique / Tactique / Parties**.
-2. Sous le type, un second sélecteur "Exercice DTN" filtre les 9 exercices appartenant au parent choisi.
-3. Une zone "Variables" se génère selon le schéma de l'exercice : nb lancers, boule (depuis arsenal joueur via `BowlingBallSelector`), huilage (depuis `bowling_oil_patterns` ou désactivé), paramètres de performance (vitesse / axe / rotation / profondeur de pose), zones/flèches/placements.
-4. L'objectif et le critère de réussite s'affichent en encart info pour le coach.
-5. Durée et RPE attendu restent saisis comme aujourd'hui.
+Mobile-first, gros boutons oui/non, bouton « lancer suivant », correction possible, résumé après chaque série, bilan final.
 
-## 4. Persistance & remontée stats
+**Champs Technique par lancer** : boule (depuis arsenal), axe respecté, quille 1/cible touchée, poche, strike, point de sortie respecté, vitesse (option), commentaire court.
 
-- Le bloc est stocké dans `training_session_blocks` avec `training_type ∈ {bowling_technique, bowling_tactique, bowling_parties}` + `notes` enrichi (commentaire HTML caché `<!-- bowling-exercise: {id, variables} -->`, comme le pattern Session Metadata Notes déjà utilisé).
-- À la validation par un athlète, une ligne est créée dans `bowling_spare_training` (table déjà reliée à `training_session_id`, `ball_arsenal_id`, `player_id`, `category_id`) avec `exercise_type` = id de l'exercice DTN, `attempts` = nb lancers, `successes` = réussites saisies → le trigger existant calcule `success_rate`.
-- Pour les exercices "Parties", on continue d'utiliser les tables jeux/parties existantes (BowlingGameHistory).
-- Les composants `BowlingTrainingStats`, `BowlingCumulativeStats`, `BowlingFrameAnalysis` voient déjà ces lignes : les nouvelles séances apparaissent automatiquement dans les stats d'entraînement de l'athlète, filtrables par exercice DTN.
+**Champs Tactique par lancer** : zone prévue, latte de départ pied, latte point de sortie, boule, flèche/zone jouée, poche, strike, spare, adaptation effectuée, commentaire. Le système calcule **automatiquement** les décalages (« +2 au pied », « −1 au point de sortie ») par diff avec le lancer précédent.
 
-## 5. Détails techniques
+## 6. Stats d'entraînement bowling
+
+Filtres croisés : athlète, période, séance, exercice, type, technique/tactique/parties, objectif, paramètre technique, pattern, boule, zone flèche, latte départ, point de sortie, poche, strike, spare.
+
+KPIs : % réussite global, % par objectif, % axe, % vitesse cible, % profondeur, % point sortie, % poche, % strike, % poche+strike, % spare, % par zone / boule / pattern, meilleure série consécutive, progression temporelle, comparaison objectif coach vs réel, nb lancers, charge technique vs tactique vs volume parties.
+
+Visus : cartes KPI · graphiques simples (Recharts) · tableau détaillé · **heatmap par zone** · **timeline lancer par lancer**.
+
+## 7. Bibliothèque d'exercices bowling
+
+Catalogue prédéfini (sans aucune mention du PDF source ni « DTN »), regroupé Technique / Tactique / Parties — voir la liste exacte demandée (Axe 0°+quille 1, Vitesse constante, Profondeur de pose, Spares composés, Zone flèche, Placement déterminé, Adaptation pattern, 4 parties situation, etc.).
+
+Coach peut : appliquer un modèle, dupliquer un bloc, sauvegarder un bloc comme modèle perso, publier dans la bibliothèque du club.
+
+## 8. Côté athlète (espace athlète)
+
+- **Voir séance coach** : blocs en lecture-structure, saisie lancer par lancer, brouillon, terminer.
+- **Créer son entraînement** : strictement le même constructeur que le coach (techniques, tactiques, parties). Alimente ses stats perso ; visible du coach selon les droits déjà en place.
+
+## 9. UX coach — flux 3 étapes
+
+1. Choisir type de bloc (Échauffement / Technique / Tactique / Parties)
+2. Configurer (formulaire conditionnel selon type — aucun champ inutile, presets intelligents)
+3. Définir critères de réussite + preview résumé auto
+
+Boutons dupliquer / enregistrer comme modèle / ajouter à la bibliothèque.
+
+---
+
+## Détails techniques
+
+### Modèle de données (nouvelles tables)
 
 ```text
-src/lib/constants/
-  bowlingExercises.ts     (NEW — catalogue 9 exercices + schéma variables)
-  trainingTypes.ts        (consolidation 6→3 + labels rétro-compatibles)
-src/components/bowling/
-  BowlingBlockManager.tsx (sélecteur exercice + variables dynamiques)
-  BowlingExerciseVariables.tsx (NEW — form génératif basé sur le schéma)
-src/components/category/
-  SessionDetailsDialog.tsx (labels)
-  calendar/FieldSessionDialog.tsx (passe sport=bowling au BlockManager)
-src/components/planning/
-  AddSessionTemplateDialog.tsx, SessionTemplateCard.tsx (3 options)
-src/components/athlete-portal/
-  AthleteCreateSession.tsx (3 options + sélecteur exercice)
+bowling_training_blocks
+  id, session_id (training_sessions), athlete_id, source ('coach'|'athlete'),
+  block_type ('warmup'|'technical'|'tactical'|'games'),
+  title, duration_min, planned_throws, priority,
+  coach_instruction, internal_note, objectives jsonb, success_criteria jsonb,
+  pattern_id, config jsonb, status, order_index, debrief jsonb
+
+bowling_throw_results
+  id, block_id, exercise_index, throw_number, ball_arsenal_id,
+  foot_board, breakpoint_board, target_arrow, target_zone, actual_zone,
+  speed_kmh, axis_success, speed_success, release_success,
+  breakpoint_success, pocket_success, strike_success, spare_success,
+  pin_hit smallint[], success_global, comment,
+  foot_delta, breakpoint_delta (auto via trigger sur lancer N vs N-1)
+
+bowling_training_games
+  id, block_id, game_number, score, stats jsonb, pattern_id, ball_arsenal_id
+
+bowling_exercise_library
+  id, scope ('system'|'club'|'user'), club_id, owner_id, category, name,
+  config jsonb, created_at
 ```
 
-Pas de migration SQL : la table `bowling_spare_training` couvre déjà les besoins (exercise_type est `text`, ball_arsenal_id, attempts/successes, link session). On étend juste les valeurs possibles de `exercise_type` (`dtn_ex1` … `dtn_ex9`).
+RLS standard : accès via `can_access_category` + propriétaire. GRANTs `authenticated` + `service_role`.
 
-## Hors scope
+### Réutilisation existante
 
-- Pas de modification des autres sports (changement spécifique bowling, conformément à la règle "Compétitions et Datas spécifiques par sport").
-- Pas de refonte des graphiques bowling : ils consomment déjà `bowling_spare_training`.
+- `bowling_spare_training` conservée pour rétro-compat (les nouveaux blocs y inscrivent toujours une ligne agrégée pour ne pas casser `BowlingTrainingStats` / `BowlingCumulativeStats` / `BowlingFrameAnalysis`).
+- Feuille de score compétition (`competition_round_stats` + composants existants) réutilisée telle quelle pour les blocs Parties, simplement liée par `block_id`.
+- `bowling_oil_patterns` réutilisée pour le sélecteur pattern.
+- Arsenal joueur : `BowlingBallSelector` existant.
+- Edge function `athlete-bowling-training` étendue : `action: 'save_block'`, `'save_throw'`, `'save_game'`.
+
+### Front
+
+```
+src/components/bowling/
+  blocks/
+    BowlingBlockTypePicker.tsx           (étape 1)
+    BowlingTechnicalBuilder.tsx          (étape 2 technique)
+    BowlingTacticalBuilder.tsx           (étape 2 tactique)
+    BowlingGamesBuilder.tsx              (étape 2 parties)
+    BowlingWarmupBuilder.tsx
+    BowlingSuccessCriteria.tsx           (étape 3 commune)
+    BowlingBlockPreview.tsx              (résumé auto)
+  selectors/
+    BowlingZoneSelector.tsx              (zones visuelles flèches/lattes)
+    BowlingParametersPicker.tsx          (multi-pills paramètres techniques)
+    BowlingTargetOutcomesPicker.tsx
+  athlete/
+    BowlingThrowEntry.tsx                (saisie 1 lancer mobile-first)
+    BowlingBlockRunner.tsx               (timeline lancer-par-lancer, brouillon)
+    BowlingGamesRunner.tsx               (réutilise score sheet existant)
+  stats/
+    BowlingTrainingKpis.tsx
+    BowlingZoneHeatmap.tsx
+    BowlingThrowTimeline.tsx
+    BowlingTrainingFilters.tsx
+  library/
+    BowlingExerciseLibraryDialog.tsx
+    bowlingLibrarySeed.ts                (catalogue prédéfini)
+src/lib/constants/
+  bowlingTechnicalParameters.ts
+  bowlingTacticalZones.ts
+  bowlingTargetOutcomes.ts
+src/lib/bowling/
+  throwDeltas.ts                         (calcul +2/−1 pied/point de sortie)
+  trainingStatsAggregator.ts             (KPIs croisés)
+```
+
+`FieldSessionDialog` détecte `sport=bowling` et bascule sur le nouveau flux 3 étapes. `AthleteCreateSession` partage les mêmes builders.
+
+### Non-régression
+
+- Anciens types `bowling_spare/practice/approche/release` toujours mappés (déjà fait dans le plan précédent) pour les séances historiques.
+- Les composants stats existants continuent de lire `bowling_spare_training` ; les nouveaux composants lisent `bowling_throw_results` + agrègent.
+- Tests Deno sur edge function (`save_throw`, deltas auto, autorisation cross-category) + tests unitaires sur `trainingStatsAggregator`.
+
+### Hors scope
+
+- Aucune modification autres sports.
+- Pas de refonte compétition bowling ni de l'arsenal.
+- Pas de changement des graphiques bowling existants (ils restent alimentés via la passerelle `bowling_spare_training`).
