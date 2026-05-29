@@ -42,6 +42,37 @@ interface FieldSessionDialogProps {
   categoryId: string;
   sportType?: string;
   editSession?: any | null;
+  /** When set, the dialog operates in athlete self-planning mode and uses the
+   *  `athlete-create-session` edge function instead of direct supabase insert. */
+  athletePlayerId?: string;
+}
+
+// Sport-aware label for the dialog title (mirrors CreateEventDialog logic).
+function getFieldSessionLabelForSport(sport: string | undefined): string {
+  if (!sport) return "Séance terrain";
+  const map: Record<string, string> = {
+    rugby: "Séance rugby",
+    football: "Séance football",
+    handball: "Séance handball",
+    volleyball: "Séance volley",
+    basketball: "Séance basket",
+    judo: "Séance judo",
+    bowling: "Séance bowling",
+    aviron: "Séance aviron",
+    athletisme: "Séance athlétisme",
+    crossfit: "Séance CrossFit",
+    padel: "Séance padel",
+    natation: "Séance natation",
+    surf: "Séance surf",
+    ski: "Séance ski / snow",
+    triathlon: "Séance triathlon",
+    tennis: "Séance tennis",
+  };
+  const s = sport.toLowerCase();
+  if (["xv", "7", "xiii", "touch", "15", "academie", "national_team"].includes(s)) return map.rugby;
+  if (s.startsWith("snow") || s.startsWith("ski")) return map.ski;
+  const main = Object.keys(map).find((p) => s === p || s.startsWith(p + "_")) || "";
+  return map[main] || "Séance terrain";
 }
 
 interface BlockDraft {
