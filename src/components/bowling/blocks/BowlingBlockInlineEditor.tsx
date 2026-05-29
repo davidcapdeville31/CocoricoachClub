@@ -23,12 +23,13 @@ interface Props {
   categoryId: string;
   variables: Record<string, unknown>;
   onVariablesChange: (v: Record<string, unknown>) => void;
+  hideSuccessCriteria?: boolean;
 }
 
 const parentToType = (p: Props["parent"]): BowlingBlockType =>
   p === "bowling_technique" ? "technical" : p === "bowling_tactique" ? "tactical" : "games";
 
-export function BowlingBlockInlineEditor({ parent, categoryId, variables, onVariablesChange }: Props) {
+export function BowlingBlockInlineEditor({ parent, categoryId, variables, onVariablesChange, hideSuccessCriteria }: Props) {
   const [libraryOpen, setLibraryOpen] = useState(false);
 
   const draft: BowlingBlockDraft = useMemo(() => {
