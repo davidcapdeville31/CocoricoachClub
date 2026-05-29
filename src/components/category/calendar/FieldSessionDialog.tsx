@@ -42,6 +42,37 @@ interface FieldSessionDialogProps {
   categoryId: string;
   sportType?: string;
   editSession?: any | null;
+  /** When set, the dialog operates in athlete self-planning mode and uses the
+   *  `athlete-create-session` edge function instead of direct supabase insert. */
+  athletePlayerId?: string;
+}
+
+// Sport-aware label for the dialog title (mirrors CreateEventDialog logic).
+function getFieldSessionLabelForSport(sport: string | undefined): string {
+  if (!sport) return "Séance terrain";
+  const map: Record<string, string> = {
+    rugby: "Séance rugby",
+    football: "Séance football",
+    handball: "Séance handball",
+    volleyball: "Séance volley",
+    basketball: "Séance basket",
+    judo: "Séance judo",
+    bowling: "Séance bowling",
+    aviron: "Séance aviron",
+    athletisme: "Séance athlétisme",
+    crossfit: "Séance CrossFit",
+    padel: "Séance padel",
+    natation: "Séance natation",
+    surf: "Séance surf",
+    ski: "Séance ski / snow",
+    triathlon: "Séance triathlon",
+    tennis: "Séance tennis",
+  };
+  const s = sport.toLowerCase();
+  if (["xv", "7", "xiii", "touch", "15", "academie", "national_team"].includes(s)) return map.rugby;
+  if (s.startsWith("snow") || s.startsWith("ski")) return map.ski;
+  const main = Object.keys(map).find((p) => s === p || s.startsWith(p + "_")) || "";
+  return map[main] || "Séance terrain";
 }
 
 interface BlockDraft {
@@ -132,12 +163,16 @@ import { BowlingBlockInlineEditor } from "@/components/bowling/blocks/BowlingBlo
 const isBowlingSport = (sport?: string) =>
   !!sport && sport.toLowerCase().startsWith("bowling");
 
-export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sportType, editSession }: FieldSessionDialogProps) {
+export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sportType, editSession, athletePlayerId }: FieldSessionDialogProps) {
   const qc = useQueryClient();
   const { notify } = useSessionNotifications();
   const isEdit = !!editSession?.id;
+  const isAthleteMode = !!athletePlayerId && !isEdit;
 
-  const [title, setTitle] = useState("Séance terrain");
+  const sportLabel = useMemo(() => getFieldSessionLabelForSport(sportType), [sportType]);
+  const newSessionTitle = useMemo(() => `Nouvelle ${sportLabel.toLowerCase()}`, [sportLabel]);
+
+  const [title, setTitle] = useState(sportLabel);
   const [startTime, setStartTime] = useState("17:00");
   const [endTime, setEndTime] = useState("18:30");
   const [location, setLocation] = useState("");
@@ -276,7 +311,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         // Title is stored as first line of notes; rest of notes is the general note
         const rawNotes: string = editSession.notes || "";
         const lines = rawNotes.split("\n");
-        setTitle(lines[0] || "Séance terrain");
+        setTitle(lines[0] || sportLabel);
         setNotes(lines.slice(1).join("\n"));
         setStartTime(editSession.session_start_time?.slice(0, 5) || "17:00");
         setEndTime(editSession.session_end_time?.slice(0, 5) || "18:30");
@@ -483,7 +518,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         <DialogHeader className="shrink-0 border-b border-border/60 px-6 pt-6 pb-4">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Layers className="h-5 w-5 text-primary" />
-            {isEdit ? "Modifier la séance terrain" : "Nouvelle séance terrain"}
+            {isEdit ? `Modifier la ${sportLabel.toLowerCase()}` : `Nouvelle ${sportLabel.toLowerCase()}`}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">{format(date, "EEEE d MMMM yyyy", { locale: fr })}</p>
         </DialogHeader>
