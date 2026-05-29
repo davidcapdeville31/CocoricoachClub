@@ -397,7 +397,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       if (selectedPlayerId !== "all" && !playerId && b.athlete_id !== selectedPlayerId) return false;
       if (playerId && b.athlete_id !== playerId) return false;
       if (!dateFilter(b.session_date)) return false;
-      if (activeTrainingDates && !activeTrainingDates.has((b.session_date || "").slice(0, 10))) return false;
+      // Note: oil pattern filter intentionally NOT applied to Stats Globales
       return true;
     });
 
