@@ -238,7 +238,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
 
     const sessionIds = new Set<string>();
     filtered.forEach((b) => {
-      sessionIds.add(b.session_id || `${b.athlete_id}-${b.created_at.slice(0, 10)}`);
+      sessionIds.add(b.session_id || `${b.athlete_id}-${b.session_date.slice(0, 10)}`);
     });
 
     const minutesByTheme: Record<string, number> = { warmup: 0, technical: 0, tactical: 0, games: 0 };
