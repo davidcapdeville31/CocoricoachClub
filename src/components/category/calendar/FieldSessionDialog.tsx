@@ -457,11 +457,11 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
       qc.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
       toast.success(isEdit ? "Séance terrain mise à jour ✅" : "Séance terrain créée ✅");
 
-      // 🔔 Auto-notify athletes (bell + push + email) on creation
-      if (!isEdit && sessionId) {
+      // 🔔 Auto-notify athletes (bell + push + email) on create OR edit
+      if (sessionId) {
         const mainType = blocks[0]?.theme || "terrain";
         notify({
-          action: "created",
+          action: isEdit ? "updated" : "created",
           sessionId,
           categoryId,
           sessionDate: format(date, "yyyy-MM-dd"),

@@ -31,6 +31,7 @@ import { FieldSessionDialog } from "./calendar/FieldSessionDialog";
 import { EditAdminEventDialog, ADMIN_EVENT_TYPES } from "./calendar/EditAdminEventDialog";
 import { AnnualPlanningView } from "@/components/planning/AnnualPlanningView";
 import { useUnreadAthleteSessionsCount } from "@/lib/hooks/useUnreadAthleteSessionsCount";
+import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 
 interface CalendarTabProps {
   categoryId: string;
@@ -63,6 +64,7 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { isViewer } = useViewerModeContext();
+  const { notify } = useSessionNotifications();
   const calendarContentRef = useRef<HTMLDivElement>(null);
   const isFieldSession = (session?: { training_type?: string | null } | null) =>
     session?.training_type === "terrain";
@@ -160,9 +162,28 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       
       return { previousSessions };
     },
-    onSuccess: () => {
+    onSuccess: async ({ sessionId, newDate }) => {
       toast.success("Séance décalée avec succès");
       setIsDailyDialogOpen(false);
+
+      // 🔔 Notify athletes of schedule change
+      try {
+        const { data: info } = await supabase
+          .from("training_sessions")
+          .select("session_start_time, training_type, category_id")
+          .eq("id", sessionId)
+          .maybeSingle();
+        notify({
+          action: "updated",
+          sessionId,
+          categoryId: info?.category_id || categoryId,
+          sessionDate: format(newDate, "yyyy-MM-dd"),
+          sessionStartTime: info?.session_start_time || null,
+          sessionType: info?.training_type,
+        }).catch((e) => console.warn("[CalendarTab] reschedule notify failed:", e));
+      } catch (e) {
+        console.warn("[CalendarTab] reschedule notify lookup failed:", e);
+      }
     },
     onError: (error, variables, context) => {
       // Rollback on error
@@ -227,12 +248,19 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
 
   const deleteSession = useMutation({
     mutationFn: async (sessionId: string) => {
+      // Fetch session info BEFORE delete so we can notify athletes
+      const { data: sessionInfo } = await supabase
+        .from("training_sessions")
+        .select("id, category_id, session_date, session_start_time, training_type")
+        .eq("id", sessionId)
+        .maybeSingle();
+
       const { error } = await supabase
         .from("training_sessions")
         .delete()
         .eq("id", sessionId);
       if (error) throw error;
-      return sessionId;
+      return { sessionId, sessionInfo };
     },
     onMutate: async (sessionId) => {
       await queryClient.cancelQueries({ queryKey: ["sessions", categoryId] });
@@ -243,8 +271,20 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       });
       return { previousSessions };
     },
-    onSuccess: () => {
+    onSuccess: ({ sessionId, sessionInfo }) => {
       toast.success("Séance supprimée avec succès");
+
+      // 🔔 Notify athletes of cancellation
+      if (sessionInfo) {
+        notify({
+          action: "cancelled",
+          sessionId,
+          categoryId: sessionInfo.category_id,
+          sessionDate: sessionInfo.session_date,
+          sessionStartTime: sessionInfo.session_start_time,
+          sessionType: sessionInfo.training_type,
+        }).catch((e) => console.warn("[CalendarTab] cancel notify failed:", e));
+      }
     },
     onError: (error, variables, context) => {
       if (context?.previousSessions) {
