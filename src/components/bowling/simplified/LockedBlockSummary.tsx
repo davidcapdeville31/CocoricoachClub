@@ -102,6 +102,14 @@ function TacticalSummary({ block }: { block: Extract<SimplifiedBlock, { type: "t
         {block.oil_pattern.preset_name && (
           <span>Huilage : {block.oil_pattern.preset_name}</span>
         )}
+        {(() => {
+          const cat = getOilCategory(block.oil_pattern.oil_ratio);
+          return cat ? (
+            <Badge variant="outline" className={`text-[10px] ${cat.color}`}>
+              {cat.label}
+            </Badge>
+          ) : null;
+        })()}
       </div>
     </div>
   );
