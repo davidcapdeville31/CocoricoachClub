@@ -133,10 +133,11 @@ export function CreateEventDialog({
   onAddSession,
   onAddMatch,
   onSelectExternalType,
+  onSelectBowlingSimplified,
   allowedTypeIds,
 }: CreateEventDialogProps) {
 
-  const [step, setStep] = useState<"type" | "details">("type");
+  const [step, setStep] = useState<"type" | "bowling_mode" | "details">("type");
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [startTime, setStartTime] = useState("09:00");
