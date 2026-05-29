@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { BarChart3, Target, Trophy, CalendarIcon, Circle, Users, Download, FileSpreadsheet, Activity, Clock, Wrench } from "lucide-react";
+import { BarChart3, Target, Trophy, CalendarIcon, Circle, Users, Download, FileSpreadsheet, Activity, Clock, Wrench, Filter } from "lucide-react";
 import { format, isAfter, isBefore, startOfDay, endOfDay, startOfWeek, startOfMonth, startOfYear } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -21,7 +22,14 @@ import { BowlingFrameAnalysis } from "./BowlingFrameAnalysis";
 import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, addFooter, downloadWorkbook } from "@/lib/excelExport";
 import { preparePdfWithSettings } from "@/lib/pdfExport";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from "recharts";
+import { getOilCategory, type OilCategoryType } from "@/lib/constants/bowlingOilPatterns";
 import type { FrameData } from "@/components/athlete-portal/BowlingScoreSheet";
+
+const OIL_CATEGORY_BADGES: Record<OilCategoryType, { label: string; className: string }> = {
+  sport: { label: "🔴 Sportif", className: "bg-red-500/15 text-red-600 border-red-500 dark:bg-red-500/20 dark:text-red-400" },
+  challenge: { label: "🔵 Challenge", className: "bg-blue-100 text-blue-900 border-blue-400 dark:bg-blue-500/25 dark:text-blue-200" },
+  recreation: { label: "🟢 Récréatif", className: "bg-green-100 text-green-800 border-green-400 dark:bg-green-500/25 dark:text-green-200" },
+};
 
 interface BowlingTrainingStatsProps {
   categoryId: string;
@@ -35,6 +43,8 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
   const [selectedBallId, setSelectedBallId] = useState<string>("all");
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>(playerId || "all");
   const [globalPeriod, setGlobalPeriod] = useState<"day" | "week" | "month" | "year">("month");
+  const [filterByOilType, setFilterByOilType] = useState<OilCategoryType | null>(null);
+  const [selectedTrainingMatchIds, setSelectedTrainingMatchIds] = useState<Set<string> | null>(null);
 
   // Fetch training data
   const { data: trainingData, isLoading } = useQuery({
@@ -147,6 +157,85 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     },
   });
 
+  // Unique training match IDs (from games)
+  const trainingMatchIds = useMemo(() => {
+    if (!trainingData) return [] as string[];
+    return [...new Set(trainingData.games.map((g: any) => g.matchId).filter(Boolean))] as string[];
+  }, [trainingData]);
+
+  // Fetch oil patterns assigned to those training matches
+  const { data: trainingOilData } = useQuery({
+    queryKey: ["bowling_training_oil_patterns", categoryId, trainingMatchIds, playerId || "all"],
+    queryFn: async () => {
+      if (trainingMatchIds.length === 0) return [] as Array<{ matchId: string; matchDate: string; oilRatio: string | null; oilCategory: OilCategoryType | null; patternName: string | null }>;
+      const { data: oilPatterns } = await supabase
+        .from("bowling_oil_patterns")
+        .select("id, name, match_id, oil_ratio")
+        .in("match_id", trainingMatchIds);
+
+      const patternIds = (oilPatterns || []).map((op: any) => op.id);
+      let assignments: any[] = [];
+      if (patternIds.length > 0) {
+        const { data: assignData } = await supabase
+          .from("bowling_oil_pattern_players" as any)
+          .select("oil_pattern_id, player_id")
+          .in("oil_pattern_id", patternIds);
+        assignments = (assignData as any[]) || [];
+      }
+
+      const patternsByMatch = new Map<string, any[]>();
+      (oilPatterns || []).forEach((op: any) => {
+        if (!op.match_id) return;
+        const arr = patternsByMatch.get(op.match_id) || [];
+        arr.push(op);
+        patternsByMatch.set(op.match_id, arr);
+      });
+
+      const seen = new Set<string>();
+      const out: Array<{ matchId: string; matchDate: string; oilRatio: string | null; oilCategory: OilCategoryType | null; patternName: string | null }> = [];
+      for (const g of trainingData?.games || []) {
+        if (seen.has(g.matchId)) continue;
+        seen.add(g.matchId);
+        const patternsForMatch = patternsByMatch.get(g.matchId) || [];
+        let resolved: any = null;
+        if (playerId) {
+          const assignedIds = new Set(assignments.filter((a: any) => a.player_id === playerId).map((a: any) => a.oil_pattern_id));
+          resolved = patternsForMatch.find((p: any) => assignedIds.has(p.id)) || null;
+        } else {
+          resolved = patternsForMatch[0] || null;
+        }
+        const cat = resolved ? getOilCategory(resolved.oil_ratio) : null;
+        out.push({
+          matchId: g.matchId,
+          matchDate: g.matchDate,
+          oilRatio: resolved?.oil_ratio || null,
+          oilCategory: (cat?.type as OilCategoryType) || null,
+          patternName: resolved?.name || null,
+        });
+      }
+      return out.sort((a, b) => a.matchDate.localeCompare(b.matchDate));
+    },
+    enabled: trainingMatchIds.length > 0,
+  });
+
+  const hasActiveOilFilter = filterByOilType !== null || selectedTrainingMatchIds !== null;
+
+  // Active training match IDs based on oil filter
+  const activeTrainingMatchIds = useMemo(() => {
+    if (filterByOilType && trainingOilData) {
+      return new Set(trainingOilData.filter((m) => m.oilCategory === filterByOilType).map((m) => m.matchId));
+    }
+    if (selectedTrainingMatchIds !== null) return selectedTrainingMatchIds;
+    return null; // null = no restriction
+  }, [filterByOilType, selectedTrainingMatchIds, trainingOilData]);
+
+  // Set of dates (YYYY-MM-DD) corresponding to active training matches (for spare/global filtering)
+  const activeTrainingDates = useMemo(() => {
+    if (!activeTrainingMatchIds || !trainingOilData) return null;
+    return new Set(trainingOilData.filter((m) => activeTrainingMatchIds.has(m.matchId)).map((m) => (m.matchDate || "").slice(0, 10)));
+  }, [activeTrainingMatchIds, trainingOilData]);
+
+
   const players = useMemo(() => {
     if (!trainingData) return [];
     const map = new Map<string, string>();
@@ -190,6 +279,9 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       if (selectedBallId !== "all") {
         games = games.filter((g: any) => g.ballIds?.includes(selectedBallId));
       }
+      if (activeTrainingMatchIds) {
+        games = games.filter((g: any) => activeTrainingMatchIds.has(g.matchId));
+      }
       if (games.length === 0) return { player, stats: null, games: [] };
       const total = games.length;
       const avgScore = games.reduce((s: number, g: any) => s + g.score, 0) / total;
@@ -198,7 +290,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       const high = Math.max(...games.map((g: any) => g.score));
       return { player, stats: { total, avgScore, avgStrike, avgSpare, high }, games };
     }).filter(p => p.stats !== null);
-  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId]);
+  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId, activeTrainingMatchIds]);
 
   // Compute per-player spare stats (legacy bowling_spare_training data).
   // Only displayed for athletes who also have new-system bowling_training_blocks,
@@ -210,6 +302,9 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       let spares = trainingData.spareExercises.filter((ex: any) => ex.player_id === player.id && dateFilter(ex.session_date));
       if (selectedBallId !== "all") {
         spares = spares.filter((ex: any) => ex.ball_arsenal_id === selectedBallId);
+      }
+      if (activeTrainingDates) {
+        spares = spares.filter((ex: any) => activeTrainingDates.has((ex.session_date || "").slice(0, 10)));
       }
       if (spares.length === 0) return { player, byType: {}, total: null };
       const byType: Record<string, { attempts: number; successes: number }> = {};
@@ -224,7 +319,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       const rate = totalAttempts > 0 ? (totalSuccesses / totalAttempts) * 100 : 0;
       return { player, byType, total: { totalAttempts, totalSuccesses, rate } };
     }).filter(p => p.total !== null);
-  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId, athletesWithNewBlocks]);
+  }, [trainingData, filteredPlayers, dateFrom, dateTo, selectedBallId, athletesWithNewBlocks, activeTrainingDates]);
 
   // Compute global stats from new-system bowling_training_blocks
   const globalStats = useMemo(() => {
@@ -233,6 +328,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       if (selectedPlayerId !== "all" && !playerId && b.athlete_id !== selectedPlayerId) return false;
       if (playerId && b.athlete_id !== playerId) return false;
       if (!dateFilter(b.session_date)) return false;
+      if (activeTrainingDates && !activeTrainingDates.has((b.session_date || "").slice(0, 10))) return false;
       return true;
     });
 
@@ -303,7 +399,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       chartData,
       blockCount: filtered.length,
     };
-  }, [trainingBlocks, selectedPlayerId, playerId, dateFrom, dateTo, globalPeriod]);
+  }, [trainingBlocks, selectedPlayerId, playerId, dateFrom, dateTo, globalPeriod, activeTrainingDates]);
 
   // Get unique balls used by all players for ball filter
   const availableBalls = useMemo(() => {
@@ -571,6 +667,83 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
           </Select>
         )}
       </div>
+
+      {/* Oil pattern filter for training sessions */}
+      {trainingOilData && trainingOilData.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              Filtrer par type de huilage
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {(["sport", "challenge", "recreation"] as OilCategoryType[]).map((type) => {
+                const badge = OIL_CATEGORY_BADGES[type];
+                const count = trainingOilData.filter((m) => m.oilCategory === type).length;
+                return (
+                  <Button
+                    key={type}
+                    variant={filterByOilType === type ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => { setSelectedTrainingMatchIds(null); setFilterByOilType((p) => (p === type ? null : type)); }}
+                    className="gap-1.5"
+                    disabled={count === 0}
+                  >
+                    {badge.label}
+                    <Badge variant="secondary" className="text-xs ml-1">{count}</Badge>
+                  </Button>
+                );
+              })}
+              {hasActiveOilFilter && (
+                <Button variant="ghost" size="sm" onClick={() => { setFilterByOilType(null); setSelectedTrainingMatchIds(null); }} className="text-muted-foreground">
+                  Tout afficher
+                </Button>
+              )}
+            </div>
+
+            <div className="border-t pt-3">
+              <p className="text-xs text-muted-foreground mb-2">Ou sélectionner les entraînements individuellement :</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-48 overflow-y-auto">
+                {trainingOilData.map((m) => {
+                  const cat = m.oilCategory ? OIL_CATEGORY_BADGES[m.oilCategory] : null;
+                  const isChecked = filterByOilType
+                    ? m.oilCategory === filterByOilType
+                    : selectedTrainingMatchIds === null || selectedTrainingMatchIds.has(m.matchId);
+                  return (
+                    <label key={m.matchId} className="flex items-center gap-2 p-1.5 rounded hover:bg-muted/50 cursor-pointer text-sm">
+                      <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={() => {
+                          setFilterByOilType(null);
+                          setSelectedTrainingMatchIds((prev) => {
+                            const base = prev !== null ? new Set(prev) : new Set(trainingMatchIds);
+                            if (base.has(m.matchId)) base.delete(m.matchId); else base.add(m.matchId);
+                            return base;
+                          });
+                        }}
+                        disabled={filterByOilType !== null}
+                      />
+                      <span className="truncate flex-1">
+                        {m.matchDate ? format(new Date(m.matchDate), "dd MMM yyyy", { locale: fr }) : "—"}
+                        {m.patternName ? ` · ${m.patternName}` : ""}
+                      </span>
+                      {m.oilRatio ? (
+                        <Badge variant="outline" className={`text-[10px] shrink-0 ${cat?.className || ""}`}>{m.oilRatio}</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-[10px] text-muted-foreground shrink-0">Pas de huilage</Badge>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+
 
       {/* Sub-menu tabs */}
       {(hasGameData || hasSpareData || hasGlobalData) ? (
