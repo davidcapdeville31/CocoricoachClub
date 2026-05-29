@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
@@ -10,6 +12,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { sleepScoreToHours } from "@/lib/sleepConversion";
+import { aggregateWellnessByPeriod, type WellnessPeriod } from "@/lib/wellness/aggregatePeriod";
 
 interface Props {
   playerId: string;
