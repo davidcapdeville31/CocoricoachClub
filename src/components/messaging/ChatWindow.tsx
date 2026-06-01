@@ -44,6 +44,7 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
   const [isAnnouncement, setIsAnnouncement] = useState(false);
   const [pollDialogOpen, setPollDialogOpen] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const queryClient = useQueryClient();
