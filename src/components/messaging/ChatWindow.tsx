@@ -377,6 +377,13 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
         conversationId={conversationId}
         categoryId={categoryId}
       />
+
+      <ManageParticipantsDialog
+        open={manageOpen}
+        onOpenChange={setManageOpen}
+        conversationId={conversationId}
+        categoryId={categoryId}
+      />
     </Card>
   );
 }
