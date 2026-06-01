@@ -75,6 +75,22 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
     },
   });
 
+  const { data: conversation } = useQuery({
+    queryKey: ["conversation-meta", conversationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("conversations")
+        .select("conversation_type, name")
+        .eq("id", conversationId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const canManageMembers =
+    !!conversation && conversation.conversation_type !== "direct";
+
   // Fetch participant profile names for header display
   const { data: participantNames } = useQuery({
     queryKey: ["conversation-participant-names", conversationId, user?.id],
