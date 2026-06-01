@@ -774,7 +774,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                         )}
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            {!isViewer && (
+                            {!isViewer && canManageAthletes && (
                               <Button
                                 variant="ghost"
                                 size="icon"
