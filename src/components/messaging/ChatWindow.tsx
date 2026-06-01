@@ -11,8 +11,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Send, Users, MessageCircle, Bell, Check, CheckCheck, BarChart3, ChevronUp, ChevronDown } from "lucide-react";
+import { Send, Users, MessageCircle, Bell, Check, CheckCheck, BarChart3, ChevronUp, ChevronDown, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { ManageParticipantsDialog } from "./ManageParticipantsDialog";
 import { cn } from "@/lib/utils";
 import { MessageReactions } from "./MessageReactions";
 import { PollMessage } from "./PollMessage";
@@ -43,6 +44,7 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
   const [isAnnouncement, setIsAnnouncement] = useState(false);
   const [pollDialogOpen, setPollDialogOpen] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -72,6 +74,22 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
       return data;
     },
   });
+
+  const { data: conversation } = useQuery({
+    queryKey: ["conversation-meta", conversationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("conversations")
+        .select("conversation_type, name")
+        .eq("id", conversationId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const canManageMembers =
+    !!conversation && conversation.conversation_type !== "direct";
 
   // Fetch participant profile names for header display
   const { data: participantNames } = useQuery({
@@ -216,6 +234,17 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
               <Users className="h-3 w-3 mr-1" />
               {participants?.length || 0}
             </Badge>
+            {canManageMembers && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setManageOpen(true)}
+                className="text-xs"
+                title="Gérer les membres"
+              >
+                <UserPlus className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
@@ -345,6 +374,13 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
       <CreatePollDialog
         open={pollDialogOpen}
         onOpenChange={setPollDialogOpen}
+        conversationId={conversationId}
+        categoryId={categoryId}
+      />
+
+      <ManageParticipantsDialog
+        open={manageOpen}
+        onOpenChange={setManageOpen}
         conversationId={conversationId}
         categoryId={categoryId}
       />
