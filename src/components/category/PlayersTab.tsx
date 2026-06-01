@@ -637,7 +637,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
                         </div>
                       )}
                       <div className="flex items-center gap-1.5 ml-auto" onClick={(e) => e.stopPropagation()}>
-                        {!isViewer && (
+                        {!isViewer && canManageAthletes && (
                           <Button
                             variant="ghost"
                             size="icon"
