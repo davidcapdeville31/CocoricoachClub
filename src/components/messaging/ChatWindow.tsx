@@ -234,6 +234,17 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
               <Users className="h-3 w-3 mr-1" />
               {participants?.length || 0}
             </Badge>
+            {canManageMembers && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setManageOpen(true)}
+                className="text-xs"
+                title="Gérer les membres"
+              >
+                <UserPlus className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
