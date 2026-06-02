@@ -58,7 +58,22 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   const [filterTo, setFilterTo] = useState<Date | undefined>(new Date());
   const [filterPlayerId, setFilterPlayerId] = useState<string>("all");
   const { isViewer } = useViewerModeContext();
-  const { userRole } = useMenuPermissions(undefined, categoryId);
+
+  // Fetch clubId so useMenuPermissions can detect club-level roles
+  // (e.g. doctor / prepa_physique stored at club level, not category level).
+  const { data: categoryClub } = useQuery({
+    queryKey: ["wellness-category-club", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("club_id")
+        .eq("id", categoryId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const { userRole } = useMenuPermissions(categoryClub?.club_id, categoryId);
 
   // Global Radix pointer-events:none lock recovery is handled in App via
   // useRadixPointerEventsGuard.
