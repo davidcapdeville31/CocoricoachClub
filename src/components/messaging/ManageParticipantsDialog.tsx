@@ -17,12 +17,14 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Plus, X, Search, Shield } from "lucide-react";
 import { toast } from "sonner";
+import { resolveUserDisplayNames } from "./userDisplayNames";
 
 interface ManageParticipantsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   conversationId: string;
   categoryId: string;
+  canManage: boolean;
 }
 
 interface Candidate {
@@ -36,6 +38,7 @@ export function ManageParticipantsDialog({
   onOpenChange,
   conversationId,
   categoryId,
+  canManage,
 }: ManageParticipantsDialogProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -51,21 +54,17 @@ export function ManageParticipantsDialog({
         .eq("conversation_id", conversationId);
       if (error) throw error;
       const ids = (data || []).map((p) => p.user_id);
-      if (ids.length === 0) return [] as Array<{ user_id: string; is_admin: boolean; name: string }>;
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .in("id", ids);
+      const nameMap = await resolveUserDisplayNames({ userIds: ids, currentUser: user });
       return (data || []).map((p) => ({
         user_id: p.user_id,
         is_admin: !!p.is_admin,
-        name: profiles?.find((pr) => pr.id === p.user_id)?.full_name || "Utilisateur",
+        name: nameMap[p.user_id] || "Utilisateur",
       }));
     },
     enabled: open,
   });
 
-  // Available candidates (staff + athletes of the category)
+  // Available candidates: current staff + current athletes of the category
   const { data: candidates } = useQuery({
     queryKey: ["conv-candidates", categoryId],
     queryFn: async () => {
@@ -75,27 +74,20 @@ export function ManageParticipantsDialog({
         .eq("id", categoryId)
         .single();
 
-      const result: Candidate[] = [];
+      const ids = new Set<string>();
+      const kindByUser = new Map<string, "staff" | "athlete">();
 
       if (category) {
         const { data: staff } = await supabase
           .from("club_members")
           .select("user_id")
           .eq("club_id", category.club_id);
-        const staffIds = (staff || []).map((s) => s.user_id).filter(Boolean);
-        if (staffIds.length > 0) {
-          const { data: profiles } = await supabase
-            .from("profiles")
-            .select("id, full_name")
-            .in("id", staffIds);
-          staffIds.forEach((uid) => {
-            result.push({
-              user_id: uid,
-              name: profiles?.find((p) => p.id === uid)?.full_name || "Staff",
-              kind: "staff",
-            });
-          });
-        }
+        (staff || []).forEach((s) => {
+          if (s.user_id) {
+            ids.add(s.user_id);
+            kindByUser.set(s.user_id, "staff");
+          }
+        });
       }
 
       const { data: athletes } = await supabase
@@ -103,23 +95,23 @@ export function ManageParticipantsDialog({
         .select("user_id")
         .eq("category_id", categoryId)
         .eq("role", "athlete");
-      const athleteIds = (athletes || []).map((a) => a.user_id).filter(Boolean);
-      if (athleteIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", athleteIds);
-        athleteIds.forEach((uid) => {
-          if (!result.find((r) => r.user_id === uid)) {
-            result.push({
-              user_id: uid,
-              name: profiles?.find((p) => p.id === uid)?.full_name || "Athlète",
-              kind: "athlete",
-            });
-          }
-        });
-      }
+      (athletes || []).forEach((a) => {
+        if (a.user_id && !ids.has(a.user_id)) {
+          ids.add(a.user_id);
+          kindByUser.set(a.user_id, "athlete");
+        }
+      });
 
+      const userIds = Array.from(ids);
+      const nameMap = await resolveUserDisplayNames({ userIds, currentUser: user });
+
+      const result: Candidate[] = userIds.map((uid) => ({
+        user_id: uid,
+        name: nameMap[uid] || (kindByUser.get(uid) === "staff" ? "Staff" : "Athlète"),
+        kind: kindByUser.get(uid) || "athlete",
+      }));
+      // Sort by name
+      result.sort((a, b) => a.name.localeCompare(b.name));
       return result;
     },
     enabled: open,
@@ -185,16 +177,18 @@ export function ManageParticipantsDialog({
         <DialogHeader>
           <DialogTitle>Gérer les membres</DialogTitle>
           <DialogDescription>
-            Ajoutez ou retirez des participants de cette conversation.
+            {canManage
+              ? "Ajoutez ou retirez des participants de cette conversation."
+              : "Liste des participants. Seuls les responsables (propriétaire, admin, coach) peuvent modifier les membres."}
           </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="members" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className={`grid w-full ${canManage ? "grid-cols-2" : "grid-cols-1"}`}>
             <TabsTrigger value="members">
               Membres ({participants?.length || 0})
             </TabsTrigger>
-            <TabsTrigger value="add">Ajouter</TabsTrigger>
+            {canManage && <TabsTrigger value="add">Ajouter</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="members" className="mt-4">
@@ -216,7 +210,7 @@ export function ManageParticipantsDialog({
                         </Badge>
                       )}
                     </div>
-                    {p.user_id !== user?.id && (
+                    {canManage && p.user_id !== user?.id && (
                       <Button
                         variant="ghost"
                         size="icon"
@@ -233,52 +227,54 @@ export function ManageParticipantsDialog({
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="add" className="mt-4 space-y-3">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher..."
-                className="pl-8"
-              />
-            </div>
-            <ScrollArea className="h-[280px] pr-3">
-              <div className="space-y-2">
-                {filteredAvailable.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-6">
-                    Aucune personne disponible à ajouter.
-                  </p>
-                ) : (
-                  filteredAvailable.map((c) => (
-                    <div
-                      key={c.user_id}
-                      className="flex items-center gap-3 p-2 rounded-lg border border-border/40"
-                    >
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="text-xs">{initials(c.name)}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{c.name}</p>
-                        <Badge variant="outline" className="text-[10px] h-4">
-                          {c.kind === "staff" ? "Staff" : "Athlète"}
-                        </Badge>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => addMember.mutate(c.user_id)}
-                        disabled={addMember.isPending}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))
-                )}
+          {canManage && (
+            <TabsContent value="add" className="mt-4 space-y-3">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Rechercher..."
+                  className="pl-8"
+                />
               </div>
-            </ScrollArea>
-          </TabsContent>
+              <ScrollArea className="h-[280px] pr-3">
+                <div className="space-y-2">
+                  {filteredAvailable.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-6">
+                      Aucune personne disponible à ajouter.
+                    </p>
+                  ) : (
+                    filteredAvailable.map((c) => (
+                      <div
+                        key={c.user_id}
+                        className="flex items-center gap-3 p-2 rounded-lg border border-border/40"
+                      >
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="text-xs">{initials(c.name)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{c.name}</p>
+                          <Badge variant="outline" className="text-[10px] h-4">
+                            {c.kind === "staff" ? "Staff" : "Athlète"}
+                          </Badge>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => addMember.mutate(c.user_id)}
+                          disabled={addMember.isPending}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+            </TabsContent>
+          )}
         </Tabs>
       </DialogContent>
     </Dialog>

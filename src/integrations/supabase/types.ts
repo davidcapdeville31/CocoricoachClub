@@ -15141,6 +15141,10 @@ export type Database = {
         }
         Returns: Json
       }
+      user_is_chat_manager: {
+        Args: { _conversation_id: string; _user_id: string }
+        Returns: boolean
+      }
       user_is_conversation_admin: {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
