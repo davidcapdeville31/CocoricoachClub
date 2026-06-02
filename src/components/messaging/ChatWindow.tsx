@@ -423,6 +423,7 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
         onOpenChange={setManageOpen}
         conversationId={conversationId}
         categoryId={categoryId}
+        canManage={canManageMembers}
       />
     </Card>
   );
