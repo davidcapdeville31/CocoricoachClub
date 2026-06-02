@@ -88,8 +88,48 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
     },
   });
 
+  // Only staff (club owner / admin / coach, or category admin / coach) can manage members
+  const { data: isChatManager } = useQuery({
+    queryKey: ["is-chat-manager", categoryId, user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { data: category } = await supabase
+        .from("categories")
+        .select("club_id")
+        .eq("id", categoryId)
+        .maybeSingle();
+      if (!category) return false;
+
+      const { data: club } = await supabase
+        .from("clubs")
+        .select("user_id")
+        .eq("id", category.club_id)
+        .maybeSingle();
+      if (club?.user_id === user.id) return true;
+
+      const { data: clubMember } = await supabase
+        .from("club_members")
+        .select("role")
+        .eq("club_id", category.club_id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (clubMember && ["admin", "coach"].includes(clubMember.role)) return true;
+
+      const { data: catMember } = await supabase
+        .from("category_members")
+        .select("role")
+        .eq("category_id", categoryId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (catMember && ["admin", "coach"].includes(catMember.role)) return true;
+
+      return false;
+    },
+    enabled: !!user && !!categoryId,
+  });
+
   const canManageMembers =
-    !!conversation && conversation.conversation_type !== "direct";
+    !!conversation && conversation.conversation_type !== "direct" && !!isChatManager;
 
   // Fetch participant profile names for header display
   const { data: participantNames } = useQuery({
