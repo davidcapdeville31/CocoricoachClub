@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Plus, X, Search, Shield } from "lucide-react";
 import { toast } from "sonner";
-import { resolveUserDisplayNames } from "./userDisplayNames";
+import { fetchCategoryRosterUserNames, resolveUserDisplayNames } from "./userDisplayNames";
 
 interface ManageParticipantsDialogProps {
   open: boolean;
@@ -54,7 +54,11 @@ export function ManageParticipantsDialog({
         .eq("conversation_id", conversationId);
       if (error) throw error;
       const ids = (data || []).map((p) => p.user_id);
-      const nameMap = await resolveUserDisplayNames({ userIds: ids, currentUser: user });
+      const nameMap = await resolveUserDisplayNames({
+        categoryId,
+        userIds: ids,
+        currentUser: user,
+      });
       return (data || []).map((p) => ({
         user_id: p.user_id,
         is_admin: !!p.is_admin,
@@ -90,22 +94,21 @@ export function ManageParticipantsDialog({
         });
       }
 
-      const { data: athletes } = await supabase
-        .from("category_members")
-        .select("user_id")
-        .eq("category_id", categoryId)
-        .eq("role", "athlete");
-      (athletes || []).forEach((a) => {
-        if (a.user_id && !ids.has(a.user_id)) {
-          ids.add(a.user_id);
-          kindByUser.set(a.user_id, "athlete");
+      const athleteNameMap = await fetchCategoryRosterUserNames({ categoryId });
+      Object.keys(athleteNameMap).forEach((userId) => {
+        if (!ids.has(userId)) {
+          ids.add(userId);
         }
+        kindByUser.set(userId, "athlete");
       });
 
       const userIds = Array.from(ids);
-      const nameMap = await resolveUserDisplayNames({ userIds, currentUser: user });
+      const nameMap = await resolveUserDisplayNames({
+        categoryId,
+        userIds,
+        currentUser: user,
+      });
 
-      // Only surface candidates with a resolved name (avoid generic "Athlète"/"Staff" lines).
       const result: Candidate[] = userIds
         .filter((uid) => !!nameMap[uid])
         .map((uid) => ({
