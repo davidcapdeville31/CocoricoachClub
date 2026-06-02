@@ -137,7 +137,7 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
     queryFn: async () => {
       if (!participants || participants.length === 0) return [];
       const userIds = participants.map(p => p.user_id);
-      const nameMap = await resolveUserDisplayNames({ userIds, currentUser: user });
+      const nameMap = await resolveUserDisplayNames({ categoryId, userIds, currentUser: user });
       return getOrderedDistinctResolvedNames(userIds, nameMap);
     },
     enabled: !!participants && participants.length > 0,
@@ -149,7 +149,7 @@ export function ChatWindow({ conversationId, categoryId }: ChatWindowProps) {
       if (!messages) return {};
       const uniqueIds = [...new Set(messages.map(m => m.sender_id))];
       if (uniqueIds.length === 0) return {};
-      return resolveUserDisplayNames({ userIds: uniqueIds, currentUser: user });
+      return resolveUserDisplayNames({ categoryId, userIds: uniqueIds, currentUser: user });
     },
     enabled: !!messages && messages.length > 0,
   });
