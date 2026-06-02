@@ -2,6 +2,7 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ResolveUserDisplayNamesParams {
+  categoryId?: string;
   userIds: string[];
   currentUser?: User | null;
 }
@@ -19,7 +20,75 @@ function getUserMetadataDisplayName(user: User | null | undefined) {
   return user.email?.split("@")[0] || null;
 }
 
+export async function fetchCategoryRosterUserNames({
+  categoryId,
+  userIds,
+}: {
+  categoryId: string;
+  userIds?: string[];
+}) {
+  const scopedUserIds = [...new Set((userIds || []).filter(Boolean))];
+  const hasScopedIds = scopedUserIds.length > 0;
+  const nameMap: Record<string, string> = {};
+
+  let directPlayersQuery = supabase
+    .from("players_safe")
+    .select("id, user_id, first_name, name")
+    .eq("category_id", categoryId)
+    .not("user_id", "is", null);
+
+  if (hasScopedIds) {
+    directPlayersQuery = directPlayersQuery.in("user_id", scopedUserIds);
+  }
+
+  const { data: directPlayers } = await directPlayersQuery.order("name");
+
+  const directPlayerIds = new Set<string>();
+  directPlayers?.forEach((player) => {
+    if (!player.id || !player.user_id || nameMap[player.user_id]) return;
+    directPlayerIds.add(player.id);
+    const displayName = [player.first_name, player.name].filter(Boolean).join(" ").trim();
+    if (displayName) {
+      nameMap[player.user_id] = displayName;
+    }
+  });
+
+  const { data: linkedEntries } = await supabase
+    .from("player_categories")
+    .select("player_id")
+    .eq("category_id", categoryId)
+    .eq("status", "accepted");
+
+  const linkedIds = (linkedEntries || [])
+    .map((entry) => entry.player_id)
+    .filter((playerId): playerId is string => !!playerId && !directPlayerIds.has(playerId));
+
+  if (linkedIds.length > 0) {
+    let linkedPlayersQuery = supabase
+      .from("players_safe")
+      .select("id, user_id, first_name, name")
+      .in("id", linkedIds)
+      .not("user_id", "is", null);
+
+    if (hasScopedIds) {
+      linkedPlayersQuery = linkedPlayersQuery.in("user_id", scopedUserIds);
+    }
+
+    const { data: linkedPlayers } = await linkedPlayersQuery.order("name");
+    linkedPlayers?.forEach((player) => {
+      if (!player.user_id || nameMap[player.user_id]) return;
+      const displayName = [player.first_name, player.name].filter(Boolean).join(" ").trim();
+      if (displayName) {
+        nameMap[player.user_id] = displayName;
+      }
+    });
+  }
+
+  return nameMap;
+}
+
 export async function resolveUserDisplayNames({
+  categoryId,
   userIds,
   currentUser,
 }: ResolveUserDisplayNamesParams) {
@@ -30,24 +99,33 @@ export async function resolveUserDisplayNames({
     return nameMap;
   }
 
-  // 1) Prefer player records first (sport-context names: "Test5 NGUYEN").
-  //    A user may have a profile.full_name that differs from their athlete
-  //    name in a given category; we surface the player name when available.
-  const { data: players } = await supabase
-    .from("players")
-    .select("user_id, first_name, name")
-    .in("user_id", uniqueUserIds)
-    .not("user_id", "is", null);
+  // In chat/category context, prefer only the athlete name from the current roster.
+  if (categoryId) {
+    const rosterNameMap = await fetchCategoryRosterUserNames({
+      categoryId,
+      userIds: uniqueUserIds,
+    });
+    Object.assign(nameMap, rosterNameMap);
+  }
 
-  players?.forEach((player) => {
-    if (!player.user_id || nameMap[player.user_id]) return;
-    const displayName = [player.first_name, player.name].filter(Boolean).join(" ").trim();
-    if (displayName) {
-      nameMap[player.user_id] = displayName;
-    }
-  });
+  // Outside a category-specific context, prefer any player record first.
+  if (!categoryId) {
+    const { data: players } = await supabase
+      .from("players")
+      .select("user_id, first_name, name")
+      .in("user_id", uniqueUserIds)
+      .not("user_id", "is", null);
 
-  // 2) Then fall back to profiles.full_name for users without a player row.
+    players?.forEach((player) => {
+      if (!player.user_id || nameMap[player.user_id]) return;
+      const displayName = [player.first_name, player.name].filter(Boolean).join(" ").trim();
+      if (displayName) {
+        nameMap[player.user_id] = displayName;
+      }
+    });
+  }
+
+  // Then fall back to staff/profile names for unresolved users.
   const idsForProfiles = uniqueUserIds.filter((id) => !nameMap[id]);
   if (idsForProfiles.length > 0) {
     const { data: profiles } = await supabase
@@ -68,7 +146,7 @@ export async function resolveUserDisplayNames({
     });
   }
 
-  // 4) Current authenticated user fallback via JWT metadata.
+  // Current authenticated user fallback via JWT metadata.
   if (currentUser && uniqueUserIds.includes(currentUser.id) && !nameMap[currentUser.id]) {
     const currentUserName = getUserMetadataDisplayName(currentUser);
     if (currentUserName) {
