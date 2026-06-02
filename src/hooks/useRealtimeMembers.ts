@@ -17,10 +17,17 @@ export function useRealtimeMembers(scopeKey: string = "global") {
         queryClient.invalidateQueries({ queryKey: ["club-members"] });
         queryClient.invalidateQueries({ queryKey: ["club-members-full"] });
         queryClient.invalidateQueries({ queryKey: ["club-members-for-category"] });
+        queryClient.invalidateQueries({ queryKey: ["conv-candidates"] });
+        queryClient.invalidateQueries({ queryKey: ["conv-participants-manage"] });
+        queryClient.invalidateQueries({ queryKey: ["conversation-participant-names"] });
         queryClient.invalidateQueries({ queryKey: ["conversations"] });
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "category_members" }, () => {
         queryClient.invalidateQueries({ queryKey: ["category-members"] });
+        queryClient.invalidateQueries({ queryKey: ["players"] });
+        queryClient.invalidateQueries({ queryKey: ["conv-candidates"] });
+        queryClient.invalidateQueries({ queryKey: ["conv-participants-manage"] });
+        queryClient.invalidateQueries({ queryKey: ["conversation-participant-names"] });
         queryClient.invalidateQueries({ queryKey: ["conversations"] });
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "club_invitations" }, () => {
