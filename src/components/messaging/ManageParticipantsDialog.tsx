@@ -105,11 +105,14 @@ export function ManageParticipantsDialog({
       const userIds = Array.from(ids);
       const nameMap = await resolveUserDisplayNames({ userIds, currentUser: user });
 
-      const result: Candidate[] = userIds.map((uid) => ({
-        user_id: uid,
-        name: nameMap[uid] || (kindByUser.get(uid) === "staff" ? "Staff" : "Athlète"),
-        kind: kindByUser.get(uid) || "athlete",
-      }));
+      // Only surface candidates with a resolved name (avoid generic "Athlète"/"Staff" lines).
+      const result: Candidate[] = userIds
+        .filter((uid) => !!nameMap[uid])
+        .map((uid) => ({
+          user_id: uid,
+          name: nameMap[uid],
+          kind: kindByUser.get(uid) || "athlete",
+        }));
       // Sort by name
       result.sort((a, b) => a.name.localeCompare(b.name));
       return result;
