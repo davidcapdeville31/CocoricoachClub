@@ -256,6 +256,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       );
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness-today"] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness-filled-dates", playerId] });
       if (showHrv) {
         queryClient.invalidateQueries({ queryKey: ["hrv_records"] });
       }
