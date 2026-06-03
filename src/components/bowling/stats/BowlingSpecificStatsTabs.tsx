@@ -27,13 +27,11 @@ import { TACTICAL_EXERCISE_TYPES } from "@/lib/constants/bowlingTacticalZones";
 interface Props {
   playerId: string;
   categoryId: string;
-  /** Optional rendered node for "Stats Parties d'entraînement" sub-tab (precision charts from games). */
-  partiesContent?: ReactNode;
 }
 
 const ALL_EXERCISE_TYPES = [...TECHNICAL_EXERCISE_TYPES, ...TACTICAL_EXERCISE_TYPES];
 
-export function BowlingSpecificStatsTabs({ playerId, categoryId, partiesContent }: Props) {
+export function BowlingSpecificStatsTabs({ playerId, categoryId }: Props) {
   const [subTab, setSubTab] = useState("technique");
   // Filters
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
