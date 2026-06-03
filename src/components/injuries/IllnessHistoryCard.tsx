@@ -29,8 +29,10 @@ const STATUS = {
 
 export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
   const qc = useQueryClient();
   const { isViewer } = useViewerModeContext();
+
 
   const { data: illnesses, isLoading } = useQuery({
     queryKey: ["illnesses", categoryId],
