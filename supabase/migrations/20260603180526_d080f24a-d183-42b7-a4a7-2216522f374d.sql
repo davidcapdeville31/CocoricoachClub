@@ -1,0 +1,1 @@
+ALTER TABLE public.injuries ADD COLUMN IF NOT EXISTS current_rehab_phase integer NOT NULL DEFAULT 1;
