@@ -14388,6 +14388,7 @@ export type Database = {
           has_specific_pain: boolean
           id: string
           notes: string | null
+          pain_entries: Json
           pain_intensity: number | null
           pain_location: string | null
           pain_nature: string | null
@@ -14408,6 +14409,7 @@ export type Database = {
           has_specific_pain?: boolean
           id?: string
           notes?: string | null
+          pain_entries?: Json
           pain_intensity?: number | null
           pain_location?: string | null
           pain_nature?: string | null
@@ -14428,6 +14430,7 @@ export type Database = {
           has_specific_pain?: boolean
           id?: string
           notes?: string | null
+          pain_entries?: Json
           pain_intensity?: number | null
           pain_location?: string | null
           pain_nature?: string | null

@@ -1,0 +1,1 @@
+ALTER TABLE public.wellness_tracking ADD COLUMN IF NOT EXISTS pain_entries jsonb NOT NULL DEFAULT '[]'::jsonb;
