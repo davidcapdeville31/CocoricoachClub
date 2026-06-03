@@ -521,10 +521,49 @@ export function BowlingSpecificStatsTabs({ playerId, categoryId }: Props) {
 
         {/* ─── Tactique ─── */}
         <TabsContent value="tactique" className="space-y-4 mt-4">
+          {/* Séances simplifiées — tentatives / réussites */}
+          {tacticalByExercise.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Target className="h-4 w-4 text-amber-600" />
+                  Séances simplifiées — Réussite par objectif tactique
+                  <Badge variant="outline" className="ml-auto text-[10px]">
+                    {tacticalTotals.successes}/{tacticalTotals.attempts} ({tacticalTotals.pct}%)
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {tacticalByExercise.map((e) => (
+                  <div key={e.label} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs gap-2">
+                      <span className="font-medium truncate">{e.label}</span>
+                      <span className="flex items-center gap-2 shrink-0">
+                        <Badge variant="outline" className="text-[10px]">{e.successes}/{e.attempts}</Badge>
+                        <span className="font-semibold w-10 text-right">{e.pct}%</span>
+                      </span>
+                    </div>
+                    <div className="h-2 bg-muted rounded overflow-hidden">
+                      <div className={cn(
+                        "h-full rounded transition-all",
+                        e.pct >= 70 ? "bg-emerald-500" : e.pct >= 40 ? "bg-amber-500" : "bg-red-500",
+                      )} style={{ width: `${e.pct}%` }} />
+                    </div>
+                  </div>
+                ))}
+                <p className="text-[11px] text-muted-foreground pt-1">
+                  Issu des séances bowling en mode simplifié (tentatives / réussites déclarées par objectif). Les analyses détaillées ci-dessous (zones, flèches, pattern…) proviennent du mode avancé.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           {isLoading ? (
             <Card><CardContent className="py-6 text-sm text-muted-foreground text-center">Chargement…</CardContent></Card>
           ) : tacticalStats.totalThrows === 0 ? (
-            <EmptyState icon={<Target className="h-10 w-10" />} text="Aucun lancer tactique enregistré sur la période." />
+            tacticalByExercise.length === 0 ? (
+              <EmptyState icon={<Target className="h-10 w-10" />} text="Aucun lancer tactique enregistré sur la période." />
+            ) : null
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
