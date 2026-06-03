@@ -104,7 +104,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
     setDate(new Date().toISOString().split("T")[0]);
     setNotes("");
     setHasSpecificPain(false);
-    setPainData({});
+    setPainEntries([]);
     setHrvData(emptyHrvData);
     const initial: Record<string, number> = {};
     for (const q of activeQuestions) {
