@@ -18,6 +18,7 @@ import {
   getParamLabel,
 } from "@/lib/constants/bowlingTechnicalParameters";
 import { TARGET_OUTCOMES, outcomeLabel } from "@/lib/constants/bowlingTargetOutcomes";
+import { BowlingTechnicalBlockStats } from "@/components/bowling/stats/BowlingTechnicalBlockStats";
 
 interface BlockRow {
   id: string;
