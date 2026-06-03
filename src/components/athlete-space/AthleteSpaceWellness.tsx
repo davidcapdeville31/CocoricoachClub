@@ -90,6 +90,24 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     },
   });
 
+  // Liste des jours déjà remplis (sur les 30 derniers jours) pour les afficher dans le calendrier
+  const { data: filledDates } = useQuery({
+    queryKey: ["athlete-space-wellness-filled-dates", playerId],
+    queryFn: async () => {
+      const from = format(subDays(startOfDay(new Date()), 30), "yyyy-MM-dd");
+      const { data, error } = await supabase
+        .from("wellness_tracking")
+        .select("tracking_date")
+        .eq("player_id", playerId)
+        .gte("tracking_date", from);
+      if (error) throw error;
+      return (data ?? []).map((r: any) => {
+        const [y, m, d] = r.tracking_date.split("-").map(Number);
+        return new Date(y, m - 1, d);
+      });
+    },
+  });
+
   // Dynamic values state keyed by question key
   const [values, setValues] = useState<Record<string, number>>({});
 
