@@ -135,7 +135,7 @@ export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
     enabled: true,
     inverted: false,
     is_custom: false,
-    scale: positiveScale(["Très mal dormi", "Mal dormi", "Moyen", "Bien dormi", "Très bien dormi"]),
+    scale: positiveScale(["Pas dormi", "Très mal dormi", "Mal dormi", "Moyen", "Bien dormi", "Très bien dormi"]),
   },
   {
     key: "sleep_duration",
@@ -145,7 +145,7 @@ export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
     inverted: false,
     is_custom: false,
     is_sleep_duration: true,
-    scale: positiveScale(["<6h", "6-7h", "7-8h", "8-9h", ">9h"]),
+    scale: positiveScale(["<6h", "<6h", "6-7h", "7-8h", "8-9h", ">9h"]),
   },
   {
     key: "general_fatigue",
@@ -154,7 +154,7 @@ export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
     enabled: true,
     inverted: true,
     is_custom: false,
-    scale: invertedScale(["Très en forme", "En forme", "Fatigué", "Très fatigué", "Épuisé"]),
+    scale: invertedScale(["Aucune fatigue", "Très en forme", "En forme", "Fatigué", "Très fatigué", "Épuisé"]),
   },
   {
     key: "soreness_upper_body",
@@ -179,6 +179,7 @@ export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
     key: "stress_level",
     label: "Stress",
     emoji: "🧠",
+
     enabled: true,
     inverted: true,
     is_custom: false,
