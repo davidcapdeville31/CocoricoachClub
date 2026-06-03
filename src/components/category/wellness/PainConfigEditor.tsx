@@ -226,8 +226,8 @@ export function PainConfigEditor({ categoryId }: Props) {
           </Label>
           <div className="rounded-xl border bg-muted/20 p-3">
             <BodyPainSelector
-              value={previewValue}
-              onChange={setPreviewValue}
+              entries={previewEntries}
+              onChange={setPreviewEntries}
               categoryId={categoryId}
             />
           </div>
