@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import bodyAnatomyFront from "@/assets/body-anatomy-front.png";
 import bodyAnatomyBack from "@/assets/body-anatomy-back.png";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Plus, X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -16,20 +18,16 @@ import { usePainConfig, DEFAULT_PAIN_CONFIG, type PainConfig } from "@/lib/welln
 export type BodyRegion = {
   id: string;
   label: string;
-  zone: string; // matches PAIN_ZONES.zone
-  // Position in % of the SVG viewbox (front or back)
+  zone: string;
   side: "front" | "back";
-  cx: number; // 0..100
-  cy: number; // 0..100
+  cx: number;
+  cy: number;
 };
 
-// Coordinates calibrated against a 200x500 stylised silhouette displayed at 50% width each side.
 const REGIONS: BodyRegion[] = [
   // ===== FRONT =====
   { id: "head_front", label: "Tête", zone: "Tête", side: "front", cx: 50, cy: 9 },
   { id: "neck_front", label: "Nuque / Cervicales", zone: "Haut du corps", side: "front", cx: 50, cy: 17 },
-  // NOTE: front view = athlete faces the viewer. Athlete's RIGHT side appears on
-  // screen LEFT, so labels are mirrored vs back view.
   { id: "shoulder_l", label: "Épaule droite", zone: "Haut du corps", side: "front", cx: 38, cy: 21 },
   { id: "shoulder_r", label: "Épaule gauche", zone: "Haut du corps", side: "front", cx: 62, cy: 21 },
   { id: "pec_l", label: "Pectoral droit", zone: "Haut du corps", side: "front", cx: 43, cy: 26 },
@@ -94,20 +92,25 @@ const REGIONS: BodyRegion[] = [
 ];
 
 export interface BodyPainValue {
-  region: string; // location label
+  region: string;
   zone: string;
   nature: string;
   intensity: number;
 }
 
-interface Props {
-  value: Partial<BodyPainValue>;
-  onChange: (v: BodyPainValue) => void;
-  categoryId: string;
-  compact?: boolean;
+export interface BodyPainEntry extends BodyPainValue {
+  region_id?: string;
 }
 
-// Realistic anatomical body silhouette using high-quality medical illustrations
+interface Props {
+  /** Multi-pain entries. */
+  entries: BodyPainEntry[];
+  onChange: (entries: BodyPainEntry[]) => void;
+  categoryId: string;
+  compact?: boolean;
+  disabled?: boolean;
+}
+
 function BodySilhouette({ side }: { side: "front" | "back" }) {
   return (
     <img
@@ -122,46 +125,51 @@ function BodySilhouette({ side }: { side: "front" | "back" }) {
 
 function BodyDots({
   regions,
-  selectedId,
+  entriesByRegionId,
+  selectedRegionId,
   onSelect,
-  intensity,
-  intensityColor,
+  config,
+  disabled,
 }: {
   regions: BodyRegion[];
-  selectedId?: string;
+  entriesByRegionId: Map<string, BodyPainEntry>;
+  selectedRegionId?: string;
   onSelect: (r: BodyRegion) => void;
-  intensity: number;
-  intensityColor: string;
+  config: PainConfig;
+  disabled?: boolean;
 }) {
   return (
     <div className="absolute inset-0">
       {regions.map((r) => {
-        const isSelected = selectedId === r.id;
+        const entry = entriesByRegionId.get(r.id);
+        const hasEntry = !!entry;
+        const isSelected = selectedRegionId === r.id;
+        const color = hasEntry
+          ? (config.scale.find((s) => s.value === entry.intensity)?.color ?? "#dc2626")
+          : "#dc2626";
         return (
           <button
             key={r.id}
             type="button"
+            disabled={disabled}
             onClick={() => onSelect(r)}
             title={r.label}
             aria-label={r.label}
             className={cn(
               "absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition-all",
-              "hover:scale-[2] hover:z-10 ring-[0.5px] ring-white/80",
-              isSelected
-                ? "h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 ring-2 ring-foreground shadow-md z-20"
-                : "h-[5px] w-[5px] sm:h-2 sm:w-2 hover:opacity-90",
+              !disabled && "hover:scale-[2] hover:z-10 ring-[0.5px] ring-white/80",
+              hasEntry
+                ? "h-3 w-3 sm:h-4 sm:w-4 ring-2 ring-foreground/70 shadow-md z-10"
+                : isSelected
+                  ? "h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 ring-2 ring-foreground shadow-md z-20"
+                  : "h-[5px] w-[5px] sm:h-2 sm:w-2 hover:opacity-90",
+              disabled && "cursor-not-allowed opacity-60",
             )}
-            style={{
-              left: `${r.cx}%`,
-              top: `${r.cy}%`,
-              // Bright red dot with white ring + dark outline so it stays visible on
-              // any silhouette tone and any club branding theme.
-              backgroundColor: isSelected ? intensityColor : "#dc2626",
-            }}
+            style={{ left: `${r.cx}%`, top: `${r.cy}%`, backgroundColor: color }}
           >
-            {isSelected && (
-              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white">
-                {intensity}
+            {hasEntry && (
+              <span className="absolute inset-0 flex items-center justify-center text-[9px] sm:text-[10px] font-bold text-white">
+                {entry.intensity}
               </span>
             )}
           </button>
@@ -171,49 +179,50 @@ function BodyDots({
   );
 }
 
-export function BodyPainSelector({ value, onChange, categoryId, compact }: Props) {
+export function BodyPainSelector({ entries, onChange, categoryId, compact, disabled }: Props) {
   const { data: painConfig } = usePainConfig(categoryId);
-  // Fallback to defaults while loading so the UI (intensity 1-5 + natures) is always interactive.
   const config: PainConfig = painConfig ?? DEFAULT_PAIN_CONFIG;
 
   const [selectedRegionId, setSelectedRegionId] = useState<string | undefined>();
 
-  const intensity = value.intensity ?? 3;
-  const nature = value.nature ?? config.natures[0]?.key ?? "musculaire";
+  const entriesByRegionId = useMemo(() => {
+    const m = new Map<string, BodyPainEntry>();
+    for (const e of entries) {
+      if (e.region_id) m.set(e.region_id, e);
+    }
+    return m;
+  }, [entries]);
 
-  const intensityColor =
-    config.scale.find((s) => s.value === intensity)?.color ?? "hsl(var(--destructive))";
+  const selectedEntry = selectedRegionId ? entriesByRegionId.get(selectedRegionId) : undefined;
 
   const handleRegionSelect = (r: BodyRegion) => {
+    if (disabled) return;
     setSelectedRegionId(r.id);
-    onChange({
-      region: r.label,
-      zone: r.zone,
-      nature,
-      intensity,
-    });
+    if (!entriesByRegionId.has(r.id)) {
+      // Add new entry with defaults
+      const defaultNature = config.natures[0]?.key ?? "musculaire";
+      const newEntry: BodyPainEntry = {
+        region_id: r.id,
+        region: r.label,
+        zone: r.zone,
+        nature: defaultNature,
+        intensity: 3,
+      };
+      onChange([...entries, newEntry]);
+    }
   };
 
-  const handleNatureChange = (n: string) => {
-    onChange({
-      region: value.region ?? "",
-      zone: value.zone ?? "",
-      nature: n,
-      intensity,
-    });
+  const updateEntry = (regionId: string, patch: Partial<BodyPainEntry>) => {
+    onChange(entries.map((e) => (e.region_id === regionId ? { ...e, ...patch } : e)));
   };
 
-  const handleIntensityChange = (i: number) => {
-    onChange({
-      region: value.region ?? "",
-      zone: value.zone ?? "",
-      nature,
-      intensity: i,
-    });
+  const removeEntry = (regionId: string) => {
+    onChange(entries.filter((e) => e.region_id !== regionId));
+    if (selectedRegionId === regionId) setSelectedRegionId(undefined);
   };
 
   return (
-    <div className={cn("space-y-3", compact && "space-y-2")}>
+    <div className={cn("space-y-3", compact && "space-y-2", disabled && "opacity-60 pointer-events-none select-none")}>
       {/* Body diagrams */}
       <div className="grid grid-cols-2 gap-2 bg-gradient-to-b from-surface-sunken/60 to-surface-sunken/20 rounded-2xl border p-2 shadow-inner overflow-hidden">
         <div className="relative aspect-square mx-auto w-full max-w-[320px] overflow-hidden">
@@ -224,10 +233,11 @@ export function BodyPainSelector({ value, onChange, categoryId, compact }: Props
             <BodySilhouette side="front" />
             <BodyDots
               regions={REGIONS.filter((r) => r.side === "front")}
-              selectedId={selectedRegionId}
+              entriesByRegionId={entriesByRegionId}
+              selectedRegionId={selectedRegionId}
               onSelect={handleRegionSelect}
-              intensity={intensity}
-              intensityColor={intensityColor}
+              config={config}
+              disabled={disabled}
             />
           </div>
         </div>
@@ -239,84 +249,129 @@ export function BodyPainSelector({ value, onChange, categoryId, compact }: Props
             <BodySilhouette side="back" />
             <BodyDots
               regions={REGIONS.filter((r) => r.side === "back")}
-              selectedId={selectedRegionId}
+              entriesByRegionId={entriesByRegionId}
+              selectedRegionId={selectedRegionId}
               onSelect={handleRegionSelect}
-              intensity={intensity}
-              intensityColor={intensityColor}
+              config={config}
+              disabled={disabled}
             />
           </div>
         </div>
       </div>
 
-      {/* Selected location summary */}
-      {value.region ? (
-        <div className="flex items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2">
-          <div className="flex flex-col">
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Zone sélectionnée</span>
-            <span className="text-sm font-semibold">{value.region}</span>
+      <p className="text-[10px] text-muted-foreground italic text-center">
+        Cliquez sur chaque zone douloureuse. Vous pouvez en ajouter plusieurs.
+      </p>
+
+      {/* List of pain entries */}
+      {entries.length > 0 && (
+        <div className="space-y-2">
+          <Label className="text-xs">Mes douleurs ({entries.length})</Label>
+          <div className="space-y-2">
+            {entries.map((e) => {
+              const isOpen = selectedRegionId === e.region_id;
+              const color = config.scale.find((s) => s.value === e.intensity)?.color ?? "#dc2626";
+              return (
+                <div
+                  key={e.region_id ?? e.region}
+                  className={cn(
+                    "rounded-lg border bg-muted/20 overflow-hidden transition-all",
+                    isOpen && "ring-2 ring-primary/40",
+                  )}
+                >
+                  <div className="flex items-center gap-2 px-3 py-2">
+                    <span
+                      className="h-6 w-6 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0"
+                      style={{ backgroundColor: color }}
+                    >
+                      {e.intensity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedRegionId(isOpen ? undefined : e.region_id)}
+                      className="flex-1 text-left min-w-0"
+                    >
+                      <div className="text-sm font-semibold truncate">{e.region}</div>
+                      <div className="text-[10px] text-muted-foreground truncate">
+                        {e.zone} · {config.natures.find((n) => n.key === e.nature)?.label ?? e.nature}
+                      </div>
+                    </button>
+                    <Badge variant="outline" className="text-[10px] shrink-0">{e.intensity}/5</Badge>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7 shrink-0 text-destructive"
+                      onClick={() => removeEntry(e.region_id!)}
+                      aria-label="Supprimer cette douleur"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {isOpen && (
+                    <div className="px-3 pb-3 space-y-2 border-t bg-background/40">
+                      <div>
+                        <Label className="text-[11px] mb-1 block">Nature</Label>
+                        <Select
+                          value={e.nature}
+                          onValueChange={(v) => updateEntry(e.region_id!, { nature: v })}
+                        >
+                          <SelectTrigger className="h-9 text-sm">
+                            <SelectValue placeholder="Sélectionner..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {config.natures.map((n) => (
+                              <SelectItem key={n.key} value={n.key}>
+                                {n.emoji ? `${n.emoji} ${n.label}` : n.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-[11px] mb-1 flex items-center justify-between">
+                          <span>Intensité</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {config.scale.find((s) => s.value === e.intensity)?.label}
+                          </span>
+                        </Label>
+                        <div className="grid grid-cols-5 gap-1">
+                          {config.scale.map((lvl) => {
+                            const sel = e.intensity === lvl.value;
+                            return (
+                              <button
+                                key={lvl.value}
+                                type="button"
+                                onClick={() => updateEntry(e.region_id!, { intensity: lvl.value })}
+                                title={lvl.label}
+                                className={cn(
+                                  "h-9 rounded-md text-sm font-bold border transition-all active:scale-95",
+                                  sel
+                                    ? "ring-2 ring-foreground/60 text-white shadow-md scale-105"
+                                    : "text-foreground/80 hover:scale-105",
+                                )}
+                                style={{
+                                  backgroundColor: sel ? lvl.color : `color-mix(in hsl, ${lvl.color} 25%, transparent)`,
+                                  borderColor: lvl.color,
+                                }}
+                              >
+                                {lvl.value}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-          <Badge variant="outline" className="text-xs">{value.zone}</Badge>
+          <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
+            <Plus className="h-3 w-3" /> Cliquez sur une autre zone du corps pour ajouter une douleur.
+          </p>
         </div>
-      ) : (
-        <p className="text-xs text-muted-foreground italic text-center">
-          Cliquez sur la zone du corps où vous avez mal.
-        </p>
       )}
-
-      {/* Nature dropdown */}
-      <div>
-        <Label className="text-xs mb-1 block">Nature de la douleur</Label>
-        <Select value={nature} onValueChange={handleNatureChange}>
-          <SelectTrigger className="h-9 text-sm">
-            <SelectValue placeholder="Sélectionner..." />
-          </SelectTrigger>
-          <SelectContent>
-            {config.natures.map((n) => (
-              <SelectItem key={n.key} value={n.key}>
-                {n.emoji ? `${n.emoji} ${n.label}` : n.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Intensity scale 1-5 (uses customizable colors/labels) */}
-      <div>
-        <Label className="text-xs mb-1 flex items-center justify-between">
-          <span>Intensité</span>
-          <span className="text-[10px] text-muted-foreground">
-            {config.scale.find((s) => s.value === intensity)?.label}
-          </span>
-        </Label>
-        <div className="grid grid-cols-5 gap-1">
-          {config.scale.map((lvl) => {
-            const isSelected = intensity === lvl.value;
-            return (
-              <button
-                key={lvl.value}
-                type="button"
-                onClick={() => handleIntensityChange(lvl.value)}
-                title={lvl.label}
-                className={cn(
-                  "h-9 rounded-md text-sm font-bold border transition-all active:scale-95",
-                  isSelected
-                    ? "ring-2 ring-foreground/60 text-white shadow-md scale-105"
-                    : "text-foreground/80 hover:scale-105",
-                )}
-                style={{
-                  backgroundColor: isSelected ? lvl.color : `color-mix(in hsl, ${lvl.color} 25%, transparent)`,
-                  borderColor: lvl.color,
-                }}
-              >
-                {lvl.value}
-              </button>
-            );
-          })}
-        </div>
-        <p className="text-[10px] text-muted-foreground italic mt-1">
-          1 = {config.scale[0]?.label} · 5 = {config.scale[4]?.label}
-        </p>
-      </div>
     </div>
   );
 }

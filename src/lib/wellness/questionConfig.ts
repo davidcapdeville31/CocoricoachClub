@@ -104,12 +104,12 @@ const invertedScale = (labels: string[]): WellnessScaleLevel[] => [
   { value: 5, label: labels[5], color: C_WORST },
 ];
 
-// Soreness 0..5 (0 = aucune douleur)
-const sorenessScale = (): WellnessScaleLevel[] =>
+// Fatigue musculaire 0..5 (0 = aucune fatigue)
+const muscleFatigueScale = (): WellnessScaleLevel[] =>
   invertedScale([
-    "Aucune douleur",
+    "Aucune fatigue",
     "Très légère",
-    "Légère gêne",
+    "Légère",
     "Modérée",
     "Forte",
     "Intense",
@@ -158,21 +158,21 @@ export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
   },
   {
     key: "soreness_upper_body",
-    label: "Douleurs haut du corps",
+    label: "Fatigue haut du corps",
     emoji: "💪",
     enabled: true,
     inverted: true,
     is_custom: false,
-    scale: sorenessScale(),
+    scale: muscleFatigueScale(),
   },
   {
     key: "soreness_lower_body",
-    label: "Douleurs bas du corps",
+    label: "Fatigue bas du corps",
     emoji: "🦵",
     enabled: true,
     inverted: true,
     is_custom: false,
-    scale: sorenessScale(),
+    scale: muscleFatigueScale(),
   },
 
   {

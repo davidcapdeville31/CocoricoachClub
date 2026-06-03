@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, RotateCcw, Save, Trash2, Activity, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { BodyPainSelector, type BodyPainValue } from "@/components/wellness/BodyPainSelector";
+import { BodyPainSelector, type BodyPainEntry } from "@/components/wellness/BodyPainSelector";
 import {
   DEFAULT_PAIN_CONFIG,
   mergePainConfig,
@@ -35,7 +35,7 @@ export function PainConfigEditor({ categoryId }: Props) {
   const queryClient = useQueryClient();
   const [config, setConfig] = useState<PainConfig>(DEFAULT_PAIN_CONFIG);
   const [dirty, setDirty] = useState(false);
-  const [previewValue, setPreviewValue] = useState<Partial<BodyPainValue>>({});
+  const [previewEntries, setPreviewEntries] = useState<BodyPainEntry[]>([]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["wellness_pain_config_editor", categoryId],
@@ -226,8 +226,8 @@ export function PainConfigEditor({ categoryId }: Props) {
           </Label>
           <div className="rounded-xl border bg-muted/20 p-3">
             <BodyPainSelector
-              value={previewValue}
-              onChange={setPreviewValue}
+              entries={previewEntries}
+              onChange={setPreviewEntries}
               categoryId={categoryId}
             />
           </div>

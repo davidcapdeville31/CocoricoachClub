@@ -25,7 +25,7 @@ import { getWellnessButtonClasses, getSleepScoreButtonClasses } from "@/lib/well
 import { sleepHoursToScore } from "@/lib/sleepConversion";
 import { cn } from "@/lib/utils";
 import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
-import { BodyPainSelector, type BodyPainValue } from "@/components/wellness/BodyPainSelector";
+import { BodyPainSelector, type BodyPainEntry } from "@/components/wellness/BodyPainSelector";
 
 interface AddWellnessDialogProps {
   open: boolean;
@@ -49,7 +49,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState("");
   const [hasSpecificPain, setHasSpecificPain] = useState(false);
-  const [painData, setPainData] = useState<Partial<BodyPainValue>>({});
+  const [painEntries, setPainEntries] = useState<BodyPainEntry[]>([]);
   const [hrvData, setHrvData] = useState<HrvData>(emptyHrvData);
 
   const { data: wellnessQuestions } = useWellnessQuestions(categoryId);
@@ -104,7 +104,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
     setDate(new Date().toISOString().split("T")[0]);
     setNotes("");
     setHasSpecificPain(false);
-    setPainData({});
+    setPainEntries([]);
     setHrvData(emptyHrvData);
     const initial: Record<string, number> = {};
     for (const q of activeQuestions) {
@@ -117,15 +117,18 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
     mutationFn: async () => {
       const playerName = players?.find(p => p.id === playerId)?.name || "Athlète";
 
+      const activePainEntries = hasSpecificPain ? painEntries : [];
+      const firstPain = activePainEntries[0];
       const insertData: any = {
         player_id: playerId,
         category_id: categoryId,
         tracking_date: date,
-        has_specific_pain: hasSpecificPain,
-        pain_zone: hasSpecificPain ? painData.zone ?? null : null,
-        pain_location: hasSpecificPain ? painData.region ?? null : null,
-        pain_nature: hasSpecificPain ? painData.nature ?? null : null,
-        pain_intensity: hasSpecificPain ? painData.intensity ?? null : null,
+        has_specific_pain: hasSpecificPain && activePainEntries.length > 0,
+        pain_entries: activePainEntries,
+        pain_zone: firstPain?.zone ?? null,
+        pain_location: firstPain?.region ?? null,
+        pain_nature: firstPain?.nature ?? null,
+        pain_intensity: firstPain?.intensity ?? null,
         notes: notes.trim() || null,
       };
 
@@ -340,23 +343,22 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
 
           <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
             <div className="flex items-center justify-between">
-              <Label htmlFor="specific-pain">Douleur spécifique / aiguë ?</Label>
+              <Label htmlFor="specific-pain">Douleur(s) spécifique(s) / aiguë(s) ?</Label>
               <Switch
                 id="specific-pain"
                 checked={hasSpecificPain}
                 onCheckedChange={(v) => {
                   setHasSpecificPain(v);
-                  if (!v) setPainData({});
+                  if (!v) setPainEntries([]);
                 }}
               />
             </div>
-            {hasSpecificPain && (
-              <BodyPainSelector
-                value={painData}
-                onChange={setPainData}
-                categoryId={categoryId}
-              />
-            )}
+            <BodyPainSelector
+              entries={painEntries}
+              onChange={setPainEntries}
+              categoryId={categoryId}
+              disabled={!hasSpecificPain}
+            />
           </div>
 
           {/* HRV Section (optional) */}

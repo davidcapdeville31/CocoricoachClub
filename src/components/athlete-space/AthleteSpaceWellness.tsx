@@ -20,7 +20,7 @@ import { PAIN_ZONES } from "@/lib/constants/pain-locations";
 import { sleepHoursToScore, sleepScoreToHours } from "@/lib/sleepConversion";
 import { getWellnessButtonClasses, getSleepHoursButtonClasses } from "@/lib/wellnessColors";
 import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
-import { BodyPainSelector, type BodyPainValue } from "@/components/wellness/BodyPainSelector";
+import { BodyPainSelector, type BodyPainEntry } from "@/components/wellness/BodyPainSelector";
 import { format, subDays, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -94,7 +94,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
   const [values, setValues] = useState<Record<string, number>>({});
 
   const [hasSpecificPain, setHasSpecificPain] = useState(false);
-  const [painData, setPainData] = useState<Partial<BodyPainValue>>({});
+  const [painEntries, setPainEntries] = useState<BodyPainEntry[]>([]);
   const [notes, setNotes] = useState("");
   const [showHrv, setShowHrv] = useState(false);
   const [hrvMs, setHrvMs] = useState("");
@@ -131,16 +131,24 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
 
     if (ew) {
       setHasSpecificPain(!!ew.has_specific_pain);
-      setPainData({
-        zone: ew.pain_zone ?? undefined,
-        region: ew.pain_location ?? undefined,
-        nature: ew.pain_nature ?? undefined,
-        intensity: ew.pain_intensity ?? undefined,
-      });
+      const stored = Array.isArray(ew.pain_entries) ? (ew.pain_entries as BodyPainEntry[]) : [];
+      if (stored.length > 0) {
+        setPainEntries(stored);
+      } else if (ew.pain_location) {
+        // Legacy single-pain fallback
+        setPainEntries([{
+          region: ew.pain_location,
+          zone: ew.pain_zone ?? "",
+          nature: ew.pain_nature ?? "musculaire",
+          intensity: ew.pain_intensity ?? 3,
+        }]);
+      } else {
+        setPainEntries([]);
+      }
       setNotes(ew.notes ?? "");
     } else {
       setHasSpecificPain(false);
-      setPainData({});
+      setPainEntries([]);
       setNotes("");
     }
   }, [activeQuestions, existingWellness, selectedDateStr]);
@@ -168,15 +176,18 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
 
   const submitWellness = useMutation({
     mutationFn: async () => {
+      const activePainEntries = hasSpecificPain ? painEntries : [];
+      const firstPain = activePainEntries[0];
       const insertData: any = {
         player_id: playerId,
         category_id: categoryId,
         tracking_date: selectedDateStr,
-        has_specific_pain: hasSpecificPain,
-        pain_zone: hasSpecificPain ? painData.zone ?? null : null,
-        pain_location: hasSpecificPain ? painData.region ?? null : null,
-        pain_nature: hasSpecificPain ? painData.nature ?? null : null,
-        pain_intensity: hasSpecificPain ? painData.intensity ?? null : null,
+        has_specific_pain: hasSpecificPain && activePainEntries.length > 0,
+        pain_entries: activePainEntries,
+        pain_zone: firstPain?.zone ?? null,
+        pain_location: firstPain?.region ?? null,
+        pain_nature: firstPain?.nature ?? null,
+        pain_intensity: firstPain?.intensity ?? null,
         notes: notes || null,
       };
 
@@ -515,25 +526,32 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
 
           <div className="rounded-xl border bg-surface-sunken/50 p-3">
             <div className="flex items-center gap-2 mb-2">
-              <Checkbox checked={hasSpecificPain} onCheckedChange={(v) => {
-                setHasSpecificPain(!!v);
-                if (!v) { setPainData({}); }
-              }} />
-              <Label className="text-xs font-semibold">J'ai une douleur spécifique aujourd'hui</Label>
+              <Checkbox
+                id="has-specific-pain"
+                checked={hasSpecificPain}
+                onCheckedChange={(v) => {
+                  setHasSpecificPain(!!v);
+                  if (!v) setPainEntries([]);
+                }}
+              />
+              <Label htmlFor="has-specific-pain" className="text-xs font-semibold cursor-pointer">
+                J'ai une ou plusieurs douleurs aujourd'hui
+              </Label>
             </div>
             <p className="text-[10px] text-muted-foreground italic mb-2">
-              Cliquez sur une zone du corps pour la signaler (cochez la case ci-dessus si applicable).
+              {hasSpecificPain
+                ? "Cliquez sur chaque zone du corps où vous avez mal. Vous pouvez en ajouter plusieurs (ex. poignet 3/5 et épaule 4/5)."
+                : "Cochez la case ci-dessus si vous avez une douleur à signaler."}
             </p>
             <BodyPainSelector
-              value={painData}
-              onChange={(v) => {
-                setPainData(v);
-                if (v.region && !hasSpecificPain) setHasSpecificPain(true);
-              }}
+              entries={painEntries}
+              onChange={setPainEntries}
               categoryId={categoryId}
               compact
+              disabled={!hasSpecificPain}
             />
           </div>
+
 
 
           <div>
