@@ -94,7 +94,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
   const [values, setValues] = useState<Record<string, number>>({});
 
   const [hasSpecificPain, setHasSpecificPain] = useState(false);
-  const [painData, setPainData] = useState<Partial<BodyPainValue>>({});
+  const [painEntries, setPainEntries] = useState<BodyPainEntry[]>([]);
   const [notes, setNotes] = useState("");
   const [showHrv, setShowHrv] = useState(false);
   const [hrvMs, setHrvMs] = useState("");
