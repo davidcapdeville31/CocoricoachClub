@@ -25,7 +25,7 @@ import { getWellnessButtonClasses, getSleepScoreButtonClasses } from "@/lib/well
 import { sleepHoursToScore } from "@/lib/sleepConversion";
 import { cn } from "@/lib/utils";
 import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
-import { BodyPainSelector, type BodyPainValue } from "@/components/wellness/BodyPainSelector";
+import { BodyPainSelector, type BodyPainEntry } from "@/components/wellness/BodyPainSelector";
 
 interface AddWellnessDialogProps {
   open: boolean;
