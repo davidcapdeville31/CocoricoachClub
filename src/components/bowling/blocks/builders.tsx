@@ -86,7 +86,7 @@ function BlockShell({
   );
 }
 
-function DurationThrows({ value, onChange }: Props) {
+function DurationThrows({ value, onChange, lockThrows = false }: Props & { lockThrows?: boolean }) {
   const update = (patch: Partial<BowlingBlockDraft>) => onChange({ ...value, ...patch });
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -105,32 +105,41 @@ function DurationThrows({ value, onChange }: Props) {
       <div className="space-y-1">
         <Label className="text-xs flex items-center gap-1">
           <Hash className="h-3 w-3" /> Nombre de lancers
+          {lockThrows && (
+            <span className="text-[10px] font-normal text-muted-foreground italic ml-1">
+              (calculé auto depuis les zones)
+            </span>
+          )}
         </Label>
-        <div className="flex flex-wrap gap-1 mb-1">
-          {THROW_PRESETS.map((p) => {
-            const active = value.planned_throws === p;
-            return (
-              <button
-                key={p}
-                type="button"
-                onClick={() => update({ planned_throws: p })}
-                className={`px-2.5 py-0.5 rounded-md text-[11px] border transition-all ${
-                  active
-                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                    : "border-border bg-background hover:bg-muted"
-                }`}
-              >
-                {p}
-              </button>
-            );
-          })}
-        </div>
+        {!lockThrows && (
+          <div className="flex flex-wrap gap-1 mb-1">
+            {THROW_PRESETS.map((p) => {
+              const active = value.planned_throws === p;
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => update({ planned_throws: p })}
+                  className={`px-2.5 py-0.5 rounded-md text-[11px] border transition-all ${
+                    active
+                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                      : "border-border bg-background hover:bg-muted"
+                  }`}
+                >
+                  {p}
+                </button>
+              );
+            })}
+          </div>
+        )}
         <Input
           type="number"
           min={1}
           value={value.planned_throws}
           onChange={(e) => update({ planned_throws: parseInt(e.target.value || "0", 10) })}
-          className="h-9 text-sm bg-surface-sunken"
+          readOnly={lockThrows}
+          disabled={lockThrows}
+          className={`h-9 text-sm bg-surface-sunken ${lockThrows ? "opacity-70 cursor-not-allowed" : ""}`}
         />
       </div>
     </div>
