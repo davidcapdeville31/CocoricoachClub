@@ -323,17 +323,19 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
                   />
                 );
               }
+              const defaultVal = q.scale[0]?.value ?? 1;
               return (
                 <ScoreButton
                   key={q.key}
                   label={q.label}
                   emoji={q.emoji}
-                  value={values[q.key] ?? 3}
+                  value={values[q.key] ?? defaultVal}
                   onChange={(v) => setValues(prev => ({ ...prev, [q.key]: v }))}
                   options={q.scale.map(s => ({ value: s.value, label: s.label }))}
                   inverted={q.inverted}
                 />
               );
+
             })}
           </div>
 
