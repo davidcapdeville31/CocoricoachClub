@@ -850,7 +850,7 @@ export function BowlingAdvancedDialog({
         };
         return (
           <Dialog open onOpenChange={(o) => !o && setRunnerBlockId(null)}>
-            <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
+            <DialogContent className="max-w-[min(96vw,1100px)] w-[96vw] max-h-[92vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Saisie lancer-par-lancer · {runnerBlock.title}</DialogTitle>
               </DialogHeader>
