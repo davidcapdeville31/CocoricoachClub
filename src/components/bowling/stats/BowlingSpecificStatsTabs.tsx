@@ -440,13 +440,6 @@ export function BowlingSpecificStatsTabs({ playerId, categoryId, partiesContent 
             </>
           )}
         </TabsContent>
-
-        {/* ─── Parties d'entraînement (legacy precision charts) ─── */}
-        <TabsContent value="parties" className="space-y-4 mt-4">
-          {partiesContent ?? (
-            <EmptyState icon={<Trophy className="h-10 w-10" />} text="Aucune partie d'entraînement enregistrée." />
-          )}
-        </TabsContent>
       </Tabs>
     </div>
   );
