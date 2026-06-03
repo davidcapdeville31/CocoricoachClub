@@ -57,6 +57,36 @@ interface CoachDashboardProps {
 }
 
 export function CoachDashboard({ categoryId }: CoachDashboardProps) {
+  const queryClient = useQueryClient();
+  const [editingInjury, setEditingInjury] = useState<any>(null);
+  const [editingIllness, setEditingIllness] = useState<any>(null);
+
+  const deleteInjury = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("injuries").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["active_injuries", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["injuries", categoryId] });
+      toast.success("Blessure supprimée");
+    },
+    onError: (e: any) => toast.error(e?.message || "Erreur"),
+  });
+
+  const deleteIllness = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase as any).from("illnesses").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["active_illnesses", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["illnesses", categoryId] });
+      toast.success("Maladie supprimée");
+    },
+    onError: (e: any) => toast.error(e?.message || "Erreur"),
+  });
+
   // Realtime sync for EWMA, wellness, and AWCR
   useRealtimeSync({
     tables: ["awcr_tracking", "wellness_tracking"],
