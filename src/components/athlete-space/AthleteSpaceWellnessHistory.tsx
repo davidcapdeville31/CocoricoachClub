@@ -186,6 +186,10 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
               <ToggleGroupItem value="month" className="h-7 px-2 text-[11px]">Mois</ToggleGroupItem>
             </ToggleGroup>
           </div>
+          <p className="text-[11px] text-muted-foreground mt-1.5 leading-snug">
+            Indicateur global (0-100%) de ta capacité de récupération, calculé à partir de tes réponses wellness :
+            <span className="font-medium text-foreground"> sommeil + (6 − fatigue générale) + (6 − fatigue haut) + (6 − fatigue bas) + (6 − stress)</span>, le tout divisé par 5 et ramené sur 100. Plus la courbe est haute, mieux tu récupères.
+          </p>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={240}>
