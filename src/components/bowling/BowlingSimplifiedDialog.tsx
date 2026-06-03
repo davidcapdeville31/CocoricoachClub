@@ -29,7 +29,41 @@ import {
   technicalThemeLabel,
   aggregateGamesStats,
   type SimplifiedBlock,
+  type SimplifiedOilPattern,
 } from "./simplified/types";
+
+const EMPTY_OIL: SimplifiedOilPattern = {
+  preset_name: null,
+  image_url: null,
+  length_feet: null,
+  buff_distance_feet: null,
+  width_boards: null,
+  total_volume_ml: null,
+  oil_ratio: null,
+  profile_type: null,
+  forward_oil: true,
+  reverse_oil: true,
+  outside_friction: null,
+};
+
+function buildOilFromPresetName(name: string | null): SimplifiedOilPattern {
+  if (!name || name === "none") return { ...EMPTY_OIL };
+  const p = OFFICIAL_OIL_PATTERNS.find((x) => x.name === name);
+  return {
+    preset_name: name,
+    image_url: null,
+    length_feet: p?.length_feet ?? null,
+    buff_distance_feet: p?.buff_distance_feet ?? null,
+    width_boards: p?.width_boards ?? null,
+    total_volume_ml: p?.total_volume_ml ?? null,
+    oil_ratio: p?.oil_ratio ?? null,
+    profile_type: p?.profile_type ?? null,
+    forward_oil: p?.forward_oil ?? true,
+    reverse_oil: p?.reverse_oil ?? true,
+    outside_friction: p?.outside_friction ?? null,
+  };
+}
+
 
 interface BowlingSimplifiedDialogProps {
   open: boolean;
@@ -66,6 +100,10 @@ export function BowlingSimplifiedDialog({
   const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [oilPatternName, setOilPatternName] = useState<string>("none");
+  /** "session" : un seul huilage pour toute la séance, appliqué à chaque bloc.
+   *  "per_block" : l'utilisateur choisit un huilage différent à l'intérieur de chaque bloc. */
+  const [oilScope, setOilScope] = useState<"session" | "per_block">("session");
+
 
   // Fetch effectif (coach mode only, et pas en édition)
   const { data: players = [] } = useQuery({
@@ -153,9 +191,28 @@ export function BowlingSimplifiedDialog({
     );
   };
 
-  const addTactical = () => setBlocks((prev) => [...prev, newTacticalBlock()]);
-  const addTechnical = () => setBlocks((prev) => [...prev, newTechnicalBlock()]);
-  const addGames = () => setBlocks((prev) => [...prev, newGamesBlock()]);
+  const sessionOilPreset = useMemo(
+    () => buildOilFromPresetName(oilPatternName),
+    [oilPatternName],
+  );
+
+  const withSessionOil = <T extends SimplifiedBlock>(b: T): T =>
+    oilScope === "session" ? ({ ...b, oil_pattern: sessionOilPreset } as T) : b;
+
+  const addTactical = () => setBlocks((prev) => [...prev, withSessionOil(newTacticalBlock())]);
+  const addTechnical = () => setBlocks((prev) => [...prev, withSessionOil(newTechnicalBlock())]);
+  const addGames = () => setBlocks((prev) => [...prev, withSessionOil(newGamesBlock())]);
+
+  // En mode "session", propage le huilage de séance à tous les blocs existants
+  // dès que l'utilisateur change le pattern ou bascule en mode session.
+  useEffect(() => {
+    if (oilScope !== "session") return;
+    setBlocks((prev) =>
+      prev.map((b) => ({ ...b, oil_pattern: sessionOilPreset })),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [oilScope, sessionOilPreset]);
+
 
   const updateBlock = (id: string, next: SimplifiedBlock) =>
     setBlocks((prev) => prev.map((b) => (b.id === id ? next : b)));
@@ -608,6 +665,7 @@ export function BowlingSimplifiedDialog({
       setLockedIds(new Set());
       setSelectedPlayers([]);
       setOilPatternName("none");
+      setOilScope("session");
     }
     onOpenChange(next);
   };
@@ -619,6 +677,7 @@ export function BowlingSimplifiedDialog({
       setLockedIds(new Set());
       setSelectedPlayers([]);
       setOilPatternName("none");
+      setOilScope("session");
     }
   }, [open, isEditMode]);
 
@@ -724,10 +783,38 @@ export function BowlingSimplifiedDialog({
                 })}
               </SelectContent>
             </Select>
+
+            {/* Choix de la portée du huilage */}
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Button
+                type="button"
+                size="sm"
+                variant={oilScope === "session" ? "default" : "outline"}
+                onClick={() => setOilScope("session")}
+                className="h-8 gap-1.5 text-xs"
+              >
+                <Droplet className="h-3.5 w-3.5" />
+                Appliquer à tous les blocs
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={oilScope === "per_block" ? "default" : "outline"}
+                onClick={() => setOilScope("per_block")}
+                className="h-8 gap-1.5 text-xs"
+              >
+                <Droplet className="h-3.5 w-3.5" />
+                Huilage spécifique par bloc
+              </Button>
+            </div>
+
             <p className="text-[11px] text-muted-foreground">
-              Le huilage choisi s'applique à toute la séance et permet de filtrer les Stats Parties.
+              {oilScope === "session"
+                ? "Le huilage choisi s'applique automatiquement à tous les blocs de la séance."
+                : "Vous définirez un huilage différent à l'intérieur de chaque bloc."}
             </p>
           </div>
+
 
 
           {blocks.length === 0 && (
@@ -767,6 +854,7 @@ export function BowlingSimplifiedDialog({
                   index={tacticalIndexById.get(b.id) ?? 0}
                   categoryId={categoryId}
                   playerId={playerIdForEditors}
+                  hideOilPicker={oilScope === "session"}
                   onChange={(next) => updateBlock(b.id, next)}
                   onRemove={() => removeBlock(b.id)}
                 />
@@ -785,10 +873,12 @@ export function BowlingSimplifiedDialog({
                   index={gamesIndexById.get(b.id) ?? 0}
                   categoryId={categoryId}
                   playerId={playerIdForEditors}
+                  hideOilPicker={oilScope === "session"}
                   onChange={(next) => updateBlock(b.id, next)}
                   onRemove={() => removeBlock(b.id)}
                 />
               );
+
 
             return (
               <div key={b.id} className="space-y-2">

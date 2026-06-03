@@ -21,6 +21,8 @@ interface Props {
   playerId?: string;
   onChange: (next: SimplifiedGamesBlock) => void;
   onRemove: () => void;
+  /** Si true, le sélecteur de huilage par bloc est masqué (le huilage est défini au niveau de la séance). */
+  hideOilPicker?: boolean;
 }
 
 export function SimplifiedGamesBlockEditor({
@@ -30,7 +32,9 @@ export function SimplifiedGamesBlockEditor({
   playerId,
   onChange,
   onRemove,
+  hideOilPicker,
 }: Props) {
+
   const update = (patch: Partial<SimplifiedGamesBlock>) =>
     onChange({ ...value, ...patch });
 
@@ -104,12 +108,15 @@ export function SimplifiedGamesBlockEditor({
         )}
       </div>
 
-      {/* Oil pattern */}
-      <SimplifiedOilPatternPicker
-        value={value.oil_pattern}
-        onChange={(op) => update({ oil_pattern: op })}
-        categoryId={categoryId}
-      />
+      {/* Oil pattern (masqué quand défini au niveau de la séance) */}
+      {!hideOilPicker && (
+        <SimplifiedOilPatternPicker
+          value={value.oil_pattern}
+          onChange={(op) => update({ oil_pattern: op })}
+          categoryId={categoryId}
+        />
+      )}
+
 
       {/* Parties */}
       <div className="space-y-3">
