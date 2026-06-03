@@ -1,10 +1,26 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { EditInjuryDialog } from "@/components/injuries/EditInjuryDialog";
+import { EditIllnessDialog } from "@/components/injuries/EditIllnessDialog";
+import { toast } from "sonner";
 import {
   AlertTriangle,
   CheckCircle,
@@ -17,7 +33,10 @@ import {
   Cake,
   Syringe,
   HeartPulse,
+  Pencil,
+  Trash2,
 } from "lucide-react";
+
 import { format, differenceInDays, addDays, isSameMonth, parseISO, isValid } from "date-fns";
 
 const safeFormat = (date: Date | string | null | undefined, fmt: string, options?: any): string => {
@@ -38,6 +57,36 @@ interface CoachDashboardProps {
 }
 
 export function CoachDashboard({ categoryId }: CoachDashboardProps) {
+  const queryClient = useQueryClient();
+  const [editingInjury, setEditingInjury] = useState<any>(null);
+  const [editingIllness, setEditingIllness] = useState<any>(null);
+
+  const deleteInjury = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("injuries").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["active_injuries", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["injuries", categoryId] });
+      toast.success("Blessure supprimée");
+    },
+    onError: (e: any) => toast.error(e?.message || "Erreur"),
+  });
+
+  const deleteIllness = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase as any).from("illnesses").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["active_illnesses", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["illnesses", categoryId] });
+      toast.success("Maladie supprimée");
+    },
+    onError: (e: any) => toast.error(e?.message || "Erreur"),
+  });
+
   // Realtime sync for EWMA, wellness, and AWCR
   useRealtimeSync({
     tables: ["awcr_tracking", "wellness_tracking"],
@@ -389,9 +438,32 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                         <p className="font-semibold text-base">{injury.players?.name}</p>
                         <p className="text-sm text-destructive font-medium">{injury.injury_type}</p>
                       </div>
-                      <Badge variant={injury.status === "active" ? "destructive" : "secondary"}>
-                        {injury.status === "active" ? "Blessé" : "Réhab"}
-                      </Badge>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Badge variant={injury.status === "active" ? "destructive" : "secondary"}>
+                          {injury.status === "active" ? "Blessé" : "Réhab"}
+                        </Badge>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingInjury(injury)} title="Modifier">
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" title="Supprimer">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Supprimer cette blessure ?</AlertDialogTitle>
+                              <AlertDialogDescription>Action irréversible.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteInjury.mutate(injury.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Supprimer</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+
                     </div>
                     <div className="space-y-1 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
@@ -421,7 +493,30 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
                         <p className="font-semibold text-base">{illness.players?.name}</p>
                         <p className="text-sm text-orange-600 font-medium">{illness.illness_type}</p>
                       </div>
-                      <Badge className="bg-orange-500 text-white hover:bg-orange-500">Malade</Badge>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Badge className="bg-orange-500 text-white hover:bg-orange-500">Malade</Badge>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingIllness(illness)} title="Modifier">
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" title="Supprimer">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Supprimer cette maladie ?</AlertDialogTitle>
+                              <AlertDialogDescription>Action irréversible.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteIllness.mutate(illness.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Supprimer</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+
                     </div>
                     <div className="space-y-1 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
@@ -546,6 +641,22 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
           )}
         </CardContent>
       </Card>
+
+      {editingInjury && (
+        <EditInjuryDialog
+          open={!!editingInjury}
+          onOpenChange={(o) => !o && setEditingInjury(null)}
+          injury={editingInjury}
+        />
+      )}
+      {editingIllness && (
+        <EditIllnessDialog
+          open={!!editingIllness}
+          onOpenChange={(o) => !o && setEditingIllness(null)}
+          illness={editingIllness}
+        />
+      )}
     </div>
   );
 }
+

@@ -19,7 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Activity, TrendingUp, Library, Trash2 } from "lucide-react";
+import { Plus, Activity, TrendingUp, Library, Trash2, Pencil } from "lucide-react";
+import { EditInjuryDialog } from "./EditInjuryDialog";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,8 +48,10 @@ interface InjuriesTabProps {
 export function InjuriesTab({ categoryId }: InjuriesTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [editingInjury, setEditingInjury] = useState<any>(null);
   const queryClient = useQueryClient();
   const { isViewer } = useViewerModeContext();
+
 
   const { data: injuries, isLoading } = useQuery({
     queryKey: ["injuries", categoryId],
@@ -270,7 +274,11 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                                   <SelectItem value={INJURY_STATUS.HEALED}>{INJURY_STATUS_LABELS[INJURY_STATUS.HEALED]}</SelectItem>
                                 </SelectContent>
                               </Select>
+                              <Button variant="ghost" size="icon" onClick={() => setEditingInjury(injury)} title="Modifier">
+                                <Pencil className="h-4 w-4" />
+                              </Button>
                               <AlertDialog>
+
                                 <AlertDialogTrigger asChild>
                                   <Button
                                     variant="ghost"
@@ -440,6 +448,14 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
         onOpenChange={setShowLibrary}
         categoryId={categoryId}
       />
+      {editingInjury && (
+        <EditInjuryDialog
+          open={!!editingInjury}
+          onOpenChange={(o) => !o && setEditingInjury(null)}
+          injury={editingInjury}
+        />
+      )}
+
     </div>
   );
 }

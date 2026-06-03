@@ -10,10 +10,12 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Thermometer, Trash2 } from "lucide-react";
+import { Plus, Thermometer, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { AddIllnessDialog } from "./AddIllnessDialog";
+import { EditIllnessDialog } from "./EditIllnessDialog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
+
 
 interface IllnessHistoryCardProps {
   categoryId: string;
@@ -27,8 +29,10 @@ const STATUS = {
 
 export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
   const qc = useQueryClient();
   const { isViewer } = useViewerModeContext();
+
 
   const { data: illnesses, isLoading } = useQuery({
     queryKey: ["illnesses", categoryId],
@@ -141,7 +145,11 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
                                 <SelectItem value="healed">Guérie</SelectItem>
                               </SelectContent>
                             </Select>
+                            <Button variant="ghost" size="icon" onClick={() => setEditing(i)} title="Modifier">
+                              <Pencil className="h-4 w-4" />
+                            </Button>
                             <AlertDialog>
+
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10">
                                   <Trash2 className="h-4 w-4" />
@@ -221,6 +229,10 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
         )}
       </CardContent>
       <AddIllnessDialog open={open} onOpenChange={setOpen} categoryId={categoryId} />
+      {editing && (
+        <EditIllnessDialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)} illness={editing} />
+      )}
     </Card>
   );
 }
+

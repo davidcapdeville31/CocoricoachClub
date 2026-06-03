@@ -1,16 +1,24 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, Dumbbell } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { EditInjuryDialog } from "@/components/injuries/EditInjuryDialog";
+import { Shield, AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, Dumbbell, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+
 
 interface Props {
   playerId: string;
@@ -35,6 +43,21 @@ const PHASE_COLORS: Record<number, { bg: string; text: string; border: string }>
 
 export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
   const [expandedPhase, setExpandedPhase] = useState<number | null>(null);
+  const [editingInjury, setEditingInjury] = useState<any>(null);
+  const qc = useQueryClient();
+
+  const deleteInjury = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("injuries").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["athlete-space-injuries-detail", playerId] });
+      toast.success("Blessure supprimée");
+    },
+    onError: (e: any) => toast.error(e?.message || "Erreur"),
+  });
+
 
   const { data: injuries = [] } = useQuery({
     queryKey: ["athlete-space-injuries-detail", playerId],
@@ -184,7 +207,42 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
           {getHealthFeedback().map((msg, i) => (
             <p key={i} className="text-sm leading-relaxed mb-1">{msg}</p>
           ))}
+          {injuries.length > 0 && (
+            <div className="mt-3 space-y-2">
+              {injuries.map((inj: any) => (
+                <div key={inj.id} className="flex items-center justify-between gap-2 p-2 rounded-lg border bg-background/50">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{inj.injury_type}</p>
+                    <p className="text-[11px] text-muted-foreground">{format(new Date(inj.injury_date), "dd MMM yyyy", { locale: fr })}</p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingInjury(inj)} title="Modifier">
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" title="Supprimer">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Supprimer cette blessure ?</AlertDialogTitle>
+                          <AlertDialogDescription>Action irréversible.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteInjury.mutate(inj.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Supprimer</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
+
       </Card>
 
       <Card className="bg-gradient-card shadow-md">
@@ -389,6 +447,15 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
           </CardContent>
         </Card>
       )}
+
+      {editingInjury && (
+        <EditInjuryDialog
+          open={!!editingInjury}
+          onOpenChange={(o) => !o && setEditingInjury(null)}
+          injury={editingInjury}
+        />
+      )}
     </div>
   );
+
 }
