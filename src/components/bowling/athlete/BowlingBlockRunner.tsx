@@ -214,7 +214,18 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
       const deltas = summariseDeltas(data?.throw?.foot_delta, data?.throw?.breakpoint_delta);
       if (deltas) toast.success(`Lancer ${nextThrowNumber} · ${deltas}`);
       else toast.success(`Lancer ${nextThrowNumber} enregistré`);
-      setDraft({ ball_arsenal_id: draft.ball_arsenal_id, parameter_results: {}, outcome_results: {} });
+      // Conserve les paramètres "récurrents" (boule, zone, lattes, vitesse) pour
+      // pré-remplir automatiquement le lancer suivant. L'athlète peut les modifier
+      // à tout moment et les nouvelles valeurs s'appliqueront aux lancers suivants.
+      setDraft({
+        ball_arsenal_id: draft.ball_arsenal_id,
+        actual_zone: draft.actual_zone,
+        foot_board: draft.foot_board,
+        breakpoint_board: draft.breakpoint_board,
+        speed_kmh: draft.speed_kmh,
+        parameter_results: {},
+        outcome_results: {},
+      });
       qc.invalidateQueries({ queryKey: ["bowling_throw_results", block.id, playerId] });
     },
     onError: (e: any) => toast.error(`Erreur : ${e.message}`),
