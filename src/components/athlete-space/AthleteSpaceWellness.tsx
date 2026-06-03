@@ -90,6 +90,24 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     },
   });
 
+  // Liste des jours déjà remplis (sur les 30 derniers jours) pour les afficher dans le calendrier
+  const { data: filledDates } = useQuery({
+    queryKey: ["athlete-space-wellness-filled-dates", playerId],
+    queryFn: async () => {
+      const from = format(subDays(startOfDay(new Date()), 30), "yyyy-MM-dd");
+      const { data, error } = await supabase
+        .from("wellness_tracking")
+        .select("tracking_date")
+        .eq("player_id", playerId)
+        .gte("tracking_date", from);
+      if (error) throw error;
+      return (data ?? []).map((r: any) => {
+        const [y, m, d] = r.tracking_date.split("-").map(Number);
+        return new Date(y, m - 1, d);
+      });
+    },
+  });
+
   // Dynamic values state keyed by question key
   const [values, setValues] = useState<Record<string, number>>({});
 
@@ -238,6 +256,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       );
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness-today"] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness-filled-dates", playerId] });
       if (showHrv) {
         queryClient.invalidateQueries({ queryKey: ["hrv_records"] });
       }
@@ -283,10 +302,19 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
               }
             }}
             disabled={(d) => d > maxDate || d < minDate}
+            modifiers={{ filled: filledDates ?? [] }}
+            modifiersClassNames={{
+              filled:
+                "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1.5 after:w-1.5 after:rounded-full after:bg-status-optimal",
+            }}
             initialFocus
             locale={fr}
             className={cn("p-3 pointer-events-auto")}
           />
+          <div className="px-3 pb-2 pt-1 flex items-center gap-2 text-[10px] text-muted-foreground border-t">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-status-optimal" />
+            Wellness rempli — cliquez pour modifier
+          </div>
         </PopoverContent>
       </Popover>
       {isPastDate && (
