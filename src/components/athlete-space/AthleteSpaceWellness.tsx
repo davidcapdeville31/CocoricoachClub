@@ -237,8 +237,65 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
 
   if (isLoading) return null;
 
+  const minDate = subDays(startOfDay(new Date()), 30);
+  const maxDate = startOfDay(new Date());
+
+  const DateSelector = (
+    <div className="flex flex-wrap items-center gap-2">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              "h-9 gap-2 text-xs font-normal",
+              isPastDate && "border-amber-400 text-amber-700 dark:text-amber-300",
+            )}
+          >
+            <CalendarIcon className="h-3.5 w-3.5" />
+            {isToday
+              ? `Aujourd'hui · ${format(selectedDate, "EEEE d MMM", { locale: fr })}`
+              : format(selectedDate, "EEEE d MMM yyyy", { locale: fr })}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={(d) => {
+              if (d) {
+                setSelectedDate(startOfDay(d));
+                setExpanded(true);
+                setForceEdit(true);
+              }
+            }}
+            disabled={(d) => d > maxDate || d < minDate}
+            initialFocus
+            locale={fr}
+            className={cn("p-3 pointer-events-auto")}
+          />
+        </PopoverContent>
+      </Popover>
+      {isPastDate && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 text-xs"
+          onClick={() => {
+            setSelectedDate(startOfDay(new Date()));
+            setForceEdit(false);
+          }}
+        >
+          Revenir à aujourd'hui
+        </Button>
+      )}
+    </div>
+  );
+
   // Wellness not scheduled today — skip rendering the form, but keep history visible
-  if (!existingWellness && !isScheduledToday) {
+  // (uniquement pour la date du jour : pour les jours passés, on autorise toujours la saisie de rattrapage)
+  if (isToday && !existingWellness && !isScheduledToday) {
     const dayNames = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
     const nextDay = (() => {
       for (let i = 1; i <= 7; i++) {
@@ -250,7 +307,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     return (
       <>
         <Card className="bg-gradient-card shadow-md">
-          <CardContent className="py-5">
+          <CardContent className="py-5 space-y-3">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${NAV_COLORS.sante.base}15` }}>
                 <Heart className="h-5 w-5" style={{ color: NAV_COLORS.sante.base }} />
@@ -262,6 +319,10 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                 </p>
               </div>
             </div>
+            <div className="pt-1">
+              <p className="text-[11px] text-muted-foreground mb-1">Rattraper un jour passé :</p>
+              {DateSelector}
+            </div>
           </CardContent>
         </Card>
         {!hideHistory && <AthleteSpaceWellnessHistory playerId={playerId} categoryId={categoryId} />}
@@ -269,12 +330,12 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     );
   }
 
-  // Already filled
-  if (existingWellness) {
+  // Already filled (vue résumé seulement pour aujourd'hui ; pour les jours passés on affiche toujours le formulaire éditable)
+  if (existingWellness && isToday && !forceEdit) {
     return (
       <>
       <Card className="bg-gradient-card shadow-md">
-        <CardContent className="py-6">
+        <CardContent className="py-6 space-y-4">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${NAV_COLORS.sante.base}20` }}>
               <CheckCircle2 className="h-5 w-5 text-status-optimal" />
@@ -283,9 +344,18 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
               <p className="font-semibold text-sm">Wellness du jour enregistré</p>
               <p className="text-xs text-muted-foreground">Score global : <span className="font-bold text-foreground">{score}%</span></p>
             </div>
-            <CheckCircle2 className="h-5 w-5 text-status-optimal" />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1 text-xs"
+              onClick={() => { setForceEdit(true); setExpanded(true); }}
+            >
+              <Pencil className="h-3 w-3" />
+              Modifier
+            </Button>
           </div>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-4">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
             {activeQuestions.map(q => {
               const raw = (existingWellness as any)[q.key] ?? (existingWellness.custom_answers as any)?.[q.key];
               let display: string | number = raw ?? "-";
@@ -300,6 +370,10 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
               );
             })}
           </div>
+          <div className="border-t pt-3">
+            <p className="text-[11px] text-muted-foreground mb-1">Rattraper / corriger un jour passé :</p>
+            {DateSelector}
+          </div>
         </CardContent>
       </Card>
       {!hideHistory && <AthleteSpaceWellnessHistory playerId={playerId} categoryId={categoryId} />}
@@ -307,9 +381,11 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     );
   }
 
-  // Not filled yet
+  // Formulaire éditable (jour courant non rempli, ou jour passé, ou édition forcée)
+  const shouldBeExpanded = expanded || isPastDate || forceEdit;
   return (
     <>
+
     <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.sante.base}40`, backgroundColor: `${NAV_COLORS.sante.base}06` }}>
       <button
         onClick={() => setExpanded(!expanded)}
