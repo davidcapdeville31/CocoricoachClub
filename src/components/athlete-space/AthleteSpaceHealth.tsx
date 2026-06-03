@@ -492,6 +492,23 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
           injury={editingInjury}
         />
       )}
+
+      <AlertDialog open={!!confirmAdvance} onOpenChange={(o) => !o && setConfirmAdvance(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Valider cette étape de rééducation ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tu vas passer à l'étape <strong>{confirmAdvance?.nextName}</strong>. Assure-toi d'avoir terminé les objectifs et exercices de l'étape actuelle, et d'en avoir parlé avec ton staff médical.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={() => confirmAdvance && advancePhase.mutate(confirmAdvance.nextPhase)}>
+              Valider et passer à l'étape suivante
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 
