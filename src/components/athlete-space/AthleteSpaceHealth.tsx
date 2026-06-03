@@ -62,15 +62,26 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
   const advancePhase = useMutation({
     mutationFn: async (newPhase: number) => {
       const protocolId = rehabProtocols?.[0]?.id;
-      if (!protocolId) throw new Error("Aucun protocole actif");
-      const { error } = await supabase
-        .from("player_rehab_protocols")
-        .update({ current_phase: newPhase, updated_at: new Date().toISOString() })
-        .eq("id", protocolId);
-      if (error) throw error;
+      if (protocolId) {
+        const { error } = await supabase
+          .from("player_rehab_protocols")
+          .update({ current_phase: newPhase, updated_at: new Date().toISOString() })
+          .eq("id", protocolId);
+        if (error) throw error;
+      } else {
+        // Fallback: update generic phase on the active injury
+        const activeInjury = injuries.find((i: any) => i.status === "active") || injuries[0];
+        if (!activeInjury) throw new Error("Aucune blessure active");
+        const { error } = await supabase
+          .from("injuries")
+          .update({ current_rehab_phase: newPhase, updated_at: new Date().toISOString() })
+          .eq("id", activeInjury.id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["athlete-space-rehab", playerId] });
+      qc.invalidateQueries({ queryKey: ["athlete-space-injuries-detail", playerId] });
       toast.success("Étape validée ! Passage à l'étape suivante.");
       setConfirmAdvance(null);
     },
@@ -159,7 +170,8 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
   const protocolPhases = activeProtocol?.injury_protocols
     ? ((activeProtocol.injury_protocols as any)?.protocol_phases || []).sort((a: any, b: any) => a.phase_number - b.phase_number)
     : [];
-  const currentPhaseNumber = activeProtocol?.current_phase || 1;
+  const activeInjuryForPhase = injuries.find((i: any) => i.status === "active") || injuries[0];
+  const currentPhaseNumber = activeProtocol?.current_phase || activeInjuryForPhase?.current_rehab_phase || 1;
 
   const getHealthFeedback = (): string[] => {
     const msgs: string[] = [];

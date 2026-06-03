@@ -5274,6 +5274,7 @@ export type Database = {
           actual_return_date: string | null
           category_id: string
           created_at: string
+          current_rehab_phase: number
           description: string | null
           estimated_return_date: string | null
           id: string
@@ -5289,6 +5290,7 @@ export type Database = {
           actual_return_date?: string | null
           category_id: string
           created_at?: string
+          current_rehab_phase?: number
           description?: string | null
           estimated_return_date?: string | null
           id?: string
@@ -5304,6 +5306,7 @@ export type Database = {
           actual_return_date?: string | null
           category_id?: string
           created_at?: string
+          current_rehab_phase?: number
           description?: string | null
           estimated_return_date?: string | null
           id?: string
