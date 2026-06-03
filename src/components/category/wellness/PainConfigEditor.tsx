@@ -35,7 +35,7 @@ export function PainConfigEditor({ categoryId }: Props) {
   const queryClient = useQueryClient();
   const [config, setConfig] = useState<PainConfig>(DEFAULT_PAIN_CONFIG);
   const [dirty, setDirty] = useState(false);
-  const [previewValue, setPreviewValue] = useState<Partial<BodyPainValue>>({});
+  const [previewEntries, setPreviewEntries] = useState<BodyPainEntry[]>([]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["wellness_pain_config_editor", categoryId],
