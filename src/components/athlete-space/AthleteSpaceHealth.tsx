@@ -44,6 +44,7 @@ const PHASE_COLORS: Record<number, { bg: string; text: string; border: string }>
 export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
   const [expandedPhase, setExpandedPhase] = useState<number | null>(null);
   const [editingInjury, setEditingInjury] = useState<any>(null);
+  const [confirmAdvance, setConfirmAdvance] = useState<{ nextPhase: number; nextName: string } | null>(null);
   const qc = useQueryClient();
 
   const deleteInjury = useMutation({
@@ -54,6 +55,24 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["athlete-space-injuries-detail", playerId] });
       toast.success("Blessure supprimée");
+    },
+    onError: (e: any) => toast.error(e?.message || "Erreur"),
+  });
+
+  const advancePhase = useMutation({
+    mutationFn: async (newPhase: number) => {
+      const protocolId = rehabProtocols?.[0]?.id;
+      if (!protocolId) throw new Error("Aucun protocole actif");
+      const { error } = await supabase
+        .from("player_rehab_protocols")
+        .update({ current_phase: newPhase, updated_at: new Date().toISOString() })
+        .eq("id", protocolId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["athlete-space-rehab", playerId] });
+      toast.success("Étape validée ! Passage à l'étape suivante.");
+      setConfirmAdvance(null);
     },
     onError: (e: any) => toast.error(e?.message || "Erreur"),
   });
