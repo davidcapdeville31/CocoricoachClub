@@ -598,7 +598,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             style={{ backgroundColor: NAV_COLORS.sante.base }}
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
-            Enregistrer mon wellness
+            {isToday ? "Enregistrer mon wellness" : `Enregistrer le wellness du ${format(selectedDate, "d MMM", { locale: fr })}`}
           </Button>
         </CardContent>
       )}
