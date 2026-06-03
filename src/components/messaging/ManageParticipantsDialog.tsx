@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Plus, X, Search, Shield } from "lucide-react";
 import { toast } from "sonner";
+import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 import { fetchCategoryRosterUserNames, resolveUserDisplayNames } from "./userDisplayNames";
 
 interface ManageParticipantsDialogProps {
@@ -28,9 +29,12 @@ interface ManageParticipantsDialogProps {
 }
 
 interface Candidate {
+  key: string;
+  player_id?: string;
   user_id: string;
   name: string;
-  kind: "staff" | "athlete";
+  kind: "athlete";
+  hasLinkedAccount: boolean;
 }
 
 export function ManageParticipantsDialog({
@@ -68,55 +72,36 @@ export function ManageParticipantsDialog({
     enabled: open,
   });
 
-  // Available candidates: current staff + current athletes of the category
+  // Available candidates: exact same athlete source as Effectif (active roster only)
   const { data: candidates } = useQuery({
     queryKey: ["conv-candidates", categoryId],
     queryFn: async () => {
-      const { data: category } = await supabase
-        .from("categories")
-        .select("club_id")
-        .eq("id", categoryId)
-        .single();
-
-      const ids = new Set<string>();
-      const kindByUser = new Map<string, "staff" | "athlete">();
-
-      if (category) {
-        const { data: staff } = await supabase
-          .from("club_members")
-          .select("user_id")
-          .eq("club_id", category.club_id);
-        (staff || []).forEach((s) => {
-          if (s.user_id) {
-            ids.add(s.user_id);
-            kindByUser.set(s.user_id, "staff");
-          }
-        });
-      }
-
+      const rosterPlayers = await fetchCategoryRosterPlayers(categoryId);
       const athleteNameMap = await fetchCategoryRosterUserNames({ categoryId });
-      Object.keys(athleteNameMap).forEach((userId) => {
-        if (!ids.has(userId)) {
-          ids.add(userId);
-        }
-        kindByUser.set(userId, "athlete");
-      });
+      const linkedUserIds = rosterPlayers
+        .map((player: any) => player.user_id)
+        .filter((userId: string | null | undefined): userId is string => !!userId);
 
-      const userIds = Array.from(ids);
       const nameMap = await resolveUserDisplayNames({
         categoryId,
-        userIds,
+        userIds: linkedUserIds,
         currentUser: user,
       });
 
-      const result: Candidate[] = userIds
-        .filter((uid) => !!nameMap[uid])
-        .map((uid) => ({
-          user_id: uid,
-          name: nameMap[uid],
-          kind: kindByUser.get(uid) || "athlete",
-        }));
-      // Sort by name
+      const result: Candidate[] = rosterPlayers.map((player: any) => {
+        const fallbackName = [player.first_name, player.name].filter(Boolean).join(" ").trim();
+        const resolvedName = player.user_id ? nameMap[player.user_id] || athleteNameMap[player.user_id] : fallbackName;
+
+        return {
+          key: player.user_id || player.id,
+          player_id: player.id,
+          user_id: player.user_id || "",
+          name: resolvedName || fallbackName,
+          kind: "athlete",
+          hasLinkedAccount: !!player.user_id,
+        };
+      }).filter((candidate) => !!candidate.name);
+
       result.sort((a, b) => a.name.localeCompare(b.name));
       return result;
     },
@@ -131,7 +116,7 @@ export function ManageParticipantsDialog({
   const filteredAvailable = useMemo(() => {
     const term = search.trim().toLowerCase();
     return (candidates || [])
-      .filter((c) => !participantIds.has(c.user_id))
+      .filter((c) => !c.user_id || !participantIds.has(c.user_id))
       .filter((c) => (term ? c.name.toLowerCase().includes(term) : true));
   }, [candidates, participantIds, search]);
 
@@ -253,7 +238,7 @@ export function ManageParticipantsDialog({
                   ) : (
                     filteredAvailable.map((c) => (
                       <div
-                        key={c.user_id}
+                        key={c.key}
                         className="flex items-center gap-3 p-2 rounded-lg border border-border/40"
                       >
                         <Avatar className="h-8 w-8">
@@ -261,16 +246,23 @@ export function ManageParticipantsDialog({
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{c.name}</p>
-                          <Badge variant="outline" className="text-[10px] h-4">
-                            {c.kind === "staff" ? "Staff" : "Athlète"}
-                          </Badge>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge variant="outline" className="text-[10px] h-4">
+                              Athlète
+                            </Badge>
+                            {!c.hasLinkedAccount && (
+                              <span className="text-[10px] text-muted-foreground">
+                                Compte non lié
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() => addMember.mutate(c.user_id)}
-                          disabled={addMember.isPending}
+                          onClick={() => c.hasLinkedAccount && addMember.mutate(c.user_id)}
+                          disabled={addMember.isPending || !c.hasLinkedAccount}
                         >
                           <Plus className="h-4 w-4" />
                         </Button>
