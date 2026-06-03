@@ -448,6 +448,14 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
         onOpenChange={setShowLibrary}
         categoryId={categoryId}
       />
+      {editingInjury && (
+        <EditInjuryDialog
+          open={!!editingInjury}
+          onOpenChange={(o) => !o && setEditingInjury(null)}
+          injury={editingInjury}
+        />
+      )}
+
     </div>
   );
 }
