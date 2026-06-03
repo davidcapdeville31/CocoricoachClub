@@ -77,7 +77,29 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [isBowlingAdvancedOpen, setIsBowlingAdvancedOpen] = useState(false);
   const [bowlingAdvancedSessionId, setBowlingAdvancedSessionId] = useState<string | null>(null);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+  const [sessionToDelete, setSessionToDelete] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
+
+  const handleDeleteSession = async () => {
+    if (!sessionToDelete) return;
+    setIsDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("athlete-delete-session", {
+        body: { session_id: sessionToDelete.id, player_id: playerId },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Échec de la suppression");
+      toast.success(data?.unassigned ? "Vous avez été retiré de la séance" : "Séance supprimée");
+      setSessionToDelete(null);
+      queryClient.invalidateQueries({ queryKey: ["athlete-calendar-sessions", categoryId, playerId] });
+    } catch (e: any) {
+      toast.error(e?.message || "Erreur lors de la suppression");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const isBowling = (sportType || "").toLowerCase().includes("bowling");
   const isBasket = isBasketballPrecisionSport(sportType);
 
