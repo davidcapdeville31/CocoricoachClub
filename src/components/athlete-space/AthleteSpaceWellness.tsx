@@ -423,7 +423,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
         <CardContent className="space-y-1.5 pt-0 pb-3 px-2 sm:px-4">
 
           {activeQuestions.map(q => {
-            const currentValue = values[q.key] ?? 1;
+            const currentValue = values[q.key] ?? (q.scale[0]?.value ?? 1);
 
             // Sleep duration special case
             if (q.is_sleep_duration) {
