@@ -27,13 +27,11 @@ import { TACTICAL_EXERCISE_TYPES } from "@/lib/constants/bowlingTacticalZones";
 interface Props {
   playerId: string;
   categoryId: string;
-  /** Optional rendered node for "Stats Parties d'entraînement" sub-tab (precision charts from games). */
-  partiesContent?: ReactNode;
 }
 
 const ALL_EXERCISE_TYPES = [...TECHNICAL_EXERCISE_TYPES, ...TACTICAL_EXERCISE_TYPES];
 
-export function BowlingSpecificStatsTabs({ playerId, categoryId, partiesContent }: Props) {
+export function BowlingSpecificStatsTabs({ playerId, categoryId }: Props) {
   const [subTab, setSubTab] = useState("technique");
   // Filters
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
@@ -261,10 +259,9 @@ export function BowlingSpecificStatsTabs({ playerId, categoryId, partiesContent 
 
       {/* ───── Sub-tabs ───── */}
       <Tabs value={subTab} onValueChange={setSubTab}>
-        <TabsList className="w-full grid grid-cols-3">
+        <TabsList className="w-full grid grid-cols-2">
           <TabsTrigger value="technique" className="gap-1.5"><Wrench className="h-4 w-4" />Stats Techniques</TabsTrigger>
           <TabsTrigger value="tactique" className="gap-1.5"><Target className="h-4 w-4" />Stats Tactiques</TabsTrigger>
-          <TabsTrigger value="parties" className="gap-1.5"><Trophy className="h-4 w-4" />Stats Parties d'entraînement</TabsTrigger>
         </TabsList>
 
         {/* ─── Technique ─── */}
@@ -439,13 +436,6 @@ export function BowlingSpecificStatsTabs({ playerId, categoryId, partiesContent 
                 </Card>
               )}
             </>
-          )}
-        </TabsContent>
-
-        {/* ─── Parties d'entraînement (legacy precision charts) ─── */}
-        <TabsContent value="parties" className="space-y-4 mt-4">
-          {partiesContent ?? (
-            <EmptyState icon={<Trophy className="h-10 w-10" />} text="Aucune partie d'entraînement enregistrée." />
           )}
         </TabsContent>
       </Tabs>
