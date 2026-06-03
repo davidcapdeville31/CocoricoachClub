@@ -18,8 +18,6 @@ import {
   THROW_PRESETS,
 } from "@/lib/constants/bowlingTechnicalParameters";
 import {
-  TACTICAL_EXERCISE_TYPES,
-  PATTERN_DIFFICULTY,
   GAME_OBJECTIVES,
 } from "@/lib/constants/bowlingTacticalZones";
 import { BowlingParametersPicker } from "../selectors/BowlingParametersPicker";
