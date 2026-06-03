@@ -302,10 +302,19 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
               }
             }}
             disabled={(d) => d > maxDate || d < minDate}
+            modifiers={{ filled: filledDates ?? [] }}
+            modifiersClassNames={{
+              filled:
+                "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1.5 after:w-1.5 after:rounded-full after:bg-status-optimal",
+            }}
             initialFocus
             locale={fr}
             className={cn("p-3 pointer-events-auto")}
           />
+          <div className="px-3 pb-2 pt-1 flex items-center gap-2 text-[10px] text-muted-foreground border-t">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-status-optimal" />
+            Wellness rempli — cliquez pour modifier
+          </div>
         </PopoverContent>
       </Popover>
       {isPastDate && (
