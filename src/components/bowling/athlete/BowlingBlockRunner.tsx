@@ -287,48 +287,103 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
           </Select>
         </div>
 
-        {isTactical && (
-          <>
-            <div className="space-y-1">
-              <Label className="text-[11px] text-muted-foreground">Zone jouée</Label>
-              <Select value={draft.actual_zone || ""} onValueChange={(v) => setDraft({ ...draft, actual_zone: v })}>
-                <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Choisir une zone" /></SelectTrigger>
-                <SelectContent className="z-[100]">
-                  {TACTICAL_ZONES.map((z) => (
-                    <SelectItem key={z.value} value={z.value} className="text-xs">{z.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
+        {isTactical && (() => {
+          const blockZones: string[] = Array.isArray(block.config?.zones) ? block.config.zones : [];
+          const throwsByZone: Record<string, number> = block.config?.throws_by_zone || {};
+          const doneByZone = throws.reduce<Record<string, number>>((acc, t: any) => {
+            const z = t.actual_zone || t.target_zone;
+            if (z) acc[z] = (acc[z] || 0) + 1;
+            return acc;
+          }, {});
+          const zoneOptions = blockZones.length > 0
+            ? blockZones.map((z) => TACTICAL_ZONES.find((tz) => tz.value === z) || { value: z, label: z, short: z })
+            : TACTICAL_ZONES;
+          return (
+            <>
               <div className="space-y-1">
-                <Label className="text-[11px] text-muted-foreground">Latte au pied</Label>
-                <Input
-                  type="number"
-                  value={draft.foot_board ?? ""}
-                  onChange={(e) =>
-                    setDraft({ ...draft, foot_board: e.target.value === "" ? null : Number(e.target.value) })
-                  }
-                  className="h-9 text-xs"
-                />
+                <Label className="text-[11px] text-muted-foreground">
+                  Zone jouée
+                  {blockZones.length > 0 && (
+                    <span className="ml-1 italic text-[10px]">(zones prévues dans la séance)</span>
+                  )}
+                </Label>
+                {blockZones.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                    {zoneOptions.map((z: any) => {
+                      const planned = throwsByZone[z.value] || 0;
+                      const done = doneByZone[z.value] || 0;
+                      const active = draft.actual_zone === z.value;
+                      const full = planned > 0 && done >= planned;
+                      return (
+                        <button
+                          key={z.value}
+                          type="button"
+                          onClick={() => setDraft({ ...draft, actual_zone: z.value })}
+                          className={cn(
+                            "px-2 py-1.5 rounded-md text-xs border transition-all text-left",
+                            active
+                              ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                              : full
+                                ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-700 dark:text-emerald-300"
+                                : "bg-background hover:bg-muted border-border",
+                          )}
+                        >
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="font-semibold">{z.short || z.label}</span>
+                            {planned > 0 && (
+                              <span className={cn("text-[10px] font-mono", active ? "opacity-90" : "text-muted-foreground")}>
+                                {done}/{planned}
+                              </span>
+                            )}
+                          </div>
+                          {z.label && z.short && z.label !== z.short && (
+                            <span className="block text-[10px] opacity-75 truncate">{z.label}</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <Select value={draft.actual_zone || ""} onValueChange={(v) => setDraft({ ...draft, actual_zone: v })}>
+                    <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Choisir une zone" /></SelectTrigger>
+                    <SelectContent className="z-[100]">
+                      {TACTICAL_ZONES.map((z) => (
+                        <SelectItem key={z.value} value={z.value} className="text-xs">{z.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
-              <div className="space-y-1">
-                <Label className="text-[11px] text-muted-foreground">Point de sortie (latte)</Label>
-                <Input
-                  type="number"
-                  value={draft.breakpoint_board ?? ""}
-                  onChange={(e) =>
-                    setDraft({
-                      ...draft,
-                      breakpoint_board: e.target.value === "" ? null : Number(e.target.value),
-                    })
-                  }
-                  className="h-9 text-xs"
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[11px] text-muted-foreground">Latte au pied</Label>
+                  <Input
+                    type="number"
+                    value={draft.foot_board ?? ""}
+                    onChange={(e) =>
+                      setDraft({ ...draft, foot_board: e.target.value === "" ? null : Number(e.target.value) })
+                    }
+                    className="h-9 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[11px] text-muted-foreground">Point de sortie (latte)</Label>
+                  <Input
+                    type="number"
+                    value={draft.breakpoint_board ?? ""}
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        breakpoint_board: e.target.value === "" ? null : Number(e.target.value),
+                      })
+                    }
+                    className="h-9 text-xs"
+                  />
+                </div>
               </div>
-            </div>
-          </>
-        )}
+            </>
+          );
+        })()}
 
         {/* === Validation par paramètre technique sélectionné === */}
         {isTechnical && selectedParams.length > 0 && (
