@@ -434,6 +434,24 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
                           ⏱ Durée estimée : {phase.duration_days_min}-{phase.duration_days_max} jours
                         </p>
                       )}
+
+                      {/* Validate current phase (athlete action) */}
+                      {isActive && phaseNum < displayPhases.length && (
+                        <Button
+                          size="sm"
+                          className="w-full mt-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const next = displayPhases.find((p: any) => (p.phase_number || p.phase) === phaseNum + 1);
+                            setConfirmAdvance({
+                              nextPhase: phaseNum + 1,
+                              nextName: next?.name || next?.label || `Étape ${phaseNum + 1}`,
+                            });
+                          }}
+                        >
+                          ✅ Valider cette étape et passer à la suivante
+                        </Button>
+                      )}
                     </CollapsibleContent>
                   </Collapsible>
                 );
