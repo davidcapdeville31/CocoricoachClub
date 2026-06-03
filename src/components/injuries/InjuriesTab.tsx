@@ -274,7 +274,11 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                                   <SelectItem value={INJURY_STATUS.HEALED}>{INJURY_STATUS_LABELS[INJURY_STATUS.HEALED]}</SelectItem>
                                 </SelectContent>
                               </Select>
+                              <Button variant="ghost" size="icon" onClick={() => setEditingInjury(injury)} title="Modifier">
+                                <Pencil className="h-4 w-4" />
+                              </Button>
                               <AlertDialog>
+
                                 <AlertDialogTrigger asChild>
                                   <Button
                                     variant="ghost"
