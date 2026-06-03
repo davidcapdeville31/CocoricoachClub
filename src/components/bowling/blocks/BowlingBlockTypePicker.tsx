@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
-import { Flame, Target, Map, Trophy } from "lucide-react";
+import { Target, Map, Trophy } from "lucide-react";
 import type { BowlingBlockType } from "./types";
 
 interface Props {
