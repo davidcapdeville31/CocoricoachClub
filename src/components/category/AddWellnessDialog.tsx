@@ -243,10 +243,9 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
       ) : (
         <>
           <p className="text-xs text-muted-foreground italic">
-            {inverted
-              ? `1 = ${options[0]?.label ?? ""} · 5 = ${options[4]?.label ?? ""}`
-              : `1 = ${options[0]?.label ?? ""} · 5 = ${options[4]?.label ?? ""}`}
+            {`${options[0]?.value ?? 1} = ${options[0]?.label ?? ""} · ${options[options.length - 1]?.value ?? 5} = ${options[options.length - 1]?.label ?? ""}`}
           </p>
+
           <div className="flex gap-2 flex-wrap">
             {options.map((opt) => (
               <button
@@ -323,17 +322,19 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
                   />
                 );
               }
+              const defaultVal = q.scale[0]?.value ?? 1;
               return (
                 <ScoreButton
                   key={q.key}
                   label={q.label}
                   emoji={q.emoji}
-                  value={values[q.key] ?? 3}
+                  value={values[q.key] ?? defaultVal}
                   onChange={(v) => setValues(prev => ({ ...prev, [q.key]: v }))}
                   options={q.scale.map(s => ({ value: s.value, label: s.label }))}
                   inverted={q.inverted}
                 />
               );
+
             })}
           </div>
 

@@ -102,6 +102,16 @@ const invertedScale = (labels: string[]): WellnessScaleLevel[] => [
   { value: 5, label: labels[4], color: C_WORST },
 ];
 
+// Soreness scale 0..5 (0 = aucune douleur)
+const sorenessScale = (): WellnessScaleLevel[] => [
+  { value: 0, label: "Aucune douleur", color: C_OPT },
+  { value: 1, label: "Très légère", color: C_OPT },
+  { value: 2, label: "Légère gêne", color: C_GOOD },
+  { value: 3, label: "Modérée", color: C_MID },
+  { value: 4, label: "Forte", color: C_BAD },
+  { value: 5, label: "Intense", color: C_WORST },
+];
+
 const positiveScale = (labels: string[]): WellnessScaleLevel[] => [
   { value: 1, label: labels[0], color: C_WORST },
   { value: 2, label: labels[1], color: C_BAD },
@@ -109,6 +119,7 @@ const positiveScale = (labels: string[]): WellnessScaleLevel[] => [
   { value: 4, label: labels[3], color: C_GOOD },
   { value: 5, label: labels[4], color: C_OPT },
 ];
+
 
 export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
   {
@@ -146,7 +157,7 @@ export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
     enabled: true,
     inverted: true,
     is_custom: false,
-    scale: invertedScale(["Aucune douleur", "Légère gêne", "Modérée", "Forte", "Intense"]),
+    scale: sorenessScale(),
   },
   {
     key: "soreness_lower_body",
@@ -155,8 +166,9 @@ export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
     enabled: true,
     inverted: true,
     is_custom: false,
-    scale: invertedScale(["Aucune douleur", "Légère gêne", "Modérée", "Forte", "Intense"]),
+    scale: sorenessScale(),
   },
+
   {
     key: "stress_level",
     label: "Stress",
@@ -178,12 +190,18 @@ export function mergeWithDefaults(saved: WellnessQuestion[] | null | undefined):
   const result: WellnessQuestion[] = [];
   const savedKeys = new Set(saved.map((q) => q.key));
   for (const q of saved) {
-    // ensure shape integrity
+    const defaultQ = DEFAULT_WELLNESS_QUESTIONS.find(d => d.key === q.key);
+    const validScale = Array.isArray(q.scale) && (q.scale.length === 5 || q.scale.length === 6);
+    // For soreness questions, always use the 0..5 default to ensure migration
+    const isSoreness = q.key === "soreness_upper_body" || q.key === "soreness_lower_body";
     result.push({
       ...q,
-      scale: Array.isArray(q.scale) && q.scale.length === 5 ? q.scale : DEFAULT_WELLNESS_QUESTIONS.find(d => d.key === q.key)?.scale ?? positiveScale(["1","2","3","4","5"]),
+      scale: isSoreness
+        ? (defaultQ?.scale ?? sorenessScale())
+        : (validScale ? q.scale : defaultQ?.scale ?? positiveScale(["1","2","3","4","5"])),
     });
   }
+
   // Append any default standards that were not in saved (e.g., added later)
   for (const d of DEFAULT_WELLNESS_QUESTIONS) {
     if (!savedKeys.has(d.key)) result.push(d);

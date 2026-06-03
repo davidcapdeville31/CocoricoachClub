@@ -108,21 +108,23 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     const initial: Record<string, number> = {};
     const ew: any = existingWellness;
     for (const q of activeQuestions) {
+      const fallback = q.is_sleep_duration ? 7.5 : (q.scale[0]?.value ?? 1);
       if (ew) {
         const raw = q.is_custom
-          ? (ew.custom_answers?.[q.key] ?? 1)
-          : (ew[q.key] ?? 1);
+          ? (ew.custom_answers?.[q.key] ?? fallback)
+          : (ew[q.key] ?? fallback);
         if (q.is_sleep_duration) {
-          // En base : score 1-5. UI : heures (médiane de plage).
           initial[q.key] = raw ? sleepScoreToHours(Number(raw)) : 7.5;
         } else {
-          initial[q.key] = Number(raw) || 1;
+          const n = Number(raw);
+          initial[q.key] = Number.isFinite(n) ? n : fallback;
         }
       } else {
-        initial[q.key] = q.is_sleep_duration ? 7.5 : 1;
+        initial[q.key] = fallback;
       }
     }
     setValues(initial);
+
     // Si on a une entrée existante, tous les champs comptent comme "touchés"
     // pour autoriser l'enregistrement immédiat après édition partielle.
     setTouched(existingWellness ? new Set(activeQuestions.map(q => q.key)) : new Set());
@@ -421,7 +423,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
         <CardContent className="space-y-1.5 pt-0 pb-3 px-2 sm:px-4">
 
           {activeQuestions.map(q => {
-            const currentValue = values[q.key] ?? 1;
+            const currentValue = values[q.key] ?? (q.scale[0]?.value ?? 1);
 
             // Sleep duration special case
             if (q.is_sleep_duration) {
@@ -462,23 +464,24 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
               );
             }
 
-            const scaleHint = q.inverted
-              ? `1 = ${q.scale[0].label} · 5 = ${q.scale[4].label}`
-              : `1 = ${q.scale[0].label} · 5 = ${q.scale[4].label}`;
+            const firstOpt = q.scale[0];
+            const lastOpt = q.scale[q.scale.length - 1];
+            const scaleHint = `${firstOpt.value} = ${firstOpt.label} · ${lastOpt.value} = ${lastOpt.label}`;
+            const gridColsClass = q.scale.length === 6 ? "grid-cols-6" : "grid-cols-5";
 
             return (
               <div key={q.key}>
                 <Label className="text-[11px] flex items-center gap-1 mb-0.5">
                   <span className="text-xs">{q.emoji}</span>
                   <span className="flex-1 truncate">{q.label}</span>
-                  {currentValue >= 1 && (
+                  {currentValue >= firstOpt.value && (
                     <span className="text-[10px] text-muted-foreground truncate max-w-[60%] text-right">
                       {q.scale.find(o => o.value === currentValue)?.label}
                     </span>
                   )}
                 </Label>
                 <p className="text-[9px] text-muted-foreground mb-1 italic">{scaleHint}</p>
-                <div className="grid grid-cols-5 gap-0.5">
+                <div className={cn("grid gap-0.5", gridColsClass)}>
                   {q.scale.map(opt => {
                     const isSelected = currentValue === opt.value;
                     return (
@@ -504,6 +507,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                     );
                   })}
                 </div>
+
 
               </div>
             );
