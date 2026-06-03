@@ -120,12 +120,15 @@ export function SimplifiedTacticalBlockEditor({
         onChange={(id) => update({ ball_id: id })}
       />
 
-      {/* Huilage */}
-      <SimplifiedOilPatternPicker
-        value={value.oil_pattern}
-        onChange={(op) => update({ oil_pattern: op })}
-        categoryId={categoryId}
-      />
+      {/* Huilage (masqué quand défini au niveau de la séance) */}
+      {!hideOilPicker && (
+        <SimplifiedOilPatternPicker
+          value={value.oil_pattern}
+          onChange={(op) => update({ oil_pattern: op })}
+          categoryId={categoryId}
+        />
+      )}
+
 
       {/* Items */}
       <div className="space-y-2">
