@@ -400,6 +400,21 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
                   />
                 </div>
               </div>
+
+              {/* Validation du passage sur la zone/flèche */}
+              <div className="rounded-xl border border-border/60 bg-surface-sunken p-3 space-y-2">
+                <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Passage sur la zone
+                </Label>
+                <p className="text-[10px] text-muted-foreground italic">
+                  Valide si la boule est passée sur la zone visée (flèche). Combine avec les objectifs de résultat ci-dessous — tu peux valider l'un, l'autre, ou les deux.
+                </p>
+                <YesNoBtn
+                  label="Zone (flèche) respectée"
+                  value={(draft.parameter_results || {})["__zone_pass__"]}
+                  onChange={(v) => setParamResult("__zone_pass__", v)}
+                />
+              </div>
             </>
           );
         })()}
