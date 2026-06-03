@@ -44,6 +44,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
   const [selectedBallId, setSelectedBallId] = useState<string>("all");
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>(playerId || "all");
   const [globalPeriod, setGlobalPeriod] = useState<"day" | "week" | "month" | "year">("month");
+  const [globalChartType, setGlobalChartType] = useState<"bar" | "line">("bar");
   const [filterByOilType, setFilterByOilType] = useState<OilCategoryType | null>(null);
   const [selectedTrainingMatchIds, setSelectedTrainingMatchIds] = useState<Set<string> | null>(null);
 
