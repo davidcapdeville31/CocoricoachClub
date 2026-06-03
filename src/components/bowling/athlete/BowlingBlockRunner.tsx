@@ -535,6 +535,12 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
                   <Badge variant="outline" className="text-[10px] w-8 justify-center">{t.throw_number}</Badge>
                   <div className="flex flex-wrap gap-1 flex-1">
                     {t.actual_zone && <Badge variant="secondary" className="text-[10px]">{zoneShort(t.actual_zone)}</Badge>}
+                    {isTactical && t.parameter_results?.__zone_pass__ === true && (
+                      <Badge className="text-[10px] bg-emerald-500/15 text-emerald-700 border-emerald-500/30">Zone ✓</Badge>
+                    )}
+                    {isTactical && t.parameter_results?.__zone_pass__ === false && (
+                      <Badge className="text-[10px] bg-rose-500/15 text-rose-700 border-rose-500/30">Zone ✗</Badge>
+                    )}
                     {selectedParams.length > 0 && (
                       <Badge variant="outline" className="text-[10px]">
                         Critères {paramsOk}/{selectedParams.length}
