@@ -800,21 +800,28 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                 </div>
 
                 <Card>
-                  <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+                  <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0 flex-wrap gap-2">
                     <CardTitle className="text-sm flex items-center gap-2">
                       <Clock className="h-4 w-4 text-primary" />
                       Volume d'entraînement (heures) par thématique
                     </CardTitle>
-                    <ToggleGroup type="single" value={globalPeriod} onValueChange={(v) => v && setGlobalPeriod(v as any)} size="sm">
-                      <ToggleGroupItem value="day" className="text-xs h-7 px-2">Jour</ToggleGroupItem>
-                      <ToggleGroupItem value="week" className="text-xs h-7 px-2">Semaine</ToggleGroupItem>
-                      <ToggleGroupItem value="month" className="text-xs h-7 px-2">Mois</ToggleGroupItem>
-                      <ToggleGroupItem value="year" className="text-xs h-7 px-2">Année</ToggleGroupItem>
-                    </ToggleGroup>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <ToggleGroup type="single" value={globalChartType} onValueChange={(v) => v && setGlobalChartType(v as any)} size="sm">
+                        <ToggleGroupItem value="bar" className="text-xs h-7 px-2">Colonnes</ToggleGroupItem>
+                        <ToggleGroupItem value="line" className="text-xs h-7 px-2">Lignes</ToggleGroupItem>
+                      </ToggleGroup>
+                      <ToggleGroup type="single" value={globalPeriod} onValueChange={(v) => v && setGlobalPeriod(v as any)} size="sm">
+                        <ToggleGroupItem value="day" className="text-xs h-7 px-2">Jour</ToggleGroupItem>
+                        <ToggleGroupItem value="week" className="text-xs h-7 px-2">Semaine</ToggleGroupItem>
+                        <ToggleGroupItem value="month" className="text-xs h-7 px-2">Mois</ToggleGroupItem>
+                        <ToggleGroupItem value="year" className="text-xs h-7 px-2">Année</ToggleGroupItem>
+                      </ToggleGroup>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     {globalStats.chartData.length > 0 ? (
                       <ResponsiveContainer width="100%" height={380}>
+                        {globalChartType === "bar" ? (
                         <BarChart data={globalStats.chartData} barCategoryGap="25%" barGap={2} margin={{ top: 28, right: 12, left: -10, bottom: 0 }}>
                           <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--border))" vertical={false} />
                           <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
@@ -859,6 +866,29 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                             );
                           })}
                         </BarChart>
+                        ) : (
+                        <LineChart data={globalStats.chartData} margin={{ top: 20, right: 12, left: -10, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="2 4" stroke="hsl(var(--border))" vertical={false} />
+                          <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={32} unit="h" />
+                          <Tooltip
+                            contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 11, boxShadow: "0 8px 24px -8px hsl(var(--foreground)/0.25)" }}
+                            formatter={(v: any, name: any, item: any) => {
+                              const total = item?.payload?.__total || 0;
+                              const raw = item?.payload?.__raw?.[name] ?? (v as number);
+                              const pct = total > 0 ? Math.round((raw / total) * 100) : 0;
+                              return [`${v}h · ${pct}%`, name];
+                            }}
+                          />
+                          <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} iconType="circle" iconSize={8} />
+                          {(["Échauffement", "Technique", "Tactique", "Parties"] as const).map((k) => {
+                            const color = k === "Échauffement" ? THEME_COLORS.warmup : k === "Technique" ? THEME_COLORS.technical : k === "Tactique" ? THEME_COLORS.tactical : THEME_COLORS.games;
+                            return (
+                              <Line key={k} type="monotone" dataKey={k} stroke={color} strokeWidth={2} dot={{ r: 3, fill: color }} activeDot={{ r: 5 }} />
+                            );
+                          })}
+                        </LineChart>
+                        )}
                       </ResponsiveContainer>
                     ) : (
                       <p className="text-sm text-muted-foreground text-center py-8">Aucune donnée sur cette période.</p>
