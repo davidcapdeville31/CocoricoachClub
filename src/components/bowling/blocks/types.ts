@@ -12,6 +12,7 @@ export interface BowlingBlockConfig {
   tactical_type?: string;
   zones?: string[];
   throws_per_zone?: number;
+  throws_by_zone?: Record<string, number>;
   target_arrow?: string;
   tolerance?: number;
   pattern_length?: number;
