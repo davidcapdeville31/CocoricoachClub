@@ -26,6 +26,7 @@ import { BowlingParametersPicker } from "../selectors/BowlingParametersPicker";
 import { BowlingZoneSelector } from "../selectors/BowlingZoneSelector";
 import { BowlingTargetOutcomesPicker } from "../selectors/BowlingTargetOutcomesPicker";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { BowlingBlockDraft, BowlingBlockType } from "./types";
 
@@ -155,6 +156,16 @@ export function BowlingTechnicalBuilder(props: Props) {
   const { value, onChange } = props;
   const cfg = value.config;
   const paramCount = (cfg.parameters || []).length;
+
+  // Pré-sélectionne les critères de réussite par défaut (quille 1, poche, strike+poche)
+  // pour que le coach puisse les valider lancer par lancer sans étape supplémentaire.
+  useEffect(() => {
+    if (!value.objectives || value.objectives.length === 0) {
+      onChange({ ...value, objectives: [...ADVANCED_TARGET_OUTCOMES] });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   return (
     <BlockShell {...props}>
