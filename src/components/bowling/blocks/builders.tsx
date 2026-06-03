@@ -202,81 +202,24 @@ export function BowlingTacticalBuilder(props: Props) {
   const { value, onChange } = props;
   const cfg = value.config;
 
-  const { data: patterns } = useQuery({
-    queryKey: ["bowling_oil_patterns_all"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("bowling_oil_patterns")
-        .select("id, name, length_feet")
-        .order("name");
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
   const zonesCount = (cfg.zones || []).length;
+  const throwsByZone = cfg.throws_by_zone || {};
+  const totalFromZones = (cfg.zones || []).reduce(
+    (s, z) => s + (throwsByZone[z] || 0),
+    0,
+  );
+
+  // Sync auto du nombre total de lancers (en haut) avec la somme par zone
+  useEffect(() => {
+    if (totalFromZones > 0 && totalFromZones !== value.planned_throws) {
+      onChange({ ...value, planned_throws: totalFromZones });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalFromZones]);
 
   return (
     <BlockShell {...props}>
       <DurationThrows {...props} />
-
-      {/* Type & pattern */}
-      <div className="rounded-xl border border-border/60 bg-surface-sunken p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <Label className="text-xs">Type d'exercice tactique</Label>
-          <Select
-            value={cfg.tactical_type || ""}
-            onValueChange={(v) => onChange({ ...value, config: { ...cfg, tactical_type: v } })}
-          >
-            <SelectTrigger className="h-9 text-sm bg-surface"><SelectValue placeholder="Choisir..." /></SelectTrigger>
-            <SelectContent className="z-[100]">
-              {TACTICAL_EXERCISE_TYPES.map((t) => (
-                <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Pattern (huilage)</Label>
-          <Select
-            value={value.pattern_id || "__none__"}
-            onValueChange={(v) => onChange({ ...value, pattern_id: v === "__none__" ? null : v })}
-          >
-            <SelectTrigger className="h-9 text-sm bg-surface"><SelectValue /></SelectTrigger>
-            <SelectContent className="z-[100]">
-              <SelectItem value="__none__" className="italic">Libre / non défini</SelectItem>
-              {(patterns || []).map((p: any) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}{p.length_feet ? ` · ${p.length_feet}ft` : ""}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Difficulté pattern</Label>
-          <Select
-            value={cfg.pattern_difficulty || ""}
-            onValueChange={(v) => onChange({ ...value, config: { ...cfg, pattern_difficulty: v } })}
-          >
-            <SelectTrigger className="h-9 text-sm bg-surface"><SelectValue placeholder="—" /></SelectTrigger>
-            <SelectContent className="z-[100]">
-              {PATTERN_DIFFICULTY.map((p) => (
-                <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Commentaire pattern</Label>
-          <Input
-            value={cfg.pattern_comment || ""}
-            onChange={(e) => onChange({ ...value, config: { ...cfg, pattern_comment: e.target.value } })}
-            className="h-9 text-sm bg-surface"
-            placeholder="ex. fin, neuf, abrasif…"
-          />
-        </div>
-      </div>
 
       {/* Zones + lancers/zone */}
       <div className="space-y-2">
@@ -285,10 +228,17 @@ export function BowlingTacticalBuilder(props: Props) {
         </SectionLabel>
         <BowlingZoneSelector
           selected={cfg.zones || []}
-          onChange={(z) => onChange({ ...value, config: { ...cfg, zones: z } })}
-          throwsPerZone={cfg.throws_per_zone}
-          onThrowsPerZoneChange={(n) =>
-            onChange({ ...value, config: { ...cfg, throws_per_zone: n } })
+          onChange={(z) => {
+            // Nettoie les zones désélectionnées de la map
+            const cleaned: Record<string, number> = {};
+            z.forEach((zone) => {
+              if (throwsByZone[zone]) cleaned[zone] = throwsByZone[zone];
+            });
+            onChange({ ...value, config: { ...cfg, zones: z, throws_by_zone: cleaned } });
+          }}
+          throwsByZone={throwsByZone}
+          onThrowsByZoneChange={(m) =>
+            onChange({ ...value, config: { ...cfg, throws_by_zone: m } })
           }
         />
       </div>
@@ -305,6 +255,7 @@ export function BowlingTacticalBuilder(props: Props) {
     </BlockShell>
   );
 }
+
 
 export function BowlingGamesBuilder(props: Props) {
   const { value, onChange } = props;
