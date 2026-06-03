@@ -88,8 +88,10 @@ serve(async (req) => {
     const isOwner = session.created_by_player_id === player_id;
     const isSoloAssignee = participants.length > 0 && participants.every((p) => p.player_id === player_id);
 
-    if (!isOwner && !isSoloAssignee) {
-      // Séance partagée → on retire juste le joueur de la liste de participants
+    // Le staff peut tout supprimer. L'athlète : seulement ses séances ou solo, sinon unassign.
+    if (!isOwnerUser && isStaff) {
+      // staff → suppression complète autorisée
+    } else if (!isOwner && !isSoloAssignee) {
       if (participants.some((p) => p.player_id === player_id)) {
         const { error: unassignError } = await supabase
           .from("event_participants")
