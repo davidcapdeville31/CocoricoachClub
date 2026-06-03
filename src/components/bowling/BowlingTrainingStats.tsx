@@ -24,6 +24,7 @@ import { preparePdfWithSettings } from "@/lib/pdfExport";
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from "recharts";
 import { getOilCategory, type OilCategoryType } from "@/lib/constants/bowlingOilPatterns";
 import type { FrameData } from "@/components/athlete-portal/BowlingScoreSheet";
+import { BowlingSpecificStatsTabs } from "./stats/BowlingSpecificStatsTabs";
 
 const OIL_CATEGORY_BADGES: Record<OilCategoryType, { label: string; className: string }> = {
   sport: { label: "🔴 Sportif", className: "bg-red-500/15 text-red-600 border-red-500 dark:bg-red-500/20 dark:text-red-400" },
