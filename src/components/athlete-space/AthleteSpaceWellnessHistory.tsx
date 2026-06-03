@@ -261,7 +261,7 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
                       fontSize: "12px",
                       borderRadius: "8px",
                     }}
-                    formatter={(value: number, name: string) => [`${value}/5`, METRIC_LABELS[name] || name]}
+                    formatter={(value: number, name: string) => [`${Math.round(Number(value))}/5`, METRIC_LABELS[name] || name]}
                     labelFormatter={(_, payload: any[]) => payload?.[0]?.payload?.fullDate || ""}
                   />
                   <Legend
