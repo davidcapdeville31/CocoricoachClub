@@ -761,6 +761,8 @@ export const TRAINING_TYPE_LABELS: Record<string, string> = {
   bowling_technique: "Travail Technique",
   bowling_tactique: "Travail Tactique",
   bowling_parties: "Parties d'Entraînement",
+  bowling_advanced: "Bowling — Mode avancé",
+  bowling_simplified: "Bowling — Mode simplifié",
   // Legacy bowling labels mapped to their new parent label
   bowling_practice: "Travail Technique",
   bowling_spare: "Travail Technique",
