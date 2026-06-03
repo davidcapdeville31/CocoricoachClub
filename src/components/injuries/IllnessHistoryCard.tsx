@@ -10,10 +10,12 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Plus, Thermometer, Trash2 } from "lucide-react";
+import { Plus, Thermometer, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { AddIllnessDialog } from "./AddIllnessDialog";
+import { EditIllnessDialog } from "./EditIllnessDialog";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
+
 
 interface IllnessHistoryCardProps {
   categoryId: string;
