@@ -19,7 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Activity, TrendingUp, Library, Trash2 } from "lucide-react";
+import { Plus, Activity, TrendingUp, Library, Trash2, Pencil } from "lucide-react";
+import { EditInjuryDialog } from "./EditInjuryDialog";
+
 import {
   AlertDialog,
   AlertDialogAction,
