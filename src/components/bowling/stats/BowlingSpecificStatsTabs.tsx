@@ -261,10 +261,9 @@ export function BowlingSpecificStatsTabs({ playerId, categoryId, partiesContent 
 
       {/* ───── Sub-tabs ───── */}
       <Tabs value={subTab} onValueChange={setSubTab}>
-        <TabsList className="w-full grid grid-cols-3">
+        <TabsList className="w-full grid grid-cols-2">
           <TabsTrigger value="technique" className="gap-1.5"><Wrench className="h-4 w-4" />Stats Techniques</TabsTrigger>
           <TabsTrigger value="tactique" className="gap-1.5"><Target className="h-4 w-4" />Stats Tactiques</TabsTrigger>
-          <TabsTrigger value="parties" className="gap-1.5"><Trophy className="h-4 w-4" />Stats Parties d'entraînement</TabsTrigger>
         </TabsList>
 
         {/* ─── Technique ─── */}
