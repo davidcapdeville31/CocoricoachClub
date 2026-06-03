@@ -23,6 +23,23 @@ import {
 } from "@/lib/bowling/aggregatedSpecificStats";
 import { TECHNICAL_EXERCISE_TYPES } from "@/lib/constants/bowlingTechnicalParameters";
 import { TACTICAL_EXERCISE_TYPES } from "@/lib/constants/bowlingTacticalZones";
+import { TECHNICAL_THEMES } from "@/components/bowling/simplified/types";
+
+// Labels pour les exercise_type spécifiques au mode simplifié tactique
+const SIMPLIFIED_TACTICAL_LABELS: Record<string, string> = {
+  spare_poche: "Poche du strike",
+  spare_pin_7: "Quille 7 (seule)",
+  spare_pin_10: "Quille 10 (seule)",
+  spare_general: "Strike / Spares composés",
+};
+const tacticalExerciseLabel = (key: string) =>
+  SIMPLIFIED_TACTICAL_LABELS[key] ??
+  TACTICAL_EXERCISE_TYPES.find((t) => t.value === key)?.label ??
+  key;
+
+const TECHNICAL_THEME_LABELS: Record<string, string> = Object.fromEntries(
+  TECHNICAL_THEMES.map((t) => [t.value, t.label]),
+);
 
 interface Props {
   playerId: string;
@@ -171,6 +188,106 @@ export function BowlingSpecificStatsTabs({ playerId, categoryId }: Props) {
     return aggregateTacticalStats(tactThrows, ballNameMap, patternNameMap);
   }, [filteredThrows, ballNameMap, patternNameMap]);
 
+  // ─── Simplified-mode data: technical blocks (themes + durations) ───
+  const { data: simplifiedTechBlocks = [] } = useQuery({
+    queryKey: ["bowling_simplified_tech", playerId, categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bowling_training_blocks")
+        .select("id, duration_min, config, created_at, training_sessions:session_id(session_date)")
+        .eq("athlete_id", playerId)
+        .eq("category_id", categoryId)
+        .eq("block_type", "technical");
+      if (error) throw error;
+      return (data || []).map((r: any) => {
+        const cfg = r.config || {};
+        const themeKey: string = cfg.theme || "other";
+        const themeLabel =
+          themeKey === "other"
+            ? (cfg.custom_theme?.trim() || "Autre thématique")
+            : (TECHNICAL_THEME_LABELS[themeKey] || "Technique");
+        return {
+          id: r.id,
+          duration_min: r.duration_min || 0,
+          theme_key: themeKey,
+          theme_label: themeLabel,
+          description: cfg.description || "",
+          session_date: r.training_sessions?.session_date || r.created_at,
+        };
+      });
+    },
+  });
+
+  // ─── Simplified-mode data: tactical attempts/successes ───
+  const { data: simplifiedTacticalRows = [] } = useQuery({
+    queryKey: ["bowling_simplified_tactical", playerId, categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bowling_spare_training")
+        .select("id, exercise_type, attempts, successes, session_date, ball_arsenal_id")
+        .eq("player_id", playerId)
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const filteredSimplifiedTech = useMemo(() => {
+    return simplifiedTechBlocks.filter((b: any) => {
+      const d = new Date(b.session_date);
+      if (dateFrom && isBefore(d, startOfDay(dateFrom))) return false;
+      if (dateTo && isAfter(d, endOfDay(dateTo))) return false;
+      return true;
+    });
+  }, [simplifiedTechBlocks, dateFrom, dateTo]);
+
+  const techByTheme = useMemo(() => {
+    const m = new Map<string, { label: string; minutes: number; sessions: number; last: string | null }>();
+    filteredSimplifiedTech.forEach((b: any) => {
+      const cur = m.get(b.theme_key) || { label: b.theme_label, minutes: 0, sessions: 0, last: null };
+      cur.minutes += b.duration_min;
+      cur.sessions += 1;
+      if (!cur.last || new Date(b.session_date) > new Date(cur.last)) cur.last = b.session_date;
+      m.set(b.theme_key, cur);
+    });
+    return Array.from(m.values()).sort((a, b) => b.minutes - a.minutes);
+  }, [filteredSimplifiedTech]);
+
+  const filteredSimplifiedTactical = useMemo(() => {
+    return simplifiedTacticalRows.filter((r: any) => {
+      const d = new Date(r.session_date);
+      if (dateFrom && isBefore(d, startOfDay(dateFrom))) return false;
+      if (dateTo && isAfter(d, endOfDay(dateTo))) return false;
+      if (ballId !== "all" && r.ball_arsenal_id !== ballId) return false;
+      return true;
+    });
+  }, [simplifiedTacticalRows, dateFrom, dateTo, ballId]);
+
+  const tacticalByExercise = useMemo(() => {
+    const m = new Map<string, { label: string; attempts: number; successes: number }>();
+    filteredSimplifiedTactical.forEach((r: any) => {
+      const key = r.exercise_type || "spare_general";
+      const cur = m.get(key) || { label: tacticalExerciseLabel(key), attempts: 0, successes: 0 };
+      cur.attempts += r.attempts || 0;
+      cur.successes += r.successes || 0;
+      m.set(key, cur);
+    });
+    return Array.from(m.values())
+      .map((v) => ({ ...v, pct: v.attempts > 0 ? Math.round((v.successes / v.attempts) * 100) : 0 }))
+      .sort((a, b) => b.attempts - a.attempts);
+  }, [filteredSimplifiedTactical]);
+
+  const tacticalTotals = useMemo(() => {
+    const attempts = filteredSimplifiedTactical.reduce((s: number, r: any) => s + (r.attempts || 0), 0);
+    const successes = filteredSimplifiedTactical.reduce((s: number, r: any) => s + (r.successes || 0), 0);
+    return { attempts, successes, pct: attempts > 0 ? Math.round((successes / attempts) * 100) : 0 };
+  }, [filteredSimplifiedTactical]);
+
+  const techTotalMinutes = useMemo(
+    () => filteredSimplifiedTech.reduce((s: number, b: any) => s + b.duration_min, 0),
+    [filteredSimplifiedTech],
+  );
+
   const resetFilters = () => {
     setDateFrom(undefined); setDateTo(undefined);
     setPatternId("all"); setBallId("all"); setExerciseType("all"); setTechParam("all"); setZone("all");
@@ -266,10 +383,50 @@ export function BowlingSpecificStatsTabs({ playerId, categoryId }: Props) {
 
         {/* ─── Technique ─── */}
         <TabsContent value="technique" className="space-y-4 mt-4">
+          {/* Séances simplifiées — thèmes & durée */}
+          {techByTheme.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Wrench className="h-4 w-4 text-emerald-600" />
+                  Séances simplifiées — Travail par thématique
+                  <Badge variant="outline" className="ml-auto text-[10px]">
+                    {Math.round(techTotalMinutes)} min · {filteredSimplifiedTech.length} bloc{filteredSimplifiedTech.length > 1 ? "s" : ""}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {techByTheme.map((t) => {
+                  const pct = techTotalMinutes > 0 ? Math.round((t.minutes / techTotalMinutes) * 100) : 0;
+                  return (
+                    <div key={t.label} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs gap-2">
+                        <span className="font-medium truncate">{t.label}</span>
+                        <span className="flex items-center gap-2 shrink-0">
+                          <Badge variant="outline" className="text-[10px]">{t.sessions} séance{t.sessions > 1 ? "s" : ""}</Badge>
+                          <span className="font-semibold">{t.minutes} min</span>
+                          <span className="text-muted-foreground w-10 text-right">{pct}%</span>
+                        </span>
+                      </div>
+                      <div className="h-2 bg-muted rounded overflow-hidden">
+                        <div className="h-full bg-emerald-500 rounded transition-all" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+                <p className="text-[11px] text-muted-foreground pt-1">
+                  Issu des séances bowling en mode simplifié (thématique + durée déclarées). Les analyses de critères ci-dessous proviennent du mode avancé (lancer par lancer).
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           {isLoading ? (
             <Card><CardContent className="py-6 text-sm text-muted-foreground text-center">Chargement…</CardContent></Card>
           ) : techStats.totalThrows === 0 ? (
-            <EmptyState icon={<Wrench className="h-10 w-10" />} text="Aucun lancer technique enregistré sur la période." />
+            techByTheme.length === 0 ? (
+              <EmptyState icon={<Wrench className="h-10 w-10" />} text="Aucun lancer technique enregistré sur la période." />
+            ) : null
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
@@ -364,10 +521,49 @@ export function BowlingSpecificStatsTabs({ playerId, categoryId }: Props) {
 
         {/* ─── Tactique ─── */}
         <TabsContent value="tactique" className="space-y-4 mt-4">
+          {/* Séances simplifiées — tentatives / réussites */}
+          {tacticalByExercise.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Target className="h-4 w-4 text-amber-600" />
+                  Séances simplifiées — Réussite par objectif tactique
+                  <Badge variant="outline" className="ml-auto text-[10px]">
+                    {tacticalTotals.successes}/{tacticalTotals.attempts} ({tacticalTotals.pct}%)
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {tacticalByExercise.map((e) => (
+                  <div key={e.label} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs gap-2">
+                      <span className="font-medium truncate">{e.label}</span>
+                      <span className="flex items-center gap-2 shrink-0">
+                        <Badge variant="outline" className="text-[10px]">{e.successes}/{e.attempts}</Badge>
+                        <span className="font-semibold w-10 text-right">{e.pct}%</span>
+                      </span>
+                    </div>
+                    <div className="h-2 bg-muted rounded overflow-hidden">
+                      <div className={cn(
+                        "h-full rounded transition-all",
+                        e.pct >= 70 ? "bg-emerald-500" : e.pct >= 40 ? "bg-amber-500" : "bg-red-500",
+                      )} style={{ width: `${e.pct}%` }} />
+                    </div>
+                  </div>
+                ))}
+                <p className="text-[11px] text-muted-foreground pt-1">
+                  Issu des séances bowling en mode simplifié (tentatives / réussites déclarées par objectif). Les analyses détaillées ci-dessous (zones, flèches, pattern…) proviennent du mode avancé.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           {isLoading ? (
             <Card><CardContent className="py-6 text-sm text-muted-foreground text-center">Chargement…</CardContent></Card>
           ) : tacticalStats.totalThrows === 0 ? (
-            <EmptyState icon={<Target className="h-10 w-10" />} text="Aucun lancer tactique enregistré sur la période." />
+            tacticalByExercise.length === 0 ? (
+              <EmptyState icon={<Target className="h-10 w-10" />} text="Aucun lancer tactique enregistré sur la période." />
+            ) : null
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
