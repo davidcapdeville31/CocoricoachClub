@@ -97,7 +97,7 @@ export function ManageParticipantsDialog({
           player_id: player.id,
           user_id: player.user_id || "",
           name: resolvedName || fallbackName,
-          kind: "athlete",
+          kind: "athlete" as const,
           hasLinkedAccount: !!player.user_id,
         };
       }).filter((candidate) => !!candidate.name);
