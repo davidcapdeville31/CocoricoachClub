@@ -31,6 +31,8 @@ interface Props {
   categoryId: string;
   playerId?: string;
   index: number;
+  /** Si true, le sélecteur de huilage par bloc est masqué (le huilage est défini au niveau de la séance). */
+  hideOilPicker?: boolean;
 }
 
 export function SimplifiedTacticalBlockEditor({
@@ -40,7 +42,9 @@ export function SimplifiedTacticalBlockEditor({
   categoryId,
   playerId,
   index,
+  hideOilPicker,
 }: Props) {
+
   const update = (patch: Partial<SimplifiedTacticalBlock>) =>
     onChange({ ...value, ...patch });
 
