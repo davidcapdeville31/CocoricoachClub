@@ -44,6 +44,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 
 interface Conversation {
   id: string;
@@ -61,6 +62,7 @@ interface ConversationListProps {
 
 interface Player {
   id: string;
+  first_name?: string | null;
   name: string;
   user_id: string | null;
 }
@@ -98,13 +100,13 @@ export function ConversationList({ categoryId, selectedId, onSelect, isAthlete =
   const { data: players } = useQuery({
     queryKey: ["category-players-messaging", categoryId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("players")
-        .select("id, name, user_id")
-        .eq("category_id", categoryId)
-        .order("name");
-      if (error) throw error;
-      return data as Player[];
+      const rosterPlayers = await fetchCategoryRosterPlayers(categoryId);
+      return (rosterPlayers || []).map((player: any) => ({
+        id: player.id,
+        first_name: player.first_name ?? null,
+        name: player.name,
+        user_id: player.user_id ?? null,
+      })) as Player[];
     },
   });
 
@@ -552,6 +554,9 @@ export function ConversationList({ categoryId, selectedId, onSelect, isAthlete =
     return convName === "Staff" || convName === "Staff + Joueurs";
   };
 
+  const getPlayerDisplayName = (player: Player) =>
+    player.first_name ? `${player.first_name} ${player.name}` : player.name;
+
   return (
     <>
       <Card className="h-[500px]">
@@ -620,10 +625,10 @@ export function ConversationList({ categoryId, selectedId, onSelect, isAthlete =
                                   <div className="flex items-center gap-2">
                                     <Avatar className="h-6 w-6">
                                       <AvatarFallback className="text-xs">
-                                        {player.name.substring(0, 2).toUpperCase()}
+                                        {getPlayerDisplayName(player).substring(0, 2).toUpperCase()}
                                       </AvatarFallback>
                                     </Avatar>
-                                    {player.name}
+                                    {getPlayerDisplayName(player)}
                                   </div>
                                 </SelectItem>
                               ))
