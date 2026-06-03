@@ -229,6 +229,10 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
         )}
       </CardContent>
       <AddIllnessDialog open={open} onOpenChange={setOpen} categoryId={categoryId} />
+      {editing && (
+        <EditIllnessDialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)} illness={editing} />
+      )}
     </Card>
   );
 }
+
