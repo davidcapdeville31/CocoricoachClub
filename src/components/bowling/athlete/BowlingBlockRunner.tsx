@@ -515,6 +515,13 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
           selectedOutcomes={selectedOutcomes}
         />
       )}
+      {isTactical && throws.length > 0 && (
+        <BowlingTechnicalBlockStats
+          throws={throws as any}
+          selectedParams={["__zone_pass__"]}
+          selectedOutcomes={selectedOutcomes}
+        />
+      )}
 
       {throws.length > 0 && (
         <Card className="p-3">
