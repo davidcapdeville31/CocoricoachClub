@@ -46,6 +46,7 @@ const METRIC_LABELS: Record<string, string> = {
 
 export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
   const [period, setPeriod] = useState<WellnessPeriod>("day");
+  const [recoveryPeriod, setRecoveryPeriod] = useState<WellnessPeriod>("day");
   const [visibleMetrics, setVisibleMetrics] = useState<Record<string, boolean>>({
     sleep_quality: true,
     general_fatigue: true,
@@ -105,6 +106,15 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
       : wellnessHistory.slice(-365);
   const metricsData = aggregateWellnessByPeriod(metricsHistory as any, period);
 
+  // Aggregated recovery score (independent period selector)
+  const recoveryHistory =
+    recoveryPeriod === "day"
+      ? wellnessHistory.slice(-30)
+      : recoveryPeriod === "week"
+      ? wellnessHistory.slice(-84)
+      : wellnessHistory.slice(-365);
+  const recoveryData = aggregateWellnessByPeriod(recoveryHistory as any, recoveryPeriod);
+
   // Latest recovery score
   const latestRecovery = chartData[chartData.length - 1]?.recovery_score || 0;
   // sleep_duration is stored as a 1-5 score (1 = >8h, 5 = <5h). Convert to approximate hours for display.
@@ -141,15 +151,28 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
       {/* Recovery score evolution */}
       <Card className="bg-gradient-card shadow-md">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
-            Score de récupération
-            <Badge variant="secondary" className="text-[10px]">{wellnessHistory.length} jours</Badge>
-          </CardTitle>
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
+              Score de récupération
+              <Badge variant="secondary" className="text-[10px]">{wellnessHistory.length} jours</Badge>
+            </CardTitle>
+            <ToggleGroup
+              type="single"
+              size="sm"
+              value={recoveryPeriod}
+              onValueChange={(v) => v && setRecoveryPeriod(v as WellnessPeriod)}
+              className="h-7"
+            >
+              <ToggleGroupItem value="day" className="h-7 px-2 text-[11px]">Jour</ToggleGroupItem>
+              <ToggleGroupItem value="week" className="h-7 px-2 text-[11px]">Semaine</ToggleGroupItem>
+              <ToggleGroupItem value="month" className="h-7 px-2 text-[11px]">Mois</ToggleGroupItem>
+            </ToggleGroup>
+          </div>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={240}>
-            <LineChart data={chartData} margin={{ top: 10, right: 12, left: 0, bottom: 4 }}>
+            <LineChart data={recoveryData} margin={{ top: 10, right: 12, left: 0, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis dataKey="date" className="text-[10px]" />
               <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} className="text-[10px]" />
