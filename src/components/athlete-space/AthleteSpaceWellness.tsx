@@ -464,23 +464,24 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
               );
             }
 
-            const scaleHint = q.inverted
-              ? `1 = ${q.scale[0].label} · 5 = ${q.scale[4].label}`
-              : `1 = ${q.scale[0].label} · 5 = ${q.scale[4].label}`;
+            const firstOpt = q.scale[0];
+            const lastOpt = q.scale[q.scale.length - 1];
+            const scaleHint = `${firstOpt.value} = ${firstOpt.label} · ${lastOpt.value} = ${lastOpt.label}`;
+            const gridColsClass = q.scale.length === 6 ? "grid-cols-6" : "grid-cols-5";
 
             return (
               <div key={q.key}>
                 <Label className="text-[11px] flex items-center gap-1 mb-0.5">
                   <span className="text-xs">{q.emoji}</span>
                   <span className="flex-1 truncate">{q.label}</span>
-                  {currentValue >= 1 && (
+                  {currentValue >= firstOpt.value && (
                     <span className="text-[10px] text-muted-foreground truncate max-w-[60%] text-right">
                       {q.scale.find(o => o.value === currentValue)?.label}
                     </span>
                   )}
                 </Label>
                 <p className="text-[9px] text-muted-foreground mb-1 italic">{scaleHint}</p>
-                <div className="grid grid-cols-5 gap-0.5">
+                <div className={cn("grid gap-0.5", gridColsClass)}>
                   {q.scale.map(opt => {
                     const isSelected = currentValue === opt.value;
                     return (
@@ -506,6 +507,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                     );
                   })}
                 </div>
+
 
               </div>
             );
