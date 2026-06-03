@@ -447,6 +447,15 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
           </CardContent>
         </Card>
       )}
+
+      {editingInjury && (
+        <EditInjuryDialog
+          open={!!editingInjury}
+          onOpenChange={(o) => !o && setEditingInjury(null)}
+          injury={editingInjury}
+        />
+      )}
     </div>
   );
+
 }
