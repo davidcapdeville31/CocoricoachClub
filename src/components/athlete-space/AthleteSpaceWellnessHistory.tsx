@@ -106,6 +106,15 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
       : wellnessHistory.slice(-365);
   const metricsData = aggregateWellnessByPeriod(metricsHistory as any, period);
 
+  // Aggregated recovery score (independent period selector)
+  const recoveryHistory =
+    recoveryPeriod === "day"
+      ? wellnessHistory.slice(-30)
+      : recoveryPeriod === "week"
+      ? wellnessHistory.slice(-84)
+      : wellnessHistory.slice(-365);
+  const recoveryData = aggregateWellnessByPeriod(recoveryHistory as any, recoveryPeriod);
+
   // Latest recovery score
   const latestRecovery = chartData[chartData.length - 1]?.recovery_score || 0;
   // sleep_duration is stored as a 1-5 score (1 = >8h, 5 = <5h). Convert to approximate hours for display.
