@@ -108,8 +108,6 @@ function legacyParamField(paramValue: string): keyof ThrowDraft | null {
       return "axis_success";
     case "speed":
       return "speed_success";
-    case "release":
-      return "release_success" as any;
     default:
       return null;
   }
