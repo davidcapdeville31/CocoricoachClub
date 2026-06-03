@@ -26,6 +26,7 @@ import { BowlingParametersPicker } from "../selectors/BowlingParametersPicker";
 import { BowlingZoneSelector } from "../selectors/BowlingZoneSelector";
 import { BowlingTargetOutcomesPicker } from "../selectors/BowlingTargetOutcomesPicker";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { BowlingBlockDraft, BowlingBlockType } from "./types";
 
