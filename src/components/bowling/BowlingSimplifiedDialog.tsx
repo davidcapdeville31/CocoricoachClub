@@ -100,6 +100,10 @@ export function BowlingSimplifiedDialog({
   const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [oilPatternName, setOilPatternName] = useState<string>("none");
+  /** "session" : un seul huilage pour toute la séance, appliqué à chaque bloc.
+   *  "per_block" : l'utilisateur choisit un huilage différent à l'intérieur de chaque bloc. */
+  const [oilScope, setOilScope] = useState<"session" | "per_block">("session");
+
 
   // Fetch effectif (coach mode only, et pas en édition)
   const { data: players = [] } = useQuery({
