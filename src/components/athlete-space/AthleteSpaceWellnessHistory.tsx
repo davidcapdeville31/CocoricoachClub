@@ -46,6 +46,15 @@ const METRIC_LABELS: Record<string, string> = {
 
 export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
   const [period, setPeriod] = useState<WellnessPeriod>("day");
+  const [visibleMetrics, setVisibleMetrics] = useState<Record<string, boolean>>({
+    sleep_quality: true,
+    general_fatigue: true,
+    soreness_upper_body: true,
+    soreness_lower_body: true,
+    stress_level: true,
+  });
+  const toggleMetric = (key: string) =>
+    setVisibleMetrics((p) => ({ ...p, [key]: !p[key] }));
 
   const { data: wellnessHistory = [], isLoading } = useQuery({
     queryKey: ["athlete-space-wellness-history", playerId],
@@ -188,51 +197,98 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
               <ToggleGroupItem value="month" className="h-7 px-2 text-[11px]">Mois</ToggleGroupItem>
             </ToggleGroup>
           </div>
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {Object.entries(METRIC_COLORS).map(([key, color]) => {
+              const active = visibleMetrics[key];
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => toggleMetric(key)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all ${
+                    active
+                      ? "bg-surface-elevated border-border shadow-sm"
+                      : "bg-transparent border-border/60 text-muted-foreground opacity-60 hover:opacity-100"
+                  }`}
+                  aria-pressed={active}
+                >
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: active ? color : "transparent", border: `1.5px solid ${color}` }}
+                  />
+                  {METRIC_LABELS[key] || key}
+                </button>
+              );
+            })}
+          </div>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={320}>
-            <LineChart data={metricsData} margin={{ top: 10, right: 12, left: 0, bottom: 4 }}>
-
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="date" className="text-[10px]" />
-              <YAxis
-                domain={[1, 5]}
-                ticks={[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]}
-                className="text-[10px]"
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--popover))",
-                  border: "1px solid hsl(var(--border))",
-                  fontSize: "12px",
-                  borderRadius: "8px",
-                }}
-                formatter={(value: number, name: string) => [
-                  `${value}/5`,
-                  METRIC_LABELS[name] || name,
-                ]}
-                labelFormatter={(_, payload: any[]) => payload?.[0]?.payload?.fullDate || ""}
-              />
-              <Legend
-                formatter={(value) => METRIC_LABELS[value] || value}
-                iconType="circle"
-                wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
-              />
-              {Object.entries(METRIC_COLORS).map(([key, color]) => (
-                <Line
-                  key={key}
-                  type="monotone"
-                  dataKey={key}
-                  stroke={color}
-                  strokeWidth={3}
-                  strokeDasharray={METRIC_DASH[key]}
-                  dot={{ r: 3.5, fill: color, strokeWidth: 1.5, stroke: "#fff" }}
-                  activeDot={{ r: 6 }}
-                  name={key}
-                />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
+          {(() => {
+            const activeKeys = Object.keys(METRIC_COLORS).filter((k) => visibleMetrics[k]);
+            if (activeKeys.length === 0) {
+              return (
+                <p className="text-sm text-muted-foreground text-center py-12">
+                  Sélectionne au moins une métrique à afficher.
+                </p>
+              );
+            }
+            // Auto-scale Y axis based on selected metrics
+            let minV = Infinity;
+            let maxV = -Infinity;
+            metricsData.forEach((d: any) => {
+              activeKeys.forEach((k) => {
+                const v = d[k];
+                if (typeof v === "number") {
+                  if (v < minV) minV = v;
+                  if (v > maxV) maxV = v;
+                }
+              });
+            });
+            const lo = Number.isFinite(minV) ? Math.max(1, Math.floor((minV - 0.25) * 2) / 2) : 1;
+            const hi = Number.isFinite(maxV) ? Math.min(5, Math.ceil((maxV + 0.25) * 2) / 2) : 5;
+            const ticks: number[] = [];
+            for (let t = lo; t <= hi + 1e-9; t += 0.5) ticks.push(Math.round(t * 2) / 2);
+            return (
+              <ResponsiveContainer width="100%" height={320}>
+                <LineChart data={metricsData} margin={{ top: 10, right: 12, left: 0, bottom: 4 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="date" className="text-[10px]" />
+                  <YAxis domain={[lo, hi]} ticks={ticks} className="text-[10px]" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--popover))",
+                      border: "1px solid hsl(var(--border))",
+                      fontSize: "12px",
+                      borderRadius: "8px",
+                    }}
+                    formatter={(value: number, name: string) => [`${value}/5`, METRIC_LABELS[name] || name]}
+                    labelFormatter={(_, payload: any[]) => payload?.[0]?.payload?.fullDate || ""}
+                  />
+                  <Legend
+                    formatter={(value) => METRIC_LABELS[value] || value}
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+                  />
+                  {activeKeys.map((key) => {
+                    const color = METRIC_COLORS[key];
+                    return (
+                      <Line
+                        key={key}
+                        type="monotone"
+                        dataKey={key}
+                        stroke={color}
+                        strokeWidth={3}
+                        strokeDasharray={METRIC_DASH[key]}
+                        dot={{ r: 3.5, fill: color, strokeWidth: 1.5, stroke: "#fff" }}
+                        activeDot={{ r: 6 }}
+                        name={key}
+                      />
+                    );
+                  })}
+                </LineChart>
+              </ResponsiveContainer>
+            );
+          })()}
         </CardContent>
       </Card>
     </div>
