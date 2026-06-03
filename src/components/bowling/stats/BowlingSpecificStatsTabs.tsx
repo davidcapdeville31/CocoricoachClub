@@ -383,10 +383,50 @@ export function BowlingSpecificStatsTabs({ playerId, categoryId }: Props) {
 
         {/* ─── Technique ─── */}
         <TabsContent value="technique" className="space-y-4 mt-4">
+          {/* Séances simplifiées — thèmes & durée */}
+          {techByTheme.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Wrench className="h-4 w-4 text-emerald-600" />
+                  Séances simplifiées — Travail par thématique
+                  <Badge variant="outline" className="ml-auto text-[10px]">
+                    {Math.round(techTotalMinutes)} min · {filteredSimplifiedTech.length} bloc{filteredSimplifiedTech.length > 1 ? "s" : ""}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {techByTheme.map((t) => {
+                  const pct = techTotalMinutes > 0 ? Math.round((t.minutes / techTotalMinutes) * 100) : 0;
+                  return (
+                    <div key={t.label} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs gap-2">
+                        <span className="font-medium truncate">{t.label}</span>
+                        <span className="flex items-center gap-2 shrink-0">
+                          <Badge variant="outline" className="text-[10px]">{t.sessions} séance{t.sessions > 1 ? "s" : ""}</Badge>
+                          <span className="font-semibold">{t.minutes} min</span>
+                          <span className="text-muted-foreground w-10 text-right">{pct}%</span>
+                        </span>
+                      </div>
+                      <div className="h-2 bg-muted rounded overflow-hidden">
+                        <div className="h-full bg-emerald-500 rounded transition-all" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+                <p className="text-[11px] text-muted-foreground pt-1">
+                  Issu des séances bowling en mode simplifié (thématique + durée déclarées). Les analyses de critères ci-dessous proviennent du mode avancé (lancer par lancer).
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           {isLoading ? (
             <Card><CardContent className="py-6 text-sm text-muted-foreground text-center">Chargement…</CardContent></Card>
           ) : techStats.totalThrows === 0 ? (
-            <EmptyState icon={<Wrench className="h-10 w-10" />} text="Aucun lancer technique enregistré sur la période." />
+            techByTheme.length === 0 ? (
+              <EmptyState icon={<Wrench className="h-10 w-10" />} text="Aucun lancer technique enregistré sur la période." />
+            ) : null
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
