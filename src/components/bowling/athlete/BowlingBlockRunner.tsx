@@ -280,6 +280,14 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
           )}
         </div>
 
+        {nextThrowNumber > 1 && (
+          <p className="rounded-md border border-dashed border-primary/30 bg-primary/5 px-2 py-1 text-[10px] text-muted-foreground italic">
+            ↻ Boule, zone, lattes et vitesse sont reportés automatiquement du lancer précédent — modifie-les quand tu veux, les nouvelles valeurs s'appliqueront aux suivants.
+          </p>
+        )}
+
+
+
         <div className="space-y-1">
           <Label className="text-[11px] text-muted-foreground">Boule utilisée</Label>
           <Select
