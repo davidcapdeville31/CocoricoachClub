@@ -44,6 +44,7 @@ const PHASE_COLORS: Record<number, { bg: string; text: string; border: string }>
 export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
   const [expandedPhase, setExpandedPhase] = useState<number | null>(null);
   const [editingInjury, setEditingInjury] = useState<any>(null);
+  const [confirmAdvance, setConfirmAdvance] = useState<{ nextPhase: number; nextName: string } | null>(null);
   const qc = useQueryClient();
 
   const deleteInjury = useMutation({
@@ -54,6 +55,24 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["athlete-space-injuries-detail", playerId] });
       toast.success("Blessure supprimée");
+    },
+    onError: (e: any) => toast.error(e?.message || "Erreur"),
+  });
+
+  const advancePhase = useMutation({
+    mutationFn: async (newPhase: number) => {
+      const protocolId = rehabProtocols?.[0]?.id;
+      if (!protocolId) throw new Error("Aucun protocole actif");
+      const { error } = await supabase
+        .from("player_rehab_protocols")
+        .update({ current_phase: newPhase, updated_at: new Date().toISOString() })
+        .eq("id", protocolId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["athlete-space-rehab", playerId] });
+      toast.success("Étape validée ! Passage à l'étape suivante.");
+      setConfirmAdvance(null);
     },
     onError: (e: any) => toast.error(e?.message || "Erreur"),
   });
@@ -415,6 +434,24 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
                           ⏱ Durée estimée : {phase.duration_days_min}-{phase.duration_days_max} jours
                         </p>
                       )}
+
+                      {/* Validate current phase (athlete action) */}
+                      {isActive && phaseNum < displayPhases.length && (
+                        <Button
+                          size="sm"
+                          className="w-full mt-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const next = displayPhases.find((p: any) => (p.phase_number || p.phase) === phaseNum + 1);
+                            setConfirmAdvance({
+                              nextPhase: phaseNum + 1,
+                              nextName: next?.name || next?.label || `Étape ${phaseNum + 1}`,
+                            });
+                          }}
+                        >
+                          ✅ Valider cette étape et passer à la suivante
+                        </Button>
+                      )}
                     </CollapsibleContent>
                   </Collapsible>
                 );
@@ -455,6 +492,23 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
           injury={editingInjury}
         />
       )}
+
+      <AlertDialog open={!!confirmAdvance} onOpenChange={(o) => !o && setConfirmAdvance(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Valider cette étape de rééducation ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tu vas passer à l'étape <strong>{confirmAdvance?.nextName}</strong>. Assure-toi d'avoir terminé les objectifs et exercices de l'étape actuelle, et d'en avoir parlé avec ton staff médical.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={() => confirmAdvance && advancePhase.mutate(confirmAdvance.nextPhase)}>
+              Valider et passer à l'étape suivante
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 
