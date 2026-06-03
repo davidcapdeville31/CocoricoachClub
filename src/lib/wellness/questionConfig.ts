@@ -102,6 +102,16 @@ const invertedScale = (labels: string[]): WellnessScaleLevel[] => [
   { value: 5, label: labels[4], color: C_WORST },
 ];
 
+// Soreness scale 0..5 (0 = aucune douleur)
+const sorenessScale = (): WellnessScaleLevel[] => [
+  { value: 0, label: "Aucune douleur", color: C_OPT },
+  { value: 1, label: "Très légère", color: C_OPT },
+  { value: 2, label: "Légère gêne", color: C_GOOD },
+  { value: 3, label: "Modérée", color: C_MID },
+  { value: 4, label: "Forte", color: C_BAD },
+  { value: 5, label: "Intense", color: C_WORST },
+];
+
 const positiveScale = (labels: string[]): WellnessScaleLevel[] => [
   { value: 1, label: labels[0], color: C_WORST },
   { value: 2, label: labels[1], color: C_BAD },
@@ -109,6 +119,7 @@ const positiveScale = (labels: string[]): WellnessScaleLevel[] => [
   { value: 4, label: labels[3], color: C_GOOD },
   { value: 5, label: labels[4], color: C_OPT },
 ];
+
 
 export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
   {
