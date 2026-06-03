@@ -18,8 +18,20 @@ import {
   ShieldCheck,
   HeartPulse,
   Play,
+  Trash2,
 } from "lucide-react";
 import { format, isWithinInterval, parseISO, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { fr } from "date-fns/locale";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { cn } from "@/lib/utils";
@@ -65,7 +77,29 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [isBowlingAdvancedOpen, setIsBowlingAdvancedOpen] = useState(false);
   const [bowlingAdvancedSessionId, setBowlingAdvancedSessionId] = useState<string | null>(null);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+  const [sessionToDelete, setSessionToDelete] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
+
+  const handleDeleteSession = async () => {
+    if (!sessionToDelete) return;
+    setIsDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("athlete-delete-session", {
+        body: { session_id: sessionToDelete.id, player_id: playerId },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Échec de la suppression");
+      toast.success(data?.unassigned ? "Vous avez été retiré de la séance" : "Séance supprimée");
+      setSessionToDelete(null);
+      queryClient.invalidateQueries({ queryKey: ["athlete-calendar-sessions", categoryId, playerId] });
+    } catch (e: any) {
+      toast.error(e?.message || "Erreur lors de la suppression");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const isBowling = (sportType || "").toLowerCase().includes("bowling");
   const isBasket = isBasketballPrecisionSport(sportType);
 
@@ -545,6 +579,16 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     </Badge>
                                   )}
                                   {isCompleted && <CheckCircle2 className="h-4 w-4 text-status-optimal" />}
+                                  {!session.test_reminder_id && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => { e.stopPropagation(); setSessionToDelete(session); }}
+                                      className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                                      title="Supprimer la séance"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </button>
+                                  )}
                                   {(exercises.length > 0 || ((session as any).notes || "").replace(/<!--[\s\S]*?-->/g, "").trim() || isBowling || isBasket) && (isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />)}
                                 </div>
                               </div>
@@ -860,6 +904,25 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
           defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}
         />
       )}
+
+      <AlertDialog open={!!sessionToDelete} onOpenChange={(open) => !open && setSessionToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer cette séance ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {sessionToDelete?.created_by_player_id === playerId
+                ? "Cette séance que vous avez créée sera définitivement supprimée."
+                : "Cette séance vous a été assignée. Elle sera retirée de votre calendrier."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteSession} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {isDeleting ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
