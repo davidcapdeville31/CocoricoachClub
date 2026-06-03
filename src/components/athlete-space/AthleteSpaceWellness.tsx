@@ -20,7 +20,7 @@ import { PAIN_ZONES } from "@/lib/constants/pain-locations";
 import { sleepHoursToScore, sleepScoreToHours } from "@/lib/sleepConversion";
 import { getWellnessButtonClasses, getSleepHoursButtonClasses } from "@/lib/wellnessColors";
 import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
-import { BodyPainSelector, type BodyPainValue } from "@/components/wellness/BodyPainSelector";
+import { BodyPainSelector, type BodyPainEntry } from "@/components/wellness/BodyPainSelector";
 import { format, subDays, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 
