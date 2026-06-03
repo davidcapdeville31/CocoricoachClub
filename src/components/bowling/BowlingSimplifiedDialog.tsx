@@ -29,7 +29,41 @@ import {
   technicalThemeLabel,
   aggregateGamesStats,
   type SimplifiedBlock,
+  type SimplifiedOilPattern,
 } from "./simplified/types";
+
+const EMPTY_OIL: SimplifiedOilPattern = {
+  preset_name: null,
+  image_url: null,
+  length_feet: null,
+  buff_distance_feet: null,
+  width_boards: null,
+  total_volume_ml: null,
+  oil_ratio: null,
+  profile_type: null,
+  forward_oil: true,
+  reverse_oil: true,
+  outside_friction: null,
+};
+
+function buildOilFromPresetName(name: string | null): SimplifiedOilPattern {
+  if (!name || name === "none") return { ...EMPTY_OIL };
+  const p = OFFICIAL_OIL_PATTERNS.find((x) => x.name === name);
+  return {
+    preset_name: name,
+    image_url: null,
+    length_feet: p?.length_feet ?? null,
+    buff_distance_feet: p?.buff_distance_feet ?? null,
+    width_boards: p?.width_boards ?? null,
+    total_volume_ml: p?.total_volume_ml ?? null,
+    oil_ratio: p?.oil_ratio ?? null,
+    profile_type: p?.profile_type ?? null,
+    forward_oil: p?.forward_oil ?? true,
+    reverse_oil: p?.reverse_oil ?? true,
+    outside_friction: p?.outside_friction ?? null,
+  };
+}
+
 
 interface BowlingSimplifiedDialogProps {
   open: boolean;
