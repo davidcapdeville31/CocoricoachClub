@@ -145,7 +145,11 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
                                 <SelectItem value="healed">Guérie</SelectItem>
                               </SelectContent>
                             </Select>
+                            <Button variant="ghost" size="icon" onClick={() => setEditing(i)} title="Modifier">
+                              <Pencil className="h-4 w-4" />
+                            </Button>
                             <AlertDialog>
+
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10">
                                   <Trash2 className="h-4 w-4" />
