@@ -169,9 +169,12 @@ export function BowlingTechnicalBlockStats({ throws, selectedParams, selectedOut
       )}
       {resCrit.length > 0 && (
         <div className="space-y-1">
-          <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
-            Par objectif de résultat
-          </p>
+          <div className="flex items-center gap-1">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
+              Par objectif de résultat
+            </p>
+            <InfoHint text="Pour chaque objectif (ex : boule en poche, strike, spare…), % de lancers du bloc qui l'ont atteint." />
+          </div>
           {resCrit.map((s) => (
             <div key={s.id} className="flex items-center gap-2 text-xs">
               <span className="w-32 sm:w-40 truncate">{s.label}</span>
@@ -189,9 +192,12 @@ export function BowlingTechnicalBlockStats({ throws, selectedParams, selectedOut
       {/* F. Matrice de combinaison */}
       {combos.length > 0 && (
         <div className="space-y-1">
-          <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
-            Matrice de combinaison
-          </p>
+          <div className="flex items-center gap-1">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
+              Matrice de combinaison
+            </p>
+            <InfoHint text="Combinaisons de critères validés ensemble. Exemple : « Vitesse − + Axe 0° + Boule en poche · 50% · 1/2 » signifie que 1 lancer sur 2 (50%) du bloc a validé ces 3 critères en même temps. Aide à identifier les combos gagnants et ceux à travailler." />
+          </div>
           <div className="rounded-lg border border-border/60 overflow-hidden max-h-56 overflow-y-auto">
             <table className="w-full text-xs">
               <tbody>
