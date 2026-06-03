@@ -10,15 +10,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CheckCircle2, Heart, ChevronDown, ChevronUp, Activity } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CheckCircle2, Heart, ChevronDown, ChevronUp, Activity, CalendarIcon, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { cn } from "@/lib/utils";
 import { PAIN_ZONES } from "@/lib/constants/pain-locations";
-import { sleepHoursToScore } from "@/lib/sleepConversion";
+import { sleepHoursToScore, sleepScoreToHours } from "@/lib/sleepConversion";
 import { getWellnessButtonClasses, getSleepHoursButtonClasses } from "@/lib/wellnessColors";
 import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
 import { BodyPainSelector, type BodyPainValue } from "@/components/wellness/BodyPainSelector";
+import { format, subDays, startOfDay } from "date-fns";
+import { fr } from "date-fns/locale";
+
 
 interface Props {
   playerId: string;
