@@ -243,75 +243,8 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
     },
   });
 
-  // ---- Stats croisées sur les lancers déjà saisis -----------------------
-  const crossed = useMemo(() => {
-    if (!isTechnical || selectedParams.length === 0) return null;
-    const rows = throws as any[];
-    // Par paramètre : % réussite
-    const perParam = selectedParams.map((p) => {
-      const answered = rows.filter((r) => {
-        const v = r.parameter_results?.[p];
-        return v === true || v === false;
-      });
-      const ok = answered.filter((r) => r.parameter_results?.[p] === true).length;
-      return {
-        param: p,
-        label: getParamLabel(p),
-        total: answered.length,
-        ok,
-        pct: answered.length ? Math.round((ok / answered.length) * 100) : 0,
-      };
-    });
-    // Par objectif : % réussite + % réussite quand tous les critères tech sont réussis
-    const perOutcome = selectedOutcomes.map((o) => {
-      const answered = rows.filter((r) => {
-        const v = r.outcome_results?.[o];
-        return v === true || v === false;
-      });
-      const ok = answered.filter((r) => r.outcome_results?.[o] === true).length;
-      const allCritOk = answered.filter((r) =>
-        selectedParams.every((p) => r.parameter_results?.[p] === true),
-      );
-      const okWhenAll = allCritOk.filter((r) => r.outcome_results?.[o] === true).length;
-      return {
-        outcome: o,
-        label: outcomeLabel(o),
-        total: answered.length,
-        ok,
-        pct: answered.length ? Math.round((ok / answered.length) * 100) : 0,
-        pctWhenAllCritOk: allCritOk.length ? Math.round((okWhenAll / allCritOk.length) * 100) : null,
-        sampleAllCritOk: allCritOk.length,
-      };
-    });
-    // Matrice : nb de critères réussis (0..N) → effectif + % objectifs atteints
-    const matrix = Array.from({ length: selectedParams.length + 1 }, (_, k) => {
-      const rowsK = rows.filter((r) => {
-        const ok = selectedParams.filter((p) => r.parameter_results?.[p] === true).length;
-        return ok === k && selectedParams.every((p) => {
-          const v = r.parameter_results?.[p];
-          return v === true || v === false;
-        });
-      });
-      if (rowsK.length === 0) return { k, count: 0, outcomePct: 0 };
-      const outcomeAnswered = rowsK.filter((r) =>
-        selectedOutcomes.some((o) => {
-          const v = r.outcome_results?.[o];
-          return v === true || v === false;
-        }),
-      );
-      const outcomeOk = outcomeAnswered.filter((r) =>
-        selectedOutcomes.every((o) => r.outcome_results?.[o] === true),
-      ).length;
-      return {
-        k,
-        count: rowsK.length,
-        outcomePct: outcomeAnswered.length
-          ? Math.round((outcomeOk / outcomeAnswered.length) * 100)
-          : 0,
-      };
-    });
-    return { perParam, perOutcome, matrix };
-  }, [isTechnical, selectedParams, selectedOutcomes, throws]);
+
+
 
   return (
     <div className="space-y-3">
