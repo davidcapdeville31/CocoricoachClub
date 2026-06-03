@@ -158,21 +158,21 @@ export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
   },
   {
     key: "soreness_upper_body",
-    label: "Douleurs haut du corps",
+    label: "Fatigue haut du corps",
     emoji: "💪",
     enabled: true,
     inverted: true,
     is_custom: false,
-    scale: sorenessScale(),
+    scale: muscleFatigueScale(),
   },
   {
     key: "soreness_lower_body",
-    label: "Douleurs bas du corps",
+    label: "Fatigue bas du corps",
     emoji: "🦵",
     enabled: true,
     inverted: true,
     is_custom: false,
-    scale: sorenessScale(),
+    scale: muscleFatigueScale(),
   },
 
   {
