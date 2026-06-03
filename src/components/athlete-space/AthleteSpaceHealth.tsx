@@ -43,6 +43,21 @@ const PHASE_COLORS: Record<number, { bg: string; text: string; border: string }>
 
 export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
   const [expandedPhase, setExpandedPhase] = useState<number | null>(null);
+  const [editingInjury, setEditingInjury] = useState<any>(null);
+  const qc = useQueryClient();
+
+  const deleteInjury = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("injuries").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["athlete-space-injuries-detail", playerId] });
+      toast.success("Blessure supprimée");
+    },
+    onError: (e: any) => toast.error(e?.message || "Erreur"),
+  });
+
 
   const { data: injuries = [] } = useQuery({
     queryKey: ["athlete-space-injuries-detail", playerId],
