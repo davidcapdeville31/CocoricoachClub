@@ -904,6 +904,25 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
           defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}
         />
       )}
+
+      <AlertDialog open={!!sessionToDelete} onOpenChange={(open) => !open && setSessionToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer cette séance ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {sessionToDelete?.created_by_player_id === playerId
+                ? "Cette séance que vous avez créée sera définitivement supprimée."
+                : "Cette séance vous a été assignée. Elle sera retirée de votre calendrier."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteSession} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {isDeleting ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
