@@ -1,0 +1,1 @@
+CREATE POLICY "Athletes can update own wellness" ON public.wellness_tracking FOR UPDATE TO authenticated USING (EXISTS (SELECT 1 FROM players p WHERE p.id = wellness_tracking.player_id AND p.user_id = auth.uid())) WITH CHECK (EXISTS (SELECT 1 FROM players p WHERE p.id = wellness_tracking.player_id AND p.user_id = auth.uid()));

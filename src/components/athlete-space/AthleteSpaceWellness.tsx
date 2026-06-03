@@ -10,15 +10,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CheckCircle2, Heart, ChevronDown, ChevronUp, Activity } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CheckCircle2, Heart, ChevronDown, ChevronUp, Activity, CalendarIcon, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { cn } from "@/lib/utils";
 import { PAIN_ZONES } from "@/lib/constants/pain-locations";
-import { sleepHoursToScore } from "@/lib/sleepConversion";
+import { sleepHoursToScore, sleepScoreToHours } from "@/lib/sleepConversion";
 import { getWellnessButtonClasses, getSleepHoursButtonClasses } from "@/lib/wellnessColors";
 import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
 import { BodyPainSelector, type BodyPainValue } from "@/components/wellness/BodyPainSelector";
+import { format, subDays, startOfDay } from "date-fns";
+import { fr } from "date-fns/locale";
+
 
 interface Props {
   playerId: string;
@@ -39,7 +44,17 @@ const SLEEP_RANGES: { label: string; value: number }[] = [
 export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Props) {
   const queryClient = useQueryClient();
   const today = new Date().toISOString().split("T")[0];
+
+  // Date sélectionnée pour la saisie (aujourd'hui par défaut, max = aujourd'hui, jusqu'à -30j)
+  const [selectedDate, setSelectedDate] = useState<Date>(() => startOfDay(new Date()));
+  const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
+  const isToday = selectedDateStr === today;
+  const isPastDate = !isToday;
+
   const [expanded, setExpanded] = useState(false);
+  // Quand on choisit un jour passé, on force l'ouverture du formulaire
+  // pour offrir la saisie/édition immédiate.
+  const [forceEdit, setForceEdit] = useState(false);
 
   const { data: wellnessQuestions } = useWellnessQuestions(categoryId);
   const activeQuestions = useMemo(() => wellnessQuestions?.filter(q => q.enabled) ?? [], [wellnessQuestions]);
@@ -62,13 +77,13 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
   const isScheduledToday = scheduledDays.includes(todayDow);
 
   const { data: existingWellness, isLoading } = useQuery({
-    queryKey: ["athlete-space-wellness", playerId, today],
+    queryKey: ["athlete-space-wellness", playerId, selectedDateStr],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("wellness_tracking")
         .select("*")
         .eq("player_id", playerId)
-        .eq("tracking_date", today)
+        .eq("tracking_date", selectedDateStr)
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -77,16 +92,6 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
 
   // Dynamic values state keyed by question key
   const [values, setValues] = useState<Record<string, number>>({});
-
-  // Initialize values when questions change
-  useEffect(() => {
-    const initial: Record<string, number> = {};
-    for (const q of activeQuestions) {
-      initial[q.key] = q.is_sleep_duration ? 7.5 : 1;
-    }
-    setValues(initial);
-    setTouched(new Set());
-  }, [activeQuestions]);
 
   const [hasSpecificPain, setHasSpecificPain] = useState(false);
   const [painData, setPainData] = useState<Partial<BodyPainValue>>({});
@@ -97,7 +102,49 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
 
   const [touched, setTouched] = useState<Set<string>>(new Set());
 
+  // Initialise / pré-remplit les valeurs du formulaire depuis l'entrée existante
+  // (ou des valeurs par défaut) à chaque changement de date ou de questions.
+  useEffect(() => {
+    const initial: Record<string, number> = {};
+    const ew: any = existingWellness;
+    for (const q of activeQuestions) {
+      if (ew) {
+        const raw = q.is_custom
+          ? (ew.custom_answers?.[q.key] ?? 1)
+          : (ew[q.key] ?? 1);
+        if (q.is_sleep_duration) {
+          // En base : score 1-5. UI : heures (médiane de plage).
+          initial[q.key] = raw ? sleepScoreToHours(Number(raw)) : 7.5;
+        } else {
+          initial[q.key] = Number(raw) || 1;
+        }
+      } else {
+        initial[q.key] = q.is_sleep_duration ? 7.5 : 1;
+      }
+    }
+    setValues(initial);
+    // Si on a une entrée existante, tous les champs comptent comme "touchés"
+    // pour autoriser l'enregistrement immédiat après édition partielle.
+    setTouched(existingWellness ? new Set(activeQuestions.map(q => q.key)) : new Set());
+
+    if (ew) {
+      setHasSpecificPain(!!ew.has_specific_pain);
+      setPainData({
+        zone: ew.pain_zone ?? undefined,
+        region: ew.pain_location ?? undefined,
+        nature: ew.pain_nature ?? undefined,
+        intensity: ew.pain_intensity ?? undefined,
+      });
+      setNotes(ew.notes ?? "");
+    } else {
+      setHasSpecificPain(false);
+      setPainData({});
+      setNotes("");
+    }
+  }, [activeQuestions, existingWellness, selectedDateStr]);
+
   const allFieldsFilled = useMemo(() => {
+
     return activeQuestions.every(q => touched.has(q.key));
   }, [activeQuestions, touched]);
 
@@ -122,7 +169,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       const insertData: any = {
         player_id: playerId,
         category_id: categoryId,
-        tracking_date: today,
+        tracking_date: selectedDateStr,
         has_specific_pain: hasSpecificPain,
         pain_zone: hasSpecificPain ? painData.zone ?? null : null,
         pain_location: hasSpecificPain ? painData.region ?? null : null,
@@ -147,7 +194,11 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
         insertData.custom_answers = customAnswers;
       }
 
-      const { error } = await supabase.from("wellness_tracking").insert(insertData);
+      // Upsert pour permettre la mise à jour d'un wellness existant
+      // (notamment pour rattraper / corriger un jour passé).
+      const { error } = await supabase
+        .from("wellness_tracking")
+        .upsert(insertData, { onConflict: "player_id,tracking_date" });
       if (error) throw error;
 
       // Insert HRV morning data if provided
@@ -155,7 +206,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
         const { error: hrvError } = await supabase.from("hrv_records").insert({
           player_id: playerId,
           category_id: categoryId,
-          record_date: today,
+          record_date: selectedDateStr,
           record_type: "morning",
           hrv_ms: hrvMs ? parseFloat(hrvMs) : null,
           resting_hr_bpm: restingHr ? parseFloat(restingHr) : null,
@@ -167,21 +218,84 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       }
     },
     onSuccess: () => {
-      toast.success("Wellness enregistré !");
+      toast.success(
+        isToday
+          ? "Wellness enregistré !"
+          : `Wellness du ${format(selectedDate, "d MMM", { locale: fr })} enregistré !`,
+      );
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness-today"] });
       if (showHrv) {
         queryClient.invalidateQueries({ queryKey: ["hrv_records"] });
       }
       setExpanded(false);
+      setForceEdit(false);
     },
     onError: () => toast.error("Erreur lors de l'enregistrement"),
   });
 
+
   if (isLoading) return null;
 
+  const minDate = subDays(startOfDay(new Date()), 30);
+  const maxDate = startOfDay(new Date());
+
+  const DateSelector = (
+    <div className="flex flex-wrap items-center gap-2">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              "h-9 gap-2 text-xs font-normal",
+              isPastDate && "border-amber-400 text-amber-700 dark:text-amber-300",
+            )}
+          >
+            <CalendarIcon className="h-3.5 w-3.5" />
+            {isToday
+              ? `Aujourd'hui · ${format(selectedDate, "EEEE d MMM", { locale: fr })}`
+              : format(selectedDate, "EEEE d MMM yyyy", { locale: fr })}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={(d) => {
+              if (d) {
+                setSelectedDate(startOfDay(d));
+                setExpanded(true);
+                setForceEdit(true);
+              }
+            }}
+            disabled={(d) => d > maxDate || d < minDate}
+            initialFocus
+            locale={fr}
+            className={cn("p-3 pointer-events-auto")}
+          />
+        </PopoverContent>
+      </Popover>
+      {isPastDate && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 text-xs"
+          onClick={() => {
+            setSelectedDate(startOfDay(new Date()));
+            setForceEdit(false);
+          }}
+        >
+          Revenir à aujourd'hui
+        </Button>
+      )}
+    </div>
+  );
+
   // Wellness not scheduled today — skip rendering the form, but keep history visible
-  if (!existingWellness && !isScheduledToday) {
+  // (uniquement pour la date du jour : pour les jours passés, on autorise toujours la saisie de rattrapage)
+  if (isToday && !existingWellness && !isScheduledToday) {
     const dayNames = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
     const nextDay = (() => {
       for (let i = 1; i <= 7; i++) {
@@ -193,7 +307,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     return (
       <>
         <Card className="bg-gradient-card shadow-md">
-          <CardContent className="py-5">
+          <CardContent className="py-5 space-y-3">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${NAV_COLORS.sante.base}15` }}>
                 <Heart className="h-5 w-5" style={{ color: NAV_COLORS.sante.base }} />
@@ -205,6 +319,10 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
                 </p>
               </div>
             </div>
+            <div className="pt-1">
+              <p className="text-[11px] text-muted-foreground mb-1">Rattraper un jour passé :</p>
+              {DateSelector}
+            </div>
           </CardContent>
         </Card>
         {!hideHistory && <AthleteSpaceWellnessHistory playerId={playerId} categoryId={categoryId} />}
@@ -212,12 +330,12 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     );
   }
 
-  // Already filled
-  if (existingWellness) {
+  // Already filled (vue résumé seulement pour aujourd'hui ; pour les jours passés on affiche toujours le formulaire éditable)
+  if (existingWellness && isToday && !forceEdit) {
     return (
       <>
       <Card className="bg-gradient-card shadow-md">
-        <CardContent className="py-6">
+        <CardContent className="py-6 space-y-4">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${NAV_COLORS.sante.base}20` }}>
               <CheckCircle2 className="h-5 w-5 text-status-optimal" />
@@ -226,9 +344,18 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
               <p className="font-semibold text-sm">Wellness du jour enregistré</p>
               <p className="text-xs text-muted-foreground">Score global : <span className="font-bold text-foreground">{score}%</span></p>
             </div>
-            <CheckCircle2 className="h-5 w-5 text-status-optimal" />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1 text-xs"
+              onClick={() => { setForceEdit(true); setExpanded(true); }}
+            >
+              <Pencil className="h-3 w-3" />
+              Modifier
+            </Button>
           </div>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-4">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
             {activeQuestions.map(q => {
               const raw = (existingWellness as any)[q.key] ?? (existingWellness.custom_answers as any)?.[q.key];
               let display: string | number = raw ?? "-";
@@ -243,6 +370,10 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
               );
             })}
           </div>
+          <div className="border-t pt-3">
+            <p className="text-[11px] text-muted-foreground mb-1">Rattraper / corriger un jour passé :</p>
+            {DateSelector}
+          </div>
         </CardContent>
       </Card>
       {!hideHistory && <AthleteSpaceWellnessHistory playerId={playerId} categoryId={categoryId} />}
@@ -250,36 +381,45 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     );
   }
 
-  // Not filled yet
+  // Formulaire éditable (jour courant non rempli, ou jour passé, ou édition forcée)
+  const shouldBeExpanded = expanded || isPastDate || forceEdit;
   return (
     <>
-    <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.sante.base}40`, backgroundColor: `${NAV_COLORS.sante.base}06` }}>
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full text-left"
-      >
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${NAV_COLORS.sante.base}20` }}>
-                <Heart className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
-              </div>
-              <span style={{ color: NAV_COLORS.sante.base }}>Wellness du jour à remplir</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs" style={{ borderColor: NAV_COLORS.sante.base, color: NAV_COLORS.sante.base }}>À remplir</Badge>
-              {expanded ? (
-                <ChevronUp className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
-              ) : (
-                <ChevronDown className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
-              )}
-            </div>
-          </CardTitle>
-        </CardHeader>
-      </button>
 
-      {expanded && (
+    <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.sante.base}40`, backgroundColor: `${NAV_COLORS.sante.base}06` }}>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => setExpanded(!expanded)}
+            className="flex items-center gap-2 text-left flex-1 min-w-0"
+          >
+            <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${NAV_COLORS.sante.base}20` }}>
+              <Heart className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
+            </div>
+            <span className="truncate" style={{ color: NAV_COLORS.sante.base }}>
+              {isToday
+                ? "Wellness du jour à remplir"
+                : `Wellness du ${format(selectedDate, "EEEE d MMM", { locale: fr })}`}
+            </span>
+          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <Badge variant="outline" className="text-xs" style={{ borderColor: NAV_COLORS.sante.base, color: NAV_COLORS.sante.base }}>
+              {existingWellness ? "À modifier" : "À remplir"}
+            </Badge>
+            {shouldBeExpanded ? (
+              <ChevronUp className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
+            ) : (
+              <ChevronDown className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
+            )}
+          </div>
+        </CardTitle>
+        <div className="pt-2">{DateSelector}</div>
+      </CardHeader>
+
+      {shouldBeExpanded && (
         <CardContent className="space-y-1.5 pt-0 pb-3 px-2 sm:px-4">
+
           {activeQuestions.map(q => {
             const currentValue = values[q.key] ?? 1;
 
@@ -458,7 +598,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
             style={{ backgroundColor: NAV_COLORS.sante.base }}
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
-            Enregistrer mon wellness
+            {isToday ? "Enregistrer mon wellness" : `Enregistrer le wellness du ${format(selectedDate, "d MMM", { locale: fr })}`}
           </Button>
         </CardContent>
       )}
