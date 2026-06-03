@@ -188,6 +188,106 @@ export function BowlingSpecificStatsTabs({ playerId, categoryId }: Props) {
     return aggregateTacticalStats(tactThrows, ballNameMap, patternNameMap);
   }, [filteredThrows, ballNameMap, patternNameMap]);
 
+  // ─── Simplified-mode data: technical blocks (themes + durations) ───
+  const { data: simplifiedTechBlocks = [] } = useQuery({
+    queryKey: ["bowling_simplified_tech", playerId, categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bowling_training_blocks")
+        .select("id, duration_min, config, created_at, training_sessions:session_id(session_date)")
+        .eq("athlete_id", playerId)
+        .eq("category_id", categoryId)
+        .eq("block_type", "technical");
+      if (error) throw error;
+      return (data || []).map((r: any) => {
+        const cfg = r.config || {};
+        const themeKey: string = cfg.theme || "other";
+        const themeLabel =
+          themeKey === "other"
+            ? (cfg.custom_theme?.trim() || "Autre thématique")
+            : (TECHNICAL_THEME_LABELS[themeKey] || "Technique");
+        return {
+          id: r.id,
+          duration_min: r.duration_min || 0,
+          theme_key: themeKey,
+          theme_label: themeLabel,
+          description: cfg.description || "",
+          session_date: r.training_sessions?.session_date || r.created_at,
+        };
+      });
+    },
+  });
+
+  // ─── Simplified-mode data: tactical attempts/successes ───
+  const { data: simplifiedTacticalRows = [] } = useQuery({
+    queryKey: ["bowling_simplified_tactical", playerId, categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bowling_spare_training")
+        .select("id, exercise_type, attempts, successes, session_date, ball_arsenal_id")
+        .eq("player_id", playerId)
+        .eq("category_id", categoryId);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const filteredSimplifiedTech = useMemo(() => {
+    return simplifiedTechBlocks.filter((b: any) => {
+      const d = new Date(b.session_date);
+      if (dateFrom && isBefore(d, startOfDay(dateFrom))) return false;
+      if (dateTo && isAfter(d, endOfDay(dateTo))) return false;
+      return true;
+    });
+  }, [simplifiedTechBlocks, dateFrom, dateTo]);
+
+  const techByTheme = useMemo(() => {
+    const m = new Map<string, { label: string; minutes: number; sessions: number; last: string | null }>();
+    filteredSimplifiedTech.forEach((b: any) => {
+      const cur = m.get(b.theme_key) || { label: b.theme_label, minutes: 0, sessions: 0, last: null };
+      cur.minutes += b.duration_min;
+      cur.sessions += 1;
+      if (!cur.last || new Date(b.session_date) > new Date(cur.last)) cur.last = b.session_date;
+      m.set(b.theme_key, cur);
+    });
+    return Array.from(m.values()).sort((a, b) => b.minutes - a.minutes);
+  }, [filteredSimplifiedTech]);
+
+  const filteredSimplifiedTactical = useMemo(() => {
+    return simplifiedTacticalRows.filter((r: any) => {
+      const d = new Date(r.session_date);
+      if (dateFrom && isBefore(d, startOfDay(dateFrom))) return false;
+      if (dateTo && isAfter(d, endOfDay(dateTo))) return false;
+      if (ballId !== "all" && r.ball_arsenal_id !== ballId) return false;
+      return true;
+    });
+  }, [simplifiedTacticalRows, dateFrom, dateTo, ballId]);
+
+  const tacticalByExercise = useMemo(() => {
+    const m = new Map<string, { label: string; attempts: number; successes: number }>();
+    filteredSimplifiedTactical.forEach((r: any) => {
+      const key = r.exercise_type || "spare_general";
+      const cur = m.get(key) || { label: tacticalExerciseLabel(key), attempts: 0, successes: 0 };
+      cur.attempts += r.attempts || 0;
+      cur.successes += r.successes || 0;
+      m.set(key, cur);
+    });
+    return Array.from(m.values())
+      .map((v) => ({ ...v, pct: v.attempts > 0 ? Math.round((v.successes / v.attempts) * 100) : 0 }))
+      .sort((a, b) => b.attempts - a.attempts);
+  }, [filteredSimplifiedTactical]);
+
+  const tacticalTotals = useMemo(() => {
+    const attempts = filteredSimplifiedTactical.reduce((s: number, r: any) => s + (r.attempts || 0), 0);
+    const successes = filteredSimplifiedTactical.reduce((s: number, r: any) => s + (r.successes || 0), 0);
+    return { attempts, successes, pct: attempts > 0 ? Math.round((successes / attempts) * 100) : 0 };
+  }, [filteredSimplifiedTactical]);
+
+  const techTotalMinutes = useMemo(
+    () => filteredSimplifiedTech.reduce((s: number, b: any) => s + b.duration_min, 0),
+    [filteredSimplifiedTech],
+  );
+
   const resetFilters = () => {
     setDateFrom(undefined); setDateTo(undefined);
     setPatternId("all"); setBallId("all"); setExerciseType("all"); setTechParam("all"); setZone("all");
