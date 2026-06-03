@@ -214,7 +214,18 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
       const deltas = summariseDeltas(data?.throw?.foot_delta, data?.throw?.breakpoint_delta);
       if (deltas) toast.success(`Lancer ${nextThrowNumber} · ${deltas}`);
       else toast.success(`Lancer ${nextThrowNumber} enregistré`);
-      setDraft({ ball_arsenal_id: draft.ball_arsenal_id, parameter_results: {}, outcome_results: {} });
+      // Conserve les paramètres "récurrents" (boule, zone, lattes, vitesse) pour
+      // pré-remplir automatiquement le lancer suivant. L'athlète peut les modifier
+      // à tout moment et les nouvelles valeurs s'appliqueront aux lancers suivants.
+      setDraft({
+        ball_arsenal_id: draft.ball_arsenal_id,
+        actual_zone: draft.actual_zone,
+        foot_board: draft.foot_board,
+        breakpoint_board: draft.breakpoint_board,
+        speed_kmh: draft.speed_kmh,
+        parameter_results: {},
+        outcome_results: {},
+      });
       qc.invalidateQueries({ queryKey: ["bowling_throw_results", block.id, playerId] });
     },
     onError: (e: any) => toast.error(`Erreur : ${e.message}`),
@@ -268,6 +279,14 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
             </Button>
           )}
         </div>
+
+        {nextThrowNumber > 1 && (
+          <p className="rounded-md border border-dashed border-primary/30 bg-primary/5 px-2 py-1 text-[10px] text-muted-foreground italic">
+            ↻ Boule, zone, lattes et vitesse sont reportés automatiquement du lancer précédent — modifie-les quand tu veux, les nouvelles valeurs s'appliqueront aux suivants.
+          </p>
+        )}
+
+
 
         <div className="space-y-1">
           <Label className="text-[11px] text-muted-foreground">Boule utilisée</Label>
