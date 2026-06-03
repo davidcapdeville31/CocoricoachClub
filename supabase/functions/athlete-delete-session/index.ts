@@ -34,15 +34,44 @@ serve(async (req) => {
     const { session_id, player_id } = (await req.json()) ?? {};
     if (!session_id || !player_id) return respond({ success: false, error: "Données manquantes" });
 
-    // Vérifier que l'utilisateur est bien le propriétaire du player
+    // Vérifier que l'utilisateur est bien le propriétaire du player OU staff de la catégorie
     const { data: player } = await supabase
       .from("players")
-      .select("id, user_id")
+      .select("id, user_id, category_id")
       .eq("id", player_id)
       .maybeSingle();
 
-    if (!player || player.user_id !== userId) {
-      return respond({ success: false, error: "Accès refusé" });
+    if (!player) return respond({ success: false, error: "Joueur introuvable" });
+
+    const isOwnerUser = player.user_id === userId;
+    let isStaff = false;
+    if (!isOwnerUser) {
+      const { data: isSA } = await supabase.rpc("is_super_admin", { _user_id: userId });
+      if (isSA) {
+        isStaff = true;
+      } else if (player.category_id) {
+        const { data: hasAccess } = await supabase.rpc("can_access_category", {
+          _user_id: userId,
+          _category_id: player.category_id,
+        });
+        isStaff = !!hasAccess;
+      }
+      if (!isStaff) {
+        // Vérifier via player_categories aussi
+        const { data: pcRows } = await supabase
+          .from("player_categories")
+          .select("category_id")
+          .eq("player_id", player_id)
+          .eq("status", "accepted");
+        for (const row of pcRows || []) {
+          const { data: hasAccess } = await supabase.rpc("can_access_category", {
+            _user_id: userId,
+            _category_id: row.category_id,
+          });
+          if (hasAccess) { isStaff = true; break; }
+        }
+      }
+      if (!isStaff) return respond({ success: false, error: "Accès refusé" });
     }
 
     // Charger la séance + participants
