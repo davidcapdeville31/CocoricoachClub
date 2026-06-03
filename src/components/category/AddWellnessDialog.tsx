@@ -49,7 +49,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState("");
   const [hasSpecificPain, setHasSpecificPain] = useState(false);
-  const [painData, setPainData] = useState<Partial<BodyPainValue>>({});
+  const [painEntries, setPainEntries] = useState<BodyPainEntry[]>([]);
   const [hrvData, setHrvData] = useState<HrvData>(emptyHrvData);
 
   const { data: wellnessQuestions } = useWellnessQuestions(categoryId);
