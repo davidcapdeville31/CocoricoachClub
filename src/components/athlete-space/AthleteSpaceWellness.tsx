@@ -108,21 +108,23 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     const initial: Record<string, number> = {};
     const ew: any = existingWellness;
     for (const q of activeQuestions) {
+      const fallback = q.is_sleep_duration ? 7.5 : (q.scale[0]?.value ?? 1);
       if (ew) {
         const raw = q.is_custom
-          ? (ew.custom_answers?.[q.key] ?? 1)
-          : (ew[q.key] ?? 1);
+          ? (ew.custom_answers?.[q.key] ?? fallback)
+          : (ew[q.key] ?? fallback);
         if (q.is_sleep_duration) {
-          // En base : score 1-5. UI : heures (médiane de plage).
           initial[q.key] = raw ? sleepScoreToHours(Number(raw)) : 7.5;
         } else {
-          initial[q.key] = Number(raw) || 1;
+          const n = Number(raw);
+          initial[q.key] = Number.isFinite(n) ? n : fallback;
         }
       } else {
-        initial[q.key] = q.is_sleep_duration ? 7.5 : 1;
+        initial[q.key] = fallback;
       }
     }
     setValues(initial);
+
     // Si on a une entrée existante, tous les champs comptent comme "touchés"
     // pour autoriser l'enregistrement immédiat après édition partielle.
     setTouched(existingWellness ? new Set(activeQuestions.map(q => q.key)) : new Set());
