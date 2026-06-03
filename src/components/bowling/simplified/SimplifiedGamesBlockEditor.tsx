@@ -108,12 +108,15 @@ export function SimplifiedGamesBlockEditor({
         )}
       </div>
 
-      {/* Oil pattern */}
-      <SimplifiedOilPatternPicker
-        value={value.oil_pattern}
-        onChange={(op) => update({ oil_pattern: op })}
-        categoryId={categoryId}
-      />
+      {/* Oil pattern (masqué quand défini au niveau de la séance) */}
+      {!hideOilPicker && (
+        <SimplifiedOilPatternPicker
+          value={value.oil_pattern}
+          onChange={(op) => update({ oil_pattern: op })}
+          categoryId={categoryId}
+        />
+      )}
+
 
       {/* Parties */}
       <div className="space-y-3">
