@@ -157,7 +157,7 @@ export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
     enabled: true,
     inverted: true,
     is_custom: false,
-    scale: invertedScale(["Aucune douleur", "Légère gêne", "Modérée", "Forte", "Intense"]),
+    scale: sorenessScale(),
   },
   {
     key: "soreness_lower_body",
@@ -166,8 +166,9 @@ export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
     enabled: true,
     inverted: true,
     is_custom: false,
-    scale: invertedScale(["Aucune douleur", "Légère gêne", "Modérée", "Forte", "Intense"]),
+    scale: sorenessScale(),
   },
+
   {
     key: "stress_level",
     label: "Stress",
