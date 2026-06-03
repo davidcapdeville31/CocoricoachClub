@@ -810,17 +810,6 @@ export function BowlingAdvancedDialog({
               <Circle className="h-3.5 w-3.5 text-amber-600" />
               Ajouter un bloc Parties
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => addBlock(newDraft("warmup"))}
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              <Flame className="h-3.5 w-3.5 text-violet-500" />
-              Ajouter un bloc Échauffement
-            </Button>
           </div>
         </div>
 
