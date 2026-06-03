@@ -207,7 +207,42 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
           {getHealthFeedback().map((msg, i) => (
             <p key={i} className="text-sm leading-relaxed mb-1">{msg}</p>
           ))}
+          {injuries.length > 0 && (
+            <div className="mt-3 space-y-2">
+              {injuries.map((inj: any) => (
+                <div key={inj.id} className="flex items-center justify-between gap-2 p-2 rounded-lg border bg-background/50">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{inj.injury_type}</p>
+                    <p className="text-[11px] text-muted-foreground">{format(new Date(inj.injury_date), "dd MMM yyyy", { locale: fr })}</p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingInjury(inj)} title="Modifier">
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" title="Supprimer">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Supprimer cette blessure ?</AlertDialogTitle>
+                          <AlertDialogDescription>Action irréversible.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteInjury.mutate(inj.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Supprimer</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
+
       </Card>
 
       <Card className="bg-gradient-card shadow-md">
