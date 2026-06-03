@@ -483,83 +483,13 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
         </Button>
       </Card>
 
-      {/* === Stats croisées en temps réel === */}
-      {crossed && throws.length > 0 && (
-        <Card className="p-3 space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              Stats croisées du bloc
-            </p>
-            <Badge variant="outline" className="text-[10px]">{throws.length} lancers</Badge>
-          </div>
-
-          {/* Par critère */}
-          <div className="space-y-1">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
-              Par critère technique
-            </p>
-            {crossed.perParam.map((s) => (
-              <div key={s.param} className="flex items-center gap-2 text-xs">
-                <span className="w-32 truncate">{s.label}</span>
-                <div className="flex-1 h-4 bg-muted rounded relative overflow-hidden">
-                  <div className="absolute inset-y-0 left-0 bg-emerald-500/60" style={{ width: `${s.pct}%` }} />
-                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold">
-                    {s.pct}% · {s.ok}/{s.total}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Par objectif */}
-          {crossed.perOutcome.length > 0 && (
-            <div className="space-y-1">
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
-                Par objectif de résultat
-              </p>
-              {crossed.perOutcome.map((s) => (
-                <div key={s.outcome} className="flex items-center gap-2 text-xs">
-                  <span className="w-32 truncate">{s.label}</span>
-                  <div className="flex-1 h-4 bg-muted rounded relative overflow-hidden">
-                    <div className="absolute inset-y-0 left-0 bg-amber-500/60" style={{ width: `${s.pct}%` }} />
-                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold">
-                      {s.pct}% · {s.ok}/{s.total}
-                    </span>
-                  </div>
-                  {s.pctWhenAllCritOk !== null && (
-                    <Badge variant="outline" className="text-[10px] whitespace-nowrap">
-                      {s.pctWhenAllCritOk}% si tout OK ({s.sampleAllCritOk})
-                    </Badge>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Matrice nb critères OK */}
-          <div className="space-y-1">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
-              Réussite des objectifs selon le nombre de critères techniques validés
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {crossed.matrix.map((m) => (
-                <div
-                  key={m.k}
-                  className={cn(
-                    "rounded-lg border p-2 text-center",
-                    m.count === 0 ? "opacity-40" : "bg-surface-sunken",
-                  )}
-                >
-                  <p className="text-[10px] text-muted-foreground">
-                    {m.k}/{selectedParams.length} critère{selectedParams.length > 1 ? "s" : ""}
-                  </p>
-                  <p className="text-base font-bold">{m.outcomePct}%</p>
-                  <p className="text-[10px] text-muted-foreground">{m.count} lancer{m.count > 1 ? "s" : ""}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
+      {/* === Stats avancées du bloc en temps réel === */}
+      {isTechnical && throws.length > 0 && (selectedParams.length > 0 || selectedOutcomes.length > 0) && (
+        <BowlingTechnicalBlockStats
+          throws={throws as any}
+          selectedParams={selectedParams}
+          selectedOutcomes={selectedOutcomes}
+        />
       )}
 
       {throws.length > 0 && (
