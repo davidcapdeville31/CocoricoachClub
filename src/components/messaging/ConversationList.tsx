@@ -98,7 +98,7 @@ export function ConversationList({ categoryId, selectedId, onSelect, isAthlete =
 
   // Fetch players for private messages
   const { data: players } = useQuery({
-    queryKey: ["category-players-messaging", categoryId],
+    queryKey: ["category-players-messaging", categoryId, createOpen],
     queryFn: async () => {
       const rosterPlayers = await fetchCategoryRosterPlayers(categoryId);
       return (rosterPlayers || []).map((player: any) => ({
@@ -108,6 +108,7 @@ export function ConversationList({ categoryId, selectedId, onSelect, isAthlete =
         user_id: player.user_id ?? null,
       })) as Player[];
     },
+    refetchOnMount: "always",
   });
 
   // Fetch staff members for private messages
