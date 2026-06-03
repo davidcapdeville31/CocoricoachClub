@@ -137,7 +137,23 @@ export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
       <div className="grid grid-cols-2 gap-3">
         <Card className="bg-gradient-card">
           <CardContent className="py-3 text-center">
-            <p className={`text-2xl font-bold ${getRecoveryColor(latestRecovery)}`}>{latestRecovery}%</p>
+            <div className="flex items-center justify-center gap-1">
+              <p className={`text-2xl font-bold ${getRecoveryColor(latestRecovery)}`}>{latestRecovery}%</p>
+              <TooltipProvider delayDuration={150}>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" aria-label="Comment est calculé ce score ?" className="text-muted-foreground hover:text-foreground transition-colors">
+                      <Info className="h-3.5 w-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs text-xs leading-relaxed">
+                    <p className="font-semibold mb-1">Score de récupération (0-100%)</p>
+                    <p>Synthèse globale de ta forme du jour, calculée à partir de tes 5 réponses wellness (sommeil, fatigue générale, fatigue haut/bas du corps, stress).</p>
+                    <p className="mt-1 text-muted-foreground">Plus c'est haut, mieux tu récupères. 80%+ = top forme · 60-80% = correct · &lt;60% = vigilance.</p>
+                  </TooltipContent>
+                </UITooltip>
+              </TooltipProvider>
+            </div>
             <p className="text-[10px] text-muted-foreground">Récupération actuelle</p>
           </CardContent>
         </Card>
