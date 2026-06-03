@@ -343,23 +343,22 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
 
           <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
             <div className="flex items-center justify-between">
-              <Label htmlFor="specific-pain">Douleur spécifique / aiguë ?</Label>
+              <Label htmlFor="specific-pain">Douleur(s) spécifique(s) / aiguë(s) ?</Label>
               <Switch
                 id="specific-pain"
                 checked={hasSpecificPain}
                 onCheckedChange={(v) => {
                   setHasSpecificPain(v);
-                  if (!v) setPainData({});
+                  if (!v) setPainEntries([]);
                 }}
               />
             </div>
-            {hasSpecificPain && (
-              <BodyPainSelector
-                value={painData}
-                onChange={setPainData}
-                categoryId={categoryId}
-              />
-            )}
+            <BodyPainSelector
+              entries={painEntries}
+              onChange={setPainEntries}
+              categoryId={categoryId}
+              disabled={!hasSpecificPain}
+            />
           </div>
 
           {/* HRV Section (optional) */}
