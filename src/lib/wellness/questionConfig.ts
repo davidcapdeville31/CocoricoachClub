@@ -198,16 +198,18 @@ export function mergeWithDefaults(saved: WellnessQuestion[] | null | undefined):
   const savedKeys = new Set(saved.map((q) => q.key));
   for (const q of saved) {
     const defaultQ = DEFAULT_WELLNESS_QUESTIONS.find(d => d.key === q.key);
+    const isStandard = !!defaultQ;
     const validScale = Array.isArray(q.scale) && (q.scale.length === 5 || q.scale.length === 6);
-    // For soreness questions, always use the 0..5 default to ensure migration
-    const isSoreness = q.key === "soreness_upper_body" || q.key === "soreness_lower_body";
+    // Force standard keys to use the new 0..5 defaults (length 6) so legacy
+    // saved configs (length 5, value 1..5) are automatically migrated.
     result.push({
       ...q,
-      scale: isSoreness
-        ? (defaultQ?.scale ?? sorenessScale())
-        : (validScale ? q.scale : defaultQ?.scale ?? positiveScale(["1","2","3","4","5"])),
+      scale: isStandard
+        ? defaultQ!.scale
+        : (validScale ? q.scale : positiveScale(["0","1","2","3","4","5"])),
     });
   }
+
 
   // Append any default standards that were not in saved (e.g., added later)
   for (const d of DEFAULT_WELLNESS_QUESTIONS) {
