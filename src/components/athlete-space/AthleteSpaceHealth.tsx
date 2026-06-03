@@ -170,7 +170,8 @@ export function AthleteSpaceHealth({ playerId, categoryId }: Props) {
   const protocolPhases = activeProtocol?.injury_protocols
     ? ((activeProtocol.injury_protocols as any)?.protocol_phases || []).sort((a: any, b: any) => a.phase_number - b.phase_number)
     : [];
-  const currentPhaseNumber = activeProtocol?.current_phase || 1;
+  const activeInjuryForPhase = injuries.find((i: any) => i.status === "active") || injuries[0];
+  const currentPhaseNumber = activeProtocol?.current_phase || activeInjuryForPhase?.current_rehab_phase || 1;
 
   const getHealthFeedback = (): string[] => {
     const msgs: string[] = [];
