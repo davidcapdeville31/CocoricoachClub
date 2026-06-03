@@ -1,10 +1,26 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { EditInjuryDialog } from "@/components/injuries/EditInjuryDialog";
+import { EditIllnessDialog } from "@/components/injuries/EditIllnessDialog";
+import { toast } from "sonner";
 import {
   AlertTriangle,
   CheckCircle,
@@ -17,7 +33,10 @@ import {
   Cake,
   Syringe,
   HeartPulse,
+  Pencil,
+  Trash2,
 } from "lucide-react";
+
 import { format, differenceInDays, addDays, isSameMonth, parseISO, isValid } from "date-fns";
 
 const safeFormat = (date: Date | string | null | undefined, fmt: string, options?: any): string => {
