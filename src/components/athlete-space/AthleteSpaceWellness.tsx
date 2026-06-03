@@ -169,7 +169,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       const insertData: any = {
         player_id: playerId,
         category_id: categoryId,
-        tracking_date: today,
+        tracking_date: selectedDateStr,
         has_specific_pain: hasSpecificPain,
         pain_zone: hasSpecificPain ? painData.zone ?? null : null,
         pain_location: hasSpecificPain ? painData.region ?? null : null,
@@ -194,7 +194,11 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
         insertData.custom_answers = customAnswers;
       }
 
-      const { error } = await supabase.from("wellness_tracking").insert(insertData);
+      // Upsert pour permettre la mise à jour d'un wellness existant
+      // (notamment pour rattraper / corriger un jour passé).
+      const { error } = await supabase
+        .from("wellness_tracking")
+        .upsert(insertData, { onConflict: "player_id,tracking_date" });
       if (error) throw error;
 
       // Insert HRV morning data if provided
@@ -202,7 +206,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
         const { error: hrvError } = await supabase.from("hrv_records").insert({
           player_id: playerId,
           category_id: categoryId,
-          record_date: today,
+          record_date: selectedDateStr,
           record_type: "morning",
           hrv_ms: hrvMs ? parseFloat(hrvMs) : null,
           resting_hr_bpm: restingHr ? parseFloat(restingHr) : null,
@@ -214,16 +218,22 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
       }
     },
     onSuccess: () => {
-      toast.success("Wellness enregistré !");
+      toast.success(
+        isToday
+          ? "Wellness enregistré !"
+          : `Wellness du ${format(selectedDate, "d MMM", { locale: fr })} enregistré !`,
+      );
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-space-wellness-today"] });
       if (showHrv) {
         queryClient.invalidateQueries({ queryKey: ["hrv_records"] });
       }
       setExpanded(false);
+      setForceEdit(false);
     },
     onError: () => toast.error("Erreur lors de l'enregistrement"),
   });
+
 
   if (isLoading) return null;
 
