@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePublicDataContext } from "@/contexts/PublicDataContext";
+import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
 
 type PublicDataKey = 
   | "players" 
@@ -69,41 +70,7 @@ export function useViewerData<T>({
 export function useViewerPlayers(categoryId: string) {
   return useViewerData<any[]>({
     queryKey: ["players", categoryId],
-    queryFn: async () => {
-      // Fetch direct players from the secured view so category members can read the roster
-      const { data: directPlayers, error } = await supabase
-        .from("players_safe")
-        .select("*")
-        .eq("category_id", categoryId)
-        .order("name");
-      if (error) throw error;
-
-      // Fetch linked players via player_categories junction table
-      const { data: linkedEntries, error: linkedError } = await supabase
-        .from("player_categories")
-        .select("player_id")
-        .eq("category_id", categoryId)
-        .eq("status", "accepted");
-      if (linkedError) throw linkedError;
-
-      const directIds = new Set((directPlayers || []).map((p: any) => p.id));
-      const linkedIds = (linkedEntries || [])
-        .map((entry: any) => entry.player_id)
-        .filter((playerId: string) => !directIds.has(playerId));
-
-      if (linkedIds.length === 0) {
-        return directPlayers || [];
-      }
-
-      const { data: linkedPlayers, error: linkedPlayersError } = await supabase
-        .from("players_safe")
-        .select("*")
-        .in("id", linkedIds)
-        .order("name");
-      if (linkedPlayersError) throw linkedPlayersError;
-
-      return [...(directPlayers || []), ...(linkedPlayers || []).map((player: any) => ({ ...player, _linked: true }))];
-    },
+    queryFn: async () => fetchCategoryRosterPlayers(categoryId),
     publicDataKey: "players",
     enabled: !!categoryId,
   });
