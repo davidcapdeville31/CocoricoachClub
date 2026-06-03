@@ -176,15 +176,18 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
 
   const submitWellness = useMutation({
     mutationFn: async () => {
+      const activePainEntries = hasSpecificPain ? painEntries : [];
+      const firstPain = activePainEntries[0];
       const insertData: any = {
         player_id: playerId,
         category_id: categoryId,
         tracking_date: selectedDateStr,
-        has_specific_pain: hasSpecificPain,
-        pain_zone: hasSpecificPain ? painData.zone ?? null : null,
-        pain_location: hasSpecificPain ? painData.region ?? null : null,
-        pain_nature: hasSpecificPain ? painData.nature ?? null : null,
-        pain_intensity: hasSpecificPain ? painData.intensity ?? null : null,
+        has_specific_pain: hasSpecificPain && activePainEntries.length > 0,
+        pain_entries: activePainEntries,
+        pain_zone: firstPain?.zone ?? null,
+        pain_location: firstPain?.region ?? null,
+        pain_nature: firstPain?.nature ?? null,
+        pain_intensity: firstPain?.intensity ?? null,
         notes: notes || null,
       };
 
