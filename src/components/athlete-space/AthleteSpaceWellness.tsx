@@ -387,32 +387,39 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
     <>
 
     <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.sante.base}40`, backgroundColor: `${NAV_COLORS.sante.base}06` }}>
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full text-left"
-      >
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${NAV_COLORS.sante.base}20` }}>
-                <Heart className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
-              </div>
-              <span style={{ color: NAV_COLORS.sante.base }}>Wellness du jour à remplir</span>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => setExpanded(!expanded)}
+            className="flex items-center gap-2 text-left flex-1 min-w-0"
+          >
+            <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${NAV_COLORS.sante.base}20` }}>
+              <Heart className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs" style={{ borderColor: NAV_COLORS.sante.base, color: NAV_COLORS.sante.base }}>À remplir</Badge>
-              {expanded ? (
-                <ChevronUp className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
-              ) : (
-                <ChevronDown className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
-              )}
-            </div>
-          </CardTitle>
-        </CardHeader>
-      </button>
+            <span className="truncate" style={{ color: NAV_COLORS.sante.base }}>
+              {isToday
+                ? "Wellness du jour à remplir"
+                : `Wellness du ${format(selectedDate, "EEEE d MMM", { locale: fr })}`}
+            </span>
+          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <Badge variant="outline" className="text-xs" style={{ borderColor: NAV_COLORS.sante.base, color: NAV_COLORS.sante.base }}>
+              {existingWellness ? "À modifier" : "À remplir"}
+            </Badge>
+            {shouldBeExpanded ? (
+              <ChevronUp className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
+            ) : (
+              <ChevronDown className="h-4 w-4" style={{ color: NAV_COLORS.sante.base }} />
+            )}
+          </div>
+        </CardTitle>
+        <div className="pt-2">{DateSelector}</div>
+      </CardHeader>
 
-      {expanded && (
+      {shouldBeExpanded && (
         <CardContent className="space-y-1.5 pt-0 pb-3 px-2 sm:px-4">
+
           {activeQuestions.map(q => {
             const currentValue = values[q.key] ?? 1;
 
