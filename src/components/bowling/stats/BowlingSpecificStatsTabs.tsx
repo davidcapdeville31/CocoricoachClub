@@ -23,6 +23,23 @@ import {
 } from "@/lib/bowling/aggregatedSpecificStats";
 import { TECHNICAL_EXERCISE_TYPES } from "@/lib/constants/bowlingTechnicalParameters";
 import { TACTICAL_EXERCISE_TYPES } from "@/lib/constants/bowlingTacticalZones";
+import { TECHNICAL_THEMES } from "@/components/bowling/simplified/types";
+
+// Labels pour les exercise_type spécifiques au mode simplifié tactique
+const SIMPLIFIED_TACTICAL_LABELS: Record<string, string> = {
+  spare_poche: "Poche du strike",
+  spare_pin_7: "Quille 7 (seule)",
+  spare_pin_10: "Quille 10 (seule)",
+  spare_general: "Strike / Spares composés",
+};
+const tacticalExerciseLabel = (key: string) =>
+  SIMPLIFIED_TACTICAL_LABELS[key] ??
+  TACTICAL_EXERCISE_TYPES.find((t) => t.value === key)?.label ??
+  key;
+
+const TECHNICAL_THEME_LABELS: Record<string, string> = Object.fromEntries(
+  TECHNICAL_THEMES.map((t) => [t.value, t.label]),
+);
 
 interface Props {
   playerId: string;
