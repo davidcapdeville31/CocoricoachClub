@@ -781,10 +781,38 @@ export function BowlingSimplifiedDialog({
                 })}
               </SelectContent>
             </Select>
+
+            {/* Choix de la portée du huilage */}
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Button
+                type="button"
+                size="sm"
+                variant={oilScope === "session" ? "default" : "outline"}
+                onClick={() => setOilScope("session")}
+                className="h-8 gap-1.5 text-xs"
+              >
+                <Droplet className="h-3.5 w-3.5" />
+                Appliquer à tous les blocs
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={oilScope === "per_block" ? "default" : "outline"}
+                onClick={() => setOilScope("per_block")}
+                className="h-8 gap-1.5 text-xs"
+              >
+                <Droplet className="h-3.5 w-3.5" />
+                Huilage spécifique par bloc
+              </Button>
+            </div>
+
             <p className="text-[11px] text-muted-foreground">
-              Le huilage choisi s'applique à toute la séance et permet de filtrer les Stats Parties.
+              {oilScope === "session"
+                ? "Le huilage choisi s'applique automatiquement à tous les blocs de la séance."
+                : "Vous définirez un huilage différent à l'intérieur de chaque bloc."}
             </p>
           </div>
+
 
 
           {blocks.length === 0 && (
