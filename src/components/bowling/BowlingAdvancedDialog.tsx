@@ -443,16 +443,34 @@ export function BowlingAdvancedDialog({
       };
 
       if (isEditMode && existingSessionId) {
-        await supabase
-          .from("bowling_training_blocks")
-          .delete()
-          .eq("session_id", existingSessionId)
-          .eq("athlete_id", athletePlayerId!);
-        const rows = blocks.map((b, idx) => buildRow(b, idx, existingSessionId, athletePlayerId!));
-        const { error } = await supabase
-          .from("bowling_training_blocks")
-          .insert(rows as any);
-        if (error) throw error;
+        // Conserver l'id des blocs déjà persistés afin de NE PAS perdre les lancers
+        // (bowling_throw_results.block_id → CASCADE DELETE). On update en place et on
+        // n'insère que les blocs nouveaux. Les blocs retirés sont supprimés explicitement.
+        const existingDbIds = new Set<string>((existingBlocks || []).map((r: any) => r.id));
+        const currentIds = new Set(blocks.map((b) => b.id));
+        const toDelete = [...existingDbIds].filter((id) => !currentIds.has(id));
+        if (toDelete.length > 0) {
+          await supabase
+            .from("bowling_training_blocks")
+            .delete()
+            .in("id", toDelete);
+        }
+        for (let idx = 0; idx < blocks.length; idx++) {
+          const b = blocks[idx];
+          const row = buildRow(b, idx, existingSessionId, athletePlayerId!);
+          if (existingDbIds.has(b.id)) {
+            const { error } = await supabase
+              .from("bowling_training_blocks")
+              .update(row as any)
+              .eq("id", b.id);
+            if (error) throw error;
+          } else {
+            const { error } = await supabase
+              .from("bowling_training_blocks")
+              .insert({ ...(row as any), id: b.id } as any);
+            if (error) throw error;
+          }
+        }
         await persistGamesAndOil(athletePlayerId!, sessionDate, existingSessionId);
         try {
           await supabase
