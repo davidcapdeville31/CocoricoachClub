@@ -191,9 +191,28 @@ export function BowlingSimplifiedDialog({
     );
   };
 
-  const addTactical = () => setBlocks((prev) => [...prev, newTacticalBlock()]);
-  const addTechnical = () => setBlocks((prev) => [...prev, newTechnicalBlock()]);
-  const addGames = () => setBlocks((prev) => [...prev, newGamesBlock()]);
+  const sessionOilPreset = useMemo(
+    () => buildOilFromPresetName(oilPatternName),
+    [oilPatternName],
+  );
+
+  const withSessionOil = <T extends SimplifiedBlock>(b: T): T =>
+    oilScope === "session" ? ({ ...b, oil_pattern: sessionOilPreset } as T) : b;
+
+  const addTactical = () => setBlocks((prev) => [...prev, withSessionOil(newTacticalBlock())]);
+  const addTechnical = () => setBlocks((prev) => [...prev, withSessionOil(newTechnicalBlock())]);
+  const addGames = () => setBlocks((prev) => [...prev, withSessionOil(newGamesBlock())]);
+
+  // En mode "session", propage le huilage de séance à tous les blocs existants
+  // dès que l'utilisateur change le pattern ou bascule en mode session.
+  useEffect(() => {
+    if (oilScope !== "session") return;
+    setBlocks((prev) =>
+      prev.map((b) => ({ ...b, oil_pattern: sessionOilPreset })),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [oilScope, sessionOilPreset]);
+
 
   const updateBlock = (id: string, next: SimplifiedBlock) =>
     setBlocks((prev) => prev.map((b) => (b.id === id ? next : b)));
