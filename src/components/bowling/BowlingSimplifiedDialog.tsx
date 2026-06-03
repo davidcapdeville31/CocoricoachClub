@@ -702,7 +702,7 @@ export function BowlingSimplifiedDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl border-border/70 bg-background/95 shadow-2xl backdrop-blur-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-1rem)] sm:w-[95vw] max-w-[1200px] border-border/70 bg-background/95 shadow-2xl backdrop-blur-md max-h-[92vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Sparkles className="h-5 w-5 text-primary" />
