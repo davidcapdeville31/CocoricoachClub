@@ -46,6 +46,15 @@ const METRIC_LABELS: Record<string, string> = {
 
 export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
   const [period, setPeriod] = useState<WellnessPeriod>("day");
+  const [visibleMetrics, setVisibleMetrics] = useState<Record<string, boolean>>({
+    sleep_quality: true,
+    general_fatigue: true,
+    soreness_upper_body: true,
+    soreness_lower_body: true,
+    stress_level: true,
+  });
+  const toggleMetric = (key: string) =>
+    setVisibleMetrics((p) => ({ ...p, [key]: !p[key] }));
 
   const { data: wellnessHistory = [], isLoading } = useQuery({
     queryKey: ["athlete-space-wellness-history", playerId],
