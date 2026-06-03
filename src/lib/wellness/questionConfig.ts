@@ -183,7 +183,7 @@ export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
     enabled: true,
     inverted: true,
     is_custom: false,
-    scale: invertedScale(["Très détendu", "Détendu", "Un peu stressé", "Stressé", "Très stressé"]),
+    scale: invertedScale(["Aucun stress", "Très détendu", "Détendu", "Un peu stressé", "Stressé", "Très stressé"]),
   },
 ];
 
