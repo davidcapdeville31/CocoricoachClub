@@ -445,10 +445,12 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                   <div className="w-3 h-3 rounded" style={{ backgroundColor: `${TRAINING_COLOR}40`, border: `1px solid ${TRAINING_COLOR}` }} />
                   <span>Entraînement</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded" style={{ backgroundColor: `${TEST_COLOR}40`, border: `1px dashed ${TEST_COLOR}` }} />
-                  <span>Test</span>
-                </div>
+                {!isBowling && (
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded" style={{ backgroundColor: `${TEST_COLOR}40`, border: `1px dashed ${TEST_COLOR}` }} />
+                    <span>Test</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded" style={{ backgroundColor: `${MATCH_COLOR}40`, border: `1px solid ${MATCH_COLOR}` }} />
                   <span>Match / Compétition</span>
@@ -457,14 +459,18 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                   <div className="w-3 h-3 rounded" style={{ border: `2px solid ${ATHLETE_SESSION_COLOR}` }} />
                   <span>Mes séances</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1 h-3 rounded-full" style={{ backgroundColor: REHAB_COLOR }} />
-                  <span>Réhab</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-1 rounded-full" style={{ backgroundColor: PROPHYLAXIS_COLOR }} />
-                  <span>Prophylaxie</span>
-                </div>
+                {!isBowling && (
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-1 h-3 rounded-full" style={{ backgroundColor: REHAB_COLOR }} />
+                    <span>Réhab</span>
+                  </div>
+                )}
+                {!isBowling && (
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-1 rounded-full" style={{ backgroundColor: PROPHYLAXIS_COLOR }} />
+                    <span>Prophylaxie</span>
+                  </div>
+                )}
               </div>
 
               {selectedDate ? (
