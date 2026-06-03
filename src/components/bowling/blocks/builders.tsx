@@ -226,7 +226,8 @@ export function BowlingTacticalBuilder(props: Props) {
 
   return (
     <BlockShell {...props}>
-      <DurationThrows {...props} />
+      <DurationThrows {...props} lockThrows />
+
 
       {/* Zones + lancers/zone */}
       <div className="space-y-2">
