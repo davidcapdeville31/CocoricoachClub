@@ -6,10 +6,7 @@ export type TechParamGroup =
   | "axis"
   | "rotation"
   | "depth"
-  | "approach"
-  | "release"
-  | "swing"
-  | "routine";
+  | "approach";
 
 export interface TechnicalParameterOption {
   value: string;
@@ -25,7 +22,6 @@ export const TECHNICAL_EXERCISE_TYPES = [
   { value: "consistency", label: "Régularité gestuelle" },
   { value: "technical_line", label: "Ligne de jeu technique" },
   { value: "technical_spare", label: "Spare technique" },
-  { value: "routine", label: "Travail de routine" },
   { value: "custom_combo", label: "Travail combiné personnalisé" },
 ] as const;
 export type TechnicalExerciseType = (typeof TECHNICAL_EXERCISE_TYPES)[number]["value"];
@@ -51,16 +47,6 @@ export const TECHNICAL_PARAMETERS: TechnicalParameterOption[] = [
   { value: "approach_normal", label: "Approche normale", group: "approach" },
   { value: "approach_slow", label: "Approche ralentie", group: "approach" },
   { value: "approach_dynamic", label: "Approche dynamique", group: "approach" },
-
-  { value: "release_normal", label: "Relâchement normal", group: "release" },
-  { value: "release_soft", label: "Relâchement souple", group: "release" },
-  { value: "release_fast", label: "Relâchement accéléré", group: "release" },
-
-  { value: "swing_free", label: "Swing libre", group: "swing" },
-  { value: "swing_controlled", label: "Swing contrôlé", group: "swing" },
-
-  { value: "routine_full", label: "Routine complète", group: "routine" },
-  { value: "routine_simple", label: "Routine simplifiée", group: "routine" },
 ];
 
 export const TECH_PARAM_GROUP_LABELS: Record<TechParamGroup, string> = {
@@ -69,9 +55,6 @@ export const TECH_PARAM_GROUP_LABELS: Record<TechParamGroup, string> = {
   rotation: "Rotation",
   depth: "Profondeur de pose",
   approach: "Approche",
-  release: "Relâchement",
-  swing: "Swing",
-  routine: "Routine",
 };
 
 export const SEQUENCE_MODES = [
