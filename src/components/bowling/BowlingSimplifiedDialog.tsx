@@ -852,6 +852,7 @@ export function BowlingSimplifiedDialog({
                   index={tacticalIndexById.get(b.id) ?? 0}
                   categoryId={categoryId}
                   playerId={playerIdForEditors}
+                  hideOilPicker={oilScope === "session"}
                   onChange={(next) => updateBlock(b.id, next)}
                   onRemove={() => removeBlock(b.id)}
                 />
@@ -870,10 +871,12 @@ export function BowlingSimplifiedDialog({
                   index={gamesIndexById.get(b.id) ?? 0}
                   categoryId={categoryId}
                   playerId={playerIdForEditors}
+                  hideOilPicker={oilScope === "session"}
                   onChange={(next) => updateBlock(b.id, next)}
                   onRemove={() => removeBlock(b.id)}
                 />
               );
+
 
             return (
               <div key={b.id} className="space-y-2">
