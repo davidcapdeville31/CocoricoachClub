@@ -183,6 +183,7 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
       const anyOutcomeOk = Object.values(outcomeResults).some((v) => v === true);
       const allParamOk =
         selectedParams.length > 0 && selectedParams.every((p) => paramResults[p] === true);
+      const zonePassOk = paramResults["__zone_pass__"] === true;
       const payload = {
         ...draft,
         parameter_results: paramResults,
@@ -194,7 +195,8 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
           draft.strike_success === true ||
           draft.spare_success === true ||
           anyOutcomeOk ||
-          (isTechnical && allParamOk),
+          (isTechnical && allParamOk) ||
+          (isTactical && zonePassOk),
       };
       const { data, error } = await supabase.functions.invoke("athlete-bowling-training", {
         body: {
@@ -400,6 +402,21 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
                   />
                 </div>
               </div>
+
+              {/* Validation du passage sur la zone/flèche */}
+              <div className="rounded-xl border border-border/60 bg-surface-sunken p-3 space-y-2">
+                <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Passage sur la zone
+                </Label>
+                <p className="text-[10px] text-muted-foreground italic">
+                  Valide si la boule est passée sur la zone visée (flèche). Combine avec les objectifs de résultat ci-dessous — tu peux valider l'un, l'autre, ou les deux.
+                </p>
+                <YesNoBtn
+                  label="Zone (flèche) respectée"
+                  value={(draft.parameter_results || {})["__zone_pass__"]}
+                  onChange={(v) => setParamResult("__zone_pass__", v)}
+                />
+              </div>
             </>
           );
         })()}
@@ -498,6 +515,13 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
           selectedOutcomes={selectedOutcomes}
         />
       )}
+      {isTactical && throws.length > 0 && (
+        <BowlingTechnicalBlockStats
+          throws={throws as any}
+          selectedParams={["__zone_pass__"]}
+          selectedOutcomes={selectedOutcomes}
+        />
+      )}
 
       {throws.length > 0 && (
         <Card className="p-3">
@@ -511,6 +535,12 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
                   <Badge variant="outline" className="text-[10px] w-8 justify-center">{t.throw_number}</Badge>
                   <div className="flex flex-wrap gap-1 flex-1">
                     {t.actual_zone && <Badge variant="secondary" className="text-[10px]">{zoneShort(t.actual_zone)}</Badge>}
+                    {isTactical && t.parameter_results?.__zone_pass__ === true && (
+                      <Badge className="text-[10px] bg-emerald-500/15 text-emerald-700 border-emerald-500/30">Zone ✓</Badge>
+                    )}
+                    {isTactical && t.parameter_results?.__zone_pass__ === false && (
+                      <Badge className="text-[10px] bg-rose-500/15 text-rose-700 border-rose-500/30">Zone ✗</Badge>
+                    )}
                     {selectedParams.length > 0 && (
                       <Badge variant="outline" className="text-[10px]">
                         Critères {paramsOk}/{selectedParams.length}
