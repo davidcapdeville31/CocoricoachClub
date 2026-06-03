@@ -131,16 +131,24 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
 
     if (ew) {
       setHasSpecificPain(!!ew.has_specific_pain);
-      setPainData({
-        zone: ew.pain_zone ?? undefined,
-        region: ew.pain_location ?? undefined,
-        nature: ew.pain_nature ?? undefined,
-        intensity: ew.pain_intensity ?? undefined,
-      });
+      const stored = Array.isArray(ew.pain_entries) ? (ew.pain_entries as BodyPainEntry[]) : [];
+      if (stored.length > 0) {
+        setPainEntries(stored);
+      } else if (ew.pain_location) {
+        // Legacy single-pain fallback
+        setPainEntries([{
+          region: ew.pain_location,
+          zone: ew.pain_zone ?? "",
+          nature: ew.pain_nature ?? "musculaire",
+          intensity: ew.pain_intensity ?? 3,
+        }]);
+      } else {
+        setPainEntries([]);
+      }
       setNotes(ew.notes ?? "");
     } else {
       setHasSpecificPain(false);
-      setPainData({});
+      setPainEntries([]);
       setNotes("");
     }
   }, [activeQuestions, existingWellness, selectedDateStr]);
