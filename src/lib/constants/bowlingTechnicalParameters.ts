@@ -76,6 +76,15 @@ export const PRIORITY_OPTIONS = [
   { value: "high", label: "Élevée" },
 ] as const;
 
+/** Synthetic params used outside the technical block (e.g. tactical zone pass). */
+const SYNTHETIC_PARAM_LABELS: Record<string, string> = {
+  __zone_pass__: "Passage sur la zone (flèche)",
+};
+
 export function getParamLabel(value: string): string {
-  return TECHNICAL_PARAMETERS.find((p) => p.value === value)?.label ?? value;
+  return (
+    TECHNICAL_PARAMETERS.find((p) => p.value === value)?.label ??
+    SYNTHETIC_PARAM_LABELS[value] ??
+    value
+  );
 }
