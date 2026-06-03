@@ -214,6 +214,34 @@ export function ManageParticipantsDialog({
                     )}
                   </div>
                 ))}
+
+                {(() => {
+                  const unlinked = (candidates || []).filter((c) => !c.hasLinkedAccount);
+                  if (unlinked.length === 0) return null;
+                  return (
+                    <div className="pt-3 mt-2 border-t border-border/40 space-y-2">
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                        Athlètes de l'effectif sans compte
+                      </p>
+                      {unlinked.map((c) => (
+                        <div
+                          key={c.key}
+                          className="flex items-center gap-3 p-2 rounded-lg border border-dashed border-border/50 bg-muted/30"
+                        >
+                          <Avatar className="h-8 w-8 opacity-60">
+                            <AvatarFallback className="text-xs">{initials(c.name)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate text-muted-foreground">{c.name}</p>
+                            <span className="text-[10px] text-muted-foreground">
+                              Compte non lié — invitation requise pour rejoindre la conversation
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
             </ScrollArea>
           </TabsContent>
