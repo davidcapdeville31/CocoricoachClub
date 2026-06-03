@@ -44,7 +44,17 @@ const SLEEP_RANGES: { label: string; value: number }[] = [
 export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Props) {
   const queryClient = useQueryClient();
   const today = new Date().toISOString().split("T")[0];
+
+  // Date sélectionnée pour la saisie (aujourd'hui par défaut, max = aujourd'hui, jusqu'à -30j)
+  const [selectedDate, setSelectedDate] = useState<Date>(() => startOfDay(new Date()));
+  const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
+  const isToday = selectedDateStr === today;
+  const isPastDate = !isToday;
+
   const [expanded, setExpanded] = useState(false);
+  // Quand on choisit un jour passé, on force l'ouverture du formulaire
+  // pour offrir la saisie/édition immédiate.
+  const [forceEdit, setForceEdit] = useState(false);
 
   const { data: wellnessQuestions } = useWellnessQuestions(categoryId);
   const activeQuestions = useMemo(() => wellnessQuestions?.filter(q => q.enabled) ?? [], [wellnessQuestions]);
@@ -67,13 +77,13 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
   const isScheduledToday = scheduledDays.includes(todayDow);
 
   const { data: existingWellness, isLoading } = useQuery({
-    queryKey: ["athlete-space-wellness", playerId, today],
+    queryKey: ["athlete-space-wellness", playerId, selectedDateStr],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("wellness_tracking")
         .select("*")
         .eq("player_id", playerId)
-        .eq("tracking_date", today)
+        .eq("tracking_date", selectedDateStr)
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -82,16 +92,6 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
 
   // Dynamic values state keyed by question key
   const [values, setValues] = useState<Record<string, number>>({});
-
-  // Initialize values when questions change
-  useEffect(() => {
-    const initial: Record<string, number> = {};
-    for (const q of activeQuestions) {
-      initial[q.key] = q.is_sleep_duration ? 7.5 : 1;
-    }
-    setValues(initial);
-    setTouched(new Set());
-  }, [activeQuestions]);
 
   const [hasSpecificPain, setHasSpecificPain] = useState(false);
   const [painData, setPainData] = useState<Partial<BodyPainValue>>({});
@@ -102,7 +102,49 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
 
   const [touched, setTouched] = useState<Set<string>>(new Set());
 
+  // Initialise / pré-remplit les valeurs du formulaire depuis l'entrée existante
+  // (ou des valeurs par défaut) à chaque changement de date ou de questions.
+  useEffect(() => {
+    const initial: Record<string, number> = {};
+    const ew: any = existingWellness;
+    for (const q of activeQuestions) {
+      if (ew) {
+        const raw = q.is_custom
+          ? (ew.custom_answers?.[q.key] ?? 1)
+          : (ew[q.key] ?? 1);
+        if (q.is_sleep_duration) {
+          // En base : score 1-5. UI : heures (médiane de plage).
+          initial[q.key] = raw ? sleepScoreToHours(Number(raw)) : 7.5;
+        } else {
+          initial[q.key] = Number(raw) || 1;
+        }
+      } else {
+        initial[q.key] = q.is_sleep_duration ? 7.5 : 1;
+      }
+    }
+    setValues(initial);
+    // Si on a une entrée existante, tous les champs comptent comme "touchés"
+    // pour autoriser l'enregistrement immédiat après édition partielle.
+    setTouched(existingWellness ? new Set(activeQuestions.map(q => q.key)) : new Set());
+
+    if (ew) {
+      setHasSpecificPain(!!ew.has_specific_pain);
+      setPainData({
+        zone: ew.pain_zone ?? undefined,
+        region: ew.pain_location ?? undefined,
+        nature: ew.pain_nature ?? undefined,
+        intensity: ew.pain_intensity ?? undefined,
+      });
+      setNotes(ew.notes ?? "");
+    } else {
+      setHasSpecificPain(false);
+      setPainData({});
+      setNotes("");
+    }
+  }, [activeQuestions, existingWellness, selectedDateStr]);
+
   const allFieldsFilled = useMemo(() => {
+
     return activeQuestions.every(q => touched.has(q.key));
   }, [activeQuestions, touched]);
 
