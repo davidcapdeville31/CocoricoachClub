@@ -183,6 +183,7 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
       const anyOutcomeOk = Object.values(outcomeResults).some((v) => v === true);
       const allParamOk =
         selectedParams.length > 0 && selectedParams.every((p) => paramResults[p] === true);
+      const zonePassOk = paramResults["__zone_pass__"] === true;
       const payload = {
         ...draft,
         parameter_results: paramResults,
@@ -194,7 +195,8 @@ export function BowlingBlockRunner({ block, playerId, categoryId, sessionDate, o
           draft.strike_success === true ||
           draft.spare_success === true ||
           anyOutcomeOk ||
-          (isTechnical && allParamOk),
+          (isTechnical && allParamOk) ||
+          (isTactical && zonePassOk),
       };
       const { data, error } = await supabase.functions.invoke("athlete-bowling-training", {
         body: {
