@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, RotateCcw, Save, Trash2, Activity, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { BodyPainSelector, type BodyPainValue } from "@/components/wellness/BodyPainSelector";
+import { BodyPainSelector, type BodyPainEntry } from "@/components/wellness/BodyPainSelector";
 import {
   DEFAULT_PAIN_CONFIG,
   mergePainConfig,
