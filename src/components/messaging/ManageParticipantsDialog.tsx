@@ -74,7 +74,7 @@ export function ManageParticipantsDialog({
 
   // Available candidates: exact same athlete source as Effectif (active roster only)
   const { data: candidates } = useQuery({
-    queryKey: ["conv-candidates", categoryId],
+    queryKey: ["conv-candidates", categoryId, open],
     queryFn: async () => {
       const rosterPlayers = await fetchCategoryRosterPlayers(categoryId);
       const athleteNameMap = await fetchCategoryRosterUserNames({ categoryId });
@@ -106,6 +106,7 @@ export function ManageParticipantsDialog({
       return result;
     },
     enabled: open,
+    refetchOnMount: "always",
   });
 
   const participantIds = useMemo(
