@@ -3,6 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 import {
   computeTechnicalBlockStats,
   type ThrowResultRow,
@@ -22,19 +24,39 @@ function qualityColor(q: number): string {
   return "bg-rose-500/60";
 }
 
+const InfoHint = ({ text }: { text: string }) => (
+  <TooltipProvider delayDuration={150}>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button type="button" aria-label="Explication" className="text-muted-foreground hover:text-foreground transition-colors">
+          <Info className="h-3 w-3" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" className="max-w-[260px] text-[11px] leading-relaxed">
+        {text}
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+);
+
 const Kpi = ({
   label,
   value,
   hint,
   accent,
+  info,
 }: {
   label: string;
   value: string;
   hint?: string;
   accent?: string;
+  info?: string;
 }) => (
   <Card className={cn("p-3", accent)}>
-    <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{label}</p>
+    <div className="flex items-center gap-1">
+      <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{label}</p>
+      {info && <InfoHint text={info} />}
+    </div>
     <p className="text-2xl font-bold">{value}</p>
     {hint && <p className="text-[10px] text-muted-foreground mt-0.5">{hint}</p>}
   </Card>
