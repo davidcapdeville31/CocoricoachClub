@@ -8,12 +8,13 @@ const corsHeaders = {
 };
 
 const OPTIMAL_WELLNESS = {
-  sleep_quality: 1,
+  sleep_quality: 5,
   sleep_duration: 1,
-  general_fatigue: 1,
-  stress_level: 1,
+  general_fatigue: 0,
+  stress_level: 0,
   soreness_upper_body: 0,
   soreness_lower_body: 0,
+
 
   has_specific_pain: false,
   pain_zone: null,

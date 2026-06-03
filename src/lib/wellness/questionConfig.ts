@@ -94,31 +94,37 @@ const C_MID = "hsl(var(--status-attention))";
 const C_BAD = "hsl(var(--status-critical) / 0.7)";
 const C_WORST = "hsl(var(--status-critical))";
 
+// Inverted 0..5 (0 = best, 5 = worst). labels length 6.
 const invertedScale = (labels: string[]): WellnessScaleLevel[] => [
-  { value: 1, label: labels[0], color: C_OPT },
-  { value: 2, label: labels[1], color: C_GOOD },
-  { value: 3, label: labels[2], color: C_MID },
-  { value: 4, label: labels[3], color: C_BAD },
-  { value: 5, label: labels[4], color: C_WORST },
+  { value: 0, label: labels[0], color: C_OPT },
+  { value: 1, label: labels[1], color: C_OPT },
+  { value: 2, label: labels[2], color: C_GOOD },
+  { value: 3, label: labels[3], color: C_MID },
+  { value: 4, label: labels[4], color: C_BAD },
+  { value: 5, label: labels[5], color: C_WORST },
 ];
 
-// Soreness scale 0..5 (0 = aucune douleur)
-const sorenessScale = (): WellnessScaleLevel[] => [
-  { value: 0, label: "Aucune douleur", color: C_OPT },
-  { value: 1, label: "Très légère", color: C_OPT },
-  { value: 2, label: "Légère gêne", color: C_GOOD },
-  { value: 3, label: "Modérée", color: C_MID },
-  { value: 4, label: "Forte", color: C_BAD },
-  { value: 5, label: "Intense", color: C_WORST },
-];
+// Soreness 0..5 (0 = aucune douleur)
+const sorenessScale = (): WellnessScaleLevel[] =>
+  invertedScale([
+    "Aucune douleur",
+    "Très légère",
+    "Légère gêne",
+    "Modérée",
+    "Forte",
+    "Intense",
+  ]);
 
+// Positive 0..5 (0 = worst, 5 = best). labels length 6.
 const positiveScale = (labels: string[]): WellnessScaleLevel[] => [
-  { value: 1, label: labels[0], color: C_WORST },
-  { value: 2, label: labels[1], color: C_BAD },
-  { value: 3, label: labels[2], color: C_MID },
-  { value: 4, label: labels[3], color: C_GOOD },
-  { value: 5, label: labels[4], color: C_OPT },
+  { value: 0, label: labels[0], color: C_WORST },
+  { value: 1, label: labels[1], color: C_WORST },
+  { value: 2, label: labels[2], color: C_BAD },
+  { value: 3, label: labels[3], color: C_MID },
+  { value: 4, label: labels[4], color: C_GOOD },
+  { value: 5, label: labels[5], color: C_OPT },
 ];
+
 
 
 export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
@@ -129,7 +135,7 @@ export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
     enabled: true,
     inverted: false,
     is_custom: false,
-    scale: positiveScale(["Très mal dormi", "Mal dormi", "Moyen", "Bien dormi", "Très bien dormi"]),
+    scale: positiveScale(["Pas dormi", "Très mal dormi", "Mal dormi", "Moyen", "Bien dormi", "Très bien dormi"]),
   },
   {
     key: "sleep_duration",
@@ -139,7 +145,7 @@ export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
     inverted: false,
     is_custom: false,
     is_sleep_duration: true,
-    scale: positiveScale(["<6h", "6-7h", "7-8h", "8-9h", ">9h"]),
+    scale: positiveScale(["<6h", "<6h", "6-7h", "7-8h", "8-9h", ">9h"]),
   },
   {
     key: "general_fatigue",
@@ -148,7 +154,7 @@ export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
     enabled: true,
     inverted: true,
     is_custom: false,
-    scale: invertedScale(["Très en forme", "En forme", "Fatigué", "Très fatigué", "Épuisé"]),
+    scale: invertedScale(["Aucune fatigue", "Très en forme", "En forme", "Fatigué", "Très fatigué", "Épuisé"]),
   },
   {
     key: "soreness_upper_body",
@@ -173,10 +179,11 @@ export const DEFAULT_WELLNESS_QUESTIONS: WellnessQuestion[] = [
     key: "stress_level",
     label: "Stress",
     emoji: "🧠",
+
     enabled: true,
     inverted: true,
     is_custom: false,
-    scale: invertedScale(["Très détendu", "Détendu", "Un peu stressé", "Stressé", "Très stressé"]),
+    scale: invertedScale(["Aucun stress", "Très détendu", "Détendu", "Un peu stressé", "Stressé", "Très stressé"]),
   },
 ];
 
@@ -191,16 +198,18 @@ export function mergeWithDefaults(saved: WellnessQuestion[] | null | undefined):
   const savedKeys = new Set(saved.map((q) => q.key));
   for (const q of saved) {
     const defaultQ = DEFAULT_WELLNESS_QUESTIONS.find(d => d.key === q.key);
+    const isStandard = !!defaultQ;
     const validScale = Array.isArray(q.scale) && (q.scale.length === 5 || q.scale.length === 6);
-    // For soreness questions, always use the 0..5 default to ensure migration
-    const isSoreness = q.key === "soreness_upper_body" || q.key === "soreness_lower_body";
+    // Force standard keys to use the new 0..5 defaults (length 6) so legacy
+    // saved configs (length 5, value 1..5) are automatically migrated.
     result.push({
       ...q,
-      scale: isSoreness
-        ? (defaultQ?.scale ?? sorenessScale())
-        : (validScale ? q.scale : defaultQ?.scale ?? positiveScale(["1","2","3","4","5"])),
+      scale: isStandard
+        ? defaultQ!.scale
+        : (validScale ? q.scale : positiveScale(["0","1","2","3","4","5"])),
     });
   }
+
 
   // Append any default standards that were not in saved (e.g., added later)
   for (const d of DEFAULT_WELLNESS_QUESTIONS) {
