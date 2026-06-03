@@ -6,13 +6,42 @@ import { Label } from "@/components/ui/label";
 interface Props {
   selected: string[];
   onChange: (next: string[]) => void;
+  // Legacy single value (toujours supporté pour rétro-compat)
   throwsPerZone?: number;
   onThrowsPerZoneChange?: (v: number) => void;
+  // Nouveau : map par zone (préféré)
+  throwsByZone?: Record<string, number>;
+  onThrowsByZoneChange?: (m: Record<string, number>) => void;
 }
 
-export function BowlingZoneSelector({ selected, onChange, throwsPerZone, onThrowsPerZoneChange }: Props) {
-  const toggle = (v: string) =>
-    onChange(selected.includes(v) ? selected.filter((x) => x !== v) : [...selected, v]);
+export function BowlingZoneSelector({
+  selected,
+  onChange,
+  throwsPerZone,
+  onThrowsPerZoneChange,
+  throwsByZone,
+  onThrowsByZoneChange,
+}: Props) {
+  const toggle = (v: string) => {
+    const next = selected.includes(v) ? selected.filter((x) => x !== v) : [...selected, v];
+    onChange(next);
+    if (onThrowsByZoneChange && throwsByZone && !next.includes(v)) {
+      const { [v]: _drop, ...rest } = throwsByZone;
+      onThrowsByZoneChange(rest);
+    }
+  };
+
+  const setZoneCount = (zone: string, n: number) => {
+    if (!onThrowsByZoneChange) return;
+    const next = { ...(throwsByZone || {}) };
+    if (!n || n <= 0) delete next[zone];
+    else next[zone] = n;
+    onThrowsByZoneChange(next);
+  };
+
+  const total = onThrowsByZoneChange
+    ? selected.reduce((sum, z) => sum + (throwsByZone?.[z] || 0), 0)
+    : (selected.length || 0) * (throwsPerZone || 0);
 
   return (
     <div className="space-y-3">
@@ -43,7 +72,40 @@ export function BowlingZoneSelector({ selected, onChange, throwsPerZone, onThrow
         </div>
       </div>
 
-      {onThrowsPerZoneChange && (
+      {onThrowsByZoneChange && selected.length > 0 && (
+        <div className="rounded-xl border border-border/60 bg-surface-sunken p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Lancers par zone
+            </p>
+            <span className="text-[11px] text-muted-foreground">
+              Total : <span className="font-semibold text-foreground">{total}</span> lancers
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {selected.map((zone) => {
+              const meta = TACTICAL_ZONES.find((t) => t.value === zone);
+              return (
+                <div key={zone} className="flex items-center gap-2">
+                  <Label className="text-[11px] flex-1 truncate" title={meta?.label}>
+                    {meta?.short || zone}
+                  </Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={throwsByZone?.[zone] ?? ""}
+                    onChange={(e) => setZoneCount(zone, parseInt(e.target.value || "0", 10))}
+                    className="h-8 w-16 text-xs"
+                    placeholder="0"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {!onThrowsByZoneChange && onThrowsPerZoneChange && (
         <div className="flex items-center gap-2">
           <Label className="text-xs whitespace-nowrap">Lancers par zone</Label>
           <Input
