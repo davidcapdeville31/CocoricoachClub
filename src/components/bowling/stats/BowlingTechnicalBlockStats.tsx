@@ -223,9 +223,12 @@ export function BowlingTechnicalBlockStats({ throws, selectedParams, selectedOut
 
       {/* C. Tableau lancer par lancer */}
       <div className="space-y-1">
-        <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
-          Détail lancer par lancer
-        </p>
+        <div className="flex items-center gap-1">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
+            Détail lancer par lancer
+          </p>
+          <InfoHint text="Ligne par ligne : ✓ = critère validé, ✗ = raté, — = non renseigné. La colonne « Qualité » = % de critères validés sur le lancer. « Parfait » = Oui si TOUS les critères sont cochés." />
+        </div>
         <div className="rounded-lg border border-border/60 overflow-x-auto max-h-72 overflow-y-auto">
           <Table>
             <TableHeader>
