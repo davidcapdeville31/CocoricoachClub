@@ -46,6 +46,7 @@ const METRIC_LABELS: Record<string, string> = {
 
 export function AthleteSpaceWellnessHistory({ playerId, categoryId }: Props) {
   const [period, setPeriod] = useState<WellnessPeriod>("day");
+  const [recoveryPeriod, setRecoveryPeriod] = useState<WellnessPeriod>("day");
   const [visibleMetrics, setVisibleMetrics] = useState<Record<string, boolean>>({
     sleep_quality: true,
     general_fatigue: true,
