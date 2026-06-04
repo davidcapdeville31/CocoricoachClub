@@ -315,6 +315,16 @@ export function SeasonManager({ clubId, categories }: SeasonManagerProps) {
                         {seasonPlayerCounts[season.id] || 0}
                       </Badge>
 
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => setManagePlayersSeason({ id: season.id, name: season.name })}
+                      >
+                        <Settings2 className="h-3 w-3" />
+                        Gérer les joueurs
+                      </Button>
+
                       {!season.is_active && (
                         <>
                           <Button
