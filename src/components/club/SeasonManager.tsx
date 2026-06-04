@@ -38,7 +38,9 @@ import {
   RefreshCw,
   Trash2,
   Users,
+  Settings2,
 } from "lucide-react";
+import { SeasonPlayersDialog } from "./SeasonPlayersDialog";
 
 interface SeasonManagerProps {
   clubId: string;
@@ -49,6 +51,7 @@ export function SeasonManager({ clubId, categories }: SeasonManagerProps) {
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [rolloverSeasonId, setRolloverSeasonId] = useState<string | null>(null);
+  const [managePlayersSeason, setManagePlayersSeason] = useState<{ id: string; name: string } | null>(null);
   const [newName, setNewName] = useState("");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
@@ -312,6 +315,16 @@ export function SeasonManager({ clubId, categories }: SeasonManagerProps) {
                         {seasonPlayerCounts[season.id] || 0}
                       </Badge>
 
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => setManagePlayersSeason({ id: season.id, name: season.name })}
+                      >
+                        <Settings2 className="h-3 w-3" />
+                        Gérer les joueurs
+                      </Button>
+
                       {!season.is_active && (
                         <>
                           <Button
@@ -450,6 +463,17 @@ export function SeasonManager({ clubId, categories }: SeasonManagerProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {managePlayersSeason && (
+        <SeasonPlayersDialog
+          open={!!managePlayersSeason}
+          onOpenChange={(o) => !o && setManagePlayersSeason(null)}
+          seasonId={managePlayersSeason.id}
+          seasonName={managePlayersSeason.name}
+          clubId={clubId}
+          categories={categories}
+        />
+      )}
     </div>
   );
 }
