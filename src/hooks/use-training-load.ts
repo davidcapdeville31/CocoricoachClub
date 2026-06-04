@@ -90,13 +90,13 @@ export function useTrainingLoad({
   periodDays = 56 // 8 weeks by default
 }: UseTrainingLoadOptions) {
   
-  // Fetch category sport type
+  // Fetch category sport type + club for season-scoped load reset
   const { data: category } = useQuery({
     queryKey: ["category-sport", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("rugby_type")
+        .select("rugby_type, club_id")
         .eq("id", categoryId)
         .single();
       if (error) throw error;
@@ -106,18 +106,42 @@ export function useTrainingLoad({
 
   const sportType = category?.rugby_type || "XV";
 
+  // Fetch active season start to reset training load when a new season begins.
+  // History (injuries/tests/performances) is NOT filtered — only load aggregates.
+  const { data: activeSeasonStart } = useQuery({
+    queryKey: ["active-season-start", category?.club_id],
+    queryFn: async () => {
+      if (!category?.club_id) return null;
+      const { data, error } = await supabase
+        .from("seasons")
+        .select("start_date")
+        .eq("club_id", category.club_id)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.start_date || null;
+    },
+    enabled: !!category?.club_id,
+  });
+
+  // Returns the later of (today - periodDays) and the active season start.
+  const getEffectiveStart = (days: number) => {
+    const rolling = new Date();
+    rolling.setDate(rolling.getDate() - days);
+    const rollingStr = rolling.toISOString().split("T")[0];
+    if (activeSeasonStart && activeSeasonStart > rollingStr) return activeSeasonStart;
+    return rollingStr;
+  };
+
   // Fetch AWCR/RPE data
   const { data: awcrData, isLoading: awcrLoading } = useQuery({
-    queryKey: ["training-load-awcr", categoryId, playerId, periodDays],
+    queryKey: ["training-load-awcr", categoryId, playerId, periodDays, activeSeasonStart],
     queryFn: async () => {
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - periodDays);
-
       let query = supabase
         .from("awcr_tracking")
         .select("*")
         .eq("category_id", categoryId)
-        .gte("session_date", startDate.toISOString().split("T")[0])
+        .gte("session_date", getEffectiveStart(periodDays))
         .order("session_date", { ascending: true });
 
       if (playerId) {
@@ -128,6 +152,7 @@ export function useTrainingLoad({
       if (error) throw error;
       return data || [];
     },
+    enabled: category !== undefined,
   });
 
   // Fetch HRV data
