@@ -223,10 +223,11 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                     <TableRow>
                       <TableHead>Joueur</TableHead>
                       <TableHead>Type</TableHead>
-                      <TableHead>Date</TableHead>
+                      <TableHead>Début</TableHead>
                       <TableHead>Gravité</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead>Retour estimé</TableHead>
+                      <TableHead>Retour réel</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -254,6 +255,15 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                           {injury.estimated_return_date
                             ? new Date(injury.estimated_return_date).toLocaleDateString("fr-FR")
                             : "-"}
+                        </TableCell>
+                        <TableCell>
+                          {injury.actual_return_date ? (
+                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                              {new Date(injury.actual_return_date).toLocaleDateString("fr-FR")}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           {!isViewer ? (
