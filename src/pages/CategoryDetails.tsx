@@ -131,9 +131,11 @@ const isGpsSportType = (sportType: string | undefined) => {
          sportType?.startsWith("football_");
 };
 
-// Video Analysis is available for ALL sports
-const hasVideoAnalysis = (_sportType: string | undefined) => {
-  return true;
+// Video Analysis is available for ALL sports except rugby and judo
+const hasVideoAnalysis = (sportType: string | undefined) => {
+  if (!sportType) return true;
+  const lower = sportType.toLowerCase();
+  return !lower.includes("rugby") && !lower.includes("judo");
 };
 
 function CategoryDetailsContent() {
