@@ -157,16 +157,13 @@ export function useTrainingLoad({
 
   // Fetch HRV data
   const { data: hrvData, isLoading: hrvLoading } = useQuery({
-    queryKey: ["training-load-hrv", categoryId, playerId, periodDays],
+    queryKey: ["training-load-hrv", categoryId, playerId, periodDays, activeSeasonStart],
     queryFn: async () => {
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - periodDays);
-
       let query = supabase
         .from("hrv_records")
         .select("*")
         .eq("category_id", categoryId)
-        .gte("record_date", startDate.toISOString().split("T")[0])
+        .gte("record_date", getEffectiveStart(periodDays))
         .order("record_date", { ascending: true });
 
       if (playerId) {
@@ -177,20 +174,18 @@ export function useTrainingLoad({
       if (error) throw error;
       return data || [];
     },
+    enabled: category !== undefined,
   });
 
   // Fetch GPS data
   const { data: gpsData, isLoading: gpsLoading } = useQuery({
-    queryKey: ["training-load-gps", categoryId, playerId, periodDays],
+    queryKey: ["training-load-gps", categoryId, playerId, periodDays, activeSeasonStart],
     queryFn: async () => {
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - periodDays);
-
       let query = supabase
         .from("gps_sessions")
         .select("*")
         .eq("category_id", categoryId)
-        .gte("session_date", startDate.toISOString().split("T")[0])
+        .gte("session_date", getEffectiveStart(periodDays))
         .order("session_date", { ascending: true });
 
       if (playerId) {
@@ -201,7 +196,9 @@ export function useTrainingLoad({
       if (error) throw error;
       return data || [];
     },
+    enabled: category !== undefined,
   });
+
 
   // Check if data exists
   const hasGpsData = (gpsData?.length || 0) > 0;
