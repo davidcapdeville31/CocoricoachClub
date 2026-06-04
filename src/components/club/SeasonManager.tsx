@@ -38,7 +38,9 @@ import {
   RefreshCw,
   Trash2,
   Users,
+  Settings2,
 } from "lucide-react";
+import { SeasonPlayersDialog } from "./SeasonPlayersDialog";
 
 interface SeasonManagerProps {
   clubId: string;
