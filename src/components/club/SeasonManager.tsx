@@ -249,15 +249,29 @@ export function SeasonManager({ clubId, categories }: SeasonManagerProps) {
             <div className="space-y-3">
               {seasonPlayerCounts["none"] > 0 && (
                 <div className="p-3 rounded-lg border border-dashed bg-muted/30">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm font-medium">Joueurs sans saison assignée</span>
                     </div>
-                    <Badge variant="outline">{seasonPlayerCounts["none"]} joueurs</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{seasonPlayerCounts["none"]} joueurs</Badge>
+                      {activeSeason && (
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="gap-1"
+                          onClick={() => assignOrphansToActive.mutate()}
+                          disabled={assignOrphansToActive.isPending}
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                          Assigner à « {activeSeason.name} »
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Ces joueurs existaient avant la mise en place des saisons. Ils restent accessibles dans toutes les vues.
+                    Ces joueurs existaient avant la mise en place des saisons. Cliquez sur « Assigner » pour les rattacher à la saison active.
                   </p>
                 </div>
               )}
