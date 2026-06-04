@@ -223,10 +223,11 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                     <TableRow>
                       <TableHead>Joueur</TableHead>
                       <TableHead>Type</TableHead>
-                      <TableHead>Date</TableHead>
+                      <TableHead>Début</TableHead>
                       <TableHead>Gravité</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead>Retour estimé</TableHead>
+                      <TableHead>Retour réel</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -254,6 +255,15 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                           {injury.estimated_return_date
                             ? new Date(injury.estimated_return_date).toLocaleDateString("fr-FR")
                             : "-"}
+                        </TableCell>
+                        <TableCell>
+                          {injury.actual_return_date ? (
+                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                              {new Date(injury.actual_return_date).toLocaleDateString("fr-FR")}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           {!isViewer ? (
@@ -343,9 +353,9 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                         </Badge>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                    <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
                       <div>
-                        <span className="block uppercase tracking-wide">Date</span>
+                        <span className="block uppercase tracking-wide">Début</span>
                         <span className="text-foreground">
                           {new Date(injury.injury_date).toLocaleDateString("fr-FR")}
                         </span>
@@ -356,6 +366,14 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
                           {injury.estimated_return_date
                             ? new Date(injury.estimated_return_date).toLocaleDateString("fr-FR")
                             : "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block uppercase tracking-wide">Retour réel</span>
+                        <span className={injury.actual_return_date ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-foreground"}>
+                          {injury.actual_return_date
+                            ? new Date(injury.actual_return_date).toLocaleDateString("fr-FR")
+                            : "—"}
                         </span>
                       </div>
                     </div>
