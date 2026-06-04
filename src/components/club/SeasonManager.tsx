@@ -192,6 +192,28 @@ export function SeasonManager({ clubId, categories }: SeasonManagerProps) {
     onError: (err: any) => toast.error(err.message || "Erreur lors de la reconduction"),
   });
 
+  const assignOrphansToActive = useMutation({
+    mutationFn: async () => {
+      const active = seasons.find((s: any) => s.is_active);
+      if (!active) throw new Error("Aucune saison active. Activez d'abord une saison.");
+      const categoryIds = categories.map((c: any) => c.id);
+      if (categoryIds.length === 0) throw new Error("Aucune catégorie");
+      const { error, count } = await supabase
+        .from("players")
+        .update({ season_id: active.id }, { count: "exact" })
+        .in("category_id", categoryIds)
+        .is("season_id", null);
+      if (error) throw error;
+      return { count: count || 0, name: active.name };
+    },
+    onSuccess: ({ count, name }) => {
+      queryClient.invalidateQueries({ queryKey: ["season-player-counts"] });
+      queryClient.invalidateQueries({ queryKey: ["players"] });
+      toast.success(`${count} joueur(s) assigné(s) à la saison ${name}`);
+    },
+    onError: (err: any) => toast.error(err.message || "Erreur lors de l'assignation"),
+  });
+
   const resetForm = () => {
     setNewName("");
     setStartDate(undefined);
