@@ -319,6 +319,44 @@ export function useTeamTrainingLoad({
   metric?: MetricType;
   periodDays?: number;
 }) {
+  // Fetch club to get active season start (training load resets each season)
+  const { data: categoryClub } = useQuery({
+    queryKey: ["category-club-for-team-load", categoryId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("club_id")
+        .eq("id", categoryId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: activeSeasonStart } = useQuery({
+    queryKey: ["active-season-start", categoryClub?.club_id],
+    queryFn: async () => {
+      if (!categoryClub?.club_id) return null;
+      const { data, error } = await supabase
+        .from("seasons")
+        .select("start_date")
+        .eq("club_id", categoryClub.club_id)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.start_date || null;
+    },
+    enabled: !!categoryClub?.club_id,
+  });
+
+  const getEffectiveStart = (days: number) => {
+    const rolling = new Date();
+    rolling.setDate(rolling.getDate() - days);
+    const rollingStr = rolling.toISOString().split("T")[0];
+    if (activeSeasonStart && activeSeasonStart > rollingStr) return activeSeasonStart;
+    return rollingStr;
+  };
+
   // Fetch all players
   const { data: players } = useQuery({
     queryKey: ["players-for-load", categoryId],
@@ -334,41 +372,38 @@ export function useTeamTrainingLoad({
 
   // Fetch all AWCR data
   const { data: allAwcrData, isLoading } = useQuery({
-    queryKey: ["team-awcr", categoryId, periodDays],
+    queryKey: ["team-awcr", categoryId, periodDays, activeSeasonStart],
     queryFn: async () => {
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - periodDays);
-
       const { data, error } = await supabase
         .from("awcr_tracking")
         .select("*")
         .eq("category_id", categoryId)
-        .gte("session_date", startDate.toISOString().split("T")[0])
+        .gte("session_date", getEffectiveStart(periodDays))
         .order("session_date", { ascending: true });
 
       if (error) throw error;
       return data || [];
     },
+    enabled: categoryClub !== undefined,
   });
 
   // Fetch all GPS data
   const { data: allGpsData } = useQuery({
-    queryKey: ["team-gps", categoryId, periodDays],
+    queryKey: ["team-gps", categoryId, periodDays, activeSeasonStart],
     queryFn: async () => {
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - periodDays);
-
       const { data, error } = await supabase
         .from("gps_sessions")
         .select("*")
         .eq("category_id", categoryId)
-        .gte("session_date", startDate.toISOString().split("T")[0])
+        .gte("session_date", getEffectiveStart(periodDays))
         .order("session_date", { ascending: true });
 
       if (error) throw error;
       return data || [];
     },
+    enabled: categoryClub !== undefined,
   });
+
 
   // Calculate per-player summaries
   const isEwmaSrpe = metric === "ewma_srpe";
