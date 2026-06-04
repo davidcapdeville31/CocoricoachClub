@@ -135,7 +135,10 @@ const isGpsSportType = (sportType: string | undefined) => {
 const hasVideoAnalysis = (sportType: string | undefined) => {
   if (!sportType) return true;
   const lower = sportType.toLowerCase();
-  return !lower.includes("rugby") && !lower.includes("judo");
+  const rugbyTypes = ["xv", "7", "xiii", "rugby", "national_team"];
+  if (rugbyTypes.includes(lower) || lower.includes("rugby")) return false;
+  if (lower.includes("judo")) return false;
+  return true;
 };
 
 function CategoryDetailsContent() {
