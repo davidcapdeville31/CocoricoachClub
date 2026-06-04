@@ -463,6 +463,17 @@ export function SeasonManager({ clubId, categories }: SeasonManagerProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {managePlayersSeason && (
+        <SeasonPlayersDialog
+          open={!!managePlayersSeason}
+          onOpenChange={(o) => !o && setManagePlayersSeason(null)}
+          seasonId={managePlayersSeason.id}
+          seasonName={managePlayersSeason.name}
+          clubId={clubId}
+          categories={categories}
+        />
+      )}
     </div>
   );
 }
