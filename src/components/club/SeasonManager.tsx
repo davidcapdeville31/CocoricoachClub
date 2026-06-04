@@ -51,6 +51,7 @@ export function SeasonManager({ clubId, categories }: SeasonManagerProps) {
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [rolloverSeasonId, setRolloverSeasonId] = useState<string | null>(null);
+  const [managePlayersSeason, setManagePlayersSeason] = useState<{ id: string; name: string } | null>(null);
   const [newName, setNewName] = useState("");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
