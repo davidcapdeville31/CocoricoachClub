@@ -192,6 +192,28 @@ export function SeasonManager({ clubId, categories }: SeasonManagerProps) {
     onError: (err: any) => toast.error(err.message || "Erreur lors de la reconduction"),
   });
 
+  const assignOrphansToActive = useMutation({
+    mutationFn: async () => {
+      const active = seasons.find((s: any) => s.is_active);
+      if (!active) throw new Error("Aucune saison active. Activez d'abord une saison.");
+      const categoryIds = categories.map((c: any) => c.id);
+      if (categoryIds.length === 0) throw new Error("Aucune catégorie");
+      const { error, count } = await supabase
+        .from("players")
+        .update({ season_id: active.id }, { count: "exact" })
+        .in("category_id", categoryIds)
+        .is("season_id", null);
+      if (error) throw error;
+      return { count: count || 0, name: active.name };
+    },
+    onSuccess: ({ count, name }) => {
+      queryClient.invalidateQueries({ queryKey: ["season-player-counts"] });
+      queryClient.invalidateQueries({ queryKey: ["players"] });
+      toast.success(`${count} joueur(s) assigné(s) à la saison ${name}`);
+    },
+    onError: (err: any) => toast.error(err.message || "Erreur lors de l'assignation"),
+  });
+
   const resetForm = () => {
     setNewName("");
     setStartDate(undefined);
@@ -227,15 +249,29 @@ export function SeasonManager({ clubId, categories }: SeasonManagerProps) {
             <div className="space-y-3">
               {seasonPlayerCounts["none"] > 0 && (
                 <div className="p-3 rounded-lg border border-dashed bg-muted/30">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm font-medium">Joueurs sans saison assignée</span>
                     </div>
-                    <Badge variant="outline">{seasonPlayerCounts["none"]} joueurs</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{seasonPlayerCounts["none"]} joueurs</Badge>
+                      {activeSeason && (
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="gap-1"
+                          onClick={() => assignOrphansToActive.mutate()}
+                          disabled={assignOrphansToActive.isPending}
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                          Assigner à « {activeSeason.name} »
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Ces joueurs existaient avant la mise en place des saisons. Ils restent accessibles dans toutes les vues.
+                    Ces joueurs existaient avant la mise en place des saisons. Cliquez sur « Assigner » pour les rattacher à la saison active.
                   </p>
                 </div>
               )}
