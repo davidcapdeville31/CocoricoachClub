@@ -507,22 +507,59 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                   ) : (
                     <div className="space-y-2 max-h-[400px] overflow-y-auto">
                       {/* Matches */}
-                      {dayMatches.map(match => (
-                        <div key={match.id} className="p-3 rounded-lg border-l-4 border-rose-500 bg-rose-50 dark:bg-rose-950/20">
-                          <div className="flex items-center gap-2">
-                            <Swords className="h-4 w-4 text-rose-500" />
-                            <div>
-                              <p className="font-medium text-sm">vs {match.opponent}</p>
-                              {match.match_time && (
-                                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />{match.match_time.slice(0, 5)}
-                                </p>
+                      {dayMatches.map(match => {
+                        const isPersonalMine = match.is_personal && match.created_by_player_id === playerId;
+                        const title = match.competition
+                          ? match.competition
+                          : match.opponent && match.opponent !== "Compétition"
+                            ? `vs ${match.opponent}`
+                            : "Compétition";
+                        const hasScore = match.score_home != null || match.score_away != null;
+                        return (
+                          <div key={match.id} className="p-3 rounded-lg border-l-4 border-rose-500 bg-rose-50 dark:bg-rose-950/20">
+                            <div className="flex items-start gap-2">
+                              <Swords className="h-4 w-4 text-rose-500 mt-0.5 shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <p className="font-medium text-sm">{title}</p>
+                                  <Badge variant="outline" className={cn("text-[10px] h-4 px-1.5", isPersonalMine ? "border-cyan-500 text-cyan-600" : "border-rose-500 text-rose-600")}>
+                                    {isPersonalMine ? "Personnelle" : "Club"}
+                                  </Badge>
+                                  {match.competition_stage && (
+                                    <Badge variant="outline" className="text-[10px] h-4 px-1.5">{match.competition_stage}</Badge>
+                                  )}
+                                </div>
+                                {match.competition && match.opponent && match.opponent !== "Compétition" && (
+                                  <p className="text-xs text-muted-foreground">vs {match.opponent}</p>
+                                )}
+                                {match.match_time && (
+                                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />{match.match_time.slice(0, 5)}
+                                  </p>
+                                )}
+                                {match.location && <p className="text-xs text-muted-foreground">{match.location}</p>}
+                                {hasScore && (
+                                  <p className="text-xs text-muted-foreground">Score : {match.score_home ?? "-"} - {match.score_away ?? "-"}</p>
+                                )}
+                                {match.notes && (
+                                  <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{match.notes}</p>
+                                )}
+                              </div>
+                              {isPersonalMine && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-rose-600 hover:text-rose-700 hover:bg-rose-100 dark:hover:bg-rose-900/30 shrink-0"
+                                  onClick={(e) => { e.stopPropagation(); setMatchToDelete(match); }}
+                                  aria-label="Supprimer la compétition"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
                               )}
-                              {match.location && <p className="text-xs text-muted-foreground">{match.location}</p>}
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
 
                       {/* Sessions */}
                       {daySessions.map(session => {
