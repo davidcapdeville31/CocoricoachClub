@@ -1027,6 +1027,27 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {roundsMatch && (
+        <CompetitionRoundsDialog
+          open={!!roundsMatch}
+          onOpenChange={(o) => !o && setRoundsMatch(null)}
+          matchId={roundsMatch.id}
+          categoryId={categoryId}
+          sportType={sportType || ""}
+        />
+      )}
+
+      {oilMatch && (
+        <Dialog open={!!oilMatch} onOpenChange={(o) => !o && setOilMatch(null)}>
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Huilage</DialogTitle>
+            </DialogHeader>
+            <BowlingOilPatternSection matchId={oilMatch.id} categoryId={categoryId} />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
