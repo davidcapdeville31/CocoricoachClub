@@ -372,6 +372,24 @@ export function CreateEventDialog({
       const mentalMeta = isMental
         ? `<!--MENTAL:${JSON.stringify({ duration_min: mentalDuration, theme: mentalTheme })}-->\n`
         : "";
+      const notesPayload = `${mentalMeta}${title}${isMental && mentalTheme ? ` - ${mentalTheme}` : ""}${location ? ` - ${location}` : ""}${notes ? `\n${notes}` : ""}`;
+
+      // EDIT MODE — update existing mental session and stop early.
+      if (editingMentalSession) {
+        const { data: updated, error: upErr } = await supabase
+          .from("training_sessions")
+          .update({
+            session_start_time: effectiveStart,
+            session_end_time: effectiveEnd,
+            notes: notesPayload,
+          })
+          .eq("id", editingMentalSession.id)
+          .select("id")
+          .single();
+        if (upErr) throw upErr;
+        return updated;
+      }
+
       const { data: session, error } = await supabase
         .from("training_sessions")
         .insert({
@@ -383,7 +401,7 @@ export function CreateEventDialog({
                          selectedType === "video" ? "video_analyse" :
                          selectedType === "team_meeting" ? "reunion" :
                          selectedType === "mental" ? "mental" : "autre",
-          notes: `${mentalMeta}${title}${isMental && mentalTheme ? ` - ${mentalTheme}` : ""}${location ? ` - ${location}` : ""}${notes ? `\n${notes}` : ""}`,
+          notes: notesPayload,
           intensity: isAdminEvent ? null : 1,
           planned_intensity: isAdminEvent ? null : null,
         })
