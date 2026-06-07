@@ -437,6 +437,7 @@ export function AthleteBowlingCompetitionDialog({
 
               {patterns.map((pattern, index) => {
                 const oilCategory = getOilCategory(pattern.oil_ratio || null);
+                const canEditPattern = canDeleteExistingPatterns || !pattern.id || pattern.assigned;
                 return (
                   <Card key={pattern.clientKey}>
                     <CardHeader className="pb-3">
@@ -461,6 +462,7 @@ export function AthleteBowlingCompetitionDialog({
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
+                            disabled={!!pattern.id && !canDeleteExistingPatterns}
                             onClick={() => removePattern(pattern)}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
@@ -478,7 +480,7 @@ export function AthleteBowlingCompetitionDialog({
                         <div className="space-y-2 xl:col-span-2">
                           <Label>Preset</Label>
                           <Select onValueChange={(value) => handlePresetSelect(pattern.clientKey, value)}>
-                            <SelectTrigger>
+                            <SelectTrigger disabled={!canEditPattern}>
                               <SelectValue placeholder="Charger un huilage connu" />
                             </SelectTrigger>
                             <SelectContent className="max-h-[260px]">
@@ -496,6 +498,7 @@ export function AthleteBowlingCompetitionDialog({
                             value={pattern.name}
                             onChange={(event) => handlePatternChange(pattern.clientKey, { name: event.target.value })}
                             placeholder="Ex : PBA Chameleon"
+                            disabled={!canEditPattern}
                           />
                         </div>
                         <div className="space-y-2">
@@ -504,7 +507,7 @@ export function AthleteBowlingCompetitionDialog({
                             value={pattern.gender || "none"}
                             onValueChange={(value) => handlePatternChange(pattern.clientKey, { gender: value === "none" ? "" : value })}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger disabled={!canEditPattern}>
                               <SelectValue placeholder="Tous" />
                             </SelectTrigger>
                             <SelectContent>
@@ -520,6 +523,7 @@ export function AthleteBowlingCompetitionDialog({
                             value={pattern.length_feet}
                             onChange={(event) => handlePatternChange(pattern.clientKey, { length_feet: event.target.value })}
                             inputMode="decimal"
+                            disabled={!canEditPattern}
                           />
                         </div>
                         <div className="space-y-2">
@@ -528,6 +532,7 @@ export function AthleteBowlingCompetitionDialog({
                             value={pattern.buff_distance_feet}
                             onChange={(event) => handlePatternChange(pattern.clientKey, { buff_distance_feet: event.target.value })}
                             inputMode="decimal"
+                            disabled={!canEditPattern}
                           />
                         </div>
                         <div className="space-y-2">
@@ -536,6 +541,7 @@ export function AthleteBowlingCompetitionDialog({
                             value={pattern.width_boards}
                             onChange={(event) => handlePatternChange(pattern.clientKey, { width_boards: event.target.value })}
                             inputMode="numeric"
+                            disabled={!canEditPattern}
                           />
                         </div>
                         <div className="space-y-2">
@@ -544,6 +550,7 @@ export function AthleteBowlingCompetitionDialog({
                             value={pattern.total_volume_ml}
                             onChange={(event) => handlePatternChange(pattern.clientKey, { total_volume_ml: event.target.value })}
                             inputMode="decimal"
+                            disabled={!canEditPattern}
                           />
                         </div>
                         <div className="space-y-2">
@@ -552,6 +559,7 @@ export function AthleteBowlingCompetitionDialog({
                             value={pattern.oil_ratio}
                             onChange={(event) => handlePatternChange(pattern.clientKey, { oil_ratio: event.target.value })}
                             placeholder="Ex : 3:1"
+                            disabled={!canEditPattern}
                           />
                         </div>
                         <div className="space-y-2">
@@ -560,7 +568,7 @@ export function AthleteBowlingCompetitionDialog({
                             value={pattern.profile_type || "none"}
                             onValueChange={(value) => handlePatternChange(pattern.clientKey, { profile_type: value === "none" ? "" : value })}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger disabled={!canEditPattern}>
                               <SelectValue placeholder="Choisir" />
                             </SelectTrigger>
                             <SelectContent>
@@ -579,7 +587,7 @@ export function AthleteBowlingCompetitionDialog({
                             value={pattern.outside_friction || "none"}
                             onValueChange={(value) => handlePatternChange(pattern.clientKey, { outside_friction: value === "none" ? "" : value })}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger disabled={!canEditPattern}>
                               <SelectValue placeholder="Choisir" />
                             </SelectTrigger>
                             <SelectContent>
@@ -600,6 +608,7 @@ export function AthleteBowlingCompetitionDialog({
                             id={`forward-${pattern.clientKey}`}
                             checked={pattern.forward_oil}
                             onCheckedChange={(checked) => handlePatternChange(pattern.clientKey, { forward_oil: checked === true })}
+                            disabled={!canEditPattern}
                           />
                           <Label htmlFor={`forward-${pattern.clientKey}`} className="cursor-pointer text-sm">
                             Forward oil
@@ -610,6 +619,7 @@ export function AthleteBowlingCompetitionDialog({
                             id={`reverse-${pattern.clientKey}`}
                             checked={pattern.reverse_oil}
                             onCheckedChange={(checked) => handlePatternChange(pattern.clientKey, { reverse_oil: checked === true })}
+                            disabled={!canEditPattern}
                           />
                           <Label htmlFor={`reverse-${pattern.clientKey}`} className="cursor-pointer text-sm">
                             Reverse oil
@@ -624,6 +634,7 @@ export function AthleteBowlingCompetitionDialog({
                           onChange={(event) => handlePatternChange(pattern.clientKey, { notes: event.target.value })}
                           rows={3}
                           placeholder="Observations sur le huilage"
+                          disabled={!canEditPattern}
                         />
                       </div>
                     </CardContent>
@@ -645,7 +656,6 @@ export function AthleteBowlingCompetitionDialog({
                 rounds={rounds}
                 blocks={blocks}
                 matchDate={matchInfo?.match_date}
-                ignoreOilPatternAccessErrors
                 onBlocksChange={setBlocks}
                 onRoundsChange={setRounds}
                 onScoreSave={handleScoreSave}
