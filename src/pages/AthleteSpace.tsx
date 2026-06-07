@@ -776,11 +776,31 @@ export default function AthleteSpace() {
           </TabsContent>
 
           <TabsContent value="calendar">
-            <AthleteSpaceCalendar
-              playerId={athleteInfo.player_id}
-              categoryId={athleteInfo.category_id}
-              sportType={athleteInfo.sport_type}
-            />
+            <Tabs defaultValue="my-calendar" className="space-y-4">
+              <div className="flex justify-center">
+                <TabsList>
+                  <TabsTrigger value="my-calendar" className="gap-2">
+                    <CalendarDays className="h-4 w-4" />
+                    Calendrier
+                  </TabsTrigger>
+                  <TabsTrigger value="annual" className="gap-2">
+                    <LayoutDashboard className="h-4 w-4" />
+                    <span className="hidden sm:inline">Planification annuelle</span>
+                    <span className="sm:hidden">Planif.</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              <TabsContent value="my-calendar">
+                <AthleteSpaceCalendar
+                  playerId={athleteInfo.player_id}
+                  categoryId={athleteInfo.category_id}
+                  sportType={athleteInfo.sport_type}
+                />
+              </TabsContent>
+              <TabsContent value="annual">
+                <AnnualPlanningView categoryId={athleteInfo.category_id} />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="performance">
