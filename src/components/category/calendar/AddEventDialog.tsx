@@ -95,7 +95,14 @@ export function AddEventDialog({
   onAddMatch,
   onAddMedical,
   onAddVideoAnalysis,
+  sportType,
 }: AddEventDialogProps) {
+  const isBowling = (sportType || "").toLowerCase().includes("bowling");
+  const eventTypes = EVENT_TYPES.map((e) =>
+    e.id === "match" && isBowling
+      ? { ...e, label: "Compétition", description: "Ajouter une compétition" }
+      : e
+  );
   const handleEventClick = (eventType: string) => {
     switch (eventType) {
       case "session":
@@ -135,7 +142,7 @@ export function AddEventDialog({
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-3 mt-2">
-          {EVENT_TYPES.map((event) => {
+          {eventTypes.map((event) => {
             const Icon = event.icon;
             return (
               <Card
