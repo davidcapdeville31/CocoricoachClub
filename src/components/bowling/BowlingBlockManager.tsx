@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -138,20 +137,6 @@ export function BowlingBlockManager({
       return next;
     });
   };
-  // Load oil patterns for the match
-  const { data: oilPatterns } = useQuery({
-    queryKey: ["bowling_oil_patterns", matchId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("bowling_oil_patterns")
-        .select("id, name, gender")
-        .eq("match_id", matchId)
-        .order("created_at");
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!matchId,
-  });
   const addBlock = () => {
     const newBlock: BowlingBlock = {
       id: `block_${Date.now()}`,
