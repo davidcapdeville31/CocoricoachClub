@@ -56,8 +56,9 @@ const VIEW_MODES: { value: ViewMode; label: string; shortLabel: string; icon: Re
 const MONTH_LABELS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
 const START_MONTH_STORAGE_PREFIX = "planning-start-month:";
 
-export function AnnualPlanningView({ categoryId }: AnnualPlanningViewProps) {
-  const { isViewer } = useViewerModeContext();
+export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlanningViewProps) {
+  const { isViewer: isViewerFromCtx } = useViewerModeContext();
+  const isViewer = readOnly || isViewerFromCtx;
   const queryClient = useQueryClient();
   const [selectedYear, setSelectedYear] = useState(new Date());
   const [startMonth, setStartMonth] = useState<number>(() => {
