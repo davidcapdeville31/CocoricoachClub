@@ -142,7 +142,7 @@ export function AddEventDialog({
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-3 mt-2">
-          {EVENT_TYPES.map((event) => {
+          {eventTypes.map((event) => {
             const Icon = event.icon;
             return (
               <Card
