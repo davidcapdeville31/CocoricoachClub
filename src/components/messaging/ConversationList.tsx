@@ -418,26 +418,30 @@ export function ConversationList({ categoryId, selectedId, onSelect, isAthlete =
           .single();
         const myName = myProfile?.full_name || "Moi";
 
-        const { data: conv, error: convError } = await supabase
+        // Generate UUID client-side so we don't depend on RETURNING (which would
+        // trigger the conversations SELECT policy before participants are added).
+        const newConvId = (globalThis.crypto as Crypto).randomUUID();
+
+        const { error: convError } = await supabase
           .from("conversations")
           .insert({
+            id: newConvId,
             category_id: categoryId,
             name: `${myName} ↔ ${recipientName}`,
             conversation_type: "direct",
             created_by: user.id,
-          })
-          .select()
-          .single();
-        
+          });
+
         if (convError) throw convError;
 
         // Add both users as participants
-        await supabase.from("conversation_participants").insert([
-          { conversation_id: conv.id, user_id: user.id, is_admin: true },
-          { conversation_id: conv.id, user_id: recipientUserId, is_admin: false },
+        const { error: partErr } = await supabase.from("conversation_participants").insert([
+          { conversation_id: newConvId, user_id: user.id, is_admin: true },
+          { conversation_id: newConvId, user_id: recipientUserId, is_admin: false },
         ]);
+        if (partErr) throw partErr;
 
-        return conv;
+        return { id: newConvId };
       }
       
       // For groups/channels
