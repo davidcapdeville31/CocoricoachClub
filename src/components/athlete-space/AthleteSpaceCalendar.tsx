@@ -546,6 +546,17 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                 {match.notes && (
                                   <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{match.notes}</p>
                                 )}
+                                {isBowling && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="mt-2 gap-1.5"
+                                    onClick={(e) => { e.stopPropagation(); setBowlingMatchEntry(match); }}
+                                  >
+                                    <Plus className="h-3.5 w-3.5" />
+                                    Saisir les données
+                                  </Button>
+                                )}
                               </div>
                               {isPersonalMine && (
                                 <Button
