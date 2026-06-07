@@ -32,6 +32,14 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 
+export interface EditingMentalSession {
+  id: string;
+  title: string;
+  durationMin: number;
+  theme: string;
+  notes: string;
+}
+
 interface CreateEventDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -48,6 +56,8 @@ interface CreateEventDialogProps {
   allowedTypeIds?: string[];
   /** When set, this is an athlete creating an event for themselves only. Hides the participants picker. */
   athletePlayerId?: string;
+  /** When set, the dialog opens directly in mental-session edit mode and updates the existing row instead of creating. */
+  editingMentalSession?: EditingMentalSession | null;
 }
 
 
@@ -154,6 +164,7 @@ export function CreateEventDialog({
   onSelectBowlingAdvanced,
   allowedTypeIds,
   athletePlayerId,
+  editingMentalSession,
 }: CreateEventDialogProps) {
 
   const [step, setStep] = useState<"type" | "bowling_mode" | "details">("type");
@@ -167,9 +178,21 @@ export function CreateEventDialog({
   const [selectAll, setSelectAll] = useState(false);
   const [mentalDuration, setMentalDuration] = useState<number>(30);
   const [mentalTheme, setMentalTheme] = useState<string>("");
-  
+
   const queryClient = useQueryClient();
   const { notify } = useSessionNotifications();
+
+  // When opening in edit mode for a mental session, pre-fill and jump to details step.
+  useEffect(() => {
+    if (open && editingMentalSession) {
+      setStep("details");
+      setSelectedType("mental");
+      setTitle(editingMentalSession.title || "Séance mental");
+      setMentalDuration(editingMentalSession.durationMin || 30);
+      setMentalTheme(editingMentalSession.theme || "");
+      setNotes(editingMentalSession.notes || "");
+    }
+  }, [open, editingMentalSession]);
 
   // Fetch players
   const { data: players } = useQuery({
@@ -349,6 +372,24 @@ export function CreateEventDialog({
       const mentalMeta = isMental
         ? `<!--MENTAL:${JSON.stringify({ duration_min: mentalDuration, theme: mentalTheme })}-->\n`
         : "";
+      const notesPayload = `${mentalMeta}${title}${isMental && mentalTheme ? ` - ${mentalTheme}` : ""}${location ? ` - ${location}` : ""}${notes ? `\n${notes}` : ""}`;
+
+      // EDIT MODE — update existing mental session and stop early.
+      if (editingMentalSession) {
+        const { data: updated, error: upErr } = await supabase
+          .from("training_sessions")
+          .update({
+            session_start_time: effectiveStart,
+            session_end_time: effectiveEnd,
+            notes: notesPayload,
+          })
+          .eq("id", editingMentalSession.id)
+          .select("id")
+          .single();
+        if (upErr) throw upErr;
+        return updated;
+      }
+
       const { data: session, error } = await supabase
         .from("training_sessions")
         .insert({
@@ -360,7 +401,7 @@ export function CreateEventDialog({
                          selectedType === "video" ? "video_analyse" :
                          selectedType === "team_meeting" ? "reunion" :
                          selectedType === "mental" ? "mental" : "autre",
-          notes: `${mentalMeta}${title}${isMental && mentalTheme ? ` - ${mentalTheme}` : ""}${location ? ` - ${location}` : ""}${notes ? `\n${notes}` : ""}`,
+          notes: notesPayload,
           intensity: isAdminEvent ? null : 1,
           planned_intensity: isAdminEvent ? null : null,
         })
@@ -414,7 +455,7 @@ export function CreateEventDialog({
       queryClient.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["sessions", categoryId] });
       queryClient.invalidateQueries({ queryKey: ["today_sessions", categoryId] });
-      toast.success("Événement créé avec succès");
+      toast.success(editingMentalSession ? "Séance mise à jour" : "Événement créé avec succès");
       handleClose(false);
     },
     onError: () => {
@@ -728,7 +769,7 @@ export function CreateEventDialog({
               Annuler
             </Button>
             <Button onClick={handleSubmit} disabled={createEvent.isPending}>
-              {createEvent.isPending ? "Création..." : "Créer l'événement"}
+              {createEvent.isPending ? (editingMentalSession ? "Mise à jour..." : "Création...") : (editingMentalSession ? "Mettre à jour" : "Créer l'événement")}
             </Button>
           </DialogFooter>
         )}

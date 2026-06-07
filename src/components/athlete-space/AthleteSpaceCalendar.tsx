@@ -19,6 +19,7 @@ import {
   HeartPulse,
   Play,
   Trash2,
+  Brain,
 } from "lucide-react";
 import { format, isWithinInterval, parseISO, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
 import { toast } from "sonner";
@@ -81,6 +82,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [sessionToDelete, setSessionToDelete] = useState<any | null>(null);
   const [matchToDelete, setMatchToDelete] = useState<any | null>(null);
   const [bowlingMatchEntry, setBowlingMatchEntry] = useState<any | null>(null);
+  const [editingMentalSession, setEditingMentalSession] = useState<{ id: string; title: string; durationMin: number; theme: string; notes: string; date: Date } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
@@ -683,27 +685,66 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     <GroupedExerciseList exercises={exercises} maxHeight="500px" />
                                   </div>
                                 )}
-                                {isBowling && (
+                                {isBowling && session.training_type !== "mental" && (
+                                   <Button
+                                     size="sm"
+                                     className="w-full gap-1.5"
+                                     style={{ backgroundColor: TRAINING_COLOR }}
+                                     onClick={() => {
+                                       setSelectedDate(parseISO(session.session_date));
+                                       // Séance simplifiée attribuée par le coach → ouvre le mode simplifié pré-rempli
+                                       if (session.training_type === "bowling_simplified") {
+                                         setBowlingSimplifiedSessionId(session.id);
+                                         setIsBowlingSimplifiedOpen(true);
+                                       } else if (session.training_type === "bowling_advanced") {
+                                         setBowlingAdvancedSessionId(session.id);
+                                         setIsBowlingAdvancedOpen(true);
+                                       } else {
+                                         setIsBowlingTrainingOpen(true);
+                                       }
+                                     }}
+                                   >
+                                     <Plus className="h-3.5 w-3.5" />
+                                     Remplir les données
+                                   </Button>
+                                 )}
+                                {session.training_type === "mental" && isAthleteSession && (
                                   <Button
                                     size="sm"
+                                    variant="outline"
                                     className="w-full gap-1.5"
-                                    style={{ backgroundColor: TRAINING_COLOR }}
                                     onClick={() => {
-                                      setSelectedDate(parseISO(session.session_date));
-                                      // Séance simplifiée attribuée par le coach → ouvre le mode simplifié pré-rempli
-                                      if (session.training_type === "bowling_simplified") {
-                                        setBowlingSimplifiedSessionId(session.id);
-                                        setIsBowlingSimplifiedOpen(true);
-                                      } else if (session.training_type === "bowling_advanced") {
-                                        setBowlingAdvancedSessionId(session.id);
-                                        setIsBowlingAdvancedOpen(true);
-                                      } else {
-                                        setIsBowlingTrainingOpen(true);
+                                      const rawNotes: string = (session as any).notes || "";
+                                      const metaMatch = rawNotes.match(/<!--MENTAL:(\{[\s\S]*?\})-->/);
+                                      let durationMin = 30;
+                                      let theme = "";
+                                      if (metaMatch) {
+                                        try {
+                                          const meta = JSON.parse(metaMatch[1]);
+                                          durationMin = Number(meta.duration_min) || 30;
+                                          theme = String(meta.theme || "");
+                                        } catch {}
                                       }
+                                      const cleaned = rawNotes.replace(/<!--[\s\S]*?-->\n?/g, "");
+                                      const lines = cleaned.split("\n");
+                                      const firstLine = (lines[0] || "Séance mental").trim();
+                                      const title = theme && firstLine.endsWith(` - ${theme}`)
+                                        ? firstLine.slice(0, -(` - ${theme}`).length)
+                                        : firstLine;
+                                      const extraNotes = lines.slice(1).join("\n").trim();
+                                      setEditingMentalSession({
+                                        id: session.id,
+                                        title,
+                                        durationMin,
+                                        theme,
+                                        notes: extraNotes,
+                                        date: parseISO(session.session_date),
+                                      });
+                                      setIsPickerOpen(true);
                                     }}
                                   >
-                                    <Plus className="h-3.5 w-3.5" />
-                                    Remplir les données
+                                    <Brain className="h-3.5 w-3.5" />
+                                    Modifier la séance mentale
                                   </Button>
                                 )}
                                 {isBasket && (
@@ -871,11 +912,15 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
       <CreateEventDialog
         open={isPickerOpen}
-        onOpenChange={setIsPickerOpen}
-        date={selectedDate || new Date()}
+        onOpenChange={(o) => {
+          setIsPickerOpen(o);
+          if (!o) setEditingMentalSession(null);
+        }}
+        date={editingMentalSession?.date || selectedDate || new Date()}
         categoryId={categoryId}
         allowedTypeIds={["session", "field_session", "match", "mental"]}
         athletePlayerId={playerId}
+        editingMentalSession={editingMentalSession}
         onAddSession={() => {
           setIsPickerOpen(false);
           setIsCreateOpen(true);
