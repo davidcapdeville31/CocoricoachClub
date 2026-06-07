@@ -677,6 +677,9 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
         </CardContent>
       )}
     </Card>
+    )}
+
+
 
     {/* Wellness History Charts */}
     {!hideHistory && <AthleteSpaceWellnessHistory playerId={playerId} categoryId={categoryId} />}
