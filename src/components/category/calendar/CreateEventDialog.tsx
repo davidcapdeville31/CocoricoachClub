@@ -769,7 +769,7 @@ export function CreateEventDialog({
               Annuler
             </Button>
             <Button onClick={handleSubmit} disabled={createEvent.isPending}>
-              {createEvent.isPending ? "Création..." : "Créer l'événement"}
+              {createEvent.isPending ? (editingMentalSession ? "Mise à jour..." : "Création...") : (editingMentalSession ? "Mettre à jour" : "Créer l'événement")}
             </Button>
           </DialogFooter>
         )}
