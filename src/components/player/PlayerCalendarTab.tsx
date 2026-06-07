@@ -60,6 +60,8 @@ const getTestLabel = (testType: string): string => {
 
 export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabProps) {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [viewBowlingSimplifiedId, setViewBowlingSimplifiedId] = useState<{ id: string; date: Date } | null>(null);
+  const [viewBowlingAdvancedId, setViewBowlingAdvancedId] = useState<{ id: string; date: Date } | null>(null);
 
   // Fetch training sessions - refetch on focus to catch new events
   const { data: sessions } = useQuery({
