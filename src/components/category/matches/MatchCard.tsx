@@ -289,15 +289,28 @@ export function MatchCard({ match, categoryId, isSubMatch = false, compact = fal
 
   const deleteMatch = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("matches").delete().eq("id", match.id);
-      if (error) throw error;
+      const { data, error } = await supabase
+        .from("matches")
+        .delete()
+        .eq("id", match.id)
+        .select("id");
+      if (error) {
+        console.error("[deleteMatch] error", error);
+        throw error;
+      }
+      if (!data || data.length === 0) {
+        throw new Error("Suppression refusée : vous n'avez pas les droits sur cette compétition.");
+      }
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["matches", categoryId] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-calendar-matches"] });
+      setIsDeleteOpen(false);
       toast.success(isIndividual ? "Compétition supprimée" : "Match supprimé");
     },
-    onError: () => {
-      toast.error("Erreur lors de la suppression");
+    onError: (e: any) => {
+      toast.error(e?.message || "Erreur lors de la suppression");
     },
   });
 
