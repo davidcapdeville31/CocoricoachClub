@@ -452,6 +452,24 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
       <TabsContent value="annual">
         <AnnualPlanningView categoryId={categoryId} />
       </TabsContent>
+
+      <BowlingSimplifiedDialog
+        open={!!viewBowlingSimplifiedId}
+        onOpenChange={(o) => { if (!o) setViewBowlingSimplifiedId(null); }}
+        date={viewBowlingSimplifiedId?.date || new Date()}
+        categoryId={categoryId}
+        athletePlayerId={playerId}
+        existingSessionId={viewBowlingSimplifiedId?.id}
+      />
+
+      <BowlingAdvancedDialog
+        open={!!viewBowlingAdvancedId}
+        onOpenChange={(o) => { if (!o) setViewBowlingAdvancedId(null); }}
+        date={viewBowlingAdvancedId?.date || new Date()}
+        categoryId={categoryId}
+        athletePlayerId={playerId}
+        existingSessionId={viewBowlingAdvancedId?.id}
+      />
     </Tabs>
   );
 }
