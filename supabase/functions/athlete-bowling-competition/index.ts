@@ -81,22 +81,25 @@ serve(async (req) => {
 
     // ===== LOAD =====
     if (action === "load") {
-      const { data: oilPatterns } = await supabase
-        .from("bowling_oil_patterns")
-        .select("*")
-        .eq("category_id", category_id)
-        .order("created_at");
+      // Only return patterns explicitly assigned to THIS player on THIS match.
+      // The athlete starts from a blank state and picks a preset or builds a custom one.
+      const { data: assignedRows } = await supabase
+        .from("bowling_oil_pattern_players")
+        .select("oil_pattern_id")
+        .eq("player_id", player_id);
+      const assignedIds = (assignedRows || []).map((r: any) => r.oil_pattern_id);
 
-      const patternIds = (oilPatterns || []).map((p) => p.id);
-      let assigned_pattern_ids: string[] = [];
-      if (patternIds.length > 0) {
-        const { data: assignedRows } = await supabase
-          .from("bowling_oil_pattern_players")
-          .select("oil_pattern_id, player_id")
-          .in("oil_pattern_id", patternIds)
-          .eq("player_id", player_id);
-        assigned_pattern_ids = (assignedRows || []).map((r: any) => r.oil_pattern_id);
+      let oilPatterns: any[] = [];
+      if (assignedIds.length > 0) {
+        const { data } = await supabase
+          .from("bowling_oil_patterns")
+          .select("*")
+          .in("id", assignedIds)
+          .eq("match_id", match_id)
+          .order("created_at");
+        oilPatterns = data || [];
       }
+      const assigned_pattern_ids: string[] = oilPatterns.map((p: any) => p.id);
 
       const { data: rounds } = await supabase
         .from("competition_rounds")
