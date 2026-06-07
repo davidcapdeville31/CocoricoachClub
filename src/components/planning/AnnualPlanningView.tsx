@@ -22,6 +22,7 @@ import { getMainSportFromType, MAIN_SPORTS } from "@/lib/constants/sportTypes";
 
 interface AnnualPlanningViewProps {
   categoryId: string;
+  readOnly?: boolean;
 }
 
 interface PeriodizationCategory {
