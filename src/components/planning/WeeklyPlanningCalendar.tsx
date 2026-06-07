@@ -125,6 +125,7 @@ export function WeeklyPlanningCalendar({ categoryId }: WeeklyPlanningCalendarPro
         .from("matches")
         .select("id, match_date, match_time, opponent, location, is_finalized, is_home, score_home, score_away, competition, event_type")
         .eq("category_id", categoryId)
+        .eq("is_personal", false)
         .gte("match_date", weekStartStr)
         .lte("match_date", weekEndStr);
       if (error) throw error;
