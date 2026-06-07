@@ -81,6 +81,9 @@ serve(async (req) => {
       match_format: match.match_format ?? null,
       tournament_level: match.tournament_level ?? null,
       selection_type: match.selection_type ?? "club",
+      // Personal competition flags (athlete-created)
+      is_personal: true,
+      created_by_player_id: player_id,
     };
 
     const { data: inserted, error: insertError } = await supabase
@@ -89,6 +92,12 @@ serve(async (req) => {
       .select("id")
       .single();
     if (insertError) throw insertError;
+
+    // Auto-create lineup entry so the athlete is the sole participant
+    await supabase.from("match_lineups").insert({
+      match_id: inserted.id,
+      player_id,
+    });
 
     return respond({ success: true, match_id: inserted.id });
   } catch (e: any) {
