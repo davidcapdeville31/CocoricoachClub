@@ -11,7 +11,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BarChart3, Target, Trophy, CalendarIcon, Circle, Users, Download, FileSpreadsheet, Activity, Clock, Wrench, Filter } from "lucide-react";
-import { format, isAfter, isBefore, startOfDay, endOfDay, startOfWeek, startOfMonth, startOfYear } from "date-fns";
+import { format, isAfter, isBefore, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -432,11 +432,30 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
 
   // Compute global stats from new-system bowling_training_blocks
   const globalStats = useMemo(() => {
+    // Period filter based on the selected granularity (Jour/Semaine/Mois/Année) relative to today
+    const now = new Date();
+    let periodStart: Date;
+    let periodEnd: Date;
+    if (globalPeriod === "day") {
+      periodStart = startOfDay(now); periodEnd = endOfDay(now);
+    } else if (globalPeriod === "week") {
+      periodStart = startOfWeek(now, { weekStartsOn: 1, locale: fr }); periodEnd = endOfWeek(now, { weekStartsOn: 1, locale: fr });
+    } else if (globalPeriod === "year") {
+      periodStart = startOfYear(now); periodEnd = endOfYear(now);
+    } else {
+      periodStart = startOfMonth(now); periodEnd = endOfMonth(now);
+    }
+    const inPeriod = (iso: string) => {
+      const d = new Date(iso);
+      return !isBefore(d, periodStart) && !isAfter(d, periodEnd);
+    };
+
     const filtered = trainingBlocks.filter((b) => {
       if (!b.athlete_id) return false;
       if (selectedPlayerId !== "all" && !playerId && b.athlete_id !== selectedPlayerId) return false;
       if (playerId && b.athlete_id !== playerId) return false;
       if (!dateFilter(b.session_date)) return false;
+      if (!inPeriod(b.session_date)) return false;
       // Note: oil pattern filter intentionally NOT applied to Stats Globales
       return true;
     });
@@ -454,9 +473,10 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       totalMinutes += d;
     });
 
-    // Filter mental sessions by player + date + category
+    // Filter mental sessions by player + date + category + period
     const mentalFiltered = mentalSessions.filter((s) => {
       if (!dateFilter(s.session_date)) return false;
+      if (!inPeriod(s.session_date)) return false;
       const effectivePlayer = playerId || (selectedPlayerId !== "all" ? selectedPlayerId : null);
       if (effectivePlayer) {
         if (!s.player_ids.includes(effectivePlayer)) return false;
