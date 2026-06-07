@@ -912,11 +912,15 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
       <CreateEventDialog
         open={isPickerOpen}
-        onOpenChange={setIsPickerOpen}
-        date={selectedDate || new Date()}
+        onOpenChange={(o) => {
+          setIsPickerOpen(o);
+          if (!o) setEditingMentalSession(null);
+        }}
+        date={editingMentalSession?.date || selectedDate || new Date()}
         categoryId={categoryId}
         allowedTypeIds={["session", "field_session", "match", "mental"]}
         athletePlayerId={playerId}
+        editingMentalSession={editingMentalSession}
         onAddSession={() => {
           setIsPickerOpen(false);
           setIsCreateOpen(true);
