@@ -7,11 +7,13 @@ import { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { X, Dumbbell, Activity, CheckCircle2, Swords, Video, Stethoscope, Users, CalendarDays, LayoutDashboard } from "lucide-react";
+import { X, Dumbbell, Activity, CheckCircle2, Swords, Video, Stethoscope, Users, CalendarDays, LayoutDashboard, Eye } from "lucide-react";
 import { isWithinInterval, parseISO } from "date-fns";
 import { getDisplayNotes, parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { TEST_CATEGORIES } from "@/lib/constants/testCategories";
 import { AnnualPlanningView } from "@/components/planning/AnnualPlanningView";
+import { BowlingSimplifiedDialog } from "@/components/bowling/BowlingSimplifiedDialog";
+import { BowlingAdvancedDialog } from "@/components/bowling/BowlingAdvancedDialog";
 
 interface PlayerCalendarTabProps {
   playerId: string;
@@ -58,6 +60,8 @@ const getTestLabel = (testType: string): string => {
 
 export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabProps) {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [viewBowlingSimplifiedId, setViewBowlingSimplifiedId] = useState<{ id: string; date: Date } | null>(null);
+  const [viewBowlingAdvancedId, setViewBowlingAdvancedId] = useState<{ id: string; date: Date } | null>(null);
 
   // Fetch training sessions - refetch on focus to catch new events
   const { data: sessions } = useQuery({
@@ -331,6 +335,26 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
                                   </>
                                 );
                               })()}
+                              {(event.training_type === "bowling_simplified" || event.training_type === "bowling_advanced") && (
+                                <div className="mt-2 ml-6">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="gap-1.5"
+                                    onClick={() => {
+                                      const d = new Date(event.session_date);
+                                      if (event.training_type === "bowling_simplified") {
+                                        setViewBowlingSimplifiedId({ id: event.id, date: d });
+                                      } else {
+                                        setViewBowlingAdvancedId({ id: event.id, date: d });
+                                      }
+                                    }}
+                                  >
+                                    <Eye className="h-3.5 w-3.5" />
+                                    Voir les données saisies
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           );
                         } else if (event._type === 'match') {
@@ -428,6 +452,24 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
       <TabsContent value="annual">
         <AnnualPlanningView categoryId={categoryId} />
       </TabsContent>
+
+      <BowlingSimplifiedDialog
+        open={!!viewBowlingSimplifiedId}
+        onOpenChange={(o) => { if (!o) setViewBowlingSimplifiedId(null); }}
+        date={viewBowlingSimplifiedId?.date || new Date()}
+        categoryId={categoryId}
+        athletePlayerId={playerId}
+        existingSessionId={viewBowlingSimplifiedId?.id}
+      />
+
+      <BowlingAdvancedDialog
+        open={!!viewBowlingAdvancedId}
+        onOpenChange={(o) => { if (!o) setViewBowlingAdvancedId(null); }}
+        date={viewBowlingAdvancedId?.date || new Date()}
+        categoryId={categoryId}
+        athletePlayerId={playerId}
+        existingSessionId={viewBowlingAdvancedId?.id}
+      />
     </Tabs>
   );
 }
