@@ -20,6 +20,7 @@ import {
   type WellnessEntry 
 } from "@/lib/wellnessCalculations";
 import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
+import { PlayerRecoveryScore } from "./PlayerRecoveryScore";
 
 interface PlayerWellnessTabProps {
   playerId: string;
