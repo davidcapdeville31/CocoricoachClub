@@ -338,7 +338,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     setGeneratingReport("tdj-csv");
     try {
       const branding = await getExcelBranding(categoryId);
-      let matchQuery = supabase.from("matches").select("id, match_date, opponent").eq("category_id", categoryId).order("match_date");
+      let matchQuery = supabase.from("matches").select("id, match_date, opponent").eq("category_id", categoryId).eq("is_personal", false).order("match_date");
       if (tdjDateFrom) matchQuery = matchQuery.gte("match_date", tdjDateFrom);
       if (tdjDateTo) matchQuery = matchQuery.lte("match_date", tdjDateTo);
 
