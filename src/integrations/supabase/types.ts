@@ -15034,6 +15034,7 @@ export type Database = {
         Returns: boolean
       }
       is_approved_user: { Args: { _user_id: string }; Returns: boolean }
+      is_own_personal_match: { Args: { _match_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_team_sport_category: {
         Args: { _category_id: string }
