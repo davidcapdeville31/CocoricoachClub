@@ -326,7 +326,7 @@ export function CreateEventDialog({
       // Événements administratifs (rdv médical, analyse vidéo, réunion) :
       // PAS de RPE, PAS d'intensité — simple ajout au calendrier des athlètes assignés.
       const isAdminEvent =
-        selectedType === "medical" || selectedType === "video" || selectedType === "team_meeting";
+        selectedType === "medical" || selectedType === "video" || selectedType === "team_meeting" || selectedType === "mental";
       const { data: session, error } = await supabase
         .from("training_sessions")
         .insert({
@@ -336,7 +336,8 @@ export function CreateEventDialog({
           session_end_time: endTime,
           training_type: selectedType === "medical" ? "medical" : 
                          selectedType === "video" ? "video_analyse" :
-                         selectedType === "team_meeting" ? "reunion" : "autre",
+                         selectedType === "team_meeting" ? "reunion" :
+                         selectedType === "mental" ? "mental" : "autre",
           notes: `${title}${location ? ` - ${location}` : ""}${notes ? `\n${notes}` : ""}`,
           intensity: isAdminEvent ? null : 1,
           planned_intensity: isAdminEvent ? null : null,
