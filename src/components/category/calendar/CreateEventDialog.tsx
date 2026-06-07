@@ -210,9 +210,19 @@ export function CreateEventDialog({
   };
 
   const fieldSessionLabel = getFieldSessionLabel(categorySport);
+  const isBowlingCategory = (() => {
+    const s = (categorySport || "").toLowerCase();
+    return s === "bowling" || s.startsWith("bowling_");
+  })();
   const eventTypes = EVENT_TYPES
     .filter((t) => !allowedTypeIds || allowedTypeIds.includes(t.id))
-    .map((t) => (t.id === "field_session" ? { ...t, label: fieldSessionLabel } : t));
+    .map((t) => {
+      if (t.id === "field_session") return { ...t, label: fieldSessionLabel };
+      if (t.id === "match" && isBowlingCategory) {
+        return { ...t, label: "Compétition", description: "Ajouter une compétition" };
+      }
+      return t;
+    });
 
 
   const resetForm = () => {
