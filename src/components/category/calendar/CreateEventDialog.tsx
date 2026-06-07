@@ -404,6 +404,7 @@ export function CreateEventDialog({
           notes: notesPayload,
           intensity: isAdminEvent ? null : 1,
           planned_intensity: isAdminEvent ? null : null,
+          created_by_player_id: athletePlayerId ?? null,
         })
         .select("id")
         .single();
