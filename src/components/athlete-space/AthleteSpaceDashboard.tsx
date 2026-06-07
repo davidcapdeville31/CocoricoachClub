@@ -14,6 +14,7 @@ import { CurrentCyclesCard } from "./CurrentCyclesCard";
 import { getTestLabel } from "@/lib/constants/testCategories";
 import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import { PlayerMedalsSection } from "@/components/player/PlayerMedalsSection";
 
 interface Props {
   playerId: string;
@@ -400,6 +401,8 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
           </CardContent>
         </Card>
       )}
+
+      <PlayerMedalsSection playerId={playerId} />
 
     </div>
   );
