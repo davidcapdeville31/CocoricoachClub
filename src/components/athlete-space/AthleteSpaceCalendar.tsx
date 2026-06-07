@@ -480,16 +480,10 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                   </h3>
 
                   {!hasDayEvents ? (
-                    <div className="text-center py-6 space-y-2">
-                      <p className="text-sm text-muted-foreground mb-3">Aucun événement</p>
-                      <div className="flex flex-wrap justify-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => setIsPickerOpen(true)} className="gap-1.5">
-                          <Plus className="h-3.5 w-3.5" />
-                          Ajouter une séance
-                        </Button>
-                      </div>
-
+                    <div className="text-center py-6">
+                      <p className="text-sm text-muted-foreground">Aucun événement</p>
                     </div>
+
                   ) : (
                     <div className="space-y-2 max-h-[400px] overflow-y-auto">
                       {/* Matches */}
