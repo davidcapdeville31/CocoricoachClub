@@ -28,6 +28,7 @@ import { AthleteSpaceHealth } from "@/components/athlete-space/AthleteSpaceHealt
 import { AthleteSpacePerformance } from "@/components/athlete-space/AthleteSpacePerformance";
 import { MessagingTab } from "@/components/messaging/MessagingTab";
 import { AthleteSpaceSettings } from "@/components/athlete-space/AthleteSpaceSettings";
+import { AthletePersonalInfoDialog } from "@/components/athlete-space/AthletePersonalInfoDialog";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { AthleteSpaceCalendar } from "@/components/athlete-space/AthleteSpaceCalendar";
@@ -61,6 +62,7 @@ export default function AthleteSpace() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isSuperAdminView, setIsSuperAdminView] = useState(false);
   const [showPlayerSelector, setShowPlayerSelector] = useState(false);
+  const [showPersonalInfoDialog, setShowPersonalInfoDialog] = useState(false);
   const [playerSearch, setPlayerSearch] = useState("");
   const { total: unreadCount } = useUnreadMessages(athleteInfo?.category_id || "");
   const { count: recordNotifCount, markAsRead: markRecordNotifsRead } = useAthleteRecordNotifications(athleteInfo?.player_id);
@@ -506,7 +508,7 @@ export default function AthleteSpace() {
                 size="sm" 
                 className="px-2 sm:px-3 text-white border-0"
                 style={{ backgroundColor: NAV_COLORS.effectif.base }}
-                onClick={() => navigate(`/players/${athleteInfo.player_id}`)}
+                onClick={() => setShowPersonalInfoDialog(true)}
               >
                 <User className="h-4 w-4 sm:mr-1.5" />
                 <span className="hidden sm:inline">Informations personnelles</span>
@@ -517,6 +519,17 @@ export default function AthleteSpace() {
       </header>
 
       {/* Content */}
+      {isSuperAdminView && athleteInfo && (
+        <AthletePersonalInfoDialog
+          open={showPersonalInfoDialog}
+          onOpenChange={setShowPersonalInfoDialog}
+          playerId={athleteInfo.player_id}
+          categoryId={athleteInfo.category_id}
+          sportType={athleteInfo.sport_type}
+          playerName={displayName}
+        />
+      )}
+
       <main className="max-w-5xl mx-auto px-4 py-6">
        <Tabs defaultValue={searchParams.get("tab") || "dashboard"} className="w-full">
              <TabsList className="w-full flex overflow-x-auto gap-1 h-auto flex-nowrap justify-start bg-transparent p-0 mb-6 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
