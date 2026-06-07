@@ -19,6 +19,7 @@ import {
   HeartPulse,
   Play,
   Trash2,
+  Brain,
 } from "lucide-react";
 import { format, isWithinInterval, parseISO, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
 import { toast } from "sonner";
