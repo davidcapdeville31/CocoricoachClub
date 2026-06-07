@@ -319,6 +319,62 @@ serve(async (req) => {
       return respond({ success: true, pattern_id: patternId });
     }
 
+    // ===== SAVE SINGLE ROUND =====
+    if (action === "save_round") {
+      const round = body.round;
+      if (!round || typeof round.round_number !== "number") {
+        return respond({ success: false, error: "Partie manquante" }, 400);
+      }
+
+      // Delete existing round for this player+match+round_number (if any)
+      const { data: existing } = await supabase
+        .from("competition_rounds")
+        .select("id")
+        .eq("match_id", match_id)
+        .eq("player_id", player_id)
+        .eq("round_number", round.round_number);
+      const ids = (existing || []).map((r: any) => r.id);
+      if (ids.length > 0) {
+        await supabase.from("competition_round_stats").delete().in("round_id", ids);
+        await supabase.from("competition_rounds").delete().in("id", ids);
+      }
+
+      const { data: roundRow, error: roundErr } = await supabase
+        .from("competition_rounds")
+        .insert({
+          match_id,
+          player_id,
+          round_number: round.round_number,
+          opponent_name: round.opponent_name || null,
+          result: round.result || null,
+          notes: round.notes || null,
+          phase: round.phase || null,
+          lane: round.lane ?? null,
+          current_conditions: round.current_conditions ?? null,
+          temperature_celsius: round.temperature_celsius ?? null,
+        })
+        .select("id")
+        .single();
+      if (roundErr) throw roundErr;
+
+      const statData: any = {
+        ...(round.stats || {}),
+        ...(round.bowlingFrames ? { bowlingFrames: round.bowlingFrames } : {}),
+        ...(round.bowlingCategory ? { bowlingCategory: round.bowlingCategory } : {}),
+        ...(round.roundDate ? { roundDate: round.roundDate } : {}),
+        ...(round.blockId ? { blockId: round.blockId } : {}),
+        ...(round.ballData ? { ballData: round.ballData } : {}),
+      };
+      if (Object.keys(statData).length > 0) {
+        const { error: statErr } = await supabase
+          .from("competition_round_stats")
+          .insert({ round_id: roundRow.id, stat_data: JSON.parse(JSON.stringify(statData)) });
+        if (statErr) throw statErr;
+      }
+
+      return respond({ success: true, round_id: roundRow.id });
+    }
+
     return respond({ success: false, error: "Action inconnue" }, 400);
   } catch (error: unknown) {
     const err = error as { message?: string; details?: string; hint?: string };

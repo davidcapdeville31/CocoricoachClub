@@ -282,16 +282,60 @@ export function AthleteBowlingCompetitionDialog({
     toast.info(`Partie ${roundNumber} déverrouillée`);
   };
 
+  const saveRoundMutation = useMutation({
+    mutationFn: async (round: Round) => {
+      const payload = {
+        action: "save_round",
+        match_id: matchId,
+        category_id: categoryId,
+        player_id: playerId,
+        round: {
+          round_number: round.round_number,
+          opponent_name: round.opponent_name || null,
+          result: round.result || null,
+          notes: round.notes || null,
+          phase: round.phase || null,
+          lane: round.lane ?? null,
+          current_conditions: round.current_conditions ?? null,
+          temperature_celsius: round.temperature_celsius ?? null,
+          bowlingCategory: round.bowlingCategory || null,
+          roundDate: round.roundDate || null,
+          blockId: round.blockId || null,
+          bowlingFrames: round.bowlingFrames || null,
+          ballData: round.ballData || null,
+          stats: round.stats || {},
+        },
+      };
+      const { data, error } = await supabase.functions.invoke("athlete-bowling-competition", { body: payload });
+      if (error) throw new Error(error.message);
+      if (!data?.success) throw new Error(data?.error || "Impossible d'enregistrer la partie");
+      return data;
+    },
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["athlete-bowling-competition", matchId, playerId] }),
+        queryClient.invalidateQueries({ queryKey: ["competition_rounds", matchId] }),
+        queryClient.invalidateQueries({ queryKey: ["competition_rounds_count", matchId] }),
+        queryClient.invalidateQueries({ queryKey: ["competition_rounds_phases", matchId] }),
+      ]);
+      toast.success("Partie enregistrée");
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Erreur lors de l'enregistrement de la partie");
+    },
+  });
+
   const handleScoreSave = (
     roundNumber: number,
     sheetStats: BowlingStats,
     frames: FrameData[],
     ballData?: { mode: string; ballId?: string | null; frameBalls?: (string | null)[] },
   ) => {
-    setRounds((prev) =>
-      prev.map((round) => {
+    let updatedRound: Round | undefined;
+    setRounds((prev) => {
+      const next = prev.map((round) => {
         if (round.round_number !== roundNumber) return round;
-        return {
+        const newRound = {
           ...round,
           bowlingFrames: frames,
           isLocked: true,
@@ -316,9 +360,14 @@ export function AthleteBowlingCompetitionDialog({
             singlePinConversionRate: sheetStats.singlePinConversionRate,
           },
         } as Round;
-      }),
-    );
-    toast.success(`Partie ${roundNumber} enregistrée`);
+        updatedRound = newRound;
+        return newRound;
+      });
+      return next;
+    });
+    if (updatedRound) {
+      saveRoundMutation.mutate(updatedRound);
+    }
   };
 
   const saveMutation = useMutation({
@@ -747,7 +796,7 @@ export function AthleteBowlingCompetitionDialog({
           </Button>
           <Button type="button" className="gap-2" onClick={() => saveMutation.mutate()} disabled={competitionQuery.isLoading || saveMutation.isPending}>
             <Save className="h-4 w-4" />
-            {saveMutation.isPending ? "Enregistrement..." : "Enregistrer"}
+            {saveMutation.isPending ? "Enregistrement..." : "Enregistrer la compétition"}
           </Button>
         </DialogFooter>
       </DialogContent>
