@@ -335,6 +335,26 @@ export function PlayerCalendarTab({ playerId, categoryId }: PlayerCalendarTabPro
                                   </>
                                 );
                               })()}
+                              {(event.training_type === "bowling_simplified" || event.training_type === "bowling_advanced") && (
+                                <div className="mt-2 ml-6">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="gap-1.5"
+                                    onClick={() => {
+                                      const d = new Date(event.session_date);
+                                      if (event.training_type === "bowling_simplified") {
+                                        setViewBowlingSimplifiedId({ id: event.id, date: d });
+                                      } else {
+                                        setViewBowlingAdvancedId({ id: event.id, date: d });
+                                      }
+                                    }}
+                                  >
+                                    <Eye className="h-3.5 w-3.5" />
+                                    Voir les données saisies
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           );
                         } else if (event._type === 'match') {
