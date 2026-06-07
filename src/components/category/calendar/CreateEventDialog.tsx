@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Dumbbell, 
   Stethoscope, 
@@ -161,6 +162,8 @@ export function CreateEventDialog({
   const [notes, setNotes] = useState("");
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
+  const [mentalDuration, setMentalDuration] = useState<number>(30);
+  const [mentalTheme, setMentalTheme] = useState<string>("");
   
   const queryClient = useQueryClient();
   const { notify } = useSessionNotifications();
@@ -247,6 +250,8 @@ export function CreateEventDialog({
     setNotes("");
     setSelectedPlayers([]);
     setSelectAll(false);
+    setMentalDuration(30);
+    setMentalTheme("");
   };
 
   const handleClose = (open: boolean) => {
@@ -327,18 +332,32 @@ export function CreateEventDialog({
       // PAS de RPE, PAS d'intensité — simple ajout au calendrier des athlètes assignés.
       const isAdminEvent =
         selectedType === "medical" || selectedType === "video" || selectedType === "team_meeting" || selectedType === "mental";
+      const isMental = selectedType === "mental";
+      // For mental sessions: keep a default 09:00 start, compute end from duration (minutes).
+      const computeMentalEnd = (start: string, mins: number) => {
+        const [h, m] = start.split(":").map(Number);
+        const total = h * 60 + m + (mins || 0);
+        const eh = String(Math.floor(total / 60) % 24).padStart(2, "0");
+        const em = String(total % 60).padStart(2, "0");
+        return `${eh}:${em}`;
+      };
+      const effectiveStart = isMental ? "09:00" : startTime;
+      const effectiveEnd = isMental ? computeMentalEnd("09:00", mentalDuration) : endTime;
+      const mentalMeta = isMental
+        ? `<!--MENTAL:${JSON.stringify({ duration_min: mentalDuration, theme: mentalTheme })}-->\n`
+        : "";
       const { data: session, error } = await supabase
         .from("training_sessions")
         .insert({
           category_id: categoryId,
           session_date: format(date, "yyyy-MM-dd"),
-          session_start_time: startTime,
-          session_end_time: endTime,
+          session_start_time: effectiveStart,
+          session_end_time: effectiveEnd,
           training_type: selectedType === "medical" ? "medical" : 
                          selectedType === "video" ? "video_analyse" :
                          selectedType === "team_meeting" ? "reunion" :
                          selectedType === "mental" ? "mental" : "autre",
-          notes: `${title}${location ? ` - ${location}` : ""}${notes ? `\n${notes}` : ""}`,
+          notes: `${mentalMeta}${title}${isMental && mentalTheme ? ` - ${mentalTheme}` : ""}${location ? ` - ${location}` : ""}${notes ? `\n${notes}` : ""}`,
           intensity: isAdminEvent ? null : 1,
           planned_intensity: isAdminEvent ? null : null,
         })
@@ -536,30 +555,71 @@ export function CreateEventDialog({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="startTime" className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> Début
-                  </Label>
-                  <Input
-                    id="startTime"
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                  />
+              {selectedType === "mental" ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="mentalDuration" className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> Temps de travail (minutes)
+                    </Label>
+                    <Input
+                      id="mentalDuration"
+                      type="number"
+                      min={5}
+                      step={5}
+                      value={mentalDuration}
+                      onChange={(e) => setMentalDuration(Math.max(1, Number(e.target.value) || 0))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1">
+                      <Brain className="h-3 w-3" /> Thématique
+                    </Label>
+                    <Select value={mentalTheme} onValueChange={setMentalTheme}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choisir une thématique" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[
+                          "Respiration",
+                          "Visualisation",
+                          "Routines",
+                          "Confiance en soi",
+                          "Gestion des émotions",
+                          "Concentration",
+                          "Récupération",
+                        ].map((t) => (
+                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="startTime" className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> Début
+                    </Label>
+                    <Input
+                      id="startTime"
+                      type="time"
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="endTime" className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> Fin
+                    </Label>
+                    <Input
+                      id="endTime"
+                      type="time"
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="endTime" className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> Fin
-                  </Label>
-                  <Input
-                    id="endTime"
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                  />
-                </div>
-              </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="location" className="flex items-center gap-1">
