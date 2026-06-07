@@ -10,6 +10,7 @@ import { fr } from "date-fns/locale";
 import { NAV_COLORS } from "@/components/ui/colored-nav-tabs";
 import { AthleteSpaceRpe } from "./AthleteSpaceRpe";
 import { AthleteSpaceWellness } from "./AthleteSpaceWellness";
+import { CurrentCyclesCard } from "./CurrentCyclesCard";
 import { getTestLabel } from "@/lib/constants/testCategories";
 import { parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
@@ -234,6 +235,9 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
 
       {/* RPE du jour — hissé en haut pour saisie rapide sur mobile */}
       <AthleteSpaceRpe playerId={playerId} categoryId={categoryId} hideHistory />
+
+      {/* Cycle en cours — visibilité de la planification du coach */}
+      <CurrentCyclesCard categoryId={categoryId} />
 
       {/* Status + EWMA */}
       <Card className="shadow-sm border" style={{ borderColor: `${NAV_COLORS.performance.base}40`, backgroundColor: `${NAV_COLORS.performance.base}08` }}>
