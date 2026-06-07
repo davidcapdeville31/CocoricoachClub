@@ -555,30 +555,71 @@ export function CreateEventDialog({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="startTime" className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> Début
-                  </Label>
-                  <Input
-                    id="startTime"
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                  />
+              {selectedType === "mental" ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="mentalDuration" className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> Temps de travail (minutes)
+                    </Label>
+                    <Input
+                      id="mentalDuration"
+                      type="number"
+                      min={5}
+                      step={5}
+                      value={mentalDuration}
+                      onChange={(e) => setMentalDuration(Math.max(1, Number(e.target.value) || 0))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1">
+                      <Brain className="h-3 w-3" /> Thématique
+                    </Label>
+                    <Select value={mentalTheme} onValueChange={setMentalTheme}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choisir une thématique" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[
+                          "Respiration",
+                          "Visualisation",
+                          "Routines",
+                          "Confiance en soi",
+                          "Gestion des émotions",
+                          "Concentration",
+                          "Récupération",
+                        ].map((t) => (
+                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="startTime" className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> Début
+                    </Label>
+                    <Input
+                      id="startTime"
+                      type="time"
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="endTime" className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> Fin
+                    </Label>
+                    <Input
+                      id="endTime"
+                      type="time"
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="endTime" className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> Fin
-                  </Label>
-                  <Input
-                    id="endTime"
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                  />
-                </div>
-              </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="location" className="flex items-center gap-1">
