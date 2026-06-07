@@ -19,6 +19,8 @@ import {
   HeartPulse,
   Play,
   Trash2,
+  Swords as SwordsIcon,
+  Droplet,
 } from "lucide-react";
 import { format, isWithinInterval, parseISO, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
 import { toast } from "sonner";
