@@ -701,7 +701,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
   const hasGameData = playerGameStats.length > 0;
   const hasSpareData = playerSpareStats.length > 0;
   const hasGlobalData = globalStats.blockCount > 0;
-  const THEME_COLORS = { warmup: "hsl(43 96% 56%)", technical: "hsl(160 84% 39%)", tactical: "hsl(217 91% 60%)", games: "hsl(38 92% 50%)" };
+  const THEME_COLORS = { warmup: "hsl(43 96% 56%)", technical: "hsl(160 84% 39%)", tactical: "hsl(217 91% 60%)", games: "hsl(38 92% 50%)", mental: "hsl(292 84% 61%)" };
 
   return (
     <div className="space-y-4">
