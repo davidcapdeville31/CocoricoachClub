@@ -169,6 +169,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
           .from("matches")
           .select("*")
           .eq("category_id", categoryId)
+          .eq("is_personal", false)
           .gte("match_date", today)
           .order("match_date")
           .order("match_time")

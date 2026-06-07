@@ -81,6 +81,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
         .from("matches")
         .select("*")
         .eq("category_id", categoryId)
+        .eq("is_personal", false)
         .order("match_date", { ascending: false });
       if (error) throw error;
       return data;
@@ -168,7 +169,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const { settings: pdfSettings, logoBase64, seasonName, clubName: cn1, categoryName: catName1 } = await preparePdfWithSettings(categoryId);
 
       // Fetch all matches with lineups, stats and injuries
-      let matchQuery = supabase.from("matches").select("id, match_date, opponent, is_home").eq("category_id", categoryId).order("match_date");
+      let matchQuery = supabase.from("matches").select("id, match_date, opponent, is_home").eq("category_id", categoryId).eq("is_personal", false).order("match_date");
       if (tdjDateFrom) matchQuery = matchQuery.gte("match_date", tdjDateFrom);
       if (tdjDateTo) matchQuery = matchQuery.lte("match_date", tdjDateTo);
 
@@ -337,7 +338,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
     setGeneratingReport("tdj-csv");
     try {
       const branding = await getExcelBranding(categoryId);
-      let matchQuery = supabase.from("matches").select("id, match_date, opponent").eq("category_id", categoryId).order("match_date");
+      let matchQuery = supabase.from("matches").select("id, match_date, opponent").eq("category_id", categoryId).eq("is_personal", false).order("match_date");
       if (tdjDateFrom) matchQuery = matchQuery.gte("match_date", tdjDateFrom);
       if (tdjDateTo) matchQuery = matchQuery.lte("match_date", tdjDateTo);
 
@@ -482,7 +483,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const { settings: pdfSettings, logoBase64, seasonName: sName, clubName: cn2, categoryName: catName2 } = await preparePdfWithSettings(categoryId);
 
       const [matchesRes, injuriesRes, goalsRes, awcrRes] = await Promise.all([
-        supabase.from("matches").select("*").eq("category_id", categoryId).order("match_date"),
+        supabase.from("matches").select("*").eq("category_id", categoryId).eq("is_personal", false).order("match_date"),
         supabase.from("injuries").select("*, players(name, first_name)").eq("category_id", categoryId),
         supabase.from("season_goals").select("*").eq("category_id", categoryId).eq("season_year", new Date().getFullYear()),
         supabase.from("awcr_tracking").select("*, players(name)").eq("category_id", categoryId).order("session_date", { ascending: false }),
@@ -1368,7 +1369,8 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const { data: categoryMatches } = await supabase
         .from("matches")
         .select("id")
-        .eq("category_id", categoryId);
+        .eq("category_id", categoryId)
+        .eq("is_personal", false);
       
       const matchIds = categoryMatches?.map(m => m.id) || [];
 

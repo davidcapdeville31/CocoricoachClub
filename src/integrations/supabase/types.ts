@@ -5977,6 +5977,7 @@ export type Database = {
           competition: string | null
           competition_stage: string | null
           created_at: string
+          created_by_player_id: string | null
           distance_meters: number | null
           effective_play_time: number | null
           end_date: string | null
@@ -5989,6 +5990,7 @@ export type Database = {
           id: string
           is_finalized: boolean | null
           is_home: boolean | null
+          is_personal: boolean
           location: string | null
           longest_play_sequence: number | null
           match_date: string
@@ -6012,6 +6014,7 @@ export type Database = {
           competition?: string | null
           competition_stage?: string | null
           created_at?: string
+          created_by_player_id?: string | null
           distance_meters?: number | null
           effective_play_time?: number | null
           end_date?: string | null
@@ -6024,6 +6027,7 @@ export type Database = {
           id?: string
           is_finalized?: boolean | null
           is_home?: boolean | null
+          is_personal?: boolean
           location?: string | null
           longest_play_sequence?: number | null
           match_date: string
@@ -6047,6 +6051,7 @@ export type Database = {
           competition?: string | null
           competition_stage?: string | null
           created_at?: string
+          created_by_player_id?: string | null
           distance_meters?: number | null
           effective_play_time?: number | null
           end_date?: string | null
@@ -6059,6 +6064,7 @@ export type Database = {
           id?: string
           is_finalized?: boolean | null
           is_home?: boolean | null
+          is_personal?: boolean
           location?: string | null
           longest_play_sequence?: number | null
           match_date?: string
@@ -6081,6 +6087,27 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_created_by_player_id_fkey"
+            columns: ["created_by_player_id"]
+            isOneToOne: false
+            referencedRelation: "player_tags"
+            referencedColumns: ["player_id"]
+          },
+          {
+            foreignKeyName: "matches_created_by_player_id_fkey"
+            columns: ["created_by_player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_created_by_player_id_fkey"
+            columns: ["created_by_player_id"]
+            isOneToOne: false
+            referencedRelation: "players_safe"
             referencedColumns: ["id"]
           },
           {

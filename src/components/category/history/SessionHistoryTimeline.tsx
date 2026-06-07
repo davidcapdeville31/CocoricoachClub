@@ -215,6 +215,7 @@ export function SessionHistoryTimeline({ categoryId, playerId }: SessionHistoryT
         .from("matches")
         .select("*")
         .eq("category_id", categoryId)
+        .eq("is_personal", false)
         .gte("match_date", startDate)
         .order("match_date", { ascending: false });
       if (error) throw error;

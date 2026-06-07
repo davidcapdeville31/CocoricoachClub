@@ -196,6 +196,7 @@ export function AnnualPlanningView({ categoryId }: AnnualPlanningViewProps) {
         .from("matches")
         .select("id, match_date, end_date, opponent, is_finalized, competition, event_type")
         .eq("category_id", categoryId)
+        .eq("is_personal", false)
         .gte("match_date", format(yearStart, "yyyy-MM-dd"))
         .lte("match_date", format(yearEnd, "yyyy-MM-dd"));
       if (error) throw error;

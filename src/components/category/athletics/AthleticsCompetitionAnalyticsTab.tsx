@@ -52,6 +52,7 @@ export function AthleticsCompetitionAnalyticsTab({ categoryId }: Props) {
           competition_rounds(result, ranking, phase, opponent_name, player_id)
         `)
         .eq("category_id", categoryId)
+        .eq("is_personal", false)
         .order("match_date", { ascending: false });
       if (error) throw error;
       return data || [];
