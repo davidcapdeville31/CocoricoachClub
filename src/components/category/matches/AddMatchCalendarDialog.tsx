@@ -169,8 +169,9 @@ export function AddMatchCalendarDialog({
       } as any;
 
       if (athletePlayerId) {
+        const personalPayload = { ...payload, is_personal: true, created_by_player_id: athletePlayerId };
         const { data, error } = await supabase.functions.invoke("athlete-create-match", {
-          body: { category_id: categoryId, player_id: athletePlayerId, match: payload },
+          body: { category_id: categoryId, player_id: athletePlayerId, match: personalPayload },
         });
         if (error) throw new Error(error.message);
         if (!data?.success) throw new Error(data?.error || "Erreur");
