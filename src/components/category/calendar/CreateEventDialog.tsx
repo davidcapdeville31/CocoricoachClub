@@ -46,6 +46,8 @@ interface CreateEventDialogProps {
   onSelectBowlingAdvanced?: () => void;
   /** Restrict the event type picker to a subset of EVENT_TYPES (by id). */
   allowedTypeIds?: string[];
+  /** When set, this is an athlete creating an event for themselves only. Hides the participants picker. */
+  athletePlayerId?: string;
 }
 
 
@@ -151,6 +153,7 @@ export function CreateEventDialog({
   onSelectBowlingSimplified,
   onSelectBowlingAdvanced,
   allowedTypeIds,
+  athletePlayerId,
 }: CreateEventDialogProps) {
 
   const [step, setStep] = useState<"type" | "bowling_mode" | "details">("type");
@@ -160,7 +163,7 @@ export function CreateEventDialog({
   const [endTime, setEndTime] = useState("10:00");
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
-  const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
+  const [selectedPlayers, setSelectedPlayers] = useState<string[]>(athletePlayerId ? [athletePlayerId] : []);
   const [selectAll, setSelectAll] = useState(false);
   const [mentalDuration, setMentalDuration] = useState<number>(30);
   const [mentalTheme, setMentalTheme] = useState<string>("");
@@ -646,8 +649,11 @@ export function CreateEventDialog({
                 />
               </div>
 
-              {/* Player selection */}
+              {/* Player selection (hidden when athlete creates for themselves) */}
+              {!athletePlayerId && (
               <div className="space-y-2">
+
+
                 <div className="flex items-center justify-between">
                   <Label className="flex items-center gap-1">
                     <Users className="h-3 w-3" /> Participants
@@ -710,6 +716,8 @@ export function CreateEventDialog({
                   </Badge>
                 )}
               </div>
+              )}
+
             </div>
           )}
         </div>
