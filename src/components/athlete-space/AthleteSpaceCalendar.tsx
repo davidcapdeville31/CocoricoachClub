@@ -49,6 +49,7 @@ import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionE
 import { CreateEventDialog } from "@/components/category/calendar/CreateEventDialog";
 import { FieldSessionDialog } from "@/components/category/calendar/FieldSessionDialog";
 import { AddMatchCalendarDialog } from "@/components/category/matches/AddMatchCalendarDialog";
+import { AthleteBowlingCompetitionDialog } from "@/components/category/matches/AthleteBowlingCompetitionDialog";
 
 
 interface Props {
@@ -79,6 +80,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [sessionToDelete, setSessionToDelete] = useState<any | null>(null);
   const [matchToDelete, setMatchToDelete] = useState<any | null>(null);
+  const [bowlingMatchEntry, setBowlingMatchEntry] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
@@ -544,6 +546,17 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                 {match.notes && (
                                   <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{match.notes}</p>
                                 )}
+                                {isBowling && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="mt-2 gap-1.5"
+                                    onClick={(e) => { e.stopPropagation(); setBowlingMatchEntry(match); }}
+                                  >
+                                    <Plus className="h-3.5 w-3.5" />
+                                    Saisir les données
+                                  </Button>
+                                )}
                               </div>
                               {isPersonalMine && (
                                 <Button
@@ -929,6 +942,19 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         athletePlayerId={playerId}
         existingSessionId={bowlingAdvancedSessionId || undefined}
       />
+
+      {isBowling && bowlingMatchEntry && (
+        <AthleteBowlingCompetitionDialog
+          open={!!bowlingMatchEntry}
+          onOpenChange={(o) => { if (!o) setBowlingMatchEntry(null); }}
+          matchId={bowlingMatchEntry.id}
+          categoryId={categoryId}
+          playerId={playerId}
+          competitionLabel={bowlingMatchEntry.competition || bowlingMatchEntry.opponent}
+        />
+      )}
+
+
 
 
 
