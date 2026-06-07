@@ -398,6 +398,50 @@ export function AthleteBowlingCompetitionDialog({
     },
   });
 
+  const savePatternMutation = useMutation({
+    mutationFn: async (pattern: OilPatternDraft) => {
+      const payload = {
+        action: "save_pattern",
+        match_id: matchId,
+        category_id: categoryId,
+        player_id: playerId,
+        pattern: {
+          id: pattern.id,
+          name: pattern.name || null,
+          gender: pattern.gender || null,
+          length_feet: toNullableNumber(pattern.length_feet),
+          buff_distance_feet: toNullableNumber(pattern.buff_distance_feet),
+          width_boards: toNullableNumber(pattern.width_boards),
+          total_volume_ml: toNullableNumber(pattern.total_volume_ml),
+          oil_ratio: pattern.oil_ratio.trim() || null,
+          profile_type: pattern.profile_type || null,
+          forward_oil: pattern.forward_oil,
+          reverse_oil: pattern.reverse_oil,
+          outside_friction: pattern.outside_friction || null,
+          notes: pattern.notes.trim() || null,
+          assigned: pattern.assigned !== false ? true : false,
+        },
+      };
+      const { data, error } = await supabase.functions.invoke("athlete-bowling-competition", { body: payload });
+      if (error) throw new Error(error.message);
+      if (!data?.success) throw new Error(data?.error || "Impossible d'enregistrer le huilage");
+      return { clientKey: pattern.clientKey, id: data.pattern_id as string };
+    },
+    onSuccess: async ({ clientKey, id }) => {
+      setPatterns((prev) =>
+        prev.map((p) => (p.clientKey === clientKey ? { ...p, id, assigned: true } : p)),
+      );
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["athlete-bowling-competition", matchId, playerId] }),
+        queryClient.invalidateQueries({ queryKey: ["bowling_oil_patterns", matchId] }),
+      ]);
+      toast.success("Huilage enregistré");
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Erreur lors de l'enregistrement du huilage");
+    },
+  });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-6xl max-h-[92vh] overflow-hidden flex flex-col">
@@ -636,6 +680,19 @@ export function AthleteBowlingCompetitionDialog({
                           placeholder="Observations sur le huilage"
                           disabled={!canEditPattern}
                         />
+                      </div>
+
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => savePatternMutation.mutate(pattern)}
+                          disabled={savePatternMutation.isPending || !canEditPattern}
+                        >
+                          <Save className="h-4 w-4" />
+                          Enregistrer ce huilage
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>

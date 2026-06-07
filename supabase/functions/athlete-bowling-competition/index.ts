@@ -253,6 +253,72 @@ serve(async (req) => {
       return respond({ success: true, client_key_to_id: clientKeyToId });
     }
 
+    // ===== SAVE SINGLE PATTERN =====
+    if (action === "save_pattern") {
+      const p = body.pattern;
+      if (!p) return respond({ success: false, error: "Huilage manquant" }, 400);
+
+      const payload: any = {
+        category_id,
+        match_id,
+        name: p.name || "Pattern personnalisé",
+        gender: p.gender || null,
+        length_feet: p.length_feet,
+        buff_distance_feet: p.buff_distance_feet,
+        width_boards: p.width_boards,
+        total_volume_ml: p.total_volume_ml,
+        oil_ratio: p.oil_ratio,
+        profile_type: p.profile_type,
+        forward_oil: p.forward_oil ?? true,
+        reverse_oil: p.reverse_oil ?? true,
+        outside_friction: p.outside_friction,
+        notes: p.notes,
+      };
+
+      let patternId = p.id as string | undefined;
+      if (patternId) {
+        const { error: upErr } = await supabase
+          .from("bowling_oil_patterns")
+          .update(payload)
+          .eq("id", patternId);
+        if (upErr) throw upErr;
+      } else {
+        const { data: inserted, error: insErr } = await supabase
+          .from("bowling_oil_patterns")
+          .insert(payload)
+          .select("id")
+          .single();
+        if (insErr) throw insErr;
+        patternId = inserted.id;
+      }
+
+      // Auto-assign this pattern to the athlete (since saving from athlete side)
+      const assign = p.assigned !== false;
+      if (patternId) {
+        if (assign) {
+          const { data: existing } = await supabase
+            .from("bowling_oil_pattern_players")
+            .select("oil_pattern_id")
+            .eq("oil_pattern_id", patternId)
+            .eq("player_id", player_id)
+            .maybeSingle();
+          if (!existing) {
+            await supabase
+              .from("bowling_oil_pattern_players")
+              .insert({ oil_pattern_id: patternId, player_id });
+          }
+        } else {
+          await supabase
+            .from("bowling_oil_pattern_players")
+            .delete()
+            .eq("oil_pattern_id", patternId)
+            .eq("player_id", player_id);
+        }
+      }
+
+      return respond({ success: true, pattern_id: patternId });
+    }
+
     return respond({ success: false, error: "Action inconnue" }, 400);
   } catch (error: unknown) {
     const err = error as { message?: string; details?: string; hint?: string };
