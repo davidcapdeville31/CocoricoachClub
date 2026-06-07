@@ -297,6 +297,7 @@ export function CreateEventDialog({
       if (typeId === "medical") setTitle("Rendez-vous médical");
       if (typeId === "video") setTitle("Analyse vidéo");
       if (typeId === "team_meeting") setTitle("Réunion d'équipe");
+      if (typeId === "mental") setTitle("Séance mental");
     }
   };
 
