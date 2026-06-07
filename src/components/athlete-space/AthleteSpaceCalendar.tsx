@@ -168,11 +168,11 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   }, [testReminders]);
 
   const { data: matches = [] } = useQuery({
-    queryKey: ["athlete-calendar-matches", categoryId],
+    queryKey: ["athlete-calendar-matches", categoryId, playerId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("matches")
-        .select("id, match_date, match_time, opponent, location, is_home")
+        .select("id, match_date, match_time, opponent, location, is_home, competition, competition_stage, notes, score_home, score_away, is_personal, created_by_player_id")
         .eq("category_id", categoryId)
         .order("match_date", { ascending: false });
       if (error) throw error;
