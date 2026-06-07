@@ -196,7 +196,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
     queryFn: async () => {
       const { data, error } = await supabase
         .from("matches")
-        .select("id, match_date, match_time, opponent, location, is_home, competition, competition_stage, notes, score_home, score_away, is_personal, created_by_player_id, event_type")
+        .select("id, match_date, end_date, match_time, opponent, location, is_home, competition, competition_stage, notes, score_home, score_away, is_personal, created_by_player_id, event_type")
         .eq("category_id", categoryId)
         .or(`is_personal.eq.false,created_by_player_id.eq.${playerId}`)
         .order("match_date", { ascending: false });
@@ -267,7 +267,15 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
   const trainingDates = trainingSessions.map(s => new Date(s.session_date));
   const testDates = testSessions.map(s => new Date(s.session_date));
-  const matchDates = matches.map(m => new Date(m.match_date));
+  const matchDates = matches.flatMap(m => {
+    try {
+      const start = parseISO(m.match_date);
+      const end = m.end_date ? parseISO(m.end_date) : start;
+      return eachDayOfInterval({ start, end: end < start ? start : end });
+    } catch {
+      return [new Date(m.match_date)];
+    }
+  });
   const athleteSessionDates = athleteSessionList.map(s => new Date(s.session_date));
 
   // Compute prophylaxis dates for calendar modifiers
@@ -328,7 +336,11 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
   const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
   const daySessions = sessions.filter(s => s.session_date === selectedDateStr);
-  const dayMatches = matches.filter(m => m.match_date === selectedDateStr);
+  const dayMatches = matches.filter(m => {
+    if (!selectedDateStr) return false;
+    if (!m.end_date || m.end_date === m.match_date) return m.match_date === selectedDateStr;
+    return selectedDateStr >= m.match_date && selectedDateStr <= m.end_date;
+  });
 
   // Check if prophylaxis programs apply to selected date
   const dayProphylaxis = useMemo(() => {
