@@ -11,7 +11,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BarChart3, Target, Trophy, CalendarIcon, Circle, Users, Download, FileSpreadsheet, Activity, Clock, Wrench, Filter } from "lucide-react";
-import { format, isAfter, isBefore, startOfDay, endOfDay, startOfWeek, startOfMonth, startOfYear } from "date-fns";
+import { format, isAfter, isBefore, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
