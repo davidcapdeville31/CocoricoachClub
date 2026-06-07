@@ -20,6 +20,7 @@ import {
   type WellnessEntry 
 } from "@/lib/wellnessCalculations";
 import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
+import { PlayerRecoveryScore } from "./PlayerRecoveryScore";
 
 interface PlayerWellnessTabProps {
   playerId: string;
@@ -209,6 +210,9 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
 
   return (
     <div className="space-y-6">
+      {/* Recovery score (synthèse globale 0-100%) */}
+      <PlayerRecoveryScore playerId={playerId} />
+
       {/* Smart Alert */}
       {smartAlert && (
         <Alert 
