@@ -874,7 +874,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         onOpenChange={setIsPickerOpen}
         date={selectedDate || new Date()}
         categoryId={categoryId}
-        allowedTypeIds={["session", "field_session", "match"]}
+        allowedTypeIds={["session", "field_session", "match", "mental"]}
         onAddSession={() => {
           setIsPickerOpen(false);
           setIsCreateOpen(true);
