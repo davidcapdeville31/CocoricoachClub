@@ -427,6 +427,28 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
   return (
     <>
 
+    {!shouldBeExpanded && isToday ? (
+      <button
+        type="button"
+        onClick={() => setExpanded(true)}
+        aria-label="Remplir le Wellness du jour"
+        className="group w-full rounded-2xl px-5 py-5 sm:py-6 text-left shadow-lg border-2 transition-all duration-150 active:scale-[0.99] hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-offset-2 flex items-center gap-4"
+        style={{
+          background: `linear-gradient(135deg, ${NAV_COLORS.sante.base}, ${NAV_COLORS.sante.base}dd)`,
+          borderColor: NAV_COLORS.sante.base,
+          color: "#fff",
+        }}
+      >
+        <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-white/20 flex items-center justify-center shrink-0 backdrop-blur-sm">
+          <Heart className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-lg sm:text-xl font-bold leading-tight">Remplir le Wellness du jour</p>
+          <p className="text-xs sm:text-sm text-white/85 mt-0.5">Appuyez ici pour saisir votre wellness</p>
+        </div>
+        <ChevronDown className="h-6 w-6 text-white shrink-0 transition-transform group-hover:translate-y-0.5" />
+      </button>
+    ) : (
     <Card className="shadow-md border-2" style={{ borderColor: `${NAV_COLORS.sante.base}40`, backgroundColor: `${NAV_COLORS.sante.base}06` }}>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center justify-between gap-2">
@@ -457,6 +479,8 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
         </CardTitle>
         <div className="pt-2">{DateSelector}</div>
       </CardHeader>
+
+
 
       {shouldBeExpanded && (
         <CardContent className="space-y-1.5 pt-0 pb-3 px-2 sm:px-4">
