@@ -86,6 +86,16 @@ const EVENT_TYPES = [
     accentBorderColor: "border-l-indigo-500",
     hoverBorderColor: "hover:border-indigo-400 dark:hover:border-indigo-500",
   },
+  {
+    id: "mental",
+    label: "Séance mental",
+    description: "Préparation mentale, sophrologie",
+    icon: Brain,
+    iconColor: "text-fuchsia-700 dark:text-fuchsia-300",
+    iconBgColor: "bg-fuchsia-100 dark:bg-fuchsia-500/15",
+    accentBorderColor: "border-l-fuchsia-500",
+    hoverBorderColor: "hover:border-fuchsia-400 dark:hover:border-fuchsia-500",
+  },
 ];
 
 export function AddEventDialog({
