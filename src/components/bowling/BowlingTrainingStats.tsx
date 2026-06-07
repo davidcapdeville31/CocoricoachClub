@@ -832,7 +832,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
           <TabsContent value="global" className="space-y-4 mt-4">
             {hasGlobalData ? (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
                   <Card>
                     <CardContent className="p-3 text-center">
                       <p className="text-2xl font-bold text-primary">{globalStats.sessionsCount}</p>
@@ -863,7 +863,14 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center"><Circle className="h-3 w-3" />Parties</p>
                     </CardContent>
                   </Card>
+                  <Card style={{ borderColor: THEME_COLORS.mental }}>
+                    <CardContent className="p-3 text-center">
+                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.mental }}>{globalStats.hoursByTheme.mental.toFixed(1)}h</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center">🧠 Mental</p>
+                    </CardContent>
+                  </Card>
                 </div>
+
 
                 <Card>
                   <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0 flex-wrap gap-2">
