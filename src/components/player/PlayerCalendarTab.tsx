@@ -7,11 +7,13 @@ import { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { X, Dumbbell, Activity, CheckCircle2, Swords, Video, Stethoscope, Users, CalendarDays, LayoutDashboard } from "lucide-react";
+import { X, Dumbbell, Activity, CheckCircle2, Swords, Video, Stethoscope, Users, CalendarDays, LayoutDashboard, Eye } from "lucide-react";
 import { isWithinInterval, parseISO } from "date-fns";
 import { getDisplayNotes, parseTestsFromNotes } from "@/lib/utils/sessionNotes";
 import { TEST_CATEGORIES } from "@/lib/constants/testCategories";
 import { AnnualPlanningView } from "@/components/planning/AnnualPlanningView";
+import { BowlingSimplifiedDialog } from "@/components/bowling/BowlingSimplifiedDialog";
+import { BowlingAdvancedDialog } from "@/components/bowling/BowlingAdvancedDialog";
 
 interface PlayerCalendarTabProps {
   playerId: string;
