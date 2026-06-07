@@ -46,6 +46,8 @@ interface CreateEventDialogProps {
   onSelectBowlingAdvanced?: () => void;
   /** Restrict the event type picker to a subset of EVENT_TYPES (by id). */
   allowedTypeIds?: string[];
+  /** When set, this is an athlete creating an event for themselves only. Hides the participants picker. */
+  athletePlayerId?: string;
 }
 
 
