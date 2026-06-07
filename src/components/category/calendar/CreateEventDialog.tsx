@@ -716,6 +716,8 @@ export function CreateEventDialog({
                   </Badge>
                 )}
               </div>
+              )}
+
             </div>
           )}
         </div>
