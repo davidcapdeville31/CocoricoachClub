@@ -552,6 +552,28 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                 {match.notes && (
                                   <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{match.notes}</p>
                                 )}
+                                {isPersonalMine && isBowling && (
+                                  <div className="flex flex-wrap gap-1.5 mt-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 gap-1.5 text-xs"
+                                      onClick={(e) => { e.stopPropagation(); setRoundsMatch(match); }}
+                                    >
+                                      <Swords className="h-3.5 w-3.5" />
+                                      Parties
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 gap-1.5 text-xs"
+                                      onClick={(e) => { e.stopPropagation(); setOilMatch(match); }}
+                                    >
+                                      <Droplet className="h-3.5 w-3.5" />
+                                      Huilage
+                                    </Button>
+                                  </div>
+                                )}
                               </div>
                               {isPersonalMine && (
                                 <Button
