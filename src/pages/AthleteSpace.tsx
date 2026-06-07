@@ -798,7 +798,7 @@ export default function AthleteSpace() {
                 />
               </TabsContent>
               <TabsContent value="annual">
-                <AnnualPlanningView categoryId={athleteInfo.category_id} />
+                <AnnualPlanningView categoryId={athleteInfo.category_id} readOnly />
               </TabsContent>
             </Tabs>
           </TabsContent>
