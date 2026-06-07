@@ -162,6 +162,8 @@ export function CreateEventDialog({
   const [notes, setNotes] = useState("");
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
+  const [mentalDuration, setMentalDuration] = useState<number>(30);
+  const [mentalTheme, setMentalTheme] = useState<string>("");
   
   const queryClient = useQueryClient();
   const { notify } = useSessionNotifications();
