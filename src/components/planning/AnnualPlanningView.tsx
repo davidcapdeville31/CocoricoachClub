@@ -251,6 +251,7 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
   };
 
   const handleDateRangeSelect = useCallback((start: Date, end: Date) => {
+    if (isViewer) return;
     setPrefilledStartDate(start);
     setPrefilledEndDate(end);
     // If the active line is the "Compétitions" line, open the competitions dialog
@@ -262,7 +263,7 @@ export function AnnualPlanningView({ categoryId, readOnly = false }: AnnualPlann
     }
     setAddCyclePreselectedCategory(activeCategoryId);
     setAddCycleOpen(true);
-  }, [activeCategoryId, categories]);
+  }, [activeCategoryId, categories, isViewer]);
 
   const handleExportPdf = useCallback(() => {
     try {
