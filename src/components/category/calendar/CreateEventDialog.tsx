@@ -23,6 +23,7 @@ import {
   CheckCircle2,
   Sparkles,
   Settings2,
+  Brain,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
