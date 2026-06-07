@@ -373,7 +373,8 @@ export function CreateEventDialog({
             sessionStartTime: startTime || null,
             sessionType: selectedType === "medical" ? "medical" :
                          selectedType === "video" ? "video_analyse" :
-                         selectedType === "team_meeting" ? "reunion" : "autre",
+                         selectedType === "team_meeting" ? "reunion" :
+                         selectedType === "mental" ? "mental" : "autre",
             location: location || null,
             participantPlayerIds: selectedPlayers.length > 0 ? selectedPlayers : undefined,
           });
