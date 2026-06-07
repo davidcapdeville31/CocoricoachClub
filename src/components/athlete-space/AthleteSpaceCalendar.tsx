@@ -88,7 +88,6 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [oilMatch, setOilMatch] = useState<any | null>(null);
   const queryClient = useQueryClient();
 
-  const isBowling = (sportType || "").toLowerCase().includes("bowling");
 
 
   const handleDeleteSession = async () => {
