@@ -69,10 +69,15 @@ serve(async (req) => {
     }
 
     // Get categories for eligible clubs
-    const { data: categories, error: catError } = await supabase
+    // Exclude bowling categories: per product rule, no wellness auto-fill for bowling athletes
+    const { data: categoriesRaw, error: catError } = await supabase
       .from("categories")
-      .select("id, club_id")
+      .select("id, club_id, rugby_type")
       .in("club_id", eligibleClubIds);
+
+    const categories = (categoriesRaw || []).filter(
+      (c: any) => !((c.rugby_type as string | null)?.toLowerCase().startsWith("bowling"))
+    );
 
     if (catError) throw catError;
     if (!categories || categories.length === 0) {
