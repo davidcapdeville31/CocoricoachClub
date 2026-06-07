@@ -7,7 +7,8 @@ import {
   ClipboardList, 
   Users, 
   Calendar,
-  Swords 
+  Swords,
+  Brain,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
