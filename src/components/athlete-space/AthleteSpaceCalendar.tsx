@@ -19,6 +19,7 @@ import {
   HeartPulse,
   Play,
   Trash2,
+  Droplet,
 } from "lucide-react";
 import { format, isWithinInterval, parseISO, eachDayOfInterval, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
 import { toast } from "sonner";
@@ -49,6 +50,9 @@ import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionE
 import { CreateEventDialog } from "@/components/category/calendar/CreateEventDialog";
 import { FieldSessionDialog } from "@/components/category/calendar/FieldSessionDialog";
 import { AddMatchCalendarDialog } from "@/components/category/matches/AddMatchCalendarDialog";
+import { CompetitionRoundsDialog } from "@/components/category/matches/CompetitionRoundsDialog";
+import { BowlingOilPatternSection } from "@/components/category/matches/BowlingOilPatternSection";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 
 interface Props {
@@ -80,7 +84,11 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [sessionToDelete, setSessionToDelete] = useState<any | null>(null);
   const [matchToDelete, setMatchToDelete] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [roundsMatch, setRoundsMatch] = useState<any | null>(null);
+  const [oilMatch, setOilMatch] = useState<any | null>(null);
   const queryClient = useQueryClient();
+
+
 
   const handleDeleteSession = async () => {
     if (!sessionToDelete) return;
@@ -544,6 +552,28 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                 {match.notes && (
                                   <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{match.notes}</p>
                                 )}
+                                {isPersonalMine && isBowling && (
+                                  <div className="flex flex-wrap gap-1.5 mt-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 gap-1.5 text-xs"
+                                      onClick={(e) => { e.stopPropagation(); setRoundsMatch(match); }}
+                                    >
+                                      <Swords className="h-3.5 w-3.5" />
+                                      Parties
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 gap-1.5 text-xs"
+                                      onClick={(e) => { e.stopPropagation(); setOilMatch(match); }}
+                                    >
+                                      <Droplet className="h-3.5 w-3.5" />
+                                      Huilage
+                                    </Button>
+                                  </div>
+                                )}
                               </div>
                               {isPersonalMine && (
                                 <Button
@@ -997,6 +1027,27 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {roundsMatch && (
+        <CompetitionRoundsDialog
+          open={!!roundsMatch}
+          onOpenChange={(o) => !o && setRoundsMatch(null)}
+          matchId={roundsMatch.id}
+          categoryId={categoryId}
+          sportType={sportType || ""}
+        />
+      )}
+
+      {oilMatch && (
+        <Dialog open={!!oilMatch} onOpenChange={(o) => !o && setOilMatch(null)}>
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Huilage</DialogTitle>
+            </DialogHeader>
+            <BowlingOilPatternSection matchId={oilMatch.id} categoryId={categoryId} />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
