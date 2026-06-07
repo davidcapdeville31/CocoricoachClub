@@ -649,8 +649,10 @@ export function CreateEventDialog({
                 />
               </div>
 
+              {!athletePlayerId && (
               {/* Player selection */}
               <div className="space-y-2">
+
                 <div className="flex items-center justify-between">
                   <Label className="flex items-center gap-1">
                     <Users className="h-3 w-3" /> Participants
