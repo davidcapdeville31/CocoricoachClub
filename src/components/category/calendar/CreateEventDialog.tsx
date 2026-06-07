@@ -649,9 +649,10 @@ export function CreateEventDialog({
                 />
               </div>
 
+              {/* Player selection (hidden when athlete creates for themselves) */}
               {!athletePlayerId && (
-              {/* Player selection */}
               <div className="space-y-2">
+
 
                 <div className="flex items-center justify-between">
                   <Label className="flex items-center gap-1">
