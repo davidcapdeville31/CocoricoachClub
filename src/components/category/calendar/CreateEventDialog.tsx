@@ -621,17 +621,19 @@ export function CreateEventDialog({
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="location" className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" /> Lieu (optionnel)
-                </Label>
-                <Input
-                  id="location"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Salle de réunion, cabinet..."
-                />
-              </div>
+              {selectedType !== "mental" && (
+                <div className="space-y-2">
+                  <Label htmlFor="location" className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" /> Lieu (optionnel)
+                  </Label>
+                  <Input
+                    id="location"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="Salle de réunion, cabinet..."
+                  />
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="notes">Notes (optionnel)</Label>
