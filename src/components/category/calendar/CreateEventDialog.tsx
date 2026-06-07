@@ -250,6 +250,8 @@ export function CreateEventDialog({
     setNotes("");
     setSelectedPlayers([]);
     setSelectAll(false);
+    setMentalDuration(30);
+    setMentalTheme("");
   };
 
   const handleClose = (open: boolean) => {
