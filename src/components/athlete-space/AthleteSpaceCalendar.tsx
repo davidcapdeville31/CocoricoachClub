@@ -267,7 +267,15 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
   const trainingDates = trainingSessions.map(s => new Date(s.session_date));
   const testDates = testSessions.map(s => new Date(s.session_date));
-  const matchDates = matches.map(m => new Date(m.match_date));
+  const matchDates = matches.flatMap(m => {
+    try {
+      const start = parseISO(m.match_date);
+      const end = m.end_date ? parseISO(m.end_date) : start;
+      return eachDayOfInterval({ start, end: end < start ? start : end });
+    } catch {
+      return [new Date(m.match_date)];
+    }
+  });
   const athleteSessionDates = athleteSessionList.map(s => new Date(s.session_date));
 
   // Compute prophylaxis dates for calendar modifiers
