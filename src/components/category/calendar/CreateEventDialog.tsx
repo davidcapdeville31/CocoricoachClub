@@ -332,18 +332,32 @@ export function CreateEventDialog({
       // PAS de RPE, PAS d'intensité — simple ajout au calendrier des athlètes assignés.
       const isAdminEvent =
         selectedType === "medical" || selectedType === "video" || selectedType === "team_meeting" || selectedType === "mental";
+      const isMental = selectedType === "mental";
+      // For mental sessions: keep a default 09:00 start, compute end from duration (minutes).
+      const computeMentalEnd = (start: string, mins: number) => {
+        const [h, m] = start.split(":").map(Number);
+        const total = h * 60 + m + (mins || 0);
+        const eh = String(Math.floor(total / 60) % 24).padStart(2, "0");
+        const em = String(total % 60).padStart(2, "0");
+        return `${eh}:${em}`;
+      };
+      const effectiveStart = isMental ? "09:00" : startTime;
+      const effectiveEnd = isMental ? computeMentalEnd("09:00", mentalDuration) : endTime;
+      const mentalMeta = isMental
+        ? `<!--MENTAL:${JSON.stringify({ duration_min: mentalDuration, theme: mentalTheme })}-->\n`
+        : "";
       const { data: session, error } = await supabase
         .from("training_sessions")
         .insert({
           category_id: categoryId,
           session_date: format(date, "yyyy-MM-dd"),
-          session_start_time: startTime,
-          session_end_time: endTime,
+          session_start_time: effectiveStart,
+          session_end_time: effectiveEnd,
           training_type: selectedType === "medical" ? "medical" : 
                          selectedType === "video" ? "video_analyse" :
                          selectedType === "team_meeting" ? "reunion" :
                          selectedType === "mental" ? "mental" : "autre",
-          notes: `${title}${location ? ` - ${location}` : ""}${notes ? `\n${notes}` : ""}`,
+          notes: `${mentalMeta}${title}${isMental && mentalTheme ? ` - ${mentalTheme}` : ""}${location ? ` - ${location}` : ""}${notes ? `\n${notes}` : ""}`,
           intensity: isAdminEvent ? null : 1,
           planned_intensity: isAdminEvent ? null : null,
         })
