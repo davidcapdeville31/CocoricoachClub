@@ -145,6 +145,44 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     },
   });
 
+  // Fetch mental preparation sessions for this category (and player if scoped)
+  const { data: mentalSessions = [] } = useQuery({
+    queryKey: ["mental_sessions_stats", categoryId, playerId || "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("training_sessions")
+        .select("id, session_date, session_start_time, session_end_time, notes, event_participants(player_id)")
+        .eq("category_id", categoryId)
+        .eq("training_type", "mental");
+      if (error) throw error;
+      const parseDuration = (s: any) => {
+        // Try metadata in notes first
+        const m = typeof s.notes === "string" ? s.notes.match(/<!--MENTAL:(\{[^}]*\})-->/) : null;
+        if (m) {
+          try {
+            const meta = JSON.parse(m[1]);
+            if (typeof meta?.duration_min === "number" && meta.duration_min > 0) return meta.duration_min;
+          } catch {}
+        }
+        // Fallback: end - start
+        if (s.session_start_time && s.session_end_time) {
+          const [h1, m1] = s.session_start_time.split(":").map(Number);
+          const [h2, m2] = s.session_end_time.split(":").map(Number);
+          const diff = (h2 * 60 + m2) - (h1 * 60 + m1);
+          return diff > 0 ? diff : 0;
+        }
+        return 0;
+      };
+      return (data || []).map((s: any) => ({
+        id: s.id,
+        session_date: s.session_date,
+        duration_min: parseDuration(s),
+        player_ids: (s.event_participants || []).map((p: any) => p.player_id).filter(Boolean) as string[],
+      }));
+    },
+  });
+
+
 
   // Set of athletes who have new-system bowling sessions (used to hide obsolete legacy data)
   const athletesWithNewBlocks = useMemo(() => {
@@ -408,12 +446,29 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       sessionIds.add(b.session_id || `${b.athlete_id}-${b.session_date.slice(0, 10)}`);
     });
 
-    const minutesByTheme: Record<string, number> = { warmup: 0, technical: 0, tactical: 0, games: 0 };
+    const minutesByTheme: Record<string, number> = { warmup: 0, technical: 0, tactical: 0, games: 0, mental: 0 };
     let totalMinutes = 0;
     filtered.forEach((b) => {
       const d = b.duration_min || 0;
       if (minutesByTheme[b.block_type] !== undefined) minutesByTheme[b.block_type] += d;
       totalMinutes += d;
+    });
+
+    // Filter mental sessions by player + date + category
+    const mentalFiltered = mentalSessions.filter((s) => {
+      if (!dateFilter(s.session_date)) return false;
+      const effectivePlayer = playerId || (selectedPlayerId !== "all" ? selectedPlayerId : null);
+      if (effectivePlayer) {
+        if (!s.player_ids.includes(effectivePlayer)) return false;
+      }
+      return true;
+    });
+    const mentalSessionIds = new Set<string>();
+    mentalFiltered.forEach((s) => {
+      const d = s.duration_min || 0;
+      minutesByTheme.mental += d;
+      totalMinutes += d;
+      mentalSessionIds.add(s.id);
     });
 
     // Time buckets
@@ -435,42 +490,53 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       return { key: format(m, "yyyy-MM"), label: format(m, "MMM yy", { locale: fr }), order: m.getTime() };
     };
 
-    const buckets = new Map<string, { label: string; order: number; warmup: number; technical: number; tactical: number; games: number; total: number }>();
+    const buckets = new Map<string, { label: string; order: number; warmup: number; technical: number; tactical: number; games: number; mental: number; total: number }>();
     filtered.forEach((b) => {
       const { key, label, order } = bucketKey(b.session_date);
       const d = (b.duration_min || 0) / 60; // hours
-      const cur = buckets.get(key) || { label, order, warmup: 0, technical: 0, tactical: 0, games: 0, total: 0 };
+      const cur = buckets.get(key) || { label, order, warmup: 0, technical: 0, tactical: 0, games: 0, mental: 0, total: 0 };
       if ((cur as any)[b.block_type] !== undefined) (cur as any)[b.block_type] += d;
+      cur.total += d;
+      buckets.set(key, cur);
+    });
+    mentalFiltered.forEach((s) => {
+      const { key, label, order } = bucketKey(s.session_date);
+      const d = (s.duration_min || 0) / 60;
+      const cur = buckets.get(key) || { label, order, warmup: 0, technical: 0, tactical: 0, games: 0, mental: 0, total: 0 };
+      cur.mental += d;
       cur.total += d;
       buckets.set(key, cur);
     });
 
     const chartData = Array.from(buckets.values()).sort((a, b) => a.order - b.order).map((b) => {
-      const total = b.warmup + b.technical + b.tactical + b.games;
+      const total = b.warmup + b.technical + b.tactical + b.games + b.mental;
       return {
         label: b.label,
         "Échauffement": Math.round(b.warmup * 10) / 10,
         "Technique": Math.round(b.technical * 10) / 10,
         "Tactique": Math.round(b.tactical * 10) / 10,
         "Parties": Math.round(b.games * 10) / 10,
-        __raw: { "Échauffement": b.warmup, "Technique": b.technical, "Tactique": b.tactical, "Parties": b.games },
+        "Mental": Math.round(b.mental * 10) / 10,
+        __raw: { "Échauffement": b.warmup, "Technique": b.technical, "Tactique": b.tactical, "Parties": b.games, "Mental": b.mental },
         __total: total,
       };
     });
 
     return {
-      sessionsCount: sessionIds.size,
+      sessionsCount: sessionIds.size + mentalSessionIds.size,
       totalHours: totalMinutes / 60,
       hoursByTheme: {
         warmup: minutesByTheme.warmup / 60,
         technical: minutesByTheme.technical / 60,
         tactical: minutesByTheme.tactical / 60,
         games: minutesByTheme.games / 60,
+        mental: minutesByTheme.mental / 60,
       },
       chartData,
-      blockCount: filtered.length,
+      blockCount: filtered.length + mentalFiltered.length,
     };
-  }, [trainingBlocks, selectedPlayerId, playerId, dateFrom, dateTo, globalPeriod]);
+  }, [trainingBlocks, mentalSessions, selectedPlayerId, playerId, dateFrom, dateTo, globalPeriod]);
+
 
   // Get unique balls used by all players for ball filter
   const availableBalls = useMemo(() => {
@@ -635,7 +701,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
   const hasGameData = playerGameStats.length > 0;
   const hasSpareData = playerSpareStats.length > 0;
   const hasGlobalData = globalStats.blockCount > 0;
-  const THEME_COLORS = { warmup: "hsl(43 96% 56%)", technical: "hsl(160 84% 39%)", tactical: "hsl(217 91% 60%)", games: "hsl(38 92% 50%)" };
+  const THEME_COLORS = { warmup: "hsl(43 96% 56%)", technical: "hsl(160 84% 39%)", tactical: "hsl(217 91% 60%)", games: "hsl(38 92% 50%)", mental: "hsl(292 84% 61%)" };
 
   return (
     <div className="space-y-4">
@@ -766,7 +832,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
           <TabsContent value="global" className="space-y-4 mt-4">
             {hasGlobalData ? (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
                   <Card>
                     <CardContent className="p-3 text-center">
                       <p className="text-2xl font-bold text-primary">{globalStats.sessionsCount}</p>
@@ -797,7 +863,14 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center"><Circle className="h-3 w-3" />Parties</p>
                     </CardContent>
                   </Card>
+                  <Card style={{ borderColor: THEME_COLORS.mental }}>
+                    <CardContent className="p-3 text-center">
+                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.mental }}>{globalStats.hoursByTheme.mental.toFixed(1)}h</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center">🧠 Mental</p>
+                    </CardContent>
+                  </Card>
                 </div>
+
 
                 <Card>
                   <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0 flex-wrap gap-2">
@@ -837,8 +910,8 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                             }}
                           />
                           <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} iconType="circle" iconSize={8} />
-                          {(["Échauffement", "Technique", "Tactique", "Parties"] as const).map((k) => {
-                            const color = k === "Échauffement" ? THEME_COLORS.warmup : k === "Technique" ? THEME_COLORS.technical : k === "Tactique" ? THEME_COLORS.tactical : THEME_COLORS.games;
+                          {(["Échauffement", "Technique", "Tactique", "Parties", "Mental"] as const).map((k) => {
+                            const color = k === "Échauffement" ? THEME_COLORS.warmup : k === "Technique" ? THEME_COLORS.technical : k === "Tactique" ? THEME_COLORS.tactical : k === "Parties" ? THEME_COLORS.games : THEME_COLORS.mental;
                             return (
                               <Bar key={k} dataKey={k} fill={color} radius={[4, 4, 0, 0]} maxBarSize={22}>
                                 <LabelList
@@ -881,8 +954,8 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                             }}
                           />
                           <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} iconType="circle" iconSize={8} />
-                          {(["Échauffement", "Technique", "Tactique", "Parties"] as const).map((k) => {
-                            const color = k === "Échauffement" ? THEME_COLORS.warmup : k === "Technique" ? THEME_COLORS.technical : k === "Tactique" ? THEME_COLORS.tactical : THEME_COLORS.games;
+                          {(["Échauffement", "Technique", "Tactique", "Parties", "Mental"] as const).map((k) => {
+                            const color = k === "Échauffement" ? THEME_COLORS.warmup : k === "Technique" ? THEME_COLORS.technical : k === "Tactique" ? THEME_COLORS.tactical : k === "Parties" ? THEME_COLORS.games : THEME_COLORS.mental;
                             return (
                               <Line key={k} type="monotone" dataKey={k} stroke={color} strokeWidth={2} dot={{ r: 3, fill: color }} activeDot={{ r: 5 }} />
                             );
