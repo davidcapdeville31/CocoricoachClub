@@ -681,6 +681,19 @@ export function AthleteBowlingCompetitionDialog({
                           disabled={!canEditPattern}
                         />
                       </div>
+
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => savePatternMutation.mutate(pattern)}
+                          disabled={savePatternMutation.isPending || !canEditPattern}
+                        >
+                          <Save className="h-4 w-4" />
+                          Enregistrer ce huilage
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 );
