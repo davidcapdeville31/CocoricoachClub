@@ -50,6 +50,9 @@ import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionE
 import { CreateEventDialog } from "@/components/category/calendar/CreateEventDialog";
 import { FieldSessionDialog } from "@/components/category/calendar/FieldSessionDialog";
 import { AddMatchCalendarDialog } from "@/components/category/matches/AddMatchCalendarDialog";
+import { CompetitionRoundsDialog } from "@/components/category/matches/CompetitionRoundsDialog";
+import { BowlingOilPatternSection } from "@/components/category/matches/BowlingOilPatternSection";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 
 interface Props {
