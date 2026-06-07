@@ -169,7 +169,7 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const { settings: pdfSettings, logoBase64, seasonName, clubName: cn1, categoryName: catName1 } = await preparePdfWithSettings(categoryId);
 
       // Fetch all matches with lineups, stats and injuries
-      let matchQuery = supabase.from("matches").select("id, match_date, opponent, is_home").eq("category_id", categoryId).order("match_date");
+      let matchQuery = supabase.from("matches").select("id, match_date, opponent, is_home").eq("category_id", categoryId).eq("is_personal", false).order("match_date");
       if (tdjDateFrom) matchQuery = matchQuery.gte("match_date", tdjDateFrom);
       if (tdjDateTo) matchQuery = matchQuery.lte("match_date", tdjDateTo);
 
