@@ -954,8 +954,8 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                             }}
                           />
                           <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} iconType="circle" iconSize={8} />
-                          {(["Échauffement", "Technique", "Tactique", "Parties"] as const).map((k) => {
-                            const color = k === "Échauffement" ? THEME_COLORS.warmup : k === "Technique" ? THEME_COLORS.technical : k === "Tactique" ? THEME_COLORS.tactical : THEME_COLORS.games;
+                          {(["Échauffement", "Technique", "Tactique", "Parties", "Mental"] as const).map((k) => {
+                            const color = k === "Échauffement" ? THEME_COLORS.warmup : k === "Technique" ? THEME_COLORS.technical : k === "Tactique" ? THEME_COLORS.tactical : k === "Parties" ? THEME_COLORS.games : THEME_COLORS.mental;
                             return (
                               <Line key={k} type="monotone" dataKey={k} stroke={color} strokeWidth={2} dot={{ r: 3, fill: color }} activeDot={{ r: 5 }} />
                             );
