@@ -178,9 +178,21 @@ export function CreateEventDialog({
   const [selectAll, setSelectAll] = useState(false);
   const [mentalDuration, setMentalDuration] = useState<number>(30);
   const [mentalTheme, setMentalTheme] = useState<string>("");
-  
+
   const queryClient = useQueryClient();
   const { notify } = useSessionNotifications();
+
+  // When opening in edit mode for a mental session, pre-fill and jump to details step.
+  useEffect(() => {
+    if (open && editingMentalSession) {
+      setStep("details");
+      setSelectedType("mental");
+      setTitle(editingMentalSession.title || "Séance mental");
+      setMentalDuration(editingMentalSession.durationMin || 30);
+      setMentalTheme(editingMentalSession.theme || "");
+      setNotes(editingMentalSession.notes || "");
+    }
+  }, [open, editingMentalSession]);
 
   // Fetch players
   const { data: players } = useQuery({
