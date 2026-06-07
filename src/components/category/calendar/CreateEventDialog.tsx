@@ -153,6 +153,7 @@ export function CreateEventDialog({
   onSelectBowlingSimplified,
   onSelectBowlingAdvanced,
   allowedTypeIds,
+  athletePlayerId,
 }: CreateEventDialogProps) {
 
   const [step, setStep] = useState<"type" | "bowling_mode" | "details">("type");
