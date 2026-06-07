@@ -473,9 +473,10 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       totalMinutes += d;
     });
 
-    // Filter mental sessions by player + date + category
+    // Filter mental sessions by player + date + category + period
     const mentalFiltered = mentalSessions.filter((s) => {
       if (!dateFilter(s.session_date)) return false;
+      if (!inPeriod(s.session_date)) return false;
       const effectivePlayer = playerId || (selectedPlayerId !== "all" ? selectedPlayerId : null);
       if (effectivePlayer) {
         if (!s.player_ids.includes(effectivePlayer)) return false;
