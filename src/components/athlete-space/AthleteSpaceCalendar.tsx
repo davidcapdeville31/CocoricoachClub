@@ -78,6 +78,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [bowlingAdvancedSessionId, setBowlingAdvancedSessionId] = useState<string | null>(null);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [sessionToDelete, setSessionToDelete] = useState<any | null>(null);
+  const [matchToDelete, setMatchToDelete] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
@@ -93,6 +94,25 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
       toast.success(data?.unassigned ? "Vous avez été retiré de la séance" : "Séance supprimée");
       setSessionToDelete(null);
       queryClient.invalidateQueries({ queryKey: ["athlete-calendar-sessions", categoryId, playerId] });
+    } catch (e: any) {
+      toast.error(e?.message || "Erreur lors de la suppression");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteMatch = async () => {
+    if (!matchToDelete) return;
+    setIsDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("athlete-delete-match", {
+        body: { match_id: matchToDelete.id, player_id: playerId },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Échec de la suppression");
+      toast.success("Compétition supprimée");
+      setMatchToDelete(null);
+      queryClient.invalidateQueries({ queryKey: ["athlete-calendar-matches", categoryId, playerId] });
     } catch (e: any) {
       toast.error(e?.message || "Erreur lors de la suppression");
     } finally {
