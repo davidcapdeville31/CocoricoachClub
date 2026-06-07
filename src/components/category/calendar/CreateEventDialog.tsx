@@ -163,7 +163,7 @@ export function CreateEventDialog({
   const [endTime, setEndTime] = useState("10:00");
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
-  const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
+  const [selectedPlayers, setSelectedPlayers] = useState<string[]>(athletePlayerId ? [athletePlayerId] : []);
   const [selectAll, setSelectAll] = useState(false);
   const [mentalDuration, setMentalDuration] = useState<number>(30);
   const [mentalTheme, setMentalTheme] = useState<string>("");
