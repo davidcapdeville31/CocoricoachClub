@@ -23,6 +23,7 @@ import {
   CheckCircle2,
   Sparkles,
   Settings2,
+  Brain,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -123,6 +124,17 @@ const EVENT_TYPES = [
     iconBgColor: "bg-indigo-100 dark:bg-indigo-500/15",
     accentBorderColor: "border-l-indigo-500",
     hoverBorderColor: "hover:border-indigo-400 dark:hover:border-indigo-500",
+    useExistingDialog: false,
+  },
+  {
+    id: "mental",
+    label: "Séance mental",
+    description: "Préparation mentale, sophrologie, visualisation",
+    icon: Brain,
+    iconColor: "text-fuchsia-700 dark:text-fuchsia-300",
+    iconBgColor: "bg-fuchsia-100 dark:bg-fuchsia-500/15",
+    accentBorderColor: "border-l-fuchsia-500",
+    hoverBorderColor: "hover:border-fuchsia-400 dark:hover:border-fuchsia-500",
     useExistingDialog: false,
   },
 ];
@@ -285,6 +297,7 @@ export function CreateEventDialog({
       if (typeId === "medical") setTitle("Rendez-vous médical");
       if (typeId === "video") setTitle("Analyse vidéo");
       if (typeId === "team_meeting") setTitle("Réunion d'équipe");
+      if (typeId === "mental") setTitle("Séance mental");
     }
   };
 
@@ -313,7 +326,7 @@ export function CreateEventDialog({
       // Événements administratifs (rdv médical, analyse vidéo, réunion) :
       // PAS de RPE, PAS d'intensité — simple ajout au calendrier des athlètes assignés.
       const isAdminEvent =
-        selectedType === "medical" || selectedType === "video" || selectedType === "team_meeting";
+        selectedType === "medical" || selectedType === "video" || selectedType === "team_meeting" || selectedType === "mental";
       const { data: session, error } = await supabase
         .from("training_sessions")
         .insert({
@@ -323,7 +336,8 @@ export function CreateEventDialog({
           session_end_time: endTime,
           training_type: selectedType === "medical" ? "medical" : 
                          selectedType === "video" ? "video_analyse" :
-                         selectedType === "team_meeting" ? "reunion" : "autre",
+                         selectedType === "team_meeting" ? "reunion" :
+                         selectedType === "mental" ? "mental" : "autre",
           notes: `${title}${location ? ` - ${location}` : ""}${notes ? `\n${notes}` : ""}`,
           intensity: isAdminEvent ? null : 1,
           planned_intensity: isAdminEvent ? null : null,
@@ -359,7 +373,8 @@ export function CreateEventDialog({
             sessionStartTime: startTime || null,
             sessionType: selectedType === "medical" ? "medical" :
                          selectedType === "video" ? "video_analyse" :
-                         selectedType === "team_meeting" ? "reunion" : "autre",
+                         selectedType === "team_meeting" ? "reunion" :
+                         selectedType === "mental" ? "mental" : "autre",
             location: location || null,
             participantPlayerIds: selectedPlayers.length > 0 ? selectedPlayers : undefined,
           });
