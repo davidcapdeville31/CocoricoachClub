@@ -1369,7 +1369,8 @@ export function ReportsTab({ categoryId }: ReportsTabProps) {
       const { data: categoryMatches } = await supabase
         .from("matches")
         .select("id")
-        .eq("category_id", categoryId);
+        .eq("category_id", categoryId)
+        .eq("is_personal", false);
       
       const matchIds = categoryMatches?.map(m => m.id) || [];
 
