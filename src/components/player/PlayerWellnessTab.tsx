@@ -210,6 +210,9 @@ export function PlayerWellnessTab({ playerId, categoryId }: PlayerWellnessTabPro
 
   return (
     <div className="space-y-6">
+      {/* Recovery score (synthèse globale 0-100%) */}
+      <PlayerRecoveryScore playerId={playerId} />
+
       {/* Smart Alert */}
       {smartAlert && (
         <Alert 
