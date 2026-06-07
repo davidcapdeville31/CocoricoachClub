@@ -135,6 +135,9 @@ export function AddEventDialog({
       case "team":
         onAddSession();
         break;
+      case "mental":
+        onAddSession();
+        break;
     }
     onOpenChange(false);
   };
