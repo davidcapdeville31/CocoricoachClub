@@ -164,6 +164,7 @@ export function CreateEventDialog({
   onSelectBowlingAdvanced,
   allowedTypeIds,
   athletePlayerId,
+  editingMentalSession,
 }: CreateEventDialogProps) {
 
   const [step, setStep] = useState<"type" | "bowling_mode" | "details">("type");
