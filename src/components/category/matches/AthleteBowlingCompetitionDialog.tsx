@@ -796,7 +796,7 @@ export function AthleteBowlingCompetitionDialog({
           </Button>
           <Button type="button" className="gap-2" onClick={() => saveMutation.mutate()} disabled={competitionQuery.isLoading || saveMutation.isPending}>
             <Save className="h-4 w-4" />
-            {saveMutation.isPending ? "Enregistrement..." : "Enregistrer"}
+            {saveMutation.isPending ? "Enregistrement..." : "Enregistrer la compétition"}
           </Button>
         </DialogFooter>
       </DialogContent>
