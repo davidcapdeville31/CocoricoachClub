@@ -336,7 +336,11 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
 
   const selectedDateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
   const daySessions = sessions.filter(s => s.session_date === selectedDateStr);
-  const dayMatches = matches.filter(m => m.match_date === selectedDateStr);
+  const dayMatches = matches.filter(m => {
+    if (!selectedDateStr) return false;
+    if (!m.end_date || m.end_date === m.match_date) return m.match_date === selectedDateStr;
+    return selectedDateStr >= m.match_date && selectedDateStr <= m.end_date;
+  });
 
   // Check if prophylaxis programs apply to selected date
   const dayProphylaxis = useMemo(() => {
