@@ -376,8 +376,6 @@ serve(async (req) => {
     }
 
     return respond({ success: false, error: "Action inconnue" }, 400);
-
-    return respond({ success: false, error: "Action inconnue" }, 400);
   } catch (error: unknown) {
     const err = error as { message?: string; details?: string; hint?: string };
     console.error("[athlete-bowling-competition]", JSON.stringify(err));
