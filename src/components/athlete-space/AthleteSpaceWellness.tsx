@@ -434,7 +434,7 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
         aria-label="Remplir le Wellness du jour"
         className="group w-full rounded-2xl px-5 py-5 sm:py-6 text-left shadow-lg border-2 transition-all duration-150 active:scale-[0.99] hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-offset-2 flex items-center gap-4"
         style={{
-          background: `linear-gradient(135deg, ${NAV_COLORS.sante.base}, ${NAV_COLORS.sante.base}dd)`,
+          backgroundColor: NAV_COLORS.sante.base,
           borderColor: NAV_COLORS.sante.base,
           color: "#fff",
         }}
