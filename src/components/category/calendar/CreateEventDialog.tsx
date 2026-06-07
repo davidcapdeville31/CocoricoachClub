@@ -32,6 +32,14 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
 
+export interface EditingMentalSession {
+  id: string;
+  title: string;
+  durationMin: number;
+  theme: string;
+  notes: string;
+}
+
 interface CreateEventDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -48,6 +56,8 @@ interface CreateEventDialogProps {
   allowedTypeIds?: string[];
   /** When set, this is an athlete creating an event for themselves only. Hides the participants picker. */
   athletePlayerId?: string;
+  /** When set, the dialog opens directly in mental-session edit mode and updates the existing row instead of creating. */
+  editingMentalSession?: EditingMentalSession | null;
 }
 
 
