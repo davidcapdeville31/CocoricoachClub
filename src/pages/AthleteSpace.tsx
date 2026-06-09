@@ -501,12 +501,14 @@ export default function AthleteSpace() {
             <NotificationBell variant="default" />
             <Button
               size="sm"
-              className="px-2 sm:px-3 text-white border-0"
+              className="px-2 sm:px-3 text-white border-0 shrink-0"
               style={{ backgroundColor: NAV_COLORS.effectif.base }}
               onClick={() => setShowPersonalInfoDialog(true)}
+              aria-label="Informations personnelles"
             >
               <User className="h-4 w-4 sm:mr-1.5" />
               <span className="hidden sm:inline">Informations personnelles</span>
+              <span className="sm:hidden text-xs font-medium">Infos</span>
             </Button>
             {!isSuperAdminView && (
               <Button variant="ghost" size="icon" onClick={() => signOut()}>
