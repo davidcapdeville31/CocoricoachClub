@@ -451,27 +451,29 @@ export function BowlingSimplifiedDialog({
 
     // Huilage (pattern) : upsert pour le match d'entraînement
     if (matchId && oilPatternName && oilPatternName !== "none") {
-      const preset = OFFICIAL_OIL_PATTERNS.find((p) => p.name === oilPatternName);
+      const isCustom = oilPatternName === "__custom__";
+      const preset = isCustom ? null : OFFICIAL_OIL_PATTERNS.find((p) => p.name === oilPatternName);
+      const patternName = isCustom ? (customOilName.trim() || "Personnalisé") : oilPatternName;
       const { data: existingPat } = await db
         .from("bowling_oil_patterns")
         .select("id")
         .eq("match_id", matchId)
-        .eq("name", oilPatternName)
+        .eq("name", patternName)
         .limit(1)
         .maybeSingle();
       const payload: any = {
         category_id: categoryId,
         match_id: matchId,
-        name: oilPatternName,
-        length_feet: preset?.length_feet ?? null,
-        buff_distance_feet: preset?.buff_distance_feet ?? null,
-        width_boards: preset?.width_boards ?? null,
-        total_volume_ml: preset?.total_volume_ml ?? null,
-        oil_ratio: preset?.oil_ratio ?? null,
-        profile_type: preset?.profile_type ?? null,
-        forward_oil: preset?.forward_oil ?? null,
-        reverse_oil: preset?.reverse_oil ?? null,
-        outside_friction: preset?.outside_friction ?? null,
+        name: patternName,
+        length_feet: isCustom ? customOilPattern.length_feet : (preset?.length_feet ?? null),
+        buff_distance_feet: isCustom ? customOilPattern.buff_distance_feet : (preset?.buff_distance_feet ?? null),
+        width_boards: isCustom ? customOilPattern.width_boards : (preset?.width_boards ?? null),
+        total_volume_ml: isCustom ? customOilPattern.total_volume_ml : (preset?.total_volume_ml ?? null),
+        oil_ratio: isCustom ? customOilPattern.oil_ratio : (preset?.oil_ratio ?? null),
+        profile_type: isCustom ? customOilPattern.profile_type : (preset?.profile_type ?? null),
+        forward_oil: isCustom ? customOilPattern.forward_oil : (preset?.forward_oil ?? null),
+        reverse_oil: isCustom ? customOilPattern.reverse_oil : (preset?.reverse_oil ?? null),
+        outside_friction: isCustom ? customOilPattern.outside_friction : (preset?.outside_friction ?? null),
       };
       if (existingPat?.id) {
         await db.from("bowling_oil_patterns").update(payload).eq("id", existingPat.id);
