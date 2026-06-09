@@ -563,21 +563,46 @@ export function BowlingSimplifiedDialog({
       }
 
       // ============ MODE CRÉATION ============
-      const { data: session, error: sessErr } = await supabase
-        .from("training_sessions")
-        .insert({
-          category_id: categoryId,
-          session_date: sessionDate,
-          training_type: "bowling_simplified",
-          notes: "Séance bowling — Mode simplifié",
-          intensity: null,
-          planned_intensity: null,
-        })
-        .select("id")
-        .single();
-      if (sessErr) throw sessErr;
+      let createdSessionId: string;
 
-      const { error: partErr } = await supabase
+      if (isAthleteMode) {
+        // L'athlète ne peut pas écrire directement dans training_sessions (RLS).
+        // On passe par l'Edge Function dédiée qui crée la séance + le participant.
+        const { data: fnData, error: fnErr } = await supabase.functions.invoke(
+          "athlete-create-session",
+          {
+            body: {
+              category_id: categoryId,
+              player_id: athletePlayerId!,
+              session_date: sessionDate,
+              training_type: "bowling_simplified",
+              notes: "Séance bowling — Mode simplifié",
+            },
+          },
+        );
+        if (fnErr || !(fnData as any)?.success || !(fnData as any)?.session_id) {
+          throw new Error(
+            (fnData as any)?.error || fnErr?.message || "Erreur création séance athlète",
+          );
+        }
+        createdSessionId = (fnData as any).session_id as string;
+      } else {
+        const { data: session, error: sessErr } = await supabase
+          .from("training_sessions")
+          .insert({
+            category_id: categoryId,
+            session_date: sessionDate,
+            training_type: "bowling_simplified",
+            notes: "Séance bowling — Mode simplifié",
+            intensity: null,
+            planned_intensity: null,
+          })
+          .select("id")
+          .single();
+        if (sessErr) throw sessErr;
+        createdSessionId = session.id;
+
+        const { error: partErr } = await supabase
         .from("event_participants")
         .insert(
           targetPlayers.map((pid) => ({
