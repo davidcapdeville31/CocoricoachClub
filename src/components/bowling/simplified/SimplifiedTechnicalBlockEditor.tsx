@@ -124,7 +124,7 @@ export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playe
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top" className="max-w-xs bg-background/95 backdrop-blur-md text-xs leading-relaxed">
-                Note ce que tu ressens pendant l'exercice : qualité du geste, fluidité, équilibre, libération du bras, timing, relâchement, contact avec la boule, confiance, fatigue, points forts/faibles… Ces repères de sensations aident à comprendre et reproduire ce qui fonctionne.
+                Note ce que tu ressens pendant l'exercice : qualité du geste, fluidité, équilibre, libération du bras, timing, relâchement, contact avec la boule, fatigue… Ces repères de sensations aident à comprendre et reproduire ce qui fonctionne.
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
