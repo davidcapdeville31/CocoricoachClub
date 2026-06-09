@@ -390,25 +390,62 @@ export function CreateEventDialog({
         return updated;
       }
 
-      const { data: session, error } = await supabase
-        .from("training_sessions")
-        .insert({
-          category_id: categoryId,
-          session_date: format(date, "yyyy-MM-dd"),
-          session_start_time: effectiveStart,
-          session_end_time: effectiveEnd,
-          training_type: selectedType === "medical" ? "medical" : 
+      const trainingType = selectedType === "medical" ? "medical" : 
                          selectedType === "video" ? "video_analyse" :
                          selectedType === "team_meeting" ? "reunion" :
-                         selectedType === "mental" ? "mental" : "autre",
-          notes: notesPayload,
-          intensity: isAdminEvent ? null : 1,
-          planned_intensity: isAdminEvent ? null : null,
-          created_by_player_id: athletePlayerId ?? null,
-        })
-        .select("id")
-        .single();
-      if (error) throw error;
+                         selectedType === "mental" ? "mental" : "autre";
+
+      let session: { id: string } | null = null;
+
+      if (athletePlayerId) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token;
+
+        if (!accessToken) {
+          throw new Error("Session expirée. Reconnectez-vous puis réessayez.");
+        }
+
+        const { data: payload, error: invokeError } = await supabase.functions.invoke("athlete-create-session", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: {
+            category_id: categoryId,
+            player_id: athletePlayerId,
+            session_date: format(date, "yyyy-MM-dd"),
+            session_start_time: effectiveStart,
+            session_end_time: effectiveEnd,
+            training_type: trainingType,
+            intensity: isAdminEvent ? null : 1,
+            notes: notesPayload,
+          },
+        });
+
+        if (invokeError) throw invokeError;
+        if (!payload?.success || !payload?.session_id) {
+          throw new Error(payload?.error || "Erreur lors de la création de l'événement");
+        }
+
+        session = { id: payload.session_id };
+      } else {
+        const { data, error } = await supabase
+          .from("training_sessions")
+          .insert({
+            category_id: categoryId,
+            session_date: format(date, "yyyy-MM-dd"),
+            session_start_time: effectiveStart,
+            session_end_time: effectiveEnd,
+            training_type: trainingType,
+            notes: notesPayload,
+            intensity: isAdminEvent ? null : 1,
+            planned_intensity: isAdminEvent ? null : null,
+            created_by_player_id: null,
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        session = data;
+      }
 
 
       // Save participants
@@ -459,8 +496,8 @@ export function CreateEventDialog({
       toast.success(editingMentalSession ? "Séance mise à jour" : "Événement créé avec succès");
       handleClose(false);
     },
-    onError: () => {
-      toast.error("Erreur lors de la création de l'événement");
+    onError: (error: any) => {
+      toast.error(error?.message || "Erreur lors de la création de l'événement");
     },
   });
 
