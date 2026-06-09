@@ -505,9 +505,14 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
   }, [frames, calculateAllScores, calculateStats]);
 
   // Handle throw input
-  const handleThrowInput = (frameIndex: number, throwIndex: number, value: string) => {
-    const upperValue = value.toUpperCase();
-    
+  const handleThrowInput = (frameIndex: number, throwIndex: number, rawValue: string) => {
+    // Tablet/IME keyboards may emit multi-char strings (e.g. "8X" when replacing
+    // a value). Keep only the last typed character so saisie tactile works.
+    let upperValue = (rawValue || "").toUpperCase();
+    if (upperValue.length > 1) {
+      upperValue = upperValue.slice(-1);
+    }
+
     // Validate input
     if (upperValue !== "" && 
         upperValue !== "X" && 
