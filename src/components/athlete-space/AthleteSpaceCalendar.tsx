@@ -51,6 +51,7 @@ import { CreateEventDialog } from "@/components/category/calendar/CreateEventDia
 import { FieldSessionDialog } from "@/components/category/calendar/FieldSessionDialog";
 import { AddMatchCalendarDialog } from "@/components/category/matches/AddMatchCalendarDialog";
 import { AthleteBowlingCompetitionDialog } from "@/components/category/matches/AthleteBowlingCompetitionDialog";
+import { SessionValidationDialog } from "@/components/athlete-space/SessionValidationDialog";
 
 
 interface Props {
