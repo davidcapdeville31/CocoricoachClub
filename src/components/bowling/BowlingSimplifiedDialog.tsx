@@ -563,33 +563,59 @@ export function BowlingSimplifiedDialog({
       }
 
       // ============ MODE CRÉATION ============
-      const { data: session, error: sessErr } = await supabase
-        .from("training_sessions")
-        .insert({
-          category_id: categoryId,
-          session_date: sessionDate,
-          training_type: "bowling_simplified",
-          notes: "Séance bowling — Mode simplifié",
-          intensity: null,
-          planned_intensity: null,
-        })
-        .select("id")
-        .single();
-      if (sessErr) throw sessErr;
+      let createdSessionId: string;
 
-      const { error: partErr } = await supabase
-        .from("event_participants")
-        .insert(
-          targetPlayers.map((pid) => ({
-            training_session_id: session.id,
-            player_id: pid,
-          })),
+      if (isAthleteMode) {
+        // L'athlète ne peut pas écrire directement dans training_sessions (RLS).
+        // On passe par l'Edge Function dédiée qui crée la séance + le participant.
+        const { data: fnData, error: fnErr } = await supabase.functions.invoke(
+          "athlete-create-session",
+          {
+            body: {
+              category_id: categoryId,
+              player_id: athletePlayerId!,
+              session_date: sessionDate,
+              training_type: "bowling_simplified",
+              notes: "Séance bowling — Mode simplifié",
+            },
+          },
         );
-      if (partErr) console.error("[BowlingSimplified] event_participants:", partErr);
+        if (fnErr || !(fnData as any)?.success || !(fnData as any)?.session_id) {
+          throw new Error(
+            (fnData as any)?.error || fnErr?.message || "Erreur création séance athlète",
+          );
+        }
+        createdSessionId = (fnData as any).session_id as string;
+      } else {
+        const { data: session, error: sessErr } = await supabase
+          .from("training_sessions")
+          .insert({
+            category_id: categoryId,
+            session_date: sessionDate,
+            training_type: "bowling_simplified",
+            notes: "Séance bowling — Mode simplifié",
+            intensity: null,
+            planned_intensity: null,
+          })
+          .select("id")
+          .single();
+        if (sessErr) throw sessErr;
+        createdSessionId = session.id;
+
+        const { error: partErr } = await supabase
+          .from("event_participants")
+          .insert(
+            targetPlayers.map((pid) => ({
+              training_session_id: createdSessionId,
+              player_id: pid,
+            })),
+          );
+        if (partErr) console.error("[BowlingSimplified] event_participants:", partErr);
+      }
 
       const rows = targetPlayers.flatMap((pid) =>
         blocks.map((b, idx) => ({
-          session_id: session.id,
+          session_id: createdSessionId,
           category_id: categoryId,
           athlete_id: pid,
           source: isAthleteMode ? "athlete" : "coach",
@@ -618,7 +644,7 @@ export function BowlingSimplifiedDialog({
       // Mode coach : on ne persiste pas (les parties seront jouées par l'athlète).
       if (isAthleteMode) {
         for (const pid of targetPlayers) {
-          await persistDetailedStats(pid, sessionDate, session.id);
+          await persistDetailedStats(pid, sessionDate, createdSessionId);
         }
         const { error: attErr } = await supabase
           .from("training_attendance")
@@ -627,14 +653,14 @@ export function BowlingSimplifiedDialog({
               player_id: pid,
               category_id: categoryId,
               attendance_date: sessionDate,
-              training_session_id: session.id,
+              training_session_id: createdSessionId,
               status: "present" as const,
             })),
           );
         if (attErr) console.warn("[BowlingSimplified] attendance:", attErr.message);
       }
 
-      return { sessionId: session.id, count: targetPlayers.length, blocks: blocks.length, totalDuration };
+      return { sessionId: createdSessionId, count: targetPlayers.length, blocks: blocks.length, totalDuration };
     },
     onSuccess: ({ count, blocks: nb }) => {
       toast.success(
