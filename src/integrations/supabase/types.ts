@@ -15125,6 +15125,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      player_belongs_to_user: {
+        Args: { _player_id: string; _user_id: string }
+        Returns: boolean
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
