@@ -166,6 +166,7 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
           <TableHeader>
             <TableRow>
               <TableHead>Email</TableHead>
+              <TableHead>Portée</TableHead>
               <TableHead>Rôle</TableHead>
               <TableHead>Envoyée le</TableHead>
               <TableHead>Statut</TableHead>
@@ -175,9 +176,15 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
           <TableBody>
             {invitations.map((invitation: any) => {
               const effectiveStatus = getInvitationStatus(invitation.status, invitation.expires_at);
+              const isCategory = invitation._scope === "category";
               return (
-                <TableRow key={invitation.id}>
+                <TableRow key={`${invitation._scope}-${invitation.id}`}>
                   <TableCell className="font-medium">{invitation.email}</TableCell>
+                  <TableCell>
+                    <Badge variant={isCategory ? "secondary" : "default"}>
+                      {invitation._scopeLabel}
+                    </Badge>
+                  </TableCell>
                   <TableCell>{getRoleBadge(invitation.role)}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {format(new Date(invitation.created_at), "dd/MM/yy HH:mm", { locale: fr })}
@@ -185,19 +192,17 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
                   <TableCell>{getStatusBadge(invitation.status, invitation.expires_at)}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
-                      {/* Copy link: visible only when pending */}
                       {effectiveStatus === "pending" && (
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => copyInviteLink(invitation.token)}
+                          onClick={() => copyInviteLink(invitation)}
                           title="Copier le lien"
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
                       )}
-                      {/* Resend: visible when pending or expired */}
-                      {effectiveStatus !== "accepted" && (
+                      {effectiveStatus !== "accepted" && !isCategory && (
                         <Button
                           variant="ghost"
                           size="icon"
@@ -215,12 +220,11 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
                           <RefreshCw className={`h-4 w-4 ${resendMutation.isPending ? "animate-spin" : ""}`} />
                         </Button>
                       )}
-                      {/* Delete: only when not accepted */}
                       {effectiveStatus !== "accepted" && (
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => deleteInvitation.mutate(invitation.id)}
+                          onClick={() => deleteInvitation.mutate(invitation)}
                           disabled={deleteInvitation.isPending}
                           title="Annuler"
                         >
