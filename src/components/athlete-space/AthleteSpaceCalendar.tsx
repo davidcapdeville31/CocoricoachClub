@@ -1077,6 +1077,14 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         categoryId={categoryId}
       />
 
+      <SessionDetailDialog
+        open={!!detailSession}
+        onOpenChange={(o) => { if (!o) setDetailSession(null); }}
+        session={detailSession?.session ?? null}
+        exercises={detailSession?.exercises ?? []}
+      />
+
+
       <AlertDialog open={!!sessionToDelete} onOpenChange={(open) => !open && setSessionToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
