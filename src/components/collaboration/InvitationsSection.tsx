@@ -118,6 +118,12 @@ export function InvitationsSection({ clubId, canManage }: InvitationsSectionProp
 
   const copyInvitationLink = async (invitation: any) => {
     try {
+      if (invitation._scope === "category") {
+        const link = `${getAppBaseUrl()}/accept-invitation?token=${invitation.token}&type=category`;
+        await navigator.clipboard.writeText(link);
+        toast.success("Lien d'invitation copié");
+        return;
+      }
       if (invitation.role === "viewer") {
         const { data: userData } = await supabase.auth.getUser();
         const userId = userData.user?.id;
