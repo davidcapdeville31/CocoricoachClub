@@ -96,15 +96,14 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
   });
 
   const deleteInvitation = useMutation({
-    mutationFn: async (invitationId: string) => {
-      const { error } = await supabase
-        .from("club_invitations")
-        .delete()
-        .eq("id", invitationId);
+    mutationFn: async (inv: any) => {
+      const table = inv._scope === "category" ? "category_invitations" : "club_invitations";
+      const { error } = await supabase.from(table).delete().eq("id", inv.id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["club-invitations", clubId] });
+      queryClient.invalidateQueries({ queryKey: ["category-invitations"] });
       toast.success("Invitation annulée");
     },
     onError: () => {
@@ -112,8 +111,9 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
     },
   });
 
-  const copyInviteLink = (token: string) => {
-    const link = `${getAppBaseUrl()}/accept-invitation?token=${token}`;
+  const copyInviteLink = (inv: any) => {
+    const suffix = inv._scope === "category" ? "&type=category" : "";
+    const link = `${getAppBaseUrl()}/accept-invitation?token=${inv.token}${suffix}`;
     navigator.clipboard.writeText(link);
     toast.success("Lien copié !");
   };
