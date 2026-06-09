@@ -240,8 +240,11 @@ export function BowlingSimplifiedDialog({
   };
 
   const sessionOilPreset = useMemo(
-    () => buildOilFromPresetName(oilPatternName),
-    [oilPatternName],
+    () =>
+      oilPatternName === "__custom__"
+        ? { ...customOilPattern, preset_name: customOilName || "Personnalisé" }
+        : buildOilFromPresetName(oilPatternName),
+    [oilPatternName, customOilPattern, customOilName],
   );
 
   const withSessionOil = <T extends SimplifiedBlock>(b: T): T =>
