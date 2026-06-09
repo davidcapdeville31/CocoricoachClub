@@ -726,7 +726,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                     <th 
                       key={frameIndex} 
                       className={`border border-foreground/20 bg-muted px-1 py-1 text-xs font-bold text-center ${
-                        frameIndex === 9 ? "min-w-[90px]" : "min-w-[60px]"
+                        frameIndex === 9 ? "min-w-[112px]" : "min-w-[60px]"
                       }`}
                       colSpan={1}
                     >
