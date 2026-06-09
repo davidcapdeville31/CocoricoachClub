@@ -61,6 +61,18 @@ function parseInteger(raw: string): number | null {
   return Number.isFinite(v) ? v : NaN;
 }
 
+function formatDisplayValue(value: number | null, options?: { decimals?: number; suffix?: string }) {
+  if (value == null) return null;
+  const { decimals, suffix } = options || {};
+  const formatted = typeof decimals === "number"
+    ? value.toLocaleString("fr-FR", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      })
+    : value.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+  return suffix ? `${formatted} ${suffix}` : formatted;
+}
+
 interface Props {
   tech: BowlingTechValues | null;
   onSave: (patch: Partial<BowlingTechValues>) => Promise<unknown>;
@@ -203,52 +215,67 @@ export function BowlingCharacteristicsBlock({ tech, onSave, saving }: Props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="space-y-1">
-          <Label htmlFor="bowling-weight" className="text-xs">Poids de la boule (lbs)</Label>
-          <Select
-            value={draft.bowling_ball_weight_lbs || ""}
-            onValueChange={(v) => set("bowling_ball_weight_lbs", v)}
-            disabled={disabled}
-          >
-            <SelectTrigger id="bowling-weight" className="bg-background">
-              <SelectValue placeholder="Sélectionner" />
-            </SelectTrigger>
-            <SelectContent>
-              {[12, 13, 14, 15, 16].map((w) => (
-                <SelectItem key={w} value={String(w)}>{w} lbs</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {editing ? (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="space-y-1">
+            <Label htmlFor="bowling-weight" className="text-xs">Poids de la boule (lbs)</Label>
+            <Select
+              value={draft.bowling_ball_weight_lbs || ""}
+              onValueChange={(v) => set("bowling_ball_weight_lbs", v)}
+              disabled={disabled}
+            >
+              <SelectTrigger id="bowling-weight" className="bg-background">
+                <SelectValue placeholder="Sélectionner" />
+              </SelectTrigger>
+              <SelectContent>
+                {[12, 13, 14, 15, 16].map((w) => (
+                  <SelectItem key={w} value={String(w)}>{w} lbs</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <NumField label="Axe (°)" id="bowling-axe" placeholder="0 – 90" step={1}
+            value={draft.bowling_axe_deg} onChange={(v) => set("bowling_axe_deg", v)} disabled={disabled} />
+
+          <NumField label="Tilt (°)" id="bowling-tilt" placeholder="-30 – +30" step={1}
+            value={draft.bowling_tilt_deg} onChange={(v) => set("bowling_tilt_deg", v)} disabled={disabled} />
+
+          <NumField label="RPM" id="bowling-rpm" placeholder="ex. 350" step={1}
+            value={draft.bowling_rpm} onChange={(v) => set("bowling_rpm", v)} disabled={disabled} />
+
+          <NumField label="PAP Horizontal (pouce)" id="bowling-pap-h" placeholder="ex. 4.75" step={0.01}
+            value={draft.bowling_pap_h_inch} onChange={(v) => set("bowling_pap_h_inch", v)} disabled={disabled} />
+
+          <NumField label="PAP Vertical (pouce)" id="bowling-pap-v" placeholder="ex. 0.50" step={0.01}
+            value={draft.bowling_pap_v_inch} onChange={(v) => set("bowling_pap_v_inch", v)} disabled={disabled} />
+
+          <NumField label="Vitesse de boule (km/h)" id="bowling-speed" placeholder="ex. 28.5" step={0.1}
+            value={draft.bowling_ball_speed} onChange={(v) => set("bowling_ball_speed", v)} disabled={disabled} />
+
+          <NumField label="Numéro perso Gauche" id="bowling-num-left" placeholder="ex. -5" step={1}
+            value={draft.bowling_perso_num_left} onChange={(v) => set("bowling_perso_num_left", v)} disabled={disabled} />
+
+          <NumField label="Numéro perso Centre" id="bowling-num-center" placeholder="ex. 0" step={1}
+            value={draft.bowling_perso_num_center} onChange={(v) => set("bowling_perso_num_center", v)} disabled={disabled} />
+
+          <NumField label="Numéro perso Droit" id="bowling-num-right" placeholder="ex. 3" step={1}
+            value={draft.bowling_perso_num_right} onChange={(v) => set("bowling_perso_num_right", v)} disabled={disabled} />
         </div>
-
-        <NumField label="Axe (°)" id="bowling-axe" placeholder="0 – 90" step={1}
-          value={draft.bowling_axe_deg} onChange={(v) => set("bowling_axe_deg", v)} disabled={disabled} />
-
-        <NumField label="Tilt (°)" id="bowling-tilt" placeholder="-30 – +30" step={1}
-          value={draft.bowling_tilt_deg} onChange={(v) => set("bowling_tilt_deg", v)} disabled={disabled} />
-
-        <NumField label="RPM" id="bowling-rpm" placeholder="ex. 350" step={1}
-          value={draft.bowling_rpm} onChange={(v) => set("bowling_rpm", v)} disabled={disabled} />
-
-        <NumField label="PAP Horizontal (pouce)" id="bowling-pap-h" placeholder="ex. 4.75" step={0.01}
-          value={draft.bowling_pap_h_inch} onChange={(v) => set("bowling_pap_h_inch", v)} disabled={disabled} />
-
-        <NumField label="PAP Vertical (pouce)" id="bowling-pap-v" placeholder="ex. 0.50" step={0.01}
-          value={draft.bowling_pap_v_inch} onChange={(v) => set("bowling_pap_v_inch", v)} disabled={disabled} />
-
-        <NumField label="Vitesse de boule (km/h)" id="bowling-speed" placeholder="ex. 28.5" step={0.1}
-          value={draft.bowling_ball_speed} onChange={(v) => set("bowling_ball_speed", v)} disabled={disabled} />
-
-        <NumField label="Numéro perso Gauche" id="bowling-num-left" placeholder="ex. -5" step={1}
-          value={draft.bowling_perso_num_left} onChange={(v) => set("bowling_perso_num_left", v)} disabled={disabled} />
-
-        <NumField label="Numéro perso Centre" id="bowling-num-center" placeholder="ex. 0" step={1}
-          value={draft.bowling_perso_num_center} onChange={(v) => set("bowling_perso_num_center", v)} disabled={disabled} />
-
-        <NumField label="Numéro perso Droit" id="bowling-num-right" placeholder="ex. 3" step={1}
-          value={draft.bowling_perso_num_right} onChange={(v) => set("bowling_perso_num_right", v)} disabled={disabled} />
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <ReadOnlyField label="Poids de la boule (lbs)" value={formatDisplayValue(tech?.bowling_ball_weight_lbs ?? null, { suffix: "lbs" })} />
+          <ReadOnlyField label="Axe (°)" value={formatDisplayValue(tech?.bowling_axe_deg ?? null, { suffix: "°" })} />
+          <ReadOnlyField label="Tilt (°)" value={formatDisplayValue(tech?.bowling_tilt_deg ?? null, { suffix: "°" })} />
+          <ReadOnlyField label="RPM" value={formatDisplayValue(tech?.bowling_rpm ?? null)} />
+          <ReadOnlyField label="PAP Horizontal (pouce)" value={formatDisplayValue(tech?.bowling_pap_h_inch ?? null, { decimals: 2 })} />
+          <ReadOnlyField label="PAP Vertical (pouce)" value={formatDisplayValue(tech?.bowling_pap_v_inch ?? null, { decimals: 2 })} />
+          <ReadOnlyField label="Vitesse de boule (km/h)" value={formatDisplayValue(tech?.bowling_ball_speed ?? null, { decimals: 1 })} />
+          <ReadOnlyField label="Numéro perso Gauche" value={formatDisplayValue(tech?.bowling_perso_num_left ?? null)} />
+          <ReadOnlyField label="Numéro perso Centre" value={formatDisplayValue(tech?.bowling_perso_num_center ?? null)} />
+          <ReadOnlyField label="Numéro perso Droit" value={formatDisplayValue(tech?.bowling_perso_num_right ?? null)} />
+        </div>
+      )}
     </div>
   );
 }
@@ -276,6 +303,17 @@ function NumField({ label, id, placeholder, step, value, onChange, disabled }: N
         disabled={disabled}
         className="bg-background"
       />
+    </div>
+  );
+}
+
+function ReadOnlyField({ label, value }: { label: string; value: string | null }) {
+  return (
+    <div className="space-y-1 rounded-lg border border-border/60 bg-surface-sunken/40 px-3 py-2.5 min-h-[72px]">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className={value ? "text-sm font-medium text-foreground" : "text-sm text-muted-foreground"}>
+        {value || "Non renseigné"}
+      </p>
     </div>
   );
 }
