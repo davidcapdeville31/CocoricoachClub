@@ -1055,6 +1055,13 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
           defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}
         />
       )}
+      <SessionValidationDialog
+        open={!!validationSession}
+        onOpenChange={(o) => { if (!o) setValidationSession(null); }}
+        session={validationSession}
+        playerId={playerId}
+        categoryId={categoryId}
+      />
 
       <AlertDialog open={!!sessionToDelete} onOpenChange={(open) => !open && setSessionToDelete(null)}>
         <AlertDialogContent>
