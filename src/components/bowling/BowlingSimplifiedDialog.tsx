@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,7 @@ import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { SimplifiedTacticalBlockEditor } from "./simplified/SimplifiedTacticalBlockEditor";
 import { SimplifiedTechnicalBlockEditor } from "./simplified/SimplifiedTechnicalBlockEditor";
 import { SimplifiedGamesBlockEditor } from "./simplified/SimplifiedGamesBlockEditor";
@@ -45,6 +47,47 @@ const EMPTY_OIL: SimplifiedOilPattern = {
   reverse_oil: true,
   outside_friction: null,
 };
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+function createTokenBoundClient(accessToken: string): SupabaseClient<Database> {
+  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+    global: {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  });
+}
+
+async function getAthleteAuthContext() {
+  const { data: sessionData } = await supabase.auth.getSession();
+  let session = sessionData.session;
+
+  if (!session) {
+    const { data: refreshedData, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError) {
+      throw new Error("Session expirée. Reconnectez-vous puis réessayez.");
+    }
+    session = refreshedData.session;
+  }
+
+  const accessToken = session?.access_token;
+  if (!accessToken) {
+    throw new Error("Session expirée. Reconnectez-vous puis réessayez.");
+  }
+
+  return {
+    accessToken,
+    client: createTokenBoundClient(accessToken),
+  };
+}
 
 function buildOilFromPresetName(name: string | null): SimplifiedOilPattern {
   if (!name || name === "none") return { ...EMPTY_OIL };
