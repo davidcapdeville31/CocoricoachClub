@@ -30,12 +30,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Crown, Mail } from "lucide-react";
+import { Trash2, Crown, Mail, FolderCog } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getAppBaseUrl } from "@/lib/appUrl";
 import { useRealtimeMembers } from "@/hooks/useRealtimeMembers";
+import { useState } from "react";
+import { ManageMemberCategoriesDialog } from "./ManageMemberCategoriesDialog";
 
 interface MembersSectionProps {
   clubId: string;
@@ -52,6 +54,7 @@ const ROLE_LABELS: Record<string, string> = {
 
 export function MembersSection({ clubId, canManage }: MembersSectionProps) {
   const queryClient = useQueryClient();
+  const [managingMember, setManagingMember] = useState<any | null>(null);
   useRealtimeMembers(`members-${clubId}`);
 
   const { data: members, isLoading } = useQuery({
@@ -277,6 +280,14 @@ export function MembersSection({ clubId, canManage }: MembersSectionProps) {
                         <Button
                           variant="ghost"
                           size="icon"
+                          onClick={() => setManagingMember(member)}
+                          title="Gérer les catégories accessibles à ce membre"
+                        >
+                          <FolderCog className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={() => resendAccessEmail.mutate(member)}
                           disabled={resendAccessEmail.isPending || !member.profile?.email}
                           title="Renvoyer un email de rappel d'accès (sans réinitialiser le mot de passe)"
@@ -326,6 +337,12 @@ export function MembersSection({ clubId, canManage }: MembersSectionProps) {
           </TableBody>
         </Table>
       </CardContent>
+      <ManageMemberCategoriesDialog
+        open={!!managingMember}
+        onOpenChange={(o) => { if (!o) setManagingMember(null); }}
+        clubId={clubId}
+        member={managingMember}
+      />
     </Card>
   );
 }
