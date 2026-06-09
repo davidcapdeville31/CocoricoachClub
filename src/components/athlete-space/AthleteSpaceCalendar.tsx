@@ -85,6 +85,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [bowlingMatchEntry, setBowlingMatchEntry] = useState<any | null>(null);
   const [editingMentalSession, setEditingMentalSession] = useState<{ id: string; title: string; durationMin: number; theme: string; notes: string; date: Date } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [validationSession, setValidationSession] = useState<any | null>(null);
   const queryClient = useQueryClient();
 
   const handleDeleteSession = async () => {
