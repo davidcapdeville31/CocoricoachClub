@@ -491,31 +491,56 @@ export function BowlingAdvancedDialog({
         return;
       }
 
-      // Création : une seule session partagée pour tous les athlètes ciblés
-      const { data: session, error: sessErr } = await supabase
-        .from("training_sessions")
-        .insert({
-          category_id: categoryId,
-          session_date: sessionDate,
-          training_type: "bowling_advanced",
-          notes: "Séance bowling — Mode avancé",
-          intensity: null,
-          planned_intensity: null,
-        })
-        .select("id")
-        .single();
-      if (sessErr) throw sessErr;
-      const sessionId = session.id;
+      let sessionId: string;
 
-      try {
-        await supabase.from("event_participants").insert(
-          targets.map((pid) => ({
-            training_session_id: sessionId,
-            player_id: pid,
-          })),
+      if (isAthleteMode) {
+        const { data: fnData, error: fnErr } = await supabase.functions.invoke(
+          "athlete-create-session",
+          {
+            body: {
+              category_id: categoryId,
+              player_id: athletePlayerId!,
+              session_date: sessionDate,
+              training_type: "bowling_advanced",
+              notes: "Séance bowling — Mode avancé",
+            },
+          },
         );
-      } catch (e) {
-        console.warn("[BowlingAdvanced] event_participants:", e);
+
+        if (fnErr || !(fnData as any)?.success || !(fnData as any)?.session_id) {
+          throw new Error(
+            (fnData as any)?.error || fnErr?.message || "Erreur création séance athlète",
+          );
+        }
+
+        sessionId = (fnData as any).session_id as string;
+      } else {
+        // Création : une seule session partagée pour tous les athlètes ciblés
+        const { data: session, error: sessErr } = await supabase
+          .from("training_sessions")
+          .insert({
+            category_id: categoryId,
+            session_date: sessionDate,
+            training_type: "bowling_advanced",
+            notes: "Séance bowling — Mode avancé",
+            intensity: null,
+            planned_intensity: null,
+          })
+          .select("id")
+          .single();
+        if (sessErr) throw sessErr;
+        sessionId = session.id;
+
+        try {
+          await supabase.from("event_participants").insert(
+            targets.map((pid) => ({
+              training_session_id: sessionId,
+              player_id: pid,
+            })),
+          );
+        } catch (e) {
+          console.warn("[BowlingAdvanced] event_participants:", e);
+        }
       }
 
       const rows = targets.flatMap((pid) =>
