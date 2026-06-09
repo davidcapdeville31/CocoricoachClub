@@ -426,7 +426,7 @@ export function BowlingSimplifiedDialog({
     if (gamesEntries.length === 0 && !hasOilToPersist) return;
 
     if (!matchId) {
-      const { data: newMatch, error } = await supabase
+      const { data: newMatch, error } = await db
         .from("matches")
         .insert({
           category_id: categoryId,
@@ -549,11 +549,13 @@ export function BowlingSimplifiedDialog({
         (s, b) => s + (blockDuration(b) || 0),
         0,
       );
+      const athleteAuth = isAthleteMode ? await getAthleteAuthContext() : null;
+      const athleteDb = athleteAuth?.client ?? supabase;
 
       // ============ MODE ÉDITION (athlète remplit une séance attribuée) ============
       if (isEditMode && existingSessionId) {
         // Remplace les blocs existants de CET athlète sur cette séance
-        const { error: delErr } = await supabase
+        const { error: delErr } = await athleteDb
           .from("bowling_training_blocks")
           .delete()
           .eq("session_id", existingSessionId)
@@ -580,16 +582,16 @@ export function BowlingSimplifiedDialog({
           order_index: idx,
         }));
 
-        const { error: insErr } = await supabase
+        const { error: insErr } = await athleteDb
           .from("bowling_training_blocks")
           .insert(rows as any);
         if (insErr) throw insErr;
 
         // Persiste les stats détaillées (parties + tactique)
-        await persistDetailedStats(athletePlayerId!, sessionDate, existingSessionId);
+        await persistDetailedStats(athletePlayerId!, sessionDate, existingSessionId, athleteDb);
 
         // Marque la présence
-        const { error: attErr } = await supabase
+        const { error: attErr } = await athleteDb
           .from("training_attendance")
           .upsert(
             [{
@@ -612,8 +614,7 @@ export function BowlingSimplifiedDialog({
       if (isAthleteMode) {
         // L'athlète ne peut pas écrire directement dans training_sessions (RLS).
         // On passe par l'Edge Function dédiée qui crée la séance + le participant.
-        const { data: sessionData } = await supabase.auth.getSession();
-        const accessToken = sessionData?.session?.access_token;
+        const accessToken = athleteAuth?.accessToken;
 
         if (!athletePlayerId) {
           throw new Error("Impossible d'identifier l'athlète pour cette séance");
@@ -693,7 +694,7 @@ export function BowlingSimplifiedDialog({
         })),
       );
 
-      const { error: blocksErr } = await supabase
+      const { error: blocksErr } = await athleteDb
         .from("bowling_training_blocks")
         .insert(rows as any);
       if (blocksErr) throw blocksErr;
@@ -702,9 +703,9 @@ export function BowlingSimplifiedDialog({
       // Mode coach : on ne persiste pas (les parties seront jouées par l'athlète).
       if (isAthleteMode) {
         for (const pid of targetPlayers) {
-          await persistDetailedStats(pid, sessionDate, createdSessionId);
+          await persistDetailedStats(pid, sessionDate, createdSessionId, athleteDb);
         }
-        const { error: attErr } = await supabase
+        const { error: attErr } = await athleteDb
           .from("training_attendance")
           .insert(
             targetPlayers.map((pid) => ({
