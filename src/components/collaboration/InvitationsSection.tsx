@@ -201,6 +201,7 @@ export function InvitationsSection({ clubId, canManage }: InvitationsSectionProp
             <TableHeader>
               <TableRow>
                 <TableHead>Email</TableHead>
+                <TableHead>Portée</TableHead>
                 <TableHead>Rôle</TableHead>
                 <TableHead>Envoyée le</TableHead>
                 <TableHead>Statut</TableHead>
@@ -210,9 +211,15 @@ export function InvitationsSection({ clubId, canManage }: InvitationsSectionProp
             <TableBody>
               {invitations.map((invitation: any) => {
                 const effectiveStatus = getInvitationStatus(invitation.status, invitation.expires_at);
+                const isCategory = invitation._scope === "category";
                 return (
-                  <TableRow key={invitation.id}>
+                  <TableRow key={`${invitation._scope}-${invitation.id}`}>
                     <TableCell className="font-medium">{invitation.email}</TableCell>
+                    <TableCell>
+                      <Badge variant={isCategory ? "secondary" : "default"}>
+                        {invitation._scopeLabel}
+                      </Badge>
+                    </TableCell>
                     <TableCell>{getRoleBadge(invitation.role)}</TableCell>
                     <TableCell>
                       {format(new Date(invitation.created_at), "dd MMM yyyy", { locale: fr })}
@@ -233,7 +240,7 @@ export function InvitationsSection({ clubId, canManage }: InvitationsSectionProp
                               <Copy className="h-4 w-4" />
                             </Button>
                           )}
-                          {effectiveStatus !== "accepted" && (
+                          {effectiveStatus !== "accepted" && !isCategory && (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -256,7 +263,7 @@ export function InvitationsSection({ clubId, canManage }: InvitationsSectionProp
                               variant="ghost"
                               size="icon"
                               title="Annuler l'invitation"
-                              onClick={() => deleteInvitation.mutate(invitation.id)}
+                              onClick={() => deleteInvitation.mutate(invitation)}
                               disabled={deleteInvitation.isPending}
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
