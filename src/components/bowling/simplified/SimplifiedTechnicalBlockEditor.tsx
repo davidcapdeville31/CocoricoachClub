@@ -9,7 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Wrench, Trash2, Clock } from "lucide-react";
+import { Wrench, Trash2, Clock, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SimplifiedBallPicker } from "./SimplifiedBallPicker";
 import {
   TECHNICAL_THEMES,
@@ -113,7 +114,21 @@ export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playe
       />
 
       <div className="space-y-1">
-        <Label className="text-xs">Description du travail effectué</Label>
+        <div className="flex items-center gap-1.5">
+          <Label className="text-xs">Description du travail effectué + repères de sensations</Label>
+          <TooltipProvider delayDuration={150}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="text-muted-foreground hover:text-foreground" aria-label="Aide repères de sensations">
+                  <HelpCircle className="h-3.5 w-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs bg-background/95 backdrop-blur-md text-xs leading-relaxed">
+                Note ce que tu ressens pendant l'exercice : qualité du geste, fluidité, équilibre, libération du bras, timing, relâchement, contact avec la boule, confiance, fatigue, points forts/faibles… Ces repères de sensations aident à comprendre et reproduire ce qui fonctionne.
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <Textarea
           rows={4}
           placeholder="Décris précisément ce que tu as travaillé : exercices, sensations, ressenti, points clés..."
