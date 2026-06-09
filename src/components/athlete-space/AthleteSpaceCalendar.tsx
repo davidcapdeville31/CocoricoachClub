@@ -704,33 +704,44 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   </div>
                                 )}
                                 {session.training_type !== "mental" && session.training_type !== "test" && (
-                                   <Button
-                                     size="sm"
-                                     className="w-full gap-1.5"
-                                     style={{ backgroundColor: TRAINING_COLOR }}
-                                     onClick={() => {
-                                       setSelectedDate(parseISO(session.session_date));
-                                       const tt = (session.training_type || "").toLowerCase();
-                                       const isBowlingSessionType = tt.startsWith("bowling_") || tt === "bowling";
-                                       if (isBowling && isBowlingSessionType) {
-                                         if (tt === "bowling_simplified") {
-                                           setBowlingSimplifiedSessionId(session.id);
-                                           setIsBowlingSimplifiedOpen(true);
-                                         } else if (tt === "bowling_advanced") {
-                                           setBowlingAdvancedSessionId(session.id);
-                                           setIsBowlingAdvancedOpen(true);
+                                   <div className="flex flex-col sm:flex-row gap-2">
+                                     <Button
+                                       size="sm"
+                                       variant="outline"
+                                       className="w-full gap-1.5"
+                                       onClick={() => setDetailSession({ session, exercises })}
+                                     >
+                                       <Eye className="h-3.5 w-3.5" />
+                                       Voir la séance
+                                     </Button>
+                                     <Button
+                                       size="sm"
+                                       className="w-full gap-1.5"
+                                       style={{ backgroundColor: TRAINING_COLOR }}
+                                       onClick={() => {
+                                         setSelectedDate(parseISO(session.session_date));
+                                         const tt = (session.training_type || "").toLowerCase();
+                                         const isBowlingSessionType = tt.startsWith("bowling_") || tt === "bowling";
+                                         if (isBowling && isBowlingSessionType) {
+                                           if (tt === "bowling_simplified") {
+                                             setBowlingSimplifiedSessionId(session.id);
+                                             setIsBowlingSimplifiedOpen(true);
+                                           } else if (tt === "bowling_advanced") {
+                                             setBowlingAdvancedSessionId(session.id);
+                                             setIsBowlingAdvancedOpen(true);
+                                           } else {
+                                             setIsBowlingTrainingOpen(true);
+                                           }
                                          } else {
-                                           setIsBowlingTrainingOpen(true);
+                                           // Séance générique (prépa physique, musculation, cardio, terrain, etc.)
+                                           setValidationSession(session);
                                          }
-                                       } else {
-                                         // Séance générique (prépa physique, musculation, cardio, terrain, etc.)
-                                         setValidationSession(session);
-                                       }
-                                     }}
-                                   >
-                                     <Plus className="h-3.5 w-3.5" />
-                                     Remplir les données
-                                   </Button>
+                                       }}
+                                     >
+                                       <Plus className="h-3.5 w-3.5" />
+                                       Remplir les données
+                                     </Button>
+                                   </div>
                                  )}
                                 {session.training_type === "mental" && isAthleteSession && (
                                   <Button
