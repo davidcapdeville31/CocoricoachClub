@@ -9,7 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Wrench, Trash2, Clock } from "lucide-react";
+import { Wrench, Trash2, Clock, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SimplifiedBallPicker } from "./SimplifiedBallPicker";
 import {
   TECHNICAL_THEMES,
