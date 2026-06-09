@@ -2,7 +2,6 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
-import { VitePWA } from 'vite-plugin-pwa';
 import { defineFallbackEnv } from './vite-lovable-fallback-env'
 
 // https://vitejs.dev/config/
@@ -41,126 +40,6 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       mode === "development" && componentTagger(),
-      mode !== "development" && VitePWA({
-        registerType: 'autoUpdate',
-        injectRegister: false,
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg', 'pwa-192x192.png', 'pwa-512x512.png'],
-        manifest: {
-          name: 'CocoriCoach Club',
-          short_name: 'CocoriCoach Club',
-          description: 'Application de suivi de performance sportive - Planification, tests physiques et gestion des athlètes',
-          theme_color: '#0F172A',
-          background_color: '#0F172A',
-          display: 'standalone',
-          orientation: 'portrait',
-          scope: '/',
-          start_url: '/',
-          icons: [
-            {
-              src: '/pwa-192x192.png',
-              sizes: '192x192',
-              type: 'image/png',
-              purpose: 'any'
-            },
-            {
-              src: '/pwa-512x512.png',
-              sizes: '512x512',
-              type: 'image/png',
-              purpose: 'any'
-            },
-            {
-              src: '/pwa-512x512.png',
-              sizes: '512x512',
-              type: 'image/png',
-              purpose: 'maskable'
-            }
-          ]
-        },
-        workbox: {
-          globPatterns: ['./**/*.{js,css,html,ico,png,svg,woff,woff2,ttf,eot}'],
-          maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
-          cleanupOutdatedCaches: true,
-          skipWaiting: true,
-          clientsClaim: true,
-          navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//],
-          runtimeCaching: [
-            {
-              urlPattern: ({ request }) => request.mode === 'navigate',
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'html-cache',
-                networkTimeoutSeconds: 3,
-                expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 },
-              },
-            },
-            {
-              urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'supabase-api-cache',
-                expiration: {
-                  maxEntries: 500,
-                  maxAgeSeconds: 60 * 60 * 2
-                },
-                cacheableResponse: {
-                  statuses: [0, 200]
-                },
-                networkTimeoutSeconds: 8
-              }
-            },
-            {
-              urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/.*/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'supabase-storage-cache',
-                expiration: {
-                  maxEntries: 500,
-                  maxAgeSeconds: 60 * 60 * 24 * 14
-                },
-                cacheableResponse: {
-                  statuses: [0, 200]
-                }
-              }
-            },
-            {
-              urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'google-fonts-cache',
-                expiration: {
-                  maxEntries: 30,
-                  maxAgeSeconds: 60 * 60 * 24 * 365
-                }
-              }
-            },
-            {
-              urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'gstatic-fonts-cache',
-                expiration: {
-                  maxEntries: 30,
-                  maxAgeSeconds: 60 * 60 * 24 * 365
-                }
-              }
-            },
-            {
-              urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'images-cache',
-                expiration: {
-                  maxEntries: 300,
-                  maxAgeSeconds: 60 * 60 * 24 * 30
-                }
-              }
-            }
-          ]
-        },
-        devOptions: {
-          enabled: false
-        }
-      })
     ].filter(Boolean),
     resolve: {
       alias: {
