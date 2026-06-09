@@ -33,6 +33,8 @@ import {
   type SimplifiedBlock,
   type SimplifiedOilPattern,
 } from "./simplified/types";
+import { SimplifiedOilPatternPicker } from "./simplified/SimplifiedOilPatternPicker";
+import { Input } from "@/components/ui/input";
 
 const EMPTY_OIL: SimplifiedOilPattern = {
   preset_name: null,
