@@ -505,9 +505,14 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
   }, [frames, calculateAllScores, calculateStats]);
 
   // Handle throw input
-  const handleThrowInput = (frameIndex: number, throwIndex: number, value: string) => {
-    const upperValue = value.toUpperCase();
-    
+  const handleThrowInput = (frameIndex: number, throwIndex: number, rawValue: string) => {
+    // Tablet/IME keyboards may emit multi-char strings (e.g. "8X" when replacing
+    // a value). Keep only the last typed character so saisie tactile works.
+    let upperValue = (rawValue || "").toUpperCase();
+    if (upperValue.length > 1) {
+      upperValue = upperValue.slice(-1);
+    }
+
     // Validate input
     if (upperValue !== "" && 
         upperValue !== "X" && 
@@ -721,7 +726,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                     <th 
                       key={frameIndex} 
                       className={`border border-foreground/20 bg-muted px-1 py-1 text-xs font-bold text-center ${
-                        frameIndex === 9 ? "min-w-[90px]" : "min-w-[60px]"
+                        frameIndex === 9 ? "min-w-[112px]" : "min-w-[60px]"
                       }`}
                       colSpan={1}
                     >
@@ -755,7 +760,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                             // For regular frames, first throw takes more space, second is in corner
                             const isFirstThrow = throwIndex === 0;
                             const boxSize = isTenth 
-                              ? "w-[30px] h-[28px]" 
+                              ? "w-[36px] h-[34px]" 
                               : isFirstThrow 
                                 ? "w-[30px] h-[28px]" 
                                 : "w-[28px] h-[28px]";
