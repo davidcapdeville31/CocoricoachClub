@@ -52,6 +52,8 @@ import { FieldSessionDialog } from "@/components/category/calendar/FieldSessionD
 import { AddMatchCalendarDialog } from "@/components/category/matches/AddMatchCalendarDialog";
 import { AthleteBowlingCompetitionDialog } from "@/components/category/matches/AthleteBowlingCompetitionDialog";
 import { SessionValidationDialog } from "@/components/athlete-space/SessionValidationDialog";
+import { SessionDetailDialog } from "@/components/athlete-space/SessionDetailDialog";
+import { Eye } from "lucide-react";
 
 
 interface Props {
