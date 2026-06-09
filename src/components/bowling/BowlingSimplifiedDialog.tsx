@@ -568,12 +568,26 @@ export function BowlingSimplifiedDialog({
       if (isAthleteMode) {
         // L'athlète ne peut pas écrire directement dans training_sessions (RLS).
         // On passe par l'Edge Function dédiée qui crée la séance + le participant.
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token;
+
+        if (!athletePlayerId) {
+          throw new Error("Impossible d'identifier l'athlète pour cette séance");
+        }
+
+        if (!accessToken) {
+          throw new Error("Session expirée. Reconnectez-vous puis réessayez.");
+        }
+
         const { data: fnData, error: fnErr } = await supabase.functions.invoke(
           "athlete-create-session",
           {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
             body: {
               category_id: categoryId,
-              player_id: athletePlayerId!,
+              player_id: athletePlayerId,
               session_date: sessionDate,
               training_type: "bowling_simplified",
               notes: "Séance bowling — Mode simplifié",
