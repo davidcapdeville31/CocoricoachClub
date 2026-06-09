@@ -52,6 +52,8 @@ import { FieldSessionDialog } from "@/components/category/calendar/FieldSessionD
 import { AddMatchCalendarDialog } from "@/components/category/matches/AddMatchCalendarDialog";
 import { AthleteBowlingCompetitionDialog } from "@/components/category/matches/AthleteBowlingCompetitionDialog";
 import { SessionValidationDialog } from "@/components/athlete-space/SessionValidationDialog";
+import { SessionDetailDialog } from "@/components/athlete-space/SessionDetailDialog";
+import { Eye } from "lucide-react";
 
 
 interface Props {
@@ -86,6 +88,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [editingMentalSession, setEditingMentalSession] = useState<{ id: string; title: string; durationMin: number; theme: string; notes: string; date: Date } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [validationSession, setValidationSession] = useState<any | null>(null);
+  const [detailSession, setDetailSession] = useState<{ session: any; exercises: any[] } | null>(null);
   const queryClient = useQueryClient();
 
   const handleDeleteSession = async () => {
@@ -701,33 +704,44 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                   </div>
                                 )}
                                 {session.training_type !== "mental" && session.training_type !== "test" && (
-                                   <Button
-                                     size="sm"
-                                     className="w-full gap-1.5"
-                                     style={{ backgroundColor: TRAINING_COLOR }}
-                                     onClick={() => {
-                                       setSelectedDate(parseISO(session.session_date));
-                                       const tt = (session.training_type || "").toLowerCase();
-                                       const isBowlingSessionType = tt.startsWith("bowling_") || tt === "bowling";
-                                       if (isBowling && isBowlingSessionType) {
-                                         if (tt === "bowling_simplified") {
-                                           setBowlingSimplifiedSessionId(session.id);
-                                           setIsBowlingSimplifiedOpen(true);
-                                         } else if (tt === "bowling_advanced") {
-                                           setBowlingAdvancedSessionId(session.id);
-                                           setIsBowlingAdvancedOpen(true);
+                                   <div className="flex flex-col sm:flex-row gap-2">
+                                     <Button
+                                       size="sm"
+                                       variant="outline"
+                                       className="w-full gap-1.5"
+                                       onClick={() => setDetailSession({ session, exercises })}
+                                     >
+                                       <Eye className="h-3.5 w-3.5" />
+                                       Voir la séance
+                                     </Button>
+                                     <Button
+                                       size="sm"
+                                       className="w-full gap-1.5"
+                                       style={{ backgroundColor: TRAINING_COLOR }}
+                                       onClick={() => {
+                                         setSelectedDate(parseISO(session.session_date));
+                                         const tt = (session.training_type || "").toLowerCase();
+                                         const isBowlingSessionType = tt.startsWith("bowling_") || tt === "bowling";
+                                         if (isBowling && isBowlingSessionType) {
+                                           if (tt === "bowling_simplified") {
+                                             setBowlingSimplifiedSessionId(session.id);
+                                             setIsBowlingSimplifiedOpen(true);
+                                           } else if (tt === "bowling_advanced") {
+                                             setBowlingAdvancedSessionId(session.id);
+                                             setIsBowlingAdvancedOpen(true);
+                                           } else {
+                                             setIsBowlingTrainingOpen(true);
+                                           }
                                          } else {
-                                           setIsBowlingTrainingOpen(true);
+                                           // Séance générique (prépa physique, musculation, cardio, terrain, etc.)
+                                           setValidationSession(session);
                                          }
-                                       } else {
-                                         // Séance générique (prépa physique, musculation, cardio, terrain, etc.)
-                                         setValidationSession(session);
-                                       }
-                                     }}
-                                   >
-                                     <Plus className="h-3.5 w-3.5" />
-                                     Remplir les données
-                                   </Button>
+                                       }}
+                                     >
+                                       <Plus className="h-3.5 w-3.5" />
+                                       Remplir les données
+                                     </Button>
+                                   </div>
                                  )}
                                 {session.training_type === "mental" && isAthleteSession && (
                                   <Button
@@ -1062,6 +1076,14 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         playerId={playerId}
         categoryId={categoryId}
       />
+
+      <SessionDetailDialog
+        open={!!detailSession}
+        onOpenChange={(o) => { if (!o) setDetailSession(null); }}
+        session={detailSession?.session ?? null}
+        exercises={detailSession?.exercises ?? []}
+      />
+
 
       <AlertDialog open={!!sessionToDelete} onOpenChange={(open) => !open && setSessionToDelete(null)}>
         <AlertDialogContent>
