@@ -672,6 +672,10 @@ export function BowlingSimplifiedDialog({
       );
       qc.invalidateQueries({ queryKey: ["training_sessions", categoryId] });
       qc.invalidateQueries({ queryKey: ["sessions", categoryId] });
+      if (isAthleteMode && athletePlayerId) {
+        qc.invalidateQueries({ queryKey: ["athlete-calendar-sessions", categoryId, athletePlayerId] });
+        qc.invalidateQueries({ queryKey: ["athlete-space-upcoming-sessions", categoryId, athletePlayerId] });
+      }
       qc.invalidateQueries({ queryKey: ["bowling_training_blocks"] });
       qc.invalidateQueries({ queryKey: ["bowling_training_blocks_stats", categoryId] });
       qc.invalidateQueries({ queryKey: ["bowling_simplified_existing_blocks", existingSessionId] });

@@ -145,7 +145,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
       const in14 = format(addWeeks(new Date(), 2), "yyyy-MM-dd");
       const { data, error } = await supabase
         .from("training_sessions")
-        .select("id, session_date, session_start_time, training_type, theme, location, event_participants(player_id)")
+        .select("id, session_date, session_start_time, training_type, location, event_participants(player_id)")
         .eq("category_id", categoryId)
         .gt("session_date", today)
         .lte("session_date", in14)
@@ -383,7 +383,7 @@ export function AthleteSpaceDashboard({ playerId, categoryId, playerName, sportT
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold truncate">
-                      {s.theme || getTrainingTypeLabel(s.training_type)}
+                      {getTrainingTypeLabel(s.training_type)}
                     </p>
                     <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-0.5">
                       {s.session_start_time && <span>{s.session_start_time.slice(0, 5)}</span>}
