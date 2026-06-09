@@ -51,6 +51,7 @@ import { CreateEventDialog } from "@/components/category/calendar/CreateEventDia
 import { FieldSessionDialog } from "@/components/category/calendar/FieldSessionDialog";
 import { AddMatchCalendarDialog } from "@/components/category/matches/AddMatchCalendarDialog";
 import { AthleteBowlingCompetitionDialog } from "@/components/category/matches/AthleteBowlingCompetitionDialog";
+import { SessionValidationDialog } from "@/components/athlete-space/SessionValidationDialog";
 
 
 interface Props {
@@ -84,6 +85,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
   const [bowlingMatchEntry, setBowlingMatchEntry] = useState<any | null>(null);
   const [editingMentalSession, setEditingMentalSession] = useState<{ id: string; title: string; durationMin: number; theme: string; notes: string; date: Date } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [validationSession, setValidationSession] = useState<any | null>(null);
   const queryClient = useQueryClient();
 
   const handleDeleteSession = async () => {
@@ -698,22 +700,28 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
                                     <GroupedExerciseList exercises={exercises} maxHeight="500px" />
                                   </div>
                                 )}
-                                {isBowling && session.training_type !== "mental" && (
+                                {session.training_type !== "mental" && session.training_type !== "test" && (
                                    <Button
                                      size="sm"
                                      className="w-full gap-1.5"
                                      style={{ backgroundColor: TRAINING_COLOR }}
                                      onClick={() => {
                                        setSelectedDate(parseISO(session.session_date));
-                                       // Séance simplifiée attribuée par le coach → ouvre le mode simplifié pré-rempli
-                                       if (session.training_type === "bowling_simplified") {
-                                         setBowlingSimplifiedSessionId(session.id);
-                                         setIsBowlingSimplifiedOpen(true);
-                                       } else if (session.training_type === "bowling_advanced") {
-                                         setBowlingAdvancedSessionId(session.id);
-                                         setIsBowlingAdvancedOpen(true);
+                                       const tt = (session.training_type || "").toLowerCase();
+                                       const isBowlingSessionType = tt.startsWith("bowling_") || tt === "bowling";
+                                       if (isBowling && isBowlingSessionType) {
+                                         if (tt === "bowling_simplified") {
+                                           setBowlingSimplifiedSessionId(session.id);
+                                           setIsBowlingSimplifiedOpen(true);
+                                         } else if (tt === "bowling_advanced") {
+                                           setBowlingAdvancedSessionId(session.id);
+                                           setIsBowlingAdvancedOpen(true);
+                                         } else {
+                                           setIsBowlingTrainingOpen(true);
+                                         }
                                        } else {
-                                         setIsBowlingTrainingOpen(true);
+                                         // Séance générique (prépa physique, musculation, cardio, terrain, etc.)
+                                         setValidationSession(session);
                                        }
                                      }}
                                    >
@@ -1047,6 +1055,13 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
           defaultDate={selectedDate ? format(selectedDate, "yyyy-MM-dd") : undefined}
         />
       )}
+      <SessionValidationDialog
+        open={!!validationSession}
+        onOpenChange={(o) => { if (!o) setValidationSession(null); }}
+        session={validationSession}
+        playerId={playerId}
+        categoryId={categoryId}
+      />
 
       <AlertDialog open={!!sessionToDelete} onOpenChange={(open) => !open && setSessionToDelete(null)}>
         <AlertDialogContent>
