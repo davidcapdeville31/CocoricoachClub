@@ -870,6 +870,7 @@ export function BowlingSimplifiedDialog({
               </SelectTrigger>
               <SelectContent className="max-h-72">
                 <SelectItem value="none">Aucun huilage</SelectItem>
+                <SelectItem value="__custom__">✏️ Huilage personnalisé…</SelectItem>
                 {OFFICIAL_OIL_PATTERNS.map((p) => {
                   const cat = getOilCategory(p.oil_ratio);
                   return (
@@ -882,6 +883,26 @@ export function BowlingSimplifiedDialog({
                 })}
               </SelectContent>
             </Select>
+
+            {oilPatternName === "__custom__" && (
+              <div className="space-y-2 pt-1">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Nom du huilage</Label>
+                  <Input
+                    value={customOilName}
+                    onChange={(e) => setCustomOilName(e.target.value)}
+                    placeholder="Ex : Huilage maison du 12 juin"
+                    className="h-9 mt-1"
+                  />
+                </div>
+                <SimplifiedOilPatternPicker
+                  value={customOilPattern}
+                  onChange={setCustomOilPattern}
+                  categoryId={categoryId}
+                />
+              </div>
+            )}
+
 
             {/* Choix de la portée du huilage */}
             <div className="flex flex-wrap gap-2 pt-1">
