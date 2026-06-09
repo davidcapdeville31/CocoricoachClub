@@ -499,19 +499,18 @@ export default function AthleteSpace() {
           </div>
           <div className="flex items-center gap-1 shrink-0">
             <NotificationBell variant="default" />
-            {!isSuperAdminView ? (
+            <Button
+              size="sm"
+              className="px-2 sm:px-3 text-white border-0"
+              style={{ backgroundColor: NAV_COLORS.effectif.base }}
+              onClick={() => setShowPersonalInfoDialog(true)}
+            >
+              <User className="h-4 w-4 sm:mr-1.5" />
+              <span className="hidden sm:inline">Informations personnelles</span>
+            </Button>
+            {!isSuperAdminView && (
               <Button variant="ghost" size="icon" onClick={() => signOut()}>
                 <LogOut className="h-4 w-4" />
-              </Button>
-            ) : (
-              <Button 
-                size="sm" 
-                className="px-2 sm:px-3 text-white border-0"
-                style={{ backgroundColor: NAV_COLORS.effectif.base }}
-                onClick={() => setShowPersonalInfoDialog(true)}
-              >
-                <User className="h-4 w-4 sm:mr-1.5" />
-                <span className="hidden sm:inline">Informations personnelles</span>
               </Button>
             )}
           </div>
@@ -519,7 +518,7 @@ export default function AthleteSpace() {
       </header>
 
       {/* Content */}
-      {isSuperAdminView && athleteInfo && (
+      {athleteInfo && (
         <AthletePersonalInfoDialog
           open={showPersonalInfoDialog}
           onOpenChange={setShowPersonalInfoDialog}
