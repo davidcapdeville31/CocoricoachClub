@@ -789,7 +789,9 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                         {durationLocked ? (
                           <div className="mt-1 flex items-center gap-2">
                             <Input
-                              type="number"
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
                               value={duration}
                               readOnly
                               className="bg-muted/50 cursor-not-allowed"
@@ -800,7 +802,9 @@ export function AthleteSpaceRpe({ playerId, categoryId, hideHistory }: Props) {
                           </div>
                         ) : (
                           <Input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={duration}
                             onChange={e => setDuration(e.target.value)}
                             placeholder="Ex: 90"
