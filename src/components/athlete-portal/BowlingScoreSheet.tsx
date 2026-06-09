@@ -716,9 +716,9 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
           </CardTitle>
         </CardHeader>
         <CardContent className="p-2 sm:p-4">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto touch-pan-x overscroll-contain -mx-2 px-2 pb-2">
             {/* Classic scoresheet table */}
-            <table className="min-w-max border-collapse border-2 border-foreground/30 mx-auto">
+            <table className="min-w-max border-collapse border-2 border-foreground/30">
               <thead>
                 <tr>
                   <th className="border border-foreground/20 bg-muted px-2 py-1 text-xs font-medium w-8"></th>
