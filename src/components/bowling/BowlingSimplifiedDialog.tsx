@@ -33,6 +33,8 @@ import {
   type SimplifiedBlock,
   type SimplifiedOilPattern,
 } from "./simplified/types";
+import { SimplifiedOilPatternPicker } from "./simplified/SimplifiedOilPatternPicker";
+import { Input } from "@/components/ui/input";
 
 const EMPTY_OIL: SimplifiedOilPattern = {
   preset_name: null,
@@ -143,6 +145,9 @@ export function BowlingSimplifiedDialog({
   const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [oilPatternName, setOilPatternName] = useState<string>("none");
+  /** Huilage personnalisé (champs libres) — utilisé si oilPatternName === "__custom__" */
+  const [customOilPattern, setCustomOilPattern] = useState<SimplifiedOilPattern>({ ...EMPTY_OIL });
+  const [customOilName, setCustomOilName] = useState<string>("");
   /** "session" : un seul huilage pour toute la séance, appliqué à chaque bloc.
    *  "per_block" : l'utilisateur choisit un huilage différent à l'intérieur de chaque bloc. */
   const [oilScope, setOilScope] = useState<"session" | "per_block">("session");
@@ -235,8 +240,11 @@ export function BowlingSimplifiedDialog({
   };
 
   const sessionOilPreset = useMemo(
-    () => buildOilFromPresetName(oilPatternName),
-    [oilPatternName],
+    () =>
+      oilPatternName === "__custom__"
+        ? { ...customOilPattern, preset_name: customOilName || "Personnalisé" }
+        : buildOilFromPresetName(oilPatternName),
+    [oilPatternName, customOilPattern, customOilName],
   );
 
   const withSessionOil = <T extends SimplifiedBlock>(b: T): T =>
@@ -443,27 +451,29 @@ export function BowlingSimplifiedDialog({
 
     // Huilage (pattern) : upsert pour le match d'entraînement
     if (matchId && oilPatternName && oilPatternName !== "none") {
-      const preset = OFFICIAL_OIL_PATTERNS.find((p) => p.name === oilPatternName);
+      const isCustom = oilPatternName === "__custom__";
+      const preset = isCustom ? null : OFFICIAL_OIL_PATTERNS.find((p) => p.name === oilPatternName);
+      const patternName = isCustom ? (customOilName.trim() || "Personnalisé") : oilPatternName;
       const { data: existingPat } = await db
         .from("bowling_oil_patterns")
         .select("id")
         .eq("match_id", matchId)
-        .eq("name", oilPatternName)
+        .eq("name", patternName)
         .limit(1)
         .maybeSingle();
       const payload: any = {
         category_id: categoryId,
         match_id: matchId,
-        name: oilPatternName,
-        length_feet: preset?.length_feet ?? null,
-        buff_distance_feet: preset?.buff_distance_feet ?? null,
-        width_boards: preset?.width_boards ?? null,
-        total_volume_ml: preset?.total_volume_ml ?? null,
-        oil_ratio: preset?.oil_ratio ?? null,
-        profile_type: preset?.profile_type ?? null,
-        forward_oil: preset?.forward_oil ?? null,
-        reverse_oil: preset?.reverse_oil ?? null,
-        outside_friction: preset?.outside_friction ?? null,
+        name: patternName,
+        length_feet: isCustom ? customOilPattern.length_feet : (preset?.length_feet ?? null),
+        buff_distance_feet: isCustom ? customOilPattern.buff_distance_feet : (preset?.buff_distance_feet ?? null),
+        width_boards: isCustom ? customOilPattern.width_boards : (preset?.width_boards ?? null),
+        total_volume_ml: isCustom ? customOilPattern.total_volume_ml : (preset?.total_volume_ml ?? null),
+        oil_ratio: isCustom ? customOilPattern.oil_ratio : (preset?.oil_ratio ?? null),
+        profile_type: isCustom ? customOilPattern.profile_type : (preset?.profile_type ?? null),
+        forward_oil: isCustom ? customOilPattern.forward_oil : (preset?.forward_oil ?? null),
+        reverse_oil: isCustom ? customOilPattern.reverse_oil : (preset?.reverse_oil ?? null),
+        outside_friction: isCustom ? customOilPattern.outside_friction : (preset?.outside_friction ?? null),
       };
       if (existingPat?.id) {
         await db.from("bowling_oil_patterns").update(payload).eq("id", existingPat.id);
@@ -860,6 +870,7 @@ export function BowlingSimplifiedDialog({
               </SelectTrigger>
               <SelectContent className="max-h-72">
                 <SelectItem value="none">Aucun huilage</SelectItem>
+                <SelectItem value="__custom__">✏️ Huilage personnalisé…</SelectItem>
                 {OFFICIAL_OIL_PATTERNS.map((p) => {
                   const cat = getOilCategory(p.oil_ratio);
                   return (
@@ -872,6 +883,26 @@ export function BowlingSimplifiedDialog({
                 })}
               </SelectContent>
             </Select>
+
+            {oilPatternName === "__custom__" && (
+              <div className="space-y-2 pt-1">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Nom du huilage</Label>
+                  <Input
+                    value={customOilName}
+                    onChange={(e) => setCustomOilName(e.target.value)}
+                    placeholder="Ex : Huilage maison du 12 juin"
+                    className="h-9 mt-1"
+                  />
+                </div>
+                <SimplifiedOilPatternPicker
+                  value={customOilPattern}
+                  onChange={setCustomOilPattern}
+                  categoryId={categoryId}
+                />
+              </div>
+            )}
+
 
             {/* Choix de la portée du huilage */}
             <div className="flex flex-wrap gap-2 pt-1">
