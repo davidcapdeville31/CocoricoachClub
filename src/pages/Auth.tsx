@@ -53,7 +53,19 @@ export default function Auth() {
   const { user, loading: authLoading } = useAuth();
   useEffect(() => {
     if (!authLoading && user && !isRecoveryMode) {
-      navigate(redirectUrl || "/", { replace: true });
+      if (redirectUrl) {
+        navigate(redirectUrl, { replace: true });
+        return;
+      }
+      // Compute the correct landing page based on the user's role
+      // (athletes-only → /athlete-space, otherwise → /)
+      let cancelled = false;
+      getPostLoginRedirect(user.id).then((dest) => {
+        if (!cancelled) navigate(dest, { replace: true });
+      }).catch(() => {
+        if (!cancelled) navigate("/", { replace: true });
+      });
+      return () => { cancelled = true; };
     }
   }, [user, authLoading, navigate, redirectUrl, isRecoveryMode]);
   const [forgotStep, setForgotStep] = useState<"hidden" | "email" | "reset" | "sent" | "success">(isRecoveryMode ? "reset" : "hidden");
