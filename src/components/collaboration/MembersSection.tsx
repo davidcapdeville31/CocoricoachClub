@@ -30,12 +30,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Crown, Mail } from "lucide-react";
+import { Trash2, Crown, Mail, FolderCog } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getAppBaseUrl } from "@/lib/appUrl";
 import { useRealtimeMembers } from "@/hooks/useRealtimeMembers";
+import { useState } from "react";
+import { ManageMemberCategoriesDialog } from "./ManageMemberCategoriesDialog";
 
 interface MembersSectionProps {
   clubId: string;
