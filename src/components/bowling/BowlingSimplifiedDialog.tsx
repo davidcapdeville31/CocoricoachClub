@@ -145,6 +145,9 @@ export function BowlingSimplifiedDialog({
   const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [oilPatternName, setOilPatternName] = useState<string>("none");
+  /** Huilage personnalisé (champs libres) — utilisé si oilPatternName === "__custom__" */
+  const [customOilPattern, setCustomOilPattern] = useState<SimplifiedOilPattern>({ ...EMPTY_OIL });
+  const [customOilName, setCustomOilName] = useState<string>("");
   /** "session" : un seul huilage pour toute la séance, appliqué à chaque bloc.
    *  "per_block" : l'utilisateur choisit un huilage différent à l'intérieur de chaque bloc. */
   const [oilScope, setOilScope] = useState<"session" | "per_block">("session");
