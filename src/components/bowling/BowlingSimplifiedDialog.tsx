@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,7 @@ import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { SimplifiedTacticalBlockEditor } from "./simplified/SimplifiedTacticalBlockEditor";
 import { SimplifiedTechnicalBlockEditor } from "./simplified/SimplifiedTechnicalBlockEditor";
 import { SimplifiedGamesBlockEditor } from "./simplified/SimplifiedGamesBlockEditor";
@@ -45,6 +47,47 @@ const EMPTY_OIL: SimplifiedOilPattern = {
   reverse_oil: true,
   outside_friction: null,
 };
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+function createTokenBoundClient(accessToken: string): SupabaseClient<Database> {
+  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+    global: {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  });
+}
+
+async function getAthleteAuthContext() {
+  const { data: sessionData } = await supabase.auth.getSession();
+  let session = sessionData.session;
+
+  if (!session) {
+    const { data: refreshedData, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError) {
+      throw new Error("Session expirée. Reconnectez-vous puis réessayez.");
+    }
+    session = refreshedData.session;
+  }
+
+  const accessToken = session?.access_token;
+  if (!accessToken) {
+    throw new Error("Session expirée. Reconnectez-vous puis réessayez.");
+  }
+
+  return {
+    accessToken,
+    client: createTokenBoundClient(accessToken),
+  };
+}
 
 function buildOilFromPresetName(name: string | null): SimplifiedOilPattern {
   if (!name || name === "none") return { ...EMPTY_OIL };
@@ -312,16 +355,17 @@ export function BowlingSimplifiedDialog({
     playerId: string,
     sessionDate: string,
     sessionId: string,
+    db: SupabaseClient<Database> = supabase,
   ) => {
     // 1) Nettoie les stats précédentes liées à cette séance pour ce joueur
-    await supabase
+    await db
       .from("bowling_spare_training")
       .delete()
       .eq("player_id", playerId)
       .eq("training_session_id", sessionId);
 
     // Match d'entraînement de la journée (catégorie + date)
-    const { data: existingMatch } = await supabase
+    const { data: existingMatch } = await db
       .from("matches")
       .select("id")
       .eq("category_id", categoryId)
@@ -334,15 +378,15 @@ export function BowlingSimplifiedDialog({
 
     if (matchId) {
       // Récupère les rounds existants de ce joueur pour les supprimer (stats cascade)
-      const { data: oldRounds } = await supabase
+      const { data: oldRounds } = await db
         .from("competition_rounds")
         .select("id")
         .eq("match_id", matchId)
         .eq("player_id", playerId);
       const oldIds = (oldRounds || []).map((r: any) => r.id);
       if (oldIds.length) {
-        await supabase.from("competition_round_stats").delete().in("round_id", oldIds);
-        await supabase.from("competition_rounds").delete().in("id", oldIds);
+        await db.from("competition_round_stats").delete().in("round_id", oldIds);
+        await db.from("competition_rounds").delete().in("id", oldIds);
       }
     }
 
@@ -365,7 +409,7 @@ export function BowlingSimplifiedDialog({
       }
     }
     if (spareRows.length) {
-      const { error } = await supabase.from("bowling_spare_training").insert(spareRows);
+      const { error } = await db.from("bowling_spare_training").insert(spareRows);
       if (error) console.warn("[BowlingSimplified] spare insert:", error.message);
     }
 
@@ -382,7 +426,7 @@ export function BowlingSimplifiedDialog({
     if (gamesEntries.length === 0 && !hasOilToPersist) return;
 
     if (!matchId) {
-      const { data: newMatch, error } = await supabase
+      const { data: newMatch, error } = await db
         .from("matches")
         .insert({
           category_id: categoryId,
@@ -400,7 +444,7 @@ export function BowlingSimplifiedDialog({
     // Huilage (pattern) : upsert pour le match d'entraînement
     if (matchId && oilPatternName && oilPatternName !== "none") {
       const preset = OFFICIAL_OIL_PATTERNS.find((p) => p.name === oilPatternName);
-      const { data: existingPat } = await supabase
+      const { data: existingPat } = await db
         .from("bowling_oil_patterns")
         .select("id")
         .eq("match_id", matchId)
@@ -422,15 +466,15 @@ export function BowlingSimplifiedDialog({
         outside_friction: preset?.outside_friction ?? null,
       };
       if (existingPat?.id) {
-        await supabase.from("bowling_oil_patterns").update(payload).eq("id", existingPat.id);
+        await db.from("bowling_oil_patterns").update(payload).eq("id", existingPat.id);
       } else {
-        await supabase.from("bowling_oil_patterns").insert(payload);
+        await db.from("bowling_oil_patterns").insert(payload);
       }
     }
 
 
     // round_number existants pour ce joueur
-    const { count } = await supabase
+    const { count } = await db
       .from("competition_rounds")
       .select("id", { count: "exact", head: true })
       .eq("match_id", matchId!)
@@ -440,7 +484,7 @@ export function BowlingSimplifiedDialog({
     for (const { entry, block } of gamesEntries) {
       const s = entry.stats!;
       const ballData = entry.ball_id ? { simpleBallId: entry.ball_id } : null;
-      const { data: round, error: rErr } = await supabase
+      const { data: round, error: rErr } = await db
         .from("competition_rounds")
         .insert({
           match_id: matchId!,
@@ -476,7 +520,7 @@ export function BowlingSimplifiedDialog({
         trackPockets: block.track_pockets,
         ballData,
       };
-      const { error: sErr } = await supabase
+      const { error: sErr } = await db
         .from("competition_round_stats")
         .insert([{ round_id: round.id, stat_data: statData as any }]);
       if (sErr) console.warn("[BowlingSimplified] round stats:", sErr.message);
@@ -505,11 +549,13 @@ export function BowlingSimplifiedDialog({
         (s, b) => s + (blockDuration(b) || 0),
         0,
       );
+      const athleteAuth = isAthleteMode ? await getAthleteAuthContext() : null;
+      const athleteDb = athleteAuth?.client ?? supabase;
 
       // ============ MODE ÉDITION (athlète remplit une séance attribuée) ============
       if (isEditMode && existingSessionId) {
         // Remplace les blocs existants de CET athlète sur cette séance
-        const { error: delErr } = await supabase
+        const { error: delErr } = await athleteDb
           .from("bowling_training_blocks")
           .delete()
           .eq("session_id", existingSessionId)
@@ -536,16 +582,16 @@ export function BowlingSimplifiedDialog({
           order_index: idx,
         }));
 
-        const { error: insErr } = await supabase
+        const { error: insErr } = await athleteDb
           .from("bowling_training_blocks")
           .insert(rows as any);
         if (insErr) throw insErr;
 
         // Persiste les stats détaillées (parties + tactique)
-        await persistDetailedStats(athletePlayerId!, sessionDate, existingSessionId);
+        await persistDetailedStats(athletePlayerId!, sessionDate, existingSessionId, athleteDb);
 
         // Marque la présence
-        const { error: attErr } = await supabase
+        const { error: attErr } = await athleteDb
           .from("training_attendance")
           .upsert(
             [{
@@ -568,8 +614,7 @@ export function BowlingSimplifiedDialog({
       if (isAthleteMode) {
         // L'athlète ne peut pas écrire directement dans training_sessions (RLS).
         // On passe par l'Edge Function dédiée qui crée la séance + le participant.
-        const { data: sessionData } = await supabase.auth.getSession();
-        const accessToken = sessionData?.session?.access_token;
+        const accessToken = athleteAuth?.accessToken;
 
         if (!athletePlayerId) {
           throw new Error("Impossible d'identifier l'athlète pour cette séance");
@@ -649,7 +694,7 @@ export function BowlingSimplifiedDialog({
         })),
       );
 
-      const { error: blocksErr } = await supabase
+      const { error: blocksErr } = await athleteDb
         .from("bowling_training_blocks")
         .insert(rows as any);
       if (blocksErr) throw blocksErr;
@@ -658,9 +703,9 @@ export function BowlingSimplifiedDialog({
       // Mode coach : on ne persiste pas (les parties seront jouées par l'athlète).
       if (isAthleteMode) {
         for (const pid of targetPlayers) {
-          await persistDetailedStats(pid, sessionDate, createdSessionId);
+          await persistDetailedStats(pid, sessionDate, createdSessionId, athleteDb);
         }
-        const { error: attErr } = await supabase
+        const { error: attErr } = await athleteDb
           .from("training_attendance")
           .insert(
             targetPlayers.map((pid) => ({
