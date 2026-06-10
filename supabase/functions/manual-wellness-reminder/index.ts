@@ -207,6 +207,15 @@ serve(async (req) => {
       }
     }
 
+    // Log the reminder
+    await supabase.from("wellness_reminder_log").insert({
+      category_id: categoryId,
+      sent_by: user.id,
+      targeted_count: targetedPlayers.length,
+      emails_sent: emailsSent,
+      push_sent: pushSent,
+    });
+
     return new Response(
       JSON.stringify({
         success: true,
