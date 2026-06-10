@@ -34,19 +34,22 @@ export function EffectifTab({ categoryId }: EffectifTabProps) {
 
   return (
     <div className="space-y-4">
-      {isSkiSport && (
-        <div className="flex justify-end">
-          <Button variant="outline" size="sm" onClick={() => setFisImportOpen(true)}>
-            <FileSpreadsheet className="h-4 w-4 mr-2" />
-            Import classement FIS + WSPL
-          </Button>
-          <FisImportDialog
-            open={fisImportOpen}
-            onOpenChange={setFisImportOpen}
-            categoryId={categoryId}
-          />
-        </div>
-      )}
+      <div className="flex justify-end flex-wrap gap-2">
+        <SeasonRosterFilterToggle />
+        {isSkiSport && (
+          <>
+            <Button variant="outline" size="sm" onClick={() => setFisImportOpen(true)}>
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              Import classement FIS + WSPL
+            </Button>
+            <FisImportDialog
+              open={fisImportOpen}
+              onOpenChange={setFisImportOpen}
+              categoryId={categoryId}
+            />
+          </>
+        )}
+      </div>
       <PlayersTab categoryId={categoryId} />
     </div>
   );
