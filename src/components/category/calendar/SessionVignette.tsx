@@ -4,6 +4,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Eye, Pencil, MessageSquare, Trash2, Bell, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getTrainingTypeColor, getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import { useMarkAthleteSessionRead } from "@/lib/hooks/useMarkAthleteSessionRead";
 
 // Map Tailwind bg-color classes to actual CSS colors
 const TAILWIND_COLOR_MAP: Record<string, string> = {
@@ -79,6 +80,7 @@ export function SessionVignette({
   playerName,
 }: SessionVignetteProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const markAthleteSessionRead = useMarkAthleteSessionRead();
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: session.id,
@@ -123,7 +125,10 @@ export function SessionVignette({
         isDragging && "opacity-50",
         isHovered && "z-50"
       )}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={() => {
+        setIsHovered(true);
+        if (isAthleteCreated) markAthleteSessionRead(session.id);
+      }}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Main Session Block */}
