@@ -48,6 +48,7 @@ import { BowlingArsenalCatalogTab } from "@/components/bowling/BowlingArsenalCat
 import { JudoOpponentsTab } from "@/components/category/judo/JudoOpponentsTab";
 import { DatasTab } from "@/components/category/tabs/DatasTab";
 import { SnapshotCategoryButton } from "@/components/category/SnapshotCategoryButton";
+import { SeasonRosterFilterProvider } from "@/contexts/SeasonRosterFilterContext";
 
 
 // Colored Tab Trigger Component - Large icons with labels below
