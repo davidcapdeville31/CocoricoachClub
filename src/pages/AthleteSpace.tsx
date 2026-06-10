@@ -256,7 +256,14 @@ export default function AthleteSpace() {
         }
       }
 
-      // Always show category selector first (user clicks to enter)
+      // If athlete belongs to only one category, skip the selector
+      if (entries.length === 1) {
+        setAthleteInfo(entries[0]);
+        setShowCategorySelector(false);
+        return;
+      }
+
+      // Multiple categories: let the user pick
       setShowCategorySelector(true);
     } catch (err: any) {
       console.error("Error fetching athlete data:", err);
