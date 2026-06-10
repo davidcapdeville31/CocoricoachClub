@@ -123,6 +123,7 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
           description: `${targeted} athlète(s) notifié(s) — ${emails} email(s), ${pushes} push.`,
         });
       }
+      queryClient.invalidateQueries({ queryKey: ["wellness-reminder-last", categoryId] });
       setOpen(false);
       setSelectedIds(new Set());
     } catch (e: any) {
