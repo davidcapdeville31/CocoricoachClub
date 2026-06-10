@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
  * when the coach hovers / previews the related session in the calendar.
  * The badge on the Planification tab will decrement accordingly.
  */
-export function useMarkAthleteSessionRead(categoryId?: string) {
+export function useMarkAthleteSessionRead() {
   const queryClient = useQueryClient();
   const processed = useRef<Set<string>>(new Set());
 
@@ -35,14 +35,21 @@ export function useMarkAthleteSessionRead(categoryId?: string) {
         }
 
         if (data && data.length > 0) {
-          queryClient.invalidateQueries({ queryKey: ["unread-athlete-sessions-count", categoryId] });
-          queryClient.invalidateQueries({ queryKey: ["notifications"] });
-          queryClient.invalidateQueries({ queryKey: ["unread-notifications-count"] });
+          queryClient.invalidateQueries({
+            predicate: (q) => {
+              const k = q.queryKey?.[0];
+              return (
+                k === "unread-athlete-sessions-count" ||
+                k === "notifications" ||
+                k === "unread-notifications-count"
+              );
+            },
+          });
         }
       } catch {
         processed.current.delete(sessionId);
       }
     },
-    [categoryId, queryClient]
+    [queryClient]
   );
 }
