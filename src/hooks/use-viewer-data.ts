@@ -70,12 +70,19 @@ export function useViewerData<T>({
  * Hook for fetching players that works in both authenticated and viewer modes
  */
 export function useViewerPlayers(categoryId: string) {
-  return useViewerData<any[]>({
+  const result = useViewerData<any[]>({
     queryKey: ["players", categoryId],
     queryFn: async () => fetchCategoryRosterPlayers(categoryId),
     publicDataKey: "players",
     enabled: !!categoryId,
   });
+  const { matches, activeSeasonOnly, activeSeasonId } = useSeasonRosterFilter();
+  const filtered = useMemo(() => {
+    if (!result.data) return result.data;
+    if (!activeSeasonOnly || !activeSeasonId) return result.data;
+    return result.data.filter((p: any) => matches(p));
+  }, [result.data, activeSeasonOnly, activeSeasonId, matches]);
+  return { ...result, data: filtered };
 }
 
 /**
