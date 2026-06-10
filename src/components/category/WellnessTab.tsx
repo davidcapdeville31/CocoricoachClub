@@ -120,11 +120,19 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
 
   const { data: painConfig } = usePainConfig(categoryId);
   const scale = (painConfig ?? DEFAULT_PAIN_CONFIG).scale;
-  /** Look up the configured color for an integer score 1..5. */
+  /** Look up the configured color for an integer score 1..5 (lower = better, e.g. fatigue, stress, soreness, pain). */
   const styleFor = (value: number | null | undefined) => {
     if (value == null) return {} as CSSProperties;
     const rounded = Math.max(1, Math.min(5, Math.round(value)));
     return getScaleStyle(scale.find((s) => s.value === rounded)?.color);
+  };
+  /** Positive scale 1..5 (higher = better, e.g. sleep quality, sleep duration).
+   *  We invert the value to look up the right color on the pain scale. */
+  const styleForPositive = (value: number | null | undefined) => {
+    if (value == null) return {} as CSSProperties;
+    const rounded = Math.max(1, Math.min(5, Math.round(value)));
+    const inverted = 6 - rounded; // 5→1 (best→green), 1→5 (worst→red)
+    return getScaleStyle(scale.find((s) => s.value === inverted)?.color);
   };
 
 
@@ -146,9 +154,13 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   }
 
   const calculateWellnessScore = (entry: NonNullable<typeof wellnessData>[0]) => {
+    // Normalise sleep_quality / sleep_duration (positive scales: higher = better)
+    // to the inverted convention used by all other metrics (1 = best, 5 = worst).
+    const invSleepQuality = entry.sleep_quality != null ? 6 - entry.sleep_quality : 0;
+    const invSleepDuration = entry.sleep_duration != null ? 6 - entry.sleep_duration : 0;
     const avg = (
-      entry.sleep_quality +
-      entry.sleep_duration +
+      invSleepQuality +
+      invSleepDuration +
       entry.general_fatigue +
       entry.stress_level +
       entry.soreness_upper_body +
@@ -345,12 +357,12 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                         {format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: fr })}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" style={styleFor(entry.sleep_quality)}>
+                        <Badge variant="outline" style={styleForPositive(entry.sleep_quality)}>
                           {entry.sleep_quality}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" style={styleFor(entry.sleep_duration)}>
+                        <Badge variant="outline" style={styleForPositive(entry.sleep_duration)}>
                           {sleepScoreLabel(entry.sleep_duration)}
                         </Badge>
                       </TableCell>
