@@ -140,15 +140,33 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
   const displayPlayers =
     onlyMissing && selectedIds.size === 0 ? missingPlayers : players;
 
+  const alreadySent = !!lastReminder;
+  const sentAgo = lastReminder
+    ? formatDistanceToNow(new Date(lastReminder.sent_at), { addSuffix: true, locale: fr })
+    : null;
+
   return (
     <>
       <Button
-        variant="outline"
+        variant={alreadySent ? "secondary" : "outline"}
         onClick={() => setOpen(true)}
-        title="Envoyer un rappel push + email aux athlètes"
+        title={
+          alreadySent
+            ? `Déjà envoyé ${sentAgo} (${lastReminder?.targeted_count} athlètes)`
+            : "Envoyer un rappel push + email aux athlètes"
+        }
       >
-        <Megaphone className="h-4 w-4 mr-2" />
+        {alreadySent ? (
+          <CheckCircle2 className="h-4 w-4 mr-2 text-status-optimal" />
+        ) : (
+          <Megaphone className="h-4 w-4 mr-2" />
+        )}
         Rappeler le Wellness
+        {alreadySent && (
+          <Badge variant="secondary" className="ml-2 text-xs">
+            envoyé {sentAgo}
+          </Badge>
+        )}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -159,6 +177,20 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
               Envoie une notification push + email aux athlètes pour leur
               rappeler de remplir leur wellness du jour.
             </DialogDescription>
+          </DialogHeader>
+
+          {alreadySent && (
+            <div className="rounded-lg border border-status-optimal/30 bg-status-optimal/10 p-3 text-sm">
+              <p className="font-medium flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-status-optimal" />
+                Rappel déjà envoyé aujourd'hui
+              </p>
+              <p className="text-muted-foreground text-xs mt-1">
+                {lastReminder?.targeted_count} athlète(s) notifié(s) {sentAgo}.
+                Évite de spammer — renvoie seulement si nécessaire.
+              </p>
+            </div>
+          )}
           </DialogHeader>
 
           <div className="space-y-4">
