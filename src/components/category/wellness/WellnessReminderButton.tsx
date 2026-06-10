@@ -191,7 +191,8 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
               </p>
             </div>
           )}
-          </DialogHeader>
+
+
 
           <div className="space-y-4">
             <div className="flex items-center gap-2 rounded-lg border bg-muted/40 p-3">
