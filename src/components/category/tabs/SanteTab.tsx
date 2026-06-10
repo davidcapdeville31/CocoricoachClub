@@ -9,6 +9,7 @@ import { WellnessTab } from "@/components/category/WellnessTab";
 import { NutritionTab } from "@/components/category/NutritionTab";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
+import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isRugbyType } from "@/lib/constants/sportTypes";
@@ -69,6 +70,9 @@ export function SanteTab({ categoryId }: SanteTabProps) {
   return (
     <SanteErrorBoundary>
       <Tabs defaultValue="dashboard" className="space-y-4">
+        <div className="flex justify-end">
+          <SeasonRosterFilterToggle />
+        </div>
         <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
           <ColoredSubTabsList colorKey="sante" className="inline-flex w-max">
             <ColoredSubTabsTrigger

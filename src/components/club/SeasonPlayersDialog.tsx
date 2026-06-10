@@ -15,7 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Users, Loader2 } from "lucide-react";
+import { Search, Users, Loader2, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   open: boolean;
@@ -35,6 +36,7 @@ export function SeasonPlayersDialog({
   categories,
 }: Props) {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
@@ -197,26 +199,41 @@ export function SeasonPlayersDialog({
                           ? `${p.first_name} ${p.name}`
                           : p.name;
                         return (
-                          <label
+                          <div
                             key={p.id}
-                            className="flex items-center gap-3 p-2 rounded-lg border hover:bg-muted/40 cursor-pointer"
+                            className="flex items-center gap-3 p-2 rounded-lg border hover:bg-muted/40"
                           >
-                            <Checkbox
-                              checked={checked}
-                              onCheckedChange={() => toggle(p.id)}
-                            />
-                            <span className="text-sm flex-1">{displayName}</span>
-                            {otherSeason && (
-                              <Badge variant="outline" className="text-[10px]">
-                                Autre saison
-                              </Badge>
-                            )}
-                            {!p.season_id && (
-                              <Badge variant="outline" className="text-[10px] text-muted-foreground">
-                                Sans saison
-                              </Badge>
-                            )}
-                          </label>
+                            <label className="flex items-center gap-3 flex-1 cursor-pointer min-w-0">
+                              <Checkbox
+                                checked={checked}
+                                onCheckedChange={() => toggle(p.id)}
+                              />
+                              <span className="text-sm flex-1 truncate">{displayName}</span>
+                              {otherSeason && (
+                                <Badge variant="outline" className="text-[10px]">
+                                  Autre saison
+                                </Badge>
+                              )}
+                              {!p.season_id && (
+                                <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                                  Sans saison
+                                </Badge>
+                              )}
+                            </label>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 shrink-0"
+                              title="Consulter le profil"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onOpenChange(false);
+                                navigate(`/players/${p.id}`);
+                              }}
+                            >
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </div>
                         );
                       })}
                     </div>

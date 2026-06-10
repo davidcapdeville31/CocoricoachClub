@@ -48,6 +48,7 @@ import { BowlingArsenalCatalogTab } from "@/components/bowling/BowlingArsenalCat
 import { JudoOpponentsTab } from "@/components/category/judo/JudoOpponentsTab";
 import { DatasTab } from "@/components/category/tabs/DatasTab";
 import { SnapshotCategoryButton } from "@/components/category/SnapshotCategoryButton";
+import { SeasonRosterFilterProvider } from "@/contexts/SeasonRosterFilterContext";
 
 
 // Colored Tab Trigger Component - Large icons with labels below
@@ -728,7 +729,9 @@ export default function CategoryDetails() {
     <ViewerModeProvider clubId={category?.club_id} categoryId={categoryId}>
       <ClubBrandingProvider clubId={category?.club_id}>
         <PublicDataProvider categoryId={categoryId || ""}>
-          <CategoryDetailsContent />
+          <SeasonRosterFilterProvider clubId={category?.club_id} categoryId={categoryId}>
+            <CategoryDetailsContent />
+          </SeasonRosterFilterProvider>
         </PublicDataProvider>
       </ClubBrandingProvider>
     </ViewerModeProvider>
