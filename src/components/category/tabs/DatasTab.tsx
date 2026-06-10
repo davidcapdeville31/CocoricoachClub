@@ -127,6 +127,9 @@ export function DatasTab({ categoryId, sportType }: DatasTabProps) {
 
   return (
     <Tabs defaultValue="competition" className="space-y-4">
+      <div className="flex justify-end">
+        <SeasonRosterFilterToggle />
+      </div>
       <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
         <ColoredSubTabsList colorKey="competition" className="inline-flex w-max">
           <ColoredSubTabsTrigger
