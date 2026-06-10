@@ -357,12 +357,12 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                         {format(new Date(entry.tracking_date), "dd MMM yyyy", { locale: fr })}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" style={styleFor(entry.sleep_quality)}>
+                        <Badge variant="outline" style={styleForPositive(entry.sleep_quality)}>
                           {entry.sleep_quality}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" style={styleFor(entry.sleep_duration)}>
+                        <Badge variant="outline" style={styleForPositive(entry.sleep_duration)}>
                           {sleepScoreLabel(entry.sleep_duration)}
                         </Badge>
                       </TableCell>
