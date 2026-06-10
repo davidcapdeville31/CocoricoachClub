@@ -9,6 +9,7 @@ import { WellnessTab } from "@/components/category/WellnessTab";
 import { NutritionTab } from "@/components/category/NutritionTab";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
+import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isRugbyType } from "@/lib/constants/sportTypes";
