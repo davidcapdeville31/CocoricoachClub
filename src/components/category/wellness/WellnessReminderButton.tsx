@@ -147,27 +147,37 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
 
   return (
     <>
-      <Button
-        variant={alreadySent ? "secondary" : "outline"}
-        onClick={() => setOpen(true)}
-        title={
-          alreadySent
-            ? `Déjà envoyé ${sentAgo} (${lastReminder?.targeted_count} athlètes)`
-            : "Envoyer un rappel push + email aux athlètes"
-        }
-      >
+      <div className="flex items-center gap-2">
+        <Button
+          variant={alreadySent ? "secondary" : "outline"}
+          onClick={() => setOpen(true)}
+          title={
+            alreadySent
+              ? `Déjà envoyé ${sentAgo} (${lastReminder?.targeted_count} athlètes)`
+              : "Envoyer un rappel push + email aux athlètes"
+          }
+        >
+          {alreadySent ? (
+            <CheckCircle2 className="h-4 w-4 mr-2 text-status-optimal" />
+          ) : (
+            <Megaphone className="h-4 w-4 mr-2" />
+          )}
+          Rappeler le Wellness
+        </Button>
         {alreadySent ? (
-          <CheckCircle2 className="h-4 w-4 mr-2 text-status-optimal" />
+          <Badge
+            variant="outline"
+            className="border-status-optimal/40 bg-status-optimal/10 text-status-optimal text-xs whitespace-nowrap"
+          >
+            ✓ Envoyé {sentAgo} · {lastReminder?.targeted_count} ath.
+          </Badge>
         ) : (
-          <Megaphone className="h-4 w-4 mr-2" />
-        )}
-        Rappeler le Wellness
-        {alreadySent && (
-          <Badge variant="secondary" className="ml-2 text-xs">
-            envoyé {sentAgo}
+          <Badge variant="outline" className="text-xs text-muted-foreground whitespace-nowrap">
+            Aucun rappel aujourd'hui
           </Badge>
         )}
-      </Button>
+      </div>
+
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
