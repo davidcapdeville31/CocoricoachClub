@@ -14380,6 +14380,44 @@ export type Database = {
           },
         ]
       }
+      wellness_reminder_log: {
+        Row: {
+          category_id: string
+          emails_sent: number
+          id: string
+          push_sent: number
+          sent_at: string
+          sent_by: string | null
+          targeted_count: number
+        }
+        Insert: {
+          category_id: string
+          emails_sent?: number
+          id?: string
+          push_sent?: number
+          sent_at?: string
+          sent_by?: string | null
+          targeted_count?: number
+        }
+        Update: {
+          category_id?: string
+          emails_sent?: number
+          id?: string
+          push_sent?: number
+          sent_at?: string
+          sent_by?: string | null
+          targeted_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wellness_reminder_log_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wellness_schedules: {
         Row: {
           category_id: string
