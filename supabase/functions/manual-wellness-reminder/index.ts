@@ -119,8 +119,16 @@ serve(async (req) => {
     }
 
     if (targetedPlayers.length === 0) {
+      // Log even if nothing was sent so coaches see the action was attempted today
+      await supabase.from("wellness_reminder_log").insert({
+        category_id: categoryId,
+        sent_by: user.id,
+        targeted_count: 0,
+        emails_sent: 0,
+        push_sent: 0,
+      });
       return new Response(
-        JSON.stringify({ message: "All athletes already filled wellness today", emailsSent: 0, pushSent: 0 }),
+        JSON.stringify({ message: "All athletes already filled wellness today", emailsSent: 0, pushSent: 0, targeted: 0 }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
