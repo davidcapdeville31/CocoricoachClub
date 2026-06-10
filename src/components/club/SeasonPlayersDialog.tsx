@@ -15,7 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Users, Loader2 } from "lucide-react";
+import { Search, Users, Loader2, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   open: boolean;
