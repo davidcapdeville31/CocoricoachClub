@@ -728,7 +728,9 @@ export default function CategoryDetails() {
     <ViewerModeProvider clubId={category?.club_id} categoryId={categoryId}>
       <ClubBrandingProvider clubId={category?.club_id}>
         <PublicDataProvider categoryId={categoryId || ""}>
-          <CategoryDetailsContent />
+          <SeasonRosterFilterProvider clubId={category?.club_id} categoryId={categoryId}>
+            <CategoryDetailsContent />
+          </SeasonRosterFilterProvider>
         </PublicDataProvider>
       </ClubBrandingProvider>
     </ViewerModeProvider>
