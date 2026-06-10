@@ -17,6 +17,7 @@ import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionE
 import { isRugbyType, isAthletismeCategory } from "@/lib/constants/sportTypes";
 import { TeamSportsAnalytics } from "@/components/category/datas/team-sports/TeamSportsAnalytics";
 import { getAthleteGroups, type AthleticsGroup } from "@/lib/athletics/athleteDisciplines";
+import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
 
 interface DatasTabProps {
   categoryId: string;
