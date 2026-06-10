@@ -30,8 +30,27 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
   const [onlyMissing, setOnlyMissing] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState(false);
+  const queryClient = useQueryClient();
 
   const today = format(new Date(), "yyyy-MM-dd");
+
+  const { data: lastReminder } = useQuery({
+    queryKey: ["wellness-reminder-last", categoryId, today],
+    queryFn: async () => {
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const { data, error } = await supabase
+        .from("wellness_reminder_log")
+        .select("sent_at, targeted_count, sent_by")
+        .eq("category_id", categoryId)
+        .gte("sent_at", startOfDay.toISOString())
+        .order("sent_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: players = [] } = useQuery({
     queryKey: ["wellness-reminder-players", categoryId],
