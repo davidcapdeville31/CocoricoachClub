@@ -154,9 +154,13 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   }
 
   const calculateWellnessScore = (entry: NonNullable<typeof wellnessData>[0]) => {
+    // Normalise sleep_quality / sleep_duration (positive scales: higher = better)
+    // to the inverted convention used by all other metrics (1 = best, 5 = worst).
+    const invSleepQuality = entry.sleep_quality != null ? 6 - entry.sleep_quality : 0;
+    const invSleepDuration = entry.sleep_duration != null ? 6 - entry.sleep_duration : 0;
     const avg = (
-      entry.sleep_quality +
-      entry.sleep_duration +
+      invSleepQuality +
+      invSleepDuration +
       entry.general_fatigue +
       entry.stress_level +
       entry.soreness_upper_body +
