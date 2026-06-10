@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { AddWellnessDialog } from "./AddWellnessDialog";
+import { WellnessReminderButton } from "./wellness/WellnessReminderButton";
 import { WellnessScheduleConfig } from "./wellness/WellnessScheduleConfig";
 import { WellnessQuestionsEditor } from "./wellness/WellnessQuestionsEditor";
 import { PainConfigEditor } from "./wellness/PainConfigEditor";
@@ -290,10 +291,13 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                     </Button>
                   )}
                   {!isViewer && (
-                    <Button onClick={() => setIsDialogOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Nouvelle entrée
-                    </Button>
+                    <>
+                      <WellnessReminderButton categoryId={categoryId} />
+                      <Button onClick={() => setIsDialogOpen(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Nouvelle entrée
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
