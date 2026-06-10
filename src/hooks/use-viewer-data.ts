@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePublicDataContext } from "@/contexts/PublicDataContext";
 import { fetchCategoryRosterPlayers } from "@/lib/categoryRoster";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 
 type PublicDataKey = 
   | "players" 
