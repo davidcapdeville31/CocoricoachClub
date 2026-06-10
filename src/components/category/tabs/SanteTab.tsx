@@ -70,6 +70,9 @@ export function SanteTab({ categoryId }: SanteTabProps) {
   return (
     <SanteErrorBoundary>
       <Tabs defaultValue="dashboard" className="space-y-4">
+        <div className="flex justify-end">
+          <SeasonRosterFilterToggle />
+        </div>
         <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
           <ColoredSubTabsList colorKey="sante" className="inline-flex w-max">
             <ColoredSubTabsTrigger
