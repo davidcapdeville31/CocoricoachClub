@@ -120,11 +120,19 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
 
   const { data: painConfig } = usePainConfig(categoryId);
   const scale = (painConfig ?? DEFAULT_PAIN_CONFIG).scale;
-  /** Look up the configured color for an integer score 1..5. */
+  /** Look up the configured color for an integer score 1..5 (lower = better, e.g. fatigue, stress, soreness, pain). */
   const styleFor = (value: number | null | undefined) => {
     if (value == null) return {} as CSSProperties;
     const rounded = Math.max(1, Math.min(5, Math.round(value)));
     return getScaleStyle(scale.find((s) => s.value === rounded)?.color);
+  };
+  /** Positive scale 1..5 (higher = better, e.g. sleep quality, sleep duration).
+   *  We invert the value to look up the right color on the pain scale. */
+  const styleForPositive = (value: number | null | undefined) => {
+    if (value == null) return {} as CSSProperties;
+    const rounded = Math.max(1, Math.min(5, Math.round(value)));
+    const inverted = 6 - rounded; // 5→1 (best→green), 1→5 (worst→red)
+    return getScaleStyle(scale.find((s) => s.value === inverted)?.color);
   };
 
 
