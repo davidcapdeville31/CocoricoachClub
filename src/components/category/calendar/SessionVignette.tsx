@@ -4,6 +4,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Eye, Pencil, MessageSquare, Trash2, Bell, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getTrainingTypeColor, getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import { useMarkAthleteSessionRead } from "@/lib/hooks/useMarkAthleteSessionRead";
 
 // Map Tailwind bg-color classes to actual CSS colors
 const TAILWIND_COLOR_MAP: Record<string, string> = {
