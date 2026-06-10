@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getMainSportFromType } from "@/lib/constants/sportTypes";
 import { FisImportDialog } from "@/components/category/fis/FisImportDialog";
+import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
 
 interface EffectifTabProps {
   categoryId: string;
