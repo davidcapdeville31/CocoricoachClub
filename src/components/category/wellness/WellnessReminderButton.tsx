@@ -15,7 +15,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
+import { useQueryClient } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle2 } from "lucide-react";
 
 interface WellnessReminderButtonProps {
   categoryId: string;
@@ -26,8 +30,27 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
   const [onlyMissing, setOnlyMissing] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState(false);
+  const queryClient = useQueryClient();
 
   const today = format(new Date(), "yyyy-MM-dd");
+
+  const { data: lastReminder } = useQuery({
+    queryKey: ["wellness-reminder-last", categoryId, today],
+    queryFn: async () => {
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const { data, error } = await supabase
+        .from("wellness_reminder_log")
+        .select("sent_at, targeted_count, sent_by")
+        .eq("category_id", categoryId)
+        .gte("sent_at", startOfDay.toISOString())
+        .order("sent_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: players = [] } = useQuery({
     queryKey: ["wellness-reminder-players", categoryId],
@@ -100,6 +123,7 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
           description: `${targeted} athlète(s) notifié(s) — ${emails} email(s), ${pushes} push.`,
         });
       }
+      queryClient.invalidateQueries({ queryKey: ["wellness-reminder-last", categoryId] });
       setOpen(false);
       setSelectedIds(new Set());
     } catch (e: any) {
@@ -116,15 +140,33 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
   const displayPlayers =
     onlyMissing && selectedIds.size === 0 ? missingPlayers : players;
 
+  const alreadySent = !!lastReminder;
+  const sentAgo = lastReminder
+    ? formatDistanceToNow(new Date(lastReminder.sent_at), { addSuffix: true, locale: fr })
+    : null;
+
   return (
     <>
       <Button
-        variant="outline"
+        variant={alreadySent ? "secondary" : "outline"}
         onClick={() => setOpen(true)}
-        title="Envoyer un rappel push + email aux athlètes"
+        title={
+          alreadySent
+            ? `Déjà envoyé ${sentAgo} (${lastReminder?.targeted_count} athlètes)`
+            : "Envoyer un rappel push + email aux athlètes"
+        }
       >
-        <Megaphone className="h-4 w-4 mr-2" />
+        {alreadySent ? (
+          <CheckCircle2 className="h-4 w-4 mr-2 text-status-optimal" />
+        ) : (
+          <Megaphone className="h-4 w-4 mr-2" />
+        )}
         Rappeler le Wellness
+        {alreadySent && (
+          <Badge variant="secondary" className="ml-2 text-xs">
+            envoyé {sentAgo}
+          </Badge>
+        )}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -136,6 +178,21 @@ export function WellnessReminderButton({ categoryId }: WellnessReminderButtonPro
               rappeler de remplir leur wellness du jour.
             </DialogDescription>
           </DialogHeader>
+
+          {alreadySent && (
+            <div className="rounded-lg border border-status-optimal/30 bg-status-optimal/10 p-3 text-sm">
+              <p className="font-medium flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-status-optimal" />
+                Rappel déjà envoyé aujourd'hui
+              </p>
+              <p className="text-muted-foreground text-xs mt-1">
+                {lastReminder?.targeted_count} athlète(s) notifié(s) {sentAgo}.
+                Évite de spammer — renvoie seulement si nécessaire.
+              </p>
+            </div>
+          )}
+
+
 
           <div className="space-y-4">
             <div className="flex items-center gap-2 rounded-lg border bg-muted/40 p-3">
