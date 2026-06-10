@@ -112,8 +112,7 @@ serve(async (req) => {
         .from("wellness_tracking")
         .select("player_id")
         .eq("category_id", categoryId)
-        .gte("date", today)
-        .lte("date", today);
+        .eq("tracking_date", today);
       const filledIds = new Set((filled || []).map((w) => w.player_id));
       targetedPlayers = players.filter((p) => !filledIds.has(p.id));
     }
