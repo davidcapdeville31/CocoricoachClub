@@ -291,10 +291,13 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
                     </Button>
                   )}
                   {!isViewer && (
-                    <Button onClick={() => setIsDialogOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Nouvelle entrée
-                    </Button>
+                    <>
+                      <WellnessReminderButton categoryId={categoryId} />
+                      <Button onClick={() => setIsDialogOpen(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Nouvelle entrée
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
