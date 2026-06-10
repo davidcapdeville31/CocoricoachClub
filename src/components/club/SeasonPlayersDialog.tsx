@@ -36,6 +36,7 @@ export function SeasonPlayersDialog({
   categories,
 }: Props) {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
