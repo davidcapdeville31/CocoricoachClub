@@ -125,7 +125,10 @@ export function SessionVignette({
         isDragging && "opacity-50",
         isHovered && "z-50"
       )}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={() => {
+        setIsHovered(true);
+        if (isAthleteCreated) markAthleteSessionRead(session.id);
+      }}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Main Session Block */}
