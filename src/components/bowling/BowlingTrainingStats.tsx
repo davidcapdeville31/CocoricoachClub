@@ -963,7 +963,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                                           {pct}%
                                         </text>
                                         <text x={x + width / 2} y={y - 4} textAnchor="middle" fontSize={10} fontWeight={700} fill={color}>
-                                          {value}h
+                                          {formatHm(Number(value))}
                                         </text>
                                       </g>
                                     );
