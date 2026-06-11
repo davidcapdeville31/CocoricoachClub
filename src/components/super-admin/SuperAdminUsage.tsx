@@ -5,8 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Clock, Users, User, TrendingUp } from "lucide-react";
-import { format, subDays, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { Clock, Users, User, TrendingUp, Calendar } from "lucide-react";
+import { format, subDays, startOfMonth, endOfMonth, subMonths, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 
 type PeriodFilter = "7d" | "30d" | "this_month" | "last_month" | "all";
@@ -131,19 +131,25 @@ export function SuperAdminUsage() {
     let athleteSeconds = 0;
     let staffActiveUsers = new Set<string>();
     let athleteActiveUsers = new Set<string>();
+    let lastActiveDate: string | null = null;
 
     activityData.forEach(a => {
-      if (a.user_type === "staff" && client.staffUserIds.includes(a.user_id)) {
+      const isStaff = a.user_type === "staff" && client.staffUserIds.includes(a.user_id);
+      const isAthlete = a.user_type === "athlete" && client.athleteUserIds.includes(a.user_id);
+
+      if (isStaff) {
         staffSeconds += a.duration_seconds;
         staffActiveUsers.add(a.user_id);
       }
-      if (a.user_type === "athlete" && client.athleteUserIds.includes(a.user_id)) {
+      if (isAthlete) {
         athleteSeconds += a.duration_seconds;
         athleteActiveUsers.add(a.user_id);
       }
-      // Also count staff activity from athlete user IDs (they might use staff pages)
-      if (a.user_type === "staff" && client.athleteUserIds.includes(a.user_id) && !client.staffUserIds.includes(a.user_id)) {
-        // Don't double count - skip
+
+      if (isStaff || isAthlete) {
+        if (!lastActiveDate || a.activity_date > lastActiveDate) {
+          lastActiveDate = a.activity_date;
+        }
       }
     });
 
@@ -158,6 +164,7 @@ export function SuperAdminUsage() {
       athleteActiveUsers: athleteActiveUsers.size,
       totalStaff: client.staffUserIds.length,
       totalAthletes: client.athleteUserIds.length,
+      lastActiveDate,
     };
   }).sort((a, b) => b.totalSeconds - a.totalSeconds);
 
@@ -252,6 +259,12 @@ export function SuperAdminUsage() {
                     <TableHead>Statut</TableHead>
                     <TableHead className="text-center">
                       <div className="flex items-center justify-center gap-1">
+                        <Calendar className="h-4 w-4 text-primary" />
+                        Dernière connexion
+                      </div>
+                    </TableHead>
+                    <TableHead className="text-center">
+                      <div className="flex items-center justify-center gap-1">
                         <Users className="h-4 w-4 text-blue-500" />
                         Staff
                       </div>
@@ -276,6 +289,16 @@ export function SuperAdminUsage() {
                         >
                           {client.status === "active" ? "Actif" : client.status === "trial" ? "Essai" : client.status}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {client.lastActiveDate ? (
+                          <div>
+                            <p className="font-semibold">{format(parseISO(client.lastActiveDate), "dd/MM/yyyy")}</p>
+                            <p className="text-xs text-muted-foreground">{format(parseISO(client.lastActiveDate), "HH:mm")}</p>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">—</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-center">
                         <div>
