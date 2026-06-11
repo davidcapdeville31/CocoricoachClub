@@ -259,6 +259,12 @@ export function SuperAdminUsage() {
                     <TableHead>Statut</TableHead>
                     <TableHead className="text-center">
                       <div className="flex items-center justify-center gap-1">
+                        <Calendar className="h-4 w-4 text-primary" />
+                        Dernière connexion
+                      </div>
+                    </TableHead>
+                    <TableHead className="text-center">
+                      <div className="flex items-center justify-center gap-1">
                         <Users className="h-4 w-4 text-blue-500" />
                         Staff
                       </div>
@@ -283,6 +289,16 @@ export function SuperAdminUsage() {
                         >
                           {client.status === "active" ? "Actif" : client.status === "trial" ? "Essai" : client.status}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {client.lastActiveDate ? (
+                          <div>
+                            <p className="font-semibold">{format(parseISO(client.lastActiveDate), "dd/MM/yyyy")}</p>
+                            <p className="text-xs text-muted-foreground">{format(parseISO(client.lastActiveDate), "HH:mm")}</p>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">—</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-center">
                         <div>
