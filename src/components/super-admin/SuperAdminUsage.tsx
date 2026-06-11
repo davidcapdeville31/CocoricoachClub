@@ -5,8 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Clock, Users, User, TrendingUp } from "lucide-react";
-import { format, subDays, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { Clock, Users, User, TrendingUp, Calendar } from "lucide-react";
+import { format, subDays, startOfMonth, endOfMonth, subMonths, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 
 type PeriodFilter = "7d" | "30d" | "this_month" | "last_month" | "all";
