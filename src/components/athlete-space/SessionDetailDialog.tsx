@@ -67,7 +67,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
     queryFn: async () => {
       const { data, error } = await supabase
         .from("player_bowling_arsenal")
-        .select("id, ball_name, brand")
+        .select("id, custom_ball_name, custom_ball_brand, ball_catalog:bowling_ball_catalog(name, brand)")
         .in("id", ballIds as string[]);
       if (error) throw error;
       return data || [];
@@ -75,8 +75,11 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
   });
   const ballName = (id?: string) => {
     if (!id) return null;
-    const b = (balls || []).find((x: any) => x.id === id);
-    return b ? `${b.brand ? b.brand + " " : ""}${b.ball_name}` : null;
+    const b: any = (balls || []).find((x: any) => x.id === id);
+    if (!b) return null;
+    const name = b.custom_ball_name || b.ball_catalog?.name;
+    const brand = b.custom_ball_brand || b.ball_catalog?.brand;
+    return name ? `${brand ? brand + " " : ""}${name}` : null;
   };
 
   if (!session) return null;
