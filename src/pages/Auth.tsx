@@ -269,7 +269,24 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+      <div className="w-full max-w-md space-y-4">
+        {forgotStep === "hidden" && (
+          <div className="rounded-2xl bg-primary text-primary-foreground p-5 text-center space-y-2 shadow-lg">
+            <p className="text-base font-semibold">
+              Demande de renseignements ? Pas encore de compte ?
+            </p>
+            <p className="text-sm opacity-90">
+              Chaque structure bénéficie d'un devis personnalisé. Contactez-nous pour créer votre espace.
+            </p>
+            <Button asChild variant="secondary" className="w-full mt-2">
+              <a href="mailto:contact@cocoricoachclub.com?subject=Demande%20de%20renseignements%20-%20CocoriCoach%20Club">
+                Nous contacter
+              </a>
+            </Button>
+          </div>
+        )}
+        <Card className="w-full">
+
         <CardHeader className="pb-2 space-y-1">
           <div className="flex justify-center -mb-2">
             <BrandLogo className="h-28 sm:h-32 w-auto" />
@@ -480,25 +497,11 @@ export default function Auth() {
             </TabsContent>
           </Tabs>
 
-          {forgotStep === "hidden" && (
-            <div className="mt-6 pt-6 border-t border-border">
-              <div className="rounded-2xl bg-surface-sunken p-4 text-center space-y-2">
-                <p className="text-sm font-semibold text-foreground">
-                  Demande de renseignements ? Pas encore de compte ?
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Chaque structure bénéficie d'un devis personnalisé. Contactez-nous pour créer votre espace.
-                </p>
-                <Button asChild variant="default" className="w-full mt-2">
-                  <a href="mailto:contact@cocoricoachclub.com?subject=Demande%20de%20renseignements%20-%20CocoriCoach%20Club">
-                    Nous contacter
-                  </a>
-                </Button>
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
+
+
