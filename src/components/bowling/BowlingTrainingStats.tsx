@@ -215,18 +215,26 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     },
   });
 
-  // Unique training match IDs (from games) — restricted to current athlete when viewing as athlete
+  // Effective athlete scope: forced prop OR coach's dropdown selection.
+  // When an athlete is targeted, all training data (match list, oil filter,
+  // games, blocks, spare exercises) must be restricted to that athlete only.
+  const effectivePlayerId = useMemo(
+    () => playerId || (selectedPlayerId !== "all" ? selectedPlayerId : null),
+    [playerId, selectedPlayerId]
+  );
+
+  // Unique training match IDs (from games) — restricted to current athlete when one is targeted
   const trainingMatchIds = useMemo(() => {
     if (!trainingData) return [] as string[];
-    const games = playerId
-      ? trainingData.games.filter((g: any) => g.playerId === playerId)
+    const games = effectivePlayerId
+      ? trainingData.games.filter((g: any) => g.playerId === effectivePlayerId)
       : trainingData.games;
     return [...new Set(games.map((g: any) => g.matchId).filter(Boolean))] as string[];
-  }, [trainingData, playerId]);
+  }, [trainingData, effectivePlayerId]);
 
   // Fetch oil patterns assigned to those training matches
   const { data: trainingOilData } = useQuery({
-    queryKey: ["bowling_training_oil_patterns", categoryId, trainingMatchIds, playerId || "all"],
+    queryKey: ["bowling_training_oil_patterns", categoryId, trainingMatchIds, effectivePlayerId || "all"],
     queryFn: async () => {
       if (trainingMatchIds.length === 0) return [] as Array<{ matchId: string; matchDate: string; oilRatio: string | null; oilCategory: OilCategoryType | null; patternName: string | null }>;
       const { data: oilPatterns } = await supabase
@@ -254,8 +262,8 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
 
       const seen = new Set<string>();
       const out: Array<{ matchId: string; matchDate: string; oilRatio: string | null; oilCategory: OilCategoryType | null; patternName: string | null }> = [];
-      const gamesScope = playerId
-        ? (trainingData?.games || []).filter((g: any) => g.playerId === playerId)
+      const gamesScope = effectivePlayerId
+        ? (trainingData?.games || []).filter((g: any) => g.playerId === effectivePlayerId)
         : (trainingData?.games || []);
       for (const g of gamesScope) {
         if (!trainingMatchIds.includes(g.matchId)) continue;
@@ -263,8 +271,8 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
         seen.add(g.matchId);
         const patternsForMatch = patternsByMatch.get(g.matchId) || [];
         let resolved: any = null;
-        if (playerId) {
-          const assignedIds = new Set(assignments.filter((a: any) => a.player_id === playerId).map((a: any) => a.oil_pattern_id));
+        if (effectivePlayerId) {
+          const assignedIds = new Set(assignments.filter((a: any) => a.player_id === effectivePlayerId).map((a: any) => a.oil_pattern_id));
           resolved = patternsForMatch.find((p: any) => assignedIds.has(p.id)) || patternsForMatch[0] || null;
         } else {
           resolved = patternsForMatch[0] || null;
