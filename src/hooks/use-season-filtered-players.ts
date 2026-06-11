@@ -1,0 +1,42 @@
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+
+/**
+ * Returns the set of player ids in `categoryId` that match the current
+ * "active season only" toggle. When the filter is OFF (or no active season),
+ * `allowedIds` is `null` meaning "no filtering, keep everything".
+ */
+export function useSeasonFilteredPlayerIds(categoryId: string | undefined | null) {
+  const { activeSeasonOnly, activeSeasonId } = useSeasonRosterFilter();
+  const enabled = !!categoryId && activeSeasonOnly && !!activeSeasonId;
+
+  const { data } = useQuery({
+    queryKey: ["season-filtered-player-ids", categoryId, activeSeasonId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("id, season_id")
+        .eq("category_id", categoryId as string)
+        .eq("season_id", activeSeasonId as string);
+      if (error) throw error;
+      return (data || []).map((p: any) => p.id as string);
+    },
+    enabled,
+  });
+
+  return useMemo(() => {
+    if (!enabled) return { allowedIds: null as Set<string> | null, isFiltering: false };
+    return { allowedIds: new Set<string>(data || []), isFiltering: true };
+  }, [enabled, data]);
+}
+
+/** Convenience predicate that always lets records through when not filtering. */
+export function makePlayerIdFilter(allowedIds: Set<string> | null) {
+  return (playerId: string | null | undefined) => {
+    if (!allowedIds) return true;
+    if (!playerId) return false;
+    return allowedIds.has(playerId);
+  };
+}
