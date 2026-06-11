@@ -254,7 +254,11 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
 
       const seen = new Set<string>();
       const out: Array<{ matchId: string; matchDate: string; oilRatio: string | null; oilCategory: OilCategoryType | null; patternName: string | null }> = [];
-      for (const g of trainingData?.games || []) {
+      const gamesScope = playerId
+        ? (trainingData?.games || []).filter((g: any) => g.playerId === playerId)
+        : (trainingData?.games || []);
+      for (const g of gamesScope) {
+        if (!trainingMatchIds.includes(g.matchId)) continue;
         if (seen.has(g.matchId)) continue;
         seen.add(g.matchId);
         const patternsForMatch = patternsByMatch.get(g.matchId) || [];
