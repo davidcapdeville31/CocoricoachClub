@@ -58,14 +58,18 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
   // Dynamic state for all wellness values
   const [values, setValues] = useState<Record<string, number>>({});
 
-  // Reset values when dialog opens or questions change
+  // Reset values when dialog opens or questions change.
+  // IMPORTANT: depend on wellnessQuestions (stable ref) not activeQuestions
+  // (new array each render), otherwise values get reset on every render
+  // and button clicks never "stick".
   useEffect(() => {
+    if (!open) return;
     const initial: Record<string, number> = {};
-    for (const q of activeQuestions) {
+    for (const q of (wellnessQuestions ?? []).filter(q => q.enabled)) {
       initial[q.key] = q.is_sleep_duration ? 7.5 : 3;
     }
     setValues(initial);
-  }, [activeQuestions, open]);
+  }, [wellnessQuestions, open]);
 
   const { data: players } = useQuery({
     queryKey: ["players", categoryId],
