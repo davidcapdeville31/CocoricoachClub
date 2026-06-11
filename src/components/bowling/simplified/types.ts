@@ -97,6 +97,8 @@ export interface SimplifiedTechnicalBlock {
   custom_theme?: string;
   /** Description libre de ce qui a été travaillé */
   description: string;
+  /** Note libre supplémentaire (ressentis, observations, axes…) */
+  notes?: string;
 }
 
 // ----- Bloc "Parties" (réutilise BowlingScoreSheet / BowlingStats) -----
@@ -234,6 +236,7 @@ export function newTechnicalBlock(): SimplifiedTechnicalBlock {
     theme: "swing_axis",
     custom_theme: "",
     description: "",
+    notes: "",
   };
 }
 

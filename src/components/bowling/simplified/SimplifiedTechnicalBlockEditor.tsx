@@ -140,6 +140,19 @@ export function SimplifiedTechnicalBlockEditor({ value, index, categoryId, playe
           Les statistiques retiennent uniquement le temps de travail sur la thématique sélectionnée.
         </p>
       </div>
+
+      <div className="space-y-1">
+        <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Notes du bloc (optionnel)
+        </Label>
+        <Textarea
+          rows={3}
+          placeholder="Ressentis, observations, axes à retravailler…"
+          value={value.notes ?? ""}
+          onChange={(e) => set("notes", e.target.value)}
+          className="bg-surface-sunken resize-y text-sm"
+        />
+      </div>
     </div>
   );
 }
