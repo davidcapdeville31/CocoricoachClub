@@ -215,11 +215,14 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     },
   });
 
-  // Unique training match IDs (from games)
+  // Unique training match IDs (from games) — restricted to current athlete when viewing as athlete
   const trainingMatchIds = useMemo(() => {
     if (!trainingData) return [] as string[];
-    return [...new Set(trainingData.games.map((g: any) => g.matchId).filter(Boolean))] as string[];
-  }, [trainingData]);
+    const games = playerId
+      ? trainingData.games.filter((g: any) => g.playerId === playerId)
+      : trainingData.games;
+    return [...new Set(games.map((g: any) => g.matchId).filter(Boolean))] as string[];
+  }, [trainingData, playerId]);
 
   // Fetch oil patterns assigned to those training matches
   const { data: trainingOilData } = useQuery({
