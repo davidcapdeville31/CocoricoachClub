@@ -72,9 +72,9 @@ export function SuperAdminUsers() {
         .select("user_id");
       const superAdminIds = new Set((superAdmins || []).map(sa => sa.user_id));
 
-      // Group clubs by owner
+      // Group clubs by owner (only valid clubs from active clients)
       const ownerClubs = new Map<string, any[]>();
-      (clubs || []).forEach(club => {
+      validClubs.forEach(club => {
         if (!ownerClubs.has(club.user_id)) ownerClubs.set(club.user_id, []);
         ownerClubs.get(club.user_id)!.push({ id: club.id, name: club.name, sport: club.sport });
       });
