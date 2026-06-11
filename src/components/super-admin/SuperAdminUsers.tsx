@@ -38,15 +38,26 @@ export function SuperAdminUsers() {
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["super-admin-users"],
     queryFn: async () => {
+      // Only keep clubs that belong to an active/trial client
+      const { data: activeClients, error: clientsErr } = await supabase
+        .from("clients")
+        .select("id, status")
+        .in("status", ["active", "trial"]);
+      if (clientsErr) throw clientsErr;
+      const activeClientIds = new Set((activeClients || []).map(c => c.id));
+
       // Get all clubs with their owners
       const { data: clubs, error: clubsError } = await supabase
         .from("clubs")
-        .select("id, name, sport, user_id")
+        .select("id, name, sport, user_id, client_id")
         .order("name");
       if (clubsError) throw clubsError;
 
+      // Keep clubs whose client is active (or super admin's own clubs without a client)
+      const validClubs = (clubs || []).filter(c => c.client_id && activeClientIds.has(c.client_id));
+
       // Get unique owner IDs
-      const ownerIds = [...new Set((clubs || []).map(c => c.user_id))];
+      const ownerIds = [...new Set(validClubs.map(c => c.user_id))];
       if (ownerIds.length === 0) return [];
 
       // Get profiles for owners
