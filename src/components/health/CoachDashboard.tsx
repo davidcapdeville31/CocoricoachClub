@@ -56,10 +56,15 @@ interface CoachDashboardProps {
   categoryId: string;
 }
 
+import { useSeasonFilteredPlayerIds, makePlayerIdFilter } from "@/hooks/use-season-filtered-players";
+import { useMemo as useMemoCoachDash } from "react";
+
 export function CoachDashboard({ categoryId }: CoachDashboardProps) {
   const queryClient = useQueryClient();
   const [editingInjury, setEditingInjury] = useState<any>(null);
   const [editingIllness, setEditingIllness] = useState<any>(null);
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const keepPlayer = makePlayerIdFilter(allowedIds);
 
   const deleteInjury = useMutation({
     mutationFn: async (id: string) => {
