@@ -67,7 +67,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
     queryFn: async () => {
       const { data, error } = await supabase
         .from("player_bowling_arsenal")
-        .select("id, custom_ball_name, custom_ball_brand, ball_catalog:bowling_ball_catalog(name, brand)")
+        .select("id, custom_ball_name, custom_ball_brand, ball_catalog:bowling_ball_catalog(model, brand)")
         .in("id", ballIds as string[]);
       if (error) throw error;
       return data || [];
