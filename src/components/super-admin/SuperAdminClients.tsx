@@ -437,11 +437,27 @@ export function SuperAdminClients() {
              status: "active",
            });
          if (error) throw error;
+
+         // Auto-create a payment_history entry when an amount is set
+         if (amount && amount > 0) {
+           const { error: payError } = await supabase
+             .from("payment_history")
+             .insert({
+               client_id: clientId,
+               amount,
+               payment_date: subStartDate,
+               payment_method: subPaymentMethod || null,
+               status: "completed",
+               notes: `Abonnement: ${plan?.name || ""}`.trim(),
+             });
+           if (payError) console.error("Payment auto-create error:", payError);
+         }
        },
        onSuccess: () => {
          toast.success("Abonnement assigné avec succès");
          queryClient.invalidateQueries({ queryKey: ["super-admin-clients"] });
          queryClient.invalidateQueries({ queryKey: ["client-subscriptions"] });
+         queryClient.invalidateQueries({ queryKey: ["payment-history"] });
          setAssignSubClientId(null);
          resetSubForm();
        },
