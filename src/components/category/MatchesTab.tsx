@@ -92,8 +92,12 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
   const { data: matches, isLoading } = useViewerMatches(categoryId);
 
   // Filter out sub-matches (they are displayed within their parent match)
+  // and exclude training events — the Competition tab must only show real competitions.
   // Compare by calendar day so a match scheduled for "today" is considered upcoming
-  const parentMatches = matches?.filter((m) => !m.parent_match_id) || [];
+  const parentMatches =
+    matches?.filter(
+      (m) => !m.parent_match_id && (m as any).event_type !== "training",
+    ) || [];
   const today = startOfDay(new Date());
   const upcomingMatches = parentMatches.filter(
     (m) => startOfDay(new Date(m.match_date)).getTime() >= today.getTime()
