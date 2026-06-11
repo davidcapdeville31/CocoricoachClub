@@ -268,6 +268,7 @@ export function SessionAthleteEntriesPanel({
                         playerId={p.id}
                         onEdit={() => {}}
                         onRemove={() => {}}
+                        readOnly
                       />
                     );
                   })}
