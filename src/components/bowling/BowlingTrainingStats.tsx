@@ -317,14 +317,16 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
         let ratio: string | null = resolved?.oil_ratio || null;
         let name: string | null = resolved?.name || null;
 
-        if (!ratio && !name) {
-          const date = (g.matchDate || "").slice(0, 10);
-          const key = effectivePlayerId ? `${effectivePlayerId}|${date}` : `|${date}`;
-          const fallback = blockOilByKey.get(key) || blockOilByKey.get(`|${date}`);
-          if (fallback) {
-            ratio = fallback.ratio;
-            name = fallback.name;
-          }
+        const date = (g.matchDate || "").slice(0, 10);
+        const key = effectivePlayerId ? `${effectivePlayerId}|${date}` : `|${date}`;
+        const fallback = blockOilByKey.get(key) || blockOilByKey.get(`|${date}`);
+
+        if (!ratio && fallback?.ratio) {
+          ratio = fallback.ratio;
+        }
+
+        if (!name && fallback?.name) {
+          name = fallback.name;
         }
 
         const cat = ratio ? getOilCategory(ratio) : null;
