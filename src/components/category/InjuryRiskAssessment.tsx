@@ -40,8 +40,11 @@ export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) 
   const weekAgo = subDays(today, 7);
   const { data: questionsConfig } = useWellnessQuestions(categoryId);
 
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const keepPlayer = makePlayerIdFilter(allowedIds);
+
   // Fetch players
-  const { data: players } = useQuery({
+  const { data: playersRaw } = useQuery({
     queryKey: ["players", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -53,6 +56,10 @@ export function InjuryRiskAssessment({ categoryId }: InjuryRiskAssessmentProps) 
       return data;
     },
   });
+  const players = useMemo(
+    () => (playersRaw || []).filter((p: any) => keepPlayer(p.id)),
+    [playersRaw, allowedIds],
+  );
 
   // Fetch latest AWCR data for each player
   const { data: awcrData } = useQuery({
