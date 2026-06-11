@@ -160,6 +160,11 @@ function TechnicalSummary({ block }: { block: Extract<SimplifiedBlock, { type: "
           {block.description}
         </p>
       )}
+      {block.notes?.trim() && (
+        <p className="line-clamp-2 text-xs italic text-muted-foreground">
+          Note : {block.notes}
+        </p>
+      )}
     </div>
   );
 }
