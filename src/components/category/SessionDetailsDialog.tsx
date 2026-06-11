@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo } from "react";
 import { getObjectiveLabel } from "@/lib/constants/sessionBlockOptions";
-import { getDisplayNotes, parsePrecisionExerciseFromNotes, parseV2BlockTag } from "@/lib/utils/sessionNotes";
+import { getDisplayNotes, parsePrecisionExerciseFromNotes, parseV2BlockTag, parseMentalFromNotes } from "@/lib/utils/sessionNotes";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -869,11 +869,46 @@ export function SessionDetailsDialog({
             </div>
           )}
 
-          {session?.notes && getDisplayNotes(session.notes) && (
-            <p className="text-sm text-muted-foreground mb-4 p-3 bg-muted/30 rounded-lg">
-              {getDisplayNotes(session.notes)}
-            </p>
-          )}
+          {(() => {
+            const mental = parseMentalFromNotes(session?.notes);
+            const displayNotes = getDisplayNotes(session?.notes);
+            if (!mental && !displayNotes) return null;
+            return (
+              <div className="mb-4 overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-surface to-surface-elevated shadow-sm">
+                <div className="flex items-center gap-2 border-b border-border/50 bg-surface-sunken/60 px-4 py-2.5">
+                  <Info className="h-4 w-4 text-primary" />
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Détails de la séance
+                  </span>
+                </div>
+                <div className="space-y-3 px-4 py-3">
+                  {mental && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge className="bg-violet-500/15 text-violet-600 hover:bg-violet-500/20 dark:text-violet-300">
+                        🧠 Mental
+                      </Badge>
+                      {mental.theme && (
+                        <Badge variant="outline" className="border-violet-300/60 text-violet-700 dark:text-violet-300">
+                          {mental.theme}
+                        </Badge>
+                      )}
+                      {typeof mental.duration_min === "number" && (
+                        <Badge variant="outline" className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {mental.duration_min} min
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                  {displayNotes && (
+                    <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90">
+                      {displayNotes}
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Exercises section for print */}
           {exerciseGroups.length > 0 && (

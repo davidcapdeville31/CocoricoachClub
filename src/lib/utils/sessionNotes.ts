@@ -9,10 +9,30 @@ export function getDisplayNotes(notes: string | null | undefined): string {
     .replace(/<!--\s*v2-block:[^>]+-->/g, "")
     .replace(/<!--\s*v2-test:[^>]+-->/g, "")
     .replace(/<!--BLOCK:.*?-->/g, "")
+    .replace(/<!--MENTAL:[\s\S]*?-->/g, "")
     .replace(/\n?<!--TESTS:.*?-->/g, "")
     .replace(/\n?<!--PRECISION_EXERCISE:.*?-->/g, "")
     .replace(/\n?\[precision_exercise:.*?\]/g, "")
+    .replace(/^\s*\[Séance athlète\]\s*/i, "")
+    .replace(/\n{3,}/g, "\n\n")
     .trim();
+}
+
+export function parseMentalFromNotes(
+  notes: string | null | undefined,
+): { duration_min?: number; theme?: string } | null {
+  if (!notes) return null;
+  const m = notes.match(/<!--MENTAL:(\{[\s\S]*?\})-->/);
+  if (!m) return null;
+  try {
+    const parsed = JSON.parse(m[1]);
+    return {
+      duration_min: typeof parsed?.duration_min === "number" ? parsed.duration_min : undefined,
+      theme: typeof parsed?.theme === "string" ? parsed.theme : undefined,
+    };
+  } catch {
+    return null;
+  }
 }
 
 export function parseV2Meta(notes: string | null | undefined): {
