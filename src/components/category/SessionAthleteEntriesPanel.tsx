@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Circle, Users, Activity, Trophy, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { LockedBlockSummary } from "@/components/bowling/simplified/LockedBlockSummary";
+import { DetailedBlockView } from "@/components/bowling/simplified/DetailedBlockView";
 import type { SimplifiedBlock } from "@/components/bowling/simplified/types";
 
 interface Props {
