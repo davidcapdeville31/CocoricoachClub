@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -293,6 +294,20 @@ export function SimplifiedTacticalBlockEditor({
             </Button>
           ))}
         </div>
+      </div>
+
+      {/* Note libre */}
+      <div className="space-y-1">
+        <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Note de séance (optionnel)
+        </Label>
+        <Textarea
+          value={value.notes ?? ""}
+          onChange={(e) => update({ notes: e.target.value })}
+          placeholder="Ressentis, observations, axes à retravailler…"
+          rows={3}
+          className="text-sm"
+        />
       </div>
     </Card>
   );

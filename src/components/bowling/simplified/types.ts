@@ -62,6 +62,8 @@ export interface SimplifiedTacticalBlock {
   ball_id: string | null;
   oil_pattern: SimplifiedOilPattern;
   items: SimplifiedTacticalItem[];
+  /** Note libre de l'athlète pour ce bloc. */
+  notes?: string;
 }
 
 export type TechnicalThemeKey =
@@ -218,6 +220,7 @@ export function newTacticalBlock(): SimplifiedTacticalBlock {
       outside_friction: null,
     },
     items: [],
+    notes: "",
   };
 }
 
