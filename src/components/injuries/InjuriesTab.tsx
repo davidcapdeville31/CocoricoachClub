@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSeasonFilteredPlayerIds, makePlayerIdFilter } from "@/hooks/use-season-filtered-players";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +54,10 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
   const { isViewer } = useViewerModeContext();
 
 
-  const { data: injuries, isLoading } = useQuery({
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const keepPlayer = makePlayerIdFilter(allowedIds);
+
+  const { data: injuriesRaw, isLoading } = useQuery({
     queryKey: ["injuries", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -65,6 +69,10 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
       return data;
     },
   });
+  const injuries = useMemo(
+    () => (injuriesRaw || []).filter((i: any) => keepPlayer(i.player_id)),
+    [injuriesRaw, allowedIds],
+  );
 
   const updateInjuryStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {

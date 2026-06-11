@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSeasonFilteredPlayerIds, makePlayerIdFilter } from "@/hooks/use-season-filtered-players";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -111,8 +112,11 @@ export function ActiveProtocolsDashboard({ categoryId }: ActiveProtocolsDashboar
     },
   });
 
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const keepPlayer = makePlayerIdFilter(allowedIds);
+
   // Fetch all active player rehab protocols for this category
-  const { data: activeProtocols, isLoading: protocolsLoading } = useQuery({
+  const { data: activeProtocolsRaw, isLoading: protocolsLoading } = useQuery({
     queryKey: ["active-rehab-protocols", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -150,9 +154,13 @@ export function ActiveProtocolsDashboard({ categoryId }: ActiveProtocolsDashboar
       return data;
     },
   });
+  const activeProtocols = useMemo(
+    () => (activeProtocolsRaw || []).filter((p: any) => keepPlayer(p.player_id)),
+    [activeProtocolsRaw, allowedIds],
+  );
 
   // Fetch recovering injuries that may NOT have a rehab protocol yet
-  const { data: recoveringInjuries, isLoading: injuriesLoading } = useQuery({
+  const { data: recoveringInjuriesRaw, isLoading: injuriesLoading } = useQuery({
     queryKey: ["recovering-injuries-no-protocol", categoryId],
     queryFn: async () => {
       const { data: injuries, error } = await supabase
@@ -177,9 +185,13 @@ export function ActiveProtocolsDashboard({ categoryId }: ActiveProtocolsDashboar
     },
     enabled: !protocolsLoading,
   });
+  const recoveringInjuries = useMemo(
+    () => (recoveringInjuriesRaw || []).filter((i: any) => keepPlayer(i.player_id)),
+    [recoveringInjuriesRaw, allowedIds],
+  );
 
   // Fetch calendar events for progress calculation
-  const { data: allRehabEvents } = useQuery({
+  const { data: allRehabEventsRaw } = useQuery({
     queryKey: ["all-rehab-events-category", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -191,9 +203,13 @@ export function ActiveProtocolsDashboard({ categoryId }: ActiveProtocolsDashboar
       return data;
     },
   });
+  const allRehabEvents = useMemo(
+    () => (allRehabEventsRaw || []).filter((e: any) => keepPlayer(e.player_id)),
+    [allRehabEventsRaw, allowedIds],
+  );
 
   // Fetch upcoming events (next 7 days)
-  const { data: upcomingEvents } = useQuery({
+  const { data: upcomingEventsRaw } = useQuery({
     queryKey: ["upcoming-rehab-events", categoryId],
     queryFn: async () => {
       const today = new Date();
@@ -220,6 +236,10 @@ export function ActiveProtocolsDashboard({ categoryId }: ActiveProtocolsDashboar
       return data;
     },
   });
+  const upcomingEvents = useMemo(
+    () => (upcomingEventsRaw || []).filter((e: any) => keepPlayer(e.player_id)),
+    [upcomingEventsRaw, allowedIds],
+  );
 
   // Create event mutation
   const createEvent = useMutation({

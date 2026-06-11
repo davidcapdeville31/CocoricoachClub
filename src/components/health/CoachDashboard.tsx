@@ -56,10 +56,15 @@ interface CoachDashboardProps {
   categoryId: string;
 }
 
+import { useSeasonFilteredPlayerIds, makePlayerIdFilter } from "@/hooks/use-season-filtered-players";
+import { useMemo as useMemoCoachDash } from "react";
+
 export function CoachDashboard({ categoryId }: CoachDashboardProps) {
   const queryClient = useQueryClient();
   const [editingInjury, setEditingInjury] = useState<any>(null);
   const [editingIllness, setEditingIllness] = useState<any>(null);
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const keepPlayer = makePlayerIdFilter(allowedIds);
 
   const deleteInjury = useMutation({
     mutationFn: async (id: string) => {
@@ -100,7 +105,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
   });
 
   // Fetch players
-  const { data: players } = useQuery({
+  const { data: playersRaw } = useQuery({
     queryKey: ["players", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -112,9 +117,13 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
       return data;
     },
   });
+  const players = useMemoCoachDash(
+    () => (playersRaw || []).filter((p: any) => keepPlayer(p.id)),
+    [playersRaw, allowedIds],
+  );
 
   // Fetch active injuries
-  const { data: injuries } = useQuery({
+  const { data: injuriesRaw } = useQuery({
     queryKey: ["active_injuries", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -131,9 +140,13 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     },
     retry: 1,
   });
+  const injuries = useMemoCoachDash(
+    () => (injuriesRaw || []).filter((i: any) => keepPlayer(i.player_id)),
+    [injuriesRaw, allowedIds],
+  );
 
   // Fetch active illnesses
-  const { data: illnesses } = useQuery({
+  const { data: illnessesRaw } = useQuery({
     queryKey: ["active_illnesses", categoryId],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
@@ -150,9 +163,13 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     },
     retry: 1,
   });
+  const illnesses = useMemoCoachDash(
+    () => (illnessesRaw || []).filter((i: any) => keepPlayer(i.player_id)),
+    [illnessesRaw, allowedIds],
+  );
 
   // Fetch EWMA data (replacing AWCR) - limit to last 60 days for performance
-  const { data: ewmaData } = useQuery({
+  const { data: ewmaDataRaw } = useQuery({
     queryKey: ["ewma_summary", categoryId],
     queryFn: async () => {
       const sixtyDaysAgo = format(addDays(new Date(), -60), "yyyy-MM-dd");
@@ -184,9 +201,18 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     },
     retry: 1,
   });
+  const ewmaData = useMemoCoachDash(() => {
+    if (!ewmaDataRaw) return ewmaDataRaw;
+    if (!allowedIds) return ewmaDataRaw;
+    const out: Record<string, any> = {};
+    Object.entries(ewmaDataRaw).forEach(([pid, v]) => {
+      if (keepPlayer(pid)) out[pid] = v;
+    });
+    return out;
+  }, [ewmaDataRaw, allowedIds]);
 
   // Fetch wellness data
-  const { data: wellnessData } = useQuery({
+  const { data: wellnessDataRaw } = useQuery({
     queryKey: ["wellness_summary", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -203,9 +229,13 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     },
     retry: 1,
   });
+  const wellnessData = useMemoCoachDash(
+    () => (wellnessDataRaw || []).filter((w: any) => keepPlayer(w.player_id)),
+    [wellnessDataRaw, allowedIds],
+  );
 
   // Fetch medical records due soon
-  const { data: medicalRecords } = useQuery({
+  const { data: medicalRecordsRaw } = useQuery({
     queryKey: ["medical_due_soon", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -222,9 +252,13 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     },
     retry: 1,
   });
+  const medicalRecords = useMemoCoachDash(
+    () => (medicalRecordsRaw || []).filter((m: any) => keepPlayer(m.player_id)),
+    [medicalRecordsRaw, allowedIds],
+  );
 
   // Fetch RTP protocols in progress
-  const { data: rtpProtocols } = useQuery({
+  const { data: rtpProtocolsRaw } = useQuery({
     queryKey: ["rtp_in_progress", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -240,6 +274,10 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
     },
     retry: 1,
   });
+  const rtpProtocols = useMemoCoachDash(
+    () => (rtpProtocolsRaw || []).filter((r: any) => keepPlayer(r.player_id)),
+    [rtpProtocolsRaw, allowedIds],
+  );
 
   // Calculate stats — combine injuries + illnesses, dedup by player
   const totalPlayers = players?.length || 0;

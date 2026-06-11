@@ -1,5 +1,7 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSeasonFilteredPlayerIds, makePlayerIdFilter } from "@/hooks/use-season-filtered-players";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -10,18 +12,25 @@ interface WellnessPainStatsProps {
 }
 
 export function WellnessPainStats({ categoryId }: WellnessPainStatsProps) {
-  const { data: painData, isLoading } = useQuery({
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const keepPlayer = makePlayerIdFilter(allowedIds);
+
+  const { data: painDataRaw, isLoading } = useQuery({
     queryKey: ["wellness-pain-stats", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("wellness_tracking")
-        .select("pain_location, pain_zone, has_specific_pain, players(name)")
+        .select("player_id, pain_location, pain_zone, has_specific_pain, players(name)")
         .eq("category_id", categoryId)
         .eq("has_specific_pain", true);
       if (error) throw error;
       return data;
     },
   });
+  const painData = useMemo(
+    () => (painDataRaw || []).filter((p: any) => keepPlayer(p.player_id)),
+    [painDataRaw, allowedIds],
+  );
 
   if (isLoading) return <div className="text-muted-foreground text-sm">Chargement...</div>;
 

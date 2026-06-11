@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSeasonFilteredPlayerIds, makePlayerIdFilter } from "@/hooks/use-season-filtered-players";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +35,10 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
   const { isViewer } = useViewerModeContext();
 
 
-  const { data: illnesses, isLoading } = useQuery({
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const keepPlayer = makePlayerIdFilter(allowedIds);
+
+  const { data: illnessesRaw, isLoading } = useQuery({
     queryKey: ["illnesses", categoryId],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
@@ -46,6 +50,10 @@ export function IllnessHistoryCard({ categoryId }: IllnessHistoryCardProps) {
       return data as any[];
     },
   });
+  const illnesses = useMemo(
+    () => (illnessesRaw || []).filter((i: any) => keepPlayer(i.player_id)),
+    [illnessesRaw, allowedIds],
+  );
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {

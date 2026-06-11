@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSeasonFilteredPlayerIds, makePlayerIdFilter } from "@/hooks/use-season-filtered-players";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -87,8 +88,11 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
   const [reminderEnabled, setReminderEnabled] = useState(true);
   const [reminderDays, setReminderDays] = useState(30);
 
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const keepPlayer = makePlayerIdFilter(allowedIds);
+
   // Fetch players
-  const { data: players } = useQuery({
+  const { data: playersRaw } = useQuery({
     queryKey: ["players", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -100,9 +104,13 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
       return data;
     },
   });
+  const players = useMemo(
+    () => (playersRaw || []).filter((p: any) => keepPlayer(p.id)),
+    [playersRaw, allowedIds],
+  );
 
   // Fetch records
-  const { data: records, isLoading } = useQuery({
+  const { data: recordsRaw, isLoading } = useQuery({
     queryKey: ["medical_records", categoryId, filterType, filterPlayer],
     queryFn: async () => {
       let query = supabase
@@ -123,6 +131,10 @@ export function MedicalRecordsTab({ categoryId }: MedicalRecordsTabProps) {
       return data;
     },
   });
+  const records = useMemo(
+    () => (recordsRaw || []).filter((r: any) => keepPlayer(r.player_id)),
+    [recordsRaw, allowedIds],
+  );
 
   const resetForm = () => {
     setPlayerId("");

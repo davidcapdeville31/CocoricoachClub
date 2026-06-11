@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { subDays } from "date-fns";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { supabase } from "@/integrations/supabase/client";
+import { useSeasonFilteredPlayerIds, makePlayerIdFilter } from "@/hooks/use-season-filtered-players";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -136,7 +137,10 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   };
 
 
-  const { data: wellnessData, isLoading } = useQuery({
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const keepPlayer = makePlayerIdFilter(allowedIds);
+
+  const { data: wellnessDataRaw, isLoading } = useQuery({
     queryKey: ["wellness_tracking", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -148,6 +152,10 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
       return data;
     },
   });
+  const wellnessData = useMemo(
+    () => (wellnessDataRaw || []).filter((e: any) => keepPlayer(e.player_id)),
+    [wellnessDataRaw, allowedIds],
+  );
 
   if (isLoading) {
     return <div className="text-muted-foreground">Chargement...</div>;
