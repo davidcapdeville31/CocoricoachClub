@@ -177,20 +177,35 @@ import { Checkbox } from "@/components/ui/checkbox";
    // Create subscription
    const createSubscription = useMutation({
      mutationFn: async () => {
+       const amount = parseFloat(subForm.amount) || null;
        const { error } = await supabase.from("client_subscriptions").insert({
          client_id: subForm.client_id,
          plan_id: subForm.plan_id || null,
          start_date: subForm.start_date,
          end_date: subForm.end_date || null,
-         amount: parseFloat(subForm.amount) || null,
+         amount,
          payment_method: subForm.payment_method || null,
          notes: subForm.notes || null,
        });
        if (error) throw error;
+
+       // Auto-create a payment_history entry when an amount is set
+       if (amount && amount > 0) {
+         const { error: payError } = await supabase.from("payment_history").insert({
+           client_id: subForm.client_id,
+           amount,
+           payment_date: subForm.start_date,
+           payment_method: subForm.payment_method || null,
+           status: "completed",
+           notes: subForm.notes || "Abonnement",
+         });
+         if (payError) console.error("Payment auto-create error:", payError);
+       }
      },
      onSuccess: () => {
        toast.success("Abonnement créé");
        queryClient.invalidateQueries({ queryKey: ["client-subscriptions"] });
+       queryClient.invalidateQueries({ queryKey: ["payment-history"] });
        setIsAddSubOpen(false);
      },
    });
