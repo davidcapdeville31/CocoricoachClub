@@ -105,95 +105,61 @@ const TABS = [
      return null;
    }
  
-   return (
-     <div className="min-h-screen bg-background">
-       <div className="container mx-auto px-4 py-8">
-         {/* Header */}
-         <div className="flex items-center gap-4 mb-8">
-           <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
-             <ArrowLeft className="h-5 w-5" />
-           </Button>
-           <div className="flex items-center gap-3">
-             <Shield className="h-8 w-8 text-primary" />
-             <div>
-               <h1 className="text-3xl font-bold">Super Admin</h1>
-               <p className="text-muted-foreground">Gestion globale de la plateforme</p>
-             </div>
-           </div>
-         </div>
- 
-         {/* Main Content */}
-         <Tabs defaultValue={defaultTab} className="space-y-6">
-           <TabsList className="flex flex-wrap h-auto gap-1">
-             <TabsTrigger value="dashboard" className="flex items-center gap-2">
-               <LayoutDashboard className="h-4 w-4" />
-               Dashboard
-             </TabsTrigger>
-             <TabsTrigger value="clients" className="flex items-center gap-2">
-               <Building2 className="h-4 w-4" />
-               Clients
-             </TabsTrigger>
-             <TabsTrigger value="clubs" className="flex items-center gap-2">
-               <Building2 className="h-4 w-4" />
-               Clubs
-             </TabsTrigger>
-             <TabsTrigger value="users" className="flex items-center gap-2">
-               <Users className="h-4 w-4" />
-               Utilisateurs
-             </TabsTrigger>
-             <TabsTrigger value="subscriptions" className="flex items-center gap-2">
-               <CreditCard className="h-4 w-4" />
-               Abonnements
-             </TabsTrigger>
-             <TabsTrigger value="payments" className="flex items-center gap-2">
-               <CreditCard className="h-4 w-4" />
-               Paiements
-             </TabsTrigger>
-             <TabsTrigger value="videos" className="flex items-center gap-2">
-               <Video className="h-4 w-4" />
-               Vidéos
-             </TabsTrigger>
-             <TabsTrigger value="notifications" className="flex items-center gap-2">
-               <Bell className="h-4 w-4" />
-               Notifications
-             </TabsTrigger>
-             <TabsTrigger value="settings" className="flex items-center gap-2">
-               <Settings className="h-4 w-4" />
-               Paramètres
-             </TabsTrigger>
-              <TabsTrigger value="permissions" className="flex items-center gap-2">
-                 <Lock className="h-4 w-4" />
-                 Permissions
-               </TabsTrigger>
-               <TabsTrigger value="usage" className="flex items-center gap-2">
-                 <Clock className="h-4 w-4" />
-                 Utilisation
-               </TabsTrigger>
-                 <TabsTrigger value="exercises" className="flex items-center gap-2">
-                   <Dumbbell className="h-4 w-4" />
-                   Exercices
-                 </TabsTrigger>
-                  <TabsTrigger value="test-bank" className="flex items-center gap-2">
-                    <ClipboardList className="h-4 w-4" />
-                    Banque de tests
-                  </TabsTrigger>
-                  <TabsTrigger value="arsenal-bank" className="flex items-center gap-2">
-                    <CircleDot className="h-4 w-4" />
-                    Banque Arsenal
-                  </TabsTrigger>
-                  <TabsTrigger value="audit" className="flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
-                    Sécurité &amp; Audit
-                  </TabsTrigger>
-                  <TabsTrigger value="emails" className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    Emails
-                  </TabsTrigger>
-                  <TabsTrigger value="archives" className="flex items-center gap-2">
-                    <Archive className="h-4 w-4" />
-                    Archives
-                  </TabsTrigger>
-              </TabsList>
+    const [activeTab, setActiveTab] = useState(defaultTab);
+
+    const handleTabChange = (value: string) => {
+      setActiveTab(value);
+      navigate(`?tab=${value}`, { replace: true });
+    };
+
+    const activeTabInfo = TABS.find((t) => t.value === activeTab) ?? TABS[0];
+    const ActiveIcon = activeTabInfo.icon;
+
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          {/* Header */}
+          <div className="flex items-center gap-4 mb-8">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center gap-3">
+              <Shield className="h-8 w-8 text-primary" />
+              <div>
+                <h1 className="text-3xl font-bold">Super Admin</h1>
+                <p className="text-muted-foreground">Gestion globale de la plateforme</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2 min-w-[220px] justify-between">
+                  <span className="flex items-center gap-2">
+                    <ActiveIcon className="h-4 w-4" />
+                    {activeTabInfo.label}
+                  </span>
+                  <ChevronDown className="h-4 w-4 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[220px] max-h-[60vh] overflow-y-auto">
+                {TABS.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <DropdownMenuItem
+                      key={tab.value}
+                      onClick={() => handleTabChange(tab.value)}
+                      className={activeTab === tab.value ? "bg-accent text-accent-foreground" : ""}
+                    >
+                      <Icon className="h-4 w-4 mr-2" />
+                      {tab.label}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
  
            <TabsContent value="dashboard">
              <SuperAdminDashboard />
