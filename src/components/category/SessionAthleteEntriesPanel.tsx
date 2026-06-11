@@ -260,15 +260,12 @@ export function SessionAthleteEntriesPanel({
                       duration_min: cfg.duration_min ?? b.duration_min ?? 0,
                     } as SimplifiedBlock;
                     return (
-                      <LockedBlockSummary
+                      <DetailedBlockView
                         key={b.id}
                         block={block}
                         index={idx}
                         categoryId={categoryId}
                         playerId={p.id}
-                        onEdit={() => {}}
-                        onRemove={() => {}}
-                        readOnly
                       />
                     );
                   })}
