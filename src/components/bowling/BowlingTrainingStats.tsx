@@ -32,6 +32,17 @@ const OIL_CATEGORY_BADGES: Record<OilCategoryType, { label: string; className: s
   recreation: { label: "🟢 Récréatif", className: "bg-green-100 text-green-800 border-green-400 dark:bg-green-500/25 dark:text-green-200" },
 };
 
+// Convert decimal hours to "XhMM" format (e.g. 3.5 -> "3h30", 0.8 -> "0h48", 0 -> "0h")
+const formatHm = (hoursDecimal: number): string => {
+  if (!hoursDecimal || hoursDecimal <= 0) return "0h";
+  const totalMinutes = Math.round(hoursDecimal * 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return m === 0 ? `${h}h` : `${h}h${m.toString().padStart(2, "0")}`;
+};
+
+
+
 interface BowlingTrainingStatsProps {
   categoryId: string;
   playerId?: string;
@@ -861,35 +872,37 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                   </Card>
                   <Card>
                     <CardContent className="p-3 text-center">
-                      <p className="text-2xl font-bold text-primary">{globalStats.totalHours.toFixed(1)}h</p>
+                      <p className="text-2xl font-bold text-primary">{formatHm(globalStats.totalHours)}</p>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Volume total</p>
                     </CardContent>
                   </Card>
                   <Card style={{ borderColor: THEME_COLORS.technical }}>
                     <CardContent className="p-3 text-center">
-                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.technical }}>{globalStats.hoursByTheme.technical.toFixed(1)}h</p>
+                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.technical }}>{formatHm(globalStats.hoursByTheme.technical)}</p>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center"><Wrench className="h-3 w-3" />Technique</p>
                     </CardContent>
                   </Card>
                   <Card style={{ borderColor: THEME_COLORS.tactical }}>
                     <CardContent className="p-3 text-center">
-                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.tactical }}>{globalStats.hoursByTheme.tactical.toFixed(1)}h</p>
+                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.tactical }}>{formatHm(globalStats.hoursByTheme.tactical)}</p>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center"><Target className="h-3 w-3" />Tactique</p>
                     </CardContent>
                   </Card>
                   <Card style={{ borderColor: THEME_COLORS.games }}>
                     <CardContent className="p-3 text-center">
-                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.games }}>{globalStats.hoursByTheme.games.toFixed(1)}h</p>
+                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.games }}>{formatHm(globalStats.hoursByTheme.games)}</p>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center"><Circle className="h-3 w-3" />Parties</p>
                     </CardContent>
                   </Card>
                   <Card style={{ borderColor: THEME_COLORS.mental }}>
                     <CardContent className="p-3 text-center">
-                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.mental }}>{globalStats.hoursByTheme.mental.toFixed(1)}h</p>
+                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.mental }}>{formatHm(globalStats.hoursByTheme.mental)}</p>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center">🧠 Mental</p>
                     </CardContent>
                   </Card>
                 </div>
+
+
 
 
                 <Card>
@@ -926,7 +939,8 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                               const total = item?.payload?.__total || 0;
                               const raw = item?.payload?.__raw?.[name] ?? (v as number);
                               const pct = total > 0 ? Math.round((raw / total) * 100) : 0;
-                              return [`${v}h · ${pct}%`, name];
+                              return [`${formatHm(raw)} · ${pct}%`, name];
+
                             }}
                           />
                           <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} iconType="circle" iconSize={8} />
@@ -949,7 +963,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                                           {pct}%
                                         </text>
                                         <text x={x + width / 2} y={y - 4} textAnchor="middle" fontSize={10} fontWeight={700} fill={color}>
-                                          {value}h
+                                          {formatHm(Number(value))}
                                         </text>
                                       </g>
                                     );
@@ -970,7 +984,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                               const total = item?.payload?.__total || 0;
                               const raw = item?.payload?.__raw?.[name] ?? (v as number);
                               const pct = total > 0 ? Math.round((raw / total) * 100) : 0;
-                              return [`${v}h · ${pct}%`, name];
+                              return [`${formatHm(raw)} · ${pct}%`, name];
                             }}
                           />
                           <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} iconType="circle" iconSize={8} />
