@@ -40,6 +40,7 @@ import { LinkedMethodSlots, type LinkedMethodType } from "@/components/program-b
 import { FartlekCard } from "@/components/program-builder-v2/FartlekCard";
 import { ReadOnlyMethodCard } from "@/components/program-builder-v2/ReadOnlyMethodCard";
 import { parseV2MethodConfig, stripV2MethodTags } from "@/lib/program-builder-v2/parseV2MethodConfig";
+import { SessionAthleteEntriesPanel } from "./SessionAthleteEntriesPanel";
 interface SessionDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -943,6 +944,17 @@ export function SessionDetailsDialog({
           <div className="flex-1 min-h-0 mt-4">
             <TabsContent value="exercises" className="h-full m-0 data-[state=active]:flex data-[state=active]:flex-col">
               <ScrollArea className="flex-1 h-[60vh]">
+                {!isTestSession && !isInfoOnlySession && (
+                  <div className="pr-4">
+                    <SessionAthleteEntriesPanel
+                      sessionId={sessionId}
+                      categoryId={categoryId}
+                      trainingType={session?.training_type}
+                      attendance={attendance}
+                      eventParticipants={eventParticipants}
+                    />
+                  </div>
+                )}
                 {isTestSession ? (
                   <div className="space-y-4 pr-4">
                     {/* Tests list */}
