@@ -4,9 +4,17 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "@/components/ui/sonner";
-import { Shield, ArrowLeft, LayoutDashboard, Users, Building2, CreditCard, Video, Bell, Settings, FileText, Lock, Clock, Dumbbell, Archive, ClipboardList, CircleDot, Mail } from "lucide-react";
+import {
+  Shield, ArrowLeft, LayoutDashboard, Users, Building2, CreditCard, Video, Bell, Settings, Lock, Clock, Dumbbell, Archive, ClipboardList, CircleDot, Mail, ChevronDown,
+} from "lucide-react";
 
 // Import tab components
 import { SuperAdminDashboard } from "@/components/super-admin/SuperAdminDashboard";
@@ -27,6 +35,26 @@ import { SuperAdminArchives } from "@/components/super-admin/SuperAdminArchives"
 import { SuperAdminTestBank } from "@/components/super-admin/SuperAdminTestBank";
 import { SuperAdminArsenalBank } from "@/components/super-admin/SuperAdminArsenalBank";
 import { EmailMonitoring } from "@/components/super-admin/EmailMonitoring";
+
+const TABS = [
+  { value: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { value: "clients", label: "Clients", icon: Building2 },
+  { value: "clubs", label: "Clubs", icon: Building2 },
+  { value: "users", label: "Utilisateurs", icon: Users },
+  { value: "subscriptions", label: "Abonnements", icon: CreditCard },
+  { value: "payments", label: "Paiements", icon: CreditCard },
+  { value: "videos", label: "Vidéos", icon: Video },
+  { value: "notifications", label: "Notifications", icon: Bell },
+  { value: "settings", label: "Paramètres", icon: Settings },
+  { value: "permissions", label: "Permissions", icon: Lock },
+  { value: "usage", label: "Utilisation", icon: Clock },
+  { value: "exercises", label: "Exercices", icon: Dumbbell },
+  { value: "test-bank", label: "Banque de tests", icon: ClipboardList },
+  { value: "arsenal-bank", label: "Banque Arsenal", icon: CircleDot },
+  { value: "audit", label: "Sécurité & Audit", icon: Shield },
+  { value: "emails", label: "Emails", icon: Mail },
+  { value: "archives", label: "Archives", icon: Archive },
+] as const;
  
  export default function SuperAdmin() {
    const { user, loading: authLoading } = useAuth();
