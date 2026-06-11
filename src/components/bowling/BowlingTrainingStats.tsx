@@ -234,7 +234,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
 
   // Fetch oil patterns assigned to those training matches
   const { data: trainingOilData } = useQuery({
-    queryKey: ["bowling_training_oil_patterns", categoryId, trainingMatchIds, effectivePlayerId || "all"],
+    queryKey: ["bowling_training_oil_patterns_v2", categoryId, trainingMatchIds, effectivePlayerId || "all"],
     queryFn: async () => {
       if (trainingMatchIds.length === 0) return [] as Array<{ matchId: string; matchDate: string; oilRatio: string | null; oilCategory: OilCategoryType | null; patternName: string | null }>;
       const { data: oilPatterns } = await supabase
