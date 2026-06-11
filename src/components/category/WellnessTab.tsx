@@ -137,7 +137,10 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
   };
 
 
-  const { data: wellnessData, isLoading } = useQuery({
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const keepPlayer = makePlayerIdFilter(allowedIds);
+
+  const { data: wellnessDataRaw, isLoading } = useQuery({
     queryKey: ["wellness_tracking", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -149,6 +152,10 @@ export function WellnessTab({ categoryId, view }: WellnessTabProps) {
       return data;
     },
   });
+  const wellnessData = useMemo(
+    () => (wellnessDataRaw || []).filter((e: any) => keepPlayer(e.player_id)),
+    [wellnessDataRaw, allowedIds],
+  );
 
   if (isLoading) {
     return <div className="text-muted-foreground">Chargement...</div>;
