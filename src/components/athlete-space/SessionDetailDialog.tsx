@@ -1,25 +1,83 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Clock, Calendar as CalendarIcon } from "lucide-react";
+import { Activity, Clock, Calendar as CalendarIcon, CheckCircle2, Trophy, Target } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { GroupedExerciseList } from "@/components/category/GroupedExerciseList";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   session: any | null;
   exercises: any[];
+  playerId?: string;
 }
 
-export function SessionDetailDialog({ open, onOpenChange, session, exercises }: Props) {
+export function SessionDetailDialog({ open, onOpenChange, session, exercises, playerId }: Props) {
+  const sessionId = session?.id;
+  const trainingType = String(session?.training_type || "").toLowerCase();
+  const isBowling = trainingType.startsWith("bowling");
+
+  // RPE personnels saisis pour cette séance
+  const { data: rpes } = useQuery({
+    queryKey: ["athlete-session-rpe", sessionId, playerId],
+    enabled: open && !!sessionId && !!playerId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("session_block_athlete_rpe")
+        .select("rpe, duration_minutes, block_id")
+        .eq("training_session_id", sessionId)
+        .eq("player_id", playerId!);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Blocs bowling saisis par l'athlète (bowling_simplified / bowling_advanced)
+  const { data: bowlingBlocks } = useQuery({
+    queryKey: ["athlete-session-bowling-blocks", sessionId, playerId],
+    enabled: open && !!sessionId && !!playerId && isBowling,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bowling_training_blocks")
+        .select("id, block_type, config, order_index")
+        .eq("session_id", sessionId)
+        .eq("athlete_id", playerId!)
+        .order("order_index");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   if (!session) return null;
 
   const rawNotes = String(session.notes || "").replace(/<!--[\s\S]*?-->/g, "").trim();
   const dateLabel = session.session_date
     ? format(parseISO(session.session_date), "EEEE d MMMM yyyy", { locale: fr })
     : "";
+
+  const avgRpe =
+    rpes && rpes.length > 0
+      ? rpes.reduce((acc, r: any) => acc + (r.rpe || 0), 0) / rpes.length
+      : null;
+  const totalDuration =
+    rpes && rpes.length > 0
+      ? rpes.reduce((acc, r: any) => acc + (r.duration_minutes || 0), 0)
+      : 0;
+
+  const bowlingByType = (bowlingBlocks || []).reduce(
+    (acc, b: any) => {
+      acc[b.block_type] = (acc[b.block_type] || 0) + 1;
+      acc._total += 1;
+      return acc;
+    },
+    { _total: 0 } as Record<string, number>,
+  );
+
+  const hasAthleteData = (rpes?.length || 0) > 0 || (bowlingBlocks?.length || 0) > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -55,6 +113,64 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises }: 
             </div>
           )}
 
+          {/* Données personnelles saisies par l'athlète */}
+          {hasAthleteData ? (
+            <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                <p className="text-xs uppercase tracking-wide font-semibold text-emerald-700 dark:text-emerald-400">
+                  Mes données saisies
+                </p>
+              </div>
+
+              {avgRpe !== null && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="secondary" className="gap-1">
+                    <Activity className="h-3 w-3" />
+                    RPE moyen {avgRpe.toFixed(1)}/10
+                  </Badge>
+                  {totalDuration > 0 && (
+                    <Badge variant="outline">{totalDuration} min</Badge>
+                  )}
+                  <span className="text-xs text-muted-foreground">
+                    sur {rpes!.length} bloc{rpes!.length > 1 ? "s" : ""}
+                  </span>
+                </div>
+              )}
+
+              {isBowling && bowlingByType._total > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="secondary" className="gap-1">
+                    <Trophy className="h-3 w-3" />
+                    {bowlingByType._total} bloc{bowlingByType._total > 1 ? "s" : ""} bowling
+                  </Badge>
+                  {bowlingByType.games > 0 && (
+                    <Badge variant="outline">{bowlingByType.games} partie(s)</Badge>
+                  )}
+                  {bowlingByType.technical > 0 && (
+                    <Badge variant="outline">{bowlingByType.technical} technique</Badge>
+                  )}
+                  {bowlingByType.tactical > 0 && (
+                    <Badge variant="outline" className="gap-1">
+                      <Target className="h-3 w-3" />
+                      {bowlingByType.tactical} tactique
+                    </Badge>
+                  )}
+                </div>
+              )}
+
+              <p className="text-[11px] text-muted-foreground">
+                Cliquez sur « Remplir les données » pour modifier votre saisie.
+              </p>
+            </div>
+          ) : playerId ? (
+            <div className="rounded-lg border border-dashed bg-muted/30 p-3 text-center">
+              <p className="text-xs text-muted-foreground">
+                Vous n'avez pas encore saisi vos données pour cette séance.
+              </p>
+            </div>
+          ) : null}
+
           {exercises.length > 0 ? (
             <div>
               <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground mb-2">
@@ -62,7 +178,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises }: 
               </p>
               <GroupedExerciseList exercises={exercises} maxHeight="60vh" />
             </div>
-          ) : !rawNotes ? (
+          ) : !rawNotes && !hasAthleteData ? (
             <p className="text-sm text-muted-foreground italic text-center py-6">
               Aucun détail fourni par le coach pour cette séance.
             </p>

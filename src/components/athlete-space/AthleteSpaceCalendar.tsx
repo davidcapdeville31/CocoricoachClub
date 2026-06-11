@@ -1082,6 +1082,7 @@ export function AthleteSpaceCalendar({ playerId, categoryId, sportType }: Props)
         onOpenChange={(o) => { if (!o) setDetailSession(null); }}
         session={detailSession?.session ?? null}
         exercises={detailSession?.exercises ?? []}
+        playerId={playerId}
       />
 
 
