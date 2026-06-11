@@ -105,7 +105,7 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
   });
 
   // Fetch players
-  const { data: players } = useQuery({
+  const { data: playersRaw } = useQuery({
     queryKey: ["players", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -117,6 +117,10 @@ export function CoachDashboard({ categoryId }: CoachDashboardProps) {
       return data;
     },
   });
+  const players = useMemoCoachDash(
+    () => (playersRaw || []).filter((p: any) => keepPlayer(p.id)),
+    [playersRaw, allowedIds],
+  );
 
   // Fetch active injuries
   const { data: injuries } = useQuery({
