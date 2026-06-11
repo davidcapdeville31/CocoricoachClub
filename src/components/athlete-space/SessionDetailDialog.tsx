@@ -77,7 +77,7 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
     if (!id) return null;
     const b: any = (balls || []).find((x: any) => x.id === id);
     if (!b) return null;
-    const name = b.custom_ball_name || b.ball_catalog?.name;
+    const name = b.custom_ball_name || b.ball_catalog?.model;
     const brand = b.custom_ball_brand || b.ball_catalog?.brand;
     return name ? `${brand ? brand + " " : ""}${name}` : null;
   };
