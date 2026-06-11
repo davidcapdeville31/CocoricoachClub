@@ -1,10 +1,13 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Circle, Users, Activity, Trophy } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, Circle, Users, Activity, Trophy, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LockedBlockSummary } from "@/components/bowling/simplified/LockedBlockSummary";
+import type { SimplifiedBlock } from "@/components/bowling/simplified/types";
 
 interface Props {
   sessionId: string;
@@ -17,9 +20,7 @@ interface Props {
 /**
  * Affiche, pour le staff, le statut de saisie de chaque athlète pour la séance :
  *  - RPE saisi (session_block_athlete_rpe)
- *  - Pour les séances bowling : nombre de blocs/parties saisis (bowling_training_blocks)
- *
- * Permet de voir d'un coup d'œil qui a rempli ses données.
+ *  - Pour les séances bowling : nombre de blocs/parties saisis + détail (config JSON)
  */
 export function SessionAthleteEntriesPanel({
   sessionId,
@@ -30,9 +31,15 @@ export function SessionAthleteEntriesPanel({
 }: Props) {
   const tt = (trainingType || "").toLowerCase();
   const isBowling = tt.startsWith("bowling");
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  // Liste d'athlètes attendus : union attendance + event_participants
-  // fallback : tous les joueurs de la catégorie si rien de spécifique
+  const toggle = (id: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+
   const { data: categoryPlayers } = useQuery({
     queryKey: ["session-athlete-entries-roster", categoryId],
     queryFn: async () => {
@@ -47,7 +54,6 @@ export function SessionAthleteEntriesPanel({
     enabled: !!categoryId,
   });
 
-  // RPE individuels saisis
   const { data: rpes } = useQuery({
     queryKey: ["session-block-athlete-rpe", sessionId],
     queryFn: async () => {
@@ -61,14 +67,14 @@ export function SessionAthleteEntriesPanel({
     enabled: !!sessionId,
   });
 
-  // Blocs bowling saisis par athlète (bowling_simplified / bowling_advanced)
   const { data: bowlingBlocks } = useQuery({
     queryKey: ["session-bowling-blocks-by-athlete", sessionId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bowling_training_blocks")
-        .select("id, athlete_id, block_type")
-        .eq("session_id", sessionId);
+        .select("id, athlete_id, block_type, title, duration_min, config, order_index")
+        .eq("session_id", sessionId)
+        .order("order_index", { ascending: true });
       if (error) throw error;
       return data || [];
     },
@@ -101,7 +107,6 @@ export function SessionAthleteEntriesPanel({
       }
     });
 
-    // Enrichit avec la catégorie (avatars / first_name manquants)
     (categoryPlayers || []).forEach((cp: any) => {
       const existing = map.get(cp.id);
       if (existing) {
@@ -111,7 +116,6 @@ export function SessionAthleteEntriesPanel({
       }
     });
 
-    // Ajoute aussi les athlètes ayant saisi des données mais pas listés comme participants
     const extraIds = new Set<string>();
     (rpes || []).forEach((r: any) => extraIds.add(r.player_id));
     (bowlingBlocks || []).forEach((b: any) => b.athlete_id && extraIds.add(b.athlete_id));
@@ -146,6 +150,7 @@ export function SessionAthleteEntriesPanel({
   });
 
   const bowlingByPlayer = new Map<string, { games: number; technical: number; tactical: number; total: number }>();
+  const bowlingBlocksByPlayer = new Map<string, any[]>();
   (bowlingBlocks || []).forEach((b: any) => {
     if (!b.athlete_id) return;
     const cur = bowlingByPlayer.get(b.athlete_id) || { games: 0, technical: 0, tactical: 0, total: 0 };
@@ -154,6 +159,9 @@ export function SessionAthleteEntriesPanel({
     else if (b.block_type === "technical") cur.technical += 1;
     else if (b.block_type === "tactical") cur.tactical += 1;
     bowlingByPlayer.set(b.athlete_id, cur);
+    const list = bowlingBlocksByPlayer.get(b.athlete_id) || [];
+    list.push(b);
+    bowlingBlocksByPlayer.set(b.athlete_id, list);
   });
 
   const filledCount = players.filter((p) => {
@@ -172,10 +180,11 @@ export function SessionAthleteEntriesPanel({
         </Badge>
       </div>
 
-      <div className="grid gap-1.5 sm:grid-cols-2">
+      <div className="grid gap-1.5">
         {players.map((p) => {
           const rpeList = rpeByPlayer.get(p.id) || [];
           const bowl = bowlingByPlayer.get(p.id);
+          const playerBlocks = bowlingBlocksByPlayer.get(p.id) || [];
           const hasAnyData = rpeList.length > 0 || (bowl?.total || 0) > 0;
           const avgRpe =
             rpeList.length > 0
@@ -183,39 +192,88 @@ export function SessionAthleteEntriesPanel({
               : null;
           const displayName = p.first_name ? `${p.first_name} ${p.name}` : p.name || "Athlète";
           const initials = (p.first_name || p.name || "A").slice(0, 2).toUpperCase();
+          const canExpand = isBowling && playerBlocks.length > 0;
+          const isOpen = expanded.has(p.id);
 
           return (
             <div
               key={p.id}
               className={cn(
-                "flex items-center gap-2 rounded-lg border bg-background p-2 text-sm",
+                "rounded-lg border bg-background text-sm overflow-hidden",
                 hasAnyData ? "border-emerald-300/60 dark:border-emerald-700/40" : "border-dashed opacity-80",
               )}
             >
-              <Avatar className="h-7 w-7">
-                <AvatarImage src={p.avatar_url || undefined} />
-                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-              </Avatar>
-              <span className="truncate flex-1 min-w-0">{displayName}</span>
-              <div className="flex items-center gap-1 shrink-0">
-                {avgRpe !== null && (
-                  <Badge variant="outline" className="gap-1 text-xs">
-                    <Activity className="h-3 w-3" />
-                    RPE {avgRpe.toFixed(1)}
-                  </Badge>
-                )}
-                {isBowling && bowl && bowl.total > 0 && (
-                  <Badge variant="outline" className="gap-1 text-xs">
-                    <Trophy className="h-3 w-3" />
-                    {bowl.total} bloc{bowl.total > 1 ? "s" : ""}
-                  </Badge>
-                )}
-                {hasAnyData ? (
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <div
+                className={cn("flex items-center gap-2 p-2", canExpand && "cursor-pointer hover:bg-muted/40")}
+                onClick={() => canExpand && toggle(p.id)}
+              >
+                {canExpand ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 shrink-0"
+                    onClick={(e) => { e.stopPropagation(); toggle(p.id); }}
+                    aria-label={isOpen ? "Réduire" : "Voir le détail"}
+                  >
+                    {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </Button>
                 ) : (
-                  <Circle className="h-4 w-4 text-muted-foreground/50" />
+                  <span className="w-6 shrink-0" />
                 )}
+                <Avatar className="h-7 w-7">
+                  <AvatarImage src={p.avatar_url || undefined} />
+                  <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                </Avatar>
+                <span className="truncate flex-1 min-w-0">{displayName}</span>
+                <div className="flex items-center gap-1 shrink-0">
+                  {avgRpe !== null && (
+                    <Badge variant="outline" className="gap-1 text-xs">
+                      <Activity className="h-3 w-3" />
+                      RPE {avgRpe.toFixed(1)}
+                    </Badge>
+                  )}
+                  {isBowling && bowl && bowl.total > 0 && (
+                    <Badge variant="outline" className="gap-1 text-xs">
+                      <Trophy className="h-3 w-3" />
+                      {bowl.total} bloc{bowl.total > 1 ? "s" : ""}
+                    </Badge>
+                  )}
+                  {hasAnyData ? (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  ) : (
+                    <Circle className="h-4 w-4 text-muted-foreground/50" />
+                  )}
+                </div>
               </div>
+
+              {canExpand && isOpen && (
+                <div className="border-t bg-muted/20 p-3 space-y-2">
+                  {playerBlocks.map((b: any, idx: number) => {
+                    const cfg = (b.config || {}) as any;
+                    // Reconstitue un SimplifiedBlock à partir de la config persistée
+                    const block: SimplifiedBlock = {
+                      ...cfg,
+                      id: cfg.id || b.id,
+                      type: cfg.type || b.block_type,
+                      title: cfg.title ?? b.title ?? "",
+                      duration_min: cfg.duration_min ?? b.duration_min ?? 0,
+                    } as SimplifiedBlock;
+                    return (
+                      <LockedBlockSummary
+                        key={b.id}
+                        block={block}
+                        index={idx}
+                        categoryId={categoryId}
+                        playerId={p.id}
+                        onEdit={() => {}}
+                        onRemove={() => {}}
+                        readOnly
+                      />
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })}

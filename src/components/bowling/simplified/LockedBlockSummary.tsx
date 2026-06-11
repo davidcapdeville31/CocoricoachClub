@@ -17,13 +17,14 @@ interface Props {
   playerId?: string;
   onEdit: () => void;
   onRemove: () => void;
+  readOnly?: boolean;
 }
 
 /**
  * Vue compacte d'un bloc verrouillé (enregistré).
  * Le bouton "Modifier" rebascule le bloc en édition.
  */
-export function LockedBlockSummary({ block, index, categoryId, playerId, onEdit, onRemove }: Props) {
+export function LockedBlockSummary({ block, index, categoryId, playerId, onEdit, onRemove, readOnly }: Props) {
   const isTactical = block.type === "tactical";
   const isTechnical = block.type === "technical";
   const isGames = block.type === "games";
@@ -82,27 +83,29 @@ export function LockedBlockSummary({ block, index, categoryId, playerId, onEdit,
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onEdit}
-            className="h-8 gap-1"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-            Modifier
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={onRemove}
-          >
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
-        </div>
+        {!readOnly && (
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onEdit}
+              className="h-8 gap-1"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Modifier
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={onRemove}
+            >
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          </div>
+        )}
       </div>
     </Card>
   );
