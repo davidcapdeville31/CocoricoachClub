@@ -131,19 +131,25 @@ export function SuperAdminUsage() {
     let athleteSeconds = 0;
     let staffActiveUsers = new Set<string>();
     let athleteActiveUsers = new Set<string>();
+    let lastActiveDate: string | null = null;
 
     activityData.forEach(a => {
-      if (a.user_type === "staff" && client.staffUserIds.includes(a.user_id)) {
+      const isStaff = a.user_type === "staff" && client.staffUserIds.includes(a.user_id);
+      const isAthlete = a.user_type === "athlete" && client.athleteUserIds.includes(a.user_id);
+
+      if (isStaff) {
         staffSeconds += a.duration_seconds;
         staffActiveUsers.add(a.user_id);
       }
-      if (a.user_type === "athlete" && client.athleteUserIds.includes(a.user_id)) {
+      if (isAthlete) {
         athleteSeconds += a.duration_seconds;
         athleteActiveUsers.add(a.user_id);
       }
-      // Also count staff activity from athlete user IDs (they might use staff pages)
-      if (a.user_type === "staff" && client.athleteUserIds.includes(a.user_id) && !client.staffUserIds.includes(a.user_id)) {
-        // Don't double count - skip
+
+      if (isStaff || isAthlete) {
+        if (!lastActiveDate || a.activity_date > lastActiveDate) {
+          lastActiveDate = a.activity_date;
+        }
       }
     });
 
@@ -158,6 +164,7 @@ export function SuperAdminUsage() {
       athleteActiveUsers: athleteActiveUsers.size,
       totalStaff: client.staffUserIds.length,
       totalAthletes: client.athleteUserIds.length,
+      lastActiveDate,
     };
   }).sort((a, b) => b.totalSeconds - a.totalSeconds);
 
