@@ -279,8 +279,9 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-2">
-          <Tabs defaultValue={initialTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs defaultValue="login" className="w-full">
+            {/* Inscription publique désactivée : comptes créés sur devis personnalisé. */}
+            <TabsList className="hidden">
               <TabsTrigger value="login">Connexion</TabsTrigger>
               <TabsTrigger value="signup">Inscription</TabsTrigger>
             </TabsList>
@@ -478,6 +479,24 @@ export default function Auth() {
               </form>
             </TabsContent>
           </Tabs>
+
+          {forgotStep === "hidden" && (
+            <div className="mt-6 pt-6 border-t border-border">
+              <div className="rounded-2xl bg-surface-sunken p-4 text-center space-y-2">
+                <p className="text-sm font-semibold text-foreground">
+                  Demande de renseignements ? Pas encore de compte ?
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Chaque structure bénéficie d'un devis personnalisé. Contactez-nous pour créer votre espace.
+                </p>
+                <Button asChild variant="default" className="w-full mt-2">
+                  <a href="mailto:contact@cocoricoachclub.com?subject=Demande%20de%20renseignements%20-%20CocoriCoach%20Club">
+                    Nous contacter
+                  </a>
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
