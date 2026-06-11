@@ -46,9 +46,23 @@ export function SuperAdminUsage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_activity_tracking")
-        .select("user_id, duration_seconds, user_type, activity_date")
+        .select("user_id, duration_seconds, user_type, activity_date, last_heartbeat")
         .gte("activity_date", dateRange.from)
         .lte("activity_date", dateRange.to);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Fetch ALL-TIME last heartbeat per user (not filtered by period) for accurate "last login"
+  const { data: lastHeartbeats = [] } = useQuery({
+    queryKey: ["super-admin-last-heartbeats"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_activity_tracking")
+        .select("user_id, last_heartbeat")
+        .order("last_heartbeat", { ascending: false })
+        .limit(10000);
       if (error) throw error;
       return data || [];
     },
