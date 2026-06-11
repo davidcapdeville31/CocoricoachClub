@@ -872,35 +872,37 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                   </Card>
                   <Card>
                     <CardContent className="p-3 text-center">
-                      <p className="text-2xl font-bold text-primary">{globalStats.totalHours.toFixed(1)}h</p>
+                      <p className="text-2xl font-bold text-primary">{formatHm(globalStats.totalHours)}</p>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Volume total</p>
                     </CardContent>
                   </Card>
                   <Card style={{ borderColor: THEME_COLORS.technical }}>
                     <CardContent className="p-3 text-center">
-                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.technical }}>{globalStats.hoursByTheme.technical.toFixed(1)}h</p>
+                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.technical }}>{formatHm(globalStats.hoursByTheme.technical)}</p>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center"><Wrench className="h-3 w-3" />Technique</p>
                     </CardContent>
                   </Card>
                   <Card style={{ borderColor: THEME_COLORS.tactical }}>
                     <CardContent className="p-3 text-center">
-                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.tactical }}>{globalStats.hoursByTheme.tactical.toFixed(1)}h</p>
+                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.tactical }}>{formatHm(globalStats.hoursByTheme.tactical)}</p>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center"><Target className="h-3 w-3" />Tactique</p>
                     </CardContent>
                   </Card>
                   <Card style={{ borderColor: THEME_COLORS.games }}>
                     <CardContent className="p-3 text-center">
-                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.games }}>{globalStats.hoursByTheme.games.toFixed(1)}h</p>
+                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.games }}>{formatHm(globalStats.hoursByTheme.games)}</p>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center"><Circle className="h-3 w-3" />Parties</p>
                     </CardContent>
                   </Card>
                   <Card style={{ borderColor: THEME_COLORS.mental }}>
                     <CardContent className="p-3 text-center">
-                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.mental }}>{globalStats.hoursByTheme.mental.toFixed(1)}h</p>
+                      <p className="text-2xl font-bold" style={{ color: THEME_COLORS.mental }}>{formatHm(globalStats.hoursByTheme.mental)}</p>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wide flex items-center gap-1 justify-center">🧠 Mental</p>
                     </CardContent>
                   </Card>
                 </div>
+
+
 
 
                 <Card>
