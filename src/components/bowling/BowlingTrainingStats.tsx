@@ -984,7 +984,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
                               const total = item?.payload?.__total || 0;
                               const raw = item?.payload?.__raw?.[name] ?? (v as number);
                               const pct = total > 0 ? Math.round((raw / total) * 100) : 0;
-                              return [`${v}h · ${pct}%`, name];
+                              return [`${formatHm(raw)} · ${pct}%`, name];
                             }}
                           />
                           <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} iconType="circle" iconSize={8} />
