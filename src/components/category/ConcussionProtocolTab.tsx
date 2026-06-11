@@ -23,7 +23,10 @@ export function ConcussionProtocolTab({ categoryId, sportType = "XV" }: Concussi
   const protocol = getConcussionProtocolForSport(sportType);
   const hasProtocol = hasConcussionProtocol(sportType);
 
-  const { data: protocols, isLoading } = useQuery({
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const keepPlayer = makePlayerIdFilter(allowedIds);
+
+  const { data: protocolsRaw, isLoading } = useQuery({
     queryKey: ["concussion_protocols", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -35,8 +38,12 @@ export function ConcussionProtocolTab({ categoryId, sportType = "XV" }: Concussi
       return data;
     },
   });
+  const protocols = useMemo(
+    () => (protocolsRaw || []).filter((p: any) => keepPlayer(p.player_id)),
+    [protocolsRaw, allowedIds],
+  );
 
-  const { data: players } = useQuery({
+  const { data: playersRaw } = useQuery({
     queryKey: ["players", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -48,6 +55,10 @@ export function ConcussionProtocolTab({ categoryId, sportType = "XV" }: Concussi
       return data;
     },
   });
+  const players = useMemo(
+    () => (playersRaw || []).filter((p: any) => keepPlayer(p.id)),
+    [playersRaw, allowedIds],
+  );
 
   if (isLoading) return <p>Chargement...</p>;
 
