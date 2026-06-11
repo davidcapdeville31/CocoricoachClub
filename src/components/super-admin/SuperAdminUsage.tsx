@@ -46,9 +46,23 @@ export function SuperAdminUsage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_activity_tracking")
-        .select("user_id, duration_seconds, user_type, activity_date")
+        .select("user_id, duration_seconds, user_type, activity_date, last_heartbeat")
         .gte("activity_date", dateRange.from)
         .lte("activity_date", dateRange.to);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Fetch ALL-TIME last heartbeat per user (not filtered by period) for accurate "last login"
+  const { data: lastHeartbeats = [] } = useQuery({
+    queryKey: ["super-admin-last-heartbeats"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_activity_tracking")
+        .select("user_id, last_heartbeat")
+        .order("last_heartbeat", { ascending: false })
+        .limit(10000);
       if (error) throw error;
       return data || [];
     },
@@ -125,13 +139,25 @@ export function SuperAdminUsage() {
     },
   });
 
-  // Aggregate usage by client
-  const clientUsage = clientsData.map(client => {
+  // Build a per-user last heartbeat map (most recent across ALL time)
+  const userLastHeartbeat = new Map<string, string>();
+  lastHeartbeats.forEach((h: any) => {
+    if (!h.last_heartbeat) return;
+    const existing = userLastHeartbeat.get(h.user_id);
+    if (!existing || h.last_heartbeat > existing) {
+      userLastHeartbeat.set(h.user_id, h.last_heartbeat);
+    }
+  });
+
+  // Aggregate usage by client — only keep clients with an active/trial account
+  const clientUsage = clientsData
+    .filter(c => c.status === "active" || c.status === "trial")
+    .map(client => {
     let staffSeconds = 0;
     let athleteSeconds = 0;
     let staffActiveUsers = new Set<string>();
     let athleteActiveUsers = new Set<string>();
-    let lastActiveDate: string | null = null;
+    let lastLoginAt: string | null = null;
 
     activityData.forEach(a => {
       const isStaff = a.user_type === "staff" && client.staffUserIds.includes(a.user_id);
@@ -145,12 +171,12 @@ export function SuperAdminUsage() {
         athleteSeconds += a.duration_seconds;
         athleteActiveUsers.add(a.user_id);
       }
+    });
 
-      if (isStaff || isAthlete) {
-        if (!lastActiveDate || a.activity_date > lastActiveDate) {
-          lastActiveDate = a.activity_date;
-        }
-      }
+    // Last login = max last_heartbeat across all known users of this client (all time)
+    [...client.staffUserIds, ...client.athleteUserIds].forEach(uid => {
+      const hb = userLastHeartbeat.get(uid);
+      if (hb && (!lastLoginAt || hb > lastLoginAt)) lastLoginAt = hb;
     });
 
     return {
@@ -164,7 +190,7 @@ export function SuperAdminUsage() {
       athleteActiveUsers: athleteActiveUsers.size,
       totalStaff: client.staffUserIds.length,
       totalAthletes: client.athleteUserIds.length,
-      lastActiveDate,
+      lastLoginAt,
     };
   }).sort((a, b) => b.totalSeconds - a.totalSeconds);
 
@@ -291,10 +317,10 @@ export function SuperAdminUsage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        {client.lastActiveDate ? (
+                        {client.lastLoginAt ? (
                           <div>
-                            <p className="font-semibold">{format(parseISO(client.lastActiveDate), "dd/MM/yyyy")}</p>
-                            <p className="text-xs text-muted-foreground">{format(parseISO(client.lastActiveDate), "HH:mm")}</p>
+                            <p className="font-semibold">{format(parseISO(client.lastLoginAt), "dd/MM/yyyy")}</p>
+                            <p className="text-xs text-muted-foreground">{format(parseISO(client.lastLoginAt), "HH:mm")}</p>
                           </div>
                         ) : (
                           <span className="text-muted-foreground text-sm">—</span>
