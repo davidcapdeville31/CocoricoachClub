@@ -54,7 +54,10 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
   const { isViewer } = useViewerModeContext();
 
 
-  const { data: injuries, isLoading } = useQuery({
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const keepPlayer = makePlayerIdFilter(allowedIds);
+
+  const { data: injuriesRaw, isLoading } = useQuery({
     queryKey: ["injuries", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -66,6 +69,10 @@ export function InjuriesTab({ categoryId }: InjuriesTabProps) {
       return data;
     },
   });
+  const injuries = useMemo(
+    () => (injuriesRaw || []).filter((i: any) => keepPlayer(i.player_id)),
+    [injuriesRaw, allowedIds],
+  );
 
   const updateInjuryStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
