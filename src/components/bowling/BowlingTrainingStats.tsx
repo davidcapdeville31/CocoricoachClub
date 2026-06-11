@@ -260,12 +260,48 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
         patternsByMatch.set(op.match_id, arr);
       });
 
-      const seen = new Set<string>();
-      const out: Array<{ matchId: string; matchDate: string; oilRatio: string | null; oilCategory: OilCategoryType | null; patternName: string | null }> = [];
-      const gamesScope = effectivePlayerId
+      // Fallback: oil patterns stored inline inside bowling_training_blocks.config
+      // (used when an athlete saves a "simplified" session — those don't create
+      // rows in bowling_oil_patterns). Indexed by (athlete_id, session_date).
+      const gamesScopeForDates = effectivePlayerId
         ? (trainingData?.games || []).filter((g: any) => g.playerId === effectivePlayerId)
         : (trainingData?.games || []);
-      for (const g of gamesScope) {
+      const matchDates = [
+        ...new Set(
+          gamesScopeForDates
+            .filter((g: any) => trainingMatchIds.includes(g.matchId))
+            .map((g: any) => (g.matchDate || "").slice(0, 10))
+            .filter(Boolean),
+        ),
+      ] as string[];
+
+      const blockOilByKey = new Map<string, { name: string | null; ratio: string | null }>();
+      if (matchDates.length > 0) {
+        let bq = supabase
+          .from("bowling_training_blocks")
+          .select("athlete_id, config, created_at, training_sessions:session_id(session_date)")
+          .eq("category_id", categoryId)
+          .in("block_type", ["tactical", "games"]);
+        if (effectivePlayerId) bq = bq.eq("athlete_id", effectivePlayerId);
+        const { data: blocks } = await bq;
+        (blocks || []).forEach((b: any) => {
+          const date = (b.training_sessions?.session_date || b.created_at || "").slice(0, 10);
+          if (!date || !matchDates.includes(date)) return;
+          const oil = b.config?.oil_pattern;
+          if (!oil) return;
+          const ratio: string | null = oil.oil_ratio || null;
+          const name: string | null = oil.preset_name || null;
+          if (!ratio && !name) return;
+          const key = `${b.athlete_id || ""}|${date}`;
+          if (!blockOilByKey.has(key)) blockOilByKey.set(key, { name, ratio });
+          const dkey = `|${date}`;
+          if (!blockOilByKey.has(dkey)) blockOilByKey.set(dkey, { name, ratio });
+        });
+      }
+
+      const seen = new Set<string>();
+      const out: Array<{ matchId: string; matchDate: string; oilRatio: string | null; oilCategory: OilCategoryType | null; patternName: string | null }> = [];
+      for (const g of gamesScopeForDates) {
         if (!trainingMatchIds.includes(g.matchId)) continue;
         if (seen.has(g.matchId)) continue;
         seen.add(g.matchId);
@@ -277,13 +313,27 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
         } else {
           resolved = patternsForMatch[0] || null;
         }
-        const cat = resolved ? getOilCategory(resolved.oil_ratio) : null;
+
+        let ratio: string | null = resolved?.oil_ratio || null;
+        let name: string | null = resolved?.name || null;
+
+        if (!ratio && !name) {
+          const date = (g.matchDate || "").slice(0, 10);
+          const key = effectivePlayerId ? `${effectivePlayerId}|${date}` : `|${date}`;
+          const fallback = blockOilByKey.get(key) || blockOilByKey.get(`|${date}`);
+          if (fallback) {
+            ratio = fallback.ratio;
+            name = fallback.name;
+          }
+        }
+
+        const cat = ratio ? getOilCategory(ratio) : null;
         out.push({
           matchId: g.matchId,
           matchDate: g.matchDate,
-          oilRatio: resolved?.oil_ratio || null,
+          oilRatio: ratio,
           oilCategory: (cat?.type as OilCategoryType) || null,
-          patternName: resolved?.name || null,
+          patternName: name,
         });
       }
       return out.sort((a, b) => a.matchDate.localeCompare(b.matchDate));
