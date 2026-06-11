@@ -83,6 +83,32 @@ function BlockShell({
       </div>
 
       {children}
+
+      {/* Notes du bloc — consigne coach + note privée */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="space-y-1">
+          <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Consigne pour l'athlète
+          </Label>
+          <Textarea
+            value={value.coach_instruction}
+            onChange={(e) => onChange({ ...value, coach_instruction: e.target.value })}
+            placeholder="Ex : se concentrer sur le timing, vitesse stable…"
+            className="min-h-[60px] text-sm bg-surface-sunken"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Note interne (coach)
+          </Label>
+          <Textarea
+            value={value.internal_note}
+            onChange={(e) => onChange({ ...value, internal_note: e.target.value })}
+            placeholder="Observations, axes de progression, rappels…"
+            className="min-h-[60px] text-sm bg-surface-sunken"
+          />
+        </div>
+      </div>
     </Card>
   );
 }
