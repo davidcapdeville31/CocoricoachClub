@@ -1,12 +1,13 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Clock, Calendar as CalendarIcon, CheckCircle2, Trophy, Target } from "lucide-react";
+import { Activity, Clock, Calendar as CalendarIcon, CheckCircle2, Trophy, Target, ChevronDown, Wrench, Gamepad2, Droplet } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { GroupedExerciseList } from "@/components/category/GroupedExerciseList";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface Props {
   open: boolean;
