@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo } from "react";
 import { getObjectiveLabel } from "@/lib/constants/sessionBlockOptions";
-import { getDisplayNotes, parsePrecisionExerciseFromNotes, parseV2BlockTag } from "@/lib/utils/sessionNotes";
+import { getDisplayNotes, parsePrecisionExerciseFromNotes, parseV2BlockTag, parseMentalFromNotes } from "@/lib/utils/sessionNotes";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
