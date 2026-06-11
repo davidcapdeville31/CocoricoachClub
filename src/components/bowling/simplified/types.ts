@@ -220,6 +220,7 @@ export function newTacticalBlock(): SimplifiedTacticalBlock {
       outside_friction: null,
     },
     items: [],
+    notes: "",
   };
 }
 
