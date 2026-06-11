@@ -317,10 +317,10 @@ export function SuperAdminUsage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        {client.lastActiveDate ? (
+                        {client.lastLoginAt ? (
                           <div>
-                            <p className="font-semibold">{format(parseISO(client.lastActiveDate), "dd/MM/yyyy")}</p>
-                            <p className="text-xs text-muted-foreground">{format(parseISO(client.lastActiveDate), "HH:mm")}</p>
+                            <p className="font-semibold">{format(parseISO(client.lastLoginAt), "dd/MM/yyyy")}</p>
+                            <p className="text-xs text-muted-foreground">{format(parseISO(client.lastLoginAt), "HH:mm")}</p>
                           </div>
                         ) : (
                           <span className="text-muted-foreground text-sm">—</span>
