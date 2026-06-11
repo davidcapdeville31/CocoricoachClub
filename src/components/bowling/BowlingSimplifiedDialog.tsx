@@ -413,6 +413,7 @@ export function BowlingSimplifiedDialog({
           session_date: sessionDate,
           training_session_id: sessionId,
           ball_arsenal_id: b.ball_id || null,
+          notes: b.notes?.trim() ? b.notes.trim() : null,
         });
       }
     }
