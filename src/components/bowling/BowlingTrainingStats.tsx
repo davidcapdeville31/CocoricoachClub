@@ -32,6 +32,17 @@ const OIL_CATEGORY_BADGES: Record<OilCategoryType, { label: string; className: s
   recreation: { label: "🟢 Récréatif", className: "bg-green-100 text-green-800 border-green-400 dark:bg-green-500/25 dark:text-green-200" },
 };
 
+// Convert decimal hours to "XhMM" format (e.g. 3.5 -> "3h30", 0.8 -> "0h48", 0 -> "0h")
+const formatHm = (hoursDecimal: number): string => {
+  if (!hoursDecimal || hoursDecimal <= 0) return "0h";
+  const totalMinutes = Math.round(hoursDecimal * 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return m === 0 ? `${h}h` : `${h}h${m.toString().padStart(2, "0")}`;
+};
+
+
+
 interface BowlingTrainingStatsProps {
   categoryId: string;
   playerId?: string;
