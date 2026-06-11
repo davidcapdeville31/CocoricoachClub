@@ -295,6 +295,20 @@ export function SimplifiedTacticalBlockEditor({
           ))}
         </div>
       </div>
+
+      {/* Note libre */}
+      <div className="space-y-1">
+        <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Note de séance (optionnel)
+        </Label>
+        <Textarea
+          value={value.notes ?? ""}
+          onChange={(e) => update({ notes: e.target.value })}
+          placeholder="Ressentis, observations, axes à retravailler…"
+          rows={3}
+          className="text-sm"
+        />
+      </div>
     </Card>
   );
 }
