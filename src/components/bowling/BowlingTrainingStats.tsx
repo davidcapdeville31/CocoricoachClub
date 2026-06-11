@@ -215,11 +215,14 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     },
   });
 
-  // Unique training match IDs (from games)
+  // Unique training match IDs (from games) — restricted to current athlete when viewing as athlete
   const trainingMatchIds = useMemo(() => {
     if (!trainingData) return [] as string[];
-    return [...new Set(trainingData.games.map((g: any) => g.matchId).filter(Boolean))] as string[];
-  }, [trainingData]);
+    const games = playerId
+      ? trainingData.games.filter((g: any) => g.playerId === playerId)
+      : trainingData.games;
+    return [...new Set(games.map((g: any) => g.matchId).filter(Boolean))] as string[];
+  }, [trainingData, playerId]);
 
   // Fetch oil patterns assigned to those training matches
   const { data: trainingOilData } = useQuery({
@@ -251,7 +254,11 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
 
       const seen = new Set<string>();
       const out: Array<{ matchId: string; matchDate: string; oilRatio: string | null; oilCategory: OilCategoryType | null; patternName: string | null }> = [];
-      for (const g of trainingData?.games || []) {
+      const gamesScope = playerId
+        ? (trainingData?.games || []).filter((g: any) => g.playerId === playerId)
+        : (trainingData?.games || []);
+      for (const g of gamesScope) {
+        if (!trainingMatchIds.includes(g.matchId)) continue;
         if (seen.has(g.matchId)) continue;
         seen.add(g.matchId);
         const patternsForMatch = patternsByMatch.get(g.matchId) || [];
