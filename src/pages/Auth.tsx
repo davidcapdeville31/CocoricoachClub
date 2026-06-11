@@ -486,14 +486,3 @@ export default function Auth() {
   );
 }
 
-function ContactCTA() {
-  return null;
-}
-
-// (bloc déplacé au-dessus de la carte de connexion)
-
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
