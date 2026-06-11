@@ -53,6 +53,32 @@ export function SessionDetailDialog({ open, onOpenChange, session, exercises, pl
     },
   });
 
+  // Noms des boules utilisées
+  const ballIds = Array.from(
+    new Set(
+      (bowlingBlocks || [])
+        .map((b: any) => b.config?.ball_id)
+        .filter(Boolean),
+    ),
+  );
+  const { data: balls } = useQuery({
+    queryKey: ["athlete-session-balls", ballIds],
+    enabled: ballIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("player_bowling_arsenal")
+        .select("id, ball_name, brand")
+        .in("id", ballIds as string[]);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  const ballName = (id?: string) => {
+    if (!id) return null;
+    const b = (balls || []).find((x: any) => x.id === id);
+    return b ? `${b.brand ? b.brand + " " : ""}${b.ball_name}` : null;
+  };
+
   if (!session) return null;
 
   const rawNotes = String(session.notes || "").replace(/<!--[\s\S]*?-->/g, "").trim();
