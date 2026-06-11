@@ -40,6 +40,7 @@ import { LinkedMethodSlots, type LinkedMethodType } from "@/components/program-b
 import { FartlekCard } from "@/components/program-builder-v2/FartlekCard";
 import { ReadOnlyMethodCard } from "@/components/program-builder-v2/ReadOnlyMethodCard";
 import { parseV2MethodConfig, stripV2MethodTags } from "@/lib/program-builder-v2/parseV2MethodConfig";
+import { SessionAthleteEntriesPanel } from "./SessionAthleteEntriesPanel";
 interface SessionDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
