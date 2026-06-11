@@ -91,7 +91,10 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
   const [customTo, setCustomTo] = useState<Date | undefined>(undefined);
   const { from, to } = useMemo(() => getPeriodRange(period, customFrom, customTo), [period, customFrom, customTo]);
 
-  const { data: injuries } = useQuery({
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const keepPlayer = makePlayerIdFilter(allowedIds);
+
+  const { data: injuriesRaw } = useQuery({
     queryKey: ["injury-stats", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -102,8 +105,12 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
       return data || [];
     },
   });
+  const injuries = useMemo(
+    () => (injuriesRaw || []).filter((i: any) => keepPlayer(i.player_id)),
+    [injuriesRaw, allowedIds],
+  );
 
-  const { data: illnesses } = useQuery({
+  const { data: illnessesRaw } = useQuery({
     queryKey: ["illness-stats", categoryId],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
@@ -114,10 +121,15 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
       return (data || []) as any[];
     },
   });
+  const illnesses = useMemo(
+    () => (illnessesRaw || []).filter((i: any) => keepPlayer(i.player_id)),
+    [illnessesRaw, allowedIds],
+  );
 
-  const { data: playersCount } = useQuery({
-    queryKey: ["injury-stats-players-count", categoryId],
+  const { data: playersCountRaw } = useQuery({
+    queryKey: ["injury-stats-players-count", categoryId, !!allowedIds],
     queryFn: async () => {
+      if (allowedIds) return allowedIds.size;
       const { count, error } = await supabase
         .from("players")
         .select("id", { count: "exact", head: true })
@@ -126,6 +138,7 @@ export function InjuryStatsPanel({ categoryId }: InjuryStatsPanelProps) {
       return count ?? 0;
     },
   });
+  const playersCount = playersCountRaw;
 
   const stats = useMemo(() => {
     const list = (injuries || []).filter((i: any) => {
