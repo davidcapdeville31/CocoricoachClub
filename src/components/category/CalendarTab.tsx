@@ -260,9 +260,8 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
   );
   const weeklyPlanning = useMemo(() => {
     return (weeklyPlanningRaw || []).filter((w: any) => {
-      const ws = new Date(w.week_start_date);
-      const dow = ((w.day_of_week ?? 0) + 6) % 7; // mirror getWeeklyPlanningDate offset
-      const d = addDays(ws, dow);
+      const ws = startOfWeek(new Date(w.week_start_date), { weekStartsOn: 1 });
+      const d = addDays(ws, w.day_of_week ?? 0);
       return isDateInActiveSeason(d);
     });
   }, [weeklyPlanningRaw, isDateInActiveSeason]);
