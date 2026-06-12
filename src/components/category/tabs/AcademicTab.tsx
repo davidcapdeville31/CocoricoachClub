@@ -202,6 +202,14 @@ export function AcademicTab({ categoryId }: AcademicTabProps) {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <SeasonRosterFilterToggle />
+      </div>
+      {activeSeasonOnly && activeSeasonName && (
+        <p className="text-xs text-muted-foreground italic -mt-3">
+          Notes et absences filtrées sur la saison active : {activeSeasonName}.
+        </p>
+      )}
       {/* Player Selection */}
       <Card>
         <CardHeader>
