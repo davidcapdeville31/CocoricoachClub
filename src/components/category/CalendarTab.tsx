@@ -229,11 +229,11 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     return labels;
   }, [trainingTypes]);
 
-  const { data: sessions, isLoading: isLoadingSessions } = useViewerSessions(categoryId);
+  const { data: sessionsRaw, isLoading: isLoadingSessions } = useViewerSessions(categoryId);
 
-  const { data: matches, isLoading: isLoadingMatches } = useViewerMatches(categoryId);
+  const { data: matchesRaw, isLoading: isLoadingMatches } = useViewerMatches(categoryId);
 
-  const { data: weeklyPlanning, isLoading: isLoadingPlanning } = useQuery({
+  const { data: weeklyPlanningRaw, isLoading: isLoadingPlanning } = useQuery({
     queryKey: ["weekly-planning-all", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -247,6 +247,21 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       return data;
     },
   });
+
+  // Filtre par saison active : ne garder que les éléments dans la fenêtre de dates de la saison.
+  const { isDateInActiveSeason, activeSeasonOnly, activeSeasonName } = useSeasonRosterFilter();
+  const sessions = useMemo(
+    () => (sessionsRaw || []).filter((s: any) => isDateInActiveSeason(s.session_date)),
+    [sessionsRaw, isDateInActiveSeason],
+  );
+  const matches = useMemo(
+    () => (matchesRaw || []).filter((m: any) => isDateInActiveSeason(m.match_date)),
+    [matchesRaw, isDateInActiveSeason],
+  );
+  const weeklyPlanning = useMemo(
+    () => (weeklyPlanningRaw || []).filter((w: any) => isDateInActiveSeason(getWeeklyPlanningDate(w))),
+    [weeklyPlanningRaw, isDateInActiveSeason],
+  );
 
   const deleteSession = useMutation({
     mutationFn: async (sessionId: string) => {
