@@ -95,7 +95,7 @@ export function AcademicTab({ categoryId }: AcademicTabProps) {
   });
 
   // Fetch grades for selected player
-  const { data: grades = [] } = useQuery({
+  const { data: gradesRaw = [] } = useQuery({
     queryKey: ["academic-grades", selectedPlayerId],
     queryFn: async () => {
       if (!selectedPlayerId) return [];
@@ -110,9 +110,10 @@ export function AcademicTab({ categoryId }: AcademicTabProps) {
     },
     enabled: !!selectedPlayerId,
   });
+  const grades = (gradesRaw || []).filter((g: any) => isDateInActiveSeason(g.grade_date));
 
   // Fetch absences for selected player
-  const { data: absences = [] } = useQuery({
+  const { data: absencesRaw = [] } = useQuery({
     queryKey: ["academic-absences", selectedPlayerId],
     queryFn: async () => {
       if (!selectedPlayerId) return [];
@@ -127,6 +128,7 @@ export function AcademicTab({ categoryId }: AcademicTabProps) {
     },
     enabled: !!selectedPlayerId,
   });
+  const absences = (absencesRaw || []).filter((a: any) => isDateInActiveSeason(a.absence_date));
 
   // Save profile mutation
   const saveProfileMutation = useMutation({
