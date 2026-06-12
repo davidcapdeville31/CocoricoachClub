@@ -92,13 +92,17 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
   const itemLabelPluralCapital = isIndividual ? "Compétitions" : "Matchs";
 
   const { data: matches, isLoading } = useViewerMatches(categoryId);
+  const { isDateInActiveSeason, activeSeasonOnly, activeSeasonName } = useSeasonRosterFilter();
 
   // Filter out sub-matches (they are displayed within their parent match)
   // and exclude training events — the Competition tab must only show real competitions.
   // Compare by calendar day so a match scheduled for "today" is considered upcoming
   const parentMatches =
     matches?.filter(
-      (m) => !m.parent_match_id && (m as any).event_type !== "training",
+      (m) =>
+        !m.parent_match_id &&
+        (m as any).event_type !== "training" &&
+        isDateInActiveSeason(m.match_date),
     ) || [];
   const today = startOfDay(new Date());
   const upcomingMatches = parentMatches.filter(
