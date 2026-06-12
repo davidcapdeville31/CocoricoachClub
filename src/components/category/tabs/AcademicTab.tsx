@@ -60,9 +60,12 @@ export function AcademicTab({ categoryId }: AcademicTabProps) {
   const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
   const [absenceDialogOpen, setAbsenceDialogOpen] = useState(false);
 
-  // Fetch players
+  const { isDateInActiveSeason, activeSeasonOnly, activeSeasonName } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+
+  // Fetch players (filtered to active season's roster when toggle is ON)
   const { data: players = [] } = useQuery({
-    queryKey: ["players", categoryId],
+    queryKey: ["players", categoryId, allowedIds ? Array.from(allowedIds).sort().join(",") : "all"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
@@ -70,7 +73,7 @@ export function AcademicTab({ categoryId }: AcademicTabProps) {
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
-      return data;
+      return (data || []).filter((p) => !allowedIds || allowedIds.has(p.id));
     },
   });
 
