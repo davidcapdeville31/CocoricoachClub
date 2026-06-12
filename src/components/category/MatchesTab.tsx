@@ -134,6 +134,14 @@ export function MatchesTab({ categoryId, sportType }: MatchesTabProps) {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <SeasonRosterFilterToggle />
+      </div>
+      {activeSeasonOnly && activeSeasonName && (
+        <p className="text-xs text-muted-foreground italic">
+          Filtré par saison active : {activeSeasonName}. Désactivez le toggle pour voir toutes les compétitions.
+        </p>
+      )}
       <div className="w-full">
         <div>
 
