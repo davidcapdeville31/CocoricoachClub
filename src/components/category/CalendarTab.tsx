@@ -32,6 +32,8 @@ import { EditAdminEventDialog, ADMIN_EVENT_TYPES } from "./calendar/EditAdminEve
 import { AnnualPlanningView } from "@/components/planning/AnnualPlanningView";
 import { useUnreadAthleteSessionsCount } from "@/lib/hooks/useUnreadAthleteSessionsCount";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { SeasonRosterFilterToggle } from "./SeasonRosterFilterToggle";
 
 interface CalendarTabProps {
   categoryId: string;
@@ -227,11 +229,11 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     return labels;
   }, [trainingTypes]);
 
-  const { data: sessions, isLoading: isLoadingSessions } = useViewerSessions(categoryId);
+  const { data: sessionsRaw, isLoading: isLoadingSessions } = useViewerSessions(categoryId);
 
-  const { data: matches, isLoading: isLoadingMatches } = useViewerMatches(categoryId);
+  const { data: matchesRaw, isLoading: isLoadingMatches } = useViewerMatches(categoryId);
 
-  const { data: weeklyPlanning, isLoading: isLoadingPlanning } = useQuery({
+  const { data: weeklyPlanningRaw, isLoading: isLoadingPlanning } = useQuery({
     queryKey: ["weekly-planning-all", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -245,6 +247,24 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
       return data;
     },
   });
+
+  // Filtre par saison active : ne garder que les éléments dans la fenêtre de dates de la saison.
+  const { isDateInActiveSeason, activeSeasonOnly, activeSeasonName } = useSeasonRosterFilter();
+  const sessions = useMemo(
+    () => (sessionsRaw || []).filter((s: any) => isDateInActiveSeason(s.session_date)),
+    [sessionsRaw, isDateInActiveSeason],
+  );
+  const matches = useMemo(
+    () => (matchesRaw || []).filter((m: any) => isDateInActiveSeason(m.match_date)),
+    [matchesRaw, isDateInActiveSeason],
+  );
+  const weeklyPlanning = useMemo(() => {
+    return (weeklyPlanningRaw || []).filter((w: any) => {
+      const ws = startOfWeek(new Date(w.week_start_date), { weekStartsOn: 1 });
+      const d = addDays(ws, w.day_of_week ?? 0);
+      return isDateInActiveSeason(d);
+    });
+  }, [weeklyPlanningRaw, isDateInActiveSeason]);
 
   const deleteSession = useMutation({
     mutationFn: async (sessionId: string) => {
@@ -350,6 +370,14 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <SeasonRosterFilterToggle />
+      </div>
+      {activeSeasonOnly && activeSeasonName && (
+        <p className="text-xs text-muted-foreground italic -mt-3">
+          Calendrier filtré sur la saison active : {activeSeasonName}.
+        </p>
+      )}
       <Tabs defaultValue="annual" className="space-y-4">
         <div className="flex justify-center">
           <ColoredSubTabsList colorKey="planification" className="inline-flex w-max">

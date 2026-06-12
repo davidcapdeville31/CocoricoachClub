@@ -27,6 +27,9 @@ import {
   Mail,
   FileText
 } from "lucide-react";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
 
 interface AcademicTabProps {
   categoryId: string;
@@ -57,9 +60,12 @@ export function AcademicTab({ categoryId }: AcademicTabProps) {
   const [gradeDialogOpen, setGradeDialogOpen] = useState(false);
   const [absenceDialogOpen, setAbsenceDialogOpen] = useState(false);
 
-  // Fetch players
+  const { isDateInActiveSeason, activeSeasonOnly, activeSeasonName } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+
+  // Fetch players (filtered to active season's roster when toggle is ON)
   const { data: players = [] } = useQuery({
-    queryKey: ["players", categoryId],
+    queryKey: ["players", categoryId, allowedIds ? Array.from(allowedIds).sort().join(",") : "all"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
@@ -67,7 +73,7 @@ export function AcademicTab({ categoryId }: AcademicTabProps) {
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
-      return data;
+      return (data || []).filter((p) => !allowedIds || allowedIds.has(p.id));
     },
   });
 
@@ -89,7 +95,7 @@ export function AcademicTab({ categoryId }: AcademicTabProps) {
   });
 
   // Fetch grades for selected player
-  const { data: grades = [] } = useQuery({
+  const { data: gradesRaw = [] } = useQuery({
     queryKey: ["academic-grades", selectedPlayerId],
     queryFn: async () => {
       if (!selectedPlayerId) return [];
@@ -104,9 +110,10 @@ export function AcademicTab({ categoryId }: AcademicTabProps) {
     },
     enabled: !!selectedPlayerId,
   });
+  const grades = (gradesRaw || []).filter((g: any) => isDateInActiveSeason(g.grade_date));
 
   // Fetch absences for selected player
-  const { data: absences = [] } = useQuery({
+  const { data: absencesRaw = [] } = useQuery({
     queryKey: ["academic-absences", selectedPlayerId],
     queryFn: async () => {
       if (!selectedPlayerId) return [];
@@ -121,6 +128,7 @@ export function AcademicTab({ categoryId }: AcademicTabProps) {
     },
     enabled: !!selectedPlayerId,
   });
+  const absences = (absencesRaw || []).filter((a: any) => isDateInActiveSeason(a.absence_date));
 
   // Save profile mutation
   const saveProfileMutation = useMutation({
@@ -194,6 +202,14 @@ export function AcademicTab({ categoryId }: AcademicTabProps) {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <SeasonRosterFilterToggle />
+      </div>
+      {activeSeasonOnly && activeSeasonName && (
+        <p className="text-xs text-muted-foreground italic -mt-3">
+          Notes et absences filtrées sur la saison active : {activeSeasonName}.
+        </p>
+      )}
       {/* Player Selection */}
       <Card>
         <CardHeader>

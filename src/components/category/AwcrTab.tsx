@@ -21,6 +21,9 @@ import { HrvEntryDialog } from "./hrv/HrvEntryDialog";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { supportsHrvTracking } from "@/lib/constants/sportTypes";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+import { SeasonRosterFilterToggle } from "./SeasonRosterFilterToggle";
 
 interface AwcrTabProps {
   categoryId: string;
@@ -79,7 +82,10 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
     channelName: `awcr-sync-${categoryId}`,
   });
 
-  const { data: awcrData, isLoading } = useQuery({
+  const { isDateInActiveSeason, activeSeasonOnly } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+
+  const { data: awcrDataRaw, isLoading } = useQuery({
     queryKey: ["awcr_tracking", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -90,6 +96,12 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
       if (error) throw error;
       return data as AwcrEntry[];
     },
+  });
+
+  const awcrData = (awcrDataRaw || []).filter((row) => {
+    if (!isDateInActiveSeason(row.session_date)) return false;
+    if (allowedIds && !allowedIds.has(row.player_id)) return false;
+    return true;
   });
 
   // Check if GPS data exists for this category
@@ -112,6 +124,9 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
   return (
     <Card className="bg-gradient-card shadow-md">
       <CardHeader>
+        <div className="flex justify-end mb-2">
+          <SeasonRosterFilterToggle />
+        </div>
         <div className="flex justify-between items-center">
           <div>
             <CardTitle>Suivi AWCR</CardTitle>
