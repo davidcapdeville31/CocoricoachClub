@@ -21,6 +21,9 @@ import { HrvEntryDialog } from "./hrv/HrvEntryDialog";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
 import { supportsHrvTracking } from "@/lib/constants/sportTypes";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+import { SeasonRosterFilterToggle } from "./SeasonRosterFilterToggle";
 
 interface AwcrTabProps {
   categoryId: string;
