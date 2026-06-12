@@ -32,6 +32,8 @@ import { EditAdminEventDialog, ADMIN_EVENT_TYPES } from "./calendar/EditAdminEve
 import { AnnualPlanningView } from "@/components/planning/AnnualPlanningView";
 import { useUnreadAthleteSessionsCount } from "@/lib/hooks/useUnreadAthleteSessionsCount";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { SeasonRosterFilterToggle } from "./SeasonRosterFilterToggle";
 
 interface CalendarTabProps {
   categoryId: string;
