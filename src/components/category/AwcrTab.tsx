@@ -82,7 +82,10 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
     channelName: `awcr-sync-${categoryId}`,
   });
 
-  const { data: awcrData, isLoading } = useQuery({
+  const { isDateInActiveSeason, activeSeasonOnly } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+
+  const { data: awcrDataRaw, isLoading } = useQuery({
     queryKey: ["awcr_tracking", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -93,6 +96,12 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
       if (error) throw error;
       return data as AwcrEntry[];
     },
+  });
+
+  const awcrData = (awcrDataRaw || []).filter((row) => {
+    if (!isDateInActiveSeason(row.session_date)) return false;
+    if (allowedIds && !allowedIds.has(row.player_id)) return false;
+    return true;
   });
 
   // Check if GPS data exists for this category
