@@ -370,6 +370,14 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <SeasonRosterFilterToggle />
+      </div>
+      {activeSeasonOnly && activeSeasonName && (
+        <p className="text-xs text-muted-foreground italic -mt-3">
+          Calendrier filtré sur la saison active : {activeSeasonName}.
+        </p>
+      )}
       <Tabs defaultValue="annual" className="space-y-4">
         <div className="flex justify-center">
           <ColoredSubTabsList colorKey="planification" className="inline-flex w-max">
