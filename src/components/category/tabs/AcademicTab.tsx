@@ -27,6 +27,9 @@ import {
   Mail,
   FileText
 } from "lucide-react";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
 
 interface AcademicTabProps {
   categoryId: string;
