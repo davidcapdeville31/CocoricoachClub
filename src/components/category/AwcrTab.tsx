@@ -124,6 +124,9 @@ export function AwcrTab({ categoryId }: AwcrTabProps) {
   return (
     <Card className="bg-gradient-card shadow-md">
       <CardHeader>
+        <div className="flex justify-end mb-2">
+          <SeasonRosterFilterToggle />
+        </div>
         <div className="flex justify-between items-center">
           <div>
             <CardTitle>Suivi AWCR</CardTitle>
