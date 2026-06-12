@@ -258,10 +258,14 @@ export function CalendarTab({ categoryId }: CalendarTabProps) {
     () => (matchesRaw || []).filter((m: any) => isDateInActiveSeason(m.match_date)),
     [matchesRaw, isDateInActiveSeason],
   );
-  const weeklyPlanning = useMemo(
-    () => (weeklyPlanningRaw || []).filter((w: any) => isDateInActiveSeason(getWeeklyPlanningDate(w))),
-    [weeklyPlanningRaw, isDateInActiveSeason],
-  );
+  const weeklyPlanning = useMemo(() => {
+    return (weeklyPlanningRaw || []).filter((w: any) => {
+      const ws = new Date(w.week_start_date);
+      const dow = ((w.day_of_week ?? 0) + 6) % 7; // mirror getWeeklyPlanningDate offset
+      const d = addDays(ws, dow);
+      return isDateInActiveSeason(d);
+    });
+  }, [weeklyPlanningRaw, isDateInActiveSeason]);
 
   const deleteSession = useMutation({
     mutationFn: async (sessionId: string) => {
