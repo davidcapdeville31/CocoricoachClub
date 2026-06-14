@@ -18,9 +18,12 @@ export function getAppBaseUrl(): string {
   const host = window.location.hostname;
 
   // Preview / sandbox origins → swap to production
+  // Preview / sandbox / Lovable-hosted origins → swap to production domain
+  // so the recipient never lands on a Lovable login wall.
   if (
     host.endsWith("lovable.dev") ||
     host.endsWith("lovableproject.com") ||
+    host.endsWith("lovable.app") ||
     host.includes("id-preview--") ||
     host.startsWith("localhost") ||
     host.startsWith("127.0.0.1")
