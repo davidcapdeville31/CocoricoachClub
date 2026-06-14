@@ -1678,6 +1678,7 @@ export const MethodConfigSlots = ({
                     contractionType={s.contractionType || 'concentric'}
                     isActive={s.isActive !== false}
                     onRemove={() => onPhaseExerciseRemove?.(idx)}
+                          onPick={onPhaseExerciseAdd ? (p) => onPhaseExerciseAdd(idx, p) : undefined}
                     onToggleActive={() => togglePhaseActive(idx)}
                   />
                 ))}
@@ -2091,6 +2092,7 @@ export const MethodConfigSlots = ({
                             exercise={droppedPhaseExercises[idx]}
                             config={config}
                             onRemove={() => onPhaseExerciseRemove?.(idx)}
+                          onPick={onPhaseExerciseAdd ? (p) => onPhaseExerciseAdd(idx, p) : undefined}
                             placeholder={getEmomSlotLabel(idx)}
                             seriesData={s}
                             onUpdateSeries={(field, value) => updateSeries(idx, field, value)}
@@ -2143,6 +2145,7 @@ export const MethodConfigSlots = ({
                           exercise={droppedPhaseExercises[idx]}
                           config={config}
                           onRemove={() => onPhaseExerciseRemove?.(idx)}
+                          onPick={onPhaseExerciseAdd ? (p) => onPhaseExerciseAdd(idx, p) : undefined}
                           placeholder={`Exercice ${idx + 1}`}
                           seriesData={s}
                           onUpdateSeries={(field, value) => updateSeries(idx, field, value)}
@@ -2329,6 +2332,7 @@ export const MethodConfigSlots = ({
                         exercise={droppedPhaseExercises[idx]}
                         config={config}
                         onRemove={() => onPhaseExerciseRemove?.(idx)}
+                          onPick={onPhaseExerciseAdd ? (p) => onPhaseExerciseAdd(idx, p) : undefined}
                         placeholder={`Exercice ${idx + 1}`}
                         seriesData={s}
                         onUpdateSeries={(field, value) => updateSeries(idx, field, value)}
@@ -2454,6 +2458,7 @@ export const MethodConfigSlots = ({
                           exercise={droppedPhaseExercises[idx]}
                           config={config}
                           onRemove={() => onPhaseExerciseRemove?.(idx)}
+                          onPick={onPhaseExerciseAdd ? (p) => onPhaseExerciseAdd(idx, p) : undefined}
                           placeholder={`Exercice ${idx + 1}`}
                           seriesData={s}
                           onUpdateSeries={(field, value) => updateSeries(idx, field, value)}
