@@ -1516,7 +1516,9 @@ export function CompetitionRoundsDialog({
         className={
           isJudo
             ? "!max-w-none w-full h-[calc(100vh-1rem)] sm:h-[calc(100vh-2rem)] !max-h-none !rounded-2xl !p-4 sm:!p-6 grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden relative"
-            : "sm:max-w-[900px] h-[95vh] max-h-[95vh] grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden relative"
+            : selectedPlayer2
+              ? "!max-w-[1700px] w-[98vw] h-[95vh] max-h-[95vh] grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden relative"
+              : "sm:max-w-[900px] h-[95vh] max-h-[95vh] grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden relative"
         }
       >
         <DialogHeader className="flex-shrink-0">
