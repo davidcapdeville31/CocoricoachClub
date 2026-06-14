@@ -35,6 +35,7 @@ import {
 } from "@/components/basketball/BasketballHalfCourtSVG";
 import { PrecisionTrainingStats } from "@/components/training/PrecisionTrainingStats";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface Props {
   categoryId: string;
