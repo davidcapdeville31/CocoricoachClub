@@ -159,7 +159,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
 
 
   // Fetch new system training blocks (used for "Stats Globales" and to filter obsolete spare data)
-  const { data: trainingBlocks = [] } = useQuery({
+  const { data: trainingBlocksRaw = [] } = useQuery({
     queryKey: ["bowling_training_blocks_stats", categoryId, playerId || "all"],
     queryFn: async () => {
       let q = supabase
@@ -175,6 +175,16 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       })) as Array<{ id: string; athlete_id: string | null; block_type: string; duration_min: number | null; created_at: string; session_id: string | null; session_date: string }>;
     },
   });
+
+  const trainingBlocks = useMemo(
+    () =>
+      trainingBlocksRaw.filter(
+        (b) =>
+          (!allowedIds || (b.athlete_id ? allowedIds.has(b.athlete_id) : false)) &&
+          isDateInActiveSeason(b.session_date),
+      ),
+    [trainingBlocksRaw, allowedIds, isDateInActiveSeason],
+  );
 
   // Fetch mental preparation sessions for this category (and player if scoped)
   const { data: mentalSessions = [] } = useQuery({
