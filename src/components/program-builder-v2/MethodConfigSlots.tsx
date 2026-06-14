@@ -879,6 +879,8 @@ const CircuitExerciseSlot = ({
               <X className="h-3 w-3" />
             </Button>
           </>
+        ) : onPick ? (
+          <InlineSlotPicker placeholder={placeholder} onPick={onPick} />
         ) : (
           <div className="flex items-center w-full text-muted-foreground">
             <Dumbbell className="h-3 w-3 mr-2 opacity-50 flex-shrink-0" />
@@ -886,6 +888,7 @@ const CircuitExerciseSlot = ({
           </div>
         )}
       </div>
+      
       
       {/* Expanded training variables */}
       {isFilled && showVars && onUpdateSeries && seriesData && (
