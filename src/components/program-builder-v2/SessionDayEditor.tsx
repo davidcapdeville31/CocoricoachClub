@@ -697,6 +697,19 @@ export const SessionDayEditor = forwardRef<SessionDayEditorHandle, SessionDayEdi
     [],
   );
 
+  const handleConfigPhaseAdd = useCallback(
+    (blockId: string, phaseIndex: number, picked: { id: string; name: string }) => {
+      setConfigDrafts((p) => {
+        const cur = p[blockId];
+        if (!cur) return p;
+        const phases = { ...cur.droppedPhaseExercises };
+        phases[phaseIndex] = { exerciseId: picked.id, exerciseName: picked.name };
+        return { ...p, [blockId]: { ...cur, droppedPhaseExercises: phases } };
+      });
+    },
+    [],
+  );
+
   const handleConfigExerciseRemove = useCallback((blockId: string) => {
     setConfigDrafts((p) => {
       const cur = p[blockId];
