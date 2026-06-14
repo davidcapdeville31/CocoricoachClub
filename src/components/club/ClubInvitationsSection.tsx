@@ -26,6 +26,14 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
   const queryClient = useQueryClient();
   const resendMutation = useResendInvitation();
 
+  const getDisplayStatus = (invitation: any): "pending" | "accepted" | "expired" | "incomplete" => {
+    const effectiveStatus = getInvitationStatus(invitation.status, invitation.expires_at);
+    if (effectiveStatus === "accepted" && !invitation._isResolvedAcceptance) {
+      return "incomplete";
+    }
+    return effectiveStatus;
+  };
+
   const { data: club } = useQuery({
     queryKey: ["club-name-for-resend", clubId],
     queryFn: async () => {
@@ -37,7 +45,7 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
   const { data: invitations = [], isLoading } = useQuery({
     queryKey: ["club-invitations", clubId, "with-categories"],
     queryFn: async () => {
-      const [clubRes, catsRes] = await Promise.all([
+      const [clubRes, catsRes, clubMembersRes] = await Promise.all([
         supabase
           .from("club_invitations")
           .select("*")
@@ -45,23 +53,34 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
           .in("status", ["pending", "accepted"])
           .order("created_at", { ascending: false }),
         supabase.from("categories").select("id, name").eq("club_id", clubId),
+        supabase.from("club_members").select("user_id").eq("club_id", clubId),
       ]);
       if (clubRes.error) throw clubRes.error;
       if (catsRes.error) throw catsRes.error;
+      if (clubMembersRes.error) throw clubMembersRes.error;
 
       const categories = catsRes.data || [];
       const categoryIds = categories.map((c: any) => c.id);
       const catMap = new Map(categories.map((c: any) => [c.id, c.name]));
 
       let categoryInvitations: any[] = [];
+      let categoryMembers: any[] = [];
       if (categoryIds.length > 0) {
-        const { data: catInvs, error: catInvErr } = await supabase
-          .from("category_invitations")
-          .select("*")
-          .in("category_id", categoryIds)
-          .in("status", ["pending", "accepted"])
-          .order("created_at", { ascending: false });
+        const [{ data: catInvs, error: catInvErr }, { data: catMembers, error: catMembersErr }] = await Promise.all([
+          supabase
+            .from("category_invitations")
+            .select("*")
+            .in("category_id", categoryIds)
+            .in("status", ["pending", "accepted"])
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("category_members")
+            .select("category_id, user_id")
+            .in("category_id", categoryIds),
+        ]);
         if (catInvErr) throw catInvErr;
+        if (catMembersErr) throw catMembersErr;
+        categoryMembers = catMembers || [];
         categoryInvitations = (catInvs || []).map((inv: any) => ({
           ...inv,
           _scope: "category" as const,
@@ -69,16 +88,63 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
         }));
       }
 
+      const memberUserIds = Array.from(
+        new Set([
+          ...(clubMembersRes.data || []).map((member: any) => member.user_id),
+          ...categoryMembers.map((member: any) => member.user_id),
+        ].filter(Boolean))
+      );
+
+      let profileEmailsByUserId = new Map<string, string>();
+      if (memberUserIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, email")
+          .in("id", memberUserIds);
+
+        if (profilesError) throw profilesError;
+
+        profileEmailsByUserId = new Map(
+          (profiles || [])
+            .filter((profile: any) => profile.email)
+            .map((profile: any) => [profile.id, String(profile.email).toLowerCase()])
+        );
+      }
+
+      const activeClubEmails = new Set(
+        (clubMembersRes.data || [])
+          .map((member: any) => profileEmailsByUserId.get(member.user_id))
+          .filter(Boolean)
+      );
+
+      const activeCategoryKeys = new Set(
+        categoryMembers
+          .map((member: any) => {
+            const email = profileEmailsByUserId.get(member.user_id);
+            return email ? `${member.category_id}:${email}` : null;
+          })
+          .filter(Boolean)
+      );
+
       const clubInvitations = (clubRes.data || []).map((inv: any) => ({
         ...inv,
         _scope: "club" as const,
         _scopeLabel: "Club entier",
+        _isResolvedAcceptance:
+          inv.status === "accepted" && activeClubEmails.has((inv.email || "").toLowerCase()),
       }));
 
-      const all = [...clubInvitations, ...categoryInvitations];
+      const resolvedCategoryInvitations = categoryInvitations.map((inv: any) => ({
+        ...inv,
+        _isResolvedAcceptance:
+          inv.status === "accepted" &&
+          activeCategoryKeys.has(`${inv.category_id}:${(inv.email || "").toLowerCase()}`),
+      }));
+
+      const all = [...clubInvitations, ...resolvedCategoryInvitations];
       const acceptedKeys = new Set(
         all
-          .filter((inv: any) => inv.status === "accepted")
+          .filter((inv: any) => inv.status === "accepted" && inv._isResolvedAcceptance)
           .map((inv: any) => `${inv._scope}:${inv.category_id || ""}:${(inv.email || "").toLowerCase()}`)
       );
       return all
@@ -133,11 +199,13 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const getStatusBadge = (status: string, expiresAt?: string | null) => {
-    const effectiveStatus = getInvitationStatus(status, expiresAt);
-    switch (effectiveStatus) {
+  const getStatusBadge = (invitation: any) => {
+    const displayStatus = getDisplayStatus(invitation);
+    switch (displayStatus) {
       case "accepted":
         return <Badge variant="outline" className="text-green-600 border-green-600"><CheckCircle2 className="h-3 w-3 mr-1" />Activé</Badge>;
+      case "incomplete":
+        return <Badge variant="outline" className="text-amber-600 border-amber-600">À relancer</Badge>;
       case "expired":
         return <Badge variant="outline" className="text-destructive border-destructive">Expiré</Badge>;
       default:
@@ -175,7 +243,7 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
           </TableHeader>
           <TableBody>
             {invitations.map((invitation: any) => {
-              const effectiveStatus = getInvitationStatus(invitation.status, invitation.expires_at);
+              const displayStatus = getDisplayStatus(invitation);
               const isCategory = invitation._scope === "category";
               return (
                 <TableRow key={`${invitation._scope}-${invitation.id}`}>
@@ -189,10 +257,10 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
                   <TableCell className="text-sm text-muted-foreground">
                     {format(new Date(invitation.created_at), "dd/MM/yy HH:mm", { locale: fr })}
                   </TableCell>
-                  <TableCell>{getStatusBadge(invitation.status, invitation.expires_at)}</TableCell>
+                  <TableCell>{getStatusBadge(invitation)}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
-                      {effectiveStatus === "pending" && (
+                      {displayStatus === "pending" && (
                         <Button
                           variant="ghost"
                           size="icon"
@@ -202,7 +270,7 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
                           <Copy className="h-4 w-4" />
                         </Button>
                       )}
-                      {effectiveStatus !== "accepted" && !isCategory && (
+                      {displayStatus !== "accepted" && !isCategory && (
                         <Button
                           variant="ghost"
                           size="icon"
@@ -215,12 +283,12 @@ export function ClubInvitationsSection({ clubId }: ClubInvitationsSectionProps) 
                             invalidateKeys: [["club-invitations", clubId]],
                           })}
                           disabled={resendMutation.isPending}
-                          title={effectiveStatus === "expired" ? "Renvoyer (nouveau lien)" : "Renvoyer l'email"}
+                          title={displayStatus === "expired" || displayStatus === "incomplete" ? "Renvoyer (nouveau lien)" : "Renvoyer l'email"}
                         >
                           <RefreshCw className={`h-4 w-4 ${resendMutation.isPending ? "animate-spin" : ""}`} />
                         </Button>
                       )}
-                      {effectiveStatus !== "accepted" && (
+                      {displayStatus !== "accepted" && (
                         <Button
                           variant="ghost"
                           size="icon"
