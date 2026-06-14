@@ -8,6 +8,7 @@ import { DocumentsSection } from "@/components/category/admin/DocumentsSection";
 
 import { ReportsTab } from "@/components/category/ReportsTab";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
+import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
 
 interface AdminTabProps {
   categoryId: string;
@@ -16,6 +17,10 @@ interface AdminTabProps {
 export function AdminTab({ categoryId }: AdminTabProps) {
   return (
     <Tabs defaultValue="attendance" className="space-y-4">
+      <div className="flex justify-end">
+        <SeasonRosterFilterToggle />
+      </div>
+
       <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
         <ColoredSubTabsList colorKey="admin" className="inline-flex w-max">
           <ColoredSubTabsTrigger 

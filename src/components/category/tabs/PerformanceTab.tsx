@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
 import { usePendingWeightLogsCount } from "@/lib/hooks/usePendingWeightLogsCount";
 import { usePendingTestResultsCount } from "@/lib/hooks/usePendingTestResultsCount";
+import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
+
 
 interface PerformanceTabProps {
   categoryId: string;
@@ -45,7 +47,11 @@ export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
 
   return (
     <Tabs defaultValue="training-load" className="space-y-4">
+      <div className="flex justify-end">
+        <SeasonRosterFilterToggle />
+      </div>
       <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
+
         <ColoredSubTabsList colorKey="performance" className="inline-flex w-max">
           <ColoredSubTabsTrigger 
             value="training-load" 

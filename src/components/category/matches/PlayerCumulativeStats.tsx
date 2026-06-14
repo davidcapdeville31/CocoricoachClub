@@ -32,6 +32,9 @@ import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, a
 import { preparePdfWithSettings } from "@/lib/pdfExport";
 import { drawPdfRugbyField, drawPdfZoneStatsGrid, svgPctToPdfPos, drawPdfGoalpostArrow } from "@/lib/pdfRugbyField";
 import { drawStatEvolutionTable, drawStatLineChart, type StatEvolutionData } from "@/lib/pdfPlayerEvolution";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+
 
 interface PlayerCumulativeStatsProps {
   categoryId: string;
@@ -97,12 +100,15 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
 
   const { stats: sportStats, isLoading: loadingPrefs } = useStatPreferences({ categoryId, sportType });
   const allStatCategories = getStatCategories(sportType);
+  const { isDateInActiveSeason, activeSeasonOnly } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
   const isAthletics = (() => {
     const t = (sportType || "").toLowerCase();
     return t.includes("athl");
   })();
+
   const { data: allMatches = [] } = useQuery({
-    queryKey: ["matches-list-cumulative", categoryId, isIndividualCompetitionSport],
+    queryKey: ["matches-list-cumulative", categoryId, isIndividualCompetitionSport, activeSeasonOnly, allowedIds ? Array.from(allowedIds).sort().join(",") : "all"],
     queryFn: async () => {
       // Match IDs that have data in player_match_stats (collective sports path)
       const { data: catMatchIds } = await supabase.from("matches").select("id").eq("category_id", categoryId);
@@ -131,9 +137,12 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
         .in("id", uniqueMatchIds)
         .order("match_date", { ascending: false });
       if (error) throw error;
-      return (data || []) as MatchInfo[];
+      const all = (data || []) as MatchInfo[];
+      // Season filter: drop matches outside the active-season window when ON
+      return all.filter(m => isDateInActiveSeason(m.match_date));
     },
   });
+
 
   const activeMatchIds = useMemo(() => {
     if (selectedMatchIds.length === 0) return allMatches.map(m => m.id);
@@ -213,7 +222,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
   }, [allStatCategories, isAthletics, playerDisciplineMap]);
 
   const { data: stats, isLoading } = useQuery({
-    queryKey: ["cumulative_player_stats", categoryId, sportType, activeMatchIds, isIndividualCompetitionSport],
+    queryKey: ["cumulative_player_stats", categoryId, sportType, activeMatchIds, isIndividualCompetitionSport, allowedIds ? Array.from(allowedIds).sort().join(",") : "all"],
     queryFn: async () => {
       if (activeMatchIds.length === 0) return [];
       const { data: playerStats, error: statsError } = await supabase
@@ -337,7 +346,9 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
         });
       });
 
-      return Object.values(aggregated);
+      // Drop athletes that are not part of the active season roster (when the toggle is ON)
+      return Object.values(aggregated).filter(p => !allowedIds || allowedIds.has(p.playerId));
+
     },
     enabled: activeMatchIds.length > 0,
   });

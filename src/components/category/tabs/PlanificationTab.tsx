@@ -5,6 +5,8 @@ import { FisRankingTab } from "@/components/category/fis/FisRankingTab";
 import { AthleticsRecordsTab } from "@/components/category/athletics/AthleticsRecordsTab";
 import { getMainSportFromType, isAthletismeCategory } from "@/lib/constants/sportTypes";
 import { ColoredSubTabsList, ColoredSubTabsTrigger } from "@/components/ui/colored-subtabs";
+import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
+
 
 interface PlanificationTabProps {
   categoryId: string;
@@ -16,11 +18,22 @@ export function PlanificationTab({ categoryId, sportType }: PlanificationTabProp
   const isAthletics = sportType ? isAthletismeCategory(sportType) : false;
 
   if (!isSkiSport && !isAthletics) {
-    return <CalendarTab categoryId={categoryId} />;
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-end">
+          <SeasonRosterFilterToggle />
+        </div>
+        <CalendarTab categoryId={categoryId} />
+      </div>
+    );
   }
 
   return (
     <Tabs defaultValue="calendar" className="space-y-4">
+      <div className="flex justify-end">
+        <SeasonRosterFilterToggle />
+      </div>
+
       <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
         <ColoredSubTabsList colorKey="planification" className="inline-flex w-max">
           <ColoredSubTabsTrigger

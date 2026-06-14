@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 import { 
   DailyLoadData, 
   MetricType, 
@@ -13,6 +14,7 @@ import {
   getAvailableMetrics,
   getRiskLevel,
 } from "@/lib/trainingLoadCalculations";
+
 
 /**
  * Build EWMA chart data from DB-computed values (acute_load, chronic_load, awcr).
@@ -357,18 +359,22 @@ export function useTeamTrainingLoad({
     return rollingStr;
   };
 
-  // Fetch all players
+  // Season-filtered roster (null when filter OFF or no active season)
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+
+  // Fetch all players (intersect with season roster when the filter is ON)
   const { data: players } = useQuery({
-    queryKey: ["players-for-load", categoryId],
+    queryKey: ["players-for-load", categoryId, allowedIds ? Array.from(allowedIds).sort().join(",") : "all"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
         .select("id, name, first_name, position, discipline")
         .eq("category_id", categoryId);
       if (error) throw error;
-      return data || [];
+      return (data || []).filter((p) => !allowedIds || allowedIds.has(p.id));
     },
   });
+
 
   // Fetch all AWCR data
   const { data: allAwcrData, isLoading } = useQuery({
