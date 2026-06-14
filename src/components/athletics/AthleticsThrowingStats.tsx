@@ -69,9 +69,11 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
   const [filterImplement, setFilterImplement] = useState<string>("all");
   const [filterWeight, setFilterWeight] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { isDateInActiveSeason } = useSeasonRosterFilter();
+  const { allowedIds: seasonAllowedIds } = useSeasonFilteredPlayerIds(categoryId);
 
   // Fetch all throwing attempts
-  const { data: attempts = [] } = useQuery({
+  const { data: attemptsAll = [] } = useQuery({
     queryKey: ["throwing-attempts", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -84,6 +86,15 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
       return (data || []) as unknown as ThrowingAttempt[];
     },
   });
+  const attempts = useMemo(
+    () =>
+      attemptsAll.filter(
+        (a: any) =>
+          (!seasonAllowedIds || seasonAllowedIds.has(a.player_id)) &&
+          isDateInActiveSeason(a.session_date),
+      ),
+    [attemptsAll, seasonAllowedIds, isDateInActiveSeason],
+  );
 
   // Fetch players in this category (avec disciplines pour filtrer)
   const { data: allPlayers = [] } = useQuery({
