@@ -137,9 +137,12 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
         .in("id", uniqueMatchIds)
         .order("match_date", { ascending: false });
       if (error) throw error;
-      return (data || []) as MatchInfo[];
+      const all = (data || []) as MatchInfo[];
+      // Season filter: drop matches outside the active-season window when ON
+      return all.filter(m => isDateInActiveSeason(m.match_date));
     },
   });
+
 
   const activeMatchIds = useMemo(() => {
     if (selectedMatchIds.length === 0) return allMatches.map(m => m.id);
