@@ -17,6 +17,8 @@ import jsPDF from "jspdf";
 import { TENNIS_EXERCISE_TYPES } from "./TennisDrillTraining";
 import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, addFooter, downloadWorkbook } from "@/lib/excelExport";
 import { preparePdfWithSettings } from "@/lib/pdfExport";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface TennisTrainingStatsProps {
   categoryId: string;
