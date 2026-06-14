@@ -346,7 +346,9 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
         });
       });
 
-      return Object.values(aggregated);
+      // Drop athletes that are not part of the active season roster (when the toggle is ON)
+      return Object.values(aggregated).filter(p => !allowedIds || allowedIds.has(p.playerId));
+
     },
     enabled: activeMatchIds.length > 0,
   });
