@@ -717,19 +717,17 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
           </CardTitle>
         </CardHeader>
         <CardContent className="p-2 sm:p-4">
-          <div className={compact ? "pb-2" : "overflow-x-auto touch-pan-x overscroll-contain -mx-2 px-2 pb-2"}>
+          <div className="pb-2 w-full">
             {/* Classic scoresheet table */}
-            <table className={`${compact ? "w-full table-fixed" : "min-w-max"} border-collapse border-2 border-foreground/30`}>
+            <table className="w-full table-fixed border-collapse border-2 border-foreground/30">
               <colgroup>
-                <col style={{ width: compact ? "44px" : "56px" }} />
+                <col style={{ width: compact ? "44px" : "60px" }} />
                 {frames.map((_, frameIndex) => (
                   <col
                     key={frameIndex}
-                    style={
-                      compact
-                        ? undefined
-                        : { width: frameIndex === 9 ? "120px" : "64px" }
-                    }
+                    style={{
+                      width: frameIndex === 9 ? "16%" : "8.4%",
+                    }}
                   />
                 ))}
               </colgroup>
@@ -739,11 +737,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                   {frames.map((_, frameIndex) => (
                     <th 
                       key={frameIndex} 
-                      className={`border border-foreground/20 bg-muted px-1 py-1 text-xs font-bold text-center ${
-                        compact
-                          ? (frameIndex === 9 ? "min-w-[72px]" : "min-w-[38px]")
-                          : (frameIndex === 9 ? "min-w-[120px]" : "min-w-[64px]")
-                      }`}
+                      className="border border-foreground/20 bg-muted px-1 py-1 text-xs font-bold text-center"
                       colSpan={1}
                     >
                       {frameIndex + 1}
