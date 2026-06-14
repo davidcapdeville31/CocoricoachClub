@@ -222,7 +222,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
   }, [allStatCategories, isAthletics, playerDisciplineMap]);
 
   const { data: stats, isLoading } = useQuery({
-    queryKey: ["cumulative_player_stats", categoryId, sportType, activeMatchIds, isIndividualCompetitionSport],
+    queryKey: ["cumulative_player_stats", categoryId, sportType, activeMatchIds, isIndividualCompetitionSport, allowedIds ? Array.from(allowedIds).sort().join(",") : "all"],
     queryFn: async () => {
       if (activeMatchIds.length === 0) return [];
       const { data: playerStats, error: statsError } = await supabase
