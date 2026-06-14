@@ -21,6 +21,8 @@ import type { FrameData } from "@/components/athlete-portal/BowlingScoreSheet";
 import { BowlingOilPatternStats } from "./BowlingOilPatternStats";
 import { IdentityComparisonPanel } from "@/components/analytics/IdentityComparisonPanel";
 import { BowlingStatsComparator } from "./BowlingStatsComparator";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface BowlingCumulativeStatsProps {
   categoryId: string;
