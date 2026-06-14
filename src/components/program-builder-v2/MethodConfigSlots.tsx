@@ -176,6 +176,7 @@ interface MethodConfigSlotsProps {
   onExerciseRemove: () => void;
   droppedPhaseExercises?: Record<number, { exerciseId: string; exerciseName: string } | null>;
   onPhaseExerciseRemove?: (phaseIndex: number) => void;
+  onPhaseExerciseAdd?: (phaseIndex: number, picked: { id: string; name: string }) => void;
   // New: callback to apply exercises to all intervals (EMOM)
   onApplyToAllIntervals?: (exercises: Record<number, { exerciseId: string; exerciseName: string } | null>, seriesData: DropSetSeries[], exercisesPerInterval: number) => void;
   // New: callback to clear all phase exercises at once
