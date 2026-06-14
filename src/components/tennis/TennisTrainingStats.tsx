@@ -56,7 +56,7 @@ export function TennisTrainingStats({ categoryId }: TennisTrainingStatsProps) {
   });
 
   // Fetch training matches and their stats
-  const { data: matchData, isLoading: loadingMatches } = useQuery({
+  const { data: matchDataRaw, isLoading: loadingMatches } = useQuery({
     queryKey: ["tennis_training_stats", categoryId, "matches"],
     queryFn: async () => {
       const { data: matches } = await supabase
