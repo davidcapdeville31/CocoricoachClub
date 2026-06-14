@@ -59,6 +59,8 @@ import {
   type AthleticsRecordLite,
 } from "@/lib/athletics/pbDelta";
 import { practicesAny, type AthleticsGroup } from "@/lib/athletics/athleteDisciplines";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface Props {
   categoryId: string;
