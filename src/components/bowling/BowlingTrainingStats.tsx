@@ -61,8 +61,11 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
   const [filterByOilType, setFilterByOilType] = useState<OilCategoryType | null>(null);
   const [selectedTrainingMatchIds, setSelectedTrainingMatchIds] = useState<Set<string> | null>(null);
 
+  const { isDateInActiveSeason } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+
   // Fetch training data
-  const { data: trainingData, isLoading } = useQuery({
+  const { data: trainingDataRaw, isLoading } = useQuery({
     queryKey: ["bowling_training_stats", categoryId, playerId || "all"],
     queryFn: async () => {
       const { data: matches } = await supabase
