@@ -17,6 +17,8 @@ import jsPDF from "jspdf";
 import { TENNIS_EXERCISE_TYPES } from "./TennisDrillTraining";
 import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, addFooter, downloadWorkbook } from "@/lib/excelExport";
 import { preparePdfWithSettings } from "@/lib/pdfExport";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface TennisTrainingStatsProps {
   categoryId: string;
@@ -36,9 +38,11 @@ export function TennisTrainingStats({ categoryId }: TennisTrainingStatsProps) {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>("all");
+  const { isDateInActiveSeason } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
 
   // Fetch drill training data
-  const { data: drillData, isLoading: loadingDrills } = useQuery({
+  const { data: drillDataRaw, isLoading: loadingDrills } = useQuery({
     queryKey: ["tennis_training_stats", categoryId, "drills"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -52,7 +56,7 @@ export function TennisTrainingStats({ categoryId }: TennisTrainingStatsProps) {
   });
 
   // Fetch training matches and their stats
-  const { data: matchData, isLoading: loadingMatches } = useQuery({
+  const { data: matchDataRaw, isLoading: loadingMatches } = useQuery({
     queryKey: ["tennis_training_stats", categoryId, "matches"],
     queryFn: async () => {
       const { data: matches } = await supabase
@@ -87,6 +91,23 @@ export function TennisTrainingStats({ categoryId }: TennisTrainingStatsProps) {
       return result;
     },
   });
+
+  const drillData = useMemo(
+    () =>
+      (drillDataRaw || []).filter(
+        (d: any) =>
+          (!allowedIds || allowedIds.has(d.player_id)) && isDateInActiveSeason(d.session_date),
+      ),
+    [drillDataRaw, allowedIds, isDateInActiveSeason],
+  );
+  const matchData = useMemo(
+    () =>
+      (matchDataRaw || []).filter(
+        (d) =>
+          (!allowedIds || allowedIds.has(d.playerId)) && isDateInActiveSeason(d.matchDate),
+      ),
+    [matchDataRaw, allowedIds, isDateInActiveSeason],
+  );
 
   // All players from both sources
   const players = useMemo(() => {

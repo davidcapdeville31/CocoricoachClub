@@ -59,6 +59,8 @@ import {
   type AthleticsRecordLite,
 } from "@/lib/athletics/pbDelta";
 import { practicesAny, type AthleticsGroup } from "@/lib/athletics/athleteDisciplines";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface Props {
   categoryId: string;
@@ -111,8 +113,10 @@ export function AthleticsSprintStats({ categoryId, groups = ["sprints", "haies",
   const [filterDistance, setFilterDistance] = useState<string>("all");
   const [filterLoad, setFilterLoad] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { isDateInActiveSeason } = useSeasonRosterFilter();
+  const { allowedIds: seasonAllowedIds } = useSeasonFilteredPlayerIds(categoryId);
 
-  const { data: attempts = [] } = useQuery({
+  const { data: attemptsAll = [] } = useQuery({
     queryKey: ["sprint-attempts", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -125,6 +129,15 @@ export function AthleticsSprintStats({ categoryId, groups = ["sprints", "haies",
       return (data || []) as unknown as SprintAttempt[];
     },
   });
+  const attempts = useMemo(
+    () =>
+      attemptsAll.filter(
+        (a: any) =>
+          (!seasonAllowedIds || seasonAllowedIds.has(a.player_id)) &&
+          isDateInActiveSeason(a.session_date),
+      ),
+    [attemptsAll, seasonAllowedIds, isDateInActiveSeason],
+  );
 
   const { data: allPlayers = [] } = useQuery({
     queryKey: ["category-players-sprint", categoryId],
@@ -141,12 +154,15 @@ export function AthleticsSprintStats({ categoryId, groups = ["sprints", "haies",
 
   // Ne garder que les athlètes qui pratiquent une des familles ciblées
   const players = useMemo(
-    () => (allPlayers as any[]).filter((p) => practicesAny(p, groups)),
-    [allPlayers, groups],
+    () =>
+      (allPlayers as any[])
+        .filter((p) => practicesAny(p, groups))
+        .filter((p) => !seasonAllowedIds || seasonAllowedIds.has(p.id)),
+    [allPlayers, groups, seasonAllowedIds],
   );
   const allowedPlayerIds = useMemo(() => new Set(players.map((p: any) => p.id)), [players]);
 
-  const { data: sprintBlocks = [] } = useQuery({
+  const { data: sprintBlocksAll = [] } = useQuery({
     queryKey: ["sprint-blocks", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -177,6 +193,13 @@ export function AthleticsSprintStats({ categoryId, groups = ["sprints", "haies",
       return data || [];
     },
   });
+  const sprintBlocks = useMemo(
+    () =>
+      (sprintBlocksAll as any[]).filter((b) =>
+        isDateInActiveSeason(b.training_sessions?.session_date),
+      ),
+    [sprintBlocksAll, isDateInActiveSeason],
+  );
 
   // Records personnels (PB) pour comparer les essais à la perf de référence
   const { data: records = [] } = useQuery({

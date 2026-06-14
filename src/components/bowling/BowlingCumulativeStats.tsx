@@ -21,6 +21,8 @@ import type { FrameData } from "@/components/athlete-portal/BowlingScoreSheet";
 import { BowlingOilPatternStats } from "./BowlingOilPatternStats";
 import { IdentityComparisonPanel } from "@/components/analytics/IdentityComparisonPanel";
 import { BowlingStatsComparator } from "./BowlingStatsComparator";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface BowlingCumulativeStatsProps {
   categoryId: string;
@@ -81,8 +83,10 @@ function ColoredStatRow({ label, value, statType, percentage }: { label: string;
 export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: BowlingCumulativeStatsProps) {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("overview");
+  const { isDateInActiveSeason } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
 
-  const { data: allGames, isLoading } = useQuery({
+  const { data: allGamesRaw, isLoading } = useQuery({
     queryKey: ["bowling_cumulative_stats", categoryId],
     queryFn: async () => {
       const { data: matches, error: matchError } = await supabase
@@ -149,6 +153,15 @@ export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: 
       return games;
     },
   });
+
+  const allGames = useMemo(() => {
+    if (!allGamesRaw) return allGamesRaw;
+    return allGamesRaw.filter(
+      (g) =>
+        (!allowedIds || allowedIds.has(g.playerId)) &&
+        isDateInActiveSeason(g.matchDate || (g as any).roundDate),
+    );
+  }, [allGamesRaw, allowedIds, isDateInActiveSeason]);
 
   const players = useMemo(() => {
     if (!allGames) return [];

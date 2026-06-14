@@ -25,6 +25,8 @@ import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Resp
 import { getOilCategory, type OilCategoryType } from "@/lib/constants/bowlingOilPatterns";
 import type { FrameData } from "@/components/athlete-portal/BowlingScoreSheet";
 import { BowlingSpecificStatsTabs } from "./stats/BowlingSpecificStatsTabs";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 const OIL_CATEGORY_BADGES: Record<OilCategoryType, { label: string; className: string }> = {
   sport: { label: "🔴 Sportif", className: "bg-red-500/15 text-red-600 border-red-500 dark:bg-red-500/20 dark:text-red-400" },
@@ -59,8 +61,11 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
   const [filterByOilType, setFilterByOilType] = useState<OilCategoryType | null>(null);
   const [selectedTrainingMatchIds, setSelectedTrainingMatchIds] = useState<Set<string> | null>(null);
 
+  const { isDateInActiveSeason } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+
   // Fetch training data
-  const { data: trainingData, isLoading } = useQuery({
+  const { data: trainingDataRaw, isLoading } = useQuery({
     queryKey: ["bowling_training_stats", categoryId, playerId || "all"],
     queryFn: async () => {
       const { data: matches } = await supabase
@@ -138,8 +143,23 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     },
   });
 
+  const trainingData = useMemo(() => {
+    if (!trainingDataRaw) return trainingDataRaw;
+    return {
+      games: trainingDataRaw.games.filter(
+        (g: any) =>
+          (!allowedIds || allowedIds.has(g.playerId)) && isDateInActiveSeason(g.matchDate),
+      ),
+      spareExercises: trainingDataRaw.spareExercises.filter(
+        (s: any) =>
+          (!allowedIds || allowedIds.has(s.player_id)) && isDateInActiveSeason(s.session_date),
+      ),
+    };
+  }, [trainingDataRaw, allowedIds, isDateInActiveSeason]);
+
+
   // Fetch new system training blocks (used for "Stats Globales" and to filter obsolete spare data)
-  const { data: trainingBlocks = [] } = useQuery({
+  const { data: trainingBlocksRaw = [] } = useQuery({
     queryKey: ["bowling_training_blocks_stats", categoryId, playerId || "all"],
     queryFn: async () => {
       let q = supabase
@@ -156,8 +176,18 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     },
   });
 
+  const trainingBlocks = useMemo(
+    () =>
+      trainingBlocksRaw.filter(
+        (b) =>
+          (!allowedIds || (b.athlete_id ? allowedIds.has(b.athlete_id) : false)) &&
+          isDateInActiveSeason(b.session_date),
+      ),
+    [trainingBlocksRaw, allowedIds, isDateInActiveSeason],
+  );
+
   // Fetch mental preparation sessions for this category (and player if scoped)
-  const { data: mentalSessions = [] } = useQuery({
+  const { data: mentalSessionsRaw = [] } = useQuery({
     queryKey: ["mental_sessions_stats", categoryId, playerId || "all"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -192,6 +222,18 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       }));
     },
   });
+
+  const mentalSessions = useMemo(
+    () =>
+      mentalSessionsRaw
+        .filter((s) => isDateInActiveSeason(s.session_date))
+        .map((s) =>
+          allowedIds
+            ? { ...s, player_ids: s.player_ids.filter((pid) => allowedIds.has(pid)) }
+            : s,
+        ),
+    [mentalSessionsRaw, allowedIds, isDateInActiveSeason],
+  );
 
 
 

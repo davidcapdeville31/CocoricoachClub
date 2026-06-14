@@ -32,6 +32,8 @@ import {
 import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, addFooter, downloadWorkbook } from "@/lib/excelExport";
 import { preparePdfWithSettings, drawPdfHeader as drawPdfHeaderCustom, type PdfCustomSettings } from "@/lib/pdfExport";
 import { drawPdfRugbyField, drawPdfFieldLegend, drawPdfZoneStatsGrid } from "@/lib/pdfRugbyField";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface PrecisionTrainingStatsProps {
   categoryId: string;
@@ -46,7 +48,10 @@ export function PrecisionTrainingStats({ categoryId, lockedPlayerId }: Precision
   const [selectedExercise, setSelectedExercise] = useState<string>("all");
   const [exportPlayerId, setExportPlayerId] = useState<string>("");
 
-  const { data: rawData, isLoading } = useQuery({
+  const { isDateInActiveSeason } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+
+  const { data: rawDataAll, isLoading } = useQuery({
     queryKey: ["precision-training-stats", categoryId, lockedPlayerId || "all"],
     queryFn: async () => {
       let query = supabase
@@ -60,6 +65,15 @@ export function PrecisionTrainingStats({ categoryId, lockedPlayerId }: Precision
       return data || [];
     },
   });
+
+  const rawData = useMemo(
+    () =>
+      (rawDataAll || []).filter(
+        (r: any) =>
+          (!allowedIds || allowedIds.has(r.player_id)) && isDateInActiveSeason(r.session_date),
+      ),
+    [rawDataAll, allowedIds, isDateInActiveSeason],
+  );
 
   const filtered = useMemo(() => {
     if (!rawData) return [];

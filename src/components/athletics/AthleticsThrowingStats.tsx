@@ -32,6 +32,8 @@ import {
   Bar,
 } from "recharts";
 import { cn } from "@/lib/utils";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 import { computeFieldPbDelta, findPb, type AthleticsRecordLite } from "@/lib/athletics/pbDelta";
 import { practicesAny } from "@/lib/athletics/athleteDisciplines";
 
@@ -67,9 +69,11 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
   const [filterImplement, setFilterImplement] = useState<string>("all");
   const [filterWeight, setFilterWeight] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { isDateInActiveSeason } = useSeasonRosterFilter();
+  const { allowedIds: seasonAllowedIds } = useSeasonFilteredPlayerIds(categoryId);
 
   // Fetch all throwing attempts
-  const { data: attempts = [] } = useQuery({
+  const { data: attemptsAll = [] } = useQuery({
     queryKey: ["throwing-attempts", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -82,6 +86,15 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
       return (data || []) as unknown as ThrowingAttempt[];
     },
   });
+  const attempts = useMemo(
+    () =>
+      attemptsAll.filter(
+        (a: any) =>
+          (!seasonAllowedIds || seasonAllowedIds.has(a.player_id)) &&
+          isDateInActiveSeason(a.session_date),
+      ),
+    [attemptsAll, seasonAllowedIds, isDateInActiveSeason],
+  );
 
   // Fetch players in this category (avec disciplines pour filtrer)
   const { data: allPlayers = [] } = useQuery({
@@ -97,13 +110,16 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
     },
   });
   const players = useMemo(
-    () => (allPlayers as any[]).filter((p) => practicesAny(p, ["lancers"])),
-    [allPlayers],
+    () =>
+      (allPlayers as any[])
+        .filter((p) => practicesAny(p, ["lancers"]))
+        .filter((p) => !seasonAllowedIds || seasonAllowedIds.has(p.id)),
+    [allPlayers, seasonAllowedIds],
   );
   const allowedPlayerIds = useMemo(() => new Set(players.map((p: any) => p.id)), [players]);
 
   // Fetch throwing-related blocks (sessions with implement set)
-  const { data: throwingBlocks = [] } = useQuery({
+  const { data: throwingBlocksAll = [] } = useQuery({
     queryKey: ["throwing-blocks", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -118,6 +134,13 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
       return data || [];
     },
   });
+  const throwingBlocks = useMemo(
+    () =>
+      (throwingBlocksAll as any[]).filter((b) =>
+        isDateInActiveSeason(b.training_sessions?.session_date),
+      ),
+    [throwingBlocksAll, isDateInActiveSeason],
+  );
 
   const { data: records = [] } = useQuery({
     queryKey: ["athletics_records_for_throwing", categoryId],

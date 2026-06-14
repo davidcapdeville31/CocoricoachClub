@@ -35,6 +35,7 @@ import {
 } from "@/components/basketball/BasketballHalfCourtSVG";
 import { PrecisionTrainingStats } from "@/components/training/PrecisionTrainingStats";
 import { useViewerModeContext } from "@/contexts/ViewerModeContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface Props {
   categoryId: string;
@@ -70,7 +71,8 @@ export function BasketballPrecisionTracker({
 
   const exercise = getBasketballExerciseByValue(exerciseValue)!;
 
-  const { data: players = [] } = useQuery({
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const { data: playersAll = [] } = useQuery({
     queryKey: ["basket-precision-players", categoryId],
     queryFn: async () => {
       const { data } = await supabase
@@ -82,6 +84,10 @@ export function BasketballPrecisionTracker({
     },
     enabled: !lockedPlayerId,
   });
+  const players = useMemo(
+    () => (allowedIds ? playersAll.filter((p: any) => allowedIds.has(p.id)) : playersAll),
+    [playersAll, allowedIds],
+  );
 
   // Today's entries for the selected exercise
   const { data: todayEntries = [] } = useQuery({

@@ -19,6 +19,8 @@ import { RUGBY_PRECISION_EXERCISES, EXERCISE_CATEGORIES, BUTEUR_EXERCISES, ZONE_
 import { cn } from "@/lib/utils";
 import { LineoutFieldSVG, aggregateLineoutStats, type LineoutZone } from "@/components/rugby/LineoutFieldSVG";
 import { PrecisionTrainingStats } from "@/components/training/PrecisionTrainingStats";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface PrecisionFieldTrackerProps {
   categoryId: string;
@@ -54,7 +56,10 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
   const currentMode: RugbyPrecisionExerciseMode = currentExercise?.mode || "kicking";
   const currentCategory = EXERCISE_CATEGORIES.find(c => c.exercises.some(e => e.value === exerciseType));
 
-  const { data: players = [] } = useQuery({
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const { isDateInActiveSeason } = useSeasonRosterFilter();
+
+  const { data: playersAll = [] } = useQuery({
     queryKey: ["players-precision-field", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -66,6 +71,10 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
       return data || [];
     },
   });
+  const players = useMemo(
+    () => (allowedIds ? playersAll.filter((p: any) => allowedIds.has(p.id)) : playersAll),
+    [playersAll, allowedIds],
+  );
 
   // Check if there are active training sessions today (fallback when no sessionId prop)
   const { data: todaySessions = [] } = useQuery({
@@ -87,7 +96,7 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
   const activeSessionId = propSessionId || (todaySessions.length > 0 ? todaySessions[0].id : null);
   const activeSessionDate = propSessionDate || (todaySessions.length > 0 ? todaySessions[0].session_date : format(new Date(), "yyyy-MM-dd"));
 
-  const { data: entries = [] } = useQuery({
+  const { data: entriesAll = [] } = useQuery({
     queryKey: ["precision-field-entries", categoryId, selectedPlayerId, exerciseType],
     queryFn: async () => {
       let query = supabase
@@ -101,6 +110,14 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
       return data || [];
     },
   });
+  const entries = useMemo(
+    () =>
+      (entriesAll as any[]).filter(
+        (e) =>
+          (!allowedIds || allowedIds.has(e.player_id)) && isDateInActiveSeason(e.session_date),
+      ),
+    [entriesAll, allowedIds, isDateInActiveSeason],
+  );
 
   // Buteur kick direct save
   const saveButeurKick = async (success: boolean) => {
