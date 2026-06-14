@@ -57,6 +57,54 @@ async function waitForAuthenticatedUser(timeoutMs = 4000, intervalMs = 150): Pro
   return null;
 }
 
+async function signUpFromInvitation(params: {
+  email: string;
+  password: string;
+  fullName: string;
+  phone?: string;
+  redirectUrl: string;
+}) {
+  const inviteMatch = params.redirectUrl.match(/^\/accept-invitation\?token=([^&]+)(&type=(club|category))?$/);
+
+  if (!inviteMatch) {
+    return { success: false, handled: false as const, error: null as string | null };
+  }
+
+  const token = inviteMatch[1];
+  const kind = inviteMatch[3] === "category" ? "category" : "club";
+
+  const { data, error } = await supabase.functions.invoke("accept-invitation-signup", {
+    body: {
+      token,
+      kind,
+      email: params.email,
+      password: params.password,
+      full_name: params.fullName,
+      phone: params.phone || null,
+    },
+  });
+
+  if (error) {
+    return {
+      success: false,
+      handled: true as const,
+      error: error.message || "Erreur lors de la création du compte d'invitation",
+    };
+  }
+
+  const result = data as { success?: boolean; error?: string } | null;
+
+  if (!result?.success) {
+    return {
+      success: false,
+      handled: true as const,
+      error: result?.error || "Erreur lors de la création du compte d'invitation",
+    };
+  }
+
+  return { success: true, handled: true as const, error: null as string | null };
+}
+
 export default function Auth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -248,17 +296,62 @@ export default function Auth() {
         phone: signupPhone,
       });
 
-      const { error } = await supabase.auth.signUp({
-        email: validated.email,
-        password: validated.password,
-        options: {
-          emailRedirectTo: `${getAppBaseUrl()}/`,
-          data: {
-            full_name: validated.fullName,
-            phone: validated.phone || undefined,
+      let error: { message: string } | null = null;
+
+      if (redirectUrl) {
+        const invitationSignup = await signUpFromInvitation({
+          email: validated.email,
+          password: validated.password,
+          fullName: validated.fullName,
+          phone: validated.phone,
+          redirectUrl,
+        });
+
+        if (invitationSignup.handled) {
+          if (!invitationSignup.success) {
+            toast.error(invitationSignup.error || "Erreur lors de l'inscription");
+            return;
+          }
+
+          const signInResult = await supabase.auth.signInWithPassword({
+            email: validated.email,
+            password: validated.password,
+          });
+
+          if (signInResult.error) {
+            toast.error(signInResult.error.message || "Compte créé, mais connexion impossible");
+            return;
+          }
+        } else {
+          const signUpResult = await supabase.auth.signUp({
+            email: validated.email,
+            password: validated.password,
+            options: {
+              emailRedirectTo: `${getAppBaseUrl()}/`,
+              data: {
+                full_name: validated.fullName,
+                phone: validated.phone || undefined,
+              },
+            },
+          });
+
+          error = signUpResult.error;
+        }
+      } else {
+        const signUpResult = await supabase.auth.signUp({
+          email: validated.email,
+          password: validated.password,
+          options: {
+            emailRedirectTo: `${getAppBaseUrl()}/`,
+            data: {
+              full_name: validated.fullName,
+              phone: validated.phone || undefined,
+            },
           },
-        },
-      });
+        });
+
+        error = signUpResult.error;
+      }
 
       if (error) {
         if (error.message.includes("User already registered")) {
