@@ -572,6 +572,25 @@ export function AthleteBowlingCompetitionDialog({
                       )}
                     </CardHeader>
                     <CardContent className="space-y-4">
+                      {pattern.image_url && (
+                        <div className="space-y-2">
+                          <Label>Image du huilage</Label>
+                          <a
+                            href={pattern.image_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block"
+                            style={{ maxWidth: "220px" }}
+                          >
+                            <img
+                              src={pattern.image_url}
+                              alt="Oil pattern"
+                              className="w-full rounded-lg border cursor-zoom-in hover:opacity-90"
+                              style={{ aspectRatio: "4/5", objectFit: "cover" }}
+                            />
+                          </a>
+                        </div>
+                      )}
                       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                         <div className="space-y-2 xl:col-span-2">
                           <Label>Preset</Label>
