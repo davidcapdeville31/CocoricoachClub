@@ -83,8 +83,10 @@ function ColoredStatRow({ label, value, statType, percentage }: { label: string;
 export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: BowlingCumulativeStatsProps) {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("overview");
+  const { isDateInActiveSeason } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
 
-  const { data: allGames, isLoading } = useQuery({
+  const { data: allGamesRaw, isLoading } = useQuery({
     queryKey: ["bowling_cumulative_stats", categoryId],
     queryFn: async () => {
       const { data: matches, error: matchError } = await supabase
