@@ -758,7 +758,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                     return (
                       <td 
                         key={frameIndex} 
-                        className="border border-foreground/20 p-0 relative h-16"
+                        className="border border-foreground/20 p-0 relative h-12"
                       >
                         {/* Throw boxes at top */}
                         <div className={`absolute top-0 right-0 flex ${isTenth ? "" : ""}`}>
