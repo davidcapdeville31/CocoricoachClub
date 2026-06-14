@@ -108,7 +108,7 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
   })();
 
   const { data: allMatches = [] } = useQuery({
-    queryKey: ["matches-list-cumulative", categoryId, isIndividualCompetitionSport],
+    queryKey: ["matches-list-cumulative", categoryId, isIndividualCompetitionSport, activeSeasonOnly, allowedIds ? Array.from(allowedIds).sort().join(",") : "all"],
     queryFn: async () => {
       // Match IDs that have data in player_match_stats (collective sports path)
       const { data: catMatchIds } = await supabase.from("matches").select("id").eq("category_id", categoryId);
