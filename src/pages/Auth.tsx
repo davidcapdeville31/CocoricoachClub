@@ -296,7 +296,7 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-2">
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue={initialTab} className="w-full">
             {/* Inscription publique désactivée : comptes créés sur devis personnalisé. */}
             <TabsList className="hidden">
               <TabsTrigger value="login">Connexion</TabsTrigger>
