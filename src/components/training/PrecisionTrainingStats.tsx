@@ -32,6 +32,8 @@ import {
 import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, addFooter, downloadWorkbook } from "@/lib/excelExport";
 import { preparePdfWithSettings, drawPdfHeader as drawPdfHeaderCustom, type PdfCustomSettings } from "@/lib/pdfExport";
 import { drawPdfRugbyField, drawPdfFieldLegend, drawPdfZoneStatsGrid } from "@/lib/pdfRugbyField";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface PrecisionTrainingStatsProps {
   categoryId: string;
