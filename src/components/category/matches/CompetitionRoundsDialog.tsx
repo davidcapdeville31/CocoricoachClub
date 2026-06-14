@@ -976,6 +976,9 @@ export function CompetitionRoundsDialog({
 
   const hasLineup = lineup && lineup.length > 0;
   const selectedPlayer = playerRoundsData.find(p => p.entryKey === selectedPlayerId);
+  const selectedPlayer2 = isBowling && selectedPlayerId2 && selectedPlayerId2 !== selectedPlayerId
+    ? playerRoundsData.find(p => p.entryKey === selectedPlayerId2)
+    : undefined;
 
   // Calculate aggregated stats for a player
   const calculateAggregatedStats = (rounds: Round[]) => {
