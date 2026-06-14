@@ -32,6 +32,8 @@ import {
   Bar,
 } from "recharts";
 import { cn } from "@/lib/utils";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 import { computeFieldPbDelta, findPb, type AthleticsRecordLite } from "@/lib/athletics/pbDelta";
 import { practicesAny } from "@/lib/athletics/athleteDisciplines";
 
