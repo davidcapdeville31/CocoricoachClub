@@ -17,6 +17,7 @@ import { PlayerStatsTab } from "./tabs/PlayerStatsTab";
 import { CompareTab } from "./tabs/CompareTab";
 import { exportAggregatedTeamSportPdf, exportAggregatedTeamSportExcel } from "@/lib/teamSports/teamSportsEventExport";
 import { toast } from "sonner";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 
 interface Props {
   categoryId: string;
@@ -25,13 +26,17 @@ interface Props {
 
 export function TeamSportsAnalytics({ categoryId, sportType }: Props) {
   const { data: matches = [], isLoading } = useCategoryMatches(categoryId);
+  const { isDateInActiveSeason } = useSeasonRosterFilter();
   const [activeTab, setActiveTab] = useState("general");
   const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
   const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | null>(null);
   const [exportingAggregate, setExportingAggregate] = useState<"pdf" | "excel" | null>(null);
   const { data: ourTeamName = "Notre équipe" } = useCategoryTeamName(categoryId);
 
-  const playable = useMemo(() => matches.filter(m => m.event_type !== "individual"), [matches]);
+  const playable = useMemo(
+    () => matches.filter(m => m.event_type !== "individual" && isDateInActiveSeason(m.match_date)),
+    [matches, isDateInActiveSeason],
+  );
 
   // Initialise la sélection multi-matchs quand la liste arrive
   useEffect(() => {
