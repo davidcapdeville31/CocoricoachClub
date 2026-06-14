@@ -56,6 +56,7 @@ interface BowlingScoreSheetProps {
   categoryId?: string;
   readOnly?: boolean;
   trackPockets?: boolean;
+  compact?: boolean;
 }
 
 const createEmptyFrame = (): FrameData => ({
@@ -73,7 +74,7 @@ const createEmptyThrow = (): ThrowData => ({
   isSinglePinConverted: false,
 });
 
-export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, categoryId, readOnly, trackPockets = true }: BowlingScoreSheetProps) {
+export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, categoryId, readOnly, trackPockets = true, compact = false }: BowlingScoreSheetProps) {
   const [frames, setFrames] = useState<FrameData[]>(() => 
     initialFrames || Array.from({ length: 10 }, () => createEmptyFrame())
   );
