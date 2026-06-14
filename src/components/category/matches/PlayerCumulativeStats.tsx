@@ -100,10 +100,13 @@ export function PlayerCumulativeStats({ categoryId, sportType = "XV", playerId: 
 
   const { stats: sportStats, isLoading: loadingPrefs } = useStatPreferences({ categoryId, sportType });
   const allStatCategories = getStatCategories(sportType);
+  const { isDateInActiveSeason, activeSeasonOnly } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
   const isAthletics = (() => {
     const t = (sportType || "").toLowerCase();
     return t.includes("athl");
   })();
+
   const { data: allMatches = [] } = useQuery({
     queryKey: ["matches-list-cumulative", categoryId, isIndividualCompetitionSport],
     queryFn: async () => {
