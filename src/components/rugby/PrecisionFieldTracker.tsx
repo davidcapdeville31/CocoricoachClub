@@ -19,6 +19,8 @@ import { RUGBY_PRECISION_EXERCISES, EXERCISE_CATEGORIES, BUTEUR_EXERCISES, ZONE_
 import { cn } from "@/lib/utils";
 import { LineoutFieldSVG, aggregateLineoutStats, type LineoutZone } from "@/components/rugby/LineoutFieldSVG";
 import { PrecisionTrainingStats } from "@/components/training/PrecisionTrainingStats";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface PrecisionFieldTrackerProps {
   categoryId: string;
