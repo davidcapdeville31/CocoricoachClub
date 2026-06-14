@@ -154,6 +154,15 @@ export function BowlingCumulativeStats({ categoryId, playerId: fixedPlayerId }: 
     },
   });
 
+  const allGames = useMemo(() => {
+    if (!allGamesRaw) return allGamesRaw;
+    return allGamesRaw.filter(
+      (g) =>
+        (!allowedIds || allowedIds.has(g.playerId)) &&
+        isDateInActiveSeason(g.matchDate || (g as any).roundDate),
+    );
+  }, [allGamesRaw, allowedIds, isDateInActiveSeason]);
+
   const players = useMemo(() => {
     if (!allGames) return [];
     const map = new Map<string, string>();
