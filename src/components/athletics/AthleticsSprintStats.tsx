@@ -193,6 +193,13 @@ export function AthleticsSprintStats({ categoryId, groups = ["sprints", "haies",
       return data || [];
     },
   });
+  const sprintBlocks = useMemo(
+    () =>
+      (sprintBlocksAll as any[]).filter((b) =>
+        isDateInActiveSeason(b.training_sessions?.session_date),
+      ),
+    [sprintBlocksAll, isDateInActiveSeason],
+  );
 
   // Records personnels (PB) pour comparer les essais à la perf de référence
   const { data: records = [] } = useQuery({
