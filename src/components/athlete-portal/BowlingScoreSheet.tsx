@@ -717,17 +717,19 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
           </CardTitle>
         </CardHeader>
         <CardContent className="p-2 sm:p-4">
-          <div className="overflow-x-auto touch-pan-x overscroll-contain -mx-2 px-2 pb-2">
+          <div className={compact ? "pb-2" : "overflow-x-auto touch-pan-x overscroll-contain -mx-2 px-2 pb-2"}>
             {/* Classic scoresheet table */}
-            <table className="min-w-max border-collapse border-2 border-foreground/30">
+            <table className={`${compact ? "w-full table-fixed" : "min-w-max"} border-collapse border-2 border-foreground/30`}>
               <thead>
                 <tr>
-                  <th className="border border-foreground/20 bg-muted px-2 py-1 text-xs font-medium w-8"></th>
+                  <th className={`border border-foreground/20 bg-muted px-1 py-1 text-xs font-medium ${compact ? "w-6" : "w-8"}`}></th>
                   {frames.map((_, frameIndex) => (
                     <th 
                       key={frameIndex} 
                       className={`border border-foreground/20 bg-muted px-1 py-1 text-xs font-bold text-center ${
-                        frameIndex === 9 ? "min-w-[112px]" : "min-w-[60px]"
+                        compact
+                          ? (frameIndex === 9 ? "min-w-[72px]" : "min-w-[38px]")
+                          : (frameIndex === 9 ? "min-w-[112px]" : "min-w-[60px]")
                       }`}
                       colSpan={1}
                     >
@@ -760,11 +762,9 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                             
                             // For regular frames, first throw takes more space, second is in corner
                             const isFirstThrow = throwIndex === 0;
-                            const boxSize = isTenth 
-                              ? "w-[36px] h-[34px]" 
-                              : isFirstThrow 
-                                ? "w-[30px] h-[28px]" 
-                                : "w-[28px] h-[28px]";
+                            const boxSize = compact
+                              ? (isTenth ? "w-[24px] h-[28px]" : isFirstThrow ? "w-[20px] h-[24px]" : "w-[18px] h-[24px]")
+                              : (isTenth ? "w-[36px] h-[34px]" : isFirstThrow ? "w-[30px] h-[28px]" : "w-[28px] h-[28px]");
                             
                             return (
                               <div 
