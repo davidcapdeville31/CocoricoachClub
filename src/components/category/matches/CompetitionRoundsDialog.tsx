@@ -1688,31 +1688,70 @@ export function CompetitionRoundsDialog({
           </div>
         ) : (
           <div className="space-y-2 flex-shrink-0">
-            <Label className="text-sm font-medium">Sélectionner un athlète</Label>
-            <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choisir un athlète..." />
-              </SelectTrigger>
-              <SelectContent className="z-[200]">
-                {playerRoundsData.map((player) => (
-                  <SelectItem 
-                    key={player.entryKey} 
-                    value={player.entryKey}
-                    textValue={`${player.playerName}${player.specialty ? ` ${player.specialty}` : player.discipline ? ` ${player.discipline}` : ""}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span>{player.playerName}</span>
-                      {isAviron && player.boat_type && (
-                        <Badge variant="outline" className="text-xs">{player.boat_type}</Badge>
-                      )}
-                      <Badge variant="secondary" className="text-xs">
-                        {player.rounds.length} {player.rounds.length === 1 ? roundLabel.toLowerCase() : roundLabelPlural.toLowerCase()}
-                      </Badge>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label className="text-sm font-medium">
+              {isBowling ? "Sélectionner 1 ou 2 athlètes (saisie simultanée)" : "Sélectionner un athlète"}
+            </Label>
+            <div className={isBowling ? "grid grid-cols-1 md:grid-cols-2 gap-2" : ""}>
+              <Select value={selectedPlayerId} onValueChange={(v) => {
+                setSelectedPlayerId(v);
+                if (v === selectedPlayerId2) setSelectedPlayerId2("");
+              }}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choisir un athlète..." />
+                </SelectTrigger>
+                <SelectContent className="z-[200]">
+                  {playerRoundsData.map((player) => (
+                    <SelectItem
+                      key={player.entryKey}
+                      value={player.entryKey}
+                      textValue={`${player.playerName}${player.specialty ? ` ${player.specialty}` : player.discipline ? ` ${player.discipline}` : ""}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>{player.playerName}</span>
+                        {isAviron && player.boat_type && (
+                          <Badge variant="outline" className="text-xs">{player.boat_type}</Badge>
+                        )}
+                        <Badge variant="secondary" className="text-xs">
+                          {player.rounds.length} {player.rounds.length === 1 ? roundLabel.toLowerCase() : roundLabelPlural.toLowerCase()}
+                        </Badge>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {isBowling && (
+                <Select
+                  value={selectedPlayerId2 || "__none__"}
+                  onValueChange={(v) => setSelectedPlayerId2(v === "__none__" ? "" : v)}
+                  disabled={!selectedPlayerId}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="2e athlète (optionnel)..." />
+                  </SelectTrigger>
+                  <SelectContent className="z-[200]">
+                    <SelectItem value="__none__">
+                      <span className="text-muted-foreground">Aucun (1 athlète)</span>
+                    </SelectItem>
+                    {playerRoundsData
+                      .filter((p) => p.entryKey !== selectedPlayerId)
+                      .map((player) => (
+                        <SelectItem
+                          key={player.entryKey}
+                          value={player.entryKey}
+                          textValue={player.playerName}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span>{player.playerName}</span>
+                            <Badge variant="secondary" className="text-xs">
+                              {player.rounds.length} {player.rounds.length === 1 ? roundLabel.toLowerCase() : roundLabelPlural.toLowerCase()}
+                            </Badge>
+                          </div>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
           </div>
         )}
 
