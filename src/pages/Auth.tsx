@@ -412,7 +412,7 @@ export default function Auth() {
         {forgotStep === "hidden" && (
           <div className="rounded-2xl bg-primary text-primary-foreground p-5 text-center space-y-2 shadow-lg">
             <p className="text-base font-semibold">
-              Demande de renseignements ? Pas encore de compte ?
+              Demande de renseignements ? <span className="whitespace-nowrap">Pas encore de compte ?</span>
             </p>
             <p className="text-sm opacity-90">
               Chaque structure bénéficie d'un devis personnalisé. Contactez-nous pour créer votre espace.
