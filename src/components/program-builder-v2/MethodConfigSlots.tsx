@@ -801,6 +801,8 @@ const CircuitExerciseSlot = ({
   restSeconds,
   onRestChange,
   showPerExerciseRest = false,
+  // Inline picker (text input + library popover) when the slot is empty
+  onPick,
 }: {
   slotId: string;
   exercise?: { exerciseId: string; exerciseName: string } | null;
