@@ -15,46 +15,57 @@ export function useUnreadMessages(categoryId: string) {
   const { data: unreadCounts = { total: 0, byConversation: {} } } = useQuery<UnreadCounts>({
     queryKey: ["unread-messages", categoryId, user?.id],
     queryFn: async () => {
-      if (!user) return { total: 0, byConversation: {} };
+      if (!user || !categoryId) return { total: 0, byConversation: {} };
 
-      // Get conversations for this category where user is a participant
+      // 1. Fetch conversations IDs for this category (filtered by RLS)
+      const { data: convs, error: convErr } = await supabase
+        .from("conversations")
+        .select("id")
+        .eq("category_id", categoryId);
+      if (convErr) throw convErr;
+      const convIds = (convs || []).map((c) => c.id);
+      if (convIds.length === 0) return { total: 0, byConversation: {} };
+
+      // 2. Fetch this user's participations (last_read_at) for those conversations
       const { data: participations, error: partError } = await supabase
         .from("conversation_participants")
-        .select("conversation_id, last_read_at, conversations!inner(id, category_id)")
+        .select("conversation_id, last_read_at")
         .eq("user_id", user.id)
-        .eq("conversations.category_id", categoryId);
-
+        .in("conversation_id", convIds);
       if (partError) throw partError;
-      if (!participations || participations.length === 0) return { total: 0, byConversation: {} };
+      if (!participations || participations.length === 0) {
+        return { total: 0, byConversation: {} };
+      }
 
       const byConversation: Record<string, number> = {};
       let total = 0;
 
-      for (const participation of participations) {
-        const convId = participation.conversation_id;
-        const lastRead = participation.last_read_at;
+      // 3. Count unread per conversation in parallel
+      await Promise.all(
+        participations.map(async (participation) => {
+          const convId = participation.conversation_id;
+          const lastRead = participation.last_read_at;
 
-        // Count messages in this conversation that are newer than last_read_at
-        // and not sent by the current user
-        let query = supabase
-          .from("messages")
-          .select("id", { count: "exact", head: true })
-          .eq("conversation_id", convId)
-          .neq("sender_id", user.id);
+          let query = supabase
+            .from("messages")
+            .select("id", { count: "exact", head: true })
+            .eq("conversation_id", convId)
+            .neq("sender_id", user.id);
 
-        if (lastRead) {
-          query = query.gt("created_at", lastRead);
-        }
+          if (lastRead) {
+            query = query.gt("created_at", lastRead);
+          }
 
-        const { count, error } = await query;
-        if (error) continue;
+          const { count, error } = await query;
+          if (error) return;
 
-        const unread = count || 0;
-        if (unread > 0) {
-          byConversation[convId] = unread;
-          total += unread;
-        }
-      }
+          const unread = count || 0;
+          if (unread > 0) {
+            byConversation[convId] = unread;
+            total += unread;
+          }
+        })
+      );
 
       return { total, byConversation };
     },
