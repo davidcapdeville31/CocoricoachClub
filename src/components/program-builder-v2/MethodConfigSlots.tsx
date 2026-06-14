@@ -1678,7 +1678,6 @@ export const MethodConfigSlots = ({
                     contractionType={s.contractionType || 'concentric'}
                     isActive={s.isActive !== false}
                     onRemove={() => onPhaseExerciseRemove?.(idx)}
-                          onPick={onPhaseExerciseAdd ? (p) => onPhaseExerciseAdd(idx, p) : undefined}
                     onToggleActive={() => togglePhaseActive(idx)}
                   />
                 ))}
