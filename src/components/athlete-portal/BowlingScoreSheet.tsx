@@ -770,8 +770,8 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                             // For regular frames, first throw takes more space, second is in corner
                             const isFirstThrow = throwIndex === 0;
                             const boxSize = compact
-                              ? (isTenth ? "w-[24px] h-[26px]" : isFirstThrow ? "w-[20px] h-[24px]" : "w-[18px] h-[24px]")
-                              : (isTenth ? "w-[38px] h-[32px]" : isFirstThrow ? "w-[32px] h-[28px]" : "w-[30px] h-[28px]");
+                              ? (isTenth ? "w-[20px] h-[22px]" : isFirstThrow ? "w-[18px] h-[20px]" : "w-[16px] h-[20px]")
+                              : (isTenth ? "w-[28px] h-[24px]" : isFirstThrow ? "w-[24px] h-[22px]" : "w-[22px] h-[22px]");
                             
                             return (
                               <div 
@@ -788,7 +788,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                                   onChange={(e) => handleThrowInput(frameIndex, throwIndex, e.target.value)}
                                   onKeyDown={(e) => handleKeyDown(frameIndex, throwIndex, e)}
                                   disabled={!editable || isSaved}
-                                  className={`w-full h-full text-center text-sm font-bold p-0 uppercase rounded-none border-0 focus:ring-1 focus:ring-primary ${getThrowCellStyle(value, throwData)} ${isSaved ? "opacity-70" : ""}`}
+                                  className={`w-full h-full text-center ${compact ? "text-[10px]" : "text-xs"} font-bold p-0 uppercase rounded-none border-0 focus:ring-1 focus:ring-primary ${getThrowCellStyle(value, throwData)} ${isSaved ? "opacity-70" : ""}`}
                                   placeholder=""
                                 />
                               </div>
@@ -797,7 +797,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                         </div>
                         
                         {/* Cumulative score - centered at bottom */}
-                        <div className="absolute bottom-1 left-0 right-0 text-center text-lg font-bold">
+                        <div className={`absolute bottom-0.5 left-0 right-0 text-center ${compact ? "text-xs" : "text-sm"} font-semibold`}>
                           {frame.cumulativeScore ?? ""}
                         </div>
                       </td>
