@@ -150,6 +150,7 @@ export function CompetitionRoundsDialog({
 }: CompetitionRoundsDialogProps) {
   const [playerRoundsData, setPlayerRoundsData] = useState<PlayerRounds[]>([]);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>("");
+  const [selectedPlayerId2, setSelectedPlayerId2] = useState<string>("");
   const [isDataInitialized, setIsDataInitialized] = useState(false);
   const [bowlingBlocks, setBowlingBlocks] = useState<Record<string, BowlingBlock[]>>({});
   // Tracks how many attempts to show per round (athletics throws/jumps).
