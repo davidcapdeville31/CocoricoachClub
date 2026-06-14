@@ -469,6 +469,7 @@ export function BowlingBlockManager({
                             <>
                               <CardContent className="pt-0">
                                 <BowlingScoreSheet
+                                  compact={compact}
                                   trackPockets={block.trackPockets !== false}
                                   key={`bowling-${round.round_number}-${round.isLocked}`}
                                   initialFrames={round.bowlingFrames}
