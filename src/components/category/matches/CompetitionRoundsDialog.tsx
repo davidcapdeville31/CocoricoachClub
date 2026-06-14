@@ -1880,7 +1880,7 @@ export function CompetitionRoundsDialog({
                     updateRoundStat={updateRoundStat}
                   />
                 ) : isBowling ? (
-                  <div className={selectedPlayer2 ? "grid grid-cols-1 xl:grid-cols-2 gap-4" : ""}>
+                  <div className={selectedPlayer2 ? "grid grid-cols-2 gap-4" : ""}>
                     {[selectedPlayer, selectedPlayer2].filter(Boolean).map((p) => (
                       <div key={p!.entryKey} className={selectedPlayer2 ? "border border-border/60 rounded-2xl p-3 bg-surface-sunken/40" : ""}>
                         {selectedPlayer2 && (
