@@ -179,7 +179,7 @@ export function MembersSection({ clubId, canManage }: MembersSectionProps) {
       if (!member.profile?.email) throw new Error("no_email");
       const inviterName = club?.profile?.full_name || "CocoriCoach";
       const clubName = (club as any)?.name || "votre club";
-      const invitationLink = `${getAppBaseUrl()}/auth?redirect=${encodeURIComponent(`/clubs/${clubId}`)}`;
+      const invitationLink = `${getAppBaseUrl()}/`;
       await supabase.functions.invoke("send-invitation-email", {
         body: {
           email: member.profile.email,

@@ -48,6 +48,7 @@ export default function Auth() {
   const initialTab = searchParams.get("tab") === "signup" ? "signup" : "login";
   const prefillEmail = searchParams.get("email") || "";
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"login" | "signup">(initialTab);
 
   // Redirect authenticated users away from auth page
   const { user, loading: authLoading } = useAuth();
@@ -81,6 +82,15 @@ export default function Auth() {
   const [signupPassword, setSignupPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [signupPhone, setSignupPhone] = useState("");
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
+  useEffect(() => {
+    setLoginEmail(prefillEmail);
+    setSignupEmail(prefillEmail);
+  }, [prefillEmail]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -296,7 +306,25 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-2">
-          <Tabs defaultValue={initialTab} className="w-full">
+          {redirectUrl && !isRecoveryMode && (
+            <div className="mb-4 grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant={activeTab === "login" ? "default" : "outline"}
+                onClick={() => setActiveTab("login")}
+              >
+                J'ai déjà un compte
+              </Button>
+              <Button
+                type="button"
+                variant={activeTab === "signup" ? "default" : "outline"}
+                onClick={() => setActiveTab("signup")}
+              >
+                Première connexion
+              </Button>
+            </div>
+          )}
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "login" | "signup")} className="w-full">
             {/* Inscription publique désactivée : comptes créés sur devis personnalisé. */}
             <TabsList className="hidden">
               <TabsTrigger value="login">Connexion</TabsTrigger>
