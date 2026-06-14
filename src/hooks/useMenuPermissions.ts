@@ -105,6 +105,7 @@ export function useMenuPermissions(clubId?: string, categoryId?: string) {
     userRole === "super_admin" ||
     userRole === "owner" ||
     userRole === "admin" ||
+    userRole === "administratif" ||
     userRole === "viewer";
 
   if (permissionsMatrix) {

@@ -249,8 +249,7 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
   });
 
   // Determine if the current user can add/remove athletes.
-  // Allowed: club owner, club admin/coach, category admin/coach.
-  // Denied: prepa_physique, administratif, doctor, physio, mental_coach, viewer.
+  // Allowed: club owner, club admin/coach/administratif, category admin/coach/administratif.
   const { data: canManageAthletes = false } = useQuery({
     queryKey: ["can-manage-athletes", categoryId, (category as any)?.club_id],
     enabled: !!categoryId && !!(category as any)?.club_id,
@@ -272,14 +271,14 @@ export function PlayersTab({ categoryId }: PlayersTabProps) {
         .select("role")
         .eq("club_id", clubId)
         .eq("user_id", user.id);
-      if (clubRoles?.some((r: any) => r.role === "admin" || r.role === "coach")) return true;
+      if (clubRoles?.some((r: any) => r.role === "admin" || r.role === "coach" || r.role === "administratif")) return true;
 
       const { data: catRoles } = await supabase
         .from("category_members")
         .select("role")
         .eq("category_id", categoryId)
         .eq("user_id", user.id);
-      const allowed = ["admin", "coach"];
+      const allowed = ["admin", "coach", "administratif"];
       return !!catRoles?.some((r: any) => allowed.includes(r.role));
     },
   });
