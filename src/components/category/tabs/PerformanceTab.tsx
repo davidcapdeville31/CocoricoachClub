@@ -47,7 +47,11 @@ export function PerformanceTab({ categoryId, sportType }: PerformanceTabProps) {
 
   return (
     <Tabs defaultValue="training-load" className="space-y-4">
+      <div className="flex justify-end">
+        <SeasonRosterFilterToggle />
+      </div>
       <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
+
         <ColoredSubTabsList colorKey="performance" className="inline-flex w-max">
           <ColoredSubTabsTrigger 
             value="training-load" 
