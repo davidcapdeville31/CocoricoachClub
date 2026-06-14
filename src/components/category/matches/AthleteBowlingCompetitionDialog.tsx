@@ -84,6 +84,7 @@ const createEmptyPattern = (): OilPatternDraft => ({
   outside_friction: "",
   notes: "",
   assigned: false,
+  image_url: null,
 });
 
 const toNullableNumber = (value: string) => {
