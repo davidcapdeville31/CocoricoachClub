@@ -143,6 +143,21 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     },
   });
 
+  const trainingData = useMemo(() => {
+    if (!trainingDataRaw) return trainingDataRaw;
+    return {
+      games: trainingDataRaw.games.filter(
+        (g: any) =>
+          (!allowedIds || allowedIds.has(g.playerId)) && isDateInActiveSeason(g.matchDate),
+      ),
+      spareExercises: trainingDataRaw.spareExercises.filter(
+        (s: any) =>
+          (!allowedIds || allowedIds.has(s.player_id)) && isDateInActiveSeason(s.session_date),
+      ),
+    };
+  }, [trainingDataRaw, allowedIds, isDateInActiveSeason]);
+
+
   // Fetch new system training blocks (used for "Stats Globales" and to filter obsolete spare data)
   const { data: trainingBlocks = [] } = useQuery({
     queryKey: ["bowling_training_blocks_stats", categoryId, playerId || "all"],
