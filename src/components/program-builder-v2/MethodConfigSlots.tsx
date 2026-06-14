@@ -639,6 +639,150 @@ const ExerciseDropSlot = ({
   );
 };
 
+// Inline picker (input + library popover) used inside empty CircuitExerciseSlot.
+// Allows the athlete (and coach) to type the exercise name with autocomplete,
+// or open the full library list, without relying on drag-and-drop.
+const InlineSlotPicker = ({
+  placeholder,
+  onPick,
+}: {
+  placeholder?: string;
+  onPick: (picked: { id: string; name: string }) => void;
+}) => {
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  const [libOpen, setLibOpen] = useState(false);
+
+  const { data: exercises = [], isLoading } = useQuery({
+    queryKey: ["circuit-slot-picker", search, libOpen],
+    enabled: open || libOpen,
+    queryFn: async () => {
+      let q = supabase
+        .from("exercise_library")
+        .select("id, name, category")
+        .order("name", { ascending: true })
+        .limit(40);
+      const s = search.trim();
+      if (s) q = q.ilike("name", `%${s}%`);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as { id: string; name: string; category: string }[];
+    },
+  });
+
+  const handlePick = (ex: { id: string; name: string }) => {
+    onPick(ex);
+    setSearch("");
+    setOpen(false);
+    setLibOpen(false);
+  };
+
+  return (
+    <div className="flex items-center gap-1 w-full" onPointerDown={(e) => e.stopPropagation()}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <div className="flex-1 relative">
+            <Input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setOpen(true);
+              }}
+              onFocus={() => setOpen(true)}
+              placeholder={placeholder || "Tapez le nom de l'exercice…"}
+              className="h-8 text-xs"
+            />
+          </div>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          sideOffset={4}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          className="p-1 w-[min(320px,90vw)] max-h-64 overflow-y-auto z-[200] bg-popover border shadow-lg"
+        >
+          {isLoading ? (
+            <div className="px-2 py-3 text-xs text-muted-foreground">Chargement…</div>
+          ) : exercises.length === 0 ? (
+            <div className="px-2 py-3 text-xs text-muted-foreground">
+              Aucun exercice trouvé.
+            </div>
+          ) : (
+            exercises.slice(0, 20).map((ex) => (
+              <button
+                key={ex.id}
+                type="button"
+                className="w-full text-left px-2 py-1.5 hover:bg-muted rounded-sm text-xs flex items-center justify-between gap-2"
+                onClick={() => handlePick({ id: ex.id, name: ex.name })}
+              >
+                <span className="truncate">{ex.name}</span>
+                <span className="text-[10px] uppercase text-muted-foreground shrink-0">
+                  {ex.category}
+                </span>
+              </button>
+            ))
+          )}
+        </PopoverContent>
+      </Popover>
+
+      <Popover open={libOpen} onOpenChange={setLibOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            title="Parcourir la bibliothèque"
+          >
+            <Library className="h-3.5 w-3.5" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="end"
+          sideOffset={4}
+          className="p-2 w-[min(360px,92vw)] z-[200] bg-popover border shadow-lg rounded-2xl"
+        >
+          <div className="relative mb-2">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              autoFocus
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher…"
+              className="rounded-xl pl-8 h-9 text-sm"
+            />
+          </div>
+          <div className="max-h-72 overflow-auto space-y-0.5">
+            {isLoading && (
+              <div className="px-2 py-3 text-xs text-muted-foreground text-center">
+                Chargement…
+              </div>
+            )}
+            {!isLoading && exercises.length === 0 && (
+              <p className="text-xs text-center text-muted-foreground py-4">
+                Aucun exercice trouvé.
+              </p>
+            )}
+            {exercises.map((ex) => (
+              <button
+                key={ex.id}
+                type="button"
+                onClick={() => handlePick({ id: ex.id, name: ex.name })}
+                className="w-full text-left px-2.5 py-1.5 rounded-xl text-sm hover:bg-muted/60 transition-colors flex items-center justify-between gap-2"
+              >
+                <span className="truncate">{ex.name}</span>
+                <span className="text-[10px] uppercase text-muted-foreground shrink-0">
+                  {ex.category}
+                </span>
+              </button>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+};
+
+
 // Circuit exercise slot for AMRAP, For Time, etc. - with training variables
 const CircuitExerciseSlot = ({
   slotId,
