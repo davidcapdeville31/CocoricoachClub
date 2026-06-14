@@ -187,7 +187,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
   );
 
   // Fetch mental preparation sessions for this category (and player if scoped)
-  const { data: mentalSessions = [] } = useQuery({
+  const { data: mentalSessionsRaw = [] } = useQuery({
     queryKey: ["mental_sessions_stats", categoryId, playerId || "all"],
     queryFn: async () => {
       const { data, error } = await supabase
