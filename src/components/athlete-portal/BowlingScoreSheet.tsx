@@ -720,16 +720,29 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
           <div className={compact ? "pb-2" : "overflow-x-auto touch-pan-x overscroll-contain -mx-2 px-2 pb-2"}>
             {/* Classic scoresheet table */}
             <table className={`${compact ? "w-full table-fixed" : "min-w-max"} border-collapse border-2 border-foreground/30`}>
+              <colgroup>
+                <col style={{ width: compact ? "44px" : "56px" }} />
+                {frames.map((_, frameIndex) => (
+                  <col
+                    key={frameIndex}
+                    style={
+                      compact
+                        ? undefined
+                        : { width: frameIndex === 9 ? "120px" : "64px" }
+                    }
+                  />
+                ))}
+              </colgroup>
               <thead>
                 <tr>
-                  <th className={`border border-foreground/20 bg-muted px-1 py-1 text-xs font-medium ${compact ? "w-6" : "w-8"}`}></th>
+                  <th className={`border border-foreground/20 bg-muted px-1 py-1 text-[10px] font-medium`}></th>
                   {frames.map((_, frameIndex) => (
                     <th 
                       key={frameIndex} 
                       className={`border border-foreground/20 bg-muted px-1 py-1 text-xs font-bold text-center ${
                         compact
                           ? (frameIndex === 9 ? "min-w-[72px]" : "min-w-[38px]")
-                          : (frameIndex === 9 ? "min-w-[112px]" : "min-w-[60px]")
+                          : (frameIndex === 9 ? "min-w-[120px]" : "min-w-[64px]")
                       }`}
                       colSpan={1}
                     >
@@ -741,7 +754,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
               <tbody>
                 {/* Throws row - small boxes at top right of each cell */}
                 <tr>
-                  <td className="border border-foreground/20 bg-muted/50 text-xs font-medium text-center px-1">
+                  <td className={`border border-foreground/20 bg-muted/50 ${compact ? "text-[10px]" : "text-xs"} font-medium text-center px-1 whitespace-nowrap`}>
                     Joueur
                   </td>
                   {frames.map((frame, frameIndex) => {
@@ -763,8 +776,8 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                             // For regular frames, first throw takes more space, second is in corner
                             const isFirstThrow = throwIndex === 0;
                             const boxSize = compact
-                              ? (isTenth ? "w-[24px] h-[28px]" : isFirstThrow ? "w-[20px] h-[24px]" : "w-[18px] h-[24px]")
-                              : (isTenth ? "w-[36px] h-[34px]" : isFirstThrow ? "w-[30px] h-[28px]" : "w-[28px] h-[28px]");
+                              ? (isTenth ? "w-[24px] h-[26px]" : isFirstThrow ? "w-[20px] h-[24px]" : "w-[18px] h-[24px]")
+                              : (isTenth ? "w-[38px] h-[32px]" : isFirstThrow ? "w-[32px] h-[28px]" : "w-[30px] h-[28px]");
                             
                             return (
                               <div 
