@@ -40,6 +40,23 @@ async function getPostLoginRedirect(userId: string): Promise<string> {
   return "/";
 }
 
+async function waitForAuthenticatedUser(timeoutMs = 4000, intervalMs = 150): Promise<string | null> {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const { data } = await supabase.auth.getSession();
+    const userId = data.session?.user?.id;
+
+    if (userId) {
+      return userId;
+    }
+
+    await new Promise((resolve) => window.setTimeout(resolve, intervalMs));
+  }
+
+  return null;
+}
+
 export default function Auth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -138,9 +155,11 @@ export default function Auth() {
 
       toast.success("Connexion réussie");
       
-      // If there's a redirect URL (e.g. from invitation link), use it
+      // If there's a redirect URL (e.g. from invitation link), wait briefly
+      // for the auth session to be fully restored before redirecting back.
       if (redirectUrl) {
-        navigate(redirectUrl);
+        await waitForAuthenticatedUser();
+        navigate(redirectUrl, { replace: true });
         return;
       }
       

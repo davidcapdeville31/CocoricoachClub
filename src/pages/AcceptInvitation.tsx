@@ -54,17 +54,39 @@ export default function AcceptInvitation() {
     })();
   }, [token, invitationType]);
 
-  // Decide: if signed in → auto-accept; otherwise show chooser
+  // Decide: if signed in → auto-accept; otherwise show chooser.
+  // Important: after a fresh signup, the auth context can update a split-second
+  // after we land back on this page, so we must also retry from "choose".
   useEffect(() => {
-    if (!info || authLoading || !token) return;
-    if (status !== "loading") return;
-    if (user) {
-      setStatus("accepting");
-      if (invitationType === "category") acceptCategoryInvitation(token);
-      else acceptClubInvitation(token);
-    } else {
-      setStatus("choose");
-    }
+    if (!info || authLoading || !token || status === "success" || status === "error") return;
+
+    let cancelled = false;
+
+    const resolveAuthAndContinue = async () => {
+      const { data } = await supabase.auth.getSession();
+      const sessionUser = user ?? data.session?.user ?? null;
+
+      if (cancelled) return;
+
+      if (sessionUser) {
+        if (status !== "accepting") {
+          setStatus("accepting");
+          if (invitationType === "category") acceptCategoryInvitation(token);
+          else acceptClubInvitation(token);
+        }
+        return;
+      }
+
+      if (status === "loading") {
+        setStatus("choose");
+      }
+    };
+
+    void resolveAuthAndContinue();
+
+    return () => {
+      cancelled = true;
+    };
   }, [info, user, authLoading, token, invitationType, status]);
 
   const acceptClubInvitation = async (token: string) => {
