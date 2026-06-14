@@ -38,9 +38,11 @@ export function TennisTrainingStats({ categoryId }: TennisTrainingStatsProps) {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>("all");
+  const { isDateInActiveSeason } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
 
   // Fetch drill training data
-  const { data: drillData, isLoading: loadingDrills } = useQuery({
+  const { data: drillDataRaw, isLoading: loadingDrills } = useQuery({
     queryKey: ["tennis_training_stats", categoryId, "drills"],
     queryFn: async () => {
       const { data, error } = await supabase
