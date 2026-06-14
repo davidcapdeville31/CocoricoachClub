@@ -32,6 +32,9 @@ import { getExcelBranding, addBrandedHeader, styleDataHeaderRow, addZebraRows, a
 import { preparePdfWithSettings } from "@/lib/pdfExport";
 import { drawPdfRugbyField, drawPdfZoneStatsGrid, svgPctToPdfPos, drawPdfGoalpostArrow } from "@/lib/pdfRugbyField";
 import { drawStatEvolutionTable, drawStatLineChart, type StatEvolutionData } from "@/lib/pdfPlayerEvolution";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+
 
 interface PlayerCumulativeStatsProps {
   categoryId: string;
