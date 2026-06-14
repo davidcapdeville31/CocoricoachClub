@@ -776,8 +776,8 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                             // For regular frames, first throw takes more space, second is in corner
                             const isFirstThrow = throwIndex === 0;
                             const boxSize = compact
-                              ? (isTenth ? "w-[24px] h-[28px]" : isFirstThrow ? "w-[20px] h-[24px]" : "w-[18px] h-[24px]")
-                              : (isTenth ? "w-[36px] h-[34px]" : isFirstThrow ? "w-[30px] h-[28px]" : "w-[28px] h-[28px]");
+                              ? (isTenth ? "w-[24px] h-[26px]" : isFirstThrow ? "w-[20px] h-[24px]" : "w-[18px] h-[24px]")
+                              : (isTenth ? "w-[38px] h-[32px]" : isFirstThrow ? "w-[32px] h-[28px]" : "w-[30px] h-[28px]");
                             
                             return (
                               <div 
