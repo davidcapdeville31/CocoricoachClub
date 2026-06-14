@@ -119,7 +119,7 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
   const allowedPlayerIds = useMemo(() => new Set(players.map((p: any) => p.id)), [players]);
 
   // Fetch throwing-related blocks (sessions with implement set)
-  const { data: throwingBlocks = [] } = useQuery({
+  const { data: throwingBlocksAll = [] } = useQuery({
     queryKey: ["throwing-blocks", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -134,6 +134,13 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
       return data || [];
     },
   });
+  const throwingBlocks = useMemo(
+    () =>
+      (throwingBlocksAll as any[]).filter((b) =>
+        isDateInActiveSeason(b.training_sessions?.session_date),
+      ),
+    [throwingBlocksAll, isDateInActiveSeason],
+  );
 
   const { data: records = [] } = useQuery({
     queryKey: ["athletics_records_for_throwing", categoryId],
