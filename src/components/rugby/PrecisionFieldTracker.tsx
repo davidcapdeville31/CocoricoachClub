@@ -56,7 +56,10 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
   const currentMode: RugbyPrecisionExerciseMode = currentExercise?.mode || "kicking";
   const currentCategory = EXERCISE_CATEGORIES.find(c => c.exercises.some(e => e.value === exerciseType));
 
-  const { data: players = [] } = useQuery({
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const { isDateInActiveSeason } = useSeasonRosterFilter();
+
+  const { data: playersAll = [] } = useQuery({
     queryKey: ["players-precision-field", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -68,6 +71,10 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
       return data || [];
     },
   });
+  const players = useMemo(
+    () => (allowedIds ? playersAll.filter((p: any) => allowedIds.has(p.id)) : playersAll),
+    [playersAll, allowedIds],
+  );
 
   // Check if there are active training sessions today (fallback when no sessionId prop)
   const { data: todaySessions = [] } = useQuery({
