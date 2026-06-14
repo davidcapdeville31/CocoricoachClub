@@ -1039,27 +1039,33 @@ interface StatBoxProps {
   colorClass?: string;
   bgColorClass?: string;
   textColorClass?: string;
+  compact?: boolean;
 }
 
-function StatBox({ label, value, detail, note, highlight, colorClass, bgColorClass, textColorClass }: StatBoxProps) {
+function StatBox({ label, value, detail, note, highlight, colorClass, bgColorClass, textColorClass, compact }: StatBoxProps) {
+  const paddingClass = compact ? "p-1.5" : "p-3";
+  const labelSizeClass = compact ? "text-[10px]" : "text-xs";
+  const valueSizeClass = compact ? "text-sm" : "text-xl";
+  const detailSizeClass = compact ? "text-[9px]" : "text-xs";
+
   if (bgColorClass) {
     const isNoire2 = textColorClass?.includes("text-red");
     const valueColor = isNoire2 ? "text-red-600 font-extrabold" : "text-white";
     return (
-      <div className={`p-3 rounded-lg ${bgColorClass} text-white`}>
-        <div className="text-xs opacity-80">{label}</div>
-        <div className={`text-xl font-bold ${valueColor}`}>{value}</div>
-        <div className="text-xs opacity-80">{detail}</div>
-        {note && <div className="text-xs opacity-70">{note}</div>}
+      <div className={`${paddingClass} rounded-lg ${bgColorClass} text-white flex flex-col justify-between h-full min-h-[56px] leading-tight`}>
+        <div className={`${labelSizeClass} opacity-90 truncate font-medium`}>{label}</div>
+        <div className={`${valueSizeClass} font-bold ${valueColor} my-0.5`}>{value}</div>
+        <div className={`${detailSizeClass} opacity-80 truncate`}>{detail}</div>
+        {note && <div className={`${detailSizeClass} opacity-70 truncate`}>{note}</div>}
       </div>
     );
   }
   return (
-    <div className={`p-3 rounded-lg ${highlight ? "bg-primary/20 border border-primary/30" : "bg-background border"}`}>
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className={`text-xl font-bold ${colorClass || (highlight ? "text-primary" : "")}`}>{value}</div>
-      <div className="text-xs text-muted-foreground">{detail}</div>
-      {note && <div className="text-xs text-muted-foreground">{note}</div>}
+    <div className={`${paddingClass} rounded-lg ${highlight ? "bg-primary/20 border border-primary/30" : "bg-background border"} flex flex-col justify-between h-full min-h-[56px] leading-tight`}>
+      <div className={`${labelSizeClass} text-muted-foreground truncate font-medium`}>{label}</div>
+      <div className={`${valueSizeClass} font-bold ${colorClass || (highlight ? "text-primary" : "")} my-0.5`}>{value}</div>
+      <div className={`${detailSizeClass} text-muted-foreground truncate`}>{detail}</div>
+      {note && <div className={`${detailSizeClass} text-muted-foreground truncate`}>{note}</div>}
     </div>
   );
 }
