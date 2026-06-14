@@ -223,6 +223,18 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     },
   });
 
+  const mentalSessions = useMemo(
+    () =>
+      mentalSessionsRaw
+        .filter((s) => isDateInActiveSeason(s.session_date))
+        .map((s) =>
+          allowedIds
+            ? { ...s, player_ids: s.player_ids.filter((pid) => allowedIds.has(pid)) }
+            : s,
+        ),
+    [mentalSessionsRaw, allowedIds, isDateInActiveSeason],
+  );
+
 
 
   // Set of athletes who have new-system bowling sessions (used to hide obsolete legacy data)
