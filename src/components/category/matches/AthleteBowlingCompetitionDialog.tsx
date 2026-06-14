@@ -66,6 +66,7 @@ interface OilPatternDraft {
   outside_friction: string;
   notes: string;
   assigned: boolean;
+  image_url: string | null;
 }
 
 const createEmptyPattern = (): OilPatternDraft => ({
