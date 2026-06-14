@@ -110,6 +110,7 @@ const mapPatternToDraft = (pattern: any, assignedIds: Set<string>): OilPatternDr
   outside_friction: pattern.outside_friction || "",
   notes: pattern.notes || "",
   assigned: assignedIds.has(pattern.id),
+  image_url: pattern.image_url_male || pattern.image_url_female || pattern.image_url || null,
 });
 
 const buildRoundsState = (
