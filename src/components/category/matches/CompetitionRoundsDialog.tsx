@@ -150,6 +150,7 @@ export function CompetitionRoundsDialog({
 }: CompetitionRoundsDialogProps) {
   const [playerRoundsData, setPlayerRoundsData] = useState<PlayerRounds[]>([]);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>("");
+  const [selectedPlayerId2, setSelectedPlayerId2] = useState<string>("");
   const [isDataInitialized, setIsDataInitialized] = useState(false);
   const [bowlingBlocks, setBowlingBlocks] = useState<Record<string, BowlingBlock[]>>({});
   // Tracks how many attempts to show per round (athletics throws/jumps).
@@ -975,6 +976,9 @@ export function CompetitionRoundsDialog({
 
   const hasLineup = lineup && lineup.length > 0;
   const selectedPlayer = playerRoundsData.find(p => p.entryKey === selectedPlayerId);
+  const selectedPlayer2 = isBowling && selectedPlayerId2 && selectedPlayerId2 !== selectedPlayerId
+    ? playerRoundsData.find(p => p.entryKey === selectedPlayerId2)
+    : undefined;
 
   // Calculate aggregated stats for a player
   const calculateAggregatedStats = (rounds: Round[]) => {
@@ -1684,31 +1688,70 @@ export function CompetitionRoundsDialog({
           </div>
         ) : (
           <div className="space-y-2 flex-shrink-0">
-            <Label className="text-sm font-medium">Sélectionner un athlète</Label>
-            <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choisir un athlète..." />
-              </SelectTrigger>
-              <SelectContent className="z-[200]">
-                {playerRoundsData.map((player) => (
-                  <SelectItem 
-                    key={player.entryKey} 
-                    value={player.entryKey}
-                    textValue={`${player.playerName}${player.specialty ? ` ${player.specialty}` : player.discipline ? ` ${player.discipline}` : ""}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span>{player.playerName}</span>
-                      {isAviron && player.boat_type && (
-                        <Badge variant="outline" className="text-xs">{player.boat_type}</Badge>
-                      )}
-                      <Badge variant="secondary" className="text-xs">
-                        {player.rounds.length} {player.rounds.length === 1 ? roundLabel.toLowerCase() : roundLabelPlural.toLowerCase()}
-                      </Badge>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label className="text-sm font-medium">
+              {isBowling ? "Sélectionner 1 ou 2 athlètes (saisie simultanée)" : "Sélectionner un athlète"}
+            </Label>
+            <div className={isBowling ? "grid grid-cols-1 md:grid-cols-2 gap-2" : ""}>
+              <Select value={selectedPlayerId} onValueChange={(v) => {
+                setSelectedPlayerId(v);
+                if (v === selectedPlayerId2) setSelectedPlayerId2("");
+              }}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choisir un athlète..." />
+                </SelectTrigger>
+                <SelectContent className="z-[200]">
+                  {playerRoundsData.map((player) => (
+                    <SelectItem
+                      key={player.entryKey}
+                      value={player.entryKey}
+                      textValue={`${player.playerName}${player.specialty ? ` ${player.specialty}` : player.discipline ? ` ${player.discipline}` : ""}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>{player.playerName}</span>
+                        {isAviron && player.boat_type && (
+                          <Badge variant="outline" className="text-xs">{player.boat_type}</Badge>
+                        )}
+                        <Badge variant="secondary" className="text-xs">
+                          {player.rounds.length} {player.rounds.length === 1 ? roundLabel.toLowerCase() : roundLabelPlural.toLowerCase()}
+                        </Badge>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {isBowling && (
+                <Select
+                  value={selectedPlayerId2 || "__none__"}
+                  onValueChange={(v) => setSelectedPlayerId2(v === "__none__" ? "" : v)}
+                  disabled={!selectedPlayerId}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="2e athlète (optionnel)..." />
+                  </SelectTrigger>
+                  <SelectContent className="z-[200]">
+                    <SelectItem value="__none__">
+                      <span className="text-muted-foreground">Aucun (1 athlète)</span>
+                    </SelectItem>
+                    {playerRoundsData
+                      .filter((p) => p.entryKey !== selectedPlayerId)
+                      .map((player) => (
+                        <SelectItem
+                          key={player.entryKey}
+                          value={player.entryKey}
+                          textValue={player.playerName}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span>{player.playerName}</span>
+                            <Badge variant="secondary" className="text-xs">
+                              {player.rounds.length} {player.rounds.length === 1 ? roundLabel.toLowerCase() : roundLabelPlural.toLowerCase()}
+                            </Badge>
+                          </div>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
           </div>
         )}
 
@@ -1837,27 +1880,38 @@ export function CompetitionRoundsDialog({
                     updateRoundStat={updateRoundStat}
                   />
                 ) : isBowling ? (
-                  <BowlingBlockManager
-                    playerId={selectedPlayer.playerId}
-                    categoryId={categoryId}
-                    matchId={matchId}
-                    rounds={selectedPlayer.rounds}
-                    blocks={bowlingBlocks[selectedPlayer.playerId] || []}
-                    matchDate={matchData?.match_date}
-                    onBlocksChange={(newBlocks) => {
-                      setBowlingBlocks(prev => ({ ...prev, [selectedPlayer.playerId]: newBlocks }));
-                    }}
-                    onRoundsChange={(newRounds) => {
-                      setPlayerRoundsData(prev => prev.map(p =>
-                        p.playerId === selectedPlayer.playerId ? { ...p, rounds: newRounds } : p
-                      ));
-                    }}
-                    onScoreSave={(roundNumber, stats, frames, ballData) => {
-                      handleBowlingScoreSheetSave(selectedPlayer.playerId, roundNumber, stats, frames, ballData);
-                    }}
-                    onLock={(roundNumber) => lockBowlingRound(selectedPlayer.entryKey, roundNumber)}
-                    onUnlock={(roundNumber) => unlockBowlingRound(selectedPlayer.entryKey, roundNumber)}
-                  />
+                  <div className={selectedPlayer2 ? "grid grid-cols-1 xl:grid-cols-2 gap-4" : ""}>
+                    {[selectedPlayer, selectedPlayer2].filter(Boolean).map((p) => (
+                      <div key={p!.entryKey} className={selectedPlayer2 ? "border border-border/60 rounded-2xl p-3 bg-surface-sunken/40" : ""}>
+                        {selectedPlayer2 && (
+                          <div className="mb-2 text-sm font-semibold text-primary">
+                            {p!.playerName}
+                          </div>
+                        )}
+                        <BowlingBlockManager
+                          playerId={p!.playerId}
+                          categoryId={categoryId}
+                          matchId={matchId}
+                          rounds={p!.rounds}
+                          blocks={bowlingBlocks[p!.playerId] || []}
+                          matchDate={matchData?.match_date}
+                          onBlocksChange={(newBlocks) => {
+                            setBowlingBlocks(prev => ({ ...prev, [p!.playerId]: newBlocks }));
+                          }}
+                          onRoundsChange={(newRounds) => {
+                            setPlayerRoundsData(prev => prev.map(pp =>
+                              pp.playerId === p!.playerId ? { ...pp, rounds: newRounds } : pp
+                            ));
+                          }}
+                          onScoreSave={(roundNumber, stats, frames, ballData) => {
+                            handleBowlingScoreSheetSave(p!.playerId, roundNumber, stats, frames, ballData);
+                          }}
+                          onLock={(roundNumber) => lockBowlingRound(p!.entryKey, roundNumber)}
+                          onUnlock={(roundNumber) => unlockBowlingRound(p!.entryKey, roundNumber)}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 ) : (
                 <div className="space-y-4 pb-4">
                   {selectedPlayer.rounds.length === 0 ? (
