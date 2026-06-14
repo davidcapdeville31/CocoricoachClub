@@ -940,34 +940,37 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
       </Collapsible>
 
       {/* Statistics Summary */}
-      <Card className="bg-gradient-to-br from-primary/5 to-primary/10">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
+      <Card className={`bg-gradient-to-br from-primary/5 to-primary/10 ${compact ? "shadow-sm border-muted/50" : ""}`}>
+        <CardHeader className={compact ? "p-2.5 pb-1" : "pb-2"}>
+          <CardTitle className={`${compact ? "text-xs font-semibold" : "text-lg"} flex items-center gap-1.5`}>
+            <TrendingUp className={compact ? "h-3.5 w-3.5" : "h-5 w-5"} />
             Statistiques calculées
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <CardContent className={compact ? "p-2.5 pt-0" : ""}>
+          <div className={compact ? "grid grid-cols-4 gap-1" : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"}>
              <StatBox 
               label="% Strikes" 
               value={`${stats.strikePercentage}%`}
-              detail={`${stats.strikes}/${stats.totalFrames} frames`}
+              detail={`${stats.strikes}/${stats.totalFrames} f.`}
               bgColorClass={getStatColor("strike", stats.strikePercentage).bg}
               textColorClass={getStatColor("strike", stats.strikePercentage).text}
+              compact={compact}
             />
             <StatBox 
               label="% Spares" 
               value={`${stats.sparePercentage}%`}
-              detail={`${stats.spares} spares (hors splits)`}
+              detail={`${stats.spares} sp. (ex. spl)`}
               bgColorClass={getStatColor("spare", stats.sparePercentage).bg}
               textColorClass={getStatColor("spare", stats.sparePercentage).text}
+              compact={compact}
             />
             <StatBox 
               label="% Splits conv." 
               value={`${stats.splitPercentage}%`}
-              detail={`${stats.splitConverted}/${stats.splitCount} splits`}
-              note={stats.splitOnLastThrow > 0 ? `+${stats.splitOnLastThrow} exclu(s)` : undefined}
+              detail={`${stats.splitConverted}/${stats.splitCount} spl.`}
+              note={stats.splitOnLastThrow > 0 ? `+${stats.splitOnLastThrow} excl.` : undefined}
+              compact={compact}
             />
             <StatBox 
               label="% QS converties" 
@@ -975,13 +978,15 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
               detail={`${stats.singlePinConverted}/${stats.singlePinCount}`}
               bgColorClass={getStatColor("singlePin", stats.singlePinConversionRate).bg}
               textColorClass={getStatColor("singlePin", stats.singlePinConversionRate).text}
+              compact={compact}
             />
             <StatBox 
               label="% Poches" 
               value={`${stats.pocketPercentage}%`}
-              detail={`${stats.pocketCount} lancers`}
+              detail={`${stats.pocketCount} lanc.`}
               bgColorClass={getStatColor("pocket", stats.pocketPercentage).bg}
               textColorClass={getStatColor("pocket", stats.pocketPercentage).text}
+              compact={compact}
             />
             <StatBox 
               label="% Boules ≥8" 
@@ -989,17 +994,20 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
               detail={`${stats.firstBallGte8Count}/${stats.firstBallGte8Opportunities}`}
               bgColorClass={getStatColor("firstBallGte8", stats.firstBallGte8Percentage).bg}
               textColorClass={getStatColor("firstBallGte8", stats.firstBallGte8Percentage).text}
+              compact={compact}
             />
             <StatBox 
-              label="Frames non fermées" 
+              label="Frames ouvertes" 
               value={stats.openFrames.toString()}
-              detail="hors splits non convertis"
+              detail="hors splits"
+              compact={compact}
             />
             <StatBox 
               label="Score total" 
               value={stats.totalScore.toString()}
               detail="points"
               highlight
+              compact={compact}
             />
           </div>
         </CardContent>
@@ -1031,27 +1039,33 @@ interface StatBoxProps {
   colorClass?: string;
   bgColorClass?: string;
   textColorClass?: string;
+  compact?: boolean;
 }
 
-function StatBox({ label, value, detail, note, highlight, colorClass, bgColorClass, textColorClass }: StatBoxProps) {
+function StatBox({ label, value, detail, note, highlight, colorClass, bgColorClass, textColorClass, compact }: StatBoxProps) {
+  const paddingClass = compact ? "p-1.5" : "p-3";
+  const labelSizeClass = compact ? "text-[10px]" : "text-xs";
+  const valueSizeClass = compact ? "text-sm" : "text-xl";
+  const detailSizeClass = compact ? "text-[9px]" : "text-xs";
+
   if (bgColorClass) {
     const isNoire2 = textColorClass?.includes("text-red");
     const valueColor = isNoire2 ? "text-red-600 font-extrabold" : "text-white";
     return (
-      <div className={`p-3 rounded-lg ${bgColorClass} text-white`}>
-        <div className="text-xs opacity-80">{label}</div>
-        <div className={`text-xl font-bold ${valueColor}`}>{value}</div>
-        <div className="text-xs opacity-80">{detail}</div>
-        {note && <div className="text-xs opacity-70">{note}</div>}
+      <div className={`${paddingClass} rounded-lg ${bgColorClass} text-white flex flex-col justify-between h-full min-h-[56px] leading-tight`}>
+        <div className={`${labelSizeClass} opacity-90 truncate font-medium`}>{label}</div>
+        <div className={`${valueSizeClass} font-bold ${valueColor} my-0.5`}>{value}</div>
+        <div className={`${detailSizeClass} opacity-80 truncate`}>{detail}</div>
+        {note && <div className={`${detailSizeClass} opacity-70 truncate`}>{note}</div>}
       </div>
     );
   }
   return (
-    <div className={`p-3 rounded-lg ${highlight ? "bg-primary/20 border border-primary/30" : "bg-background border"}`}>
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className={`text-xl font-bold ${colorClass || (highlight ? "text-primary" : "")}`}>{value}</div>
-      <div className="text-xs text-muted-foreground">{detail}</div>
-      {note && <div className="text-xs text-muted-foreground">{note}</div>}
+    <div className={`${paddingClass} rounded-lg ${highlight ? "bg-primary/20 border border-primary/30" : "bg-background border"} flex flex-col justify-between h-full min-h-[56px] leading-tight`}>
+      <div className={`${labelSizeClass} text-muted-foreground truncate font-medium`}>{label}</div>
+      <div className={`${valueSizeClass} font-bold ${colorClass || (highlight ? "text-primary" : "")} my-0.5`}>{value}</div>
+      <div className={`${detailSizeClass} text-muted-foreground truncate`}>{detail}</div>
+      {note && <div className={`${detailSizeClass} text-muted-foreground truncate`}>{note}</div>}
     </div>
   );
 }
