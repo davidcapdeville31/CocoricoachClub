@@ -25,6 +25,8 @@ import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Resp
 import { getOilCategory, type OilCategoryType } from "@/lib/constants/bowlingOilPatterns";
 import type { FrameData } from "@/components/athlete-portal/BowlingScoreSheet";
 import { BowlingSpecificStatsTabs } from "./stats/BowlingSpecificStatsTabs";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 const OIL_CATEGORY_BADGES: Record<OilCategoryType, { label: string; className: string }> = {
   sport: { label: "🔴 Sportif", className: "bg-red-500/15 text-red-600 border-red-500 dark:bg-red-500/20 dark:text-red-400" },
