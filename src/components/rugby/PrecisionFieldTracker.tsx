@@ -96,7 +96,7 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
   const activeSessionId = propSessionId || (todaySessions.length > 0 ? todaySessions[0].id : null);
   const activeSessionDate = propSessionDate || (todaySessions.length > 0 ? todaySessions[0].session_date : format(new Date(), "yyyy-MM-dd"));
 
-  const { data: entries = [] } = useQuery({
+  const { data: entriesAll = [] } = useQuery({
     queryKey: ["precision-field-entries", categoryId, selectedPlayerId, exerciseType],
     queryFn: async () => {
       let query = supabase
@@ -110,6 +110,14 @@ export function PrecisionFieldTracker({ categoryId, sessionId: propSessionId, se
       return data || [];
     },
   });
+  const entries = useMemo(
+    () =>
+      (entriesAll as any[]).filter(
+        (e) =>
+          (!allowedIds || allowedIds.has(e.player_id)) && isDateInActiveSeason(e.session_date),
+      ),
+    [entriesAll, allowedIds, isDateInActiveSeason],
+  );
 
   // Buteur kick direct save
   const saveButeurKick = async (success: boolean) => {
