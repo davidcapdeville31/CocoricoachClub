@@ -92,17 +92,23 @@ async function signUpFromInvitation(params: {
     };
   }
 
-  const result = data as { success?: boolean; error?: string } | null;
+  const result = data as { success?: boolean; error?: string; redirectPath?: string } | null;
 
   if (!result?.success) {
     return {
       success: false,
       handled: true as const,
       error: result?.error || "Erreur lors de la création du compte d'invitation",
+      redirectPath: null as string | null,
     };
   }
 
-  return { success: true, handled: true as const, error: null as string | null };
+  return {
+    success: true,
+    handled: true as const,
+    error: null as string | null,
+    redirectPath: result.redirectPath || "/",
+  };
 }
 
 export default function Auth() {
@@ -322,6 +328,11 @@ export default function Auth() {
             toast.error(signInResult.error.message || "Compte créé, mais connexion impossible");
             return;
           }
+
+          toast.success("Compte créé avec succès");
+          await waitForAuthenticatedUser();
+          navigate(invitationSignup.redirectPath || "/", { replace: true });
+          return;
         } else {
           const signUpResult = await supabase.auth.signUp({
             email: validated.email,

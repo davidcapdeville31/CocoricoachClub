@@ -1,12 +1,149 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { z } from "npm:zod@3.25.67";
 
 type InvitationKind = "club" | "category";
+
+type ClubInvitationRow = {
+  id: string;
+  club_id: string;
+  email: string;
+  role: string;
+  invited_by: string | null;
+  status: string;
+  expires_at: string | null;
+  assigned_categories: string[] | null;
+};
+
+type CategoryInvitationRow = {
+  id: string;
+  category_id: string;
+  email: string;
+  role: string;
+  invited_by: string | null;
+  status: string;
+  expires_at: string | null;
+};
+
+const BodySchema = z.object({
+  token: z.string().min(8),
+  kind: z.enum(["club", "category"]),
+  email: z.string().trim().email().max(255),
+  password: z.string().min(6).max(72),
+  full_name: z.string().trim().min(1).max(100),
+  phone: z.string().trim().max(20).nullable().optional(),
+});
+
+async function findUserByEmail(admin: ReturnType<typeof createClient>, email: string) {
+  let page = 1;
+
+  while (page <= 10) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
+    if (error) throw error;
+
+    const user = data.users.find((entry) => entry.email?.toLowerCase() === email);
+    if (user) return user;
+    if (data.users.length < 200) break;
+
+    page += 1;
+  }
+
+  return null;
+}
+
+async function ensureApprovedUser(admin: ReturnType<typeof createClient>, userId: string, invitedBy: string | null, note: string) {
+  const { error } = await admin.from("approved_users").upsert(
+    { user_id: userId, approved_by: invitedBy, notes: note },
+    { onConflict: "user_id" },
+  );
+
+  if (error) throw error;
+}
+
+async function acceptClubInvitationServerSide(admin: ReturnType<typeof createClient>, invitation: ClubInvitationRow, userId: string) {
+  await ensureApprovedUser(admin, userId, invitation.invited_by, "Auto-approved via club invitation signup");
+
+  const { error: clubMemberError } = await admin.from("club_members").upsert(
+    {
+      club_id: invitation.club_id,
+      user_id: userId,
+      role: invitation.role,
+      invited_by: invitation.invited_by,
+      assigned_categories: invitation.assigned_categories,
+    },
+    { onConflict: "club_id,user_id" },
+  );
+
+  if (clubMemberError) throw clubMemberError;
+
+  let categoryIds = invitation.assigned_categories ?? [];
+
+  if (categoryIds.length === 0) {
+    const { data: categories, error: categoriesError } = await admin
+      .from("categories")
+      .select("id")
+      .eq("club_id", invitation.club_id);
+
+    if (categoriesError) throw categoriesError;
+    categoryIds = (categories ?? []).map((category) => category.id as string);
+  }
+
+  if (categoryIds.length > 0) {
+    const { error: categoryMembersError } = await admin.from("category_members").upsert(
+      categoryIds.map((categoryId) => ({
+        category_id: categoryId,
+        user_id: userId,
+        role: invitation.role,
+        invited_by: invitation.invited_by,
+      })),
+      { onConflict: "category_id,user_id" },
+    );
+
+    if (categoryMembersError) throw categoryMembersError;
+  }
+
+  const { error: invitationError } = await admin
+    .from("club_invitations")
+    .update({ status: "accepted" })
+    .eq("id", invitation.id);
+
+  if (invitationError) throw invitationError;
+
+  return { redirectPath: `/clubs/${invitation.club_id}` };
+}
+
+async function acceptCategoryInvitationServerSide(admin: ReturnType<typeof createClient>, invitation: CategoryInvitationRow, userId: string) {
+  await ensureApprovedUser(admin, userId, invitation.invited_by, "Auto-approved via category invitation signup");
+
+  const { data: category, error: categoryError } = await admin
+    .from("categories")
+    .select("club_id")
+    .eq("id", invitation.category_id)
+    .single();
+
+  if (categoryError) throw categoryError;
+
+  const { error: categoryMemberError } = await admin.from("category_members").upsert(
+    {
+      category_id: invitation.category_id,
+      user_id: userId,
+      role: invitation.role,
+      invited_by: invitation.invited_by,
+    },
+    { onConflict: "category_id,user_id" },
+  );
+
+  if (categoryMemberError) throw categoryMemberError;
+
+  const { error: invitationError } = await admin
+    .from("category_invitations")
+    .update({ status: "accepted" })
+    .eq("id", invitation.id);
+
+  if (invitationError) throw invitationError;
+
+  return { redirectPath: `/clubs/${category.club_id}/categories/${invitation.category_id}` };
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -14,43 +151,17 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { token, kind, email, password, full_name, phone } = await req.json().catch(() => ({}));
+    const rawBody = await req.json().catch(() => null);
+    const parsedBody = BodySchema.safeParse(rawBody);
 
-    if (!token || typeof token !== "string") {
-      return new Response(JSON.stringify({ success: false, error: "Token manquant" }), {
+    if (!parsedBody.success) {
+      return new Response(JSON.stringify({ success: false, error: parsedBody.error.flatten().fieldErrors }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    if (kind !== "club" && kind !== "category") {
-      return new Response(JSON.stringify({ success: false, error: "Type d'invitation invalide" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (!email || typeof email !== "string") {
-      return new Response(JSON.stringify({ success: false, error: "Email manquant" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (!password || typeof password !== "string" || password.length < 6) {
-      return new Response(JSON.stringify({ success: false, error: "Mot de passe trop court" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (!full_name || typeof full_name !== "string") {
-      return new Response(JSON.stringify({ success: false, error: "Nom manquant" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
+    const { token, kind, email, password, full_name, phone } = parsedBody.data;
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const admin = createClient(supabaseUrl, serviceKey, {
@@ -59,79 +170,147 @@ Deno.serve(async (req) => {
 
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedName = full_name.trim();
-    const normalizedPhone = typeof phone === "string" && phone.trim().length > 0 ? phone.trim() : null;
+    const normalizedPhone = phone && phone.trim().length > 0 ? phone.trim() : null;
 
-    const { data: infoData, error: infoError } = await admin.rpc("get_invitation_info", {
-      _token: token,
-      _kind: kind,
-    });
+    if (kind === "club") {
+      const { data: invitation, error: invitationError } = await admin
+        .from("club_invitations")
+        .select("id, club_id, email, role, invited_by, status, expires_at, assigned_categories")
+        .eq("token", token)
+        .maybeSingle<ClubInvitationRow>();
 
-    if (infoError) {
-      console.error("get_invitation_info error", infoError);
-      return new Response(JSON.stringify({ success: false, error: "Erreur de validation" }), {
-        status: 500,
+      if (invitationError) throw invitationError;
+      if (!invitation) {
+        return new Response(JSON.stringify({ success: false, error: "Invitation introuvable" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (invitation.email.toLowerCase() !== normalizedEmail) {
+        return new Response(JSON.stringify({ success: false, error: "Utilisez l'email invité pour créer ce compte" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (invitation.expires_at && new Date(invitation.expires_at).getTime() <= Date.now()) {
+        return new Response(JSON.stringify({ success: false, error: "Invitation expirée" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (!["pending", "accepted"].includes(invitation.status)) {
+        return new Response(JSON.stringify({ success: false, error: "Invitation invalide" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const existingUser = await findUserByEmail(admin, normalizedEmail);
+      let userId = existingUser?.id ?? null;
+
+      if (existingUser) {
+        const { error: updateError } = await admin.auth.admin.updateUserById(existingUser.id, {
+          password,
+          email_confirm: true,
+          user_metadata: {
+            ...(existingUser.user_metadata || {}),
+            full_name: normalizedName,
+            phone: normalizedPhone || undefined,
+          },
+        });
+
+        if (updateError) throw updateError;
+      } else {
+        const { data: created, error: createError } = await admin.auth.admin.createUser({
+          email: normalizedEmail,
+          password,
+          email_confirm: true,
+          user_metadata: {
+            full_name: normalizedName,
+            phone: normalizedPhone || undefined,
+          },
+        });
+
+        if (createError || !created?.user) throw createError || new Error("Impossible de créer le compte");
+        userId = created.user.id;
+      }
+
+      const result = await acceptClubInvitationServerSide(admin, invitation, userId!);
+      return new Response(JSON.stringify({ success: true, user_id: userId, redirectPath: result.redirectPath }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const info = infoData as { success?: boolean; email?: string; status?: string; error?: string } | null;
-    if (!info?.success) {
-      return new Response(JSON.stringify({ success: false, error: info?.error || "Invitation invalide" }), {
+    const { data: invitation, error: invitationError } = await admin
+      .from("category_invitations")
+      .select("id, category_id, email, role, invited_by, status, expires_at")
+      .eq("token", token)
+      .maybeSingle<CategoryInvitationRow>();
+
+    if (invitationError) throw invitationError;
+    if (!invitation) {
+      return new Response(JSON.stringify({ success: false, error: "Invitation introuvable" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    if ((info.email || "").toLowerCase() !== normalizedEmail) {
+    if (invitation.email.toLowerCase() !== normalizedEmail) {
       return new Response(JSON.stringify({ success: false, error: "Utilisez l'email invité pour créer ce compte" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    if (info.status !== "pending") {
-      return new Response(JSON.stringify({ success: false, error: "Invitation déjà utilisée ou expirée" }), {
+    if (invitation.expires_at && new Date(invitation.expires_at).getTime() <= Date.now()) {
+      return new Response(JSON.stringify({ success: false, error: "Invitation expirée" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const { data: userList, error: listError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-    if (listError) {
-      console.error("listUsers error", listError);
-      return new Response(JSON.stringify({ success: false, error: "Impossible de vérifier le compte" }), {
-        status: 500,
+    if (!["pending", "accepted"].includes(invitation.status)) {
+      return new Response(JSON.stringify({ success: false, error: "Invitation invalide" }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const existingUser = userList.users.find((user) => user.email?.toLowerCase() === normalizedEmail);
+    const existingUser = await findUserByEmail(admin, normalizedEmail);
+    let userId = existingUser?.id ?? null;
+
     if (existingUser) {
-      return new Response(JSON.stringify({ success: false, error: "Un compte existe déjà avec cet email" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      const { error: updateError } = await admin.auth.admin.updateUserById(existingUser.id, {
+        password,
+        email_confirm: true,
+        user_metadata: {
+          ...(existingUser.user_metadata || {}),
+          full_name: normalizedName,
+          phone: normalizedPhone || undefined,
+        },
       });
+
+      if (updateError) throw updateError;
+    } else {
+      const { data: created, error: createError } = await admin.auth.admin.createUser({
+        email: normalizedEmail,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: normalizedName,
+          phone: normalizedPhone || undefined,
+        },
+      });
+
+      if (createError || !created?.user) throw createError || new Error("Impossible de créer le compte");
+      userId = created.user.id;
     }
 
-    const { data: created, error: createError } = await admin.auth.admin.createUser({
-      email: normalizedEmail,
-      password,
-      email_confirm: true,
-      user_metadata: {
-        full_name: normalizedName,
-        phone: normalizedPhone || undefined,
-      },
-    });
-
-    if (createError || !created?.user) {
-      console.error("createUser error", createError);
-      return new Response(JSON.stringify({ success: false, error: createError?.message || "Impossible de créer le compte" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(JSON.stringify({ success: true, user_id: created.user.id }), {
+    const result = await acceptCategoryInvitationServerSide(admin, invitation, userId!);
+    return new Response(JSON.stringify({ success: true, user_id: userId, redirectPath: result.redirectPath }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
