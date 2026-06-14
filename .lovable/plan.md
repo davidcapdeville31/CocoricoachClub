@@ -1,68 +1,88 @@
-## Objectif
 
-Distinguer clairement deux types de compétitions Bowling :
-- **Compétition Club** : créée par le coach, multi-participants, visible côté coach et alimente les stats club.
-- **Compétition Personnelle** : créée par l'athlète, mono-participant (lui-même), privée, alimente uniquement ses stats personnelles.
+# Filtre saison active + clôture/bilan de saison
 
-## 1. Base de données
+Objectif : quand le toggle **« Saison active uniquement »** est ON, tous les dashboards collectifs (Datas, Workload, Planification, Académie, Admin) ne montrent que les athlètes de la saison active **et** uniquement les données entre `start_date` et `end_date`. Les profils athlètes gardent leur historique complet. Ajout d'une action **Clôturer / Exporter bilan** dans Admin club › Saisons.
 
-Ajouter sur la table `matches` deux colonnes :
+---
 
-- `created_by_player_id uuid` (FK → `players.id`, nullable) — non null = compétition personnelle de cet athlète.
-- `is_personal boolean default false` — flag rapide pour filtrage.
+## 1. Datas — corriger le filtre actuel
 
-Index : `(category_id, is_personal)` pour les listings, `(created_by_player_id)` pour les vues athlète.
+Le toggle existe déjà (`SeasonRosterFilterToggle` dans `DatasTab.tsx`) mais les composants enfants ignorent `useSeasonFilteredPlayerIds` + la fenêtre de dates.
 
-Politiques RLS adaptées :
-- Coach : SELECT/UPDATE/DELETE sur les matchs club (`is_personal = false`) de ses catégories, comme aujourd'hui.
-- Coach : SELECT uniquement des matchs personnels (`is_personal = true`) via le profil athlète (filtré côté requête, pas bloqué RLS).
-- Athlète : SELECT/INSERT/UPDATE/DELETE de ses propres matchs personnels ; SELECT des matchs club où il est aligné.
+À patcher pour filtrer **et** par roster **et** par dates :
+- `PlayerCumulativeStats`, `TeamSportsAnalytics`
+- `BowlingCumulativeStats`, `BowlingTrainingStats`
+- `TennisTrainingStats`, `BasketballPrecisionTracker`
+- `PrecisionFieldTracker`, `PrecisionTrainingStats`
+- `AthleticsThrowingStats`, `AthleticsSprintStats`
 
-## 2. Création côté Athlète (AddMatchCalendarDialog en mode `athletePlayerId`)
+Pattern unique appliqué à chaque hook de fetch :
+- intersecter `playerId` avec `allowedIds` (via `useSeasonFilteredPlayerIds`)
+- filtrer la requête `match_date / session_date / created_at` avec `isDateInActiveSeason` (ou clause `.gte/.lte` côté Supabase quand possible)
 
-- Forcer `is_personal = true` et `created_by_player_id = playerId` dans le payload envoyé à l'edge function `athlete-create-match`.
-- L'edge function valide que `player.user_id === userId` (déjà fait), puis insère avec ces deux champs.
-- Auto-créer une ligne `match_lineups` (athlète = seul participant) pour que la compétition apparaisse immédiatement dans son onglet "Parties".
-- Masquer toute UI de sélection multi-participants côté athlète (déjà absente du dialog actuel — RAS, mais s'assurer qu'aucun bouton "Participants" n'apparaît côté espace athlète sur une compétition personnelle).
+## 2. Workload — ajouter le toggle + filtre
 
-## 3. Création côté Coach
+- Monter `<SeasonRosterFilterToggle />` en haut de `WorkloadTab` (alignement droite identique à Datas).
+- S'assurer que le `SeasonRosterFilterProvider` enveloppe déjà la page catégorie (sinon l'ajouter au layout).
+- Appliquer `useSeasonFilteredPlayerIds` + `isDateInActiveSeason` sur tous les hooks workload (RPE, EWMA/ACWR, tonnage, GPS, charts collectifs).
 
-Aucun changement de comportement : `is_personal = false`, `created_by_player_id = null`. La gestion des participants via "Participants" reste identique.
+## 3. Planification — masquer hors fenêtre
 
-## 4. Filtrage Coach (MatchesTab → "Gestion des compétitions")
+- Ajouter `<SeasonRosterFilterToggle />` dans `PlanificationTab`.
+- Dans `CalendarTab` : filtrer sessions, compétitions, événements via `isDateInActiveSeason(event.start)` quand ON.
+- Filtrer aussi le roster des sélecteurs d'athlètes (`allowedIds`).
+- Pour Ski (FIS/WSPL) et Athlétisme (records) : appliquer la fenêtre de dates et le roster aux requêtes correspondantes.
 
-- Ajouter `.eq("is_personal", false)` à la requête principale `["matches", categoryId]` dans `MatchesTab`.
-- Idem dans : `DecisionCenter` (upcoming_matches), `ReportsTab`, `MatchSheetsSection`, `AthleticsCompetitionAnalyticsTab`, `JudoCompetitionAnalyticsTab`, `useTeamSportsAnalytics`, `WeeklyPlanningCalendar`, `SessionHistoryTimeline`, `AnnualPlanningView` (compétitions club uniquement).
-- Conséquence : aucune compétition personnelle ne pollue plus les listes club, le calendrier club, les stats collectives, ni les PDF club.
+## 4. Académie — ajouter le filtre
 
-## 5. Espace Athlète
+- Ajouter `<SeasonRosterFilterToggle />` dans `AcademyTab`.
+- Filtrer notes, absences, retards, moyennes par `allowedIds` + `isDateInActiveSeason(date)`.
 
-- `AthleteSpaceCalendar` (queryKey `athlete-calendar-matches`) : afficher **(a)** les matchs club où l'athlète est aligné + **(b)** ses propres compétitions personnelles (`created_by_player_id = playerId`).
-- Onglet "Parties" / huilage / stats personnelles de l'athlète : inclure les compétitions personnelles + les compétitions club où il est aligné (déjà filtré par lineup).
+## 5. Admin (Administratif) — ajouter le filtre
 
-## 6. Accès Coach via profil athlète
+- Ajouter `<SeasonRosterFilterToggle />` dans `AdministratifTab`.
+- Filtrer pipeline recrutement, documents personnels, feuilles de match, etc. par roster + dates de saison.
 
-Dans la fiche joueur (player profile), ajouter une sous-section **"Compétitions personnelles"** dans l'onglet Historique / Compétitions du joueur :
-- Liste les `matches` où `created_by_player_id = player.id`.
-- Affiche les parties, huilages, résultats, en lecture seule par défaut (le coach peut consulter mais pas dupliquer dans la gestion club).
-- Badge visuel "Personnelle" pour bien distinguer.
+## 6. Clôture / Export bilan saison (Admin club › Saisons)
 
-## 7. Visuels & libellés
+Dans `SeasonsManager` (ou équivalent) :
+- Ajouter un bouton **« Clôturer & exporter bilan »** par saison.
+- Modal de confirmation listant ce qui sera inclus.
+- Génération **PDF complet** (jspdf + autoTable, comme les exports existants) :
+  - Page de garde : club, saison, dates, effectif
+  - Section globale effectif : RPE moyen, charge cumulée, blessures, dispo, présences
+  - Une section par athlète : identité, présences, charge (EWMA/ACWR), tests/PB, tonnage, blessures, compétitions
+- Génération **Excel multi-onglets** (`exceljs` + helpers `excelExport.ts`) :
+  - Onglets : Résumé, Effectif, RPE/Wellness, Tests, Tonnage, Compétitions, Blessures, Présences, Académie
+- **Aucune suppression** de données : la clôture met seulement `is_active=false` sur la saison (déjà géré) + log un événement `season_closed` dans `audit_events` avec lien vers le PDF.
+- Conserver les historiques individuels intacts (déjà le cas — pas de cascade delete).
 
-- Sur les cartes côté athlète : petit badge "Personnelle" (couleur cyan) vs "Club" (orange) pour clarifier l'origine.
-- Côté coach (uniquement dans le profil joueur) : même badge "Personnelle".
+## 7. Historiques athlètes — vérification
 
-## 8. Tests manuels (validation)
+Le filtre saison ne doit jamais s'appliquer dans **`PlayerProfile`** et ses sous-onglets (blessures, programmation, tests, biométrie, etc.). Le `SeasonRosterFilterProvider` n'est pas monté sur ces routes — confirmer et ajouter un commentaire de garde si besoin.
 
-1. Coach crée compétition → visible Gestion compétitions, visible calendrier athlètes sélectionnés.
-2. Athlète A crée compétition perso → invisible côté coach (Gestion), visible dans son calendrier + ses parties + ses stats.
-3. Athlète B ne voit jamais la compétition perso de A.
-4. Coach ouvre profil Athlète A → onglet "Compétitions personnelles" → voit la compét perso de A uniquement.
-5. Stats club : pas d'impact des compétitions perso (vérifier ReportsTab + analytics).
+---
 
-## Détails techniques (pour info)
+## Détails techniques
 
-- Migration SQL : `ALTER TABLE matches ADD COLUMN created_by_player_id uuid REFERENCES players(id) ON DELETE SET NULL, ADD COLUMN is_personal boolean NOT NULL DEFAULT false;` + index.
-- Backfill : rien à migrer (toutes les compétitions existantes restent `is_personal = false`).
-- Edge function `athlete-create-match` : ajouter les 2 champs au whitelist + auto-insert `match_lineups`.
-- Pas de changement sur `match_lineups`, `bowling_oil_patterns`, `bowling_training_games` — le filtrage par `match_id` suffit naturellement.
+- `SeasonRosterFilterContext` expose déjà `isDateInActiveSeason()` et `matches()` → réutilisés partout.
+- `useSeasonFilteredPlayerIds(categoryId)` renvoie `allowedIds: Set<string> | null`. Pattern d'usage côté hook :
+  ```ts
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const filtered = useMemo(
+    () => rows.filter(r => (!allowedIds || allowedIds.has(r.player_id)) && isDateInActiveSeason(r.date)),
+    [rows, allowedIds, isDateInActiveSeason],
+  );
+  ```
+- Pour les requêtes Supabase volumineuses, préférer un filtre **côté SQL** avec `.gte('date', activeSeasonStart).lte('date', activeSeasonEnd)` quand le toggle est ON, sinon pas de clause.
+- Export PDF/Excel : nouveau module `src/lib/seasonReport/` avec `buildSeasonPdf.ts` et `buildSeasonXlsx.ts`, branché depuis le bouton dans `SeasonsManager`.
+
+---
+
+## Périmètre exclu (ne change pas)
+
+- Profils athlètes individuels : aucun filtre saison appliqué.
+- Datas spécifiques par sport (sauf branchement du filtre) : pas de refonte métier.
+- Clôture : `is_active` reste géré comme aujourd'hui, on ajoute juste l'export + un événement d'audit.
+
+Confirme-moi ce plan (ou indique les parties à élaguer / prioriser) et je l'implémente.
