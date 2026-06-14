@@ -588,6 +588,17 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
       e.preventDefault();
       const prev = findPrevThrow(frameIndex, throwIndex, frames);
       if (prev) focusInput(prev[0], prev[1]);
+    } else if (e.key === "Backspace" || e.key === "Delete") {
+      const currentValue = frames[frameIndex]?.throws[throwIndex]?.value || "";
+      // If the current cell is already empty, jump to previous cell and clear it
+      if (currentValue === "") {
+        e.preventDefault();
+        const prev = findPrevThrow(frameIndex, throwIndex, frames);
+        if (prev) {
+          handleThrowInput(prev[0], prev[1], "");
+          focusInput(prev[0], prev[1]);
+        }
+      }
     }
   };
 
