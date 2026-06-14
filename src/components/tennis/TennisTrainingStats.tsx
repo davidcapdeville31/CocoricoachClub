@@ -92,6 +92,23 @@ export function TennisTrainingStats({ categoryId }: TennisTrainingStatsProps) {
     },
   });
 
+  const drillData = useMemo(
+    () =>
+      (drillDataRaw || []).filter(
+        (d: any) =>
+          (!allowedIds || allowedIds.has(d.player_id)) && isDateInActiveSeason(d.session_date),
+      ),
+    [drillDataRaw, allowedIds, isDateInActiveSeason],
+  );
+  const matchData = useMemo(
+    () =>
+      (matchDataRaw || []).filter(
+        (d) =>
+          (!allowedIds || allowedIds.has(d.playerId)) && isDateInActiveSeason(d.matchDate),
+      ),
+    [matchDataRaw, allowedIds, isDateInActiveSeason],
+  );
+
   // All players from both sources
   const players = useMemo(() => {
     const map = new Map<string, string>();
