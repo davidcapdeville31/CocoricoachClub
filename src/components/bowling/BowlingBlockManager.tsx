@@ -92,6 +92,7 @@ interface BowlingBlockManagerProps {
   onScoreSave: (roundNumber: number, stats: BowlingStats, frames: FrameData[], ballData?: any) => void;
   onLock: (roundNumber: number) => void;
   onUnlock: (roundNumber: number) => void;
+  compact?: boolean;
 }
 
 export function BowlingBlockManager({
@@ -106,6 +107,7 @@ export function BowlingBlockManager({
   onScoreSave,
   onLock,
   onUnlock,
+  compact = false,
 }: BowlingBlockManagerProps) {
   // Track which locked rounds are expanded (default collapsed for compact view)
   const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set());
@@ -467,6 +469,7 @@ export function BowlingBlockManager({
                             <>
                               <CardContent className="pt-0">
                                 <BowlingScoreSheet
+                                  compact={compact}
                                   trackPockets={block.trackPockets !== false}
                                   key={`bowling-${round.round_number}-${round.isLocked}`}
                                   initialFrames={round.bowlingFrames}

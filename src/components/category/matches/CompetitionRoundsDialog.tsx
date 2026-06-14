@@ -1891,6 +1891,7 @@ export function CompetitionRoundsDialog({
                           </div>
                         )}
                         <BowlingBlockManager
+                          compact={!!selectedPlayer2}
                           playerId={p!.playerId}
                           categoryId={categoryId}
                           matchId={matchId}
