@@ -819,6 +819,7 @@ const CircuitExerciseSlot = ({
   restSeconds?: number;
   onRestChange?: (seconds: number) => void;
   showPerExerciseRest?: boolean;
+  onPick?: (picked: { id: string; name: string }) => void;
 }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: slotId,
