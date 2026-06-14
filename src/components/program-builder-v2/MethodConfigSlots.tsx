@@ -1269,6 +1269,7 @@ export const MethodConfigSlots = ({
   onExerciseRemove,
   droppedPhaseExercises = {},
   onPhaseExerciseRemove,
+  onPhaseExerciseAdd,
   onApplyToAllIntervals,
   onClearAllPhaseExercises,
   initialData,
