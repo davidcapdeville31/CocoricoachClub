@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 import { 
   DailyLoadData, 
   MetricType, 
@@ -13,6 +14,7 @@ import {
   getAvailableMetrics,
   getRiskLevel,
 } from "@/lib/trainingLoadCalculations";
+
 
 /**
  * Build EWMA chart data from DB-computed values (acute_load, chronic_load, awcr).
