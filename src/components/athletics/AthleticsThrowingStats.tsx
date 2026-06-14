@@ -110,8 +110,11 @@ export function AthleticsThrowingStats({ categoryId }: Props) {
     },
   });
   const players = useMemo(
-    () => (allPlayers as any[]).filter((p) => practicesAny(p, ["lancers"])),
-    [allPlayers],
+    () =>
+      (allPlayers as any[])
+        .filter((p) => practicesAny(p, ["lancers"]))
+        .filter((p) => !seasonAllowedIds || seasonAllowedIds.has(p.id)),
+    [allPlayers, seasonAllowedIds],
   );
   const allowedPlayerIds = useMemo(() => new Set(players.map((p: any) => p.id)), [players]);
 
