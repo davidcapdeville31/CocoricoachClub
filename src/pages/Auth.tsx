@@ -85,10 +85,16 @@ async function signUpFromInvitation(params: {
   });
 
   if (error) {
+    let errorMessage = error.message || "Erreur lors de la création du compte d'invitation";
+
+    if (errorMessage.includes("weak") || errorMessage.includes("pwned") || errorMessage.includes("easy to guess")) {
+      errorMessage = "Mot de passe trop faible ou compromis : choisis un mot de passe plus fort.";
+    }
+
     return {
       success: false,
       handled: true as const,
-      error: error.message || "Erreur lors de la création du compte d'invitation",
+      error: errorMessage,
     };
   }
 
