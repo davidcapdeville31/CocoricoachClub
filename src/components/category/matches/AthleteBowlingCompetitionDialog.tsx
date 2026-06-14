@@ -66,6 +66,7 @@ interface OilPatternDraft {
   outside_friction: string;
   notes: string;
   assigned: boolean;
+  image_url: string | null;
 }
 
 const createEmptyPattern = (): OilPatternDraft => ({
@@ -83,6 +84,7 @@ const createEmptyPattern = (): OilPatternDraft => ({
   outside_friction: "",
   notes: "",
   assigned: false,
+  image_url: null,
 });
 
 const toNullableNumber = (value: string) => {
@@ -108,6 +110,7 @@ const mapPatternToDraft = (pattern: any, assignedIds: Set<string>): OilPatternDr
   outside_friction: pattern.outside_friction || "",
   notes: pattern.notes || "",
   assigned: assignedIds.has(pattern.id),
+  image_url: pattern.image_url_male || pattern.image_url_female || pattern.image_url || null,
 });
 
 const buildRoundsState = (
@@ -569,6 +572,25 @@ export function AthleteBowlingCompetitionDialog({
                       )}
                     </CardHeader>
                     <CardContent className="space-y-4">
+                      {pattern.image_url && (
+                        <div className="space-y-2">
+                          <Label>Image du huilage</Label>
+                          <a
+                            href={pattern.image_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block"
+                            style={{ maxWidth: "220px" }}
+                          >
+                            <img
+                              src={pattern.image_url}
+                              alt="Oil pattern"
+                              className="w-full rounded-lg border cursor-zoom-in hover:opacity-90"
+                              style={{ aspectRatio: "4/5", objectFit: "cover" }}
+                            />
+                          </a>
+                        </div>
+                      )}
                       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                         <div className="space-y-2 xl:col-span-2">
                           <Label>Preset</Label>
