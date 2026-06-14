@@ -172,9 +172,13 @@ export function AthleteSpaceWellness({ playerId, categoryId, hideHistory }: Prop
   }, [activeQuestions, existingWellness, selectedDateStr]);
 
   const allFieldsFilled = useMemo(() => {
-
-    return activeQuestions.every(q => touched.has(q.key));
-  }, [activeQuestions, touched]);
+    // Une valeur par défaut valide est acceptée : pas besoin de re-cliquer
+    // chaque indicateur si l'athlète est d'accord avec la valeur affichée.
+    return activeQuestions.every(q => {
+      const v = values[q.key];
+      return typeof v === "number" && Number.isFinite(v);
+    });
+  }, [activeQuestions, values]);
 
   // (legacy zone dropdown removed in favor of BodyPainSelector)
 
