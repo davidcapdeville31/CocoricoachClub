@@ -475,8 +475,8 @@ function DetailedModeRows({
     <div className="space-y-1.5">
       {entry.series.map((serie, idx) => (
         <div key={idx} className="flex items-center gap-1.5">
-          <span className="text-[10px] text-muted-foreground w-12 shrink-0">
-            Série {idx + 1}
+          <span className="text-[10px] text-muted-foreground w-14 shrink-0">
+            {(entry.seriesLabel || "Série")} {idx + 1}
           </span>
           <Input
             type="number"
