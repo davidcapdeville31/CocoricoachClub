@@ -40,22 +40,19 @@
   est recalculé instantanément quand le toggle change.
 
 ## 🔧 Reste à faire (passes ciblées)
-- **Datas children** : appliquer `useSeasonFilteredPlayerIds` + `isDateInActiveSeason` dans
-  `PlayerCumulativeStats` (3018 lignes — gros chantier), `BowlingCumulativeStats`,
-  `TennisTrainingStats`, `BasketballPrecisionTracker`, `PrecisionFieldTracker`,
-  `PrecisionTrainingStats`, `AthleticsThrowingStats`, `AthleticsSprintStats`
-  (la plupart ont déjà l'import — vérifier qu'ils appliquent le filtre dans **toutes**
-  les requêtes/aggregations + ajouter scopeKey dans queryKey).
+- **Datas children** : ✅ filtre appliqué dans `PlayerCumulativeStats`,
+  `BowlingCumulativeStats`, `BowlingTrainingStats`, `TennisTrainingStats`,
+  `BasketballPrecisionTracker`, `PrecisionFieldTracker`, `PrecisionTrainingStats`,
+  `AthleticsThrowingStats`, `AthleticsSprintStats` (roster + date + scopeKey
+  embarqués dans queryKey).
   `TeamSportsAnalytics` bénéficie déjà via les hooks partagés ; vérifier les onglets
   enfants (`GeneralTab`, `CompareTab`, `PlayerStatsTab`, `HistoryTab`) pour les fetches
   directs hors hooks partagés.
-- **Workload children** : `TrainingLoadTab` et ses sous-composants (`TrainingLoadKPIs`,
-  `TrainingLoadChart`, `TrainingLoadCalendar`, `RpePlanVsActual`, `TeamLoadComparison`,
-  `HrvAnalysisPanel`, `TrainingLoadAlerts`, `TrainingDistribution`) sont alimentés par
-  `useTrainingLoad` → déjà filtrés. Vérifier qu'aucun fetch parallèle ne contourne.
-  `AvailabilityScoreTab`, `InjuryRiskPrediction`, `TonnageDashboard`,
-  `PerformanceEvolution`, `PendingWeightLogsValidation`, `PendingTestResultsValidation` :
-  ajouter filtres roster + dates + garde-fou mutations.
+- **Workload children** : `TrainingLoadTab` et ses sous-composants sont alimentés par
+  `useTrainingLoad` → déjà filtrés.
+  ✅ `AvailabilityScoreTab`, `InjuryRiskPrediction`, `TonnageDashboard`,
+  `PerformanceEvolution` filtrent désormais roster + dates + scopeKey.
+  Reste : `PendingWeightLogsValidation`, `PendingTestResultsValidation`.
 - **Planification / Ski + Athlétisme** : `FisRankingTab`, `AthleticsRecordsTab` →
   filtrer joueurs ; records absolus (PB) restent visibles, SB de la saison se contente du roster.
 - **Santé children** : `CoachDashboard`, `MedicalRecordsTab`, `WellnessTab`,
