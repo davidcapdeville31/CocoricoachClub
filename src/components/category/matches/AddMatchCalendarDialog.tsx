@@ -27,6 +27,7 @@ import { getCompetitionsBySport, getCompetitionStagesBySport } from "@/lib/const
 import { isIndividualSport, isBasket3x3 } from "@/lib/constants/sportTypes";
 import { Info } from "lucide-react";
 import { TOURNAMENT_LEVELS, SELECTION_TYPES } from "@/lib/judo/competitionAnalytics";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface AddMatchCalendarDialogProps {
   open: boolean;
@@ -135,6 +136,7 @@ export function AddMatchCalendarDialog({
   const format3x3 = "fiba_standard";
   
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
 
   const COMPETITION_STAGES = getCompetitionStagesBySport(sportType || "XV");
 
@@ -143,6 +145,9 @@ export function AddMatchCalendarDialog({
 
   const addMatch = useMutation({
     mutationFn: async () => {
+      if (!guard.assertDate(matchDate)) throw new Error("guard:date");
+      if (endDate && !guard.assertDate(endDate)) throw new Error("guard:date");
+      if (athletePlayerId && !guard.assertPlayer(athletePlayerId)) throw new Error("guard:player");
       const payload = {
         category_id: categoryId,
         opponent: isIndividual ? (opponent || (hasTournamentBracket ? "Tournoi" : "Compétition")) : opponent,
@@ -187,7 +192,8 @@ export function AddMatchCalendarDialog({
       resetForm();
       onOpenChange(false);
     },
-    onError: () => {
+    onError: (err: any) => {
+      if (typeof err?.message === "string" && err.message.startsWith("guard:")) return;
       toast.error(isIndividual ? "Erreur lors de l'ajout de la compétition" : "Erreur lors de l'ajout du match");
     },
   });
