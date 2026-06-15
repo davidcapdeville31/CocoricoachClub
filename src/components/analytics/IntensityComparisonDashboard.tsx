@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,8 +23,10 @@ import { Target, Users, AlertTriangle, TrendingUp, TrendingDown, Minus, Calculat
 import { format, subDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { calculateWeightedRpe, checkTeamRpeAlert } from "@/lib/weightedRpeCalculations";
+import { calculateWeightedRpe, checkTeamRpeAlert, type SessionBlock } from "@/lib/weightedRpeCalculations";
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface IntensityComparisonDashboardProps {
   categoryId: string;
@@ -34,16 +36,26 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
   const [selectedPlayer, setSelectedPlayer] = useState<string>("all");
   const [selectedPosition, setSelectedPosition] = useState<string>("all");
   const [dateRange, setDateRange] = useState<string>("30");
+  const { activeSeasonOnly, activeSeasonId, activeSeasonStart, activeSeasonEnd, isDateInActiveSeason } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const scopeKey = activeSeasonOnly && activeSeasonId ? `season:${activeSeasonId}` : "all";
+  const allowedIdsKey = allowedIds ? Array.from(allowedIds).sort().join(",") : "all";
 
   // Fetch players
   const { data: players } = useQuery({
-    queryKey: ["players-intensity", categoryId],
+    queryKey: ["players-intensity", categoryId, scopeKey],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("players")
-        .select("id, name, first_name, position")
+        .select("id, name, first_name, position, season_id")
         .eq("category_id", categoryId)
         .order("name");
+
+      if (activeSeasonOnly && activeSeasonId) {
+        query = query.eq("season_id", activeSeasonId).not("season_id", "is", null);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data?.map(p => ({ ...p, fullName: [p.first_name, p.name].filter(Boolean).join(" ") }));
     },
@@ -51,23 +63,28 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
   // Fetch sessions with planned intensity
   const { data: sessions } = useQuery({
-    queryKey: ["sessions-intensity", categoryId, dateRange],
+    queryKey: ["sessions-intensity", categoryId, dateRange, scopeKey, activeSeasonStart, activeSeasonEnd],
     queryFn: async () => {
       const fromDate = subDays(new Date(), parseInt(dateRange)).toISOString().split("T")[0];
-      const { data, error } = await supabase
+      let query = supabase
         .from("training_sessions")
         .select("id, session_date, training_type, intensity, notes")
         .eq("category_id", categoryId)
-        .gte("session_date", fromDate)
-        .order("session_date");
+        .gte("session_date", activeSeasonOnly && activeSeasonStart && activeSeasonStart > fromDate ? activeSeasonStart : fromDate);
+
+      if (activeSeasonOnly && activeSeasonEnd) {
+        query = query.lte("session_date", activeSeasonEnd);
+      }
+
+      const { data, error } = await query.order("session_date");
       if (error) throw error;
-      return data;
+      return (data || []).filter((session) => isDateInActiveSeason(session.session_date));
     },
   });
 
   // Fetch session blocks for weighted RPE calculation
   const { data: sessionBlocks } = useQuery({
-    queryKey: ["session-blocks-intensity", categoryId, dateRange],
+    queryKey: ["session-blocks-intensity", categoryId, dateRange, scopeKey, sessions?.map(s => s.id).join(",")],
     queryFn: async () => {
       if (!sessions || sessions.length === 0) return [];
       const sessionIds = sessions.map(s => s.id);
@@ -84,17 +101,32 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
 
   // Fetch AWCR data (actual RPE)
   const { data: awcrData } = useQuery({
-    queryKey: ["awcr-intensity", categoryId, dateRange],
+    queryKey: ["awcr-intensity", categoryId, dateRange, scopeKey, allowedIdsKey, activeSeasonStart, activeSeasonEnd],
     queryFn: async () => {
       const fromDate = subDays(new Date(), parseInt(dateRange)).toISOString().split("T")[0];
-      const { data, error } = await supabase
+      if (allowedIds && allowedIds.size === 0) return [];
+
+      let query = supabase
         .from("awcr_tracking")
         .select("player_id, session_date, rpe, training_session_id, training_load")
         .eq("category_id", categoryId)
-        .gte("session_date", fromDate)
-        .order("session_date");
+        .gte("session_date", activeSeasonOnly && activeSeasonStart && activeSeasonStart > fromDate ? activeSeasonStart : fromDate);
+
+      if (activeSeasonOnly && activeSeasonEnd) {
+        query = query.lte("session_date", activeSeasonEnd);
+      }
+
+      if (allowedIds) {
+        query = query.in("player_id", Array.from(allowedIds));
+      }
+
+      const { data, error } = await query.order("session_date");
       if (error) throw error;
-      return data;
+      return (data || []).filter((entry) => {
+        if (!isDateInActiveSeason(entry.session_date)) return false;
+        if (!allowedIds) return true;
+        return allowedIds.has(entry.player_id);
+      });
     },
   });
 
@@ -111,6 +143,12 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     if (selectedPosition === "all") return players;
     return players.filter(p => p.position === selectedPosition);
   }, [players, selectedPosition]);
+
+  useEffect(() => {
+    if (selectedPlayer !== "all" && !filteredPlayers.some((p) => p.id === selectedPlayer)) {
+      setSelectedPlayer("all");
+    }
+  }, [filteredPlayers, selectedPlayer]);
 
   // Group session blocks by session ID
   const blocksBySession = useMemo(() => {
@@ -145,7 +183,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     sessions.forEach(session => {
       // Calculate weighted RPE from blocks if available
       const blocks = blocksBySession.get(session.id) || [];
-      const weightedResult = calculateWeightedRpe(blocks as any);
+      const weightedResult = calculateWeightedRpe(blocks as SessionBlock[]);
       
       // Use weighted RPE if available, otherwise fall back to session intensity
       const effectivePlanned = weightedResult.hasValidData 
@@ -216,7 +254,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
           if (session) {
             // Calculate weighted RPE for this session
             const blocks = blocksBySession.get(session.id) || [];
-            const weightedResult = calculateWeightedRpe(blocks as any);
+            const weightedResult = calculateWeightedRpe(blocks as SessionBlock[]);
             const effectivePlanned = weightedResult.hasValidData 
               ? weightedResult.weightedRpe 
               : session.intensity || 0;
