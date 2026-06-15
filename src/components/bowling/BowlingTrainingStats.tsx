@@ -632,7 +632,7 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       sessionIds.add(b.session_id || `${b.athlete_id}-${b.session_date.slice(0, 10)}`);
     });
 
-    const minutesByTheme: Record<string, number> = { warmup: 0, technical: 0, tactical: 0, games: 0, mental: 0 };
+    const minutesByTheme: Record<string, number> = { warmup: 0, technical: 0, tactical: 0, games: 0, mental: 0, strength: 0 };
     let totalMinutes = 0;
     filtered.forEach((b) => {
       const d = b.duration_min || 0;
@@ -658,6 +658,24 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       mentalSessionIds.add(s.id);
     });
 
+    // Filter strength (musculation) sessions
+    const strengthFiltered = strengthSessions.filter((s) => {
+      if (!dateFilter(s.session_date)) return false;
+      if (!inPeriod(s.session_date)) return false;
+      const effectivePlayer = playerId || (selectedPlayerId !== "all" ? selectedPlayerId : null);
+      if (effectivePlayer) {
+        if (!s.player_ids.includes(effectivePlayer)) return false;
+      }
+      return true;
+    });
+    const strengthSessionIds = new Set<string>();
+    strengthFiltered.forEach((s) => {
+      const d = s.duration_min || 0;
+      minutesByTheme.strength += d;
+      totalMinutes += d;
+      strengthSessionIds.add(s.id);
+    });
+
     // Time buckets
     const bucketKey = (iso: string) => {
       const d = new Date(iso);
@@ -677,11 +695,11 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
       return { key: format(m, "yyyy-MM"), label: format(m, "MMM yy", { locale: fr }), order: m.getTime() };
     };
 
-    const buckets = new Map<string, { label: string; order: number; warmup: number; technical: number; tactical: number; games: number; mental: number; total: number }>();
+    const buckets = new Map<string, { label: string; order: number; warmup: number; technical: number; tactical: number; games: number; mental: number; strength: number; total: number }>();
     filtered.forEach((b) => {
       const { key, label, order } = bucketKey(b.session_date);
       const d = (b.duration_min || 0) / 60; // hours
-      const cur = buckets.get(key) || { label, order, warmup: 0, technical: 0, tactical: 0, games: 0, mental: 0, total: 0 };
+      const cur = buckets.get(key) || { label, order, warmup: 0, technical: 0, tactical: 0, games: 0, mental: 0, strength: 0, total: 0 };
       if ((cur as any)[b.block_type] !== undefined) (cur as any)[b.block_type] += d;
       cur.total += d;
       buckets.set(key, cur);
@@ -689,14 +707,22 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     mentalFiltered.forEach((s) => {
       const { key, label, order } = bucketKey(s.session_date);
       const d = (s.duration_min || 0) / 60;
-      const cur = buckets.get(key) || { label, order, warmup: 0, technical: 0, tactical: 0, games: 0, mental: 0, total: 0 };
+      const cur = buckets.get(key) || { label, order, warmup: 0, technical: 0, tactical: 0, games: 0, mental: 0, strength: 0, total: 0 };
       cur.mental += d;
+      cur.total += d;
+      buckets.set(key, cur);
+    });
+    strengthFiltered.forEach((s) => {
+      const { key, label, order } = bucketKey(s.session_date);
+      const d = (s.duration_min || 0) / 60;
+      const cur = buckets.get(key) || { label, order, warmup: 0, technical: 0, tactical: 0, games: 0, mental: 0, strength: 0, total: 0 };
+      cur.strength += d;
       cur.total += d;
       buckets.set(key, cur);
     });
 
     const chartData = Array.from(buckets.values()).sort((a, b) => a.order - b.order).map((b) => {
-      const total = b.warmup + b.technical + b.tactical + b.games + b.mental;
+      const total = b.warmup + b.technical + b.tactical + b.games + b.mental + b.strength;
       return {
         label: b.label,
         "Échauffement": Math.round(b.warmup * 10) / 10,
@@ -704,13 +730,14 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
         "Tactique": Math.round(b.tactical * 10) / 10,
         "Parties": Math.round(b.games * 10) / 10,
         "Mental": Math.round(b.mental * 10) / 10,
-        __raw: { "Échauffement": b.warmup, "Technique": b.technical, "Tactique": b.tactical, "Parties": b.games, "Mental": b.mental },
+        "Musculation": Math.round(b.strength * 10) / 10,
+        __raw: { "Échauffement": b.warmup, "Technique": b.technical, "Tactique": b.tactical, "Parties": b.games, "Mental": b.mental, "Musculation": b.strength },
         __total: total,
       };
     });
 
     return {
-      sessionsCount: sessionIds.size + mentalSessionIds.size,
+      sessionsCount: sessionIds.size + mentalSessionIds.size + strengthSessionIds.size,
       totalHours: totalMinutes / 60,
       hoursByTheme: {
         warmup: minutesByTheme.warmup / 60,
@@ -718,11 +745,12 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
         tactical: minutesByTheme.tactical / 60,
         games: minutesByTheme.games / 60,
         mental: minutesByTheme.mental / 60,
+        strength: minutesByTheme.strength / 60,
       },
       chartData,
-      blockCount: filtered.length + mentalFiltered.length,
+      blockCount: filtered.length + mentalFiltered.length + strengthFiltered.length,
     };
-  }, [trainingBlocks, mentalSessions, selectedPlayerId, playerId, dateFrom, dateTo, globalPeriod]);
+  }, [trainingBlocks, mentalSessions, strengthSessions, selectedPlayerId, playerId, dateFrom, dateTo, globalPeriod]);
 
 
   // Get unique balls used by all players for ball filter
