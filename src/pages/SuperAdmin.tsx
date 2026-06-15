@@ -106,7 +106,8 @@ const TABS = [
      return null;
    }
  
-    const [activeTab, setActiveTab] = useState(defaultTab);
+
+
 
     const handleTabChange = (value: string) => {
       setActiveTab(value);
