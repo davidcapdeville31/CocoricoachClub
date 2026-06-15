@@ -57,10 +57,24 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
   const [selectedTest, setSelectedTest] = useState<string>("");
   const [viewMode, setViewMode] = useState<ViewMode>("team");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
+  const { allowedIds, isFiltering } = useSeasonFilteredPlayerIds(categoryId);
+  const { isDateInActiveSeason, activeSeasonEnd } = useSeasonRosterFilter();
+  const scopeKey = isFiltering ? `season:${activeSeasonEnd ?? "x"}` : "all";
+  const filterRows = useCallback(
+    <T extends { player_id?: string | null; test_date?: string | null }>(rows: T[] | undefined | null): T[] => {
+      if (!rows) return [];
+      return rows.filter(
+        (r) =>
+          (!allowedIds || (r.player_id && allowedIds.has(r.player_id))) &&
+          isDateInActiveSeason(r.test_date ?? undefined)
+      );
+    },
+    [allowedIds, isDateInActiveSeason]
+  );
 
   // Fetch players
-  const { data: players } = useQuery({
-    queryKey: ["players-evolution", categoryId],
+  const { data: playersRaw } = useQuery({
+    queryKey: ["players-evolution", categoryId, scopeKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
@@ -74,6 +88,10 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
       }));
     },
   });
+  const players = useMemo(
+    () => (allowedIds ? (playersRaw || []).filter((p) => allowedIds.has(p.id)) : playersRaw),
+    [playersRaw, allowedIds]
+  );
 
   const { data: speedTests, isLoading: loadingSpeed } = useQuery({
     queryKey: ["speed-tests-evolution", categoryId],
