@@ -56,7 +56,7 @@ export function AddInjuryDialog({
 
   const selectedInjury = RUGBY_INJURY_TYPES.find(i => i.name === injuryType);
 
-  const { data: players } = useQuery({
+  const { data: playersAll } = useQuery({
     queryKey: ["players", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -69,6 +69,7 @@ export function AddInjuryDialog({
     },
     enabled: !playerId,
   });
+  const players = (playersAll || []).filter((p: any) => guard.isPlayerAllowed(p.id));
 
   const addInjury = useMutation({
     mutationFn: async () => {
