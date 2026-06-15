@@ -11,6 +11,8 @@ import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend
 } from "recharts";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 
 interface TonnageDashboardProps {
   categoryId: string;
