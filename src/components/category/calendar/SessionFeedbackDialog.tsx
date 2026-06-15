@@ -27,6 +27,7 @@ import { PrecisionFieldTracker } from "@/components/rugby/PrecisionFieldTracker"
 import { BasketballPrecisionTracker } from "@/components/basketball/BasketballPrecisionTracker";
 import { isBasketballPrecisionSport } from "@/lib/constants/basketballPrecisionExercises";
 import { BowlingSessionContent } from "@/components/bowling/BowlingSessionContent";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface SessionFeedbackDialogProps {
   open: boolean;
@@ -63,6 +64,7 @@ export function SessionFeedbackDialog({
   const [weightLogs, setWeightLogs] = useState<Record<string, Record<string, { weight: string; sets: string; reps: string }>>>({});
   const [activeTab, setActiveTab] = useState(sessionType === "precision" ? "precision" : "rpe");
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
 
   // Fetch category to get sport type
   const { data: category } = useQuery({
@@ -353,9 +355,11 @@ export function SessionFeedbackDialog({
   const saveData = useMutation({
     mutationFn: async () => {
       if (!session?.session_date) throw new Error("Date de séance manquante");
-      
+      if (!guard.assertDate(session.session_date)) throw new Error("guard:date");
+
       // Save RPE data
       const playersToSave = players?.filter((p) => rpeValues[p.id]?.rpe && rpeValues[p.id]?.duration) || [];
+      if (playersToSave.length > 0 && !guard.assertPlayers(playersToSave.map((p) => p.id))) throw new Error("guard:players");
 
       for (const player of playersToSave) {
         const existingEntry = existingRpe?.find((r) => r.player_id === player.id);

@@ -16,6 +16,7 @@ import { Dumbbell } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface QuickRpeEntryDialogProps {
   open: boolean;
@@ -35,6 +36,7 @@ export function QuickRpeEntryDialog({
   sessionDate,
 }: QuickRpeEntryDialogProps) {
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
   const [rpeValues, setRpeValues] = useState<Record<string, { rpe: string; duration: string }>>({});
   const [weightLogs, setWeightLogs] = useState<Record<string, Record<string, WeightEntry>>>({});
 
@@ -118,6 +120,7 @@ export function QuickRpeEntryDialog({
 
   const save = useMutation({
     mutationFn: async () => {
+      if (!guard.assertDate(sessionDate)) throw new Error("guard:date");
       // RPE
       const rpeEntries = players
         ?.filter((p) => rpeValues[p.id]?.rpe && rpeValues[p.id]?.duration)
@@ -129,6 +132,7 @@ export function QuickRpeEntryDialog({
           rpe: parseInt(rpeValues[p.id].rpe),
           duration_minutes: parseInt(rpeValues[p.id].duration),
         }));
+      if (rpeEntries && rpeEntries.length > 0 && !guard.assertPlayers(rpeEntries.map((e) => e.player_id))) throw new Error("guard:players");
 
       if (rpeEntries && rpeEntries.length > 0) {
         const { error } = await supabase.from("awcr_tracking").insert(rpeEntries);
@@ -137,6 +141,7 @@ export function QuickRpeEntryDialog({
 
       // Weight logs (staff-validated by default)
       const weightRecords: any[] = [];
+      const weightPlayerIds = new Set<string>();
       Object.entries(weightLogs).forEach(([playerId, exMap]) => {
         Object.entries(exMap).forEach(([exerciseName, vals]) => {
           const w = parseFloat(vals.weight);
@@ -154,8 +159,10 @@ export function QuickRpeEntryDialog({
             submitted_via: "staff",
             validation_status: "validated",
           });
+          weightPlayerIds.add(playerId);
         });
       });
+      if (weightPlayerIds.size > 0 && !guard.assertPlayers(Array.from(weightPlayerIds))) throw new Error("guard:players");
       if (weightRecords.length > 0) {
         const { error } = await supabase
           .from("athlete_exercise_logs")
@@ -177,7 +184,10 @@ export function QuickRpeEntryDialog({
       setRpeValues({});
       onOpenChange(false);
     },
-    onError: (error: any) => toast.error(error?.message || "Erreur lors de l'enregistrement"),
+    onError: (error: any) => {
+      if (typeof error?.message === "string" && error.message.startsWith("guard:")) return;
+      toast.error(error?.message || "Erreur lors de l'enregistrement");
+    },
   });
 
   const handleRpeChange = (playerId: string, field: "rpe" | "duration", value: string) => {

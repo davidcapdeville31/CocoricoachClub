@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Users, Clock, Activity, AlertTriangle, Check, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface QuickTeamRpeDialogProps {
   open: boolean;
@@ -39,6 +40,7 @@ export function QuickTeamRpeDialog({
   categoryId,
 }: QuickTeamRpeDialogProps) {
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
   const [sessionDate, setSessionDate] = useState(new Date().toISOString().split("T")[0]);
   const [defaultDuration, setDefaultDuration] = useState("90");
   const [entries, setEntries] = useState<Record<string, PlayerRpeEntry>>({});
@@ -109,6 +111,7 @@ export function QuickTeamRpeDialog({
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      if (!guard.assertDate(sessionDate)) throw new Error("guard:date");
       const validEntries = Object.values(entries).filter(
         (e) => e.selected && e.rpe && parseInt(e.rpe) >= 0 && parseInt(e.rpe) <= 10
       );
@@ -116,6 +119,7 @@ export function QuickTeamRpeDialog({
       if (validEntries.length === 0) {
         throw new Error("Aucune entrée valide à enregistrer");
       }
+      if (!guard.assertPlayers(validEntries.map((e) => e.playerId))) throw new Error("guard:players");
 
       const insertData = await Promise.all(
         validEntries.map(async (entry) => {
@@ -161,6 +165,7 @@ export function QuickTeamRpeDialog({
       onOpenChange(false);
     },
     onError: (error: any) => {
+      if (typeof error?.message === "string" && error.message.startsWith("guard:")) return;
       toast.error(error.message || "Erreur lors de l'enregistrement");
     },
   });
