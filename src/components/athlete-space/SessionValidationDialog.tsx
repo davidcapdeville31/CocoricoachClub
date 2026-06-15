@@ -52,6 +52,7 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
   const [duration, setDuration] = useState<number>(60);
   const [comment, setComment] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+  const [weightLogs, setWeightLogs] = useState<WeightLogState>({});
 
   const { data: blocks = [] } = useQuery({
     queryKey: ["validate-session-blocks", session?.id],
