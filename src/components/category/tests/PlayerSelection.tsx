@@ -8,6 +8,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Users, UserCheck, AlertTriangle, Search } from "lucide-react";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface Player {
   id: string;
@@ -35,16 +37,23 @@ export function PlayerSelection({
   maxHeight = "200px",
 }: PlayerSelectionProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const { activeSeasonOnly, activeSeasonId } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const seasonScope = activeSeasonOnly && activeSeasonId ? activeSeasonId : "all";
 
   // Fetch players if not provided externally
   const { data: fetchedPlayers } = useQuery({
-    queryKey: ["players", categoryId],
+    queryKey: ["players", categoryId, seasonScope],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("players")
-        .select("id, name, position")
+        .select("id, name, position, season_id")
         .eq("category_id", categoryId)
         .order("name");
+      if (activeSeasonOnly && activeSeasonId) {
+        q = q.eq("season_id", activeSeasonId);
+      }
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
@@ -65,7 +74,11 @@ export function PlayerSelection({
     },
   });
 
-  const players = externalPlayers || fetchedPlayers || [];
+  const baseList = externalPlayers || fetchedPlayers || [];
+  const players = useMemo(() => {
+    if (!externalPlayers || !allowedIds) return baseList;
+    return baseList.filter((p) => allowedIds.has(p.id));
+  }, [baseList, externalPlayers, allowedIds]);
   const injuredPlayerIds = new Set(injuries?.map((i) => i.player_id) || []);
 
   const healthyPlayers = useMemo(
