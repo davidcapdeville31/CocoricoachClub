@@ -125,11 +125,46 @@ export function SuperAdminExerciseLibrary() {
     onError: (err: any) => toast.error(err.message),
   });
 
+  // Map category label/value → group (handles legacy French label categories in DB)
+  const LABEL_TO_GROUP: Record<string, string> = {
+    "musculation": "musculation",
+    "haltérophilie": "halterophilie",
+    "halterophilie": "halterophilie",
+    "crossfit": "crossfit_hyrox",
+    "hyrox": "crossfit_hyrox",
+    "poids de corps/calisthenics": "bodyweight",
+    "calisthenics": "bodyweight",
+    "gainage/core": "musculation",
+    "prévention/renforcement": "reathletisation",
+    "mobilité/stretching": "stretching_mobility",
+    "athlétisme/running drills": "course",
+    "vitesse/plyométrie": "plyometrie",
+    "réathlétisation": "reathletisation",
+    "cardio/endurance": "ergo",
+    "respiration": "pilates",
+    "tests & évaluations": "neuro",
+    "sled push": "sled",
+    "sled pull": "sled",
+    "farmers carry": "crossfit_hyrox",
+    "burpee broad jump": "crossfit_hyrox",
+    "row": "ergo",
+    "sandbag lunges": "crossfit_hyrox",
+    "ski erg": "ergo",
+    "wall balls": "crossfit_hyrox",
+    "bodyweight_lower": "bodyweight",
+  };
+
+  const detectGroup = (category?: string | null): string | null => {
+    if (!category) return null;
+    // First check slug-based mapping from EXERCISE_CATEGORIES
+    const slugGroup = getCategoryGroup(category);
+    if (slugGroup) return slugGroup;
+    // Then fallback to label-based mapping
+    return LABEL_TO_GROUP[category.toLowerCase().trim()] || null;
+  };
+
   const filterExercises = (list: any[], group: string) => {
-    let filtered = group === "all" ? list : list.filter((e) => {
-      const cats = getCategoriesByGroup(group).map((c) => c.value);
-      return cats.includes(e.category);
-    });
+    let filtered = group === "all" ? list : list.filter((e) => detectGroup(e.category) === group);
     if (activeSubcategory) {
       filtered = filtered.filter((e) => e.subcategory === activeSubcategory);
     }
@@ -141,10 +176,7 @@ export function SuperAdminExerciseLibrary() {
   };
 
   const getSubcategoriesForGroup = (list: any[], group: string) => {
-    const groupExercises = group === "all" ? list : list.filter((e) => {
-      const cats = getCategoriesByGroup(group).map((c) => c.value);
-      return cats.includes(e.category);
-    });
+    const groupExercises = group === "all" ? list : list.filter((e) => detectGroup(e.category) === group);
     const subcatValues = [...new Set(groupExercises.map((e) => e.subcategory).filter(Boolean))];
     return EXERCISE_SUBCATEGORIES.filter((s) => subcatValues.includes(s.value)).sort((a, b) => a.label.localeCompare(b.label));
   };
