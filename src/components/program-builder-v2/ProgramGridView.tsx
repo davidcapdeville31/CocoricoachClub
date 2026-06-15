@@ -198,7 +198,7 @@ const SessionCard = ({
       className={cn(
         "rounded-xl overflow-hidden transition-all duration-300 group",
         "border shadow-sm hover:shadow-lg hover:-translate-y-[1px]",
-        isExpanded ? "min-w-[240px]" : "min-w-[200px]",
+        isExpanded ? "min-w-[200px]" : "min-w-[170px]",
         isActive ? "ring-2 shadow-md" : "border-border/60 hover:border-opacity-60"
       )}
       style={{
