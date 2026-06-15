@@ -187,8 +187,9 @@ export function SuperAdminExerciseLibrary() {
   };
 
   const renderExerciseCard = (exercise: any) => {
-    const exerciseGroup = getCategoryGroup(exercise.category);
+    const exerciseGroup = detectGroup(exercise.category);
     const config = exerciseGroup ? CATEGORY_GROUP_CONFIGS[exerciseGroup] : null;
+    const Icon = config?.icon || Library;
     const Icon = config?.icon || Library;
     const styles = getGroupStyles(exerciseGroup);
 
