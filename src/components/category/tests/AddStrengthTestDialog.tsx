@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { PlayerSelection } from "./PlayerSelection";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface AddStrengthTestDialogProps {
   open: boolean;
@@ -34,11 +35,13 @@ export function AddStrengthTestDialog({
   const [testName, setTestName] = useState("");
   const [playerResults, setPlayerResults] = useState<Record<string, string>>({});
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
 
   const effectivePlayers = selectionMode === "all" ? players : players.filter(p => selectedPlayers.includes(p.id));
 
   const addTest = useMutation({
     mutationFn: async () => {
+      if (!guard.assertDate(date)) throw new Error("guard:date");
       const inserts = effectivePlayers
         .filter(player => playerResults[player.id])
         .map(player => ({
@@ -52,6 +55,7 @@ export function AddStrengthTestDialog({
       if (inserts.length === 0) {
         throw new Error("Aucun résultat saisi");
       }
+      if (!guard.assertPlayers(inserts.map((i) => i.player_id))) throw new Error("guard:players");
 
       const { error } = await supabase.from("strength_tests").insert(inserts);
       if (error) throw error;
@@ -63,6 +67,7 @@ export function AddStrengthTestDialog({
       onOpenChange(false);
     },
     onError: (error: any) => {
+      if (typeof error?.message === "string" && error.message.startsWith("guard:")) return;
       toast.error(error.message || "Erreur lors de l'ajout du test");
     },
   });

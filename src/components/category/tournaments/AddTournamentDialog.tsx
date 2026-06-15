@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface AddTournamentDialogProps {
   open: boolean;
@@ -31,6 +32,7 @@ export function AddTournamentDialog({
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
 
   const addTournament = useMutation({
     mutationFn: async (data: {
@@ -40,6 +42,8 @@ export function AddTournamentDialog({
       location?: string;
       notes?: string;
     }) => {
+      if (!guard.assertDate(data.start_date)) throw new Error("guard:date");
+      if (!guard.assertDate(data.end_date)) throw new Error("guard:date");
       const { error } = await supabase.from("tournaments").insert({
         category_id: categoryId,
         ...data,
@@ -56,7 +60,8 @@ export function AddTournamentDialog({
       setNotes("");
       onOpenChange(false);
     },
-    onError: () => {
+    onError: (err: any) => {
+      if (typeof err?.message === "string" && err.message.startsWith("guard:")) return;
       toast.error("Erreur lors de l'ajout du tournoi");
     },
   });

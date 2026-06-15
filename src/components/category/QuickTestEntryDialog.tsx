@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { getTestCategoriesForSport, TestCategory } from "@/lib/constants/testCategories";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface QuickTestEntryDialogProps {
   open: boolean;
@@ -51,6 +52,7 @@ export function QuickTestEntryDialog({
   sessionId,
 }: QuickTestEntryDialogProps) {
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
   const [testEntries, setTestEntries] = useState<TestEntry[]>([]);
   const [expandedTestId, setExpandedTestId] = useState<string | null>(null);
 
@@ -279,6 +281,7 @@ export function QuickTestEntryDialog({
 
   const saveTests = useMutation({
     mutationFn: async () => {
+      if (!guard.assertDate(sessionDate)) throw new Error("guard:date");
       const testRecords: any[] = [];
 
       testEntries.forEach(test => {
@@ -303,6 +306,7 @@ export function QuickTestEntryDialog({
       if (testRecords.length === 0) {
         throw new Error("Aucun résultat à enregistrer");
       }
+      if (!guard.assertPlayers(testRecords.map((r) => r.player_id))) throw new Error("guard:players");
 
       const { error } = await supabase.from("generic_tests").insert(testRecords);
       if (error) throw error;
@@ -316,6 +320,7 @@ export function QuickTestEntryDialog({
       toast.success("Résultats de tests enregistrés");
     },
     onError: (error: any) => {
+      if (typeof error?.message === "string" && error.message.startsWith("guard:")) return;
       toast.error(error.message || "Erreur lors de l'enregistrement");
     },
   });

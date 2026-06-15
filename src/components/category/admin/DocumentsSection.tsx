@@ -15,6 +15,7 @@ import { Plus, FileText, Calendar, AlertTriangle, Download, Trash2, Search, User
 import { format, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface DocumentsSectionProps {
   categoryId: string;
@@ -76,6 +77,7 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -147,6 +149,8 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
 
   const addDocumentMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      const playerId = assignee === "team" ? null : assignee;
+      if (playerId && !guard.assertPlayer(playerId)) throw new Error("guard:player");
       setIsUploading(true);
       let fileUrl: string | null = null;
 
@@ -154,7 +158,6 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
         fileUrl = await uploadFile(selectedFile);
       }
 
-      const playerId = assignee === "team" ? null : assignee;
 
       const { error } = await supabase.from("admin_documents" as any).insert({
         category_id: categoryId,
@@ -176,6 +179,7 @@ export function DocumentsSection({ categoryId }: DocumentsSectionProps) {
       toast({ title: "Document ajouté avec succès" });
     },
     onError: (error: any) => {
+      if (typeof error?.message === "string" && error.message.startsWith("guard:")) return;
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     },
     onSettled: () => {

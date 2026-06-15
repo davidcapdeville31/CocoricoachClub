@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { RUGBY_INJURY_TYPES } from "@/lib/constants/rugbyInjuries";
 import { Badge } from "@/components/ui/badge";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface AddInjuryDialogProps {
   open: boolean;
@@ -51,6 +52,7 @@ export function AddInjuryDialog({
   const [description, setDescription] = useState("");
   const [protocolNotes, setProtocolNotes] = useState("");
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
 
   const selectedInjury = RUGBY_INJURY_TYPES.find(i => i.name === injuryType);
 
@@ -70,6 +72,8 @@ export function AddInjuryDialog({
 
   const addInjury = useMutation({
     mutationFn: async () => {
+      if (!guard.assertPlayer(selectedPlayerId)) throw new Error("guard:player");
+      if (!guard.assertDate(injuryDate)) throw new Error("guard:date");
       const finalInjuryType = injuryType === "other" ? customInjuryType : injuryType;
       const { error } = await supabase.from("injuries").insert([
         {
@@ -91,7 +95,8 @@ export function AddInjuryDialog({
       resetForm();
       onOpenChange(false);
     },
-    onError: () => {
+    onError: (err: any) => {
+      if (typeof err?.message === "string" && err.message.startsWith("guard:")) return;
       toast.error("Erreur lors de l'enregistrement de la blessure");
     },
   });

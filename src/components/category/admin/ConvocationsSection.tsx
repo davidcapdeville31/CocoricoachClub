@@ -31,6 +31,7 @@ import {
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { AthleteIdentityBadges } from "@/components/player/AthleteIdentityBadges";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface ConvocationsSectionProps {
   categoryId: string;
@@ -57,6 +58,7 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
 
   // Fetch convocations
   const { data: convocations, isLoading } = useQuery({
@@ -107,6 +109,8 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
 
   const saveConvocation = useMutation({
     mutationFn: async () => {
+      if (!guard.assertDate(eventDate)) throw new Error("guard:date");
+      if (selectedPlayers.length > 0 && !guard.assertPlayers(selectedPlayers)) throw new Error("guard:players");
       const convocationData = {
         category_id: categoryId,
         name,
@@ -148,7 +152,8 @@ export function ConvocationsSection({ categoryId }: ConvocationsSectionProps) {
       setIsDialogOpen(false);
       resetForm();
     },
-    onError: () => {
+    onError: (err: any) => {
+      if (typeof err?.message === "string" && err.message.startsWith("guard:")) return;
       toast.error("Erreur lors de la création");
     },
   });

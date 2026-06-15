@@ -28,6 +28,7 @@ import { Plus, Trash2, Trophy, ChevronDown, ChevronUp } from "lucide-react";
 import { getCompetitionsBySport, getCompetitionStagesBySport } from "@/lib/constants/competitions";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { cn } from "@/lib/utils";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface AddMultipleCompetitionsDialogProps {
   open: boolean;
@@ -184,8 +185,13 @@ export function AddMultipleCompetitionsDialog({
     return null;
   };
 
+  const guard = useSeasonGuard(categoryId);
   const saveAll = useMutation({
     mutationFn: async () => {
+      for (const d of drafts) {
+        if (!guard.assertDate(d.matchDate)) throw new Error("guard:date");
+        if (d.endDate && !guard.assertDate(d.endDate)) throw new Error("guard:date");
+      }
       const rows = drafts.map((d) => {
         const finalCompetition =
           d.competition === CUSTOM_COMPETITION_VALUE ? d.customCompetition : d.competition;
@@ -219,7 +225,10 @@ export function AddMultipleCompetitionsDialog({
       toast.success(`${drafts.length} ${drafts.length > 1 ? wordLabelPlural : wordLabel} ajouté${drafts.length > 1 ? "s" : ""}`);
       onOpenChange(false);
     },
-    onError: () => toast.error(`Erreur lors de l'ajout des ${wordLabelPlural}`),
+    onError: (err: any) => {
+      if (typeof err?.message === "string" && err.message.startsWith("guard:")) return;
+      toast.error(`Erreur lors de l'ajout des ${wordLabelPlural}`);
+    },
   });
 
   const handleSubmit = () => {

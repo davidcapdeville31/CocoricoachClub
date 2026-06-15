@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface SessionAttendanceDialogProps {
   open: boolean;
@@ -55,6 +56,7 @@ export function SessionAttendanceDialog({
   onAttendanceSaved 
 }: SessionAttendanceDialogProps) {
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
   const [attendance, setAttendance] = useState<Record<string, PlayerAttendanceData>>({});
 
   // Fetch all players for the category
@@ -121,6 +123,9 @@ export function SessionAttendanceDialog({
   const saveAttendance = useMutation({
     mutationFn: async () => {
       if (!session) return;
+      if (!guard.assertDate(session.session_date)) throw new Error("guard:date");
+      const playerIds = Object.keys(attendance);
+      if (playerIds.length > 0 && !guard.assertPlayers(playerIds)) throw new Error("guard:players");
 
       // Delete existing attendance for this session
       await supabase
@@ -170,7 +175,10 @@ export function SessionAttendanceDialog({
         onAttendanceSaved(presentPlayerIds);
       }
     },
-    onError: () => toast.error("Erreur lors de l'enregistrement"),
+    onError: (err: any) => {
+      if (typeof err?.message === "string" && err.message.startsWith("guard:")) return;
+      toast.error("Erreur lors de l'enregistrement");
+    },
   });
 
   const setAllStatus = (status: string) => {

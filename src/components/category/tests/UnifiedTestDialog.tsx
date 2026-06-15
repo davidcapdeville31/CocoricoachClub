@@ -21,6 +21,7 @@ import { Gauge, Zap, Timer } from "lucide-react";
 import { mergeCustomTestsIntoCategories, normalizeCustomTestType } from "./customTestCatalog";
 import { ComposedTestInputs } from "./ComposedTestInputs";
 import { isValidFormulaConfig, type FormulaConfig } from "@/lib/tests/formulaEngine";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface UnifiedTestDialogProps {
   open: boolean;
@@ -62,6 +63,7 @@ export function UnifiedTestDialog({
   const [isCustom, setIsCustom] = useState(false);
   const [saveAsGpsVmax, setSaveAsGpsVmax] = useState(false);
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
 
   // Map sprint test types to their distances in meters
   const SPRINT_DISTANCE_MAP: Record<string, number> = {
@@ -189,6 +191,7 @@ export function UnifiedTestDialog({
 
   const addTests = useMutation({
     mutationFn: async () => {
+      if (!guard.assertDate(date)) throw new Error("guard:date");
       const testLabel = isCustom ? customTestName : currentTest?.label || "";
       const categoryLabel = isCustom ? "Personnalisé" : currentCategoryObj?.label || "";
       const testCategory = isCustom ? "custom" : resolvedCategory;
@@ -213,6 +216,7 @@ export function UnifiedTestDialog({
         }));
 
       if (inserts.length === 0) throw new Error("Aucun résultat saisi");
+      if (!guard.assertPlayers(inserts.map((i) => i.player_id))) throw new Error("guard:players");
       const { error } = await supabase.from("generic_tests").insert(inserts);
       if (error) throw error;
 
@@ -276,6 +280,7 @@ export function UnifiedTestDialog({
       onOpenChange(false);
     },
     onError: (error: any) => {
+      if (typeof error?.message === "string" && error.message.startsWith("guard:")) return;
       toast.error(error.message || "Erreur lors de l'ajout des tests");
     },
   });

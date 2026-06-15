@@ -20,6 +20,7 @@ import { Activity, Clock, Loader2, Users, ChevronRight, Heart, Target, Plus, Tra
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { IMPLEMENT_LABELS, type ImplementType } from "@/lib/constants/athleticsImplements";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface PostSessionRpeDialogProps {
   open: boolean;
@@ -67,6 +68,7 @@ export function PostSessionRpeDialog({
   presentPlayerIds,
 }: PostSessionRpeDialogProps) {
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
   const [entries, setEntries] = useState<Record<string, PlayerRpeEntry>>({});
   const [defaultDuration, setDefaultDuration] = useState("60");
   const [showHrv, setShowHrv] = useState(false);
@@ -191,6 +193,7 @@ export function PostSessionRpeDialog({
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!session) throw new Error("Session manquante");
+      if (!guard.assertDate(session.session_date)) throw new Error("guard:date");
 
       const validEntries = Object.values(entries).filter(
         (e) => e.rpe && parseInt(e.rpe) >= 0 && parseInt(e.rpe) <= 10
@@ -199,6 +202,7 @@ export function PostSessionRpeDialog({
       if (validEntries.length === 0) {
         throw new Error("Aucune entrée valide à enregistrer");
       }
+      if (!guard.assertPlayers(validEntries.map((e) => e.playerId))) throw new Error("guard:players");
 
       const insertData = await Promise.all(
         validEntries.map(async (entry) => {
@@ -322,6 +326,7 @@ export function PostSessionRpeDialog({
       onOpenChange(false);
     },
     onError: (error: Error) => {
+      if (typeof error?.message === "string" && error.message.startsWith("guard:")) return;
       toast.error(error.message || "Erreur lors de l'enregistrement");
     },
   });

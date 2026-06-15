@@ -171,3 +171,12 @@ Le filtre saison ne doit jamais s'appliquer dans **`PlayerProfile`** et ses sous
 - Clôture : `is_active` reste géré comme aujourd'hui, on ajoute juste l'export + un événement d'audit.
 
 Confirme-moi ce plan (ou indique les parties à élaguer / prioriser) et je l'implémente.
+
+## Phase 3 — useSeasonGuard on write dialogs (done)
+- Santé: AddInjuryDialog, EditInjuryDialog, AddIllnessDialog, EditIllnessDialog, AddWellnessDialog
+- Séances/RPE/Présences/Feedback: AddSessionDialog, EditSessionDialog, SessionAttendanceDialog, PostSessionRpeDialog, QuickRpeEntryDialog, QuickTeamRpeDialog, MatchRpeDialog, SessionFeedbackDialog
+- Tests: AddStrengthTestDialog, UnifiedTestDialog, ScheduleTestDialog, ScheduleBatteryDialog, QuickTestEntryDialog
+- Compétitions: AddTournamentDialog, EditMatchDialog, AddMultipleCompetitionsDialog, AddFisResultDialog
+- Admin: ConvocationsSection, DocumentsSection
+
+Pattern: assertPlayer/assertPlayers/assertDate throw guard:* sentinels that onError ignores (toast already shown by guard).

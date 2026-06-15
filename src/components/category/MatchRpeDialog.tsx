@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Swords, Activity } from "lucide-react";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface MatchRpeDialogProps {
   open: boolean;
@@ -35,6 +36,7 @@ export function MatchRpeDialog({
   opponent,
 }: MatchRpeDialogProps) {
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
   const [rpeValues, setRpeValues] = useState<Record<string, { rpe: string; duration: string }>>({});
 
   // Fetch players
@@ -117,11 +119,13 @@ export function MatchRpeDialog({
 
   const saveRpe = useMutation({
     mutationFn: async () => {
+      if (!guard.assertDate(matchDate)) throw new Error("guard:date");
       const playersToSave = players?.filter((p) => rpeValues[p.id]?.rpe && rpeValues[p.id]?.duration) || [];
 
       if (playersToSave.length === 0) {
         throw new Error("Aucun RPE à enregistrer");
       }
+      if (!guard.assertPlayers(playersToSave.map((p) => p.id))) throw new Error("guard:players");
 
       for (const player of playersToSave) {
         const rpe = parseInt(rpeValues[player.id].rpe);
@@ -157,6 +161,7 @@ export function MatchRpeDialog({
       setRpeValues({});
     },
     onError: (error: any) => {
+      if (typeof error?.message === "string" && error.message.startsWith("guard:")) return;
       toast.error(error.message || "Erreur lors de l'enregistrement");
     },
   });
