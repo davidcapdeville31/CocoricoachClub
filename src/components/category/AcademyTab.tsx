@@ -23,6 +23,7 @@ import { AcademicStatsSection } from "./academy/AcademicStatsSection";
 import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 
 interface AcademyTabProps {
@@ -54,6 +55,7 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
 
   const { isDateInActiveSeason } = useSeasonRosterFilter();
   const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const guard = useSeasonGuard(categoryId);
 
   const { data: allPlayers } = useQuery({
     queryKey: ["players", categoryId],
@@ -100,6 +102,8 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
 
   const addAcademicGrade = useMutation({
     mutationFn: async () => {
+      if (!guard.assertPlayer(selectedPlayer)) throw new Error("blocked");
+      if (!guard.assertDate(gradeDate)) throw new Error("blocked");
       const { error } = await supabase.from("player_academic_tracking").insert({
         player_id: selectedPlayer,
         category_id: categoryId,
@@ -124,6 +128,7 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
 
   const addAbsence = useMutation({
     mutationFn: async () => {
+      if (!guard.assertPlayer(selectedPlayer)) throw new Error("blocked");
       const { error } = await supabase.from("player_academic_tracking").insert({
         player_id: selectedPlayer,
         category_id: categoryId,
@@ -145,6 +150,8 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
   const updateAcademicGrade = useMutation({
     mutationFn: async () => {
       if (!editingEntryId) return;
+      if (!guard.assertPlayer(selectedPlayer)) throw new Error("blocked");
+      if (!guard.assertDate(gradeDate)) throw new Error("blocked");
       const { error } = await supabase.from("player_academic_tracking").update({
         player_id: selectedPlayer,
         academic_grade: gradeScale !== "letter" && academicGrade ? parseFloat(academicGrade) : null,
