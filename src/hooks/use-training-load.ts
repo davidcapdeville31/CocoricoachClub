@@ -414,9 +414,12 @@ export function useTeamTrainingLoad({
   });
 
 
-  // Fetch all AWCR data
-  const { data: allAwcrData, isLoading } = useQuery({
-    queryKey: ["team-awcr", categoryId, periodDays, activeSeasonStart],
+  const { activeSeasonOnly: ctxOnly2, activeSeasonEnd: ctxEnd2, isDateInActiveSeason: ctxInSeason2 } = useSeasonRosterFilter();
+  const teamScopeKey = `${ctxOnly2 ? "on" : "off"}:${ctxEnd2 ?? "-"}`;
+
+  // Fetch all AWCR data (sliding window kept; season filter applied client-side)
+  const { data: allAwcrDataRaw, isLoading } = useQuery({
+    queryKey: ["team-awcr", categoryId, periodDays, activeSeasonStart, teamScopeKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("awcr_tracking")
@@ -430,10 +433,14 @@ export function useTeamTrainingLoad({
     },
     enabled: categoryClub !== undefined,
   });
+  const allAwcrData = useMemo(
+    () => (allAwcrDataRaw || []).filter((r: any) => ctxInSeason2(r.session_date)),
+    [allAwcrDataRaw, ctxInSeason2]
+  );
 
   // Fetch all GPS data
-  const { data: allGpsData } = useQuery({
-    queryKey: ["team-gps", categoryId, periodDays, activeSeasonStart],
+  const { data: allGpsDataRaw } = useQuery({
+    queryKey: ["team-gps", categoryId, periodDays, activeSeasonStart, teamScopeKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("gps_sessions")
@@ -447,6 +454,10 @@ export function useTeamTrainingLoad({
     },
     enabled: categoryClub !== undefined,
   });
+  const allGpsData = useMemo(
+    () => (allGpsDataRaw || []).filter((r: any) => ctxInSeason2(r.session_date)),
+    [allGpsDataRaw, ctxInSeason2]
+  );
 
 
   // Calculate per-player summaries
