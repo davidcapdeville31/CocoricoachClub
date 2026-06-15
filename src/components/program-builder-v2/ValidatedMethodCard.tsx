@@ -50,7 +50,6 @@ function ExerciseNameWithMedia({
             className="inline-flex items-center justify-center h-5 w-5 rounded-full text-primary hover:bg-primary/10 shrink-0 transition-colors"
             aria-label={`Voir la vidéo de ${name}`}
             title="Voir la vidéo / image"
-            onClick={(e) => e.stopPropagation()}
           >
             <Video className="h-3.5 w-3.5" />
           </button>
