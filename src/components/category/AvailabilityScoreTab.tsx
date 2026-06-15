@@ -34,15 +34,25 @@ export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) 
   const today = new Date();
   const weekAgo = subDays(today, 7);
 
+export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) {
+  const today = new Date();
+  const weekAgo = subDays(today, 7);
+  const { allowedIds, isFiltering } = useSeasonFilteredPlayerIds(categoryId);
+  const { isDateInActiveSeason, activeSeasonEnd } = useSeasonRosterFilter();
+  const scopeKey = isFiltering ? `season:${activeSeasonEnd ?? "x"}` : "all";
+
   const { data: availabilityData, isLoading } = useQuery({
-    queryKey: ["availability-scores", categoryId],
+    queryKey: ["availability-scores", categoryId, scopeKey],
     queryFn: async () => {
       // Get all players
-      const { data: players } = await supabase
+      const { data: playersRaw } = await supabase
         .from("players")
         .select("id, first_name, name, avatar_url, position")
         .eq("category_id", categoryId);
 
+      const players = allowedIds
+        ? (playersRaw || []).filter((p: any) => allowedIds.has(p.id))
+        : playersRaw;
       if (!players) return [];
 
       // Get latest AWCR data (exclude auto-completed entries with RPE=0 and duration=0)
