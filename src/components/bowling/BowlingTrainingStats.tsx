@@ -291,12 +291,17 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
         }
         return awcrBySession.get(s.id) || 0;
       };
-      return sessions.map((s: any) => ({
-        id: s.id,
-        session_date: s.session_date,
-        duration_min: parseDuration(s),
-        player_ids: (s.event_participants || []).map((p: any) => p.player_id).filter(Boolean) as string[],
-      }));
+      return sessions.map((s: any) => {
+        const baseIds = (s.event_participants || []).map((p: any) => p.player_id).filter(Boolean) as string[];
+        const awcrIds = Array.from(playersBySession.get(s.id) || []);
+        const player_ids = Array.from(new Set([...baseIds, ...awcrIds]));
+        return {
+          id: s.id,
+          session_date: s.session_date,
+          duration_min: parseDuration(s),
+          player_ids,
+        };
+      });
     },
   });
 
