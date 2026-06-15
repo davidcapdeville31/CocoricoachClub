@@ -12,6 +12,42 @@ import { ReadOnlyMethodCard } from "@/components/program-builder-v2/ReadOnlyMeth
 import { parseV2MethodConfig } from "@/lib/program-builder-v2/parseV2MethodConfig";
 import { getMethodColors } from "@/components/program-builder-v2/shared/MethodGroupWrapper";
 
+/**
+ * Compute the number of "rounds/series" the athlete should fill for an exercise,
+ * based on its method + V2 config (parsed from notes) + prescribed sets.
+ * Returns the count and the label prefix to display ("Tour", "Round", "Série").
+ */
+function getPrescribedRounds(
+  method: string,
+  ex: any,
+): { count: number; label: string } {
+  const parsed = parseV2MethodConfig(ex?.notes ?? null);
+  const cfg = parsed?.config ?? {};
+
+  if (method === "circuit") {
+    const n = Number(cfg.repsPerRound) || 0;
+    if (n > 0) return { count: n, label: "Tour" };
+  }
+  if (method === "emom") {
+    const e = cfg.emomConfig;
+    if (e?.totalMinutes && e?.intervalMinutes) {
+      const n = Math.max(1, Math.floor(Number(e.totalMinutes) / Number(e.intervalMinutes)));
+      return { count: n, label: "Round" };
+    }
+  }
+  if (method === "tabata") {
+    const n = Number(cfg.tabataConfig?.rounds) || 0;
+    if (n > 0) return { count: n, label: "Round" };
+  }
+  if (method === "five_by_five") {
+    return { count: 5, label: "Série" };
+  }
+
+  const prescribed = Number(ex?.sets) || 0;
+  if (prescribed > 1) return { count: prescribed, label: "Série" };
+  return { count: 1, label: "Série" };
+}
+
 export type WeightLogQuickEntry = {
   mode: "quick";
   weight: string;
