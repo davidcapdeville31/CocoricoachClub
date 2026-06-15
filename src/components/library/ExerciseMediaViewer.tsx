@@ -5,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ExternalLink, Image as ImageIcon, Video } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 interface ExerciseMediaViewerProps {
   exerciseName: string;
