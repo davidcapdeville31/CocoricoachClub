@@ -80,6 +80,7 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
       setRpe(5);
       setComment("");
       setDuration(plannedDuration > 0 ? plannedDuration : 60);
+      setWeightLogs({});
     }
   }, [open, plannedDuration]);
 
