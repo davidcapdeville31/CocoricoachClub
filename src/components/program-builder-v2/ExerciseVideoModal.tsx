@@ -100,8 +100,11 @@ export const ExerciseVideoModal = ({
     safety.safety_instructions;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl h-[90vh] p-0 flex flex-col overflow-hidden">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()} modal={false}>
+      {isOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
+      )}
+      <DialogContent className="max-w-4xl h-[90vh] p-0 flex flex-col overflow-hidden z-50">
         {/* Header */}
         <DialogHeader className="px-6 pt-6 pb-3">
           <div className="flex items-center justify-between">
