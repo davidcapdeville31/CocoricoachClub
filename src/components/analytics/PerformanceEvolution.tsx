@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 
 interface PerformanceEvolutionProps {
   categoryId: string;
