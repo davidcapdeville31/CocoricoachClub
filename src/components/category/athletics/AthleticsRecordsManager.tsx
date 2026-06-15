@@ -12,6 +12,8 @@ import { Plus, Pencil, Medal, User, Calendar } from "lucide-react";
 import { ATHLETISME_DISCIPLINES, ATHLETISME_SPECIALTIES } from "@/lib/constants/sportTypes";
 import { getDefaultUnitForDiscipline, type AthleticsRecord } from "@/lib/athletics/recordsHelpers";
 import { toast } from "sonner";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface Props {
   categoryId: string;
