@@ -237,13 +237,28 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
           ),
         };
       } else {
-        // Pre-fill with prescribed values; fall back to 3×10 so the athlete only has the weight to enter.
-        next[ex.exercise_name] = {
-          mode: "quick",
-          weight: ex.weight_kg ? String(ex.weight_kg) : "",
-          sets: ex.sets ? String(ex.sets) : "3",
-          reps: ex.reps ? String(ex.reps) : "10",
-        };
+        const { count, label } = getPrescribedRounds(method, ex);
+        const repsStr = ex.reps ? String(ex.reps) : "";
+        const weightStr = ex.weight_kg ? String(ex.weight_kg) : "";
+        if (count > 1) {
+          // Pre-create one row per prescribed round/série so the athlete can
+          // log charge & reps individually for each tour.
+          next[ex.exercise_name] = {
+            mode: "detailed",
+            seriesLabel: label,
+            series: Array.from({ length: count }, () => ({
+              weight: weightStr,
+              reps: repsStr,
+            })),
+          };
+        } else {
+          next[ex.exercise_name] = {
+            mode: "quick",
+            weight: weightStr,
+            sets: ex.sets ? String(ex.sets) : "3",
+            reps: repsStr || "10",
+          };
+        }
       }
       mutated = true;
     });
