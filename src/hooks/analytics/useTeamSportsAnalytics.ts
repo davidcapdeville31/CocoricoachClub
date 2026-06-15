@@ -1,6 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 import type { MatchEvent } from "@/components/category/matches/live/types";
 
 export interface MatchRow {
@@ -150,8 +152,10 @@ export interface PlayerLite {
 }
 
 export function useCategoryPlayers(categoryId: string) {
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const scopeKey = allowedIds ? Array.from(allowedIds).sort().join(",") : "all";
   return useQuery({
-    queryKey: ["analytics_players", categoryId],
+    queryKey: ["analytics_players", categoryId, scopeKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
@@ -159,7 +163,7 @@ export function useCategoryPlayers(categoryId: string) {
         .eq("category_id", categoryId)
         .order("name", { ascending: true });
       if (error) throw error;
-      return (data ?? []) as PlayerLite[];
+      return ((data ?? []) as PlayerLite[]).filter((p) => !allowedIds || allowedIds.has(p.id));
     },
   });
 }

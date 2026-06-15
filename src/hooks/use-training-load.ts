@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { 
   DailyLoadData, 
   MetricType, 
@@ -91,6 +93,10 @@ export function useTrainingLoad({
   metric = "ewma_srpe",
   periodDays = 56 // 8 weeks by default
 }: UseTrainingLoadOptions) {
+  const { activeSeasonOnly, activeSeasonStart: ctxSeasonStart, activeSeasonEnd, isDateInActiveSeason } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const scopeKey = `${activeSeasonOnly ? "on" : "off"}:${activeSeasonEnd ?? "-"}`;
+
   
   // Fetch category sport type + club for season-scoped load reset
   const { data: category } = useQuery({
@@ -135,9 +141,9 @@ export function useTrainingLoad({
     return rollingStr;
   };
 
-  // Fetch AWCR/RPE data
-  const { data: awcrData, isLoading: awcrLoading } = useQuery({
-    queryKey: ["training-load-awcr", categoryId, playerId, periodDays, activeSeasonStart],
+  // Fetch AWCR/RPE data (sliding window preserved for EWMA accuracy)
+  const { data: awcrDataRaw, isLoading: awcrLoading } = useQuery({
+    queryKey: ["training-load-awcr", categoryId, playerId, periodDays, activeSeasonStart, scopeKey],
     queryFn: async () => {
       let query = supabase
         .from("awcr_tracking")
@@ -158,8 +164,8 @@ export function useTrainingLoad({
   });
 
   // Fetch HRV data
-  const { data: hrvData, isLoading: hrvLoading } = useQuery({
-    queryKey: ["training-load-hrv", categoryId, playerId, periodDays, activeSeasonStart],
+  const { data: hrvDataRaw, isLoading: hrvLoading } = useQuery({
+    queryKey: ["training-load-hrv", categoryId, playerId, periodDays, activeSeasonStart, scopeKey],
     queryFn: async () => {
       let query = supabase
         .from("hrv_records")
@@ -180,8 +186,8 @@ export function useTrainingLoad({
   });
 
   // Fetch GPS data
-  const { data: gpsData, isLoading: gpsLoading } = useQuery({
-    queryKey: ["training-load-gps", categoryId, playerId, periodDays, activeSeasonStart],
+  const { data: gpsDataRaw, isLoading: gpsLoading } = useQuery({
+    queryKey: ["training-load-gps", categoryId, playerId, periodDays, activeSeasonStart, scopeKey],
     queryFn: async () => {
       let query = supabase
         .from("gps_sessions")
@@ -200,6 +206,38 @@ export function useTrainingLoad({
     },
     enabled: category !== undefined,
   });
+
+  // Apply season scope:
+  // - allowedIds restricts the roster (only when toggle ON)
+  // - isDateInActiveSeason restricts displayed dates to [start, end]
+  // EWMA chronic load still benefits from the 28d sliding window kept in the fetch.
+  const awcrData = useMemo(
+    () =>
+      (awcrDataRaw || []).filter(
+        (r: any) =>
+          (!allowedIds || allowedIds.has(r.player_id)) &&
+          isDateInActiveSeason(r.session_date)
+      ),
+    [awcrDataRaw, allowedIds, isDateInActiveSeason]
+  );
+  const hrvData = useMemo(
+    () =>
+      (hrvDataRaw || []).filter(
+        (r: any) =>
+          (!allowedIds || allowedIds.has(r.player_id)) &&
+          isDateInActiveSeason(r.record_date)
+      ),
+    [hrvDataRaw, allowedIds, isDateInActiveSeason]
+  );
+  const gpsData = useMemo(
+    () =>
+      (gpsDataRaw || []).filter(
+        (r: any) =>
+          (!allowedIds || allowedIds.has(r.player_id)) &&
+          isDateInActiveSeason(r.session_date)
+      ),
+    [gpsDataRaw, allowedIds, isDateInActiveSeason]
+  );
 
 
   // Check if data exists
@@ -376,9 +414,12 @@ export function useTeamTrainingLoad({
   });
 
 
-  // Fetch all AWCR data
-  const { data: allAwcrData, isLoading } = useQuery({
-    queryKey: ["team-awcr", categoryId, periodDays, activeSeasonStart],
+  const { activeSeasonOnly: ctxOnly2, activeSeasonEnd: ctxEnd2, isDateInActiveSeason: ctxInSeason2 } = useSeasonRosterFilter();
+  const teamScopeKey = `${ctxOnly2 ? "on" : "off"}:${ctxEnd2 ?? "-"}`;
+
+  // Fetch all AWCR data (sliding window kept; season filter applied client-side)
+  const { data: allAwcrDataRaw, isLoading } = useQuery({
+    queryKey: ["team-awcr", categoryId, periodDays, activeSeasonStart, teamScopeKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("awcr_tracking")
@@ -392,10 +433,14 @@ export function useTeamTrainingLoad({
     },
     enabled: categoryClub !== undefined,
   });
+  const allAwcrData = useMemo(
+    () => (allAwcrDataRaw || []).filter((r: any) => ctxInSeason2(r.session_date)),
+    [allAwcrDataRaw, ctxInSeason2]
+  );
 
   // Fetch all GPS data
-  const { data: allGpsData } = useQuery({
-    queryKey: ["team-gps", categoryId, periodDays, activeSeasonStart],
+  const { data: allGpsDataRaw } = useQuery({
+    queryKey: ["team-gps", categoryId, periodDays, activeSeasonStart, teamScopeKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("gps_sessions")
@@ -409,6 +454,10 @@ export function useTeamTrainingLoad({
     },
     enabled: categoryClub !== undefined,
   });
+  const allGpsData = useMemo(
+    () => (allGpsDataRaw || []).filter((r: any) => ctxInSeason2(r.session_date)),
+    [allGpsDataRaw, ctxInSeason2]
+  );
 
 
   // Calculate per-player summaries

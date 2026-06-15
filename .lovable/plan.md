@@ -9,7 +9,14 @@
 ## ✅ Implémenté
 - `SeasonRosterFilterProvider` monté sur `CategoryDetails`.
 - Toggle visible sur : Datas, Workload (PerformanceTab), Planification, Académie (AcademicTab + AcademyTab), Santé, Admin, Calendar, AWCR, Decision Center.
-- Filtres dates + roster appliqués :
+- **Hooks partagés saison-aware** (propagent automatiquement à tous les consommateurs) :
+  - `useTrainingLoad` (mode joueur + équipe) : awcrData, hrvData, gpsData filtrés par
+    `allowedIds` + `isDateInActiveSeason`, scopeKey ajouté au queryKey pour invalider le cache
+    quand le toggle change. Fenêtre 28/90j glissante conservée pour la précision EWMA.
+  - `useCategoryMatches`, `useCategoryPlayers` (analytics équipe) : filtrés roster + dates,
+    scopeKey dans queryKey.
+  - `useSeasonFilteredPlayerIds` : enabled uniquement si toggle ON (clé varie naturellement).
+- **Filtres dates + roster appliqués directement** :
   - `CalendarTab` (sessions, matches, weekly planning)
   - `AwcrTab` (rows filtrés par allowedIds + isDateInActiveSeason)
   - `AcademicTab` (players, grades, absences)
@@ -23,39 +30,54 @@
     - `todaySessions`, `tomorrowSessions` → vidés si hors fenêtre
     - `todayAttendance`, `todaySessionParticipants`, `todayRpeData` → keepPlayer + dates
     - `expiredDocs`, `upcomingMatches` → keepPlayer + dates
-- Mutations protégées implicitement : les `<Select>` de joueurs n'affichent que les athlètes filtrés → impossible de créer une note/absence/blessure/session pour un joueur hors saison quand le toggle est ON.
+- **Mutations gardées par `useSeasonGuard(categoryId)`** (`src/hooks/use-season-guard.ts`) :
+  - `assertPlayer(id)` / `assertPlayers([])` / `assertDate(date)` rejettent avec toast.
+  - Appliqué sur `AcademyTab` (addAcademicGrade, updateAcademicGrade, addAbsence).
+  - Pattern réutilisable pour toutes les autres mutations.
+- **Cache React Query** : les requêtes critiques ont un `scopeKey` dérivé de
+  `activeSeasonOnly + activeSeasonEnd` dans leur queryKey → bascule = invalidation auto.
+  Pour les filtres post-fetch via `useMemo`, la même cache est partagée mais le rendu
+  est recalculé instantanément quand le toggle change.
 
 ## 🔧 Reste à faire (passes ciblées)
 - **Datas children** : appliquer `useSeasonFilteredPlayerIds` + `isDateInActiveSeason` dans
-  `PlayerCumulativeStats`, `TeamSportsAnalytics`, `BowlingCumulativeStats`,
+  `PlayerCumulativeStats` (3018 lignes — gros chantier), `BowlingCumulativeStats`,
   `TennisTrainingStats`, `BasketballPrecisionTracker`, `PrecisionFieldTracker`,
   `PrecisionTrainingStats`, `AthleticsThrowingStats`, `AthleticsSprintStats`
-  (la plupart ont déjà l'import — vérifier qu'ils appliquent le filtre dans **toutes** les requêtes/aggregations).
-- **Workload children** : `TrainingLoadTab`, `AvailabilityScoreTab`, `InjuryRiskPrediction`,
-  `TonnageDashboard`, `PerformanceEvolution` → filtrer joueurs (allowedIds) et dates
-  (sauf EWMA chronique → fetch glissant + filtre affichage).
+  (la plupart ont déjà l'import — vérifier qu'ils appliquent le filtre dans **toutes**
+  les requêtes/aggregations + ajouter scopeKey dans queryKey).
+  `TeamSportsAnalytics` bénéficie déjà via les hooks partagés ; vérifier les onglets
+  enfants (`GeneralTab`, `CompareTab`, `PlayerStatsTab`, `HistoryTab`) pour les fetches
+  directs hors hooks partagés.
+- **Workload children** : `TrainingLoadTab` et ses sous-composants (`TrainingLoadKPIs`,
+  `TrainingLoadChart`, `TrainingLoadCalendar`, `RpePlanVsActual`, `TeamLoadComparison`,
+  `HrvAnalysisPanel`, `TrainingLoadAlerts`, `TrainingDistribution`) sont alimentés par
+  `useTrainingLoad` → déjà filtrés. Vérifier qu'aucun fetch parallèle ne contourne.
+  `AvailabilityScoreTab`, `InjuryRiskPrediction`, `TonnageDashboard`,
+  `PerformanceEvolution`, `PendingWeightLogsValidation`, `PendingTestResultsValidation` :
+  ajouter filtres roster + dates + garde-fou mutations.
 - **Planification / Ski + Athlétisme** : `FisRankingTab`, `AthleticsRecordsTab` →
   filtrer joueurs ; records absolus (PB) restent visibles, SB de la saison se contente du roster.
 - **Santé children** : `CoachDashboard`, `MedicalRecordsTab`, `WellnessTab`,
   `ActiveProtocolsDashboard`, `ConcussionProtocolTab`, `InjuryStatsPanel`,
   `WellnessPainStats`, `InjuryRiskAssessment` → vérifier filtres roster+dates
-  (sauf blessures actives → toujours visibles).
+  (sauf blessures actives → toujours visibles). Ajouter `useSeasonGuard` sur dialogs
+  d'ajout blessure / maladie / wellness / record / test.
 - **Admin** : `RecruitmentPipeline`, `MatchSheets`, `ConvocationsList`,
   documents personnels → filtrer joueurs + dates (les prospects de recrutement
   n'ont pas de season_id, garder visibles).
 - **Académie / Stats** : `AcademicStatsSection` → consommer roster+dates filtrés.
 - **Sélecteurs joueurs partagés** : `PlayerSelection`, `PlayerSelector`,
-  `AthleteSelector` → ajouter prop `excludeOutOfSeason` (ou lire le contexte
-  directement) pour cacher les athlètes hors saison quand le toggle est ON,
-  et notification visuelle quand un joueur préalablement sélectionné devient
-  inéligible.
-- **Mutations directes** (création session, blessure, test, convoc, document) :
-  ajouter un garde-fou côté UI (`onSubmit`) qui rejette + toast "Athlète hors saison active"
-  si `allowedIds && !allowedIds.has(playerId)` — défense en profondeur même si le
-  selector est déjà filtré.
+  `AthleteSelector`, `MultiPlayerCheckbox` → lire le contexte saison directement
+  ou ajouter prop `respectSeasonFilter` (défaut `true`). Notification visuelle quand
+  un joueur préalablement sélectionné devient inéligible.
+- **Garde-fous mutations restants** : appliquer `useSeasonGuard` sur tous les
+  dialogs d'ajout/modification (session, RPE, wellness, blessure, record, test,
+  compétition, document, convocation, recrutement, GPS objective).
 - **Compteurs / badges** (`usePendingWeightLogsCount`, `usePendingTestResultsCount`,
-  `useUnreadAthleteSessionsCount`, `useUnreadMessages`) → optionnel : exposer
-  une variante saison-aware si le besoin remonte.
+  `useUnreadAthleteSessionsCount`, `useUnreadMessages`) → variante saison-aware si besoin.
+
+
 
 ## Clôture / Export bilan saison (lot dédié, non démarré)
 Voir spécification précédente du plan — à implémenter dans `SeasonsManager`
