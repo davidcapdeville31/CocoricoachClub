@@ -68,6 +68,9 @@ import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { AddWellnessDialog } from "./AddWellnessDialog";
 import { SessionFeedbackDialog } from "./calendar/SessionFeedbackDialog";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
+import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
  
  interface DecisionCenterProps {
    categoryId: string;
@@ -126,8 +129,13 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
   const [rpeDialogOpen, setRpeDialogOpen] = useState(false);
   const [rpeDialogSessionId, setRpeDialogSessionId] = useState<string | null>(null);
  
+    const { isDateInActiveSeason } = useSeasonRosterFilter();
+    const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+    const keepPlayer = (pid: string | null | undefined) =>
+      !allowedIds || (!!pid && allowedIds.has(pid));
+
     // Fetch players
-    const { data: players = [] } = useQuery({
+    const { data: allPlayersRaw = [] } = useQuery({
       queryKey: ["players", categoryId],
       queryFn: async () => {
         const { data, error } = await supabase
@@ -138,6 +146,10 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
         return data;
       },
     });
+    const players = useMemo(
+      () => (allPlayersRaw || []).filter((p: any) => keepPlayer(p.id)),
+      [allPlayersRaw, allowedIds]
+    );
 
     const getFullName = (player: { first_name?: string | null; name: string }) =>
       [player.first_name, player.name].filter(Boolean).join(" ");
