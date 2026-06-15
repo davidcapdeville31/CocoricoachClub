@@ -323,7 +323,21 @@ export function SuperAdminExerciseLibrary() {
               </div>
             )}
             {filterExercises(exerciseList, group.value).length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground text-sm">Aucun exercice</div>
+              <div className="text-center py-8 text-muted-foreground text-sm">
+                {search ? (
+                  <>
+                    Aucun exercice ne correspond à "<span className="font-semibold">{search}</span>" dans cette catégorie.
+                    <button
+                      onClick={() => setSearch("")}
+                      className="ml-2 text-primary hover:underline"
+                    >
+                      Effacer la recherche
+                    </button>
+                  </>
+                ) : (
+                  "Aucun exercice"
+                )}
+              </div>
             ) : (
               <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filterExercises(exerciseList, group.value).map(renderExerciseCard)}
