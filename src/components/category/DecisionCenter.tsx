@@ -174,7 +174,7 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
     const testCategories = useMemo(() => getTestCategoriesForSport(sportType), [sportType]);
 
     // Fetch upcoming matches/competitions
-    const { data: upcomingMatches = [] } = useQuery({
+    const { data: upcomingMatchesRaw = [] } = useQuery({
       queryKey: ["upcoming_matches_decision", categoryId, today],
       queryFn: async () => {
         const { data, error } = await supabase
@@ -185,11 +185,19 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
           .gte("match_date", today)
           .order("match_date")
           .order("match_time")
-          .limit(3);
+          .limit(10);
         if (error) throw error;
         return data;
       },
     });
+    const upcomingMatches = useMemo(
+      () =>
+        (upcomingMatchesRaw || [])
+          .filter((m: any) => isDateInActiveSeason(m.match_date))
+          .filter((m: any) => !m.player_id || keepPlayer(m.player_id))
+          .slice(0, 3),
+      [upcomingMatchesRaw, allowedIds, isDateInActiveSeason]
+    );
 
     const getTestNamesFromSession = (session: any): string[] => {
       const tests = parseTestsFromNotes(session.notes);
@@ -285,7 +293,7 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
    }, [awcrDataFull]);
  
   // Fetch wellness data
-    const { data: wellnessData = [], refetch: refetchWellness } = useQuery({
+    const { data: wellnessDataRaw = [], refetch: refetchWellness } = useQuery({
       queryKey: ["wellness_decision", categoryId],
       queryFn: async () => {
         const weekAgo = subDays(new Date(), 7).toISOString().split("T")[0];
@@ -299,6 +307,13 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
         return data;
       },
     });
+    const wellnessData = useMemo(
+      () =>
+        (wellnessDataRaw || []).filter(
+          (w: any) => keepPlayer(w.player_id) && isDateInActiveSeason(w.tracking_date)
+        ),
+      [wellnessDataRaw, allowedIds, isDateInActiveSeason]
+    );
 
     // Subscribe to wellness changes for real-time updates
     useEffect(() => {
@@ -363,7 +378,7 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
     }, [categoryId, queryClient]);
 
    // Fetch today's sessions
-   const { data: todaySessions = [] } = useQuery({
+   const { data: todaySessionsRaw = [] } = useQuery({
      queryKey: ["today_sessions_decision", categoryId, today],
      queryFn: async () => {
        const { data, error } = await supabase
@@ -376,9 +391,12 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
        return data;
      },
    });
+   const todaySessions = useMemo(
+     () => (isDateInActiveSeason(today) ? (todaySessionsRaw || []) : []),
+     [todaySessionsRaw, isDateInActiveSeason, today]
+   );
  
-   // Fetch tomorrow's sessions
-   const { data: tomorrowSessions = [] } = useQuery({
+   const { data: tomorrowSessionsRaw = [] } = useQuery({
      queryKey: ["tomorrow_sessions_decision", categoryId, tomorrow],
      queryFn: async () => {
        const { data, error } = await supabase
@@ -391,9 +409,12 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
        return data;
      },
    });
- 
-    // Fetch today's attendance with session info
-    const { data: todayAttendance = [] } = useQuery({
+   const tomorrowSessions = useMemo(
+     () => (isDateInActiveSeason(tomorrow) ? (tomorrowSessionsRaw || []) : []),
+     [tomorrowSessionsRaw, isDateInActiveSeason, tomorrow]
+   );
+
+    const { data: todayAttendanceRaw = [] } = useQuery({
       queryKey: ["today_attendance_decision", categoryId, today],
       queryFn: async () => {
         const { data, error } = await supabase
@@ -405,9 +426,13 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
         return data;
       },
     });
+    const todayAttendance = useMemo(
+      () => (todayAttendanceRaw || []).filter((a: any) => keepPlayer(a.player_id) && isDateInActiveSeason(a.attendance_date)),
+      [todayAttendanceRaw, allowedIds, isDateInActiveSeason]
+    );
 
      // Fetch participants assigned to today's sessions
-     const { data: todaySessionParticipants = [] } = useQuery({
+     const { data: todaySessionParticipantsRaw = [] } = useQuery({
        queryKey: ["today_session_participants_decision", categoryId, today, todaySessions.map(s => s.id).join(",")],
        queryFn: async () => {
          if (todaySessions.length === 0) return [];
@@ -420,9 +445,12 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
        },
        enabled: todaySessions.length > 0,
      });
+     const todaySessionParticipants = useMemo(
+       () => (todaySessionParticipantsRaw || []).filter((p: any) => keepPlayer(p.player_id)),
+       [todaySessionParticipantsRaw, allowedIds]
+     );
 
-     // Fetch today's RPE data
-     const { data: todayRpeData = [] } = useQuery({
+     const { data: todayRpeDataRaw = [] } = useQuery({
       queryKey: ["today_rpe_decision", categoryId, today],
       queryFn: async () => {
         const { data, error } = await supabase
@@ -434,6 +462,10 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
         return data;
       },
     });
+    const todayRpeData = useMemo(
+      () => (todayRpeDataRaw || []).filter((r: any) => keepPlayer(r.player_id) && isDateInActiveSeason(today)),
+      [todayRpeDataRaw, allowedIds, isDateInActiveSeason, today]
+    );
 
     // Subscribe to RPE changes for real-time updates
     useEffect(() => {
@@ -457,7 +489,7 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
     }, [categoryId, queryClient]);
 
 
-    const { data: expiredDocs = [] } = useQuery({
+    const { data: expiredDocsRaw = [] } = useQuery({
       queryKey: ["expired_docs", categoryId],
       queryFn: async () => {
         const { data, error } = await supabase
@@ -470,6 +502,10 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
         return data || [];
       },
     });
+    const expiredDocs = useMemo(
+      () => (expiredDocsRaw || []).filter((d: any) => !d.player_id || keepPlayer(d.player_id)),
+      [expiredDocsRaw, allowedIds]
+    );
  
   // Calculate group status
     const calculateGroupStatus = (): GroupStatus => {
