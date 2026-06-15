@@ -35,6 +35,7 @@ interface Player {
   specialty: string | null;
   disciplines: string[] | null;
   specialties: string[] | null;
+  season_id?: string | null;
 }
 
 interface RoundRow {
