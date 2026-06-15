@@ -432,6 +432,10 @@ function ExerciseFormDialog({
       toast.error("Le nom et la catégorie sont requis");
       return;
     }
+    if (uploading) {
+      toast.error("Attends la fin de l'upload de l'image avant d'enregistrer");
+      return;
+    }
     setSaving(true);
     try {
       const difficultyLevelFr =
