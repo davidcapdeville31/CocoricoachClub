@@ -185,6 +185,44 @@ export function AthleteSpaceRpeHistory({ playerId, categoryId }: Props) {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      {/* Tonnage (musculation) */}
+      {hasTonnage && (
+        <Card className="bg-gradient-card shadow-md">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Dumbbell className="h-4 w-4 text-primary" />
+              Tonnage musculation
+              <Badge variant="secondary" className="text-[10px]">
+                {totalTonnage.toLocaleString()} kg cumulés
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={tonnageChart}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="date" className="text-[10px]" />
+                <YAxis className="text-[10px]" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--popover))",
+                    border: "1px solid hsl(var(--border))",
+                    fontSize: "12px",
+                    borderRadius: "8px",
+                  }}
+                  formatter={(value: number) => [`${value.toLocaleString()} kg`, "Tonnage"]}
+                  labelFormatter={(label: string, payload: any[]) => {
+                    const item = payload?.[0]?.payload;
+                    return item ? item.fullDate : label;
+                  }}
+                />
+                <Bar dataKey="tonnage" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} name="Tonnage" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
