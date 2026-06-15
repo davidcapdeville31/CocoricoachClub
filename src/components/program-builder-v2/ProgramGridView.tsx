@@ -464,9 +464,9 @@ export function ProgramGridView({
 
               {/* Days as horizontal cards */}
               <div className="p-3">
-                <div className="flex gap-3 overflow-x-auto pb-1">
+                <div className="flex gap-2 overflow-x-auto pb-1">
                   {week.days.map((day) => (
-                    <div key={day.id} className="shrink-0 w-[220px]">
+                    <div key={day.id} className="shrink-0 w-[180px]">
                       <SessionCard
                         day={day}
                         weekId={week.id}
@@ -481,7 +481,7 @@ export function ProgramGridView({
                   ))}
 
                   {/* Add day button */}
-                  <div className="shrink-0 w-[140px]">
+                  <div className="shrink-0 w-[120px]">
                     <button
                       onClick={() => onAddDay(week.id)}
                       className={cn(
