@@ -435,9 +435,10 @@ function ExerciseFormDialog({
     setSaving(true);
     try {
       const difficultyLevelFr =
-        difficulty === "beginner" ? "débutant" :
-        difficulty === "advanced" ? "avancé" :
+        difficulty === "beginner" || difficulty === "débutant" ? "débutant" :
+        difficulty === "advanced" || difficulty === "avancé" ? "avancé" :
         "intermédiaire";
+      const ownerId = isSystem ? null : exercise?.user_id || userId;
       const payload = {
         name,
         exercise_name: name,
@@ -452,8 +453,8 @@ function ExerciseFormDialog({
         image_url: imageUrl || null,
         is_system: isSystem,
         is_default: isSystem,
-        user_id: exercise?.user_id || userId,
-        coach_id: exercise?.user_id || userId,
+        user_id: ownerId,
+        coach_id: ownerId,
       };
 
       if (exercise?.id) {
