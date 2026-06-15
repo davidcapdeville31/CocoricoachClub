@@ -434,6 +434,10 @@ function ExerciseFormDialog({
     }
     setSaving(true);
     try {
+      const difficultyLevelFr =
+        difficulty === "beginner" ? "débutant" :
+        difficulty === "advanced" ? "avancé" :
+        "intermédiaire";
       const payload = {
         name,
         exercise_name: name,
@@ -444,7 +448,7 @@ function ExerciseFormDialog({
         video_url: youtubeUrl || null,
         description: description || null,
         difficulty,
-        difficulty_level: difficulty,
+        difficulty_level: difficultyLevelFr,
         image_url: imageUrl || null,
         is_system: isSystem,
         is_default: isSystem,
