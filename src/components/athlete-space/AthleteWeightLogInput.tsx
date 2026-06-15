@@ -388,7 +388,7 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => toggleMode(ex.exercise_name, ex.sets)}
+                    onClick={() => toggleMode(ex.exercise_name, ex)}
                     className="h-6 px-2 text-[10px]"
                   >
                     {entry.mode === "quick" ? "Détaillé" : "Rapide"}
