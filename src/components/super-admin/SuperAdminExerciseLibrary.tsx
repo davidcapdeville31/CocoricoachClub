@@ -170,8 +170,8 @@ export function SuperAdminExerciseLibrary() {
       >
         {/* Image */}
         {exercise.image_url && (
-          <div className="aspect-video bg-muted overflow-hidden">
-            <img src={exercise.image_url} alt={exercise.name} className="w-full h-full object-cover" />
+          <div className="aspect-video bg-muted overflow-hidden flex items-center justify-center">
+            <img src={exercise.image_url} alt={exercise.name} className="w-full h-full object-contain" />
           </div>
         )}
         {/* Video embed */}
