@@ -254,18 +254,24 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
 
       // Pull AWCR durations grouped per session (athlete-validation fallback)
       let awcrBySession = new Map<string, number>();
+      let playersBySession = new Map<string, Set<string>>();
       if (sessionIds.length > 0) {
         const { data: awcr } = await supabase
           .from("awcr_tracking")
-          .select("training_session_id, duration_minutes")
+          .select("training_session_id, duration_minutes, player_id")
           .in("training_session_id", sessionIds);
         (awcr || []).forEach((r: any) => {
           const sid = r.training_session_id as string;
+          if (!sid) return;
           const dur = Number(r.duration_minutes || 0);
-          if (!sid || dur <= 0) return;
-          // Use max duration logged across athletes for that session
-          const prev = awcrBySession.get(sid) || 0;
-          if (dur > prev) awcrBySession.set(sid, dur);
+          if (dur > 0) {
+            const prev = awcrBySession.get(sid) || 0;
+            if (dur > prev) awcrBySession.set(sid, dur);
+          }
+          if (r.player_id) {
+            if (!playersBySession.has(sid)) playersBySession.set(sid, new Set());
+            playersBySession.get(sid)!.add(r.player_id);
+          }
         });
       }
 
