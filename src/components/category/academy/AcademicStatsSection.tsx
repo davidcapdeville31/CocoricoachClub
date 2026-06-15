@@ -84,18 +84,20 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
     }
   }, [allPlayers, selectedPlayerId, visiblePlayerIds]);
 
-  const availableYears = useMemo(() => {
+  const scopedData = useMemo(() => {
     if (!allData) return [];
-    const years = new Set(allData.map(d => new Date(d.tracking_date).getFullYear()));
+    if (!activeSeasonOnly || !activeSeasonId) return allData;
+    return allData.filter((d) => visiblePlayerIds.has(d.player_id) && isDateInActiveSeason(d.tracking_date));
+  }, [allData, activeSeasonOnly, activeSeasonId, visiblePlayerIds, isDateInActiveSeason]);
+
+  const availableYears = useMemo(() => {
+    const years = new Set(scopedData.map(d => new Date(d.tracking_date).getFullYear()));
     return Array.from(years).sort((a, b) => b - a);
-  }, [allData]);
+  }, [scopedData]);
 
   // Filter by year then by player
   const filteredData = useMemo(() => {
-    if (!allData) return [];
-    let data = activeSeasonOnly && activeSeasonId
-      ? allData.filter((d) => visiblePlayerIds.has(d.player_id) && isDateInActiveSeason(d.tracking_date))
-      : allData;
+    let data = scopedData;
     if (selectedYear !== "all") {
       data = data.filter(d => new Date(d.tracking_date).getFullYear() === parseInt(selectedYear));
     }
@@ -103,7 +105,7 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
       data = data.filter(d => d.player_id === selectedPlayerId);
     }
     return data;
-  }, [allData, activeSeasonOnly, activeSeasonId, visiblePlayerIds, isDateInActiveSeason, selectedYear, selectedPlayerId]);
+  }, [scopedData, selectedYear, selectedPlayerId]);
 
   const gradeEntries = useMemo(() => {
     return filteredData.filter(d => d.academic_grade !== null && (d.grade_scale || "20") !== "letter");
@@ -185,10 +187,7 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
   }, [filteredData]);
 
   const yearComparison = useMemo(() => {
-    if (!allData) return [];
-    let data = activeSeasonOnly && activeSeasonId
-      ? allData.filter((d) => visiblePlayerIds.has(d.player_id) && isDateInActiveSeason(d.tracking_date))
-      : allData;
+    let data = scopedData;
     if (selectedPlayerId) {
       data = data.filter(d => d.player_id === selectedPlayerId);
     }
@@ -208,7 +207,7 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
         absences: v.absences,
         nbNotes: v.grades.length,
       }));
-  }, [allData, activeSeasonOnly, activeSeasonId, visiblePlayerIds, isDateInActiveSeason, selectedPlayerId]);
+  }, [scopedData, selectedPlayerId]);
 
   const exportToExcel = async () => {
     try {
