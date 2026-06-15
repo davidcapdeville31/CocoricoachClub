@@ -235,6 +235,53 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     [mentalSessionsRaw, allowedIds, isDateInActiveSeason],
   );
 
+  // Fetch strength training sessions (musculation) for this category
+  const { data: strengthSessionsRaw = [] } = useQuery({
+    queryKey: ["strength_sessions_stats", categoryId, playerId || "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("training_sessions")
+        .select("id, session_date, session_start_time, session_end_time, notes, event_participants(player_id)")
+        .eq("category_id", categoryId)
+        .eq("training_type", "musculation");
+      if (error) throw error;
+      const parseDuration = (s: any) => {
+        const m = typeof s.notes === "string" ? s.notes.match(/<!--STRENGTH:(\{[^}]*\})-->/) : null;
+        if (m) {
+          try {
+            const meta = JSON.parse(m[1]);
+            if (typeof meta?.duration_min === "number" && meta.duration_min > 0) return meta.duration_min;
+          } catch {}
+        }
+        if (s.session_start_time && s.session_end_time) {
+          const [h1, m1] = s.session_start_time.split(":").map(Number);
+          const [h2, m2] = s.session_end_time.split(":").map(Number);
+          const diff = (h2 * 60 + m2) - (h1 * 60 + m1);
+          return diff > 0 ? diff : 0;
+        }
+        return 0;
+      };
+      return (data || []).map((s: any) => ({
+        id: s.id,
+        session_date: s.session_date,
+        duration_min: parseDuration(s),
+        player_ids: (s.event_participants || []).map((p: any) => p.player_id).filter(Boolean) as string[],
+      }));
+    },
+  });
+
+  const strengthSessions = useMemo(
+    () =>
+      strengthSessionsRaw
+        .filter((s) => isDateInActiveSeason(s.session_date))
+        .map((s) =>
+          allowedIds
+            ? { ...s, player_ids: s.player_ids.filter((pid) => allowedIds.has(pid)) }
+            : s,
+        ),
+    [strengthSessionsRaw, allowedIds, isDateInActiveSeason],
+  );
+
 
 
   // Set of athletes who have new-system bowling sessions (used to hide obsolete legacy data)
