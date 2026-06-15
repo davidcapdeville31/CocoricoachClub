@@ -40,6 +40,9 @@ interface Player {
 export function AthleticsRecordsManager({ categoryId, playerId, singlePlayer = false, canEdit }: Props) {
   const queryClient = useQueryClient();
   const allowEdit = canEdit ?? !singlePlayer;
+  const { activeSeasonOnly, activeSeasonId } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const scopeKey = activeSeasonOnly && activeSeasonId ? `season:${activeSeasonId}` : "all";
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editing, setEditing] = useState<AthleticsRecord | null>(null);
