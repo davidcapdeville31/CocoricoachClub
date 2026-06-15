@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +23,7 @@ import { AcademicStatsSection } from "./academy/AcademicStatsSection";
 import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
-import { useMemo as useMemoReact } from "react";
+
 
 interface AcademyTabProps {
   categoryId: string;
