@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar,
 } from "recharts";
-import { BarChart3, Activity } from "lucide-react";
+import { BarChart3, Activity, Dumbbell } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
@@ -30,7 +30,43 @@ export function AthleteSpaceRpeHistory({ playerId, categoryId }: Props) {
     },
   });
 
-  if (isLoading || rpeHistory.length === 0) return null;
+  // Tonnage history (musculation logs) — last 60 days
+  const { data: tonnageLogs = [] } = useQuery({
+    queryKey: ["athlete-space-tonnage", playerId, categoryId],
+    queryFn: async () => {
+      const since = new Date();
+      since.setDate(since.getDate() - 60);
+      const { data, error } = await supabase
+        .from("athlete_exercise_logs")
+        .select("tonnage, created_at, training_sessions!inner(session_date)")
+        .eq("player_id", playerId)
+        .eq("category_id", categoryId)
+        .gte("created_at", since.toISOString());
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const hasTonnage = (tonnageLogs as any[]).some((l) => Number(l.tonnage || 0) > 0);
+  if (isLoading || (rpeHistory.length === 0 && !hasTonnage)) return null;
+
+  // Tonnage aggregated per session date
+  const tonnageByDate = new Map<string, number>();
+  (tonnageLogs as any[]).forEach((l) => {
+    const d = (l.training_sessions as any)?.session_date || l.created_at?.split("T")[0];
+    if (!d) return;
+    tonnageByDate.set(d, (tonnageByDate.get(d) || 0) + Number(l.tonnage || 0));
+  });
+  const tonnageChart = Array.from(tonnageByDate.entries())
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([date, tonnage]) => ({
+      date: format(new Date(date), "dd/MM", { locale: fr }),
+      fullDate: format(new Date(date), "dd MMM yyyy", { locale: fr }),
+      tonnage: Math.round(tonnage),
+    }));
+  const totalTonnage = Math.round(
+    (tonnageLogs as any[]).reduce((s, l) => s + Number(l.tonnage || 0), 0)
+  );
 
   const chartData = rpeHistory.map((r: any) => ({
     date: format(new Date(r.session_date), "dd/MM", { locale: fr }),
@@ -149,6 +185,44 @@ export function AthleteSpaceRpeHistory({ playerId, categoryId }: Props) {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      {/* Tonnage (musculation) */}
+      {hasTonnage && (
+        <Card className="bg-gradient-card shadow-md">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Dumbbell className="h-4 w-4 text-primary" />
+              Tonnage musculation
+              <Badge variant="secondary" className="text-[10px]">
+                {totalTonnage.toLocaleString()} kg cumulés
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={tonnageChart}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="date" className="text-[10px]" />
+                <YAxis className="text-[10px]" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--popover))",
+                    border: "1px solid hsl(var(--border))",
+                    fontSize: "12px",
+                    borderRadius: "8px",
+                  }}
+                  formatter={(value: number) => [`${value.toLocaleString()} kg`, "Tonnage"]}
+                  labelFormatter={(label: string, payload: any[]) => {
+                    const item = payload?.[0]?.payload;
+                    return item ? item.fullDate : label;
+                  }}
+                />
+                <Bar dataKey="tonnage" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} name="Tonnage" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
