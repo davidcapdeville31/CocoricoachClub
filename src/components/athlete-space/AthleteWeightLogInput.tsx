@@ -270,13 +270,18 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
     onChange({ ...value, [exerciseName]: entry });
   };
 
-  const toggleMode = (exerciseName: string, prescribedSets?: number | null) => {
+  const toggleMode = (exerciseName: string, ex?: any) => {
     const current = value[exerciseName];
     if (!current || current.mode === "special") return;
     if (current.mode === "quick") {
-      const setsNum = parseInt(current.sets) || prescribedSets || 3;
+      const method = (ex?.method || ex?.set_type || "normal") as string;
+      const { count, label } = ex
+        ? getPrescribedRounds(method, ex)
+        : { count: parseInt(current.sets) || 3, label: "Série" };
+      const setsNum = count > 1 ? count : (parseInt(current.sets) || 3);
       updateEntry(exerciseName, {
         mode: "detailed",
+        seriesLabel: label,
         series: Array.from({ length: setsNum }, () => ({
           weight: current.weight,
           reps: current.reps,
@@ -292,6 +297,7 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
       });
     }
   };
+
 
   if (gymExercises.length === 0) return null;
 
