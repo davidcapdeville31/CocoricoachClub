@@ -40,6 +40,8 @@ import {
   ReferenceLine,
   Cell,
 } from "recharts";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface RpePlanVsActualProps {
   categoryId: string;
@@ -62,9 +64,13 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
   const [showDetails, setShowDetails] = useState(false);
   const [chartType, setChartType] = useState<"bar" | "line" | "area">("bar");
 
+  const { activeSeasonOnly, activeSeasonId, isDateInActiveSeason } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const scopeKey = activeSeasonOnly && activeSeasonId ? `season:${activeSeasonId}` : "all";
+
   // Fetch training sessions with planned intensity
   const { data: sessionsData, isLoading } = useQuery({
-    queryKey: ["rpe-comparison", categoryId, periodDays],
+    queryKey: ["rpe-comparison", categoryId, periodDays, scopeKey],
     queryFn: async () => {
       const startDate = format(subDays(new Date(), periodDays), "yyyy-MM-dd");
       
@@ -78,8 +84,11 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
 
       if (sessionsError) throw sessionsError;
 
+      // Restrict sessions to active-season window when filter is ON
+      const sessionsFiltered = (sessions || []).filter((s: any) => isDateInActiveSeason(s.session_date));
+
       // Fetch session blocks for weighted RPE calculation
-      const sessionIds = sessions?.map(s => s.id) || [];
+      const sessionIds = sessionsFiltered?.map(s => s.id) || [];
       let blocksData: any[] = [];
       if (sessionIds.length > 0) {
         const { data: blocks } = await supabase
@@ -105,7 +114,14 @@ export function RpePlanVsActual({ categoryId, onPlayerClick }: RpePlanVsActualPr
 
       if (awcrError) throw awcrError;
 
-      return { sessions, awcrData, blocksData };
+      // Restrict AWCR to active-season roster + window
+      const awcrFiltered = (awcrData || []).filter((entry: any) => {
+        if (!isDateInActiveSeason(entry.session_date)) return false;
+        if (!allowedIds) return true;
+        return allowedIds.has(entry.player_id);
+      });
+
+      return { sessions: sessionsFiltered, awcrData: awcrFiltered, blocksData };
     },
   });
 
