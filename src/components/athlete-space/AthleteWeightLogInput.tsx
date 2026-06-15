@@ -12,6 +12,42 @@ import { ReadOnlyMethodCard } from "@/components/program-builder-v2/ReadOnlyMeth
 import { parseV2MethodConfig } from "@/lib/program-builder-v2/parseV2MethodConfig";
 import { getMethodColors } from "@/components/program-builder-v2/shared/MethodGroupWrapper";
 
+/**
+ * Compute the number of "rounds/series" the athlete should fill for an exercise,
+ * based on its method + V2 config (parsed from notes) + prescribed sets.
+ * Returns the count and the label prefix to display ("Tour", "Round", "Série").
+ */
+function getPrescribedRounds(
+  method: string,
+  ex: any,
+): { count: number; label: string } {
+  const parsed = parseV2MethodConfig(ex?.notes ?? null);
+  const cfg = parsed?.config ?? {};
+
+  if (method === "circuit") {
+    const n = Number(cfg.repsPerRound) || 0;
+    if (n > 0) return { count: n, label: "Tour" };
+  }
+  if (method === "emom") {
+    const e = cfg.emomConfig;
+    if (e?.totalMinutes && e?.intervalMinutes) {
+      const n = Math.max(1, Math.floor(Number(e.totalMinutes) / Number(e.intervalMinutes)));
+      return { count: n, label: "Round" };
+    }
+  }
+  if (method === "tabata") {
+    const n = Number(cfg.tabataConfig?.rounds) || 0;
+    if (n > 0) return { count: n, label: "Round" };
+  }
+  if (method === "five_by_five") {
+    return { count: 5, label: "Série" };
+  }
+
+  const prescribed = Number(ex?.sets) || 0;
+  if (prescribed > 1) return { count: prescribed, label: "Série" };
+  return { count: 1, label: "Série" };
+}
+
 export type WeightLogQuickEntry = {
   mode: "quick";
   weight: string;
@@ -21,6 +57,7 @@ export type WeightLogQuickEntry = {
 
 export type WeightLogDetailedEntry = {
   mode: "detailed";
+  seriesLabel?: string; // "Série" | "Tour" | "Round"
   series: Array<{ weight: string; reps: string }>;
 };
 
@@ -200,13 +237,28 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
           ),
         };
       } else {
-        // Pre-fill with prescribed values; fall back to 3×10 so the athlete only has the weight to enter.
-        next[ex.exercise_name] = {
-          mode: "quick",
-          weight: ex.weight_kg ? String(ex.weight_kg) : "",
-          sets: ex.sets ? String(ex.sets) : "3",
-          reps: ex.reps ? String(ex.reps) : "10",
-        };
+        const { count, label } = getPrescribedRounds(method, ex);
+        const repsStr = ex.reps ? String(ex.reps) : "";
+        const weightStr = ex.weight_kg ? String(ex.weight_kg) : "";
+        if (count > 1) {
+          // Pre-create one row per prescribed round/série so the athlete can
+          // log charge & reps individually for each tour.
+          next[ex.exercise_name] = {
+            mode: "detailed",
+            seriesLabel: label,
+            series: Array.from({ length: count }, () => ({
+              weight: weightStr,
+              reps: repsStr,
+            })),
+          };
+        } else {
+          next[ex.exercise_name] = {
+            mode: "quick",
+            weight: weightStr,
+            sets: ex.sets ? String(ex.sets) : "3",
+            reps: repsStr || "10",
+          };
+        }
       }
       mutated = true;
     });
@@ -218,13 +270,18 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
     onChange({ ...value, [exerciseName]: entry });
   };
 
-  const toggleMode = (exerciseName: string, prescribedSets?: number | null) => {
+  const toggleMode = (exerciseName: string, ex?: any) => {
     const current = value[exerciseName];
     if (!current || current.mode === "special") return;
     if (current.mode === "quick") {
-      const setsNum = parseInt(current.sets) || prescribedSets || 3;
+      const method = (ex?.method || ex?.set_type || "normal") as string;
+      const { count, label } = ex
+        ? getPrescribedRounds(method, ex)
+        : { count: parseInt(current.sets) || 3, label: "Série" };
+      const setsNum = count > 1 ? count : (parseInt(current.sets) || 3);
       updateEntry(exerciseName, {
         mode: "detailed",
+        seriesLabel: label,
         series: Array.from({ length: setsNum }, () => ({
           weight: current.weight,
           reps: current.reps,
@@ -240,6 +297,7 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
       });
     }
   };
+
 
   if (gymExercises.length === 0) return null;
 
@@ -330,7 +388,7 @@ export function AthleteWeightLogInput({ sessionId, playerId, value, onChange }: 
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => toggleMode(ex.exercise_name, ex.sets)}
+                    onClick={() => toggleMode(ex.exercise_name, ex)}
                     className="h-6 px-2 text-[10px]"
                   >
                     {entry.mode === "quick" ? "Détaillé" : "Rapide"}
@@ -417,8 +475,8 @@ function DetailedModeRows({
     <div className="space-y-1.5">
       {entry.series.map((serie, idx) => (
         <div key={idx} className="flex items-center gap-1.5">
-          <span className="text-[10px] text-muted-foreground w-12 shrink-0">
-            Série {idx + 1}
+          <span className="text-[10px] text-muted-foreground w-14 shrink-0">
+            {(entry.seriesLabel || "Série")} {idx + 1}
           </span>
           <Input
             type="number"
