@@ -117,7 +117,13 @@ export const ExerciseFocusPanel = ({
   const videoType = getVideoType(videoUrl);
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()} modal={false}>
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={onClose}
+        />
+      )}
       <SheetContent className="w-full sm:max-w-md p-0 flex flex-col">
         {/* Header */}
         <SheetHeader className="px-4 py-3 border-b bg-secondary/30">
