@@ -235,7 +235,11 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
     [mentalSessionsRaw, allowedIds, isDateInActiveSeason],
   );
 
-  // Fetch strength training sessions (musculation) for this category
+  // Fetch strength training sessions (musculation) for this category.
+  // Duration priority: explicit start/end times → STRENGTH meta in notes → AWCR
+  // entry recorded by the athlete when validating (duration_minutes). The AWCR
+  // fallback is critical because athlete-side validation does not write back to
+  // training_sessions but only to awcr_tracking.
   const { data: strengthSessionsRaw = [] } = useQuery({
     queryKey: ["strength_sessions_stats", categoryId, playerId || "all"],
     queryFn: async () => {
@@ -245,7 +249,33 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
         .eq("category_id", categoryId)
         .eq("training_type", "musculation");
       if (error) throw error;
+      const sessions = data || [];
+      const sessionIds = sessions.map((s: any) => s.id);
+
+      // Pull AWCR durations grouped per session (athlete-validation fallback)
+      let awcrBySession = new Map<string, number>();
+      if (sessionIds.length > 0) {
+        const { data: awcr } = await supabase
+          .from("awcr_tracking")
+          .select("training_session_id, duration_minutes")
+          .in("training_session_id", sessionIds);
+        (awcr || []).forEach((r: any) => {
+          const sid = r.training_session_id as string;
+          const dur = Number(r.duration_minutes || 0);
+          if (!sid || dur <= 0) return;
+          // Use max duration logged across athletes for that session
+          const prev = awcrBySession.get(sid) || 0;
+          if (dur > prev) awcrBySession.set(sid, dur);
+        });
+      }
+
       const parseDuration = (s: any) => {
+        if (s.session_start_time && s.session_end_time) {
+          const [h1, m1] = s.session_start_time.split(":").map(Number);
+          const [h2, m2] = s.session_end_time.split(":").map(Number);
+          const diff = (h2 * 60 + m2) - (h1 * 60 + m1);
+          if (diff > 0) return diff;
+        }
         const m = typeof s.notes === "string" ? s.notes.match(/<!--STRENGTH:(\{[^}]*\})-->/) : null;
         if (m) {
           try {
@@ -253,15 +283,9 @@ export function BowlingTrainingStats({ categoryId, playerId }: BowlingTrainingSt
             if (typeof meta?.duration_min === "number" && meta.duration_min > 0) return meta.duration_min;
           } catch {}
         }
-        if (s.session_start_time && s.session_end_time) {
-          const [h1, m1] = s.session_start_time.split(":").map(Number);
-          const [h2, m2] = s.session_end_time.split(":").map(Number);
-          const diff = (h2 * 60 + m2) - (h1 * 60 + m1);
-          return diff > 0 ? diff : 0;
-        }
-        return 0;
+        return awcrBySession.get(s.id) || 0;
       };
-      return (data || []).map((s: any) => ({
+      return sessions.map((s: any) => ({
         id: s.id,
         session_date: s.session_date,
         duration_min: parseDuration(s),
