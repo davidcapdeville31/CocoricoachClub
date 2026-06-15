@@ -53,18 +53,33 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
 
 
 
-  const { isDateInActiveSeason } = useSeasonRosterFilter();
+  const { activeSeasonOnly, activeSeasonId, isDateInActiveSeason } = useSeasonRosterFilter();
   const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
   const guard = useSeasonGuard(categoryId);
+  const scopeKey = activeSeasonOnly && activeSeasonId ? activeSeasonId : "all";
+
+  const showBackendError = (action: string, error: unknown) => {
+    if (error instanceof Error && error.message === "blocked") return;
+    console.error(`[AcademyTab] ${action}`, error);
+    const backendError = error as { message?: string; details?: string; hint?: string; code?: string };
+    const description = [backendError.message, backendError.details, backendError.hint, backendError.code ? `Code: ${backendError.code}` : null]
+      .filter(Boolean)
+      .join(" — ");
+    toast.error(action, { description: description || "Erreur inconnue" });
+  };
 
   const { data: allPlayers } = useQuery({
-    queryKey: ["players", categoryId],
+    queryKey: ["players", categoryId, scopeKey],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const query = supabase
         .from("players")
-        .select("id, name, first_name")
+        .select("id, name, first_name, season_id")
         .eq("category_id", categoryId)
         .order("name");
+      if (activeSeasonOnly && activeSeasonId) {
+        query.eq("season_id", activeSeasonId).not("season_id", "is", null);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
@@ -123,17 +138,19 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
       resetAcademicForm();
       setAcademicDialogOpen(false);
     },
-    onError: () => toast.error("Erreur lors de l'ajout"),
+    onError: (error) => showBackendError("Erreur backend lors de l'ajout de la note", error),
   });
 
   const addAbsence = useMutation({
     mutationFn: async () => {
       if (!guard.assertPlayer(selectedPlayer)) throw new Error("blocked");
+      if (!guard.assertDate(new Date())) throw new Error("blocked");
       const { error } = await supabase.from("player_academic_tracking").insert({
         player_id: selectedPlayer,
         category_id: categoryId,
         school_absence_hours: absenceHours ? parseFloat(absenceHours) : 0,
         absence_reason: absenceReason || null,
+        tracking_date: format(new Date(), "yyyy-MM-dd"),
       });
       if (error) throw error;
     },
@@ -143,7 +160,7 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
       resetAbsenceForm();
       setAbsenceDialogOpen(false);
     },
-    onError: () => toast.error("Erreur lors de l'ajout"),
+    onError: (error) => showBackendError("Erreur backend lors de l'ajout de l'absence", error),
   });
 
 
@@ -169,7 +186,7 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
       resetAcademicForm();
       setAcademicDialogOpen(false);
     },
-    onError: () => toast.error("Erreur lors de la modification"),
+    onError: (error) => showBackendError("Erreur backend lors de la modification", error),
   });
 
   const deleteAcademicEntry = useMutation({
@@ -182,7 +199,7 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
       queryClient.invalidateQueries({ queryKey: ["academic_subjects", categoryId] });
       toast.success("Entrée supprimée");
     },
-    onError: () => toast.error("Erreur lors de la suppression"),
+    onError: (error) => showBackendError("Erreur backend lors de la suppression", error),
   });
 
   const handleEditEntry = (entry: any) => {

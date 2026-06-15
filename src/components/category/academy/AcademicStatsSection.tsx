@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from "recharts";
 import ExcelJS from "exceljs";
 import { cn } from "@/lib/utils";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 
 interface AcademicStatsSectionProps {
   categoryId: string;
@@ -41,9 +42,11 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const { activeSeasonOnly, activeSeasonId, isDateInActiveSeason } = useSeasonRosterFilter();
+  const scopeKey = activeSeasonOnly && activeSeasonId ? activeSeasonId : "all";
 
   const { data: allData } = useQuery({
-    queryKey: ["academic_stats_all", categoryId],
+    queryKey: ["academic_stats_all", categoryId, scopeKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("player_academic_tracking")
@@ -55,31 +58,46 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
     },
   });
 
-  // Fetch all players in the category
+  // Fetch players visible in the current roster scope
   const { data: allPlayers } = useQuery({
-    queryKey: ["category_players_for_stats", categoryId],
+    queryKey: ["category_players_for_stats", categoryId, scopeKey],
     queryFn: async () => {
       const query: any = supabase
         .from("players")
-        .select("id, name, first_name");
-      const { data, error } = await query
+        .select("id, name, first_name, season_id")
         .eq("category_id", categoryId)
         .order("name");
+      if (activeSeasonOnly && activeSeasonId) {
+        query.eq("season_id", activeSeasonId).not("season_id", "is", null);
+      }
+      const { data, error } = await query;
       if (error) throw error;
-      return data as { id: string; name: string; first_name: string | null }[];
+      return data as { id: string; name: string; first_name: string | null; season_id: string | null }[];
     },
   });
 
-  const availableYears = useMemo(() => {
+  const visiblePlayerIds = useMemo(() => new Set((allPlayers || []).map((p) => p.id)), [allPlayers]);
+
+  useEffect(() => {
+    if (selectedPlayerId && allPlayers && !visiblePlayerIds.has(selectedPlayerId)) {
+      setSelectedPlayerId(null);
+    }
+  }, [allPlayers, selectedPlayerId, visiblePlayerIds]);
+
+  const scopedData = useMemo(() => {
     if (!allData) return [];
-    const years = new Set(allData.map(d => new Date(d.tracking_date).getFullYear()));
+    if (!activeSeasonOnly || !activeSeasonId) return allData;
+    return allData.filter((d) => visiblePlayerIds.has(d.player_id) && isDateInActiveSeason(d.tracking_date));
+  }, [allData, activeSeasonOnly, activeSeasonId, visiblePlayerIds, isDateInActiveSeason]);
+
+  const availableYears = useMemo(() => {
+    const years = new Set(scopedData.map(d => new Date(d.tracking_date).getFullYear()));
     return Array.from(years).sort((a, b) => b - a);
-  }, [allData]);
+  }, [scopedData]);
 
   // Filter by year then by player
   const filteredData = useMemo(() => {
-    if (!allData) return [];
-    let data = allData;
+    let data = scopedData;
     if (selectedYear !== "all") {
       data = data.filter(d => new Date(d.tracking_date).getFullYear() === parseInt(selectedYear));
     }
@@ -87,7 +105,7 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
       data = data.filter(d => d.player_id === selectedPlayerId);
     }
     return data;
-  }, [allData, selectedYear, selectedPlayerId]);
+  }, [scopedData, selectedYear, selectedPlayerId]);
 
   const gradeEntries = useMemo(() => {
     return filteredData.filter(d => d.academic_grade !== null && (d.grade_scale || "20") !== "letter");
@@ -169,8 +187,7 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
   }, [filteredData]);
 
   const yearComparison = useMemo(() => {
-    if (!allData) return [];
-    let data = allData;
+    let data = scopedData;
     if (selectedPlayerId) {
       data = data.filter(d => d.player_id === selectedPlayerId);
     }
@@ -190,7 +207,7 @@ export function AcademicStatsSection({ categoryId }: AcademicStatsSectionProps) 
         absences: v.absences,
         nbNotes: v.grades.length,
       }));
-  }, [allData, selectedPlayerId]);
+  }, [scopedData, selectedPlayerId]);
 
   const exportToExcel = async () => {
     try {
