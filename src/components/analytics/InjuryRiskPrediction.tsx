@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,6 +6,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, TrendingUp, Activity, Shield } from "lucide-react";
 import { Loader2 } from "lucide-react";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 
 interface InjuryRiskPredictionProps {
   categoryId: string;
@@ -23,8 +26,12 @@ interface PlayerRisk {
 }
 
 export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) {
-  const { data: players } = useQuery({
-    queryKey: ["players", categoryId],
+  const { allowedIds, isFiltering } = useSeasonFilteredPlayerIds(categoryId);
+  const { isDateInActiveSeason, activeSeasonEnd } = useSeasonRosterFilter();
+  const scopeKey = isFiltering ? `season:${activeSeasonEnd ?? "x"}` : "all";
+
+  const { data: playersRaw } = useQuery({
+    queryKey: ["players", categoryId, scopeKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
@@ -35,6 +42,10 @@ export function InjuryRiskPrediction({ categoryId }: InjuryRiskPredictionProps) 
       return data;
     },
   });
+  const players = useMemo(
+    () => (allowedIds ? (playersRaw || []).filter((p: any) => allowedIds.has(p.id)) : playersRaw),
+    [playersRaw, allowedIds]
+  );
 
   const { data: awcrData, isLoading } = useQuery({
     queryKey: ["awcr-risk", categoryId],

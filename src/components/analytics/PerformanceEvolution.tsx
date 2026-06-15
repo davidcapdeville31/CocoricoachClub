@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 
 interface PerformanceEvolutionProps {
   categoryId: string;
@@ -55,10 +57,24 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
   const [selectedTest, setSelectedTest] = useState<string>("");
   const [viewMode, setViewMode] = useState<ViewMode>("team");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
+  const { allowedIds, isFiltering } = useSeasonFilteredPlayerIds(categoryId);
+  const { isDateInActiveSeason, activeSeasonEnd } = useSeasonRosterFilter();
+  const scopeKey = isFiltering ? `season:${activeSeasonEnd ?? "x"}` : "all";
+  const filterRows = useCallback(
+    (rows: any[] | undefined | null): any[] => {
+      if (!rows) return [];
+      return rows.filter(
+        (r: any) =>
+          (!allowedIds || (r.player_id && allowedIds.has(r.player_id))) &&
+          isDateInActiveSeason(r.test_date ?? undefined)
+      );
+    },
+    [allowedIds, isDateInActiveSeason]
+  );
 
   // Fetch players
-  const { data: players } = useQuery({
-    queryKey: ["players-evolution", categoryId],
+  const { data: playersRaw } = useQuery({
+    queryKey: ["players-evolution", categoryId, scopeKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
@@ -72,9 +88,13 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
       }));
     },
   });
+  const players = useMemo(
+    () => (allowedIds ? (playersRaw || []).filter((p) => allowedIds.has(p.id)) : playersRaw),
+    [playersRaw, allowedIds]
+  );
 
-  const { data: speedTests, isLoading: loadingSpeed } = useQuery({
-    queryKey: ["speed-tests-evolution", categoryId],
+  const { data: speedTestsRaw, isLoading: loadingSpeed } = useQuery({
+    queryKey: ["speed-tests-evolution", categoryId, scopeKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("speed_tests")
@@ -85,9 +105,10 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
       return data;
     },
   });
+  const speedTests = useMemo(() => filterRows(speedTestsRaw as any), [speedTestsRaw, filterRows]);
 
-  const { data: strengthTests, isLoading: loadingStrength } = useQuery({
-    queryKey: ["strength-tests-evolution", categoryId],
+  const { data: strengthTestsRaw, isLoading: loadingStrength } = useQuery({
+    queryKey: ["strength-tests-evolution", categoryId, scopeKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("strength_tests")
@@ -98,9 +119,10 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
       return data;
     },
   });
+  const strengthTests = useMemo(() => filterRows(strengthTestsRaw as any), [strengthTestsRaw, filterRows]);
 
-  const { data: jumpTests, isLoading: loadingJump } = useQuery({
-    queryKey: ["jump-tests-evolution", categoryId],
+  const { data: jumpTestsRaw, isLoading: loadingJump } = useQuery({
+    queryKey: ["jump-tests-evolution", categoryId, scopeKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("jump_tests")
@@ -111,9 +133,10 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
       return data;
     },
   });
+  const jumpTests = useMemo(() => filterRows(jumpTestsRaw as any), [jumpTestsRaw, filterRows]);
 
-  const { data: genericTests, isLoading: loadingGeneric } = useQuery({
-    queryKey: ["generic-tests-evolution", categoryId],
+  const { data: genericTestsRaw, isLoading: loadingGeneric } = useQuery({
+    queryKey: ["generic-tests-evolution", categoryId, scopeKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("generic_tests")
@@ -124,6 +147,7 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
       return data;
     },
   });
+  const genericTests = useMemo(() => filterRows(genericTestsRaw as any), [genericTestsRaw, filterRows]);
 
   // Discover available tests
   const availableTests = useMemo(() => {
