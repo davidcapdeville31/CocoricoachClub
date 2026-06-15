@@ -15,6 +15,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle2, Send, Clock } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AthleteWeightLogInput,
+  buildWeightLogRecords,
+  type WeightLogState,
+} from "./AthleteWeightLogInput";
 
 interface Props {
   open: boolean;
@@ -46,6 +51,7 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
   const [duration, setDuration] = useState<number>(60);
   const [comment, setComment] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+  const [weightLogs, setWeightLogs] = useState<WeightLogState>({});
 
   const { data: blocks = [] } = useQuery({
     queryKey: ["validate-session-blocks", session?.id],
@@ -73,6 +79,7 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
       setRpe(5);
       setComment("");
       setDuration(plannedDuration > 0 ? plannedDuration : 60);
+      setWeightLogs({});
     }
   }, [open, plannedDuration]);
 
@@ -148,6 +155,30 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
         await supabase.from("wellness_tracking").insert(wellnessRow);
       }
 
+      // 4) Persist actual weights into athlete_exercise_logs (feeds Tonnage & training load)
+      const weightRecords = buildWeightLogRecords(weightLogs, {
+        playerId,
+        categoryId,
+        trainingSessionId: session.id,
+      });
+      if (weightRecords.length > 0) {
+        const stamped = weightRecords.map((r) => ({
+          ...r,
+          submitted_by: playerId,
+          submitted_via: "athlete" as const,
+          validation_status: "pending" as const,
+        }));
+        const { error: weightError } = await supabase
+          .from("athlete_exercise_logs")
+          .upsert(stamped, {
+            onConflict: "training_session_id,player_id,exercise_name",
+          });
+        if (weightError) {
+          console.error("Weight log insert error:", weightError);
+          toast.error("Séance validée mais erreur sur les charges");
+        }
+      }
+
       toast.success("Séance validée ✅");
       qc.invalidateQueries({ queryKey: ["athlete-space-rpes"] });
       qc.invalidateQueries({ queryKey: ["athlete-space-awcr"] });
@@ -155,6 +186,10 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
       qc.invalidateQueries({ queryKey: ["athlete-calendar-sessions", categoryId, playerId] });
       qc.invalidateQueries({ queryKey: ["awcr-tracking"] });
       qc.invalidateQueries({ queryKey: ["wellness-tracking"] });
+      qc.invalidateQueries({ queryKey: ["athlete-weight-log-existing"] });
+      qc.invalidateQueries({ queryKey: ["athlete-weight-log-exercises"] });
+      qc.invalidateQueries({ queryKey: ["tonnage"] });
+      qc.invalidateQueries({ queryKey: ["pending-weight-logs"] });
       onOpenChange(false);
     } catch (e: any) {
       toast.error(e?.message || "Erreur lors de l'enregistrement");
@@ -165,18 +200,28 @@ export function SessionValidationDialog({ open, onOpenChange, session, playerId,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-status-optimal" />
             Valider ma séance
           </DialogTitle>
           <DialogDescription>
-            Renseigne tes sensations et ta durée pour finaliser.
+            Renseigne tes charges réalisées puis tes sensations pour finaliser.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
+          {/* Exercise logs (reps / sets / weight) — feeds tonnage & training load */}
+          {session && playerId && (
+            <AthleteWeightLogInput
+              sessionId={session.id}
+              playerId={playerId}
+              value={weightLogs}
+              onChange={setWeightLogs}
+            />
+          )}
+
           {/* Feeling */}
           <div>
             <Label className="text-sm mb-2 block">Comment vous êtes-vous senti ?</Label>
