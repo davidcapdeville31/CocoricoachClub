@@ -20,6 +20,8 @@ import { getMinimaLevel } from "@/lib/athletics/minimaLevels";
 import { exportAthleticsMinimasReport } from "@/lib/athletics/exportPdf";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface Props {
   categoryId: string;
