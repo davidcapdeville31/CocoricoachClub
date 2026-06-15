@@ -141,9 +141,9 @@ export function useTrainingLoad({
     return rollingStr;
   };
 
-  // Fetch AWCR/RPE data
-  const { data: awcrData, isLoading: awcrLoading } = useQuery({
-    queryKey: ["training-load-awcr", categoryId, playerId, periodDays, activeSeasonStart],
+  // Fetch AWCR/RPE data (sliding window preserved for EWMA accuracy)
+  const { data: awcrDataRaw, isLoading: awcrLoading } = useQuery({
+    queryKey: ["training-load-awcr", categoryId, playerId, periodDays, activeSeasonStart, scopeKey],
     queryFn: async () => {
       let query = supabase
         .from("awcr_tracking")
@@ -164,8 +164,8 @@ export function useTrainingLoad({
   });
 
   // Fetch HRV data
-  const { data: hrvData, isLoading: hrvLoading } = useQuery({
-    queryKey: ["training-load-hrv", categoryId, playerId, periodDays, activeSeasonStart],
+  const { data: hrvDataRaw, isLoading: hrvLoading } = useQuery({
+    queryKey: ["training-load-hrv", categoryId, playerId, periodDays, activeSeasonStart, scopeKey],
     queryFn: async () => {
       let query = supabase
         .from("hrv_records")
@@ -186,8 +186,8 @@ export function useTrainingLoad({
   });
 
   // Fetch GPS data
-  const { data: gpsData, isLoading: gpsLoading } = useQuery({
-    queryKey: ["training-load-gps", categoryId, playerId, periodDays, activeSeasonStart],
+  const { data: gpsDataRaw, isLoading: gpsLoading } = useQuery({
+    queryKey: ["training-load-gps", categoryId, playerId, periodDays, activeSeasonStart, scopeKey],
     queryFn: async () => {
       let query = supabase
         .from("gps_sessions")
@@ -206,6 +206,38 @@ export function useTrainingLoad({
     },
     enabled: category !== undefined,
   });
+
+  // Apply season scope:
+  // - allowedIds restricts the roster (only when toggle ON)
+  // - isDateInActiveSeason restricts displayed dates to [start, end]
+  // EWMA chronic load still benefits from the 28d sliding window kept in the fetch.
+  const awcrData = useMemo(
+    () =>
+      (awcrDataRaw || []).filter(
+        (r: any) =>
+          (!allowedIds || allowedIds.has(r.player_id)) &&
+          isDateInActiveSeason(r.session_date)
+      ),
+    [awcrDataRaw, allowedIds, isDateInActiveSeason]
+  );
+  const hrvData = useMemo(
+    () =>
+      (hrvDataRaw || []).filter(
+        (r: any) =>
+          (!allowedIds || allowedIds.has(r.player_id)) &&
+          isDateInActiveSeason(r.record_date)
+      ),
+    [hrvDataRaw, allowedIds, isDateInActiveSeason]
+  );
+  const gpsData = useMemo(
+    () =>
+      (gpsDataRaw || []).filter(
+        (r: any) =>
+          (!allowedIds || allowedIds.has(r.player_id)) &&
+          isDateInActiveSeason(r.session_date)
+      ),
+    [gpsDataRaw, allowedIds, isDateInActiveSeason]
+  );
 
 
   // Check if data exists
