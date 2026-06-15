@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar,
 } from "recharts";
-import { BarChart3, Activity } from "lucide-react";
+import { BarChart3, Activity, Dumbbell } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { getTrainingTypeLabel } from "@/lib/constants/trainingTypes";
@@ -25,6 +25,23 @@ export function AthleteSpaceRpeHistory({ playerId, categoryId }: Props) {
         .eq("player_id", playerId)
         .order("session_date", { ascending: true })
         .limit(60);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Tonnage history (musculation logs) — last 60 days
+  const { data: tonnageLogs = [] } = useQuery({
+    queryKey: ["athlete-space-tonnage", playerId, categoryId],
+    queryFn: async () => {
+      const since = new Date();
+      since.setDate(since.getDate() - 60);
+      const { data, error } = await supabase
+        .from("athlete_exercise_logs")
+        .select("tonnage, created_at, training_sessions!inner(session_date)")
+        .eq("player_id", playerId)
+        .eq("category_id", categoryId)
+        .gte("created_at", since.toISOString());
       if (error) throw error;
       return data || [];
     },
