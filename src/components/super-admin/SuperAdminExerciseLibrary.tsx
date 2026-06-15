@@ -554,8 +554,8 @@ function ExerciseFormDialog({
               <ImageIcon className="h-4 w-4" /> Image (max 2 Mo)
             </Label>
              {imageUrl ? (
-              <div className="group relative w-full max-w-xs">
-                <img src={imageUrl} alt="Preview" className="rounded-lg border max-h-40 w-full object-cover" />
+              <div className="group relative w-full max-w-xs bg-muted rounded-lg">
+                <img src={imageUrl} alt="Preview" className="rounded-lg border max-h-60 w-full object-contain" />
                 <button
                   type="button"
                   className="absolute top-1 right-1 h-4 w-4 rounded-full bg-destructive/60 hover:bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
