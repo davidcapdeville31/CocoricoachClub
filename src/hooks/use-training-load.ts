@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { 
   DailyLoadData, 
   MetricType, 
@@ -91,6 +93,10 @@ export function useTrainingLoad({
   metric = "ewma_srpe",
   periodDays = 56 // 8 weeks by default
 }: UseTrainingLoadOptions) {
+  const { activeSeasonOnly, activeSeasonStart: ctxSeasonStart, activeSeasonEnd, isDateInActiveSeason } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const scopeKey = `${activeSeasonOnly ? "on" : "off"}:${activeSeasonEnd ?? "-"}`;
+
   
   // Fetch category sport type + club for season-scoped load reset
   const { data: category } = useQuery({
