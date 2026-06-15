@@ -21,6 +21,7 @@ export type WeightLogQuickEntry = {
 
 export type WeightLogDetailedEntry = {
   mode: "detailed";
+  seriesLabel?: string; // "Série" | "Tour" | "Round"
   series: Array<{ weight: string; reps: string }>;
 };
 
