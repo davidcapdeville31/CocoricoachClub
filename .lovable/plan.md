@@ -1,10 +1,67 @@
 
-# Filtre saison active + clôture/bilan de saison
+# Filtre saison active — état d'avancement
 
-## Règles validées (à appliquer partout)
-- **Roster** : exclure les joueurs `season_id = null` ET ceux d'autres saisons. Seul `season_id = activeSeasonId` passe.
-- **EWMA/AWCR** : calcul sur historique 28j glissants (fetch large), affichage filtré à `[start_date, end_date]`.
-- **Blessures actives** et **records/PB absolus** : restent visibles hors fenêtre. Tous les autres modules santé/académie filtrent dates + roster strictement.
+## Règles validées (rappel)
+- **Roster** : exclure les joueurs `season_id ≠ activeSeasonId` (incluant `season_id = null`).
+- **EWMA/AWCR** : calcul sur historique 28j/90j glissants (fetch large), affichage filtré à `[start_date, end_date]`.
+- **Blessures actives** et **records/PB absolus** : restent visibles hors fenêtre. Autres modules santé/académie filtrent dates + roster.
+
+## ✅ Implémenté
+- `SeasonRosterFilterProvider` monté sur `CategoryDetails`.
+- Toggle visible sur : Datas, Workload (PerformanceTab), Planification, Académie (AcademicTab + AcademyTab), Santé, Admin, Calendar, AWCR, Decision Center.
+- Filtres dates + roster appliqués :
+  - `CalendarTab` (sessions, matches, weekly planning)
+  - `AwcrTab` (rows filtrés par allowedIds + isDateInActiveSeason)
+  - `AcademicTab` (players, grades, absences)
+  - `AcademyTab` (players selector, academicData)
+  - `InjuriesTab` (raw injuries via keepPlayer)
+  - `DecisionCenter` :
+    - `players` → filtré (cascade sur GroupStatus, alertes, dialogs)
+    - `injuries`, `illnesses` → keepPlayer
+    - `awcrDataFull` → keepPlayer (90j glissant conservé pour EWMA)
+    - `wellnessData` → keepPlayer + isDateInActiveSeason
+    - `todaySessions`, `tomorrowSessions` → vidés si hors fenêtre
+    - `todayAttendance`, `todaySessionParticipants`, `todayRpeData` → keepPlayer + dates
+    - `expiredDocs`, `upcomingMatches` → keepPlayer + dates
+- Mutations protégées implicitement : les `<Select>` de joueurs n'affichent que les athlètes filtrés → impossible de créer une note/absence/blessure/session pour un joueur hors saison quand le toggle est ON.
+
+## 🔧 Reste à faire (passes ciblées)
+- **Datas children** : appliquer `useSeasonFilteredPlayerIds` + `isDateInActiveSeason` dans
+  `PlayerCumulativeStats`, `TeamSportsAnalytics`, `BowlingCumulativeStats`,
+  `TennisTrainingStats`, `BasketballPrecisionTracker`, `PrecisionFieldTracker`,
+  `PrecisionTrainingStats`, `AthleticsThrowingStats`, `AthleticsSprintStats`
+  (la plupart ont déjà l'import — vérifier qu'ils appliquent le filtre dans **toutes** les requêtes/aggregations).
+- **Workload children** : `TrainingLoadTab`, `AvailabilityScoreTab`, `InjuryRiskPrediction`,
+  `TonnageDashboard`, `PerformanceEvolution` → filtrer joueurs (allowedIds) et dates
+  (sauf EWMA chronique → fetch glissant + filtre affichage).
+- **Planification / Ski + Athlétisme** : `FisRankingTab`, `AthleticsRecordsTab` →
+  filtrer joueurs ; records absolus (PB) restent visibles, SB de la saison se contente du roster.
+- **Santé children** : `CoachDashboard`, `MedicalRecordsTab`, `WellnessTab`,
+  `ActiveProtocolsDashboard`, `ConcussionProtocolTab`, `InjuryStatsPanel`,
+  `WellnessPainStats`, `InjuryRiskAssessment` → vérifier filtres roster+dates
+  (sauf blessures actives → toujours visibles).
+- **Admin** : `RecruitmentPipeline`, `MatchSheets`, `ConvocationsList`,
+  documents personnels → filtrer joueurs + dates (les prospects de recrutement
+  n'ont pas de season_id, garder visibles).
+- **Académie / Stats** : `AcademicStatsSection` → consommer roster+dates filtrés.
+- **Sélecteurs joueurs partagés** : `PlayerSelection`, `PlayerSelector`,
+  `AthleteSelector` → ajouter prop `excludeOutOfSeason` (ou lire le contexte
+  directement) pour cacher les athlètes hors saison quand le toggle est ON,
+  et notification visuelle quand un joueur préalablement sélectionné devient
+  inéligible.
+- **Mutations directes** (création session, blessure, test, convoc, document) :
+  ajouter un garde-fou côté UI (`onSubmit`) qui rejette + toast "Athlète hors saison active"
+  si `allowedIds && !allowedIds.has(playerId)` — défense en profondeur même si le
+  selector est déjà filtré.
+- **Compteurs / badges** (`usePendingWeightLogsCount`, `usePendingTestResultsCount`,
+  `useUnreadAthleteSessionsCount`, `useUnreadMessages`) → optionnel : exposer
+  une variante saison-aware si le besoin remonte.
+
+## Clôture / Export bilan saison (lot dédié, non démarré)
+Voir spécification précédente du plan — à implémenter dans `SeasonsManager`
+(bouton "Clôturer & exporter bilan", PDF jspdf + Excel exceljs, log audit).
+
+
 
 
 Objectif : quand le toggle **« Saison active uniquement »** est ON, tous les dashboards collectifs (Datas, Workload, Planification, Académie, Admin) ne montrent que les athlètes de la saison active **et** uniquement les données entre `start_date` et `end_date`. Les profils athlètes gardent leur historique complet. Ajout d'une action **Clôturer / Exporter bilan** dans Admin club › Saisons.
