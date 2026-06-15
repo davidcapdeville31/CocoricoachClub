@@ -18,7 +18,6 @@ import { toast } from "sonner";
 import {
   AthleteWeightLogInput,
   buildWeightLogRecords,
-  countIncompleteWeightLogs,
   type WeightLogState,
 } from "./AthleteWeightLogInput";
 
