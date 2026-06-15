@@ -60,10 +60,6 @@ export function AthleticsRecordsManager({ categoryId, playerId, singlePlayer = f
   const [seasonYear, setSeasonYear] = useState(new Date().getFullYear());
   const [notes, setNotes] = useState("");
 
-  // Fetch players (always — we also need the current athlete's disciplines in singlePlayer mode)
-  const { data: players = [] } = useQuery({
-    queryKey: ["category_players_minimal_athletics", categoryId, playerId || "all"],
-    queryFn: async () => {
   // Fetch players (filter by active season when toggle is ON)
   const { data: players = [] } = useQuery({
     queryKey: ["category_players_minimal_athletics", categoryId, playerId || "all", scopeKey],
