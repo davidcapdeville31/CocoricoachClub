@@ -5,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ExternalLink, Image as ImageIcon, Video } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 interface ExerciseMediaViewerProps {
   exerciseName: string;
@@ -36,13 +36,11 @@ export function ExerciseMediaViewer({
   return (
     <>
       <span
-        className="cursor-pointer hover:text-primary transition-colors inline-flex items-center gap-1"
+        className="cursor-pointer hover:text-primary transition-colors inline-flex items-center"
         onClick={() => setOpen(true)}
         title="Voir la démonstration"
       >
         {children}
-        {youtubeUrl && <Video className="h-3 w-3 text-primary opacity-70" />}
-        {imageUrl && !youtubeUrl && <ImageIcon className="h-3 w-3 text-primary opacity-70" />}
       </span>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg">
