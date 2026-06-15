@@ -47,7 +47,26 @@ export function AthleteSpaceRpeHistory({ playerId, categoryId }: Props) {
     },
   });
 
-  if (isLoading || rpeHistory.length === 0) return null;
+  const hasTonnage = (tonnageLogs as any[]).some((l) => Number(l.tonnage || 0) > 0);
+  if (isLoading || (rpeHistory.length === 0 && !hasTonnage)) return null;
+
+  // Tonnage aggregated per session date
+  const tonnageByDate = new Map<string, number>();
+  (tonnageLogs as any[]).forEach((l) => {
+    const d = (l.training_sessions as any)?.session_date || l.created_at?.split("T")[0];
+    if (!d) return;
+    tonnageByDate.set(d, (tonnageByDate.get(d) || 0) + Number(l.tonnage || 0));
+  });
+  const tonnageChart = Array.from(tonnageByDate.entries())
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([date, tonnage]) => ({
+      date: format(new Date(date), "dd/MM", { locale: fr }),
+      fullDate: format(new Date(date), "dd MMM yyyy", { locale: fr }),
+      tonnage: Math.round(tonnage),
+    }));
+  const totalTonnage = Math.round(
+    (tonnageLogs as any[]).reduce((s, l) => s + Number(l.tonnage || 0), 0)
+  );
 
   const chartData = rpeHistory.map((r: any) => ({
     date: format(new Date(r.session_date), "dd/MM", { locale: fr }),
