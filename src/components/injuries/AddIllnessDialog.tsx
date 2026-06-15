@@ -63,7 +63,7 @@ export function AddIllnessDialog({ open, onOpenChange, categoryId, playerId }: A
   const [estimatedReturn, setEstimatedReturn] = useState("");
   const [description, setDescription] = useState("");
 
-  const { data: players } = useQuery({
+  const { data: playersAll } = useQuery({
     queryKey: ["players", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -76,6 +76,7 @@ export function AddIllnessDialog({ open, onOpenChange, categoryId, playerId }: A
     },
     enabled: !playerId,
   });
+  const players = (playersAll || []).filter((p: any) => guard.isPlayerAllowed(p.id));
 
   const add = useMutation({
     mutationFn: async () => {

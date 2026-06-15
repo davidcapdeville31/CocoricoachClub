@@ -32,6 +32,7 @@ import {
   isThrowingBlock,
 } from "@/lib/constants/athleticsImplements";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 const BASKET_PRECISION_THEMES = new Set(["basketball_lf", "basketball_paint", "basketball_3pts"]);
 
@@ -166,6 +167,7 @@ const isBowlingSport = (sport?: string) =>
 export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sportType, editSession, athletePlayerId }: FieldSessionDialogProps) {
   const qc = useQueryClient();
   const { notify } = useSessionNotifications();
+  const guard = useSeasonGuard(categoryId);
   const isEdit = !!editSession?.id;
   const isAthleteMode = !!athletePlayerId && !isEdit;
 
@@ -290,7 +292,7 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
   };
 
 
-  const { data: players } = useQuery({
+  const { data: playersRaw } = useQuery({
     queryKey: ["players-field-session", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -299,14 +301,24 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
         .eq("category_id", categoryId)
         .order("name");
       if (error) throw error;
-      // Default: all selected
-      if (data && selectAll && selectedPlayers.length === 0) {
-        setSelectedPlayers(data.map((p) => p.id));
-      }
       return data;
     },
     enabled: open,
   });
+
+  // Restrict to active-season roster when filter is ON
+  const players = useMemo(
+    () => (playersRaw || []).filter((p: any) => guard.isPlayerAllowed(p.id)),
+    [playersRaw, guard],
+  );
+
+  // Default-select all visible players the first time the list loads
+  useEffect(() => {
+    if (players && selectAll && selectedPlayers.length === 0 && players.length > 0) {
+      setSelectedPlayers(players.map((p) => p.id));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [players?.length]);
 
   // Load existing session data when in edit mode
   useEffect(() => {
@@ -414,6 +426,9 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
 
   const create = useMutation({
     mutationFn: async () => {
+      if (!guard.assertDate(date)) throw new Error("guard:date");
+      if (isAthleteMode && !guard.assertPlayer(athletePlayerId!)) throw new Error("guard:player");
+      if (selectedPlayers.length > 0 && !guard.assertPlayers(selectedPlayers)) throw new Error("guard:players");
       if (!title.trim()) throw new Error("Veuillez saisir un titre");
       if (blocks.length === 0) throw new Error("Ajoutez au moins un bloc");
       if (blocks.some((b) => !b.theme)) throw new Error("Chaque bloc doit avoir un thème");
@@ -568,7 +583,10 @@ export function FieldSessionDialog({ open, onOpenChange, date, categoryId, sport
 
       onOpenChange(false);
     },
-    onError: (e: Error) => toast.error(e.message || "Erreur lors de l'enregistrement"),
+    onError: (e: Error) => {
+      if (typeof e?.message === "string" && e.message.startsWith("guard:")) return;
+      toast.error(e.message || "Erreur lors de l'enregistrement");
+    },
   });
 
   return (
