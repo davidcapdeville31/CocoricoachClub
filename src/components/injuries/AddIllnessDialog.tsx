@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface AddIllnessDialogProps {
   open: boolean;
@@ -53,6 +54,7 @@ const SEVERITY = [
 
 export function AddIllnessDialog({ open, onOpenChange, categoryId, playerId }: AddIllnessDialogProps) {
   const qc = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
   const [selectedPlayerId, setSelectedPlayerId] = useState(playerId || "");
   const [illnessType, setIllnessType] = useState("");
   const [customType, setCustomType] = useState("");
@@ -77,6 +79,8 @@ export function AddIllnessDialog({ open, onOpenChange, categoryId, playerId }: A
 
   const add = useMutation({
     mutationFn: async () => {
+      if (!guard.assertPlayer(selectedPlayerId)) throw new Error("guard:player");
+      if (!guard.assertDate(illnessDate)) throw new Error("guard:date");
       const finalType = illnessType === "Autre" ? customType : illnessType;
       const { error } = await (supabase as any).from("illnesses").insert([{
         player_id: selectedPlayerId,
@@ -96,7 +100,10 @@ export function AddIllnessDialog({ open, onOpenChange, categoryId, playerId }: A
       reset();
       onOpenChange(false);
     },
-    onError: (e: any) => toast.error(`Erreur: ${e?.message || "enregistrement impossible"}`),
+    onError: (e: any) => {
+      if (typeof e?.message === "string" && e.message.startsWith("guard:")) return;
+      toast.error(`Erreur: ${e?.message || "enregistrement impossible"}`);
+    },
   });
 
   const reset = () => {

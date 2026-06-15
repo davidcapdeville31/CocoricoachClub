@@ -26,6 +26,7 @@ import { sleepHoursToScore } from "@/lib/sleepConversion";
 import { cn } from "@/lib/utils";
 import { useWellnessQuestions } from "@/lib/wellness/questionConfig";
 import { BodyPainSelector, type BodyPainEntry } from "@/components/wellness/BodyPainSelector";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface AddWellnessDialogProps {
   open: boolean;
@@ -45,6 +46,7 @@ const SLEEP_RANGES: { label: string; value: number }[] = [
 
 export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnessDialogProps) {
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
   const [playerId, setPlayerId] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState("");
@@ -119,6 +121,8 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
 
   const addWellness = useMutation({
     mutationFn: async () => {
+      if (!guard.assertPlayer(playerId)) throw new Error("guard:player");
+      if (!guard.assertDate(date)) throw new Error("guard:date");
       const playerName = players?.find(p => p.id === playerId)?.name || "Athlète";
 
       const activePainEntries = hasSpecificPain ? painEntries : [];
@@ -188,6 +192,7 @@ export function AddWellnessDialog({ open, onOpenChange, categoryId }: AddWellnes
       setDate(currentDate);
     },
     onError: (error: any) => {
+      if (typeof error?.message === "string" && error.message.startsWith("guard:")) return;
       if (error.code === "23505") {
         toast.error("Une entrée existe déjà pour ce joueur à cette date");
       } else {

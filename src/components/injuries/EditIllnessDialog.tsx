@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface EditIllnessDialogProps {
   open: boolean;
@@ -35,6 +36,7 @@ const severityOptions = [
 
 export function EditIllnessDialog({ open, onOpenChange, illness }: EditIllnessDialogProps) {
   const qc = useQueryClient();
+  const guard = useSeasonGuard(illness?.category_id);
   const [illnessType, setIllnessType] = useState("");
   const [illnessDate, setIllnessDate] = useState("");
   const [severity, setSeverity] = useState("");
@@ -55,6 +57,8 @@ export function EditIllnessDialog({ open, onOpenChange, illness }: EditIllnessDi
 
   const update = useMutation({
     mutationFn: async () => {
+      if (!guard.assertPlayer(illness?.player_id)) throw new Error("guard:player");
+      if (!guard.assertDate(illnessDate)) throw new Error("guard:date");
       const { error } = await (supabase as any)
         .from("illnesses")
         .update({
@@ -73,7 +77,10 @@ export function EditIllnessDialog({ open, onOpenChange, illness }: EditIllnessDi
       toast.success("Maladie mise à jour");
       onOpenChange(false);
     },
-    onError: (e: any) => toast.error(e?.message || "Erreur de mise à jour"),
+    onError: (e: any) => {
+      if (typeof e?.message === "string" && e.message.startsWith("guard:")) return;
+      toast.error(e?.message || "Erreur de mise à jour");
+    },
   });
 
   return (

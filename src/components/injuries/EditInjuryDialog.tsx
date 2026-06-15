@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { INJURY_STATUS, INJURY_STATUS_LABELS } from "@/lib/constants/injury";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface EditInjuryDialogProps {
   open: boolean;
@@ -36,6 +37,7 @@ const severityOptions = [
 
 export function EditInjuryDialog({ open, onOpenChange, injury }: EditInjuryDialogProps) {
   const qc = useQueryClient();
+  const guard = useSeasonGuard(injury?.category_id);
   const [injuryType, setInjuryType] = useState("");
   const [injuryDate, setInjuryDate] = useState("");
   const [severity, setSeverity] = useState("");
@@ -56,6 +58,8 @@ export function EditInjuryDialog({ open, onOpenChange, injury }: EditInjuryDialo
 
   const update = useMutation({
     mutationFn: async () => {
+      if (!guard.assertPlayer(injury?.player_id)) throw new Error("guard:player");
+      if (!guard.assertDate(injuryDate)) throw new Error("guard:date");
       const { error } = await supabase
         .from("injuries")
         .update({
@@ -74,7 +78,10 @@ export function EditInjuryDialog({ open, onOpenChange, injury }: EditInjuryDialo
       toast.success("Blessure mise à jour");
       onOpenChange(false);
     },
-    onError: (e: any) => toast.error(e?.message || "Erreur de mise à jour"),
+    onError: (e: any) => {
+      if (typeof e?.message === "string" && e.message.startsWith("guard:")) return;
+      toast.error(e?.message || "Erreur de mise à jour");
+    },
   });
 
   return (
