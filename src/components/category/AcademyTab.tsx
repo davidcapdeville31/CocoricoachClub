@@ -68,7 +68,7 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
     },
   });
 
-  const players = useMemoReact(
+  const players = useMemo(
     () => (allPlayers || []).filter((p) => !allowedIds || allowedIds.has(p.id)),
     [allPlayers, allowedIds]
   );
@@ -86,7 +86,7 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
     },
   });
 
-  const academicData = useMemoReact(
+  const academicData = useMemo(
     () =>
       (academicDataRaw || []).filter(
         (e: any) =>
