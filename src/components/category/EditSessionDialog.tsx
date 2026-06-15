@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface Session {
   id: string;
@@ -53,6 +54,7 @@ export function EditSessionDialog({
   const [notes, setNotes] = useState("");
   const { notify } = useSessionNotifications();
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
 
   // Fetch category to get sport type
   const { data: category } = useQuery({
@@ -85,6 +87,7 @@ export function EditSessionDialog({
   const updateSession = useMutation({
     mutationFn: async () => {
       if (!session) return;
+      if (!guard.assertDate(date)) throw new Error("guard:date");
       const { error } = await supabase
         .from("training_sessions")
         .update({
@@ -116,7 +119,8 @@ export function EditSessionDialog({
 
       onOpenChange(false);
     },
-    onError: () => {
+    onError: (err: any) => {
+      if (typeof err?.message === "string" && err.message.startsWith("guard:")) return;
       toast.error("Erreur lors de la modification de la séance");
     },
   });

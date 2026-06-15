@@ -36,6 +36,7 @@ import { QuickAddExerciseDialog } from "@/components/library/QuickAddExerciseDia
 import { SessionGpsImport, type GpsPlayerData } from "@/components/category/gps/SessionGpsImport";
 import { SessionBlocksManager, type SessionBlock } from "@/components/category/sessions/SessionBlocksManager";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface AddSessionDialogProps {
   open: boolean;
@@ -94,6 +95,7 @@ export function AddSessionDialog({
   const [gpsData, setGpsData] = useState<GpsPlayerData[]>([]);
   const [sessionBlocks, setSessionBlocks] = useState<SessionBlock[]>([]);
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
   const exercisesSectionRef = useRef<HTMLDivElement | null>(null);
 
   // Fetch category to get sport type
@@ -182,6 +184,7 @@ export function AddSessionDialog({
 
   const addSession = useMutation({
     mutationFn: async () => {
+      if (!guard.assertDate(date)) throw new Error("guard:date");
       // Create the session - use first block type if blocks exist, otherwise use selected type
       const mainType = sessionBlocks.length > 0 ? sessionBlocks[0].training_type : type;
       const rawIntensity = sessionBlocks.length > 0
@@ -193,6 +196,7 @@ export function AddSessionDialog({
         if (!athletePlayerId) {
           throw new Error("Session expirée. Reconnecte-toi.");
         }
+        if (!guard.assertPlayer(athletePlayerId)) throw new Error("guard:player");
 
         const { data: authData } = await supabase.auth.getSession();
         const accessToken = authData.session?.access_token;
@@ -309,6 +313,7 @@ export function AddSessionDialog({
       const playersToUse = playerSelectionMode === "specific" && selectedPlayers.length > 0
         ? selectedPlayers
         : players?.map(p => p.id) || [];
+      if (playersToUse.length > 0 && !guard.assertPlayers(playersToUse)) throw new Error("guard:players");
 
       // Create attendance records for selected players (one attendance per session, not per block!)
       if (playersToUse.length > 0) {
@@ -435,6 +440,7 @@ export function AddSessionDialog({
     },
     onError: (error: unknown) => {
       const message = error instanceof Error ? error.message : "Erreur lors de l'ajout de la séance";
+      if (typeof message === "string" && message.startsWith("guard:")) return;
       toast.error(message);
     },
   });
