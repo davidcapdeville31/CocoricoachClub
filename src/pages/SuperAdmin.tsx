@@ -61,6 +61,7 @@ const TABS = [
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const defaultTab = searchParams.get("tab") || "dashboard";
+    const [activeTab, setActiveTab] = useState(defaultTab);
  
    // Check if current user is super admin
    const { data: isSuperAdmin, isLoading: checkingAdmin } = useQuery({
@@ -105,7 +106,8 @@ const TABS = [
      return null;
    }
  
-    const [activeTab, setActiveTab] = useState(defaultTab);
+
+
 
     const handleTabChange = (value: string) => {
       setActiveTab(value);
