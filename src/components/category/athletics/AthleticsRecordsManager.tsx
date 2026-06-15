@@ -64,11 +64,18 @@ export function AthleticsRecordsManager({ categoryId, playerId, singlePlayer = f
   const { data: players = [] } = useQuery({
     queryKey: ["category_players_minimal_athletics", categoryId, playerId || "all"],
     queryFn: async () => {
+  // Fetch players (filter by active season when toggle is ON)
+  const { data: players = [] } = useQuery({
+    queryKey: ["category_players_minimal_athletics", categoryId, playerId || "all", scopeKey],
+    queryFn: async () => {
       let q = supabase
         .from("players")
         .select("id, name, first_name, discipline, specialty, disciplines, specialties")
         .eq("category_id", categoryId);
       if (singlePlayer && playerId) q = q.eq("id", playerId);
+      if (!singlePlayer && activeSeasonOnly && activeSeasonId) {
+        q = q.eq("season_id", activeSeasonId);
+      }
       const { data, error } = await q.order("name");
       if (error) throw error;
       return (data || []) as unknown as Player[];
@@ -93,15 +100,19 @@ export function AthleticsRecordsManager({ categoryId, playerId, singlePlayer = f
     return [];
   };
 
-  // Fetch records
+  // Fetch records, then restrict to the active-season roster when filtering is ON.
   const { data: records = [], isLoading } = useQuery({
-    queryKey: ["athletics_records", categoryId, playerId],
+    queryKey: ["athletics_records", categoryId, playerId, scopeKey],
     queryFn: async () => {
       let q = supabase.from("athletics_records" as any).select("*").eq("category_id", categoryId);
       if (playerId) q = q.eq("player_id", playerId);
       const { data, error } = await q.order("discipline");
       if (error) throw error;
-      return (data || []) as unknown as AthleticsRecord[];
+      const rows = (data || []) as unknown as AthleticsRecord[];
+      if (!singlePlayer && allowedIds) {
+        return rows.filter((r) => allowedIds.has(r.player_id));
+      }
+      return rows;
     },
   });
 
