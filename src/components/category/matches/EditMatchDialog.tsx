@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { getCompetitionsBySport, getCompetitionStagesBySport } from "@/lib/constants/competitions";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
 import { TOURNAMENT_LEVELS, SELECTION_TYPES } from "@/lib/judo/competitionAnalytics";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface Match {
   id: string;
@@ -101,6 +102,7 @@ export function EditMatchDialog({
   const [selectionType, setSelectionType] = useState<string>(match.selection_type || "club");
   
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(match.category_id);
 
   // Initialize competition value
   useEffect(() => {
@@ -121,6 +123,7 @@ export function EditMatchDialog({
 
   const updateMatch = useMutation({
     mutationFn: async () => {
+      if (!guard.assertDate(matchDate)) throw new Error("guard:date");
       const { error } = await supabase
         .from("matches")
         .update({
@@ -147,7 +150,8 @@ export function EditMatchDialog({
       toast.success(isIndividual ? "Compétition mise à jour" : "Match mis à jour");
       onOpenChange(false);
     },
-    onError: () => {
+    onError: (err: any) => {
+      if (typeof err?.message === "string" && err.message.startsWith("guard:")) return;
       toast.error("Erreur lors de la mise à jour");
     },
   });

@@ -12,6 +12,7 @@ import { calculateWsplPoints, WSPL_EVENT_CATEGORIES, calculatePValue, determineP
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { UserPlus, Star, Calculator } from "lucide-react";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface AddFisResultDialogProps {
   open: boolean;
@@ -37,6 +38,7 @@ export function AddFisResultDialog({ open, onOpenChange, competition }: AddFisRe
   const [wsplGender, setWsplGender] = useState<"men" | "women">("men");
   const [saving, setSaving] = useState(false);
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(competition.category_id);
 
   const { data: players } = useQuery({
     queryKey: ["players-for-fis", competition.category_id],
@@ -84,6 +86,7 @@ export function AddFisResultDialog({ open, onOpenChange, competition }: AddFisRe
       toast.error("Athlète et classement requis");
       return;
     }
+    if (!guard.assertPlayer(playerId)) return;
     setSaving(true);
 
     const basePointsVal = autoCalculatedPoints ?? 0;
