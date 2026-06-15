@@ -1,6 +1,12 @@
 
 # Filtre saison active + clôture/bilan de saison
 
+## Règles validées (à appliquer partout)
+- **Roster** : exclure les joueurs `season_id = null` ET ceux d'autres saisons. Seul `season_id = activeSeasonId` passe.
+- **EWMA/AWCR** : calcul sur historique 28j glissants (fetch large), affichage filtré à `[start_date, end_date]`.
+- **Blessures actives** et **records/PB absolus** : restent visibles hors fenêtre. Tous les autres modules santé/académie filtrent dates + roster strictement.
+
+
 Objectif : quand le toggle **« Saison active uniquement »** est ON, tous les dashboards collectifs (Datas, Workload, Planification, Académie, Admin) ne montrent que les athlètes de la saison active **et** uniquement les données entre `start_date` et `end_date`. Les profils athlètes gardent leur historique complet. Ajout d'une action **Clôturer / Exporter bilan** dans Admin club › Saisons.
 
 ---
