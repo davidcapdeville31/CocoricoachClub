@@ -487,6 +487,7 @@ export function SessionFeedbackDialog({
       onOpenChange(false);
     },
     onError: (error: Error) => {
+      if (typeof error?.message === "string" && error.message.startsWith("guard:")) return;
       toast.error(error.message || "Erreur lors de l'enregistrement");
     },
   });
