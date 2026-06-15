@@ -22,12 +22,15 @@ interface TonnageDashboardProps {
 export function TonnageDashboard({ categoryId, playerId }: TonnageDashboardProps) {
   const [dateRange, setDateRange] = useState("90");
   const [selectedPlayer, setSelectedPlayer] = useState<string>(playerId || "all");
+  const { allowedIds, isFiltering } = useSeasonFilteredPlayerIds(categoryId);
+  const { isDateInActiveSeason, activeSeasonEnd } = useSeasonRosterFilter();
+  const scopeKey = isFiltering ? `season:${activeSeasonEnd ?? "x"}` : "all";
 
   const startDate = format(subDays(new Date(), parseInt(dateRange)), "yyyy-MM-dd");
 
   // Fetch players
-  const { data: players } = useQuery({
-    queryKey: ["players-tonnage", categoryId],
+  const { data: playersRaw } = useQuery({
+    queryKey: ["players-tonnage", categoryId, scopeKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
@@ -38,10 +41,14 @@ export function TonnageDashboard({ categoryId, playerId }: TonnageDashboardProps
       return data;
     },
   });
+  const players = useMemo(
+    () => (allowedIds ? (playersRaw || []).filter((p) => allowedIds.has(p.id)) : playersRaw),
+    [playersRaw, allowedIds]
+  );
 
   // Fetch exercise logs
-  const { data: logs, isLoading } = useQuery({
-    queryKey: ["athlete-exercise-logs-dashboard", categoryId, startDate, selectedPlayer],
+  const { data: logsRaw, isLoading } = useQuery({
+    queryKey: ["athlete-exercise-logs-dashboard", categoryId, startDate, selectedPlayer, scopeKey],
     queryFn: async () => {
       let query = supabase
         .from("athlete_exercise_logs")
@@ -59,6 +66,14 @@ export function TonnageDashboard({ categoryId, playerId }: TonnageDashboardProps
       return data;
     },
   });
+  const logs = useMemo(() => {
+    if (!logsRaw) return logsRaw;
+    return (logsRaw as any[]).filter((l) => {
+      if (allowedIds && !allowedIds.has(l.player_id)) return false;
+      const d = (l.training_sessions as any)?.session_date || l.created_at?.split("T")[0];
+      return isDateInActiveSeason(d);
+    });
+  }, [logsRaw, allowedIds, isDateInActiveSeason]);
 
   // Calculate stats
   const stats = useMemo(() => {
