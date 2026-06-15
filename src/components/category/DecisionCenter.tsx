@@ -820,13 +820,14 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
    return (
      <div className="space-y-4">
        {/* Header */}
-       <div className="flex items-center justify-between">
+       <div className="flex items-center justify-between gap-3 flex-wrap">
          <div>
            <h2 className="text-2xl font-bold">Décisions</h2>
            <p className="text-muted-foreground text-sm">
              {format(new Date(), "EEEE d MMMM yyyy", { locale: fr })}
            </p>
          </div>
+         <SeasonRosterFilterToggle />
        </div>
  
         {/* 1️⃣ ÉTAT DU GROUPE - 3 colonnes */}
