@@ -30,9 +30,6 @@ interface PlayerAvailability {
   hasAnyData: boolean;
 }
 
-export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) {
-  const today = new Date();
-  const weekAgo = subDays(today, 7);
 
 export function AvailabilityScoreTab({ categoryId }: AvailabilityScoreTabProps) {
   const today = new Date();
