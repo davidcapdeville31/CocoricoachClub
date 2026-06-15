@@ -170,8 +170,8 @@ export function SuperAdminExerciseLibrary() {
       >
         {/* Image */}
         {exercise.image_url && (
-          <div className="aspect-video bg-muted overflow-hidden">
-            <img src={exercise.image_url} alt={exercise.name} className="w-full h-full object-cover" />
+          <div className="aspect-video bg-muted overflow-hidden flex items-center justify-center">
+            <img src={exercise.image_url} alt={exercise.name} className="w-full h-full object-contain" />
           </div>
         )}
         {/* Video embed */}
@@ -432,6 +432,10 @@ function ExerciseFormDialog({
       toast.error("Le nom et la catégorie sont requis");
       return;
     }
+    if (uploading) {
+      toast.error("Attends la fin de l'upload de l'image avant d'enregistrer");
+      return;
+    }
     setSaving(true);
     try {
       const difficultyLevelFr =
@@ -550,8 +554,8 @@ function ExerciseFormDialog({
               <ImageIcon className="h-4 w-4" /> Image (max 2 Mo)
             </Label>
              {imageUrl ? (
-              <div className="group relative w-full max-w-xs">
-                <img src={imageUrl} alt="Preview" className="rounded-lg border max-h-40 w-full object-cover" />
+              <div className="group relative w-full max-w-xs bg-muted rounded-lg">
+                <img src={imageUrl} alt="Preview" className="rounded-lg border max-h-60 w-full object-contain" />
                 <button
                   type="button"
                   className="absolute top-1 right-1 h-4 w-4 rounded-full bg-destructive/60 hover:bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
