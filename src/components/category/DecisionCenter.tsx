@@ -68,6 +68,9 @@ import { getTestCategoriesForSport } from "@/lib/constants/testCategories";
 import { AddWellnessDialog } from "./AddWellnessDialog";
 import { SessionFeedbackDialog } from "./calendar/SessionFeedbackDialog";
 import { isIndividualSport } from "@/lib/constants/sportTypes";
+import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
  
  interface DecisionCenterProps {
    categoryId: string;
@@ -126,8 +129,13 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
   const [rpeDialogOpen, setRpeDialogOpen] = useState(false);
   const [rpeDialogSessionId, setRpeDialogSessionId] = useState<string | null>(null);
  
+    const { isDateInActiveSeason } = useSeasonRosterFilter();
+    const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+    const keepPlayer = (pid: string | null | undefined) =>
+      !allowedIds || (!!pid && allowedIds.has(pid));
+
     // Fetch players
-    const { data: players = [] } = useQuery({
+    const { data: allPlayersRaw = [] } = useQuery({
       queryKey: ["players", categoryId],
       queryFn: async () => {
         const { data, error } = await supabase
@@ -138,6 +146,10 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
         return data;
       },
     });
+    const players = useMemo(
+      () => (allPlayersRaw || []).filter((p: any) => keepPlayer(p.id)),
+      [allPlayersRaw, allowedIds]
+    );
 
     const getFullName = (player: { first_name?: string | null; name: string }) =>
       [player.first_name, player.name].filter(Boolean).join(" ");
@@ -162,7 +174,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
     const testCategories = useMemo(() => getTestCategoriesForSport(sportType), [sportType]);
 
     // Fetch upcoming matches/competitions
-    const { data: upcomingMatches = [] } = useQuery({
+    const { data: upcomingMatchesRaw = [] } = useQuery({
       queryKey: ["upcoming_matches_decision", categoryId, today],
       queryFn: async () => {
         const { data, error } = await supabase
@@ -173,11 +185,19 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
           .gte("match_date", today)
           .order("match_date")
           .order("match_time")
-          .limit(3);
+          .limit(10);
         if (error) throw error;
         return data;
       },
     });
+    const upcomingMatches = useMemo(
+      () =>
+        (upcomingMatchesRaw || [])
+          .filter((m: any) => isDateInActiveSeason(m.match_date))
+          .filter((m: any) => !m.player_id || keepPlayer(m.player_id))
+          .slice(0, 3),
+      [upcomingMatchesRaw, allowedIds, isDateInActiveSeason]
+    );
 
     const getTestNamesFromSession = (session: any): string[] => {
       const tests = parseTestsFromNotes(session.notes);
@@ -189,7 +209,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
     };
  
    // Fetch active injuries
-   const { data: injuries = [] } = useQuery({
+   const { data: injuriesRaw = [] } = useQuery({
      queryKey: ["active_injuries", categoryId],
      queryFn: async () => {
        const { data, error } = await supabase
@@ -201,9 +221,14 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
        return data;
      },
    });
+   // Active injuries remain visible across seasons (medical safety) — but only for players within active roster
+   const injuries = useMemo(
+     () => (injuriesRaw || []).filter((i: any) => keepPlayer(i.player_id)),
+     [injuriesRaw, allowedIds]
+   );
 
    // Fetch active illnesses
-   const { data: illnesses = [] } = useQuery({
+   const { data: illnessesRaw = [] } = useQuery({
      queryKey: ["active_illnesses", categoryId],
      queryFn: async () => {
        const { data, error } = await (supabase as any)
@@ -218,9 +243,14 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
        return data || [];
      },
    });
- 
+   const illnesses = useMemo(
+     () => (illnessesRaw || []).filter((i: any) => keepPlayer(i.player_id)),
+     [illnessesRaw, allowedIds]
+   );
+
    // Fetch AWCR data for EWMA calculation (need 90 days for proper chronic load)
-   const { data: awcrDataFull = [] } = useQuery({
+   // Sliding 28d/90d kept intact for accuracy; player filter applied
+   const { data: awcrDataFullRaw = [] } = useQuery({
      queryKey: ["awcr_decision_full", categoryId],
      queryFn: async () => {
        const ninetyDaysAgo = subDays(new Date(), 90).toISOString().split("T")[0];
@@ -234,6 +264,10 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
        return data;
      },
    });
+   const awcrDataFull = useMemo(
+     () => (awcrDataFullRaw || []).filter((r: any) => keepPlayer(r.player_id)),
+     [awcrDataFullRaw, allowedIds]
+   );
 
    // Calculate per-player EWMA ratios
    const playerEwmaMap = useMemo(() => {
@@ -259,7 +293,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
    }, [awcrDataFull]);
  
   // Fetch wellness data
-    const { data: wellnessData = [], refetch: refetchWellness } = useQuery({
+    const { data: wellnessDataRaw = [], refetch: refetchWellness } = useQuery({
       queryKey: ["wellness_decision", categoryId],
       queryFn: async () => {
         const weekAgo = subDays(new Date(), 7).toISOString().split("T")[0];
@@ -273,6 +307,13 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
         return data;
       },
     });
+    const wellnessData = useMemo(
+      () =>
+        (wellnessDataRaw || []).filter(
+          (w: any) => keepPlayer(w.player_id) && isDateInActiveSeason(w.tracking_date)
+        ),
+      [wellnessDataRaw, allowedIds, isDateInActiveSeason]
+    );
 
     // Subscribe to wellness changes for real-time updates
     useEffect(() => {
@@ -337,7 +378,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
     }, [categoryId, queryClient]);
 
    // Fetch today's sessions
-   const { data: todaySessions = [] } = useQuery({
+   const { data: todaySessionsRaw = [] } = useQuery({
      queryKey: ["today_sessions_decision", categoryId, today],
      queryFn: async () => {
        const { data, error } = await supabase
@@ -350,9 +391,12 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
        return data;
      },
    });
+   const todaySessions = useMemo(
+     () => (isDateInActiveSeason(today) ? (todaySessionsRaw || []) : []),
+     [todaySessionsRaw, isDateInActiveSeason, today]
+   );
  
-   // Fetch tomorrow's sessions
-   const { data: tomorrowSessions = [] } = useQuery({
+   const { data: tomorrowSessionsRaw = [] } = useQuery({
      queryKey: ["tomorrow_sessions_decision", categoryId, tomorrow],
      queryFn: async () => {
        const { data, error } = await supabase
@@ -365,9 +409,12 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
        return data;
      },
    });
- 
-    // Fetch today's attendance with session info
-    const { data: todayAttendance = [] } = useQuery({
+   const tomorrowSessions = useMemo(
+     () => (isDateInActiveSeason(tomorrow) ? (tomorrowSessionsRaw || []) : []),
+     [tomorrowSessionsRaw, isDateInActiveSeason, tomorrow]
+   );
+
+    const { data: todayAttendanceRaw = [] } = useQuery({
       queryKey: ["today_attendance_decision", categoryId, today],
       queryFn: async () => {
         const { data, error } = await supabase
@@ -379,9 +426,13 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
         return data;
       },
     });
+    const todayAttendance = useMemo(
+      () => (todayAttendanceRaw || []).filter((a: any) => keepPlayer(a.player_id) && isDateInActiveSeason(a.attendance_date)),
+      [todayAttendanceRaw, allowedIds, isDateInActiveSeason]
+    );
 
      // Fetch participants assigned to today's sessions
-     const { data: todaySessionParticipants = [] } = useQuery({
+     const { data: todaySessionParticipantsRaw = [] } = useQuery({
        queryKey: ["today_session_participants_decision", categoryId, today, todaySessions.map(s => s.id).join(",")],
        queryFn: async () => {
          if (todaySessions.length === 0) return [];
@@ -394,9 +445,12 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
        },
        enabled: todaySessions.length > 0,
      });
+     const todaySessionParticipants = useMemo(
+       () => (todaySessionParticipantsRaw || []).filter((p: any) => keepPlayer(p.player_id)),
+       [todaySessionParticipantsRaw, allowedIds]
+     );
 
-     // Fetch today's RPE data
-     const { data: todayRpeData = [] } = useQuery({
+     const { data: todayRpeDataRaw = [] } = useQuery({
       queryKey: ["today_rpe_decision", categoryId, today],
       queryFn: async () => {
         const { data, error } = await supabase
@@ -408,6 +462,10 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
         return data;
       },
     });
+    const todayRpeData = useMemo(
+      () => (todayRpeDataRaw || []).filter((r: any) => keepPlayer(r.player_id) && isDateInActiveSeason(today)),
+      [todayRpeDataRaw, allowedIds, isDateInActiveSeason, today]
+    );
 
     // Subscribe to RPE changes for real-time updates
     useEffect(() => {
@@ -431,7 +489,7 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
     }, [categoryId, queryClient]);
 
 
-    const { data: expiredDocs = [] } = useQuery({
+    const { data: expiredDocsRaw = [] } = useQuery({
       queryKey: ["expired_docs", categoryId],
       queryFn: async () => {
         const { data, error } = await supabase
@@ -444,6 +502,10 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
         return data || [];
       },
     });
+    const expiredDocs = useMemo(
+      () => (expiredDocsRaw || []).filter((d: any) => !d.player_id || keepPlayer(d.player_id)),
+      [expiredDocsRaw, allowedIds]
+    );
  
   // Calculate group status
     const calculateGroupStatus = (): GroupStatus => {
@@ -758,13 +820,14 @@ import { isIndividualSport } from "@/lib/constants/sportTypes";
    return (
      <div className="space-y-4">
        {/* Header */}
-       <div className="flex items-center justify-between">
+       <div className="flex items-center justify-between gap-3 flex-wrap">
          <div>
            <h2 className="text-2xl font-bold">Décisions</h2>
            <p className="text-muted-foreground text-sm">
              {format(new Date(), "EEEE d MMMM yyyy", { locale: fr })}
            </p>
          </div>
+         <SeasonRosterFilterToggle />
        </div>
  
         {/* 1️⃣ ÉTAT DU GROUPE - 3 colonnes */}

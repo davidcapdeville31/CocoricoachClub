@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +20,10 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { AcademicStatsSection } from "./academy/AcademicStatsSection";
+import { SeasonRosterFilterToggle } from "@/components/category/SeasonRosterFilterToggle";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
+
 
 interface AcademyTabProps {
   categoryId: string;
@@ -48,7 +52,10 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
 
 
 
-  const { data: players } = useQuery({
+  const { isDateInActiveSeason } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+
+  const { data: allPlayers } = useQuery({
     queryKey: ["players", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -61,7 +68,12 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
     },
   });
 
-  const { data: academicData } = useQuery({
+  const players = useMemo(
+    () => (allPlayers || []).filter((p) => !allowedIds || allowedIds.has(p.id)),
+    [allPlayers, allowedIds]
+  );
+
+  const { data: academicDataRaw } = useQuery({
     queryKey: ["academic_tracking", categoryId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -73,6 +85,16 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
       return data;
     },
   });
+
+  const academicData = useMemo(
+    () =>
+      (academicDataRaw || []).filter(
+        (e: any) =>
+          (!allowedIds || allowedIds.has(e.player_id)) &&
+          isDateInActiveSeason(e.tracking_date)
+      ),
+    [academicDataRaw, allowedIds, isDateInActiveSeason]
+  );
 
 
 
@@ -217,6 +239,9 @@ export function AcademyTab({ categoryId }: AcademyTabProps) {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <SeasonRosterFilterToggle />
+      </div>
       <Tabs defaultValue="academic" className="space-y-4">
         <div className="flex justify-center overflow-x-auto -mx-4 px-4 pb-2">
           <ColoredSubTabsList colorKey="academy" className="inline-flex w-max">
