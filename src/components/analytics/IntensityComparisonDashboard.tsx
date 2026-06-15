@@ -23,7 +23,7 @@ import { Target, Users, AlertTriangle, TrendingUp, TrendingDown, Minus, Calculat
 import { format, subDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { calculateWeightedRpe, checkTeamRpeAlert } from "@/lib/weightedRpeCalculations";
+import { calculateWeightedRpe, checkTeamRpeAlert, type SessionBlock } from "@/lib/weightedRpeCalculations";
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
@@ -183,7 +183,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
     sessions.forEach(session => {
       // Calculate weighted RPE from blocks if available
       const blocks = blocksBySession.get(session.id) || [];
-      const weightedResult = calculateWeightedRpe(blocks as any);
+      const weightedResult = calculateWeightedRpe(blocks as SessionBlock[]);
       
       // Use weighted RPE if available, otherwise fall back to session intensity
       const effectivePlanned = weightedResult.hasValidData 
@@ -254,7 +254,7 @@ export function IntensityComparisonDashboard({ categoryId }: IntensityComparison
           if (session) {
             // Calculate weighted RPE for this session
             const blocks = blocksBySession.get(session.id) || [];
-            const weightedResult = calculateWeightedRpe(blocks as any);
+            const weightedResult = calculateWeightedRpe(blocks as SessionBlock[]);
             const effectivePlanned = weightedResult.hasValidData 
               ? weightedResult.weightedRpe 
               : session.intensity || 0;
