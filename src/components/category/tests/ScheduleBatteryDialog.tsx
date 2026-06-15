@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { format, addWeeks, isBefore, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 function generateSessionDates(
   startDate: string,
@@ -78,6 +79,7 @@ export function ScheduleBatteryDialog({
 }: ScheduleBatteryDialogProps) {
   const queryClient = useQueryClient();
   const { notify } = useSessionNotifications();
+  const guard = useSeasonGuard(categoryId);
 
   const [slots, setSlots] = useState<DateSlot[]>([newSlot()]);
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
@@ -177,6 +179,13 @@ export function ScheduleBatteryDialog({
     mutationFn: async () => {
       if (!battery) throw new Error("Batterie introuvable");
       if (selectedPlayers.length === 0) throw new Error("Sélectionnez au moins un athlète");
+      if (!guard.assertPlayers(selectedPlayers)) throw new Error("guard:players");
+      const allDates = recurring
+        ? generateSessionDates(slots[0]?.date || "", frequencyWeeks, computedEndDate)
+        : slots.map((s) => s.date);
+      for (const d of allDates) {
+        if (!guard.assertDate(d)) throw new Error("guard:date");
+      }
 
       const testsMeta = (battery.items || []).map((it: any) => ({
         test_category: it.test_category,
@@ -281,7 +290,10 @@ export function ScheduleBatteryDialog({
       });
       onOpenChange(false);
     },
-    onError: (e: any) => toast.error(e?.message || "Erreur lors de la planification"),
+    onError: (e: any) => {
+      if (typeof e?.message === "string" && e.message.startsWith("guard:")) return;
+      toast.error(e?.message || "Erreur lors de la planification");
+    },
   });
 
   const itemsCount = battery?.items?.length || 0;

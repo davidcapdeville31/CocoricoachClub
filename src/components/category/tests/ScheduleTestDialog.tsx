@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { CalendarPlus } from "lucide-react";
 import { useSessionNotifications } from "@/lib/hooks/useSessionNotifications";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface ScheduleTestDialogProps {
   open: boolean;
@@ -41,9 +42,11 @@ export function ScheduleTestDialog({
   const [endTime, setEndTime] = useState("09:30");
   const queryClient = useQueryClient();
   const { notify } = useSessionNotifications();
+  const guard = useSeasonGuard(categoryId);
 
   const scheduleTest = useMutation({
     mutationFn: async () => {
+      if (!guard.assertDate(date)) throw new Error("guard:date");
       const testMeta = JSON.stringify([
         {
           test_category: testCategory,
@@ -82,7 +85,8 @@ export function ScheduleTestDialog({
 
       onOpenChange(false);
     },
-    onError: () => {
+    onError: (err: any) => {
+      if (typeof err?.message === "string" && err.message.startsWith("guard:")) return;
       toast.error("Erreur lors de la planification");
     },
   });
