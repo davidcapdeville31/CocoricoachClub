@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
 
 interface Props {
   categoryId: string;
@@ -18,6 +20,8 @@ interface Props {
 
 interface EditState {
   id: string;
+  player_id: string;
+  session_date: string | null;
   exercise_name: string;
   weight: number;
   sets: number;
@@ -27,9 +31,12 @@ interface EditState {
 export function PendingWeightLogsValidation({ categoryId }: Props) {
   const qc = useQueryClient();
   const [editing, setEditing] = useState<EditState | null>(null);
+  const guard = useSeasonGuard(categoryId);
+  const { activeSeasonStart, activeSeasonEnd } = useSeasonRosterFilter();
+  const scopeKey = guard.isFiltering ? `${activeSeasonStart}_${activeSeasonEnd}` : "all";
 
   const { data: pending } = useQuery({
-    queryKey: ["pending-weight-logs", categoryId],
+    queryKey: ["pending-weight-logs", categoryId, scopeKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("athlete_exercise_logs")
@@ -38,13 +45,22 @@ export function PendingWeightLogsValidation({ categoryId }: Props) {
         .eq("validation_status", "pending")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data || [];
+      const rows = data || [];
+      if (!guard.isFiltering) return rows;
+      return rows.filter((r: any) =>
+        guard.isPlayerAllowed(r.player_id) &&
+        guard.isDateAllowed(r.training_sessions?.session_date)
+      );
     },
     refetchInterval: 30000,
   });
 
   const decide = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: "validated" | "rejected" }) => {
+    mutationFn: async ({ id, status, row }: { id: string; status: "validated" | "rejected"; row: any }) => {
+      if (status === "validated") {
+        if (!guard.assertPlayer(row.player_id)) throw new Error("blocked");
+        if (!guard.assertDate(row.training_sessions?.session_date)) throw new Error("blocked");
+      }
       const { error } = await supabase
         .from("athlete_exercise_logs")
         .update({ validation_status: status, validated_at: new Date().toISOString() })
@@ -57,11 +73,15 @@ export function PendingWeightLogsValidation({ categoryId }: Props) {
       qc.invalidateQueries({ queryKey: ["pending-weight-logs-count", categoryId] });
       qc.invalidateQueries({ queryKey: ["athlete-exercise-logs-dashboard"] });
     },
-    onError: (e: any) => toast.error(e?.message || "Erreur"),
+    onError: (e: any) => {
+      if (e?.message !== "blocked") toast.error(e?.message || "Erreur");
+    },
   });
 
   const saveEdit = useMutation({
     mutationFn: async (s: EditState) => {
+      if (!guard.assertPlayer(s.player_id)) throw new Error("blocked");
+      if (!guard.assertDate(s.session_date)) throw new Error("blocked");
       const { error } = await supabase
         .from("athlete_exercise_logs")
         .update({
@@ -81,7 +101,9 @@ export function PendingWeightLogsValidation({ categoryId }: Props) {
       qc.invalidateQueries({ queryKey: ["pending-weight-logs-count", categoryId] });
       qc.invalidateQueries({ queryKey: ["athlete-exercise-logs-dashboard"] });
     },
-    onError: (e: any) => toast.error(e?.message || "Erreur"),
+    onError: (e: any) => {
+      if (e?.message !== "blocked") toast.error(e?.message || "Erreur");
+    },
   });
 
   if (!pending || pending.length === 0) return null;
@@ -121,6 +143,8 @@ export function PendingWeightLogsValidation({ categoryId }: Props) {
                   title="Modifier"
                   onClick={() => setEditing({
                     id: log.id,
+                    player_id: log.player_id,
+                    session_date: log.training_sessions?.session_date ?? null,
                     exercise_name: log.exercise_name,
                     weight: Number(log.actual_weight_kg) || 0,
                     sets: Number(log.actual_sets) || 0,
@@ -134,7 +158,7 @@ export function PendingWeightLogsValidation({ categoryId }: Props) {
                   variant="ghost"
                   className="h-7 w-7 p-0 text-success hover:text-success"
                   title="Valider"
-                  onClick={() => decide.mutate({ id: log.id, status: "validated" })}
+                  onClick={() => decide.mutate({ id: log.id, status: "validated", row: log })}
                   disabled={decide.isPending}
                 >
                   <Check className="h-4 w-4" />
@@ -144,7 +168,7 @@ export function PendingWeightLogsValidation({ categoryId }: Props) {
                   variant="ghost"
                   className="h-7 w-7 p-0 text-destructive hover:text-destructive"
                   title="Rejeter"
-                  onClick={() => decide.mutate({ id: log.id, status: "rejected" })}
+                  onClick={() => decide.mutate({ id: log.id, status: "rejected", row: log })}
                   disabled={decide.isPending}
                 >
                   <X className="h-4 w-4" />
