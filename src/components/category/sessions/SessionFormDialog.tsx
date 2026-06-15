@@ -95,6 +95,7 @@ import { SessionBlocksManager, type SessionBlock } from "./SessionBlocksManager"
 import { PrecisionExerciseSelector } from "@/components/precision/PrecisionExerciseSelector";
 import { getDisplayNotes, parsePrecisionExerciseFromNotes } from "@/lib/utils/sessionNotes";
 import { RUGBY_PRECISION_EXERCISES, EXERCISE_CATEGORIES } from "@/lib/constants/rugbyPrecisionExercises";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface SessionFormDialogProps {
   open: boolean;
@@ -276,6 +277,7 @@ export function SessionFormDialog({
   const isAthleteMode = !!athletePlayerId;
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
 
   const { notify } = useSessionNotifications();
 
@@ -331,7 +333,7 @@ export function SessionFormDialog({
   const showGpsImport = editSession && (isRugbyType(sportType || "") || (sportType || "").toLowerCase().includes("football"));
 
   // Fetch players
-  const { data: players } = useQuery({
+  const { data: playersAll } = useQuery({
     queryKey: ["players-with-injuries", categoryId],
     queryFn: async () => {
       const { data: playersData, error: playersError } = await supabase
@@ -358,6 +360,12 @@ export function SessionFormDialog({
     },
     enabled: open,
   });
+
+  // Restrict to active-season roster when filter is ON
+  const players = useMemo(
+    () => (playersAll || []).filter((p: any) => guard.isPlayerAllowed(p.id)),
+    [playersAll, guard],
+  );
 
   // Fetch exercise library
   const { data: libraryExercises } = useQuery({
@@ -705,6 +713,17 @@ export function SessionFormDialog({
   // Create or update session
   const saveSession = useMutation({
     mutationFn: async () => {
+      // ⛔ Season guard
+      if (!guard.assertDate(date)) throw new Error("guard:date");
+      if (isAthleteMode && !guard.assertPlayer(athletePlayerId!)) throw new Error("guard:player");
+      const effectivePlayerIds =
+        playerSelectionMode === "specific" && selectedPlayers.length > 0
+          ? selectedPlayers
+          : (players?.map((p) => p.id) || []);
+      if (effectivePlayerIds.length > 0 && !guard.assertPlayers(effectivePlayerIds)) {
+        throw new Error("guard:players");
+      }
+
       // Use first block type if blocks exist, otherwise use selected type
       const mainType = sessionBlocks.length > 0 ? sessionBlocks[0].training_type : type;
       const rawIntensity = sessionBlocks.length > 0 
@@ -1121,6 +1140,7 @@ export function SessionFormDialog({
       onOpenChange(false);
     },
     onError: (error: Error) => {
+      if (typeof error?.message === "string" && error.message.startsWith("guard:")) return;
       console.error("[SessionFormDialog] Save error:", error);
       toast.error(error.message || "Erreur lors de l'enregistrement");
     },
