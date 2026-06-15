@@ -201,7 +201,7 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
     };
  
    // Fetch active injuries
-   const { data: injuries = [] } = useQuery({
+   const { data: injuriesRaw = [] } = useQuery({
      queryKey: ["active_injuries", categoryId],
      queryFn: async () => {
        const { data, error } = await supabase
@@ -213,9 +213,14 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
        return data;
      },
    });
+   // Active injuries remain visible across seasons (medical safety) — but only for players within active roster
+   const injuries = useMemo(
+     () => (injuriesRaw || []).filter((i: any) => keepPlayer(i.player_id)),
+     [injuriesRaw, allowedIds]
+   );
 
    // Fetch active illnesses
-   const { data: illnesses = [] } = useQuery({
+   const { data: illnessesRaw = [] } = useQuery({
      queryKey: ["active_illnesses", categoryId],
      queryFn: async () => {
        const { data, error } = await (supabase as any)
@@ -230,9 +235,14 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
        return data || [];
      },
    });
- 
+   const illnesses = useMemo(
+     () => (illnessesRaw || []).filter((i: any) => keepPlayer(i.player_id)),
+     [illnessesRaw, allowedIds]
+   );
+
    // Fetch AWCR data for EWMA calculation (need 90 days for proper chronic load)
-   const { data: awcrDataFull = [] } = useQuery({
+   // Sliding 28d/90d kept intact for accuracy; player filter applied
+   const { data: awcrDataFullRaw = [] } = useQuery({
      queryKey: ["awcr_decision_full", categoryId],
      queryFn: async () => {
        const ninetyDaysAgo = subDays(new Date(), 90).toISOString().split("T")[0];
@@ -246,6 +256,10 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
        return data;
      },
    });
+   const awcrDataFull = useMemo(
+     () => (awcrDataFullRaw || []).filter((r: any) => keepPlayer(r.player_id)),
+     [awcrDataFullRaw, allowedIds]
+   );
 
    // Calculate per-player EWMA ratios
    const playerEwmaMap = useMemo(() => {
