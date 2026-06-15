@@ -61,10 +61,10 @@ export function PerformanceEvolution({ categoryId, sportType = "XV" }: Performan
   const { isDateInActiveSeason, activeSeasonEnd } = useSeasonRosterFilter();
   const scopeKey = isFiltering ? `season:${activeSeasonEnd ?? "x"}` : "all";
   const filterRows = useCallback(
-    <T extends { player_id?: string | null; test_date?: string | null }>(rows: T[] | undefined | null): T[] => {
+    (rows: any[] | undefined | null): any[] => {
       if (!rows) return [];
       return rows.filter(
-        (r) =>
+        (r: any) =>
           (!allowedIds || (r.player_id && allowedIds.has(r.player_id))) &&
           isDateInActiveSeason(r.test_date ?? undefined)
       );
