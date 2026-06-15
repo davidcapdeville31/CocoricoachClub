@@ -198,7 +198,7 @@ const SessionCard = ({
       className={cn(
         "rounded-xl overflow-hidden transition-all duration-300 group",
         "border shadow-sm hover:shadow-lg hover:-translate-y-[1px]",
-        isExpanded ? "min-w-[240px]" : "min-w-[200px]",
+        isExpanded ? "min-w-[200px]" : "min-w-[170px]",
         isActive ? "ring-2 shadow-md" : "border-border/60 hover:border-opacity-60"
       )}
       style={{
@@ -464,9 +464,9 @@ export function ProgramGridView({
 
               {/* Days as horizontal cards */}
               <div className="p-3">
-                <div className="flex gap-3 overflow-x-auto pb-1">
+                <div className="flex gap-2 overflow-x-auto pb-1">
                   {week.days.map((day) => (
-                    <div key={day.id} className="shrink-0 w-[220px]">
+                    <div key={day.id} className="shrink-0 w-[180px]">
                       <SessionCard
                         day={day}
                         weekId={week.id}
@@ -481,7 +481,7 @@ export function ProgramGridView({
                   ))}
 
                   {/* Add day button */}
-                  <div className="shrink-0 w-[140px]">
+                  <div className="shrink-0 w-[120px]">
                     <button
                       onClick={() => onAddDay(week.id)}
                       className={cn(
