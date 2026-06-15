@@ -20,6 +20,8 @@ import { getMinimaLevel } from "@/lib/athletics/minimaLevels";
 import { exportAthleticsMinimasReport } from "@/lib/athletics/exportPdf";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players";
 
 interface Props {
   categoryId: string;
@@ -33,6 +35,7 @@ interface Player {
   specialty: string | null;
   disciplines: string[] | null;
   specialties: string[] | null;
+  season_id?: string | null;
 }
 
 interface RoundRow {
@@ -108,15 +111,22 @@ function aggregateBestPerformances(
 }
 
 export function AthleticsMinimasMatrix({ categoryId }: Props) {
-  // Fetch players
+  const { activeSeasonOnly, activeSeasonId } = useSeasonRosterFilter();
+  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
+  const scopeKey = activeSeasonOnly && activeSeasonId ? `season:${activeSeasonId}` : "all";
+
+  // Fetch players (filter by active season when toggle is ON)
   const { data: players = [] } = useQuery({
-    queryKey: ["athletics_matrix_players", categoryId],
+    queryKey: ["athletics_matrix_players", categoryId, scopeKey],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("players")
-        .select("id, name, first_name, discipline, specialty, disciplines, specialties")
-        .eq("category_id", categoryId)
-        .order("name");
+        .select("id, name, first_name, discipline, specialty, disciplines, specialties, season_id")
+        .eq("category_id", categoryId);
+      if (activeSeasonOnly && activeSeasonId) {
+        q = q.eq("season_id", activeSeasonId);
+      }
+      const { data, error } = await q.order("name");
       if (error) throw error;
       return (data || []) as Player[];
     },
