@@ -8,15 +8,21 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
+import { useSeasonGuard } from "@/hooks/use-season-guard";
+import { useSeasonRosterFilter } from "@/contexts/SeasonRosterFilterContext";
+
 interface Props {
   categoryId: string;
 }
 
 export function PendingTestResultsValidation({ categoryId }: Props) {
   const qc = useQueryClient();
+  const guard = useSeasonGuard(categoryId);
+  const { activeSeasonStart, activeSeasonEnd } = useSeasonRosterFilter();
+  const scopeKey = guard.isFiltering ? `${activeSeasonStart}_${activeSeasonEnd}` : "all";
 
   const { data: pending } = useQuery({
-    queryKey: ["pending-test-results", categoryId],
+    queryKey: ["pending-test-results", categoryId, scopeKey],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pending_test_results")
@@ -25,7 +31,11 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
         .eq("validation_status", "pending")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data || [];
+      const rows = data || [];
+      if (!guard.isFiltering) return rows;
+      return rows.filter((r: any) =>
+        guard.isPlayerAllowed(r.player_id) && guard.isDateAllowed(r.test_date)
+      );
     },
     refetchInterval: 30000,
   });
@@ -33,6 +43,8 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
   const decide = useMutation({
     mutationFn: async ({ row, status }: { row: any; status: "validated" | "rejected" }) => {
       if (status === "validated") {
+        if (!guard.assertPlayer(row.player_id)) throw new Error("blocked");
+        if (!guard.assertDate(row.test_date)) throw new Error("blocked");
         const { error: insErr } = await supabase.from("generic_tests").insert({
           player_id: row.player_id,
           category_id: categoryId,
@@ -57,7 +69,9 @@ export function PendingTestResultsValidation({ categoryId }: Props) {
       qc.invalidateQueries({ queryKey: ["generic_tests"] });
       qc.invalidateQueries({ queryKey: ["generic-tests-evolution", categoryId] });
     },
-    onError: (e: any) => toast.error(e?.message || "Erreur"),
+    onError: (e: any) => {
+      if (e?.message !== "blocked") toast.error(e?.message || "Erreur");
+    },
   });
 
   if (!pending || pending.length === 0) return null;
