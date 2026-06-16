@@ -144,6 +144,7 @@ export function BowlingBlockManager({
   const addBlock = () => {
     const newBlock: BowlingBlock = {
       id: `block_${Date.now()}`,
+      name: "",
       roundDate: matchDate?.split("T")[0] || new Date().toISOString().split("T")[0],
       bowlingCategory: "",
       phase: "",
