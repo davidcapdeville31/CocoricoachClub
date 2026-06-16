@@ -888,66 +888,59 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                   </Button>
                 </div>
               )}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-10 gap-1.5">
                 {frames.map((frame, frameIndex) => {
                   const hasAnyThrow = frame.throws.some((t) => t.value);
                   if (!hasAnyThrow) return null;
                   return (
                     <div
                       key={frameIndex}
-                      className="rounded-lg border bg-muted/30 p-2 flex flex-col gap-1.5"
+                      className="rounded-md border bg-muted/30 px-1.5 py-1 flex flex-col gap-1"
                     >
-                      <div className="text-xs font-semibold text-muted-foreground">
-                        Frame {frameIndex + 1}
+                      <div className="text-[10px] font-semibold text-muted-foreground leading-none">
+                        F{frameIndex + 1}
                       </div>
-                      <div className="flex flex-col gap-1.5">
+                      <div className="flex flex-col gap-0.5">
                         {frame.throws.map((throwData, throwIndex) => {
                           if (!throwData.value) return null;
                           const pocketAllowed = isPocketAllowed(frameIndex, throwIndex, frame);
-                          const showSplit =
-                            pocketAllowed && throwData.value !== "X" && throwData.value !== "/";
                           if (!pocketAllowed) return null;
+                          const showSplit =
+                            throwData.value !== "X" && throwData.value !== "/";
                           return (
-                            <div
-                              key={throwIndex}
-                              className="flex flex-wrap items-center gap-1.5 rounded-md bg-background/70 px-1.5 py-1"
-                            >
-                              <Badge variant="outline" className="shrink-0 text-[10px] px-1.5 py-0">
-                                L{throwIndex + 1}: {throwData.value}
-                              </Badge>
+                            <div key={throwIndex} className="flex items-center gap-1">
+                              <span className="text-[10px] font-mono w-7 text-muted-foreground shrink-0">
+                                L{throwIndex + 1}:{throwData.value}
+                              </span>
                               {trackPockets && (
-                                <label
-                                  htmlFor={`pocket-${frameIndex}-${throwIndex}`}
-                                  className="flex items-center gap-1 text-[11px] cursor-pointer"
+                                <button
+                                  type="button"
+                                  disabled={isSaved}
+                                  onClick={() => handleCheckboxChange(frameIndex, throwIndex, "isPocket")}
+                                  className={`text-[10px] font-semibold rounded px-1.5 py-0.5 border transition-colors disabled:opacity-60 ${
+                                    throwData.isPocket
+                                      ? "bg-primary text-primary-foreground border-primary"
+                                      : "bg-background border-border hover:bg-muted"
+                                  }`}
+                                  title="Boule en poche"
                                 >
-                                  <Checkbox
-                                    id={`pocket-${frameIndex}-${throwIndex}`}
-                                    checked={throwData.isPocket}
-                                    disabled={isSaved}
-                                    onCheckedChange={() =>
-                                      handleCheckboxChange(frameIndex, throwIndex, "isPocket")
-                                    }
-                                    className="h-3.5 w-3.5"
-                                  />
-                                  Poche
-                                </label>
+                                  P
+                                </button>
                               )}
                               {showSplit && (
-                                <label
-                                  htmlFor={`split-${frameIndex}-${throwIndex}`}
-                                  className="flex items-center gap-1 text-[11px] cursor-pointer"
+                                <button
+                                  type="button"
+                                  disabled={isSaved}
+                                  onClick={() => handleCheckboxChange(frameIndex, throwIndex, "isSplit")}
+                                  className={`text-[10px] font-semibold rounded px-1.5 py-0.5 border transition-colors disabled:opacity-60 ${
+                                    throwData.isSplit
+                                      ? "bg-destructive text-destructive-foreground border-destructive"
+                                      : "bg-background border-border hover:bg-muted"
+                                  }`}
+                                  title="Split"
                                 >
-                                  <Checkbox
-                                    id={`split-${frameIndex}-${throwIndex}`}
-                                    checked={throwData.isSplit}
-                                    disabled={isSaved}
-                                    onCheckedChange={() =>
-                                      handleCheckboxChange(frameIndex, throwIndex, "isSplit")
-                                    }
-                                    className="h-3.5 w-3.5"
-                                  />
-                                  Split
-                                </label>
+                                  S
+                                </button>
                               )}
                             </div>
                           );
@@ -957,6 +950,9 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                   );
                 })}
               </div>
+              <p className="mt-2 text-[10px] text-muted-foreground">
+                P = Boule en poche · S = Split — cliquer pour activer
+              </p>
             </CardContent>
           </CollapsibleContent>
         </Card>
