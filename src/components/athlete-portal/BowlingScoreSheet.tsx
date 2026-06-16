@@ -888,7 +888,9 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                   </Button>
                 </div>
               )}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-10 gap-1.5">
+              <div className={compact
+                ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5"
+                : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-10 gap-1.5"}>
                 {frames.map((frame, frameIndex) => {
                   const hasAnyThrow = frame.throws.some((t) => t.value);
                   if (!hasAnyThrow) return null;

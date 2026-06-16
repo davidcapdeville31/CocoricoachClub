@@ -2471,6 +2471,7 @@ export function CompetitionRoundsDialog({
                                   playerId={selectedPlayer.playerId}
                                   categoryId={categoryId}
                                   readOnly={round.isLocked}
+                                  compact={bowlingSelectedPlayers.length >= 3}
                                   onSave={(stats, frames, ballData) => {
                                     handleBowlingScoreSheetSave(
                                       selectedPlayer.playerId,
