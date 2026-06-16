@@ -1570,6 +1570,12 @@ export function CompetitionRoundsDialog({
           )}
         </DialogHeader>
 
+        <CompetitionRoundsPresenceBanner
+          open={open}
+          others={presenceOthers}
+          onClose={() => onOpenChange(false)}
+        />
+
         {/* Player selector */}
         {isAthletics ? (
           <div className="space-y-2 flex-shrink-0">
