@@ -14,6 +14,7 @@ import {
   Fingerprint, BookLock, Server, Network, AlertCircle, Users, User, Briefcase, Stethoscope
 } from "lucide-react";
 import { AuditLogsTab } from "@/components/admin/AuditLogsTab";
+import { CompetitionRoundsAuditTab } from "@/components/admin/CompetitionRoundsAuditTab";
 
 interface SecurityStats {
   total_events: number;
