@@ -215,6 +215,9 @@ export function SecurityCenter() {
           <TabsTrigger value="audit" className="flex items-center gap-2">
             <FileText className="h-4 w-4" /> Logs d'audit
           </TabsTrigger>
+          <TabsTrigger value="rounds-audit" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" /> Parties (audit)
+          </TabsTrigger>
         </TabsList>
 
         {/* === VUE D'ENSEMBLE === */}
