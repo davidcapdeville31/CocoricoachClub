@@ -149,7 +149,7 @@ export function BowlingBlockManager({
       opponent_name: "",
       notes: "",
       debriefing: "",
-      isCollapsed: false,
+      isCollapsed: true,
       trackPockets: true,
     };
     onBlocksChange([...blocks, newBlock]);

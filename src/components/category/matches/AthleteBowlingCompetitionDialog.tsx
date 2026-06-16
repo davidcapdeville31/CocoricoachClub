@@ -139,7 +139,7 @@ const buildRoundsState = (
         opponent_name: row.opponent_name || "",
         notes: "",
         debriefing: statData.blockDebriefing || "",
-        isCollapsed: false,
+        isCollapsed: true,
         trackPockets: statData.trackPockets !== false,
       });
     }
