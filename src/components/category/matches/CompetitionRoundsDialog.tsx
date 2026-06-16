@@ -158,6 +158,7 @@ export function CompetitionRoundsDialog({
   const [isDataInitialized, setIsDataInitialized] = useState(false);
   const [bowlingBlocks, setBowlingBlocks] = useState<Record<string, BowlingBlock[]>>({});
   const [deletedRoundIds, setDeletedRoundIds] = useState<string[]>([]);
+  const presenceOthers = useCompetitionRoundsPresence(matchId, open);
   // Tracks how many attempts to show per round (athletics throws/jumps).
   // Key: `${entryKey}|${round_number}`. Default 3, user can request more via "+1 essai".
   const [extraAttempts, setExtraAttempts] = useState<Record<string, number>>({});
