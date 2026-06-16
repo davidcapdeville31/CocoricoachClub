@@ -47,6 +47,7 @@ export { BOWLING_COMPETITION_CATEGORIES, BOWLING_PHASES };
 
 export interface BowlingBlock {
   id: string;
+  name?: string;
   roundDate: string;
   bowlingCategory: string;
   phase: string;
