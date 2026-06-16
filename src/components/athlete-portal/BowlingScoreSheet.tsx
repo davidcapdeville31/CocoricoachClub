@@ -888,67 +888,74 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                   </Button>
                 </div>
               )}
-              <div className="overflow-x-auto">
-                <div className="space-y-3 min-w-max">
-                  {frames.map((frame, frameIndex) => (
-                    <div key={frameIndex} className="flex items-center gap-3">
-                      <div className="w-16 text-sm font-medium text-muted-foreground shrink-0">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                {frames.map((frame, frameIndex) => {
+                  const hasAnyThrow = frame.throws.some((t) => t.value);
+                  if (!hasAnyThrow) return null;
+                  return (
+                    <div
+                      key={frameIndex}
+                      className="rounded-lg border bg-muted/30 p-2 flex flex-col gap-1.5"
+                    >
+                      <div className="text-xs font-semibold text-muted-foreground">
                         Frame {frameIndex + 1}
                       </div>
-                      <div className="flex gap-4 flex-wrap">
+                      <div className="flex flex-col gap-1.5">
                         {frame.throws.map((throwData, throwIndex) => {
                           if (!throwData.value) return null;
-                          
                           const pocketAllowed = isPocketAllowed(frameIndex, throwIndex, frame);
-                          
+                          const showSplit =
+                            pocketAllowed && throwData.value !== "X" && throwData.value !== "/";
+                          if (!pocketAllowed) return null;
                           return (
-                            <div 
-                              key={throwIndex} 
-                              className="flex items-center gap-3 p-2 rounded-lg bg-muted/50"
+                            <div
+                              key={throwIndex}
+                              className="flex flex-wrap items-center gap-1.5 rounded-md bg-background/70 px-1.5 py-1"
                             >
-                              <Badge variant="outline" className="shrink-0">
+                              <Badge variant="outline" className="shrink-0 text-[10px] px-1.5 py-0">
                                 L{throwIndex + 1}: {throwData.value}
                               </Badge>
-                              
-                              {/* Pocket checkbox - only on first throw contexts */}
-                              {pocketAllowed && trackPockets && (
-                                <div className="flex items-center gap-2">
+                              {trackPockets && (
+                                <label
+                                  htmlFor={`pocket-${frameIndex}-${throwIndex}`}
+                                  className="flex items-center gap-1 text-[11px] cursor-pointer"
+                                >
                                   <Checkbox
                                     id={`pocket-${frameIndex}-${throwIndex}`}
                                     checked={throwData.isPocket}
                                     disabled={isSaved}
-                                    onCheckedChange={() => handleCheckboxChange(frameIndex, throwIndex, "isPocket")}
+                                    onCheckedChange={() =>
+                                      handleCheckboxChange(frameIndex, throwIndex, "isPocket")
+                                    }
+                                    className="h-3.5 w-3.5"
                                   />
-                                  <Label htmlFor={`pocket-${frameIndex}-${throwIndex}`} className="text-xs">
-                                    Boule en poche
-                                  </Label>
-                                </div>
+                                  Poche
+                                </label>
                               )}
-
-                              {/* Split checkbox - same logic as pocket: first throw contexts */}
-                              {pocketAllowed && throwData.value !== "X" && throwData.value !== "/" && (
-                                <div className="flex items-center gap-2">
+                              {showSplit && (
+                                <label
+                                  htmlFor={`split-${frameIndex}-${throwIndex}`}
+                                  className="flex items-center gap-1 text-[11px] cursor-pointer"
+                                >
                                   <Checkbox
                                     id={`split-${frameIndex}-${throwIndex}`}
                                     checked={throwData.isSplit}
                                     disabled={isSaved}
-                                    onCheckedChange={() => handleCheckboxChange(frameIndex, throwIndex, "isSplit")}
+                                    onCheckedChange={() =>
+                                      handleCheckboxChange(frameIndex, throwIndex, "isSplit")
+                                    }
+                                    className="h-3.5 w-3.5"
                                   />
-                                  <Label 
-                                    htmlFor={`split-${frameIndex}-${throwIndex}`} 
-                                    className="text-xs"
-                                  >
-                                    Split
-                                  </Label>
-                                </div>
+                                  Split
+                                </label>
                               )}
                             </div>
                           );
                         })}
                       </div>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
             </CardContent>
           </CollapsibleContent>
