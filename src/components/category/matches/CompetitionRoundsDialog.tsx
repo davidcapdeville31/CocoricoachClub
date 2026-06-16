@@ -741,16 +741,9 @@ export function CompetitionRoundsDialog({
         }
       }
 
-      if (deletedRoundIds.length > 0) {
-        const { error: deleteRemovedError } = await supabase
-          .from("competition_rounds")
-          .delete()
-          .in("id", deletedRoundIds);
-        if (deleteRemovedError) {
-          console.error("[CompetitionRoundsDialog] DELETE removed rounds ERROR", deleteRemovedError);
-          throw deleteRemovedError;
-        }
-      }
+      // SAFETY: Save NEVER deletes rounds. Deletion only happens via the explicit
+      // delete button (removeRound) with its own confirmation + immediate DB call.
+      // This prevents any accidental wipe on "Enregistrer" or "Enregistrer et continuer".
 
       // Auto-inject RPE 10/10 for each participant based on total competition time
       if (matchData && playerRoundsData.length > 0) {
@@ -913,19 +906,32 @@ export function CompetitionRoundsDialog({
     );
   };
 
-  const removeRound = (entryKey: string, roundNumber: number) => {
+  const removeRound = async (entryKey: string, roundNumber: number) => {
+    const entry = playerRoundsData.find(p => p.entryKey === entryKey);
+    const round = entry?.rounds.find(r => r.round_number === roundNumber);
+    const persistedId = round?.id;
+
+    const confirmMsg = persistedId
+      ? `Supprimer définitivement la partie #${roundNumber} ? Cette action est irréversible.`
+      : `Retirer la partie #${roundNumber} ?`;
+    if (!window.confirm(confirmMsg)) return;
+
+    if (persistedId) {
+      const { error } = await supabase
+        .from("competition_rounds")
+        .delete()
+        .eq("id", persistedId);
+      if (error) {
+        console.error("[CompetitionRoundsDialog] removeRound DELETE error", error);
+        toast.error("Impossible de supprimer la partie.");
+        return;
+      }
+      toast.success(`Partie #${roundNumber} supprimée.`);
+    }
+
     setPlayerRoundsData(prev => prev.map(p => {
       if (p.entryKey === entryKey) {
-        const removedRoundIds = p.rounds
-          .filter(r => r.round_number === roundNumber && r.id)
-          .map(r => r.id as string);
-        if (removedRoundIds.length > 0) {
-          setDeletedRoundIds(ids => Array.from(new Set([...ids, ...removedRoundIds])));
-        }
-        return {
-          ...p,
-          rounds: p.rounds.filter(r => r.round_number !== roundNumber),
-        };
+        return { ...p, rounds: p.rounds.filter(r => r.round_number !== roundNumber) };
       }
       return p;
     }));
