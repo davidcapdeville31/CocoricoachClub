@@ -151,6 +151,8 @@ export function CompetitionRoundsDialog({
   const [playerRoundsData, setPlayerRoundsData] = useState<PlayerRounds[]>([]);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string>("");
   const [selectedPlayerId2, setSelectedPlayerId2] = useState<string>("");
+  const [selectedPlayerId3, setSelectedPlayerId3] = useState<string>("");
+  const [selectedPlayerId4, setSelectedPlayerId4] = useState<string>("");
   const [isDataInitialized, setIsDataInitialized] = useState(false);
   const [bowlingBlocks, setBowlingBlocks] = useState<Record<string, BowlingBlock[]>>({});
   // Tracks how many attempts to show per round (athletics throws/jumps).
@@ -979,6 +981,16 @@ export function CompetitionRoundsDialog({
   const selectedPlayer2 = isBowling && selectedPlayerId2 && selectedPlayerId2 !== selectedPlayerId
     ? playerRoundsData.find(p => p.entryKey === selectedPlayerId2)
     : undefined;
+  const selectedPlayer3 = isBowling && selectedPlayerId3 && ![selectedPlayerId, selectedPlayerId2].includes(selectedPlayerId3)
+    ? playerRoundsData.find(p => p.entryKey === selectedPlayerId3)
+    : undefined;
+  const selectedPlayer4 = isBowling && selectedPlayerId4 && ![selectedPlayerId, selectedPlayerId2, selectedPlayerId3].includes(selectedPlayerId4)
+    ? playerRoundsData.find(p => p.entryKey === selectedPlayerId4)
+    : undefined;
+  const bowlingSelectedPlayers = isBowling
+    ? [selectedPlayer, selectedPlayer2, selectedPlayer3, selectedPlayer4].filter(Boolean) as PlayerRounds[]
+    : [];
+  const hasMultiBowling = bowlingSelectedPlayers.length > 1;
 
   // Calculate aggregated stats for a player
   const calculateAggregatedStats = (rounds: Round[]) => {
@@ -1516,8 +1528,8 @@ export function CompetitionRoundsDialog({
         className={
           isJudo
             ? "!max-w-none w-full h-[calc(100vh-1rem)] sm:h-[calc(100vh-2rem)] !max-h-none !rounded-2xl !p-4 sm:!p-6 grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden relative"
-            : selectedPlayer2
-              ? "!max-w-[1700px] w-[98vw] h-[95vh] max-h-[95vh] grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden relative"
+            : hasMultiBowling
+              ? "!max-w-[1800px] w-[98vw] h-[95vh] max-h-[95vh] grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden relative"
               : "sm:max-w-[900px] h-[95vh] max-h-[95vh] grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden relative"
         }
       >
@@ -1691,12 +1703,14 @@ export function CompetitionRoundsDialog({
         ) : (
           <div className="space-y-2 flex-shrink-0">
             <Label className="text-sm font-medium">
-              {isBowling ? "Sélectionner 1 ou 2 athlètes (saisie simultanée)" : "Sélectionner un athlète"}
+              {isBowling ? "Sélectionner jusqu'à 4 athlètes (saisie simultanée)" : "Sélectionner un athlète"}
             </Label>
-            <div className={isBowling ? "grid grid-cols-1 md:grid-cols-2 gap-2" : ""}>
+            <div className={isBowling ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2" : ""}>
               <Select value={selectedPlayerId} onValueChange={(v) => {
                 setSelectedPlayerId(v);
                 if (v === selectedPlayerId2) setSelectedPlayerId2("");
+                if (v === selectedPlayerId3) setSelectedPlayerId3("");
+                if (v === selectedPlayerId4) setSelectedPlayerId4("");
               }}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Choisir un athlète..." />
@@ -1721,21 +1735,26 @@ export function CompetitionRoundsDialog({
                   ))}
                 </SelectContent>
               </Select>
-              {isBowling && (
+              {isBowling && ([
+                { value: selectedPlayerId2, setValue: setSelectedPlayerId2, placeholder: "2e athlète (optionnel)...", disabled: !selectedPlayerId, excluded: [selectedPlayerId] },
+                { value: selectedPlayerId3, setValue: setSelectedPlayerId3, placeholder: "3e athlète (optionnel)...", disabled: !selectedPlayerId2, excluded: [selectedPlayerId, selectedPlayerId2] },
+                { value: selectedPlayerId4, setValue: setSelectedPlayerId4, placeholder: "4e athlète (optionnel)...", disabled: !selectedPlayerId3, excluded: [selectedPlayerId, selectedPlayerId2, selectedPlayerId3] },
+              ].map((slot, idx) => (
                 <Select
-                  value={selectedPlayerId2 || "__none__"}
-                  onValueChange={(v) => setSelectedPlayerId2(v === "__none__" ? "" : v)}
-                  disabled={!selectedPlayerId}
+                  key={idx}
+                  value={slot.value || "__none__"}
+                  onValueChange={(v) => slot.setValue(v === "__none__" ? "" : v)}
+                  disabled={slot.disabled}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="2e athlète (optionnel)..." />
+                    <SelectValue placeholder={slot.placeholder} />
                   </SelectTrigger>
                   <SelectContent className="z-[200]">
                     <SelectItem value="__none__">
-                      <span className="text-muted-foreground">Aucun (1 athlète)</span>
+                      <span className="text-muted-foreground">Aucun</span>
                     </SelectItem>
                     {playerRoundsData
-                      .filter((p) => p.entryKey !== selectedPlayerId)
+                      .filter((p) => !slot.excluded.includes(p.entryKey))
                       .map((player) => (
                         <SelectItem
                           key={player.entryKey}
@@ -1752,10 +1771,11 @@ export function CompetitionRoundsDialog({
                       ))}
                   </SelectContent>
                 </Select>
-              )}
+              )))}
             </div>
           </div>
         )}
+
 
         {selectedPlayer && !isAthletics && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 min-h-0 flex flex-col overflow-hidden">
@@ -1882,39 +1902,44 @@ export function CompetitionRoundsDialog({
                     updateRoundStat={updateRoundStat}
                   />
                 ) : isBowling ? (
-                  <div className={selectedPlayer2 ? "grid grid-cols-2 gap-4" : ""}>
-                    {[selectedPlayer, selectedPlayer2].filter(Boolean).map((p) => (
-                      <div key={p!.entryKey} className={selectedPlayer2 ? "border border-border/60 rounded-2xl p-3 bg-surface-sunken/40" : ""}>
-                        {selectedPlayer2 && (
+                  <div className={
+                    bowlingSelectedPlayers.length >= 4 ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" :
+                    bowlingSelectedPlayers.length === 3 ? "grid grid-cols-1 md:grid-cols-3 gap-4" :
+                    bowlingSelectedPlayers.length === 2 ? "grid grid-cols-1 md:grid-cols-2 gap-4" : ""
+                  }>
+                    {bowlingSelectedPlayers.map((p) => (
+                      <div key={p.entryKey} className={hasMultiBowling ? "border border-border/60 rounded-2xl p-3 bg-surface-sunken/40" : ""}>
+                        {hasMultiBowling && (
                           <div className="mb-2 text-sm font-semibold text-primary">
-                            {p!.playerName}
+                            {p.playerName}
                           </div>
                         )}
                         <BowlingBlockManager
-                          compact={!!selectedPlayer2}
-                          playerId={p!.playerId}
+                          compact={hasMultiBowling}
+                          playerId={p.playerId}
                           categoryId={categoryId}
                           matchId={matchId}
-                          rounds={p!.rounds}
-                          blocks={bowlingBlocks[p!.playerId] || []}
+                          rounds={p.rounds}
+                          blocks={bowlingBlocks[p.playerId] || []}
                           matchDate={matchData?.match_date}
                           onBlocksChange={(newBlocks) => {
-                            setBowlingBlocks(prev => ({ ...prev, [p!.playerId]: newBlocks }));
+                            setBowlingBlocks(prev => ({ ...prev, [p.playerId]: newBlocks }));
                           }}
                           onRoundsChange={(newRounds) => {
                             setPlayerRoundsData(prev => prev.map(pp =>
-                              pp.playerId === p!.playerId ? { ...pp, rounds: newRounds } : pp
+                              pp.playerId === p.playerId ? { ...pp, rounds: newRounds } : pp
                             ));
                           }}
                           onScoreSave={(roundNumber, stats, frames, ballData) => {
-                            handleBowlingScoreSheetSave(p!.playerId, roundNumber, stats, frames, ballData);
+                            handleBowlingScoreSheetSave(p.playerId, roundNumber, stats, frames, ballData);
                           }}
-                          onLock={(roundNumber) => lockBowlingRound(p!.entryKey, roundNumber)}
-                          onUnlock={(roundNumber) => unlockBowlingRound(p!.entryKey, roundNumber)}
+                          onLock={(roundNumber) => lockBowlingRound(p.entryKey, roundNumber)}
+                          onUnlock={(roundNumber) => unlockBowlingRound(p.entryKey, roundNumber)}
                         />
                       </div>
                     ))}
                   </div>
+
                 ) : (
                 <div className="space-y-4 pb-4">
                   {selectedPlayer.rounds.length === 0 ? (
