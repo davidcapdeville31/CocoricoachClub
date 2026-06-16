@@ -923,10 +923,10 @@ export function CompetitionRoundsDialog({
         .eq("id", persistedId);
       if (error) {
         console.error("[CompetitionRoundsDialog] removeRound DELETE error", error);
-        toast({ title: "Erreur", description: "Impossible de supprimer la partie.", variant: "destructive" });
+        toast.error("Impossible de supprimer la partie.");
         return;
       }
-      toast({ title: "Partie supprimée", description: `Partie #${roundNumber} retirée.` });
+      toast.success(`Partie #${roundNumber} supprimée.`);
     }
 
     setPlayerRoundsData(prev => prev.map(p => {
