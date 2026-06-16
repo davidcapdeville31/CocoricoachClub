@@ -171,11 +171,33 @@ export function SuperAdminExerciseLibrary() {
     if (activeSubcategory) {
       filtered = filtered.filter((e) => e.subcategory === activeSubcategory);
     }
+    if (mediaFilter !== "all") {
+      filtered = filtered.filter((e) => {
+        const hasVideo = !!e.youtube_url;
+        const hasImage = !!e.image_url;
+        switch (mediaFilter) {
+          case "missing_any": return !hasVideo || !hasImage;
+          case "missing_video": return !hasVideo;
+          case "missing_image": return !hasImage;
+          case "missing_both": return !hasVideo && !hasImage;
+          case "complete": return hasVideo && hasImage;
+          default: return true;
+        }
+      });
+    }
     if (search) {
       const s = search.toLowerCase();
       filtered = filtered.filter((e) => e.name.toLowerCase().includes(s) || e.category?.toLowerCase().includes(s));
     }
     return filtered;
+  };
+
+  const mediaStats = (list: any[]) => {
+    const missingVideo = list.filter((e) => !e.youtube_url).length;
+    const missingImage = list.filter((e) => !e.image_url).length;
+    const missingBoth = list.filter((e) => !e.youtube_url && !e.image_url).length;
+    const complete = list.filter((e) => e.youtube_url && e.image_url).length;
+    return { missingVideo, missingImage, missingBoth, complete };
   };
 
   const getSubcategoriesForGroup = (list: any[], group: string) => {
