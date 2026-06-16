@@ -161,6 +161,7 @@ const PHASE_LABELS: Record<string, string> = {
 const CATEGORY_LABELS: Record<string, string> = {
   individuelle: "Individuelle",
   doublette: "Doublette",
+  triplette: "Triplette",
   equipe_4: "Équipe de 4",
   masters: "Masters",
   practice_officiel: "Practice officiel",
