@@ -410,7 +410,7 @@ export function BowlingBlockManager({
                   {/* Games within block */}
                   {blockRounds.length === 0 ? (
                     <p className="text-center text-sm text-muted-foreground py-4">
-                      Aucune partie dans ce bloc. Ajoutez votre première partie ci-dessous.
+                      Aucune partie dans cette épreuve. Ajoutez votre première partie ci-dessous.
                     </p>
                   ) : (
                     <div className="space-y-3">
@@ -463,7 +463,7 @@ export function BowlingBlockManager({
                                       {blocks.filter(b => b.id !== block.id).map((b, i) => {
                                         const bIdx = blocks.findIndex(bl => bl.id === b.id);
                                         return (
-                                          <SelectItem key={b.id} value={b.id}>Bloc {bIdx + 1}</SelectItem>
+                                          <SelectItem key={b.id} value={b.id}>Épreuve {bIdx + 1}</SelectItem>
                                         );
                                       })}
                                     </SelectContent>
@@ -506,7 +506,7 @@ export function BowlingBlockManager({
                   {/* Debriefing section */}
                   <div className="space-y-2 p-3 rounded-lg border border-primary/10 bg-primary/5">
                     <Label className="text-xs font-medium flex items-center gap-1.5">
-                      📝 Débriefing du bloc {blockIdx + 1}
+                      📝 Débriefing de l'épreuve {blockIdx + 1}
                     </Label>
                     <Textarea
                       value={block.debriefing || ""}
@@ -525,7 +525,7 @@ export function BowlingBlockManager({
                     className="w-full gap-2 border-dashed"
                   >
                     <Plus className="h-4 w-4" />
-                    Ajouter une partie au bloc {blockIdx + 1}
+                    Ajouter une partie à l'épreuve {blockIdx + 1}
                   </Button>
                 </CardContent>
               </CollapsibleContent>
@@ -541,7 +541,7 @@ export function BowlingBlockManager({
         className="w-full gap-2 bg-primary hover:bg-primary/90"
       >
         <Plus className="h-4 w-4" />
-        Ajouter un bloc
+        Ajouter une épreuve
       </Button>
     </div>
   );
