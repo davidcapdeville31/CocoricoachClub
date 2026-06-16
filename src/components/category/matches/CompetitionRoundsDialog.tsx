@@ -741,16 +741,9 @@ export function CompetitionRoundsDialog({
         }
       }
 
-      if (deletedRoundIds.length > 0) {
-        const { error: deleteRemovedError } = await supabase
-          .from("competition_rounds")
-          .delete()
-          .in("id", deletedRoundIds);
-        if (deleteRemovedError) {
-          console.error("[CompetitionRoundsDialog] DELETE removed rounds ERROR", deleteRemovedError);
-          throw deleteRemovedError;
-        }
-      }
+      // SAFETY: Save NEVER deletes rounds. Deletion only happens via the explicit
+      // delete button (removeRound) with its own confirmation + immediate DB call.
+      // This prevents any accidental wipe on "Enregistrer" or "Enregistrer et continuer".
 
       // Auto-inject RPE 10/10 for each participant based on total competition time
       if (matchData && playerRoundsData.length > 0) {
