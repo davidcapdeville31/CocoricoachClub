@@ -383,11 +383,25 @@ export function SuperAdminExerciseLibrary() {
           <Badge variant="outline">{systemExercises.length} système</Badge>
           <Badge variant="secondary">{userExercises.length} perso</Badge>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input className="pl-9 w-64" placeholder="Rechercher..." value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
+          <Select value={mediaFilter} onValueChange={(v) => setMediaFilter(v as typeof mediaFilter)}>
+            <SelectTrigger className="w-[230px]">
+              <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+              <SelectValue placeholder="Filtrer par média" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les exercices</SelectItem>
+              <SelectItem value="missing_any">⚠️ Média manquant (vidéo ou photo)</SelectItem>
+              <SelectItem value="missing_video">📹 Sans vidéo YouTube</SelectItem>
+              <SelectItem value="missing_image">🖼️ Sans photo</SelectItem>
+              <SelectItem value="missing_both">❌ Aucun média</SelectItem>
+              <SelectItem value="complete">✅ Vidéo + photo</SelectItem>
+            </SelectContent>
+          </Select>
           <Button onClick={() => { setEditExercise(null); setAddOpen(true); }}>
             <Plus className="h-4 w-4 mr-2" />
             Ajouter (Système)
