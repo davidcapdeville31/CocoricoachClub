@@ -95,6 +95,9 @@ export function SuperAdminExerciseLibrary() {
   const [addOpen, setAddOpen] = useState(false);
   const [editExercise, setEditExercise] = useState<any>(null);
   const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
+  const [mediaFilter, setMediaFilter] = useState<
+    "all" | "missing_any" | "missing_video" | "missing_image" | "missing_both" | "complete"
+  >("all");
 
   // Fetch ALL exercises (system + user)
   const { data: exercises, isLoading } = useQuery({
