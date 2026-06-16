@@ -37,6 +37,8 @@ import { getDefaultUnitForDiscipline } from "@/lib/athletics/recordsHelpers";
 import { BowlingBlockManager, type BowlingBlock, type Round as BowlingRound, BOWLING_COMPETITION_CATEGORIES, BOWLING_PHASES } from "@/components/bowling/BowlingBlockManager";
 import { BowlingCompetitionSummary } from "@/components/bowling/BowlingCompetitionSummary";
 import { JudoCombatStatsView } from "@/components/category/judo/JudoCombatStatsView";
+import { useCompetitionRoundsPresence } from "@/hooks/useCompetitionRoundsPresence";
+import { CompetitionRoundsPresenceBanner } from "./CompetitionRoundsPresenceBanner";
 
 const blurOnWheel = (e: React.WheelEvent<HTMLInputElement>) => {
   // Prevent wheel/trackpad from changing number inputs instead of scrolling the dialog
@@ -156,6 +158,7 @@ export function CompetitionRoundsDialog({
   const [isDataInitialized, setIsDataInitialized] = useState(false);
   const [bowlingBlocks, setBowlingBlocks] = useState<Record<string, BowlingBlock[]>>({});
   const [deletedRoundIds, setDeletedRoundIds] = useState<string[]>([]);
+  const presenceOthers = useCompetitionRoundsPresence(matchId, open);
   // Tracks how many attempts to show per round (athletics throws/jumps).
   // Key: `${entryKey}|${round_number}`. Default 3, user can request more via "+1 essai".
   const [extraAttempts, setExtraAttempts] = useState<Record<string, number>>({});
@@ -1566,6 +1569,12 @@ export function CompetitionRoundsDialog({
             </p>
           )}
         </DialogHeader>
+
+        <CompetitionRoundsPresenceBanner
+          open={open}
+          others={presenceOthers}
+          onClose={() => onOpenChange(false)}
+        />
 
         {/* Player selector */}
         {isAthletics ? (
