@@ -37,6 +37,8 @@ import { getDefaultUnitForDiscipline } from "@/lib/athletics/recordsHelpers";
 import { BowlingBlockManager, type BowlingBlock, type Round as BowlingRound, BOWLING_COMPETITION_CATEGORIES, BOWLING_PHASES } from "@/components/bowling/BowlingBlockManager";
 import { BowlingCompetitionSummary } from "@/components/bowling/BowlingCompetitionSummary";
 import { JudoCombatStatsView } from "@/components/category/judo/JudoCombatStatsView";
+import { useCompetitionRoundsPresence } from "@/hooks/useCompetitionRoundsPresence";
+import { CompetitionRoundsPresenceBanner } from "./CompetitionRoundsPresenceBanner";
 
 const blurOnWheel = (e: React.WheelEvent<HTMLInputElement>) => {
   // Prevent wheel/trackpad from changing number inputs instead of scrolling the dialog
