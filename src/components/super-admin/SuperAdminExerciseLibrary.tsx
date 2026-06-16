@@ -377,11 +377,30 @@ export function SuperAdminExerciseLibrary() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Library className="h-5 w-5 text-primary" />
           <h2 className="text-xl font-semibold">Bibliothèque d'exercices</h2>
           <Badge variant="outline">{systemExercises.length} système</Badge>
           <Badge variant="secondary">{userExercises.length} perso</Badge>
+          {(() => {
+            const s = mediaStats(systemExercises);
+            return (
+              <>
+                <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300 dark:bg-red-950/30 dark:text-red-400">
+                  {s.missingBoth} sans média
+                </Badge>
+                <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-300 dark:bg-orange-950/30 dark:text-orange-400">
+                  {s.missingVideo} sans vidéo
+                </Badge>
+                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/30 dark:text-amber-400">
+                  {s.missingImage} sans photo
+                </Badge>
+                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/30 dark:text-emerald-400">
+                  {s.complete} complets
+                </Badge>
+              </>
+            );
+          })()}
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <div className="relative">
