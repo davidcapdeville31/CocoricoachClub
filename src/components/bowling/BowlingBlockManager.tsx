@@ -289,32 +289,41 @@ export function BowlingBlockManager({
             <Collapsible open={!block.isCollapsed} onOpenChange={() => toggleBlock(block.id)}>
               {/* Block header */}
               <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CollapsibleTrigger asChild>
-                    <button className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity">
-                      {block.isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                      <Package className="h-4 w-4 text-primary" />
-                      <span className="font-semibold text-sm">Bloc {blockIdx + 1}</span>
-                      {block.bowlingCategory && (
-                        <Badge variant="secondary" className="text-xs">
-                          {BOWLING_COMPETITION_CATEGORIES.find(c => c.value === block.bowlingCategory)?.label || block.bowlingCategory}
-                        </Badge>
-                      )}
-                      {block.phase && (
-                        <Badge variant="outline" className="text-xs">
-                          {BOWLING_PHASES.find(p => p.value === block.phase)?.label || block.phase}
-                        </Badge>
-                      )}
-                      <Badge variant="secondary" className="text-xs ml-1">
-                        {blockRounds.length} partie{blockRounds.length !== 1 ? "s" : ""}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <CollapsibleTrigger asChild>
+                      <button className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity shrink-0">
+                        {block.isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        <Package className="h-4 w-4 text-primary" />
+                        <span className="font-semibold text-sm whitespace-nowrap">Bloc {blockIdx + 1}</span>
+                      </button>
+                    </CollapsibleTrigger>
+                    <Input
+                      value={block.name || ""}
+                      onChange={(e) => updateBlock(block.id, { name: e.target.value })}
+                      placeholder="Nom du bloc (optionnel)"
+                      className="h-7 text-xs max-w-[220px]"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    {block.bowlingCategory && (
+                      <Badge variant="secondary" className="text-xs">
+                        {BOWLING_COMPETITION_CATEGORIES.find(c => c.value === block.bowlingCategory)?.label || block.bowlingCategory}
                       </Badge>
-                      {blockRounds.length > 0 && (
-                        <span className="text-xs text-muted-foreground ml-1">
-                          Moy: <strong>{blockAvg}</strong>
-                        </span>
-                      )}
-                    </button>
-                  </CollapsibleTrigger>
+                    )}
+                    {block.phase && (
+                      <Badge variant="outline" className="text-xs">
+                        {BOWLING_PHASES.find(p => p.value === block.phase)?.label || block.phase}
+                      </Badge>
+                    )}
+                    <Badge variant="secondary" className="text-xs ml-1">
+                      {blockRounds.length} partie{blockRounds.length !== 1 ? "s" : ""}
+                    </Badge>
+                    {blockRounds.length > 0 && (
+                      <span className="text-xs text-muted-foreground ml-1">
+                        Moy: <strong>{blockAvg}</strong>
+                      </span>
+                    )}
+                  </div>
                   {!blockHasLockedGames && (
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeBlock(block.id)}>
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
