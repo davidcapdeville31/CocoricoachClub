@@ -812,6 +812,8 @@ export function SecurityCenter() {
         {/* === LOGS AUDIT === */}
         <TabsContent value="audit">
           <AuditLogsTab />
+        <TabsContent value="rounds-audit">
+          <CompetitionRoundsAuditTab />
         </TabsContent>
       </Tabs>
     </div>
