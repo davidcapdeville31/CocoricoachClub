@@ -279,6 +279,16 @@ export function SuperAdminExerciseLibrary() {
                 Système
               </Badge>
             )}
+            {!exercise.youtube_url && (
+              <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-300 dark:bg-orange-950/30 dark:text-orange-400">
+                <Video className="h-3 w-3 mr-1" /> Vidéo manquante
+              </Badge>
+            )}
+            {!exercise.image_url && (
+              <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/30 dark:text-amber-400">
+                <ImageIcon className="h-3 w-3 mr-1" /> Photo manquante
+              </Badge>
+            )}
           </div>
         </CardHeader>
         {exercise.description && (
