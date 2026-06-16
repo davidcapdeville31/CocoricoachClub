@@ -830,6 +830,7 @@ export function CompetitionRoundsDialog({
       }
     },
     onSuccess: () => {
+      setDeletedRoundIds([]);
       queryClient.invalidateQueries({ queryKey: ["competition_rounds", matchId] });
       queryClient.invalidateQueries({ queryKey: ["competition_match_lineup", matchId] });
       queryClient.invalidateQueries({ queryKey: ["match_lineup", matchId] });
@@ -915,6 +916,12 @@ export function CompetitionRoundsDialog({
   const removeRound = (entryKey: string, roundNumber: number) => {
     setPlayerRoundsData(prev => prev.map(p => {
       if (p.entryKey === entryKey) {
+        const removedRoundIds = p.rounds
+          .filter(r => r.round_number === roundNumber && r.id)
+          .map(r => r.id as string);
+        if (removedRoundIds.length > 0) {
+          setDeletedRoundIds(ids => Array.from(new Set([...ids, ...removedRoundIds])));
+        }
         return {
           ...p,
           rounds: p.rounds.filter(r => r.round_number !== roundNumber),
