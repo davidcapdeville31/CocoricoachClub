@@ -365,7 +365,7 @@ export function SeasonManager({ clubId, categories }: SeasonManagerProps) {
 
       {/* Create Season Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent>
+        <DialogContent className="overflow-visible sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Créer une nouvelle saison</DialogTitle>
             <DialogDescription>
@@ -381,7 +381,7 @@ export function SeasonManager({ clubId, categories }: SeasonManagerProps) {
                 placeholder="Ex: 2025-2026"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Date de début</Label>
                 <Popover>
@@ -394,7 +394,7 @@ export function SeasonManager({ clubId, categories }: SeasonManagerProps) {
                       {startDate ? format(startDate, "dd/MM/yyyy") : "Sélectionner"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 z-[60]" align="start">
+                  <PopoverContent className="z-[140] w-auto p-0" align="start" side="top" sideOffset={8}>
                     <Calendar
                       mode="single"
                       selected={startDate}
@@ -416,7 +416,7 @@ export function SeasonManager({ clubId, categories }: SeasonManagerProps) {
                       {endDate ? format(endDate, "dd/MM/yyyy") : "Sélectionner"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 z-[60]" align="start">
+                  <PopoverContent className="z-[140] w-auto p-0" align="start" side="top" sideOffset={8}>
                     <Calendar
                       mode="single"
                       selected={endDate}
