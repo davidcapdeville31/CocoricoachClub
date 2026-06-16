@@ -834,10 +834,6 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
         </CardContent>
       </Card>
 
-      {/* (Score Total & Frames affichés à côté du titre "Feuille de Score") */}
-      <div className="hidden" />
-        </CardContent>
-      </Card>
 
       {/* Throw Details - Collapsible */}
       <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
