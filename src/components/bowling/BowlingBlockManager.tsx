@@ -250,7 +250,7 @@ export function BowlingBlockManager({
       {orphanRounds.length > 0 && (
         <Card className="border-dashed border-muted-foreground/30">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Parties sans bloc (anciennes données)</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Parties sans épreuve (anciennes données)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {orphanRounds.map(round => (
@@ -264,7 +264,7 @@ export function BowlingBlockManager({
                       </SelectTrigger>
                       <SelectContent className="z-[200]">
                         {blocks.map((b, i) => (
-                          <SelectItem key={b.id} value={b.id}>Bloc {i + 1}</SelectItem>
+                          <SelectItem key={b.id} value={b.id}>Épreuve {i + 1}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -295,13 +295,13 @@ export function BowlingBlockManager({
                       <button className="flex items-center gap-2 text-left hover:opacity-80 transition-opacity shrink-0">
                         {block.isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         <Package className="h-4 w-4 text-primary" />
-                        <span className="font-semibold text-sm whitespace-nowrap">Bloc {blockIdx + 1}</span>
+                        <span className="font-semibold text-sm whitespace-nowrap">Épreuve {blockIdx + 1}</span>
                       </button>
                     </CollapsibleTrigger>
                     <Input
                       value={block.name || ""}
                       onChange={(e) => updateBlock(block.id, { name: e.target.value })}
-                      placeholder="Nom du bloc (optionnel)"
+                      placeholder="Nom de l'épreuve (optionnel)"
                       className="h-7 text-xs max-w-[220px]"
                       onClick={(e) => e.stopPropagation()}
                     />
