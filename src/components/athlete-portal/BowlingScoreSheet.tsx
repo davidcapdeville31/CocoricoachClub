@@ -82,7 +82,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
   const [ballMode, setBallMode] = useState<"simple" | "advanced">("simple");
   const [selectedBallId, setSelectedBallId] = useState<string | null>(null);
   const [frameBalls, setFrameBalls] = useState<(string | null)[]>(Array(10).fill(null));
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(true);
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
   const getInputKey = (frameIndex: number, throwIndex: number) => `${frameIndex}-${throwIndex}`;
@@ -721,10 +721,22 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
       {/* Classic Bowling Score Sheet */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Target className="h-5 w-5" />
-            Feuille de Score
-            {isSaved && <Badge variant="secondary" className="ml-2">Enregistrée</Badge>}
+          <CardTitle className="text-lg flex items-center justify-between gap-2 flex-wrap">
+            <span className="flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              Feuille de Score
+              {isSaved && <Badge variant="secondary" className="ml-2">Enregistrée</Badge>}
+            </span>
+            <span className="flex items-center gap-3 text-sm font-normal">
+              <span className="flex items-baseline gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 border border-primary/20">
+                <span className="text-xs text-muted-foreground">Score</span>
+                <span className="text-base font-bold text-primary">{stats.totalScore}</span>
+              </span>
+              <span className="flex items-baseline gap-1.5 px-2.5 py-1 rounded-md bg-muted border border-border">
+                <span className="text-xs text-muted-foreground">Frames</span>
+                <span className="text-base font-bold text-foreground">{stats.totalFrames}</span>
+              </span>
+            </span>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-2 sm:p-4">
@@ -819,21 +831,11 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
             </table>
           </div>
 
-          {/* Total Score Display */}
-          <div className="mt-4 flex items-center justify-center gap-4">
-            <div className="bg-primary/10 rounded-xl px-8 py-4 border border-primary/20">
-              <div className="text-center">
-                <div className="text-sm text-muted-foreground font-medium">Score Total</div>
-                <div className="text-4xl font-bold text-primary">{stats.totalScore}</div>
-              </div>
-            </div>
-            <div className="bg-muted rounded-xl px-4 py-4 border border-border">
-              <div className="text-center">
-                <div className="text-sm text-muted-foreground font-medium">Frames</div>
-                <div className="text-2xl font-bold text-foreground">{stats.totalFrames}</div>
-              </div>
-            </div>
-          </div>
+        </CardContent>
+      </Card>
+
+      {/* (Score Total & Frames affichés à côté du titre "Feuille de Score") */}
+      <div className="hidden" />
         </CardContent>
       </Card>
 
