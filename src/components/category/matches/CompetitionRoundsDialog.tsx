@@ -155,6 +155,7 @@ export function CompetitionRoundsDialog({
   const [selectedPlayerId4, setSelectedPlayerId4] = useState<string>("");
   const [isDataInitialized, setIsDataInitialized] = useState(false);
   const [bowlingBlocks, setBowlingBlocks] = useState<Record<string, BowlingBlock[]>>({});
+  const [deletedRoundIds, setDeletedRoundIds] = useState<string[]>([]);
   // Tracks how many attempts to show per round (athletics throws/jumps).
   // Key: `${entryKey}|${round_number}`. Default 3, user can request more via "+1 essai".
   const [extraAttempts, setExtraAttempts] = useState<Record<string, number>>({});
@@ -259,6 +260,7 @@ export function CompetitionRoundsDialog({
       setIsDataInitialized(false);
       setPlayerRoundsData([]);
       setSelectedPlayerId("");
+      setDeletedRoundIds([]);
     }
   }, [open]);
   
@@ -620,36 +622,8 @@ export function CompetitionRoundsDialog({
         })),
       });
 
-      // BUG FIX: when several lineup entries share the same player_id (e.g. an athlete
-      // registered on multiple events like 110mH + 60mH), we must DELETE only ONCE per
-      // player, otherwise the second pass wipes the rounds we just inserted in the first.
-      // We also only delete for player_ids that have at least one entry with rounds —
-      // otherwise an empty entry can wipe rounds saved earlier in another event.
-      const playerIdsWithRounds = Array.from(
-        new Set(
-          playerRoundsData
-            .filter((p) => p.rounds.length > 0)
-            .map((p) => p.playerId),
-        ),
-      );
-      for (const pid of playerIdsWithRounds) {
-        const { error: delError } = await supabase
-          .from("competition_rounds")
-          .delete()
-          .eq("match_id", matchId)
-          .eq("player_id", pid);
-        if (delError) {
-          console.error("[CompetitionRoundsDialog] DELETE error for player", pid, delError);
-          throw delError;
-        }
-      }
-
-      // Counter to ensure unique round_number per player when an athlete is registered
-      // on multiple events (e.g. David on 110mH and 60mH share the same player_id but
-      // need distinct round_numbers because of the UNIQUE(match_id, player_id, round_number)).
-      const roundNumberCounters: Record<string, number> = {};
-
-      // For each lineup entry, save crew info and insert rounds
+      // Safety: never wipe all rounds before re-inserting. Saved rows are updated in place,
+      // new rows are inserted, and only rows explicitly removed by the user are deleted.
       for (const playerData of playerRoundsData) {
         // Update crew info in match_lineups if Aviron
         if (isAviron) {
@@ -664,16 +638,12 @@ export function CompetitionRoundsDialog({
             .eq("player_id", playerData.playerId);
         }
 
-        // Insert new rounds
+        // Save rounds one by one
         for (const round of playerData.rounds) {
-          // Allocate a unique round_number per player_id across all entryKeys
-          const nextNumber = (roundNumberCounters[playerData.playerId] ?? 0) + 1;
-          roundNumberCounters[playerData.playerId] = nextNumber;
-
           const roundPayload = {
             match_id: matchId,
             player_id: playerData.playerId,
-            round_number: nextNumber,
+            round_number: round.round_number,
             opponent_name: round.opponent_name || null,
             opponent_profile_id: round.opponent_profile_id || null,
             result: round.result || null,
@@ -691,17 +661,25 @@ export function CompetitionRoundsDialog({
             video_url: round.video_url || null,
           };
           console.log(
-            "[CompetitionRoundsDialog] INSERT round",
-            { entry: playerData.entryKey, payload: roundPayload },
+            round.id ? "[CompetitionRoundsDialog] UPDATE round" : "[CompetitionRoundsDialog] INSERT round",
+            { entry: playerData.entryKey, roundId: round.id, payload: roundPayload },
           );
-          const { data: roundData, error: roundError } = await supabase
-            .from("competition_rounds")
-            .insert(roundPayload as any)
-            .select()
-            .single();
+          const roundMutation = round.id
+            ? supabase
+                .from("competition_rounds")
+                .update(roundPayload as any)
+                .eq("id", round.id)
+                .select()
+                .single()
+            : supabase
+                .from("competition_rounds")
+                .insert(roundPayload as any)
+                .select()
+                .single();
+          const { data: roundData, error: roundError } = await roundMutation;
 
           if (roundError) {
-            console.error("[CompetitionRoundsDialog] INSERT round ERROR", roundError, roundPayload);
+            console.error("[CompetitionRoundsDialog] SAVE round ERROR", roundError, roundPayload);
             throw roundError;
           }
 
@@ -730,6 +708,15 @@ export function CompetitionRoundsDialog({
             !!playerData.discipline ||
             !!playerData.specialty;
 
+          const { error: deleteStatsError } = await supabase
+            .from("competition_round_stats")
+            .delete()
+            .eq("round_id", roundData.id);
+          if (deleteStatsError) {
+            console.error("[CompetitionRoundsDialog] DELETE stat_data ERROR", deleteStatsError);
+            throw deleteStatsError;
+          }
+
           if (shouldInsertStats) {
             const insertData = {
               round_id: roundData.id,
@@ -751,6 +738,17 @@ export function CompetitionRoundsDialog({
               throw statsError;
             }
           }
+        }
+      }
+
+      if (deletedRoundIds.length > 0) {
+        const { error: deleteRemovedError } = await supabase
+          .from("competition_rounds")
+          .delete()
+          .in("id", deletedRoundIds);
+        if (deleteRemovedError) {
+          console.error("[CompetitionRoundsDialog] DELETE removed rounds ERROR", deleteRemovedError);
+          throw deleteRemovedError;
         }
       }
 
