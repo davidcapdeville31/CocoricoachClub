@@ -1703,12 +1703,14 @@ export function CompetitionRoundsDialog({
         ) : (
           <div className="space-y-2 flex-shrink-0">
             <Label className="text-sm font-medium">
-              {isBowling ? "Sélectionner 1 ou 2 athlètes (saisie simultanée)" : "Sélectionner un athlète"}
+              {isBowling ? "Sélectionner jusqu'à 4 athlètes (saisie simultanée)" : "Sélectionner un athlète"}
             </Label>
-            <div className={isBowling ? "grid grid-cols-1 md:grid-cols-2 gap-2" : ""}>
+            <div className={isBowling ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2" : ""}>
               <Select value={selectedPlayerId} onValueChange={(v) => {
                 setSelectedPlayerId(v);
                 if (v === selectedPlayerId2) setSelectedPlayerId2("");
+                if (v === selectedPlayerId3) setSelectedPlayerId3("");
+                if (v === selectedPlayerId4) setSelectedPlayerId4("");
               }}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Choisir un athlète..." />
@@ -1733,21 +1735,26 @@ export function CompetitionRoundsDialog({
                   ))}
                 </SelectContent>
               </Select>
-              {isBowling && (
+              {isBowling && ([
+                { value: selectedPlayerId2, setValue: setSelectedPlayerId2, placeholder: "2e athlète (optionnel)...", disabled: !selectedPlayerId, excluded: [selectedPlayerId] },
+                { value: selectedPlayerId3, setValue: setSelectedPlayerId3, placeholder: "3e athlète (optionnel)...", disabled: !selectedPlayerId2, excluded: [selectedPlayerId, selectedPlayerId2] },
+                { value: selectedPlayerId4, setValue: setSelectedPlayerId4, placeholder: "4e athlète (optionnel)...", disabled: !selectedPlayerId3, excluded: [selectedPlayerId, selectedPlayerId2, selectedPlayerId3] },
+              ].map((slot, idx) => (
                 <Select
-                  value={selectedPlayerId2 || "__none__"}
-                  onValueChange={(v) => setSelectedPlayerId2(v === "__none__" ? "" : v)}
-                  disabled={!selectedPlayerId}
+                  key={idx}
+                  value={slot.value || "__none__"}
+                  onValueChange={(v) => slot.setValue(v === "__none__" ? "" : v)}
+                  disabled={slot.disabled}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="2e athlète (optionnel)..." />
+                    <SelectValue placeholder={slot.placeholder} />
                   </SelectTrigger>
                   <SelectContent className="z-[200]">
                     <SelectItem value="__none__">
-                      <span className="text-muted-foreground">Aucun (1 athlète)</span>
+                      <span className="text-muted-foreground">Aucun</span>
                     </SelectItem>
                     {playerRoundsData
-                      .filter((p) => p.entryKey !== selectedPlayerId)
+                      .filter((p) => !slot.excluded.includes(p.entryKey))
                       .map((player) => (
                         <SelectItem
                           key={player.entryKey}
@@ -1764,10 +1771,11 @@ export function CompetitionRoundsDialog({
                       ))}
                   </SelectContent>
                 </Select>
-              )}
+              )))}
             </div>
           </div>
         )}
+
 
         {selectedPlayer && !isAthletics && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 min-h-0 flex flex-col overflow-hidden">
