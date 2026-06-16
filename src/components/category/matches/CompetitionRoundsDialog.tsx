@@ -981,6 +981,16 @@ export function CompetitionRoundsDialog({
   const selectedPlayer2 = isBowling && selectedPlayerId2 && selectedPlayerId2 !== selectedPlayerId
     ? playerRoundsData.find(p => p.entryKey === selectedPlayerId2)
     : undefined;
+  const selectedPlayer3 = isBowling && selectedPlayerId3 && ![selectedPlayerId, selectedPlayerId2].includes(selectedPlayerId3)
+    ? playerRoundsData.find(p => p.entryKey === selectedPlayerId3)
+    : undefined;
+  const selectedPlayer4 = isBowling && selectedPlayerId4 && ![selectedPlayerId, selectedPlayerId2, selectedPlayerId3].includes(selectedPlayerId4)
+    ? playerRoundsData.find(p => p.entryKey === selectedPlayerId4)
+    : undefined;
+  const bowlingSelectedPlayers = isBowling
+    ? [selectedPlayer, selectedPlayer2, selectedPlayer3, selectedPlayer4].filter(Boolean) as PlayerRounds[]
+    : [];
+  const hasMultiBowling = bowlingSelectedPlayers.length > 1;
 
   // Calculate aggregated stats for a player
   const calculateAggregatedStats = (rounds: Round[]) => {
