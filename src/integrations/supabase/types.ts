@@ -2863,6 +2863,39 @@ export type Database = {
           },
         ]
       }
+      competition_rounds_audit: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          match_id: string | null
+          new_data: Json | null
+          old_data: Json | null
+          round_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          match_id?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          round_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          match_id?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          round_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       concussion_protocols: {
         Row: {
           category_id: string
