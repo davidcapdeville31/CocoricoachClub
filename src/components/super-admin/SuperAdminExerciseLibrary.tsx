@@ -95,6 +95,9 @@ export function SuperAdminExerciseLibrary() {
   const [addOpen, setAddOpen] = useState(false);
   const [editExercise, setEditExercise] = useState<any>(null);
   const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
+  const [mediaFilter, setMediaFilter] = useState<
+    "all" | "missing_any" | "missing_video" | "missing_image" | "missing_both" | "complete"
+  >("all");
 
   // Fetch ALL exercises (system + user)
   const { data: exercises, isLoading } = useQuery({
@@ -168,11 +171,33 @@ export function SuperAdminExerciseLibrary() {
     if (activeSubcategory) {
       filtered = filtered.filter((e) => e.subcategory === activeSubcategory);
     }
+    if (mediaFilter !== "all") {
+      filtered = filtered.filter((e) => {
+        const hasVideo = !!e.youtube_url;
+        const hasImage = !!e.image_url;
+        switch (mediaFilter) {
+          case "missing_any": return !hasVideo || !hasImage;
+          case "missing_video": return !hasVideo;
+          case "missing_image": return !hasImage;
+          case "missing_both": return !hasVideo && !hasImage;
+          case "complete": return hasVideo && hasImage;
+          default: return true;
+        }
+      });
+    }
     if (search) {
       const s = search.toLowerCase();
       filtered = filtered.filter((e) => e.name.toLowerCase().includes(s) || e.category?.toLowerCase().includes(s));
     }
     return filtered;
+  };
+
+  const mediaStats = (list: any[]) => {
+    const missingVideo = list.filter((e) => !e.youtube_url).length;
+    const missingImage = list.filter((e) => !e.image_url).length;
+    const missingBoth = list.filter((e) => !e.youtube_url && !e.image_url).length;
+    const complete = list.filter((e) => e.youtube_url && e.image_url).length;
+    return { missingVideo, missingImage, missingBoth, complete };
   };
 
   const getSubcategoriesForGroup = (list: any[], group: string) => {
@@ -252,6 +277,16 @@ export function SuperAdminExerciseLibrary() {
             {exercise.is_system && (
               <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
                 Système
+              </Badge>
+            )}
+            {!exercise.youtube_url && (
+              <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-300 dark:bg-orange-950/30 dark:text-orange-400">
+                <Video className="h-3 w-3 mr-1" /> Vidéo manquante
+              </Badge>
+            )}
+            {!exercise.image_url && (
+              <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/30 dark:text-amber-400">
+                <ImageIcon className="h-3 w-3 mr-1" /> Photo manquante
               </Badge>
             )}
           </div>
@@ -352,17 +387,50 @@ export function SuperAdminExerciseLibrary() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Library className="h-5 w-5 text-primary" />
           <h2 className="text-xl font-semibold">Bibliothèque d'exercices</h2>
           <Badge variant="outline">{systemExercises.length} système</Badge>
           <Badge variant="secondary">{userExercises.length} perso</Badge>
+          {(() => {
+            const s = mediaStats(systemExercises);
+            return (
+              <>
+                <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300 dark:bg-red-950/30 dark:text-red-400">
+                  {s.missingBoth} sans média
+                </Badge>
+                <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-300 dark:bg-orange-950/30 dark:text-orange-400">
+                  {s.missingVideo} sans vidéo
+                </Badge>
+                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/30 dark:text-amber-400">
+                  {s.missingImage} sans photo
+                </Badge>
+                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/30 dark:text-emerald-400">
+                  {s.complete} complets
+                </Badge>
+              </>
+            );
+          })()}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input className="pl-9 w-64" placeholder="Rechercher..." value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
+          <Select value={mediaFilter} onValueChange={(v) => setMediaFilter(v as typeof mediaFilter)}>
+            <SelectTrigger className="w-[230px]">
+              <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+              <SelectValue placeholder="Filtrer par média" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les exercices</SelectItem>
+              <SelectItem value="missing_any">⚠️ Média manquant (vidéo ou photo)</SelectItem>
+              <SelectItem value="missing_video">📹 Sans vidéo YouTube</SelectItem>
+              <SelectItem value="missing_image">🖼️ Sans photo</SelectItem>
+              <SelectItem value="missing_both">❌ Aucun média</SelectItem>
+              <SelectItem value="complete">✅ Vidéo + photo</SelectItem>
+            </SelectContent>
+          </Select>
           <Button onClick={() => { setEditExercise(null); setAddOpen(true); }}>
             <Plus className="h-4 w-4 mr-2" />
             Ajouter (Système)
