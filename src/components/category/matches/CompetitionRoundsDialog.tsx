@@ -1902,39 +1902,44 @@ export function CompetitionRoundsDialog({
                     updateRoundStat={updateRoundStat}
                   />
                 ) : isBowling ? (
-                  <div className={selectedPlayer2 ? "grid grid-cols-2 gap-4" : ""}>
-                    {[selectedPlayer, selectedPlayer2].filter(Boolean).map((p) => (
-                      <div key={p!.entryKey} className={selectedPlayer2 ? "border border-border/60 rounded-2xl p-3 bg-surface-sunken/40" : ""}>
-                        {selectedPlayer2 && (
+                  <div className={
+                    bowlingSelectedPlayers.length >= 4 ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" :
+                    bowlingSelectedPlayers.length === 3 ? "grid grid-cols-1 md:grid-cols-3 gap-4" :
+                    bowlingSelectedPlayers.length === 2 ? "grid grid-cols-1 md:grid-cols-2 gap-4" : ""
+                  }>
+                    {bowlingSelectedPlayers.map((p) => (
+                      <div key={p.entryKey} className={hasMultiBowling ? "border border-border/60 rounded-2xl p-3 bg-surface-sunken/40" : ""}>
+                        {hasMultiBowling && (
                           <div className="mb-2 text-sm font-semibold text-primary">
-                            {p!.playerName}
+                            {p.playerName}
                           </div>
                         )}
                         <BowlingBlockManager
-                          compact={!!selectedPlayer2}
-                          playerId={p!.playerId}
+                          compact={hasMultiBowling}
+                          playerId={p.playerId}
                           categoryId={categoryId}
                           matchId={matchId}
-                          rounds={p!.rounds}
-                          blocks={bowlingBlocks[p!.playerId] || []}
+                          rounds={p.rounds}
+                          blocks={bowlingBlocks[p.playerId] || []}
                           matchDate={matchData?.match_date}
                           onBlocksChange={(newBlocks) => {
-                            setBowlingBlocks(prev => ({ ...prev, [p!.playerId]: newBlocks }));
+                            setBowlingBlocks(prev => ({ ...prev, [p.playerId]: newBlocks }));
                           }}
                           onRoundsChange={(newRounds) => {
                             setPlayerRoundsData(prev => prev.map(pp =>
-                              pp.playerId === p!.playerId ? { ...pp, rounds: newRounds } : pp
+                              pp.playerId === p.playerId ? { ...pp, rounds: newRounds } : pp
                             ));
                           }}
                           onScoreSave={(roundNumber, stats, frames, ballData) => {
-                            handleBowlingScoreSheetSave(p!.playerId, roundNumber, stats, frames, ballData);
+                            handleBowlingScoreSheetSave(p.playerId, roundNumber, stats, frames, ballData);
                           }}
-                          onLock={(roundNumber) => lockBowlingRound(p!.entryKey, roundNumber)}
-                          onUnlock={(roundNumber) => unlockBowlingRound(p!.entryKey, roundNumber)}
+                          onLock={(roundNumber) => lockBowlingRound(p.entryKey, roundNumber)}
+                          onUnlock={(roundNumber) => unlockBowlingRound(p.entryKey, roundNumber)}
                         />
                       </div>
                     ))}
                   </div>
+
                 ) : (
                 <div className="space-y-4 pb-4">
                   {selectedPlayer.rounds.length === 0 ? (
