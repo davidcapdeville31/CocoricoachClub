@@ -26,6 +26,7 @@ const blurOnWheel = (e: React.WheelEvent<HTMLInputElement>) => {
 const BOWLING_COMPETITION_CATEGORIES = [
   { value: "individuelle", label: "Individuelle" },
   { value: "doublette", label: "Doublette" },
+  { value: "triplette", label: "Triplette" },
   { value: "equipe_4", label: "Équipe de 4" },
   { value: "masters", label: "Masters" },
   { value: "practice_officiel", label: "Practice officiel" },
