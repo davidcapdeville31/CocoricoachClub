@@ -699,6 +699,7 @@ export function CompetitionRoundsDialog({
             ...(round.blockId ? { blockId: round.blockId } : {}),
             ...(round.ballData ? { ballData: round.ballData } : {}),
             ...(roundBlock?.debriefing ? { blockDebriefing: roundBlock.debriefing } : {}),
+            ...(roundBlock?.name ? { blockName: roundBlock.name } : {}),
             ...(roundBlock ? { trackPockets: roundBlock.trackPockets } : {}),
             // Tag round with its lineup discipline/specialty so we can re-group on reload
             ...(playerData.discipline ? { _discipline: playerData.discipline } : {}),
