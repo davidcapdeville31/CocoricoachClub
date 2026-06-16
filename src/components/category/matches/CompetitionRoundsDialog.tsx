@@ -481,6 +481,7 @@ export function CompetitionRoundsDialog({
              if (!blockMap.has(effectiveBlockId)) {
                blockMap.set(effectiveBlockId, {
                  id: effectiveBlockId,
+                 name: (statData.blockName as string) || "",
                  roundDate: roundDate || matchData?.match_date?.split("T")[0] || "",
                  bowlingCategory: bowlingCategory || "",
                  phase: r.phase || "",
