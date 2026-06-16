@@ -298,7 +298,7 @@ export function BowlingCompetitionSummary({
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Zap className="h-4 w-4 text-primary" />
-              Statistiques par bloc
+              Statistiques par épreuve
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -311,7 +311,7 @@ export function BowlingCompetitionSummary({
                   {/* Block header */}
                   <div className="flex items-center justify-between flex-wrap gap-1">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-sm">Bloc {bs.blockIndex + 1}</span>
+                      <span className="font-semibold text-sm">Épreuve {bs.blockIndex + 1}</span>
                       {catLabel && <Badge variant="secondary" className="text-xs">{catLabel}</Badge>}
                       {phaseLabel && <Badge variant="outline" className="text-xs">{phaseLabel}</Badge>}
                       {bs.block.opponent_name && (
