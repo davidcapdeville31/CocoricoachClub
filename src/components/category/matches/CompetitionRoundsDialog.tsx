@@ -472,20 +472,20 @@ export function CompetitionRoundsDialog({
             const ballData = statData.ballData as any | undefined;
             const { bowlingFrames: _, bowlingCategory: _bc, roundDate: _rd, blockId: _bi, ballData: _bd, ...cleanStats } = statData;
             
-            const effectiveBlockId = blockId || `legacy_${roundDate || "nodate"}_${bowlingCategory || "nocat"}_${r.phase || "nophase"}`;
-            if (!blockMap.has(effectiveBlockId)) {
-              blockMap.set(effectiveBlockId, {
-                id: effectiveBlockId,
-                roundDate: roundDate || matchData?.match_date?.split("T")[0] || "",
-                bowlingCategory: bowlingCategory || "",
-                phase: r.phase || "",
-                opponent_name: r.opponent_name || "",
-                notes: "",
-                debriefing: (statData.blockDebriefing as string) || "",
-                isCollapsed: false,
-                trackPockets: statData.trackPockets !== false,
-              });
-            }
+             const effectiveBlockId = blockId || `legacy_${roundDate || "nodate"}_${bowlingCategory || "nocat"}_${r.phase || "nophase"}`;
+             if (!blockMap.has(effectiveBlockId)) {
+               blockMap.set(effectiveBlockId, {
+                 id: effectiveBlockId,
+                 roundDate: roundDate || matchData?.match_date?.split("T")[0] || "",
+                 bowlingCategory: bowlingCategory || "",
+                 phase: r.phase || "",
+                 opponent_name: r.opponent_name || "",
+                 notes: "",
+                 debriefing: (statData.blockDebriefing as string) || "",
+                 isCollapsed: true,
+                 trackPockets: statData.trackPockets !== false,
+               });
+             }
             
             return {
               id: r.id,
