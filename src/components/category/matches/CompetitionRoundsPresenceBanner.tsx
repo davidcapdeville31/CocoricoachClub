@@ -1,15 +1,6 @@
 import { AlertCircle, Users } from "lucide-react";
 import { useEffect, useState } from "react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import type { PresenceUser } from "@/hooks/useCompetitionRoundsPresence";
 
 interface Props {
@@ -19,9 +10,11 @@ interface Props {
 }
 
 /**
- * Shows a banner inside the dialog when other coaches are editing
- * the same competition, and a blocking confirmation when the dialog
- * opens with other people already there.
+ * Shows a non-modal overlay inside the parent Dialog when other coaches are
+ * editing the same competition. We intentionally avoid nesting an AlertDialog
+ * inside the parent Dialog — that triggers a known Radix bug where
+ * `pointer-events: none` stays stuck on <body> after the inner modal closes,
+ * freezing every click in the parent dialog.
  */
 export function CompetitionRoundsPresenceBanner({ open, others, onClose }: Props) {
   const [acknowledged, setAcknowledged] = useState(false);
@@ -31,7 +24,7 @@ export function CompetitionRoundsPresenceBanner({ open, others, onClose }: Props
     if (!open) setAcknowledged(false);
   }, [open]);
 
-  const showBlockingDialog = open && others.length > 0 && !acknowledged;
+  const showBlockingOverlay = open && others.length > 0 && !acknowledged;
 
   return (
     <>
@@ -48,44 +41,56 @@ export function CompetitionRoundsPresenceBanner({ open, others, onClose }: Props
         </div>
       )}
 
-      <AlertDialog open={showBlockingDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
+      {showBlockingOverlay && (
+        <div
+          className="absolute inset-0 z-50 flex items-center justify-center bg-background/85 backdrop-blur-sm rounded-lg p-4"
+          role="alertdialog"
+          aria-modal="false"
+        >
+          <div className="max-w-md w-full rounded-xl border bg-card shadow-xl p-5 space-y-4">
+            <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-amber-500" />
-              Compétition déjà en cours d'édition
-            </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <span className="block">
-                {others.length === 1 ? (
-                  <><strong>{others[0].name}</strong> est en train de saisir les statistiques de cette compétition.</>
-                ) : (
-                  <>
-                    Les utilisateurs suivants sont en train de saisir les statistiques de cette compétition&nbsp;:
-                    <ul className="list-disc list-inside mt-1">
-                      {others.map((u) => (
-                        <li key={u.user_id}><strong>{u.name}</strong></li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-              </span>
-              <span className="block text-sm">
-                Pour éviter tout conflit ou perte de données, il est recommandé d'attendre qu'ils aient terminé avant d'ouvrir cette compétition.
-              </span>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={onClose}>Fermer</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => setAcknowledged(true)}
-              className="bg-amber-600 hover:bg-amber-700"
-            >
-              Continuer quand même
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              <h3 className="font-semibold text-base">
+                Compétition déjà en cours d'édition
+              </h3>
+            </div>
+            <div className="text-sm text-muted-foreground space-y-2">
+              {others.length === 1 ? (
+                <p>
+                  <strong className="text-foreground">{others[0].name}</strong>{" "}
+                  est en train de saisir les statistiques de cette compétition.
+                </p>
+              ) : (
+                <div>
+                  <p>Les utilisateurs suivants sont en train de saisir&nbsp;:</p>
+                  <ul className="list-disc list-inside mt-1">
+                    {others.map((u) => (
+                      <li key={u.user_id}>
+                        <strong className="text-foreground">{u.name}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <p className="text-xs">
+                Pour éviter tout conflit ou perte de données, il est recommandé d'attendre qu'ils aient terminé.
+              </p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" size="sm" onClick={onClose}>
+                Fermer
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setAcknowledged(true)}
+                className="bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                Continuer quand même
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
