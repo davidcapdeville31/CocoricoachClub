@@ -2860,7 +2860,26 @@ export function CompetitionRoundsDialog({
           </Tabs>
         )}
 
-        <div className="flex flex-wrap justify-end gap-2 pt-4 border-t flex-shrink-0 bg-background/95 backdrop-blur-sm">
+        <div className="flex flex-wrap items-center justify-end gap-2 pt-4 border-t flex-shrink-0 bg-background/95 backdrop-blur-sm">
+          {/* Indicateur de statut de sauvegarde */}
+          <div className="mr-auto flex items-center gap-2 text-sm">
+            {saveRounds.isPending ? (
+              <span className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-medium">
+                <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                Sauvegarde en cours…
+              </span>
+            ) : saveRounds.isError ? (
+              <span className="inline-flex items-center gap-1.5 text-destructive font-medium">
+                <span className="h-2 w-2 rounded-full bg-destructive" />
+                Échec de l'enregistrement — réessayez
+              </span>
+            ) : lastSavedAt ? (
+              <span className="inline-flex items-center gap-1.5 text-green-600 dark:text-green-400 font-medium">
+                <CheckCircle className="h-4 w-4" />
+                Sauvegardé à {lastSavedAt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+              </span>
+            ) : null}
+          </div>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
