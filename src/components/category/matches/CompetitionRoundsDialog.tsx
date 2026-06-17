@@ -604,6 +604,7 @@ export function CompetitionRoundsDialog({
   };
 
   const [keepOpenAfterSave, setKeepOpenAfterSave] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
 
   const saveRounds = useMutation({
     mutationFn: async () => {
