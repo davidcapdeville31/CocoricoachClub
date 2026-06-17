@@ -830,6 +830,7 @@ export function CompetitionRoundsDialog({
     },
     onSuccess: () => {
       setDeletedRoundIds([]);
+      setLastSavedAt(new Date());
       queryClient.invalidateQueries({ queryKey: ["competition_rounds", matchId] });
       queryClient.invalidateQueries({ queryKey: ["competition_match_lineup", matchId] });
       queryClient.invalidateQueries({ queryKey: ["match_lineup", matchId] });
