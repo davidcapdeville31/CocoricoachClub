@@ -2035,13 +2035,44 @@ export function CompetitionRoundsDialog({
                                     >
                                       ›
                                     </Button>
-                                    {blockEmpty && focusMaxBlocks > 1 && (
+                                    {focusMaxBlocks > 1 && (
                                       <Button
                                         size="sm"
                                         variant="ghost"
                                         className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                        title="Supprimer cette épreuve vide"
-                                        onClick={() => {
+                                        title={blockEmpty ? "Supprimer cette épreuve vide" : "Supprimer cette épreuve et toutes ses parties"}
+                                        onClick={async () => {
+                                          // Collect all round IDs to delete (across all players) for this block
+                                          const roundIdsToDelete: string[] = [];
+                                          const blockIds = new Set<string>();
+                                          bowlingSelectedPlayers.forEach(p => {
+                                            const block = (bowlingBlocks[p.playerId] || [])[focusBlockIdx];
+                                            if (!block) return;
+                                            blockIds.add(block.id);
+                                            p.rounds.forEach(r => {
+                                              if (r.blockId === block.id && r.id) {
+                                                roundIdsToDelete.push(r.id);
+                                              }
+                                            });
+                                          });
+
+                                          if (roundIdsToDelete.length > 0) {
+                                            const confirmMsg = `Supprimer définitivement cette épreuve et ses ${roundIdsToDelete.length} partie(s) ? Cette action est irréversible.`;
+                                            if (!window.confirm(confirmMsg)) return;
+
+                                            const { error } = await supabase
+                                              .from("competition_rounds")
+                                              .delete()
+                                              .in("id", roundIdsToDelete);
+                                            if (error) {
+                                              console.error("[CompetitionRoundsDialog] delete block rounds error", error);
+                                              toast.error("Impossible de supprimer l'épreuve.");
+                                              return;
+                                            }
+                                            toast.success("Épreuve supprimée.");
+                                          }
+
+                                          // Remove block from local state for all players
                                           setBowlingBlocks(prev => {
                                             const next = { ...prev };
                                             bowlingSelectedPlayers.forEach(p => {
@@ -2052,6 +2083,11 @@ export function CompetitionRoundsDialog({
                                             });
                                             return next;
                                           });
+                                          // Remove rounds linked to those blockIds from local state
+                                          setPlayerRoundsData(prev => prev.map(p => ({
+                                            ...p,
+                                            rounds: p.rounds.filter(r => !r.blockId || !blockIds.has(r.blockId)),
+                                          })));
                                           const newIdx = Math.max(0, focusBlockIdx - 1);
                                           setFocusBlockIdx(newIdx);
                                           setFocusGameIdx(0);
