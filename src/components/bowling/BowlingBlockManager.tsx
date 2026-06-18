@@ -245,7 +245,7 @@ export function BowlingBlockManager({
 
   return (
     <div className="space-y-4 pb-6">
-      {lockedRoundNumbers.length > 0 && (
+      {lockedRoundNumbers.length > 0 && !focusMode && (
         <div className="sticky top-0 z-10 flex justify-end bg-background/95 pb-2 backdrop-blur-sm">
           <Button type="button" variant="outline" size="sm" onClick={toggleAllLockedRounds}>
             {areAllLockedRoundsExpanded ? "Réduire toutes les parties" : "Dérouler toutes les parties"}
@@ -254,7 +254,7 @@ export function BowlingBlockManager({
       )}
 
       {/* Orphan rounds (legacy data without blocks) */}
-      {orphanRounds.length > 0 && (
+      {orphanRounds.length > 0 && !focusMode && (
         <Card className="border-dashed border-muted-foreground/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Parties sans épreuve (anciennes données)</CardTitle>
