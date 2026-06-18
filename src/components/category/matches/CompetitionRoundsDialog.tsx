@@ -1731,14 +1731,15 @@ export function CompetitionRoundsDialog({
         ) : (
           <div className="space-y-2 flex-shrink-0">
             <Label className="text-sm font-medium">
-              {isBowling ? "Sélectionner jusqu'à 4 athlètes (saisie simultanée)" : "Sélectionner un athlète"}
+              {isBowling ? "Sélectionner jusqu'à 5 athlètes (saisie simultanée)" : "Sélectionner un athlète"}
             </Label>
-            <div className={isBowling ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2" : ""}>
+            <div className={isBowling ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2" : ""}>
               <Select value={selectedPlayerId} onValueChange={(v) => {
                 setSelectedPlayerId(v);
                 if (v === selectedPlayerId2) setSelectedPlayerId2("");
                 if (v === selectedPlayerId3) setSelectedPlayerId3("");
                 if (v === selectedPlayerId4) setSelectedPlayerId4("");
+                if (v === selectedPlayerId5) setSelectedPlayerId5("");
               }}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Choisir un athlète..." />
@@ -1767,6 +1768,7 @@ export function CompetitionRoundsDialog({
                 { value: selectedPlayerId2, setValue: setSelectedPlayerId2, placeholder: "2e athlète (optionnel)...", disabled: !selectedPlayerId, excluded: [selectedPlayerId] },
                 { value: selectedPlayerId3, setValue: setSelectedPlayerId3, placeholder: "3e athlète (optionnel)...", disabled: !selectedPlayerId2, excluded: [selectedPlayerId, selectedPlayerId2] },
                 { value: selectedPlayerId4, setValue: setSelectedPlayerId4, placeholder: "4e athlète (optionnel)...", disabled: !selectedPlayerId3, excluded: [selectedPlayerId, selectedPlayerId2, selectedPlayerId3] },
+                { value: selectedPlayerId5, setValue: setSelectedPlayerId5, placeholder: "5e athlète (optionnel)...", disabled: !selectedPlayerId4, excluded: [selectedPlayerId, selectedPlayerId2, selectedPlayerId3, selectedPlayerId4] },
               ].map((slot, idx) => (
                 <Select
                   key={idx}
