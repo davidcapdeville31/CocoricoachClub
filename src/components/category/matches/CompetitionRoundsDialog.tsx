@@ -155,6 +155,7 @@ export function CompetitionRoundsDialog({
   const [selectedPlayerId2, setSelectedPlayerId2] = useState<string>("");
   const [selectedPlayerId3, setSelectedPlayerId3] = useState<string>("");
   const [selectedPlayerId4, setSelectedPlayerId4] = useState<string>("");
+  const [selectedPlayerId5, setSelectedPlayerId5] = useState<string>("");
   const [isDataInitialized, setIsDataInitialized] = useState(false);
   const [bowlingBlocks, setBowlingBlocks] = useState<Record<string, BowlingBlock[]>>({});
   const [deletedRoundIds, setDeletedRoundIds] = useState<string[]>([]);
@@ -1005,8 +1006,11 @@ export function CompetitionRoundsDialog({
   const selectedPlayer4 = isBowling && selectedPlayerId4 && ![selectedPlayerId, selectedPlayerId2, selectedPlayerId3].includes(selectedPlayerId4)
     ? playerRoundsData.find(p => p.entryKey === selectedPlayerId4)
     : undefined;
+  const selectedPlayer5 = isBowling && selectedPlayerId5 && ![selectedPlayerId, selectedPlayerId2, selectedPlayerId3, selectedPlayerId4].includes(selectedPlayerId5)
+    ? playerRoundsData.find(p => p.entryKey === selectedPlayerId5)
+    : undefined;
   const bowlingSelectedPlayers = isBowling
-    ? [selectedPlayer, selectedPlayer2, selectedPlayer3, selectedPlayer4].filter(Boolean) as PlayerRounds[]
+    ? [selectedPlayer, selectedPlayer2, selectedPlayer3, selectedPlayer4, selectedPlayer5].filter(Boolean) as PlayerRounds[]
     : [];
   const hasMultiBowling = bowlingSelectedPlayers.length > 1;
 
@@ -1727,14 +1731,15 @@ export function CompetitionRoundsDialog({
         ) : (
           <div className="space-y-2 flex-shrink-0">
             <Label className="text-sm font-medium">
-              {isBowling ? "Sélectionner jusqu'à 4 athlètes (saisie simultanée)" : "Sélectionner un athlète"}
+              {isBowling ? "Sélectionner jusqu'à 5 athlètes (saisie simultanée)" : "Sélectionner un athlète"}
             </Label>
-            <div className={isBowling ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2" : ""}>
+            <div className={isBowling ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2" : ""}>
               <Select value={selectedPlayerId} onValueChange={(v) => {
                 setSelectedPlayerId(v);
                 if (v === selectedPlayerId2) setSelectedPlayerId2("");
                 if (v === selectedPlayerId3) setSelectedPlayerId3("");
                 if (v === selectedPlayerId4) setSelectedPlayerId4("");
+                if (v === selectedPlayerId5) setSelectedPlayerId5("");
               }}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Choisir un athlète..." />
@@ -1763,6 +1768,7 @@ export function CompetitionRoundsDialog({
                 { value: selectedPlayerId2, setValue: setSelectedPlayerId2, placeholder: "2e athlète (optionnel)...", disabled: !selectedPlayerId, excluded: [selectedPlayerId] },
                 { value: selectedPlayerId3, setValue: setSelectedPlayerId3, placeholder: "3e athlète (optionnel)...", disabled: !selectedPlayerId2, excluded: [selectedPlayerId, selectedPlayerId2] },
                 { value: selectedPlayerId4, setValue: setSelectedPlayerId4, placeholder: "4e athlète (optionnel)...", disabled: !selectedPlayerId3, excluded: [selectedPlayerId, selectedPlayerId2, selectedPlayerId3] },
+                { value: selectedPlayerId5, setValue: setSelectedPlayerId5, placeholder: "5e athlète (optionnel)...", disabled: !selectedPlayerId4, excluded: [selectedPlayerId, selectedPlayerId2, selectedPlayerId3, selectedPlayerId4] },
               ].map((slot, idx) => (
                 <Select
                   key={idx}
@@ -1927,7 +1933,8 @@ export function CompetitionRoundsDialog({
                   />
                 ) : isBowling ? (
                   <div className={
-                    bowlingSelectedPlayers.length >= 4 ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" :
+                    bowlingSelectedPlayers.length >= 5 ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3" :
+                    bowlingSelectedPlayers.length === 4 ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" :
                     bowlingSelectedPlayers.length === 3 ? "grid grid-cols-1 md:grid-cols-3 gap-4" :
                     bowlingSelectedPlayers.length === 2 ? "grid grid-cols-1 md:grid-cols-2 gap-4" : ""
                   }>
