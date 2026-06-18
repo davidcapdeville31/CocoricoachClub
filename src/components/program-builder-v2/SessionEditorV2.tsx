@@ -402,6 +402,14 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
 
       if (!sessionDate) throw new Error("Choisis une date pour la séance.");
 
+      // Season guard: block creation outside active season window when filter is ON.
+      if (!editSession?.id && !seasonGuard.assertDate(sessionDate)) {
+        throw new Error("guard:date");
+      }
+      if (!isAthleteMode && selectedPlayers.length > 0 && !seasonGuard.assertPlayers(selectedPlayers)) {
+        throw new Error("guard:player");
+      }
+
       // --- ATHLETE MODE: edge function (RLS bypass + own player only) ---
       if (isAthleteMode && !editSession?.id) {
         const { data: authData } = await supabase.auth.getSession();
