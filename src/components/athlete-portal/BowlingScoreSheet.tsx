@@ -886,7 +886,8 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
       </Card>
 
 
-      {/* Throw Details - Collapsible */}
+      {/* Throw Details - Collapsible (hidden in compact/focus mode; P/S now inline in scoresheet header) */}
+      {!compact && (
       <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
         <Card className={compact ? "shadow-sm" : ""}>
           <CollapsibleTrigger asChild>
