@@ -432,7 +432,17 @@ export function BowlingBlockManager({
                   </div>
 
                   {/* Games within block */}
-                  {blockRounds.length === 0 ? (
+                  {focusMode && focusGameIdx !== null && blockRounds[focusGameIdx] === undefined ? (
+                    <div className="text-center py-6 space-y-3 border border-dashed rounded-lg bg-muted/20">
+                      <p className="text-sm text-muted-foreground">
+                        Pas encore de Partie {focusGameIdx + 1} pour cette athlète.
+                      </p>
+                      <Button size="sm" onClick={() => addGameToBlock(block.id)} className="gap-2">
+                        <Plus className="h-4 w-4" />
+                        Ajouter la Partie {focusGameIdx + 1}
+                      </Button>
+                    </div>
+                  ) : blockRounds.length === 0 ? (
                     <p className="text-center text-sm text-muted-foreground py-4">
                       Aucune partie dans cette épreuve. Ajoutez votre première partie ci-dessous.
                     </p>
