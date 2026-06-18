@@ -551,14 +551,16 @@ export function BowlingBlockManager({
       })}
 
       {/* Add block button */}
-      <Button
-        size="sm"
-        onClick={addBlock}
-        className="w-full gap-2 bg-primary hover:bg-primary/90"
-      >
-        <Plus className="h-4 w-4" />
-        Ajouter une épreuve
-      </Button>
+      {!focusMode && (
+        <Button
+          size="sm"
+          onClick={addBlock}
+          className="w-full gap-2 bg-primary hover:bg-primary/90"
+        >
+          <Plus className="h-4 w-4" />
+          Ajouter une épreuve
+        </Button>
+      )}
     </div>
   );
 }
