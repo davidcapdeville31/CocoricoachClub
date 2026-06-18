@@ -82,7 +82,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
   const [ballMode, setBallMode] = useState<"simple" | "advanced">("simple");
   const [selectedBallId, setSelectedBallId] = useState<string | null>(null);
   const [frameBalls, setFrameBalls] = useState<(string | null)[]>(Array(10).fill(null));
-  const [detailsOpen, setDetailsOpen] = useState(true);
+  const [detailsOpen, setDetailsOpen] = useState(!compact);
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
   const getInputKey = (frameIndex: number, throwIndex: number) => `${frameIndex}-${throwIndex}`;
