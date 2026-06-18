@@ -960,78 +960,88 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
         </Card>
       </Collapsible>
 
-      {/* Statistics Summary */}
+      {/* Statistics Summary — collapsed by default in compact (multi-athlete) mode */}
       <Card className={`bg-gradient-to-br from-primary/5 to-primary/10 ${compact ? "shadow-sm border-muted/50" : ""}`}>
-        <CardHeader className={compact ? "p-2.5 pb-1" : "pb-2"}>
-          <CardTitle className={`${compact ? "text-xs font-semibold" : "text-lg"} flex items-center gap-1.5`}>
-            <TrendingUp className={compact ? "h-3.5 w-3.5" : "h-5 w-5"} />
-            Statistiques calculées
-          </CardTitle>
-        </CardHeader>
-        <CardContent className={compact ? "p-2.5 pt-0" : ""}>
-          <div className={compact ? "grid grid-cols-4 gap-1" : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"}>
-             <StatBox 
-              label="% Strikes" 
-              value={`${stats.strikePercentage}%`}
-              detail={`${stats.strikes}/${stats.totalFrames} f.`}
-              bgColorClass={getStatColor("strike", stats.strikePercentage).bg}
-              textColorClass={getStatColor("strike", stats.strikePercentage).text}
-              compact={compact}
-            />
-            <StatBox 
-              label="% Spares" 
-              value={`${stats.sparePercentage}%`}
-              detail={`${stats.spares} sp. (ex. spl)`}
-              bgColorClass={getStatColor("spare", stats.sparePercentage).bg}
-              textColorClass={getStatColor("spare", stats.sparePercentage).text}
-              compact={compact}
-            />
-            <StatBox 
-              label="% Splits conv." 
-              value={`${stats.splitPercentage}%`}
-              detail={`${stats.splitConverted}/${stats.splitCount} spl.`}
-              note={stats.splitOnLastThrow > 0 ? `+${stats.splitOnLastThrow} excl.` : undefined}
-              compact={compact}
-            />
-            <StatBox 
-              label="% QS converties" 
-              value={`${stats.singlePinConversionRate}%`}
-              detail={`${stats.singlePinConverted}/${stats.singlePinCount}`}
-              bgColorClass={getStatColor("singlePin", stats.singlePinConversionRate).bg}
-              textColorClass={getStatColor("singlePin", stats.singlePinConversionRate).text}
-              compact={compact}
-            />
-            <StatBox 
-              label="% Poches" 
-              value={`${stats.pocketPercentage}%`}
-              detail={`${stats.pocketCount} lanc.`}
-              bgColorClass={getStatColor("pocket", stats.pocketPercentage).bg}
-              textColorClass={getStatColor("pocket", stats.pocketPercentage).text}
-              compact={compact}
-            />
-            <StatBox 
-              label="% Boules ≥8" 
-              value={`${stats.firstBallGte8Percentage}%`}
-              detail={`${stats.firstBallGte8Count}/${stats.firstBallGte8Opportunities}`}
-              bgColorClass={getStatColor("firstBallGte8", stats.firstBallGte8Percentage).bg}
-              textColorClass={getStatColor("firstBallGte8", stats.firstBallGte8Percentage).text}
-              compact={compact}
-            />
-            <StatBox 
-              label="Frames ouvertes" 
-              value={stats.openFrames.toString()}
-              detail="hors splits"
-              compact={compact}
-            />
-            <StatBox 
-              label="Score total" 
-              value={stats.totalScore.toString()}
-              detail="points"
-              highlight
-              compact={compact}
-            />
-          </div>
-        </CardContent>
+        <Collapsible defaultOpen={!compact}>
+          <CollapsibleTrigger asChild>
+            <CardHeader className={`${compact ? "p-2.5 pb-2" : "pb-2"} cursor-pointer hover:bg-primary/5 transition-colors rounded-t-xl`}>
+              <CardTitle className={`${compact ? "text-xs font-semibold" : "text-lg"} flex items-center gap-1.5`}>
+                <TrendingUp className={compact ? "h-3.5 w-3.5" : "h-5 w-5"} />
+                Statistiques calculées
+                <Badge variant="secondary" className="ml-1 text-[10px] font-mono">
+                  {stats.totalScore}
+                </Badge>
+                <ChevronDown className={`${compact ? "h-3.5 w-3.5" : "h-4 w-4"} ml-auto text-muted-foreground transition-transform data-[state=open]:rotate-180`} />
+              </CardTitle>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className={compact ? "p-2.5 pt-0" : ""}>
+              <div className={compact ? "grid grid-cols-4 gap-1" : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"}>
+                 <StatBox 
+                  label="% Strikes" 
+                  value={`${stats.strikePercentage}%`}
+                  detail={`${stats.strikes}/${stats.totalFrames} f.`}
+                  bgColorClass={getStatColor("strike", stats.strikePercentage).bg}
+                  textColorClass={getStatColor("strike", stats.strikePercentage).text}
+                  compact={compact}
+                />
+                <StatBox 
+                  label="% Spares" 
+                  value={`${stats.sparePercentage}%`}
+                  detail={`${stats.spares} sp. (ex. spl)`}
+                  bgColorClass={getStatColor("spare", stats.sparePercentage).bg}
+                  textColorClass={getStatColor("spare", stats.sparePercentage).text}
+                  compact={compact}
+                />
+                <StatBox 
+                  label="% Splits conv." 
+                  value={`${stats.splitPercentage}%`}
+                  detail={`${stats.splitConverted}/${stats.splitCount} spl.`}
+                  note={stats.splitOnLastThrow > 0 ? `+${stats.splitOnLastThrow} excl.` : undefined}
+                  compact={compact}
+                />
+                <StatBox 
+                  label="% QS converties" 
+                  value={`${stats.singlePinConversionRate}%`}
+                  detail={`${stats.singlePinConverted}/${stats.singlePinCount}`}
+                  bgColorClass={getStatColor("singlePin", stats.singlePinConversionRate).bg}
+                  textColorClass={getStatColor("singlePin", stats.singlePinConversionRate).text}
+                  compact={compact}
+                />
+                <StatBox 
+                  label="% Poches" 
+                  value={`${stats.pocketPercentage}%`}
+                  detail={`${stats.pocketCount} lanc.`}
+                  bgColorClass={getStatColor("pocket", stats.pocketPercentage).bg}
+                  textColorClass={getStatColor("pocket", stats.pocketPercentage).text}
+                  compact={compact}
+                />
+                <StatBox 
+                  label="% Boules ≥8" 
+                  value={`${stats.firstBallGte8Percentage}%`}
+                  detail={`${stats.firstBallGte8Count}/${stats.firstBallGte8Opportunities}`}
+                  bgColorClass={getStatColor("firstBallGte8", stats.firstBallGte8Percentage).bg}
+                  textColorClass={getStatColor("firstBallGte8", stats.firstBallGte8Percentage).text}
+                  compact={compact}
+                />
+                <StatBox 
+                  label="Frames ouvertes" 
+                  value={stats.openFrames.toString()}
+                  detail="hors splits"
+                  compact={compact}
+                />
+                <StatBox 
+                  label="Score total" 
+                  value={stats.totalScore.toString()}
+                  detail="points"
+                  highlight
+                  compact={compact}
+                />
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
       </Card>
 
       {/* Action Buttons */}
