@@ -95,6 +95,10 @@ interface BowlingBlockManagerProps {
   onLock: (roundNumber: number) => void;
   onUnlock: (roundNumber: number) => void;
   compact?: boolean;
+  /** When set, only the block at this index is rendered (forced open). */
+  focusBlockIdx?: number | null;
+  /** When set (with focusBlockIdx), only the game at this index inside the block is rendered. */
+  focusGameIdx?: number | null;
 }
 
 export function BowlingBlockManager({
@@ -110,7 +114,10 @@ export function BowlingBlockManager({
   onLock,
   onUnlock,
   compact = false,
+  focusBlockIdx = null,
+  focusGameIdx = null,
 }: BowlingBlockManagerProps) {
+  const focusMode = focusBlockIdx !== null;
   // Track which locked rounds are expanded (default collapsed for compact view)
   const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set());
   const lockedRoundNumbers = rounds
@@ -238,7 +245,7 @@ export function BowlingBlockManager({
 
   return (
     <div className="space-y-4 pb-6">
-      {lockedRoundNumbers.length > 0 && (
+      {lockedRoundNumbers.length > 0 && !focusMode && (
         <div className="sticky top-0 z-10 flex justify-end bg-background/95 pb-2 backdrop-blur-sm">
           <Button type="button" variant="outline" size="sm" onClick={toggleAllLockedRounds}>
             {areAllLockedRoundsExpanded ? "Réduire toutes les parties" : "Dérouler toutes les parties"}
@@ -247,7 +254,7 @@ export function BowlingBlockManager({
       )}
 
       {/* Orphan rounds (legacy data without blocks) */}
-      {orphanRounds.length > 0 && (
+      {orphanRounds.length > 0 && !focusMode && (
         <Card className="border-dashed border-muted-foreground/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Parties sans épreuve (anciennes données)</CardTitle>
@@ -279,14 +286,16 @@ export function BowlingBlockManager({
 
       {/* Blocks */}
       {blocks.map((block, blockIdx) => {
+        if (focusMode && blockIdx !== focusBlockIdx) return null;
         const blockRounds = getBlockRounds(block.id);
         const blockHasLockedGames = blockRounds.some(r => r.isLocked);
         const blockTotal = blockRounds.reduce((s, r) => s + (r.stats["gameScore"] || 0), 0);
         const blockAvg = blockRounds.length > 0 ? (blockTotal / blockRounds.length).toFixed(1) : "—";
+        const isOpen = focusMode ? true : !block.isCollapsed;
 
         return (
           <Card key={block.id} className="border-primary/20">
-            <Collapsible open={!block.isCollapsed} onOpenChange={() => toggleBlock(block.id)}>
+            <Collapsible open={isOpen} onOpenChange={() => !focusMode && toggleBlock(block.id)}>
               {/* Block header */}
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between gap-2">
@@ -414,7 +423,9 @@ export function BowlingBlockManager({
                     </p>
                   ) : (
                     <div className="space-y-3">
-                      {blockRounds.map((round, gameIdx) => (
+                      {blockRounds.map((round, gameIdx) => {
+                        if (focusMode && focusGameIdx !== null && gameIdx !== focusGameIdx) return null;
+                        return (
                         <Card key={round.round_number} className={`relative ${round.isLocked ? "border-muted-foreground/30" : ""}`}>
                           {round.isLocked && (
                             <div className="absolute top-2 right-2 z-10">
@@ -499,11 +510,13 @@ export function BowlingBlockManager({
                             </>
                           )}
                         </Card>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
 
                   {/* Debriefing section */}
+                  {!focusMode && (
                   <div className="space-y-2 p-3 rounded-lg border border-primary/10 bg-primary/5">
                     <Label className="text-xs font-medium flex items-center gap-1.5">
                       📝 Débriefing de l'épreuve {blockIdx + 1}
@@ -516,8 +529,10 @@ export function BowlingBlockManager({
                       className="text-sm"
                     />
                   </div>
+                  )}
 
                   {/* Add game button */}
+                  {!focusMode && (
                   <Button
                     size="sm"
                     variant="outline"
@@ -527,6 +542,7 @@ export function BowlingBlockManager({
                     <Plus className="h-4 w-4" />
                     Ajouter une partie à l'épreuve {blockIdx + 1}
                   </Button>
+                  )}
                 </CardContent>
               </CollapsibleContent>
             </Collapsible>
@@ -535,14 +551,16 @@ export function BowlingBlockManager({
       })}
 
       {/* Add block button */}
-      <Button
-        size="sm"
-        onClick={addBlock}
-        className="w-full gap-2 bg-primary hover:bg-primary/90"
-      >
-        <Plus className="h-4 w-4" />
-        Ajouter une épreuve
-      </Button>
+      {!focusMode && (
+        <Button
+          size="sm"
+          onClick={addBlock}
+          className="w-full gap-2 bg-primary hover:bg-primary/90"
+        >
+          <Plus className="h-4 w-4" />
+          Ajouter une épreuve
+        </Button>
+      )}
     </div>
   );
 }
