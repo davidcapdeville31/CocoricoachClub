@@ -759,44 +759,62 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                   <tr>
                     <th className="border border-foreground/20 bg-muted px-1 py-0.5 text-[8px] font-medium text-muted-foreground">P/S</th>
                     {frames.map((frame, frameIndex) => {
-                      const firstThrow = frame.throws[0];
-                      const hasFirst = firstThrow && firstThrow.value;
-                      const pocketAllowed = hasFirst ? isPocketAllowed(frameIndex, 0, frame) : false;
-                      const splitAllowed = hasFirst && firstThrow.value !== "X" && firstThrow.value !== "/";
+                      const isTenth = frameIndex === 9;
+                      const throwIndices = isTenth ? [0, 1, 2] : [0];
+                      const hasAnyThrow = throwIndices.some(ti => frame.throws[ti]?.value);
                       return (
                         <th key={frameIndex} className="border border-foreground/20 bg-muted px-0.5 py-0.5">
-                          {hasFirst ? (
-                            <div className="flex items-center justify-center gap-0.5">
-                              {pocketAllowed && (
-                                <button
-                                  type="button"
-                                  disabled={isSaved}
-                                  onClick={() => handleCheckboxChange(frameIndex, 0, "isPocket")}
-                                  className={`text-[8px] font-bold rounded px-1 py-0 border leading-tight transition-colors disabled:opacity-60 ${
-                                    firstThrow.isPocket
-                                      ? "bg-primary text-primary-foreground border-primary"
-                                      : "bg-background border-border hover:bg-muted-foreground/10 text-muted-foreground"
-                                  }`}
-                                  title="Boule en poche"
-                                >
-                                  P
-                                </button>
-                              )}
-                              {splitAllowed && (
-                                <button
-                                  type="button"
-                                  disabled={isSaved}
-                                  onClick={() => handleCheckboxChange(frameIndex, 0, "isSplit")}
-                                  className={`text-[8px] font-bold rounded px-1 py-0 border leading-tight transition-colors disabled:opacity-60 ${
-                                    firstThrow.isSplit
-                                      ? "bg-destructive text-destructive-foreground border-destructive"
-                                      : "bg-background border-border hover:bg-muted-foreground/10 text-muted-foreground"
-                                  }`}
-                                  title="Split"
-                                >
-                                  S
-                                </button>
-                              )}
+                          {hasAnyThrow ? (
+                            <div className={`flex items-center justify-center ${isTenth ? "gap-1" : "gap-0.5"}`}>
+                              {throwIndices.map((ti) => {
+                                const t = frame.throws[ti];
+                                if (!t?.value) {
+                                  return isTenth ? (
+                                    <span key={ti} className="text-[8px] text-muted-foreground/40 w-3 text-center">·</span>
+                                  ) : null;
+                                }
+                                const pocketAllowed = isPocketAllowed(frameIndex, ti, frame);
+                                const splitAllowed = t.value !== "X" && t.value !== "/";
+                                if (!pocketAllowed && !splitAllowed) {
+                                  return isTenth ? (
+                                    <span key={ti} className="text-[8px] text-muted-foreground/40 w-3 text-center">·</span>
+                                  ) : null;
+                                }
+                                return (
+                                  <div key={ti} className="flex items-center gap-0.5">
+                                    {pocketAllowed && (
+                                      <button
+                                        type="button"
+                                        disabled={isSaved}
+                                        onClick={() => handleCheckboxChange(frameIndex, ti, "isPocket")}
+                                        className={`text-[8px] font-bold rounded px-1 py-0 border leading-tight transition-colors disabled:opacity-60 ${
+                                          t.isPocket
+                                            ? "bg-primary text-primary-foreground border-primary"
+                                            : "bg-background border-border hover:bg-muted-foreground/10 text-muted-foreground"
+                                        }`}
+                                        title={`Boule en poche (lancer ${ti + 1})`}
+                                      >
+                                        P
+                                      </button>
+                                    )}
+                                    {splitAllowed && (
+                                      <button
+                                        type="button"
+                                        disabled={isSaved}
+                                        onClick={() => handleCheckboxChange(frameIndex, ti, "isSplit")}
+                                        className={`text-[8px] font-bold rounded px-1 py-0 border leading-tight transition-colors disabled:opacity-60 ${
+                                          t.isSplit
+                                            ? "bg-destructive text-destructive-foreground border-destructive"
+                                            : "bg-background border-border hover:bg-muted-foreground/10 text-muted-foreground"
+                                        }`}
+                                        title={`Split (lancer ${ti + 1})`}
+                                      >
+                                        S
+                                      </button>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           ) : (
                             <span className="text-[8px] text-muted-foreground/40">·</span>
