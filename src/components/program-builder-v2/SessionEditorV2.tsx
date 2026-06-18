@@ -486,10 +486,13 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
           .select("id")
           .eq("category_id", categoryId);
         if (pErr) throw pErr;
-        if (!allPlayers || allPlayers.length === 0) {
-          throw new Error("Aucun athlète dans cette catégorie.");
+        const filtered = (allPlayers || []).filter((p: any) => seasonGuard.isPlayerAllowed(p.id));
+        if (!filtered || filtered.length === 0) {
+          throw new Error(seasonGuard.isFiltering
+            ? "Aucun athlète dans la saison active pour cette catégorie."
+            : "Aucun athlète dans cette catégorie.");
         }
-        targetPlayers = allPlayers;
+        targetPlayers = filtered;
       }
 
       // 2. Create or update the training session shell
