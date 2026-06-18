@@ -108,6 +108,11 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
     enabled: open && !!categoryId,
   });
 
+  const visiblePlayers = useMemo(
+    () => (categoryPlayers || []).filter((p: any) => seasonGuard.isPlayerAllowed(p.id)),
+    [categoryPlayers, seasonGuard]
+  );
+
   const { data: existingExercises } = useQuery({
     queryKey: ["v2-session-exercises", editSession?.id],
     queryFn: async () => {
