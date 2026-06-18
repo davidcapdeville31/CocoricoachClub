@@ -1933,7 +1933,8 @@ export function CompetitionRoundsDialog({
                   />
                 ) : isBowling ? (
                   <div className={
-                    bowlingSelectedPlayers.length >= 4 ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" :
+                    bowlingSelectedPlayers.length >= 5 ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3" :
+                    bowlingSelectedPlayers.length === 4 ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" :
                     bowlingSelectedPlayers.length === 3 ? "grid grid-cols-1 md:grid-cols-3 gap-4" :
                     bowlingSelectedPlayers.length === 2 ? "grid grid-cols-1 md:grid-cols-2 gap-4" : ""
                   }>
