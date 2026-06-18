@@ -2033,6 +2033,46 @@ export function CompetitionRoundsDialog({
                               >
                                 Partie suivante ›
                               </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-1 border-dashed border-primary text-primary hover:bg-primary/5 ml-1"
+                                onClick={() => {
+                                  setPlayerRoundsData(prev => {
+                                    return prev.map(p => {
+                                      const isSelected = bowlingSelectedPlayers.some(sp => sp.playerId === p.playerId);
+                                      if (!isSelected) return p;
+
+                                      const blocks = bowlingBlocks[p.playerId] || [];
+                                      const block = blocks[focusBlockIdx ?? 0];
+                                      if (!block) return p;
+
+                                      const maxRound = p.rounds.length > 0 ? Math.max(...p.rounds.map(r => r.round_number)) : 0;
+                                      const newRound: Round = {
+                                        round_number: maxRound + 1,
+                                        opponent_name: block.opponent_name,
+                                        result: "",
+                                        notes: "",
+                                        stats: {},
+                                        phase: block.phase,
+                                        bowlingCategory: block.bowlingCategory,
+                                        roundDate: block.roundDate,
+                                        blockId: block.id,
+                                        isLocked: false,
+                                        bowlingFrames: undefined,
+                                      };
+                                      return {
+                                        ...p,
+                                        rounds: [...p.rounds, newRound]
+                                      };
+                                    });
+                                  });
+                                  setFocusGameIdx(focusMaxGamesInBlock);
+                                }}
+                              >
+                                <Plus className="h-3 w-3" />
+                                Ajouter une partie
+                              </Button>
                             </div>
                             <Button
                               size="sm"
