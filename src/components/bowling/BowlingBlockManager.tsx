@@ -356,9 +356,10 @@ export function BowlingBlockManager({
                   )}
                 </div>
               </CardHeader>
+              )}
 
               <CollapsibleContent>
-                <CardContent className="space-y-4 pt-0">
+                <CardContent className={focusMode ? "space-y-2 pt-3" : "space-y-4 pt-0"}>
                   {/* Block metadata */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 rounded-lg bg-muted/50 border">
                     <div>
