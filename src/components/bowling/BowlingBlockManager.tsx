@@ -360,7 +360,8 @@ export function BowlingBlockManager({
 
               <CollapsibleContent>
                 <CardContent className={focusMode ? "space-y-2 pt-3" : "space-y-4 pt-0"}>
-                  {/* Block metadata */}
+                  {/* Block metadata — hidden in focus mode for minimalist UI */}
+                  {!focusMode && (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 rounded-lg bg-muted/50 border">
                     <div>
                       <Label className="text-xs font-medium">Jour</Label>
@@ -417,8 +418,10 @@ export function BowlingBlockManager({
                       />
                     </div>
                   </div>
+                  )}
                   
-                  {/* Pocket tracking toggle - prominent */}
+                  {/* Pocket tracking toggle — hidden in focus mode (set once per épreuve in full view) */}
+                  {!focusMode && (
                   <div className="flex items-center gap-2 p-2 rounded-lg border border-dashed border-primary/30 bg-primary/5">
                     <Checkbox
                       id={`trackPockets-${block.id}`}
@@ -432,6 +435,7 @@ export function BowlingBlockManager({
                       {block.trackPockets !== false ? "Activé" : "Désactivé"}
                     </span>
                   </div>
+                  )}
 
                   {/* Games within block */}
                   {focusMode && focusGameIdx !== null && blockRounds[focusGameIdx] === undefined ? (
