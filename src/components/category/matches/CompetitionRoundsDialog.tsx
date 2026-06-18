@@ -1014,6 +1014,44 @@ export function CompetitionRoundsDialog({
     : [];
   const hasMultiBowling = bowlingSelectedPlayers.length > 1;
 
+  // Focus mode (drill-down for multi-bowling): focus on a single Épreuve + Partie across all selected athletes
+  const [focusBlockIdx, setFocusBlockIdx] = useState<number | null>(null);
+  const [focusGameIdx, setFocusGameIdx] = useState<number | null>(null);
+  const focusMaxBlocks = isBowling
+    ? bowlingSelectedPlayers.reduce((max, p) => Math.max(max, (bowlingBlocks[p.playerId] || []).length), 0)
+    : 0;
+  const focusMaxGamesInBlock = (() => {
+    if (!isBowling || focusBlockIdx === null) return 0;
+    let max = 0;
+    bowlingSelectedPlayers.forEach((p) => {
+      const blocks = bowlingBlocks[p.playerId] || [];
+      const block = blocks[focusBlockIdx];
+      if (block) {
+        const count = p.rounds.filter((r) => r.blockId === block.id).length;
+        if (count > max) max = count;
+      }
+    });
+    return max;
+  })();
+  // Auto-clamp focus indices when context changes
+  useEffect(() => {
+    if (focusBlockIdx !== null && focusBlockIdx >= focusMaxBlocks) {
+      setFocusBlockIdx(focusMaxBlocks > 0 ? focusMaxBlocks - 1 : null);
+    }
+  }, [focusMaxBlocks, focusBlockIdx]);
+  useEffect(() => {
+    if (focusGameIdx !== null && focusGameIdx >= focusMaxGamesInBlock) {
+      setFocusGameIdx(focusMaxGamesInBlock > 0 ? focusMaxGamesInBlock - 1 : null);
+    }
+  }, [focusMaxGamesInBlock, focusGameIdx]);
+  // Exit focus when no longer multi-player
+  useEffect(() => {
+    if (!hasMultiBowling) {
+      setFocusBlockIdx(null);
+      setFocusGameIdx(null);
+    }
+  }, [hasMultiBowling]);
+
   // Calculate aggregated stats for a player
   const calculateAggregatedStats = (rounds: Round[]) => {
     const aggregated: Record<string, number> = {};
