@@ -797,7 +797,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
               </div>
               <ScrollArea className="h-32 pr-2">
                 <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-                  {(categoryPlayers || []).map((p) => {
+                  {visiblePlayers.map((p) => {
                     const checked = selectedPlayers.includes(p.id);
                     const label = p.first_name ? `${p.first_name} ${p.name}` : p.name;
                     return (
