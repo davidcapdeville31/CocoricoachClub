@@ -24,6 +24,7 @@ import { SessionEditorSheet } from "./SessionEditorSheet";
 import { SessionDayEditor, type SessionDayEditorHandle } from "./SessionDayEditor";
 import { V2ExerciseBankSidebar, type PickedExerciseRich } from "./V2ExerciseBankSidebar";
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface SessionEditorV2Props {
   open: boolean;
