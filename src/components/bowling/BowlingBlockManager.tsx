@@ -309,9 +309,10 @@ export function BowlingBlockManager({
         const isOpen = focusMode ? true : !block.isCollapsed;
 
         return (
-          <Card key={block.id} className="border-primary/20">
+          <Card key={block.id} className={focusMode ? "border-primary/20 shadow-none" : "border-primary/20"}>
             <Collapsible open={isOpen} onOpenChange={() => !focusMode && toggleBlock(block.id)}>
-              {/* Block header */}
+              {/* Block header — hidden in focus mode (already shown in toolbar) */}
+              {!focusMode && (
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
