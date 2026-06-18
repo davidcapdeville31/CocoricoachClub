@@ -2082,7 +2082,7 @@ export function CompetitionRoundsDialog({
                                 disabled={(focusGameIdx ?? 0) >= focusMaxGamesInBlock - 1}
                                 onClick={() => setFocusGameIdx(Math.min(focusMaxGamesInBlock - 1, (focusGameIdx ?? 0) + 1))}
                               >
-                                Partie suivante ›
+                                ›
                               </Button>
                               <Button
                                 size="sm"

@@ -360,9 +360,9 @@ export function BowlingBlockManager({
 
               <CollapsibleContent>
                 <CardContent className={focusMode ? "space-y-2 pt-3" : "space-y-4 pt-0"}>
-                  {/* Block metadata — hidden in focus mode for minimalist UI */}
-                  {!focusMode && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 rounded-lg bg-muted/50 border">
+                  {/* Block metadata — shown in full mode always, in focus mode only when block has no games yet */}
+                  {(!focusMode || blockRounds.length === 0) && (
+                  <div className={`grid grid-cols-2 sm:grid-cols-4 ${focusMode ? "gap-2 p-2" : "gap-3 p-3"} rounded-lg bg-muted/50 border`}>
                     <div>
                       <Label className="text-xs font-medium">Jour</Label>
                       <Input
