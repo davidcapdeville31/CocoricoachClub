@@ -284,6 +284,21 @@ export function BowlingBlockManager({
         </Card>
       )}
 
+      {/* Focus mode: missing block placeholder */}
+      {focusMode && focusBlockIdx !== null && blocks[focusBlockIdx] === undefined && (
+        <Card className="border-dashed border-primary/40 bg-primary/5">
+          <CardContent className="py-6 flex flex-col items-center gap-3 text-center">
+            <p className="text-sm text-muted-foreground">
+              Cette athlète n'a pas d'Épreuve {focusBlockIdx + 1}.
+            </p>
+            <Button size="sm" onClick={addBlock} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Créer l'Épreuve {focusBlockIdx + 1}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Blocks */}
       {blocks.map((block, blockIdx) => {
         if (focusMode && blockIdx !== focusBlockIdx) return null;
@@ -417,7 +432,17 @@ export function BowlingBlockManager({
                   </div>
 
                   {/* Games within block */}
-                  {blockRounds.length === 0 ? (
+                  {focusMode && focusGameIdx !== null && blockRounds[focusGameIdx] === undefined ? (
+                    <div className="text-center py-6 space-y-3 border border-dashed rounded-lg bg-muted/20">
+                      <p className="text-sm text-muted-foreground">
+                        Pas encore de Partie {focusGameIdx + 1} pour cette athlète.
+                      </p>
+                      <Button size="sm" onClick={() => addGameToBlock(block.id)} className="gap-2">
+                        <Plus className="h-4 w-4" />
+                        Ajouter la Partie {focusGameIdx + 1}
+                      </Button>
+                    </div>
+                  ) : blockRounds.length === 0 ? (
                     <p className="text-center text-sm text-muted-foreground py-4">
                       Aucune partie dans cette épreuve. Ajoutez votre première partie ci-dessous.
                     </p>
