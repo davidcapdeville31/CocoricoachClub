@@ -73,6 +73,7 @@ const todayIso = () => format(new Date(), "yyyy-MM-dd");
 export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSession, athletePlayerId }: SessionEditorV2Props) {
   const isAthleteMode = !!athletePlayerId;
   const queryClient = useQueryClient();
+  const seasonGuard = useSeasonGuard(categoryId);
 
   const [weekNumber] = useState(1);
   const [dayName, setDayName] = useState("Séance 1");
