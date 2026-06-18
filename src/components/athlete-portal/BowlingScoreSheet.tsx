@@ -755,6 +755,57 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                 ))}
               </colgroup>
               <thead>
+                {compact && trackPockets && (
+                  <tr>
+                    <th className="border border-foreground/20 bg-muted px-1 py-0.5 text-[8px] font-medium text-muted-foreground">P/S</th>
+                    {frames.map((frame, frameIndex) => {
+                      const firstThrow = frame.throws[0];
+                      const hasFirst = firstThrow && firstThrow.value;
+                      const pocketAllowed = hasFirst ? isPocketAllowed(frameIndex, 0, frame) : false;
+                      const splitAllowed = hasFirst && firstThrow.value !== "X" && firstThrow.value !== "/";
+                      return (
+                        <th key={frameIndex} className="border border-foreground/20 bg-muted px-0.5 py-0.5">
+                          {hasFirst ? (
+                            <div className="flex items-center justify-center gap-0.5">
+                              {pocketAllowed && (
+                                <button
+                                  type="button"
+                                  disabled={isSaved}
+                                  onClick={() => handleCheckboxChange(frameIndex, 0, "isPocket")}
+                                  className={`text-[8px] font-bold rounded px-1 py-0 border leading-tight transition-colors disabled:opacity-60 ${
+                                    firstThrow.isPocket
+                                      ? "bg-primary text-primary-foreground border-primary"
+                                      : "bg-background border-border hover:bg-muted-foreground/10 text-muted-foreground"
+                                  }`}
+                                  title="Boule en poche"
+                                >
+                                  P
+                                </button>
+                              )}
+                              {splitAllowed && (
+                                <button
+                                  type="button"
+                                  disabled={isSaved}
+                                  onClick={() => handleCheckboxChange(frameIndex, 0, "isSplit")}
+                                  className={`text-[8px] font-bold rounded px-1 py-0 border leading-tight transition-colors disabled:opacity-60 ${
+                                    firstThrow.isSplit
+                                      ? "bg-destructive text-destructive-foreground border-destructive"
+                                      : "bg-background border-border hover:bg-muted-foreground/10 text-muted-foreground"
+                                  }`}
+                                  title="Split"
+                                >
+                                  S
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-[8px] text-muted-foreground/40">·</span>
+                          )}
+                        </th>
+                      );
+                    })}
+                  </tr>
+                )}
                 <tr>
                   <th className={`border border-foreground/20 bg-muted px-1 py-1 text-[10px] font-medium`}></th>
                   {frames.map((_, frameIndex) => (
