@@ -423,7 +423,9 @@ export function BowlingBlockManager({
                     </p>
                   ) : (
                     <div className="space-y-3">
-                      {blockRounds.map((round, gameIdx) => (
+                      {blockRounds.map((round, gameIdx) => {
+                        if (focusMode && focusGameIdx !== null && gameIdx !== focusGameIdx) return null;
+                        return (
                         <Card key={round.round_number} className={`relative ${round.isLocked ? "border-muted-foreground/30" : ""}`}>
                           {round.isLocked && (
                             <div className="absolute top-2 right-2 z-10">
