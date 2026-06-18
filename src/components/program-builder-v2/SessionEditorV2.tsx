@@ -658,6 +658,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
       onClose();
     },
     onError: (e: Error) => {
+      if (typeof e?.message === "string" && e.message.startsWith("guard:")) return;
       toast.error(e.message ?? "Erreur lors de l'enregistrement");
     },
   });
