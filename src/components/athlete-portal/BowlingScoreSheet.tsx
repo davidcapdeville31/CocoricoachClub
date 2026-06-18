@@ -1016,6 +1016,7 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
           </CollapsibleContent>
         </Card>
       </Collapsible>
+      )}
 
       {/* Statistics Summary — collapsed by default in compact (multi-athlete) mode */}
       <Card className={`bg-gradient-to-br from-primary/5 to-primary/10 ${compact ? "shadow-sm border-muted/50" : ""}`}>
