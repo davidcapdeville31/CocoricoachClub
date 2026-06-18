@@ -28,6 +28,7 @@ const BOWLING_COMPETITION_CATEGORIES = [
   { value: "doublette", label: "Doublette" },
   { value: "triplette", label: "Triplette" },
   { value: "equipe_4", label: "Équipe de 4" },
+  { value: "equipe_5", label: "Équipe de 5" },
   { value: "masters", label: "Masters" },
   { value: "practice_officiel", label: "Practice officiel" },
   { value: "practice_non_officiel", label: "Practice non officiel" },
