@@ -1050,14 +1050,21 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
       </Card>
 
       {/* Action Buttons */}
-      <div className="flex gap-3">
-        <Button variant="outline" className="flex-1" onClick={onCancel}>
-          <X className="h-4 w-4 mr-2" />
+      <div className={`flex gap-2 ${compact ? "mt-2 justify-end" : "mt-4"}`}>
+        <Button 
+          variant="outline" 
+          className={compact ? "h-7 text-[11px] px-2.5 font-medium flex-1 sm:flex-none" : "flex-1"} 
+          onClick={onCancel}
+        >
+          <X className={compact ? "h-3 w-3 mr-1" : "h-4 w-4 mr-2"} />
           {isSaved ? "Fermer" : "Annuler"}
         </Button>
         {!isSaved && (
-          <Button className="flex-1" onClick={handleSave}>
-            <Save className="h-4 w-4 mr-2" />
+          <Button 
+            className={compact ? "h-7 text-[11px] px-3 font-medium flex-1 sm:flex-none" : "flex-1"} 
+            onClick={handleSave}
+          >
+            <Save className={compact ? "h-3 w-3 mr-1" : "h-4 w-4 mr-2"} />
             Enregistrer
           </Button>
         )}
