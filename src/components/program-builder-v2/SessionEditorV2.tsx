@@ -782,7 +782,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
                   <button
                     type="button"
                     className="text-[11px] text-primary hover:underline"
-                    onClick={() => setSelectedPlayers((categoryPlayers || []).map((p) => p.id))}
+                    onClick={() => setSelectedPlayers(visiblePlayers.map((p) => p.id))}
                   >
                     Tout sélectionner
                   </button>
