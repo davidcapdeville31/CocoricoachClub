@@ -2216,7 +2216,7 @@ export function CompetitionRoundsDialog({
                             </div>
                           )}
                           <BowlingBlockManager
-                            compact={hasMultiBowling && focusBlockIdx === null}
+                            compact={hasMultiBowling}
                             playerId={p.playerId}
                             categoryId={categoryId}
                             matchId={matchId}
