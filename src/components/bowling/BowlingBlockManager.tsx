@@ -95,6 +95,10 @@ interface BowlingBlockManagerProps {
   onLock: (roundNumber: number) => void;
   onUnlock: (roundNumber: number) => void;
   compact?: boolean;
+  /** When set, only the block at this index is rendered (forced open). */
+  focusBlockIdx?: number | null;
+  /** When set (with focusBlockIdx), only the game at this index inside the block is rendered. */
+  focusGameIdx?: number | null;
 }
 
 export function BowlingBlockManager({
@@ -110,7 +114,10 @@ export function BowlingBlockManager({
   onLock,
   onUnlock,
   compact = false,
+  focusBlockIdx = null,
+  focusGameIdx = null,
 }: BowlingBlockManagerProps) {
+  const focusMode = focusBlockIdx !== null;
   // Track which locked rounds are expanded (default collapsed for compact view)
   const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set());
   const lockedRoundNumbers = rounds
