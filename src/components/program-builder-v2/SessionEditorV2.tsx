@@ -24,6 +24,7 @@ import { SessionEditorSheet } from "./SessionEditorSheet";
 import { SessionDayEditor, type SessionDayEditorHandle } from "./SessionDayEditor";
 import { V2ExerciseBankSidebar, type PickedExerciseRich } from "./V2ExerciseBankSidebar";
 import type { V2BlockExercise, V2BlockWithExercises } from "./hooks/useSaveProgramV2";
+import { useSeasonGuard } from "@/hooks/use-season-guard";
 
 interface SessionEditorV2Props {
   open: boolean;
@@ -72,6 +73,7 @@ const todayIso = () => format(new Date(), "yyyy-MM-dd");
 export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSession, athletePlayerId }: SessionEditorV2Props) {
   const isAthleteMode = !!athletePlayerId;
   const queryClient = useQueryClient();
+  const seasonGuard = useSeasonGuard(categoryId);
 
   const [weekNumber] = useState(1);
   const [dayName, setDayName] = useState("Séance 1");
@@ -105,6 +107,11 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
     },
     enabled: open && !!categoryId,
   });
+
+  const visiblePlayers = useMemo(
+    () => (categoryPlayers || []).filter((p: any) => seasonGuard.isPlayerAllowed(p.id)),
+    [categoryPlayers, seasonGuard]
+  );
 
   const { data: existingExercises } = useQuery({
     queryKey: ["v2-session-exercises", editSession?.id],
@@ -400,6 +407,14 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
 
       if (!sessionDate) throw new Error("Choisis une date pour la séance.");
 
+      // Season guard: block creation outside active season window when filter is ON.
+      if (!editSession?.id && !seasonGuard.assertDate(sessionDate)) {
+        throw new Error("guard:date");
+      }
+      if (!isAthleteMode && selectedPlayers.length > 0 && !seasonGuard.assertPlayers(selectedPlayers)) {
+        throw new Error("guard:player");
+      }
+
       // --- ATHLETE MODE: edge function (RLS bypass + own player only) ---
       if (isAthleteMode && !editSession?.id) {
         const { data: authData } = await supabase.auth.getSession();
@@ -476,10 +491,13 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
           .select("id")
           .eq("category_id", categoryId);
         if (pErr) throw pErr;
-        if (!allPlayers || allPlayers.length === 0) {
-          throw new Error("Aucun athlète dans cette catégorie.");
+        const filtered = (allPlayers || []).filter((p: any) => seasonGuard.isPlayerAllowed(p.id));
+        if (!filtered || filtered.length === 0) {
+          throw new Error(seasonGuard.isFiltering
+            ? "Aucun athlète dans la saison active pour cette catégorie."
+            : "Aucun athlète dans cette catégorie.");
         }
-        targetPlayers = allPlayers;
+        targetPlayers = filtered;
       }
 
       // 2. Create or update the training session shell
@@ -648,6 +666,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
       onClose();
     },
     onError: (e: Error) => {
+      if (typeof e?.message === "string" && e.message.startsWith("guard:")) return;
       toast.error(e.message ?? "Erreur lors de l'enregistrement");
     },
   });
@@ -763,7 +782,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
                   <button
                     type="button"
                     className="text-[11px] text-primary hover:underline"
-                    onClick={() => setSelectedPlayers((categoryPlayers || []).map((p) => p.id))}
+                    onClick={() => setSelectedPlayers(visiblePlayers.map((p) => p.id))}
                   >
                     Tout sélectionner
                   </button>
@@ -778,7 +797,7 @@ export function SessionEditorV2({ open, onClose, categoryId, defaultDate, editSe
               </div>
               <ScrollArea className="h-32 pr-2">
                 <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-                  {(categoryPlayers || []).map((p) => {
+                  {visiblePlayers.map((p) => {
                     const checked = selectedPlayers.includes(p.id);
                     const label = p.first_name ? `${p.first_name} ${p.name}` : p.name;
                     return (
