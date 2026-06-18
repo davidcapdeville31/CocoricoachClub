@@ -2034,6 +2034,42 @@ export function CompetitionRoundsDialog({
                                 Partie suivante ›
                               </Button>
                             </div>
+                            <Button
+                              size="sm"
+                              variant="default"
+                              className="gap-1 ml-auto"
+                              onClick={() => {
+                                const newIdx = focusMaxBlocks;
+                                const baseDate = matchData?.match_date?.split("T")[0] || new Date().toISOString().split("T")[0];
+                                setBowlingBlocks((prev) => {
+                                  const next = { ...prev };
+                                  bowlingSelectedPlayers.forEach((p) => {
+                                    const existing = next[p.playerId] || [];
+                                    next[p.playerId] = [
+                                      ...existing,
+                                      {
+                                        id: `block_${Date.now()}_${p.playerId}`,
+                                        name: "",
+                                        roundDate: baseDate,
+                                        bowlingCategory: "",
+                                        phase: "",
+                                        opponent_name: "",
+                                        notes: "",
+                                        debriefing: "",
+                                        isCollapsed: false,
+                                        trackPockets: true,
+                                      },
+                                    ];
+                                  });
+                                  return next;
+                                });
+                                setFocusBlockIdx(newIdx);
+                                setFocusGameIdx(0);
+                              }}
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                              Nouvelle épreuve
+                            </Button>
                           </>
                         )}
                       </div>
