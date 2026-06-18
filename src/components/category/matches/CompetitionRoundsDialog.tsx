@@ -155,6 +155,7 @@ export function CompetitionRoundsDialog({
   const [selectedPlayerId2, setSelectedPlayerId2] = useState<string>("");
   const [selectedPlayerId3, setSelectedPlayerId3] = useState<string>("");
   const [selectedPlayerId4, setSelectedPlayerId4] = useState<string>("");
+  const [selectedPlayerId5, setSelectedPlayerId5] = useState<string>("");
   const [isDataInitialized, setIsDataInitialized] = useState(false);
   const [bowlingBlocks, setBowlingBlocks] = useState<Record<string, BowlingBlock[]>>({});
   const [deletedRoundIds, setDeletedRoundIds] = useState<string[]>([]);
