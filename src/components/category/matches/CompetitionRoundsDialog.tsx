@@ -1992,27 +1992,78 @@ export function CompetitionRoundsDialog({
                             >
                               ← Vue complète
                             </Button>
-                            <div className="flex items-center gap-1 ml-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={focusBlockIdx <= 0}
-                                onClick={() => { setFocusBlockIdx(Math.max(0, focusBlockIdx - 1)); setFocusGameIdx(0); }}
-                              >
-                                ‹
-                              </Button>
-                              <span className="px-2 text-sm font-semibold">
-                                Épreuve {focusBlockIdx + 1} / {focusMaxBlocks}
-                              </span>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={focusBlockIdx >= focusMaxBlocks - 1}
-                                onClick={() => { setFocusBlockIdx(Math.min(focusMaxBlocks - 1, focusBlockIdx + 1)); setFocusGameIdx(0); }}
-                              >
-                                ›
-                              </Button>
-                            </div>
+                            {(() => {
+                              const currentBlock = bowlingSelectedPlayers
+                                .map(p => (bowlingBlocks[p.playerId] || [])[focusBlockIdx])
+                                .find(Boolean);
+                              const catLabel = currentBlock?.bowlingCategory
+                                ? BOWLING_COMPETITION_CATEGORIES.find(c => c.value === currentBlock.bowlingCategory)?.label
+                                : null;
+                              const phaseLabel = currentBlock?.phase
+                                ? BOWLING_PHASES.find(p => p.value === currentBlock.phase)?.label
+                                : null;
+                              const opponent = currentBlock?.opponent_name?.trim();
+                              const parts = [catLabel, phaseLabel, opponent].filter(Boolean);
+                              const blockLabel = currentBlock?.name?.trim() || parts.join(" · ") || "Sans nom";
+                              const blockEmpty = bowlingSelectedPlayers.every(p => {
+                                const block = (bowlingBlocks[p.playerId] || [])[focusBlockIdx];
+                                if (!block) return true;
+                                return !p.rounds.some(r => r.blockId === block.id);
+                              });
+                              return (
+                                <>
+                                  <div className="flex items-center gap-1 ml-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={focusBlockIdx <= 0}
+                                      onClick={() => { setFocusBlockIdx(Math.max(0, focusBlockIdx - 1)); setFocusGameIdx(0); }}
+                                    >
+                                      ‹
+                                    </Button>
+                                    <div className="px-2 text-sm font-semibold flex flex-col items-center leading-tight">
+                                      <span>Épreuve {focusBlockIdx + 1} / {focusMaxBlocks}</span>
+                                      <span className="text-[10px] font-normal text-muted-foreground max-w-[180px] truncate" title={blockLabel}>
+                                        {blockLabel}
+                                      </span>
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={focusBlockIdx >= focusMaxBlocks - 1}
+                                      onClick={() => { setFocusBlockIdx(Math.min(focusMaxBlocks - 1, focusBlockIdx + 1)); setFocusGameIdx(0); }}
+                                    >
+                                      ›
+                                    </Button>
+                                    {blockEmpty && focusMaxBlocks > 1 && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        title="Supprimer cette épreuve vide"
+                                        onClick={() => {
+                                          setBowlingBlocks(prev => {
+                                            const next = { ...prev };
+                                            bowlingSelectedPlayers.forEach(p => {
+                                              const blocks = next[p.playerId] || [];
+                                              const block = blocks[focusBlockIdx];
+                                              if (!block) return;
+                                              next[p.playerId] = blocks.filter((_, i) => i !== focusBlockIdx);
+                                            });
+                                            return next;
+                                          });
+                                          const newIdx = Math.max(0, focusBlockIdx - 1);
+                                          setFocusBlockIdx(newIdx);
+                                          setFocusGameIdx(0);
+                                        }}
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                      </Button>
+                                    )}
+                                  </div>
+                                </>
+                              );
+                            })()}
                             <div className="flex items-center gap-1 ml-2">
                               <Button
                                 size="sm"
