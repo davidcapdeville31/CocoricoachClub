@@ -61,18 +61,21 @@ export function SessionEditorSheet({
   if (!open || typeof document === "undefined") return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[80] bg-background flex flex-col animate-in fade-in-0 duration-200">
+    <div
+      className="fixed inset-0 z-[80] bg-background flex flex-col animate-in fade-in-0 duration-200"
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
+    >
       {/* Header */}
-      <div className="px-2 sm:px-4 py-2 border-b bg-background shrink-0 sticky top-0 z-10 flex items-center gap-2">
+      <div className="px-3 sm:px-4 py-2 border-b bg-background shrink-0 sticky top-0 z-10 flex items-center gap-2 min-h-[52px]">
         <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
           <span className="text-xs sm:text-sm font-bold text-primary shrink-0">S{weekNumber}</span>
           <Input
             value={dayName}
             onChange={(e) => onUpdateDayName(weekId, dayId, e.target.value)}
-            className="font-medium w-24 sm:w-40 h-8 text-xs sm:text-sm"
+            className="font-medium flex-1 min-w-[110px] max-w-[180px] sm:w-40 h-9 text-xs sm:text-sm"
           />
           <Select value={dayOfWeek || ""} onValueChange={(v) => onUpdateDayOfWeek(weekId, dayId, v)}>
-            <SelectTrigger className="w-24 sm:w-28 h-8 text-xs">
+            <SelectTrigger className="w-[88px] sm:w-28 h-9 text-xs">
               <SelectValue placeholder="Jour..." />
             </SelectTrigger>
             <SelectContent>
@@ -84,35 +87,43 @@ export function SessionEditorSheet({
             </SelectContent>
           </Select>
         </div>
-        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {onSave && (
             <Button
               variant={isSavedUpToDate ? "outline" : "default"}
               size="sm"
               onClick={onSave}
               disabled={saving || isSavedUpToDate}
-              className={`gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3 ${isSavedUpToDate
+              className={`gap-1 sm:gap-2 h-10 w-10 sm:h-9 sm:w-auto px-0 sm:px-3 ${isSavedUpToDate
                 ? "border-green-500 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30 cursor-default"
                 : "bg-primary text-primary-foreground hover:bg-primary/90"} opacity-100`}
+              aria-label={isSavedUpToDate ? "Programme à jour" : "Enregistrer la séance"}
             >
               {isSavedUpToDate ? (
                 <>
-                  <Check className="h-4 w-4" />
+                  <Check className="h-5 w-5 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">Programme à jour</span>
                 </>
               ) : (
                 <>
-                  <Save className="h-4 w-4" />
+                  <Save className="h-5 w-5 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">{saving ? "Enregistrement..." : "Enregistrer la séance"}</span>
                 </>
               )}
             </Button>
           )}
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 sm:h-9 sm:w-9">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="h-10 w-10 sm:h-9 sm:w-9"
+            aria-label="Fermer"
+          >
             <X className="h-5 w-5" />
           </Button>
         </div>
       </div>
+
 
       {/* Mobile tabs (md and below) */}
       <div className="md:hidden border-b bg-card shrink-0 flex">
