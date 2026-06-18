@@ -286,14 +286,16 @@ export function BowlingBlockManager({
 
       {/* Blocks */}
       {blocks.map((block, blockIdx) => {
+        if (focusMode && blockIdx !== focusBlockIdx) return null;
         const blockRounds = getBlockRounds(block.id);
         const blockHasLockedGames = blockRounds.some(r => r.isLocked);
         const blockTotal = blockRounds.reduce((s, r) => s + (r.stats["gameScore"] || 0), 0);
         const blockAvg = blockRounds.length > 0 ? (blockTotal / blockRounds.length).toFixed(1) : "—";
+        const isOpen = focusMode ? true : !block.isCollapsed;
 
         return (
           <Card key={block.id} className="border-primary/20">
-            <Collapsible open={!block.isCollapsed} onOpenChange={() => toggleBlock(block.id)}>
+            <Collapsible open={isOpen} onOpenChange={() => !focusMode && toggleBlock(block.id)}>
               {/* Block header */}
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between gap-2">
