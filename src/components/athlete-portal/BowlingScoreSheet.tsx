@@ -837,20 +837,23 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
 
       {/* Throw Details - Collapsible */}
       <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <Card>
+        <Card className={compact ? "shadow-sm" : ""}>
           <CollapsibleTrigger asChild>
-            <CardHeader className="pb-2 cursor-pointer hover:bg-muted/50 transition-colors">
-              <CardTitle className="text-lg flex items-center justify-between">
-                <span>Détails des lancers</span>
-                <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${detailsOpen ? "rotate-180" : ""}`} />
+            <CardHeader className={`${compact ? "p-1.5" : "pb-2"} cursor-pointer hover:bg-muted/50 transition-colors`}>
+              <CardTitle className={`${compact ? "text-[11px] font-medium" : "text-lg"} flex items-center justify-between gap-1`}>
+                <span className="flex items-center gap-1">
+                  <Target className={compact ? "h-3 w-3 text-muted-foreground" : "h-4 w-4"} />
+                  {compact ? "Lancers" : "Détails des lancers"}
+                </span>
+                <ChevronDown className={`${compact ? "h-3 w-3" : "h-5 w-5"} transition-transform duration-200 ${detailsOpen ? "rotate-180" : ""}`} />
               </CardTitle>
             </CardHeader>
           </CollapsibleTrigger>
            <CollapsibleContent>
-            <CardContent>
+            <CardContent className={compact ? "p-2 pt-0" : ""}>
               {/* Toggle all pockets button */}
               {!isSaved && trackPockets && (
-                <div className="mb-4 flex gap-2">
+                <div className={compact ? "mb-2 flex gap-2" : "mb-4 flex gap-2"}>
                   <Button
                     variant="outline"
                     size="sm"
@@ -873,9 +876,9 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                         }));
                       });
                     }}
-                    className="gap-1"
+                    className={compact ? "h-6 px-2 text-[10px] gap-1" : "gap-1"}
                   >
-                    <Target className="h-4 w-4" />
+                    <Target className={compact ? "h-3 w-3" : "h-4 w-4"} />
                     {frames.every((frame, fi) =>
                       frame.throws.every((t, ti) => {
                         if (!t.value) return true;
@@ -883,8 +886,8 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                         return t.isPocket;
                       })
                     )
-                      ? "Décocher toutes les poches"
-                      : "Cocher toutes les poches"}
+                      ? (compact ? "Décocher poches" : "Décocher toutes les poches")
+                      : (compact ? "Cocher poches" : "Cocher toutes les poches")}
                   </Button>
                 </div>
               )}
