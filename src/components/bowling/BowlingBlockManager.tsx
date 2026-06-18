@@ -309,9 +309,10 @@ export function BowlingBlockManager({
         const isOpen = focusMode ? true : !block.isCollapsed;
 
         return (
-          <Card key={block.id} className="border-primary/20">
+          <Card key={block.id} className={focusMode ? "border-primary/20 shadow-none" : "border-primary/20"}>
             <Collapsible open={isOpen} onOpenChange={() => !focusMode && toggleBlock(block.id)}>
-              {/* Block header */}
+              {/* Block header — hidden in focus mode (already shown in toolbar) */}
+              {!focusMode && (
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -355,10 +356,12 @@ export function BowlingBlockManager({
                   )}
                 </div>
               </CardHeader>
+              )}
 
               <CollapsibleContent>
-                <CardContent className="space-y-4 pt-0">
-                  {/* Block metadata */}
+                <CardContent className={focusMode ? "space-y-2 pt-3" : "space-y-4 pt-0"}>
+                  {/* Block metadata — hidden in focus mode for minimalist UI */}
+                  {!focusMode && (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 rounded-lg bg-muted/50 border">
                     <div>
                       <Label className="text-xs font-medium">Jour</Label>
@@ -415,8 +418,10 @@ export function BowlingBlockManager({
                       />
                     </div>
                   </div>
+                  )}
                   
-                  {/* Pocket tracking toggle - prominent */}
+                  {/* Pocket tracking toggle — hidden in focus mode (set once per épreuve in full view) */}
+                  {!focusMode && (
                   <div className="flex items-center gap-2 p-2 rounded-lg border border-dashed border-primary/30 bg-primary/5">
                     <Checkbox
                       id={`trackPockets-${block.id}`}
@@ -430,6 +435,7 @@ export function BowlingBlockManager({
                       {block.trackPockets !== false ? "Activé" : "Désactivé"}
                     </span>
                   </div>
+                  )}
 
                   {/* Games within block */}
                   {focusMode && focusGameIdx !== null && blockRounds[focusGameIdx] === undefined ? (
@@ -451,13 +457,13 @@ export function BowlingBlockManager({
                       {blockRounds.map((round, gameIdx) => {
                         if (focusMode && focusGameIdx !== null && gameIdx !== focusGameIdx) return null;
                         return (
-                        <Card key={round.round_number} className={`relative ${round.isLocked ? "border-muted-foreground/30" : ""}`}>
+                        <Card key={round.round_number} className={`relative ${round.isLocked ? "border-muted-foreground/30" : ""} ${focusMode ? "shadow-none" : ""}`}>
                           {round.isLocked && (
-                            <div className="absolute top-2 right-2 z-10">
+                            <div className={`absolute ${focusMode ? "top-1 right-1" : "top-2 right-2"} z-10`}>
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="h-7 text-xs gap-1"
+                                className={focusMode ? "h-6 text-[10px] gap-1 px-2" : "h-7 text-xs gap-1"}
                                 onClick={() => onUnlock(round.round_number)}
                               >
                                 <Lock className="h-3 w-3" />
@@ -465,7 +471,7 @@ export function BowlingBlockManager({
                               </Button>
                             </div>
                           )}
-                          <CardHeader className="pb-1 pt-3">
+                          <CardHeader className={focusMode ? "py-1 px-2" : "pb-1 pt-3"}>
                             <div className="flex items-center justify-between">
                               <button
                                 type="button"
@@ -477,19 +483,19 @@ export function BowlingBlockManager({
                                     ? <ChevronDown className="h-3 w-3 text-muted-foreground" />
                                     : <ChevronRight className="h-3 w-3 text-muted-foreground" />
                                 )}
-                                <CardTitle className="text-sm flex items-center gap-2">
+                                <CardTitle className={focusMode ? "text-xs flex items-center gap-1.5" : "text-sm flex items-center gap-2"}>
                                   <Circle className="h-3 w-3 text-primary" />
                                   Partie {gameIdx + 1}
                                   {round.stats["gameScore"] > 0 && (
-                                    <Badge variant="outline" className="text-xs font-mono">
+                                    <Badge variant="outline" className="text-[10px] font-mono px-1 py-0">
                                       {round.stats["gameScore"]}
                                     </Badge>
                                   )}
                                 </CardTitle>
                               </button>
                               <div className="flex items-center gap-1">
-                                {/* Move to another block */}
-                                {blocks.length > 1 && (
+                                {/* Move to another block — hidden in focus mode */}
+                                {!focusMode && blocks.length > 1 && (
                                   <Select onValueChange={(v) => moveGameToBlock(round.round_number, v)}>
                                     <SelectTrigger className="h-7 w-28 text-xs">
                                       <ArrowRightLeft className="h-3 w-3 mr-1" />
@@ -506,8 +512,8 @@ export function BowlingBlockManager({
                                   </Select>
                                 )}
                                 {!round.isLocked && (
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeGame(round.round_number)}>
-                                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                                  <Button variant="ghost" size="icon" className={focusMode ? "h-6 w-6" : "h-7 w-7"} onClick={() => removeGame(round.round_number)}>
+                                    <Trash2 className="h-3 w-3 text-destructive" />
                                   </Button>
                                 )}
                               </div>
@@ -515,7 +521,7 @@ export function BowlingBlockManager({
                           </CardHeader>
                           {(!round.isLocked || expandedRounds.has(round.round_number)) && (
                             <>
-                              <CardContent className="pt-0">
+                              <CardContent className={focusMode ? "pt-0 px-2 pb-2" : "pt-0"}>
                                 <BowlingScoreSheet
                                   compact={compact}
                                   trackPockets={block.trackPockets !== false}
