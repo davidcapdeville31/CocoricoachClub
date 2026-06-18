@@ -1970,43 +1970,114 @@ export function CompetitionRoundsDialog({
                     updateRoundStat={updateRoundStat}
                   />
                 ) : isBowling ? (
-                  <div className={
-                    bowlingSelectedPlayers.length >= 5 ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3" :
-                    bowlingSelectedPlayers.length === 4 ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" :
-                    bowlingSelectedPlayers.length === 3 ? "grid grid-cols-1 md:grid-cols-3 gap-4" :
-                    bowlingSelectedPlayers.length === 2 ? "grid grid-cols-1 md:grid-cols-2 gap-4" : ""
-                  }>
-                    {bowlingSelectedPlayers.map((p) => (
-                      <div key={p.entryKey} className={hasMultiBowling ? "border border-border/60 rounded-2xl p-3 bg-surface-sunken/40" : ""}>
-                        {hasMultiBowling && (
-                          <div className="mb-2 text-sm font-semibold text-primary">
-                            {p.playerName}
-                          </div>
+                  <div className="space-y-3">
+                    {hasMultiBowling && focusMaxBlocks > 0 && (
+                      <div className="sticky top-0 z-20 -mx-2 px-2 py-2 bg-background/95 backdrop-blur-sm border-b flex flex-wrap items-center gap-2">
+                        {focusBlockIdx === null ? (
+                          <Button
+                            size="sm"
+                            variant="default"
+                            className="gap-2"
+                            onClick={() => { setFocusBlockIdx(0); setFocusGameIdx(0); }}
+                          >
+                            🎯 Mode focus — saisir partie par partie
+                          </Button>
+                        ) : (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => { setFocusBlockIdx(null); setFocusGameIdx(null); }}
+                              className="gap-1"
+                            >
+                              ← Vue complète
+                            </Button>
+                            <div className="flex items-center gap-1 ml-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={focusBlockIdx <= 0}
+                                onClick={() => { setFocusBlockIdx(Math.max(0, focusBlockIdx - 1)); setFocusGameIdx(0); }}
+                              >
+                                ‹
+                              </Button>
+                              <span className="px-2 text-sm font-semibold">
+                                Épreuve {focusBlockIdx + 1} / {focusMaxBlocks}
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={focusBlockIdx >= focusMaxBlocks - 1}
+                                onClick={() => { setFocusBlockIdx(Math.min(focusMaxBlocks - 1, focusBlockIdx + 1)); setFocusGameIdx(0); }}
+                              >
+                                ›
+                              </Button>
+                            </div>
+                            <div className="flex items-center gap-1 ml-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={(focusGameIdx ?? 0) <= 0}
+                                onClick={() => setFocusGameIdx(Math.max(0, (focusGameIdx ?? 0) - 1))}
+                              >
+                                ‹
+                              </Button>
+                              <span className="px-2 text-sm font-semibold">
+                                Partie {(focusGameIdx ?? 0) + 1} / {focusMaxGamesInBlock || 1}
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={(focusGameIdx ?? 0) >= focusMaxGamesInBlock - 1}
+                                onClick={() => setFocusGameIdx(Math.min(focusMaxGamesInBlock - 1, (focusGameIdx ?? 0) + 1))}
+                              >
+                                Partie suivante ›
+                              </Button>
+                            </div>
+                          </>
                         )}
-                        <BowlingBlockManager
-                          compact={hasMultiBowling}
-                          playerId={p.playerId}
-                          categoryId={categoryId}
-                          matchId={matchId}
-                          rounds={p.rounds}
-                          blocks={bowlingBlocks[p.playerId] || []}
-                          matchDate={matchData?.match_date}
-                          onBlocksChange={(newBlocks) => {
-                            setBowlingBlocks(prev => ({ ...prev, [p.playerId]: newBlocks }));
-                          }}
-                          onRoundsChange={(newRounds) => {
-                            setPlayerRoundsData(prev => prev.map(pp =>
-                              pp.playerId === p.playerId ? { ...pp, rounds: newRounds } : pp
-                            ));
-                          }}
-                          onScoreSave={(roundNumber, stats, frames, ballData) => {
-                            handleBowlingScoreSheetSave(p.playerId, roundNumber, stats, frames, ballData);
-                          }}
-                          onLock={(roundNumber) => lockBowlingRound(p.entryKey, roundNumber)}
-                          onUnlock={(roundNumber) => unlockBowlingRound(p.entryKey, roundNumber)}
-                        />
                       </div>
-                    ))}
+                    )}
+                    <div className={
+                      bowlingSelectedPlayers.length >= 5 ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3" :
+                      bowlingSelectedPlayers.length === 4 ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" :
+                      bowlingSelectedPlayers.length === 3 ? "grid grid-cols-1 md:grid-cols-3 gap-4" :
+                      bowlingSelectedPlayers.length === 2 ? "grid grid-cols-1 md:grid-cols-2 gap-4" : ""
+                    }>
+                      {bowlingSelectedPlayers.map((p) => (
+                        <div key={p.entryKey} className={hasMultiBowling ? "border border-border/60 rounded-2xl p-3 bg-surface-sunken/40" : ""}>
+                          {hasMultiBowling && (
+                            <div className="mb-2 text-sm font-semibold text-primary">
+                              {p.playerName}
+                            </div>
+                          )}
+                          <BowlingBlockManager
+                            compact={hasMultiBowling}
+                            playerId={p.playerId}
+                            categoryId={categoryId}
+                            matchId={matchId}
+                            rounds={p.rounds}
+                            blocks={bowlingBlocks[p.playerId] || []}
+                            matchDate={matchData?.match_date}
+                            focusBlockIdx={focusBlockIdx}
+                            focusGameIdx={focusGameIdx}
+                            onBlocksChange={(newBlocks) => {
+                              setBowlingBlocks(prev => ({ ...prev, [p.playerId]: newBlocks }));
+                            }}
+                            onRoundsChange={(newRounds) => {
+                              setPlayerRoundsData(prev => prev.map(pp =>
+                                pp.playerId === p.playerId ? { ...pp, rounds: newRounds } : pp
+                              ));
+                            }}
+                            onScoreSave={(roundNumber, stats, frames, ballData) => {
+                              handleBowlingScoreSheetSave(p.playerId, roundNumber, stats, frames, ballData);
+                            }}
+                            onLock={(roundNumber) => lockBowlingRound(p.entryKey, roundNumber)}
+                            onUnlock={(roundNumber) => unlockBowlingRound(p.entryKey, roundNumber)}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                 ) : (
