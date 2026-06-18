@@ -1006,8 +1006,11 @@ export function CompetitionRoundsDialog({
   const selectedPlayer4 = isBowling && selectedPlayerId4 && ![selectedPlayerId, selectedPlayerId2, selectedPlayerId3].includes(selectedPlayerId4)
     ? playerRoundsData.find(p => p.entryKey === selectedPlayerId4)
     : undefined;
+  const selectedPlayer5 = isBowling && selectedPlayerId5 && ![selectedPlayerId, selectedPlayerId2, selectedPlayerId3, selectedPlayerId4].includes(selectedPlayerId5)
+    ? playerRoundsData.find(p => p.entryKey === selectedPlayerId5)
+    : undefined;
   const bowlingSelectedPlayers = isBowling
-    ? [selectedPlayer, selectedPlayer2, selectedPlayer3, selectedPlayer4].filter(Boolean) as PlayerRounds[]
+    ? [selectedPlayer, selectedPlayer2, selectedPlayer3, selectedPlayer4, selectedPlayer5].filter(Boolean) as PlayerRounds[]
     : [];
   const hasMultiBowling = bowlingSelectedPlayers.length > 1;
 
