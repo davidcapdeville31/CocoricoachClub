@@ -510,11 +510,13 @@ export function BowlingBlockManager({
                             </>
                           )}
                         </Card>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
 
                   {/* Debriefing section */}
+                  {!focusMode && (
                   <div className="space-y-2 p-3 rounded-lg border border-primary/10 bg-primary/5">
                     <Label className="text-xs font-medium flex items-center gap-1.5">
                       📝 Débriefing de l'épreuve {blockIdx + 1}
@@ -527,8 +529,10 @@ export function BowlingBlockManager({
                       className="text-sm"
                     />
                   </div>
+                  )}
 
                   {/* Add game button */}
+                  {!focusMode && (
                   <Button
                     size="sm"
                     variant="outline"
@@ -538,6 +542,7 @@ export function BowlingBlockManager({
                     <Plus className="h-4 w-4" />
                     Ajouter une partie à l'épreuve {blockIdx + 1}
                   </Button>
+                  )}
                 </CardContent>
               </CollapsibleContent>
             </Collapsible>
