@@ -955,9 +955,11 @@ export function BowlingScoreSheet({ onSave, onCancel, initialFrames, playerId, c
                   );
                 })}
               </div>
-              <p className="mt-2 text-[10px] text-muted-foreground">
-                P = Boule en poche · S = Split — cliquer pour activer
-              </p>
+              {!compact && (
+                <p className="mt-2 text-[10px] text-muted-foreground">
+                  P = Boule en poche · S = Split — cliquer pour activer
+                </p>
+              )}
             </CardContent>
           </CollapsibleContent>
         </Card>
