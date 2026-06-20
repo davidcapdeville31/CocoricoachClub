@@ -14905,6 +14905,10 @@ export type Database = {
     }
     Functions: {
       _athlete_display_name: { Args: { _player_id: string }; Returns: string }
+      _collect_category_payload: {
+        Args: { _category_id: string }
+        Returns: Json
+      }
       accept_ambassador_invitation: {
         Args: { invitation_token: string }
         Returns: boolean

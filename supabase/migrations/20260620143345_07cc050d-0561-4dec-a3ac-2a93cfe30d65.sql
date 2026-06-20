@@ -1,0 +1,359 @@
+-- Fix snapshot completeness: include FK-linked & athlete_id tables
+-- so future restorations recover detailed training/competition data.
+
+CREATE OR REPLACE FUNCTION public._collect_category_payload(_category_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_snapshot JSONB := '{}'::jsonb;
+  v_player_ids UUID[];
+  v_match_ids UUID[];
+  v_round_ids UUID[];
+  v_tournament_ids UUID[];
+  v_session_ids UUID[];
+  v_rehab_protocol_ids UUID[];
+  v_rtp_protocol_ids UUID[];
+  v_injury_protocol_ids UUID[];
+  v_protocol_phase_ids UUID[];
+  v_block_ids UUID[];
+  v_table TEXT;
+  v_data JSONB;
+  v_cat_tables TEXT[] := ARRAY[
+    'players','player_categories','category_members','category_photos','category_invitations','category_stat_preferences',
+    'training_sessions','training_programs','training_periods','training_cycles','training_attendance',
+    'matches','match_sheets','tournaments','convocations','team_trips',
+    'wellness_tracking','gathering_wellness_assessments','awcr_tracking','smart_alerts',
+    'medical_records','injuries','concussion_protocols','injury_protocols','encrypted_medical_fields',
+    'gps_sessions','gps_session_objectives','gps_objective_templates','position_benchmarks',
+    'jump_tests','speed_tests','strength_tests','mobility_tests','rugby_specific_tests','generic_tests',
+    'test_batteries','test_reminders','test_theme_categories','custom_test_categories','pending_test_results',
+    'kicking_attempts','precision_training','precision_exercise_types',
+    'video_analyses','video_clips','custom_video_action_types',
+    'weekly_planning','session_templates','session_block_athlete_rpe',
+    'benchmarks','custom_athletic_profiles','custom_stats','custom_training_types',
+    'mental_assessments','mental_goals','mental_prep_sessions',
+    'recovery_journal','hrv_records','body_composition','nutrition_entries','menstrual_cycles','menstrual_symptoms',
+    'player_caps','player_evaluations','player_measurements','player_medals','player_objectives','player_selections',
+    'player_development_plans','player_availability_scores','player_performance_references','player_tags','player_contacts','player_coaches',
+    'player_academic_profiles','player_academic_tracking','academic_grades','academic_absences',
+    'admin_documents','recruitment_prospects','equipment_inventory','facilities','facility_bookings',
+    'staff_notes','notifications','notification_preferences','conversations','polls','convocation_recipients',
+    'athlete_invitations','athlete_access_tokens','public_access_tokens',
+    'periodization_categories','periodization_cycles','periodization_saved_colors',
+    'season_closures','season_goals','season_milestones',
+    'fis_calendar_events','fis_calendar_feeds','fis_competitions','fis_objectives','fis_results','fis_ranking_settings','fis_points_reference',
+    'athletics_minimas','athletics_records','athletics_sprint_attempts','athletics_throwing_attempts',
+    'bowling_oil_patterns','bowling_spare_training','bowling_training_blocks','player_bowling_arsenal',
+    'tennis_drill_training','player_padel_equipment','player_ski_equipment','player_surf_equipment',
+    'ski_conditions','surf_conditions','national_team_events','national_team_event_types',
+    'prophylaxis_programs','prophylaxis_assignments','rehab_calendar_events','player_rehab_protocols','return_to_play_protocols','injury_library',
+    'pdf_settings','athlete_exercise_logs','athlete_attributes','gym_session_exercises','custom_tests'
+  ];
+  v_player_tables TEXT[] := ARRAY[
+    'player_match_stats','match_lineups','match_sheet_players','event_participants',
+    'competition_rounds','tournament_player_rotation','clip_player_associations',
+    'player_exercise_completions','player_transfers',
+    'bowling_oil_pattern_players','padel_session_equipment','ski_session_equipment','surf_session_equipment','program_assignments'
+  ];
+  v_athlete_tables TEXT[] := ARRAY[
+    'bowling_throw_results'
+  ];
+BEGIN
+  SELECT COALESCE(array_agg(id), ARRAY[]::uuid[]) INTO v_player_ids
+    FROM public.players WHERE category_id = _category_id;
+
+  v_snapshot := jsonb_build_object('player_ids', to_jsonb(v_player_ids));
+
+  -- 1. Category-scoped tables
+  FOREACH v_table IN ARRAY v_cat_tables LOOP
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name=v_table)
+       AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name=v_table AND column_name='category_id') THEN
+      EXECUTE format('SELECT COALESCE(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) FROM public.%I t WHERE t.category_id = $1', v_table)
+        INTO v_data USING _category_id;
+      v_snapshot := v_snapshot || jsonb_build_object(v_table, v_data);
+    END IF;
+  END LOOP;
+
+  IF array_length(v_player_ids, 1) > 0 THEN
+    -- 2. player_id tables
+    FOREACH v_table IN ARRAY v_player_tables LOOP
+      IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name=v_table)
+         AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name=v_table AND column_name='player_id') THEN
+        EXECUTE format('SELECT COALESCE(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) FROM public.%I t WHERE t.player_id = ANY($1)', v_table)
+          INTO v_data USING v_player_ids;
+        v_snapshot := v_snapshot || jsonb_build_object(v_table, v_data);
+      END IF;
+    END LOOP;
+
+    -- 3. athlete_id tables
+    FOREACH v_table IN ARRAY v_athlete_tables LOOP
+      IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name=v_table)
+         AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name=v_table AND column_name='athlete_id') THEN
+        EXECUTE format('SELECT COALESCE(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) FROM public.%I t WHERE t.athlete_id = ANY($1)', v_table)
+          INTO v_data USING v_player_ids;
+        v_snapshot := v_snapshot || jsonb_build_object(v_table, v_data);
+      END IF;
+    END LOOP;
+  END IF;
+
+  -- 4. FK-linked tables — gather parent IDs
+  SELECT COALESCE(array_agg(id), ARRAY[]::uuid[]) INTO v_match_ids
+    FROM public.matches WHERE category_id = _category_id;
+  SELECT COALESCE(array_agg(id), ARRAY[]::uuid[]) INTO v_tournament_ids
+    FROM public.tournaments WHERE category_id = _category_id;
+  SELECT COALESCE(array_agg(id), ARRAY[]::uuid[]) INTO v_session_ids
+    FROM public.training_sessions WHERE category_id = _category_id;
+  SELECT COALESCE(array_agg(id), ARRAY[]::uuid[]) INTO v_rehab_protocol_ids
+    FROM public.player_rehab_protocols WHERE category_id = _category_id;
+  SELECT COALESCE(array_agg(id), ARRAY[]::uuid[]) INTO v_rtp_protocol_ids
+    FROM public.return_to_play_protocols WHERE category_id = _category_id;
+  SELECT COALESCE(array_agg(id), ARRAY[]::uuid[]) INTO v_injury_protocol_ids
+    FROM public.injury_protocols WHERE category_id = _category_id;
+  SELECT COALESCE(array_agg(id), ARRAY[]::uuid[]) INTO v_block_ids
+    FROM public.bowling_training_blocks WHERE category_id = _category_id;
+  IF array_length(v_player_ids, 1) > 0 THEN
+    SELECT COALESCE(array_agg(id), ARRAY[]::uuid[]) INTO v_round_ids
+      FROM public.competition_rounds WHERE player_id = ANY(v_player_ids);
+  ELSE
+    v_round_ids := ARRAY[]::uuid[];
+  END IF;
+  IF array_length(v_injury_protocol_ids, 1) > 0 THEN
+    SELECT COALESCE(array_agg(id), ARRAY[]::uuid[]) INTO v_protocol_phase_ids
+      FROM public.protocol_phases WHERE protocol_id = ANY(v_injury_protocol_ids);
+  ELSE
+    v_protocol_phase_ids := ARRAY[]::uuid[];
+  END IF;
+
+  -- Per-match
+  IF array_length(v_match_ids, 1) > 0 THEN
+    EXECUTE 'SELECT COALESCE(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) FROM public.match_events t WHERE t.match_id = ANY($1)'
+      INTO v_data USING v_match_ids;
+    v_snapshot := v_snapshot || jsonb_build_object('match_events', v_data);
+    EXECUTE 'SELECT COALESCE(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) FROM public.match_stat_overrides t WHERE t.match_id = ANY($1)'
+      INTO v_data USING v_match_ids;
+    v_snapshot := v_snapshot || jsonb_build_object('match_stat_overrides', v_data);
+  END IF;
+
+  -- Per-round
+  IF array_length(v_round_ids, 1) > 0 THEN
+    EXECUTE 'SELECT COALESCE(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) FROM public.competition_round_stats t WHERE t.round_id = ANY($1)'
+      INTO v_data USING v_round_ids;
+    v_snapshot := v_snapshot || jsonb_build_object('competition_round_stats', v_data);
+    EXECUTE 'SELECT COALESCE(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) FROM public.competition_rounds_audit t WHERE t.round_id = ANY($1)'
+      INTO v_data USING v_round_ids;
+    v_snapshot := v_snapshot || jsonb_build_object('competition_rounds_audit', v_data);
+  END IF;
+
+  -- Per-tournament
+  IF array_length(v_tournament_ids, 1) > 0 THEN
+    EXECUTE 'SELECT COALESCE(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) FROM public.tournament_matches t WHERE t.tournament_id = ANY($1)'
+      INTO v_data USING v_tournament_ids;
+    v_snapshot := v_snapshot || jsonb_build_object('tournament_matches', v_data);
+  END IF;
+
+  -- Per-session
+  IF array_length(v_session_ids, 1) > 0 THEN
+    EXECUTE 'SELECT COALESCE(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) FROM public.training_session_blocks t WHERE t.training_session_id = ANY($1)'
+      INTO v_data USING v_session_ids;
+    v_snapshot := v_snapshot || jsonb_build_object('training_session_blocks', v_data);
+  END IF;
+
+  -- Per-rehab-protocol
+  IF array_length(v_rehab_protocol_ids, 1) > 0 THEN
+    EXECUTE 'SELECT COALESCE(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) FROM public.player_rehab_exercises t WHERE t.player_rehab_protocol_id = ANY($1)'
+      INTO v_data USING v_rehab_protocol_ids;
+    v_snapshot := v_snapshot || jsonb_build_object('player_rehab_exercises', v_data);
+    EXECUTE 'SELECT COALESCE(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) FROM public.rehab_exercise_logs t WHERE t.player_rehab_protocol_id = ANY($1)'
+      INTO v_data USING v_rehab_protocol_ids;
+    v_snapshot := v_snapshot || jsonb_build_object('rehab_exercise_logs', v_data);
+  END IF;
+
+  -- Per-RTP-protocol
+  IF array_length(v_rtp_protocol_ids, 1) > 0 THEN
+    EXECUTE 'SELECT COALESCE(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) FROM public.rtp_phase_completions t WHERE t.protocol_id = ANY($1)'
+      INTO v_data USING v_rtp_protocol_ids;
+    v_snapshot := v_snapshot || jsonb_build_object('rtp_phase_completions', v_data);
+  END IF;
+
+  -- Per-injury-protocol
+  IF array_length(v_injury_protocol_ids, 1) > 0 THEN
+    EXECUTE 'SELECT COALESCE(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) FROM public.protocol_phases t WHERE t.protocol_id = ANY($1)'
+      INTO v_data USING v_injury_protocol_ids;
+    v_snapshot := v_snapshot || jsonb_build_object('protocol_phases', v_data);
+  END IF;
+  IF array_length(v_protocol_phase_ids, 1) > 0 THEN
+    EXECUTE 'SELECT COALESCE(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) FROM public.protocol_exercises t WHERE t.phase_id = ANY($1)'
+      INTO v_data USING v_protocol_phase_ids;
+    v_snapshot := v_snapshot || jsonb_build_object('protocol_exercises', v_data);
+    EXECUTE 'SELECT COALESCE(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) FROM public.protocol_phase_exercises t WHERE t.phase_id = ANY($1)'
+      INTO v_data USING v_protocol_phase_ids;
+    v_snapshot := v_snapshot || jsonb_build_object('protocol_phase_exercises', v_data);
+  END IF;
+
+  -- Per-bowling-block
+  IF array_length(v_block_ids, 1) > 0 THEN
+    EXECUTE 'SELECT COALESCE(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) FROM public.bowling_training_games t WHERE t.block_id = ANY($1)'
+      INTO v_data USING v_block_ids;
+    v_snapshot := v_snapshot || jsonb_build_object('bowling_training_games', v_data);
+  END IF;
+
+  v_snapshot := v_snapshot || jsonb_build_object('players_count', COALESCE(array_length(v_player_ids, 1), 0));
+  RETURN v_snapshot;
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public._collect_category_payload(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public._collect_category_payload(uuid) TO service_role;
+
+
+CREATE OR REPLACE FUNCTION public.snapshot_category_full(_category_id uuid, _notes text DEFAULT NULL::text)
+ RETURNS json
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_user UUID := auth.uid();
+  v_is_service boolean := (auth.role() = 'service_role');
+  v_snapshot JSONB;
+  v_snapshot_id UUID;
+  v_name TEXT;
+  v_club_id UUID;
+  v_version INTEGER;
+  v_players_count INT;
+BEGIN
+  IF v_user IS NULL AND NOT v_is_service THEN
+    RETURN json_build_object('success', false, 'error', 'Non authentifié');
+  END IF;
+
+  SELECT name, club_id INTO v_name, v_club_id FROM public.categories WHERE id = _category_id;
+  IF v_name IS NULL THEN
+    RETURN json_build_object('success', false, 'error', 'Catégorie introuvable');
+  END IF;
+
+  IF NOT v_is_service THEN
+    IF NOT (public.is_super_admin(v_user) OR public.can_modify_club_data(v_user, v_club_id)) THEN
+      RETURN json_build_object('success', false, 'error', 'Permissions insuffisantes');
+    END IF;
+  END IF;
+
+  v_snapshot := public._collect_category_payload(_category_id);
+  v_snapshot := v_snapshot || jsonb_build_object(
+    'category', (SELECT to_jsonb(c) FROM public.categories c WHERE c.id = _category_id),
+    'snapshot_taken_at', now()
+  );
+  v_players_count := COALESCE((v_snapshot->>'players_count')::int, 0);
+
+  SELECT COALESCE(MAX(version), 0) + 1 INTO v_version
+  FROM public.archived_snapshots
+  WHERE entity_type = 'category' AND entity_id = _category_id;
+
+  INSERT INTO public.archived_snapshots (entity_type, entity_id, club_id, entity_name, snapshot, version, notes, created_by)
+  VALUES ('category', _category_id, v_club_id, v_name, v_snapshot, v_version, _notes, COALESCE(v_user, '00000000-0000-0000-0000-000000000000'::uuid))
+  RETURNING id INTO v_snapshot_id;
+
+  IF v_user IS NOT NULL THEN
+    PERFORM public.log_audit_event('snapshot_category', 'category', _category_id,
+      jsonb_build_object('snapshot_id', v_snapshot_id, 'version', v_version));
+  END IF;
+
+  RETURN json_build_object('success', true, 'snapshot_id', v_snapshot_id, 'version', v_version, 'players_count', v_players_count);
+END;
+$function$;
+
+
+CREATE OR REPLACE FUNCTION public.snapshot_club_full(_club_id uuid, _notes text DEFAULT NULL::text)
+ RETURNS json
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_user uuid := auth.uid();
+  v_is_service boolean := (auth.role() = 'service_role');
+  v_snapshot jsonb;
+  v_cat_payload jsonb;
+  v_snapshot_id uuid;
+  v_name text;
+  v_version integer;
+  v_is_owner boolean;
+  v_is_admin boolean;
+  v_table TEXT;
+  v_data JSONB;
+  v_key TEXT;
+  v_existing JSONB;
+  v_cat_id UUID;
+  v_tables TEXT[] := ARRAY[
+    'categories','clubs','club_members','club_branding','club_invitations',
+    'sports_config','custom_test_categories','test_theme_categories',
+    'injury_library','injury_protocols',
+    'subscription_plans','client_subscriptions',
+    'fis_ranking_settings','fis_points_reference'
+  ];
+BEGIN
+  IF v_user IS NULL AND NOT v_is_service THEN
+    RETURN json_build_object('success', false, 'error', 'Non authentifié');
+  END IF;
+
+  SELECT name INTO v_name FROM public.clubs WHERE id = _club_id;
+  IF v_name IS NULL THEN
+    RETURN json_build_object('success', false, 'error', 'Club introuvable');
+  END IF;
+
+  IF NOT v_is_service THEN
+    SELECT (user_id = v_user) INTO v_is_owner FROM public.clubs WHERE id = _club_id;
+    SELECT EXISTS(
+      SELECT 1 FROM public.club_members
+      WHERE club_id = _club_id AND user_id = v_user AND role IN ('admin','owner')
+    ) INTO v_is_admin;
+    IF NOT (v_is_owner OR v_is_admin OR public.is_super_admin(v_user)) THEN
+      RETURN json_build_object('success', false, 'error', 'Permissions insuffisantes');
+    END IF;
+  END IF;
+
+  v_snapshot := jsonb_build_object(
+    'club', (SELECT to_jsonb(c) FROM public.clubs c WHERE c.id = _club_id),
+    'snapshot_taken_at', now()
+  );
+
+  -- Club-level tables (with club_id)
+  FOREACH v_table IN ARRAY v_tables LOOP
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name=v_table)
+       AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name=v_table AND column_name='club_id') THEN
+      EXECUTE format('SELECT COALESCE(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) FROM public.%I t WHERE t.club_id = $1', v_table)
+        INTO v_data USING _club_id;
+      v_snapshot := v_snapshot || jsonb_build_object(v_table, v_data);
+    END IF;
+  END LOOP;
+
+  -- Merge per-category payloads (full category data, all categories)
+  FOR v_cat_id IN SELECT id FROM public.categories WHERE club_id = _club_id LOOP
+    v_cat_payload := public._collect_category_payload(v_cat_id);
+    FOR v_key IN SELECT jsonb_object_keys(v_cat_payload) LOOP
+      CONTINUE WHEN v_key IN ('player_ids','players_count');
+      v_data := v_cat_payload->v_key;
+      IF jsonb_typeof(v_data) <> 'array' OR jsonb_array_length(v_data) = 0 THEN CONTINUE; END IF;
+      v_existing := COALESCE(v_snapshot->v_key, '[]'::jsonb);
+      v_snapshot := v_snapshot || jsonb_build_object(v_key, v_existing || v_data);
+    END LOOP;
+  END LOOP;
+
+  SELECT COALESCE(MAX(version), 0) + 1 INTO v_version
+  FROM public.archived_snapshots
+  WHERE entity_type = 'club' AND entity_id = _club_id;
+
+  INSERT INTO public.archived_snapshots (entity_type, entity_id, club_id, entity_name, snapshot, version, notes, created_by)
+  VALUES ('club', _club_id, _club_id, v_name, v_snapshot, v_version, _notes, COALESCE(v_user, '00000000-0000-0000-0000-000000000000'::uuid))
+  RETURNING id INTO v_snapshot_id;
+
+  IF v_user IS NOT NULL THEN
+    PERFORM public.log_audit_event('snapshot_club_full', 'club', _club_id,
+      jsonb_build_object('snapshot_id', v_snapshot_id, 'version', v_version));
+  END IF;
+
+  RETURN json_build_object('success', true, 'snapshot_id', v_snapshot_id, 'version', v_version);
+END;
+$function$;
