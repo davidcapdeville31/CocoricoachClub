@@ -1,179 +1,61 @@
+## Objectif
 
-# Filtre saison active — état d'avancement
+Aucune suppression dans l'application ne doit être exécutée sans une confirmation explicite de l'utilisateur. Aujourd'hui, certains boutons "Supprimer" déclenchent l'action immédiatement (comme la suppression d'une catégorie), d'autres ont déjà une `AlertDialog` — c'est incohérent et risqué.
 
-## Règles validées (rappel)
-- **Roster** : exclure les joueurs `season_id ≠ activeSeasonId` (incluant `season_id = null`).
-- **EWMA/AWCR** : calcul sur historique 28j/90j glissants (fetch large), affichage filtré à `[start_date, end_date]`.
-- **Blessures actives** et **records/PB absolus** : restent visibles hors fenêtre. Autres modules santé/académie filtrent dates + roster.
+L'audit du code montre ~166 endroits avec une icône poubelle et ~383 handlers de suppression. Faire passer chacun à la main une fois ne suffira pas : il faut une **règle unique** qui s'applique partout, sinon le problème reviendra à la prochaine fonctionnalité.
 
-## ✅ Implémenté
-- `SeasonRosterFilterProvider` monté sur `CategoryDetails`.
-- Toggle visible sur : Datas, Workload (PerformanceTab), Planification, Académie (AcademicTab + AcademyTab), Santé, Admin, Calendar, AWCR, Decision Center.
-- **Hooks partagés saison-aware** (propagent automatiquement à tous les consommateurs) :
-  - `useTrainingLoad` (mode joueur + équipe) : awcrData, hrvData, gpsData filtrés par
-    `allowedIds` + `isDateInActiveSeason`, scopeKey ajouté au queryKey pour invalider le cache
-    quand le toggle change. Fenêtre 28/90j glissante conservée pour la précision EWMA.
-  - `useCategoryMatches`, `useCategoryPlayers` (analytics équipe) : filtrés roster + dates,
-    scopeKey dans queryKey.
-  - `useSeasonFilteredPlayerIds` : enabled uniquement si toggle ON (clé varie naturellement).
-- **Filtres dates + roster appliqués directement** :
-  - `CalendarTab` (sessions, matches, weekly planning)
-  - `AwcrTab` (rows filtrés par allowedIds + isDateInActiveSeason)
-  - `AcademicTab` (players, grades, absences)
-  - `AcademyTab` (players selector, academicData)
-  - `InjuriesTab` (raw injuries via keepPlayer)
-  - `DecisionCenter` :
-    - `players` → filtré (cascade sur GroupStatus, alertes, dialogs)
-    - `injuries`, `illnesses` → keepPlayer
-    - `awcrDataFull` → keepPlayer (90j glissant conservé pour EWMA)
-    - `wellnessData` → keepPlayer + isDateInActiveSeason
-    - `todaySessions`, `tomorrowSessions` → vidés si hors fenêtre
-    - `todayAttendance`, `todaySessionParticipants`, `todayRpeData` → keepPlayer + dates
-    - `expiredDocs`, `upcomingMatches` → keepPlayer + dates
-- **Mutations gardées par `useSeasonGuard(categoryId)`** (`src/hooks/use-season-guard.ts`) :
-  - `assertPlayer(id)` / `assertPlayers([])` / `assertDate(date)` rejettent avec toast.
-  - Appliqué sur `AcademyTab` (addAcademicGrade, updateAcademicGrade, addAbsence).
-  - Pattern réutilisable pour toutes les autres mutations.
-- **Cache React Query** : les requêtes critiques ont un `scopeKey` dérivé de
-  `activeSeasonOnly + activeSeasonEnd` dans leur queryKey → bascule = invalidation auto.
-  Pour les filtres post-fetch via `useMemo`, la même cache est partagée mais le rendu
-  est recalculé instantanément quand le toggle change.
+## Approche : un composant unique réutilisable + passes de migration
 
-## 🔧 Reste à faire (passes ciblées)
-- **Datas children** : ✅ filtre appliqué dans `PlayerCumulativeStats`,
-  `BowlingCumulativeStats`, `BowlingTrainingStats`, `TennisTrainingStats`,
-  `BasketballPrecisionTracker`, `PrecisionFieldTracker`, `PrecisionTrainingStats`,
-  `AthleticsThrowingStats`, `AthleticsSprintStats` (roster + date + scopeKey
-  embarqués dans queryKey).
-  `TeamSportsAnalytics` bénéficie déjà via les hooks partagés ; vérifier les onglets
-  enfants (`GeneralTab`, `CompareTab`, `PlayerStatsTab`, `HistoryTab`) pour les fetches
-  directs hors hooks partagés.
-- **Workload children** : `TrainingLoadTab` et ses sous-composants sont alimentés par
-  `useTrainingLoad` → déjà filtrés.
-  ✅ `AvailabilityScoreTab`, `InjuryRiskPrediction`, `TonnageDashboard`,
-  `PerformanceEvolution` filtrent désormais roster + dates + scopeKey.
-  Reste : `PendingWeightLogsValidation`, `PendingTestResultsValidation`.
-- **Planification / Ski + Athlétisme** : `FisRankingTab`, `AthleticsRecordsTab` →
-  filtrer joueurs ; records absolus (PB) restent visibles, SB de la saison se contente du roster.
-- **Santé children** : `CoachDashboard`, `MedicalRecordsTab`, `WellnessTab`,
-  `ActiveProtocolsDashboard`, `ConcussionProtocolTab`, `InjuryStatsPanel`,
-  `WellnessPainStats`, `InjuryRiskAssessment` → vérifier filtres roster+dates
-  (sauf blessures actives → toujours visibles). Ajouter `useSeasonGuard` sur dialogs
-  d'ajout blessure / maladie / wellness / record / test.
-- **Admin** : `RecruitmentPipeline`, `MatchSheets`, `ConvocationsList`,
-  documents personnels → filtrer joueurs + dates (les prospects de recrutement
-  n'ont pas de season_id, garder visibles).
-- **Académie / Stats** : `AcademicStatsSection` → consommer roster+dates filtrés.
-- **Sélecteurs joueurs partagés** : `PlayerSelection`, `PlayerSelector`,
-  `AthleteSelector`, `MultiPlayerCheckbox` → lire le contexte saison directement
-  ou ajouter prop `respectSeasonFilter` (défaut `true`). Notification visuelle quand
-  un joueur préalablement sélectionné devient inéligible.
-- **Garde-fous mutations restants** : appliquer `useSeasonGuard` sur tous les
-  dialogs d'ajout/modification (session, RPE, wellness, blessure, record, test,
-  compétition, document, convocation, recrutement, GPS objective).
-- **Compteurs / badges** (`usePendingWeightLogsCount`, `usePendingTestResultsCount`,
-  `useUnreadAthleteSessionsCount`, `useUnreadMessages`) → variante saison-aware si besoin.
+### 1. Composant `<ConfirmDeleteButton />` (nouveau, central)
 
+Un seul composant qui remplace tous les boutons de suppression de l'app. Il encapsule :
 
+- Le bouton (icône poubelle ou texte "Supprimer", variant configurable)
+- Une `AlertDialog` shadcn intégrée
+- Un titre + message personnalisables ("Supprimer la catégorie EDF U19 ?", "Cette action est définitive et supprimera aussi X joueurs, Y séances...")
+- Un champ optionnel "Tapez le nom pour confirmer" pour les suppressions **critiques** (catégorie, club, joueur, saison) — l'utilisateur doit retaper le nom exact avant que le bouton rouge ne s'active
+- Un état `loading` pendant l'appel API
+- Un toast de succès / erreur automatique
 
-## Clôture / Export bilan saison (lot dédié, non démarré)
-Voir spécification précédente du plan — à implémenter dans `SeasonsManager`
-(bouton "Clôturer & exporter bilan", PDF jspdf + Excel exceljs, log audit).
+Niveaux de criticité :
+- `low` : simple "Confirmer ?" (ex. supprimer un exercice perso, un tag)
+- `medium` : confirmation + description des conséquences (ex. supprimer une séance, un test)
+- `high` : confirmation + saisie du nom exact (ex. catégorie, club, saison, joueur, structure)
 
+### 2. Hook `useDeleteWithConfirm`
 
+Pour les cas où le déclencheur n'est pas un simple bouton (menu contextuel, swipe mobile, action depuis un tableau). Même logique, même UI, juste appelable programmatiquement.
 
+### 3. Migration du code existant
 
-Objectif : quand le toggle **« Saison active uniquement »** est ON, tous les dashboards collectifs (Datas, Workload, Planification, Académie, Admin) ne montrent que les athlètes de la saison active **et** uniquement les données entre `start_date` et `end_date`. Les profils athlètes gardent leur historique complet. Ajout d'une action **Clôturer / Exporter bilan** dans Admin club › Saisons.
+Passe automatisée + revue manuelle, par domaine fonctionnel, dans cet ordre de priorité :
 
----
+1. **Critique (high)** : `categories`, `clubs`, `seasons`, `players`, structures, comptes utilisateurs → toujours avec saisie du nom
+2. **Élevé (medium)** : séances, programmes, compétitions, tournois, tests, blessures, documents administratifs, fiches de match
+3. **Standard (low)** : exercices perso, tags, notes, messages, pièces jointes, photos, options de sondage
 
-## 1. Datas — corriger le filtre actuel
+Les `AlertDialog` déjà en place sont conservées mais réécrites pour utiliser le nouveau composant, afin que tout passe par le même chemin (titre, ton, bouton rouge, raccourcis clavier Esc/Entrée identiques partout).
 
-Le toggle existe déjà (`SeasonRosterFilterToggle` dans `DatasTab.tsx`) mais les composants enfants ignorent `useSeasonFilteredPlayerIds` + la fenêtre de dates.
+### 4. Garde-fou côté base
 
-À patcher pour filtrer **et** par roster **et** par dates :
-- `PlayerCumulativeStats`, `TeamSportsAnalytics`
-- `BowlingCumulativeStats`, `BowlingTrainingStats`
-- `TennisTrainingStats`, `BasketballPrecisionTracker`
-- `PrecisionFieldTracker`, `PrecisionTrainingStats`
-- `AthleticsThrowingStats`, `AthleticsSprintStats`
+En complément (et sans bloquer la livraison UI) :
+- Ajout d'un **log d'audit obligatoire** sur les suppressions sensibles via triggers Postgres (`categories`, `clubs`, `players`, `seasons`, `training_sessions`, `matches`, `programs`). Chaque DELETE écrit dans `audit_logs` qui a supprimé, quoi, et un snapshot JSON de la ligne — pour pouvoir au minimum savoir **qui** a fait quoi, même si la donnée n'est plus restaurable.
+- Optionnel (étape suivante, à valider) : passer les entités les plus critiques (catégories, joueurs, saisons) en **soft delete** avec une corbeille "Restaurer (30 j)".
 
-Pattern unique appliqué à chaque hook de fetch :
-- intersecter `playerId` avec `allowedIds` (via `useSeasonFilteredPlayerIds`)
-- filtrer la requête `match_date / session_date / created_at` avec `isDateInActiveSeason` (ou clause `.gte/.lte` côté Supabase quand possible)
+## Livrables de cette première itération
 
-## 2. Workload — ajouter le toggle + filtre
+1. `src/components/ui/confirm-delete-button.tsx` + `src/hooks/use-delete-with-confirm.ts`
+2. Migration des suppressions **critiques + élevées** (catégories, clubs, saisons, joueurs, séances, programmes, compétitions, tests, blessures, documents)
+3. Trigger Postgres `log_sensitive_deletes` sur les 7 tables sensibles, écrivant dans `audit_logs`
+4. Memory de projet : règle "toute suppression passe par `ConfirmDeleteButton`" pour que les futures features la respectent automatiquement
 
-- Monter `<SeasonRosterFilterToggle />` en haut de `WorkloadTab` (alignement droite identique à Datas).
-- S'assurer que le `SeasonRosterFilterProvider` enveloppe déjà la page catégorie (sinon l'ajouter au layout).
-- Appliquer `useSeasonFilteredPlayerIds` + `isDateInActiveSeason` sur tous les hooks workload (RPE, EWMA/ACWR, tonnage, GPS, charts collectifs).
+Les suppressions "standard" (tags, notes, options, etc.) seront migrées dans une 2ᵉ itération pour ne pas livrer un changement trop large d'un coup.
 
-## 3. Planification — masquer hors fenêtre
+## Hors scope (pour plus tard, à valider séparément)
 
-- Ajouter `<SeasonRosterFilterToggle />` dans `PlanificationTab`.
-- Dans `CalendarTab` : filtrer sessions, compétitions, événements via `isDateInActiveSeason(event.start)` quand ON.
-- Filtrer aussi le roster des sélecteurs d'athlètes (`allowedIds`).
-- Pour Ski (FIS/WSPL) et Athlétisme (records) : appliquer la fenêtre de dates et le roster aux requêtes correspondantes.
+- Soft delete + corbeille avec restauration en 1 clic
+- Restauration de la catégorie EDF U19 supprimée (impossible techniquement — donnée perdue, voir échange précédent)
 
-## 4. Académie — ajouter le filtre
+## Note technique
 
-- Ajouter `<SeasonRosterFilterToggle />` dans `AcademyTab`.
-- Filtrer notes, absences, retards, moyennes par `allowedIds` + `isDateInActiveSeason(date)`.
-
-## 5. Admin (Administratif) — ajouter le filtre
-
-- Ajouter `<SeasonRosterFilterToggle />` dans `AdministratifTab`.
-- Filtrer pipeline recrutement, documents personnels, feuilles de match, etc. par roster + dates de saison.
-
-## 6. Clôture / Export bilan saison (Admin club › Saisons)
-
-Dans `SeasonsManager` (ou équivalent) :
-- Ajouter un bouton **« Clôturer & exporter bilan »** par saison.
-- Modal de confirmation listant ce qui sera inclus.
-- Génération **PDF complet** (jspdf + autoTable, comme les exports existants) :
-  - Page de garde : club, saison, dates, effectif
-  - Section globale effectif : RPE moyen, charge cumulée, blessures, dispo, présences
-  - Une section par athlète : identité, présences, charge (EWMA/ACWR), tests/PB, tonnage, blessures, compétitions
-- Génération **Excel multi-onglets** (`exceljs` + helpers `excelExport.ts`) :
-  - Onglets : Résumé, Effectif, RPE/Wellness, Tests, Tonnage, Compétitions, Blessures, Présences, Académie
-- **Aucune suppression** de données : la clôture met seulement `is_active=false` sur la saison (déjà géré) + log un événement `season_closed` dans `audit_events` avec lien vers le PDF.
-- Conserver les historiques individuels intacts (déjà le cas — pas de cascade delete).
-
-## 7. Historiques athlètes — vérification
-
-Le filtre saison ne doit jamais s'appliquer dans **`PlayerProfile`** et ses sous-onglets (blessures, programmation, tests, biométrie, etc.). Le `SeasonRosterFilterProvider` n'est pas monté sur ces routes — confirmer et ajouter un commentaire de garde si besoin.
-
----
-
-## Détails techniques
-
-- `SeasonRosterFilterContext` expose déjà `isDateInActiveSeason()` et `matches()` → réutilisés partout.
-- `useSeasonFilteredPlayerIds(categoryId)` renvoie `allowedIds: Set<string> | null`. Pattern d'usage côté hook :
-  ```ts
-  const { allowedIds } = useSeasonFilteredPlayerIds(categoryId);
-  const filtered = useMemo(
-    () => rows.filter(r => (!allowedIds || allowedIds.has(r.player_id)) && isDateInActiveSeason(r.date)),
-    [rows, allowedIds, isDateInActiveSeason],
-  );
-  ```
-- Pour les requêtes Supabase volumineuses, préférer un filtre **côté SQL** avec `.gte('date', activeSeasonStart).lte('date', activeSeasonEnd)` quand le toggle est ON, sinon pas de clause.
-- Export PDF/Excel : nouveau module `src/lib/seasonReport/` avec `buildSeasonPdf.ts` et `buildSeasonXlsx.ts`, branché depuis le bouton dans `SeasonsManager`.
-
----
-
-## Périmètre exclu (ne change pas)
-
-- Profils athlètes individuels : aucun filtre saison appliqué.
-- Datas spécifiques par sport (sauf branchement du filtre) : pas de refonte métier.
-- Clôture : `is_active` reste géré comme aujourd'hui, on ajoute juste l'export + un événement d'audit.
-
-Confirme-moi ce plan (ou indique les parties à élaguer / prioriser) et je l'implémente.
-
-## Phase 3 — useSeasonGuard on write dialogs (done)
-- Santé: AddInjuryDialog, EditInjuryDialog, AddIllnessDialog, EditIllnessDialog, AddWellnessDialog
-- Séances/RPE/Présences/Feedback: AddSessionDialog, EditSessionDialog, SessionAttendanceDialog, PostSessionRpeDialog, QuickRpeEntryDialog, QuickTeamRpeDialog, MatchRpeDialog, SessionFeedbackDialog
-- Tests: AddStrengthTestDialog, UnifiedTestDialog, ScheduleTestDialog, ScheduleBatteryDialog, QuickTestEntryDialog
-- Compétitions: AddTournamentDialog, EditMatchDialog, AddMultipleCompetitionsDialog, AddFisResultDialog
-- Admin: ConvocationsSection, DocumentsSection
-
-Pattern: assertPlayer/assertPlayers/assertDate throw guard:* sentinels that onError ignores (toast already shown by guard).
+Le composant s'appuie sur `AlertDialog` shadcn déjà présent, sur le design system existant (`destructive` variant, tokens sémantiques) et n'introduit aucune dépendance nouvelle. Les triggers Postgres utilisent `auth.uid()` et `row_to_json(OLD)` — pattern déjà utilisé ailleurs dans le projet.
