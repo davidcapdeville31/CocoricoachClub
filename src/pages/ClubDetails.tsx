@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus, Trash2, ChevronRight, Users, Pencil, Check, X, LogOut } from "lucide-react";
+import { ArrowLeft, Plus, ChevronRight, Users, Pencil, Check, X, LogOut } from "lucide-react";
+import { ConfirmDeleteButton } from "@/components/ui/confirm-delete-button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -284,19 +285,15 @@ function ClubDetailsContent() {
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 opacity-100 sm:opacity-70 sm:hover:opacity-100"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (confirm(`Êtes-vous sûr de vouloir supprimer ${category.name} ?`)) {
-                            deleteCategory.mutate(category.id);
-                          }
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      <ConfirmDeleteButton
+                        severity="high"
+                        entityKind="la catégorie"
+                        entityName={category.name}
+                        description="Tous les joueurs, séances, programmes, statistiques et invitations rattachés à cette catégorie seront définitivement perdus. Cette action est irréversible."
+                        successToast="Catégorie supprimée"
+                        onConfirm={() => deleteCategory.mutateAsync(category.id)}
+                        triggerClassName="h-8 w-8 opacity-100 sm:opacity-70 sm:hover:opacity-100"
+                      />
                     </>
                   )}
                   {!isEditing && <ChevronRight className="h-5 w-5 text-muted-foreground" />}
