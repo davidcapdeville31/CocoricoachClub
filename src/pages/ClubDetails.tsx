@@ -290,7 +290,7 @@ function ClubDetailsContent() {
                         entityKind="la catégorie"
                         entityName={category.name}
                         description="Tous les joueurs, séances, programmes, statistiques et invitations rattachés à cette catégorie seront définitivement perdus. Cette action est irréversible."
-                        successToast="Catégorie supprimée"
+                        successToast={null}
                         onConfirm={() => deleteCategory.mutateAsync(category.id)}
                         triggerClassName="h-8 w-8 opacity-100 sm:opacity-70 sm:hover:opacity-100"
                       />
