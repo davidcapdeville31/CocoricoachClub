@@ -541,19 +541,27 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
         }
       });
 
-      const injuredPlayers = injuries
-        .filter(i => i.status === "active")
-        .map(i => {
-          const p = players.find(pl => pl.id === i.player_id);
-          return { id: i.player_id, name: p ? getFullName(p) : "Inconnu" };
-        });
+      // Group injuries by player (avoid duplicate rows when one athlete has multiple injuries)
+      const activeInjuriesByPlayer = new Map<string, number>();
+      injuries.filter(i => i.status === "active").forEach(i => {
+        activeInjuriesByPlayer.set(i.player_id, (activeInjuriesByPlayer.get(i.player_id) || 0) + 1);
+      });
+      const recoveringInjuriesByPlayer = new Map<string, number>();
+      injuries.filter(i => i.status === "recovering").forEach(i => {
+        // If a player has at least one active injury, prioritize the "Blessé" bucket
+        if (activeInjuriesByPlayer.has(i.player_id)) return;
+        recoveringInjuriesByPlayer.set(i.player_id, (recoveringInjuriesByPlayer.get(i.player_id) || 0) + 1);
+      });
 
-      const uncertainPlayers = injuries
-        .filter(i => i.status === "recovering")
-        .map(i => {
-          const p = players.find(pl => pl.id === i.player_id);
-          return { id: i.player_id, name: p ? getFullName(p) : "Inconnu" };
-        });
+      const injuredPlayers = Array.from(activeInjuriesByPlayer.entries()).map(([pid, count]) => {
+        const p = players.find(pl => pl.id === pid);
+        return { id: pid, name: p ? getFullName(p) : "Inconnu", injuryCount: count };
+      });
+
+      const uncertainPlayers = Array.from(recoveringInjuriesByPlayer.entries()).map(([pid, count]) => {
+        const p = players.find(pl => pl.id === pid);
+        return { id: pid, name: p ? getFullName(p) : "Inconnu", injuryCount: count };
+      });
 
       const sickPlayers = illnesses
         .filter((i: any) => i.status === "active")
@@ -562,12 +570,12 @@ import { useSeasonFilteredPlayerIds } from "@/hooks/use-season-filtered-players"
           return { id: i.player_id, name: p ? getFullName(p) : "Inconnu", illness: i.illness_type };
         });
 
-      const injured = injuredPlayerIds.size;
-      const uncertain = uncertainPlayerIds.size;
+      const injured = injuredPlayers.length;
+      const uncertain = uncertainPlayers.length;
       const sick = sickPlayerIds.size;
       const atRisk = atRiskPlayersList.length;
       // Count unique unavailable players (avoid double-counting if injured + sick)
-      const unavailableIds = new Set<string>([...injuredPlayerIds, ...uncertainPlayerIds, ...sickPlayerIds]);
+      const unavailableIds = new Set<string>([...injuredPlayers.map(p => p.id), ...uncertainPlayers.map(p => p.id), ...sickPlayerIds]);
       const available = total - unavailableIds.size;
   
       return { total, available, atRisk, injured, uncertain, sick, atRiskPlayers: atRiskPlayersList, injuredPlayers, uncertainPlayers, sickPlayers };
